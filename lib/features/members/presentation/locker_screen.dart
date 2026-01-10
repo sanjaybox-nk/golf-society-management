@@ -86,18 +86,11 @@ class LockerScreen extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.tertiary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -105,10 +98,10 @@ class LockerScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           'Current Handicap',
                           style: TextStyle(
-                            color: Colors.white70,
+                            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -116,8 +109,8 @@ class LockerScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           user.handicap.toStringAsFixed(1),
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
                           ),
@@ -254,7 +247,7 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface),
           const SizedBox(height: 8),
           Text(
             value,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_shadows.dart';
 import '../../../models/golf_event.dart';
 import 'events_provider.dart';
 
@@ -90,79 +91,91 @@ class _EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          // TODO: Navigate to event details
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Date Badge
-              _DateBadge(date: event.date),
-              const SizedBox(width: 16),
-              
-              // Event Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
+    return Container(
+      margin: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: AppShadows.softScale,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              // TODO: Navigate to event details
+            },
+            borderRadius: BorderRadius.circular(30),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date Badge
+                  _DateBadge(date: event.date),
+                  const SizedBox(width: 16),
+                  
+                  // Event Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.primary),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            event.location,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey[700],
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Text(
+                          event.title,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                event.location,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey[700],
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tee-off: ${DateFormat('h:mm a').format(event.teeOffTime ?? event.date)}',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Tee-off: ${DateFormat('h:mm a').format(event.teeOffTime ?? event.date)}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(width: 8),
+                  ),
+                  
+                  const SizedBox(width: 8),
 
-              // Action / Arrow
-              Column(
-                children: [
-                  if (isUpcoming)
-                    Chip(
-                      label: const Text('Register'),
-                      labelStyle: const TextStyle(fontSize: 12),
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    )
-                  else
-                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  // Action / Arrow
+                  Column(
+                    children: [
+                      if (isUpcoming)
+                        Theme(
+                          data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+                          child: const Chip(
+                            label: Text('Register'),
+                            labelStyle: TextStyle(fontSize: 12, color: Colors.white),
+                            backgroundColor: Colors.black, // BoxyArt style: Black chip
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        )
+                      else
+                        const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),

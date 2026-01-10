@@ -162,14 +162,7 @@ class _NextMatchCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: Theme.of(context).colorScheme.primary,
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -177,13 +170,13 @@ class _NextMatchCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.golf_course, color: Colors.white, size: 32),
+                  Icon(Icons.golf_course, color: Theme.of(context).colorScheme.onPrimary, size: 32),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       event.title,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -191,14 +184,16 @@ class _NextMatchCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.location_on, event.location),
+              _buildInfoRow(context, Icons.location_on, event.location),
               const SizedBox(height: 8),
               _buildInfoRow(
+                context,
                 Icons.calendar_today, 
                 DateFormat('EEEE, MMMM d, y').format(event.date),
               ),
               const SizedBox(height: 8),
               _buildInfoRow(
+                context,
                 Icons.access_time, 
                 'Tee-off: ${DateFormat('h:mm a').format(event.teeOffTime ?? event.date)}',
               ),
@@ -208,9 +203,10 @@ class _NextMatchCard extends StatelessWidget {
                   context.go('/events');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Colors.black, // Secondary color
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 48),
+                  shape: const StadiumBorder(),
                 ),
                 child: const Text('View Details'),
               ),
@@ -221,16 +217,16 @@ class _NextMatchCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white70, size: 18),
+        Icon(icon, color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7), size: 18),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
               fontSize: 14,
             ),
           ),

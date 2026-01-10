@@ -22,9 +22,11 @@ class MembersScreen extends ConsumerWidget {
               hintText: 'Search members...',
               leading: const Icon(Icons.search, color: Colors.grey),
               elevation: WidgetStateProperty.all(0),
-              backgroundColor: WidgetStateProperty.all(
-                Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              ),
+              backgroundColor: WidgetStateProperty.all(Colors.white),
+              shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+                side: BorderSide(color: Colors.grey.shade300),
+              )),
               onChanged: (value) {
                 ref.read(memberSearchQueryProvider.notifier).update(value);
               },
