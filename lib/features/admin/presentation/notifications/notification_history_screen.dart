@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/core/theme/app_theme.dart';
-import 'package:golf_society/models/notification.dart';
+import 'package:golf_society/models/campaign.dart';
 import 'package:intl/intl.dart';
 import 'admin_notifications_provider.dart';
 
@@ -100,22 +100,22 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     );
   }
 
-  Widget _buildGroupedList(List<AppNotification> notifications) {
+  Widget _buildGroupedList(List<Campaign> campaigns) {
     if (_groupBy == 'None') {
       return ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: notifications.length,
-        itemBuilder: (context, index) => _HistoryCard(notification: notifications[index]),
+        itemCount: campaigns.length,
+        itemBuilder: (context, index) => _HistoryCard(campaign: campaigns[index]),
       );
     }
 
     // Group Logic
-    Map<String, List<AppNotification>> groups = {};
-    for (var n in notifications) {
+    Map<String, List<Campaign>> groups = {};
+    for (var c in campaigns) {
       String key = '';
       if (_groupBy == 'Date') {
         final now = DateTime.now();
-        final diff = now.difference(n.timestamp).inDays;
+        final diff = now.difference(c.timestamp).inDays;
         if (diff == 0) {
           key = 'Today';
         } else if (diff == 1) {
@@ -126,11 +126,11 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
           key = 'Older';
         }
       } else {
-        key = n.category;
+        key = c.category;
       }
       
       if (!groups.containsKey(key)) groups[key] = [];
-      groups[key]!.add(n);
+      groups[key]!.add(c);
     }
 
     final sortedKeys = groups.keys.toList(); 
@@ -159,7 +159,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                 ),
               ),
             ),
-            ...groupItems.map((n) => _HistoryCard(notification: n)),
+            ...groupItems.map((c) => _HistoryCard(campaign: c)),
           ],
         );
       },
@@ -198,21 +198,22 @@ class _GroupChip extends StatelessWidget {
 }
 
 class _HistoryCard extends StatelessWidget {
-  final AppNotification notification;
-  const _HistoryCard({required this.notification});
+  final Campaign campaign;
+  const _HistoryCard({required this.campaign});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: BoxyArtFloatingCard(
+        onTap: () => _showCampaignDetails(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(parseDate(notification.timestamp), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                Text(parseDate(campaign.timestamp), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -220,23 +221,97 @@ class _HistoryCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    notification.category,
+                    campaign.category,
                     style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(notification.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Row(
+              children: [
+                Expanded(child: Text(campaign.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+                if (campaign.recipientCount > 0) ...[
+                  const SizedBox(width: 8),
+                  Icon(Icons.people, size: 14, color: Colors.grey.shade400),
+                  const SizedBox(width: 4),
+                  Text('${campaign.recipientCount}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                ],
+              ],
+            ),
             const SizedBox(height: 4),
-            Text(notification.message, style: TextStyle(color: Colors.grey.shade700, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(campaign.message, style: TextStyle(color: Colors.grey.shade700, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
     );
   }
   
+  void _showCampaignDetails(BuildContext context) {
+    showBoxyArtDialog(
+      context: context,
+      title: 'Campaign Details',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _DetailRow(label: 'Sent To', value: '${campaign.targetType} (${campaign.recipientCount} recipients)'),
+          if (campaign.targetDescription != null) 
+             _DetailRow(label: 'Target', value: campaign.targetDescription!),
+          const SizedBox(height: 12),
+          _DetailRow(label: 'Category', value: campaign.category),
+          _DetailRow(label: 'Date', value: parseDate(campaign.timestamp)),
+          const SizedBox(height: 16),
+          const Text('Message:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+               color: Colors.grey.shade100,
+               borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(campaign.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(campaign.message),
+              ],
+            ),
+          ),
+          if (campaign.actionUrl != null) ...[
+             const SizedBox(height: 12),
+             _DetailRow(label: 'Action', value: campaign.actionUrl!),
+          ],
+        ],
+      ),
+      confirmText: 'Type to Send Again', // Future feature maybe?
+      onConfirm: () => Navigator.pop(context), 
+    );
+  }
+  
   String parseDate(DateTime d) {
     return DateFormat('MMM d, h:mm a').format(d);
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 80, child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
+    );
   }
 }

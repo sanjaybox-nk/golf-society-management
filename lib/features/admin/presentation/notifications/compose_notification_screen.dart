@@ -7,6 +7,7 @@ import 'package:golf_society/features/members/presentation/members_provider.dart
 import 'package:golf_society/models/member.dart';
 import 'distribution_list_provider.dart';
 import 'package:golf_society/models/distribution_list.dart';
+import 'package:golf_society/models/campaign.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ComposeNotificationScreen extends ConsumerStatefulWidget {
@@ -77,23 +78,75 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       onConfirm: () async {
         Navigator.pop(context);
         
-        // Write to Firestore using the repository
+        final firestore = FirebaseFirestore.instance;
+        final batch = firestore.batch();
+        
+        // 1. Identify Recipients
+        List<String> recipientIds = [];
+        String targetDesc = '';
+
+        if (_targetType == 'All Members') {
+          recipientIds = members.map((m) => m.id).toList();
+          targetDesc = 'All Members';
+        } else if (_targetType == 'Groups') {
+          if (_selectedCustomList != null) {
+             recipientIds = _selectedCustomList!.memberIds;
+             targetDesc = _selectedCustomList!.name;
+          }
+        } else if (_targetType == 'Individual') {
+           if (_selectedMember != null) {
+             recipientIds = [_selectedMember!.id];
+             targetDesc = '${_selectedMember!.firstName} ${_selectedMember!.lastName}';
+           }
+        }
+
+        if (recipientIds.isEmpty) {
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No recipients found.')));
+           return;
+        }
+
         try {
-          // Note: Using 'current_user_id' as recipient for testing purposes
-          // In a real app, we would loop through 'members' and create a doc for each
-          await FirebaseFirestore.instance.collection('notifications').add({
-              'recipientId': 'current_user_id', // Target for our test user
+          // 2. Create Campaign Doc (The "Blast" Record)
+          final campaignRef = firestore.collection('campaigns').doc();
+          final timestamp = FieldValue.serverTimestamp();
+          
+          final campaignData = {
+              'id': campaignRef.id,
               'title': _titleController.text,
               'message': _bodyController.text,
               'category': _category,
-              'timestamp': FieldValue.serverTimestamp(),
-              'isRead': false,
+              'targetType': _targetType,
+              'targetDescription': targetDesc,
+              'recipientCount': recipientIds.length,
+              'timestamp': timestamp,
               'actionUrl': _deepLinkAction,
-          });
+              'sentByUserId': 'admin_console', // Placeholder until Auth
+          };
+          batch.set(campaignRef, campaignData);
+
+          // 3. Fan-out: Create Notification Doc for each user
+          for (final userId in recipientIds) {
+             final notifRef = firestore.collection('notifications').doc();
+             batch.set(notifRef, {
+                 'id': notifRef.id,
+                 'recipientId': userId,
+                 'campaignId': campaignRef.id, // Link back to campaign
+                 'title': _titleController.text,
+                 'message': _bodyController.text,
+                 'category': _category,
+                 'timestamp': timestamp,
+                 'isRead': false,
+                 'actionUrl': _deepLinkAction,
+             });
+          }
+
+          // 4. Commit (Simple batch for now, assuming <500 recipients)
+          // If >500, we would need to chunk this loop.
+          await batch.commit();
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Notification sent successfully!')),
+              SnackBar(content: Text('Sent to ${recipientIds.length} members successfully!')),
             );
             
             if (widget.isTabbed) {
