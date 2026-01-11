@@ -187,22 +187,13 @@ class _SimpleBadge extends StatelessWidget {
         child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
       confirmDismiss: (direction) async {
-        return await showDialog(
+        return await showBoxyArtDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Delete Member?'),
-            content: Text('Delete ${member.firstName} ${member.lastName}?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Delete', style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
+          title: 'Delete Member?',
+          message: 'Delete ${member.firstName} ${member.lastName}?',
+          onCancel: () => Navigator.of(context).pop(false),
+          onConfirm: () => Navigator.of(context).pop(true),
+          confirmText: 'Delete',
         );
       },
       onDismissed: (direction) {

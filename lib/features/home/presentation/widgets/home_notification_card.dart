@@ -104,19 +104,10 @@ class HomeNotificationCard extends StatelessWidget {
       // In a real app, use GoRouter or a deep link handler
       // context.push(notification.actionUrl!);
     } else {
-      showDialog(
+      showBoxyArtDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(notification.title),
-          content: Text(notification.message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
+        title: notification.title,
+        message: notification.message,
       );
     }
   }

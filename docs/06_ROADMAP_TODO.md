@@ -34,6 +34,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Notification Inbox**: History view for all society alerts.
     - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.
     - [x] **Audience Manager**: Custom distribution list creation and management.
+    - [x] **Notification History (Admin)**: Searchable archive of sent society alerts.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**

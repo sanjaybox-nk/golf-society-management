@@ -14,90 +14,95 @@ class MemberHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Top 2 unread notifications
-    final allNotifications = ref.watch(homeNotificationsProvider);
-    final unreadNotifications = allNotifications
-        .where((n) => !n.isRead)
-        .toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
-    final homeNotifications = unreadNotifications.take(2).toList();
+    final notificationsAsync = ref.watch(homeNotificationsProvider);
     
     final nextMatch = ref.watch(homeNextMatchProvider);
     final topPlayers = ref.watch(homeLeaderboardProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7), // Match provided aesthetic
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
-          SliverAppBar(
-            floating: true,
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: false,
-            title: const Text(
-              'Golf Society',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.black54),
-                tooltip: 'Admin Console',
-                onPressed: () => context.push('/admin'),
-              ),
-              IconButton(
-                icon: Badge(
-                  label: Text('${unreadNotifications.length}'),
-                  isLabelVisible: unreadNotifications.isNotEmpty,
-                  child: const Icon(Icons.notifications_outlined, color: Colors.black54),
+      body: notificationsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (allNotifications) {
+          final unreadNotifications = allNotifications
+              .where((n) => !n.isRead)
+              .toList()
+            ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          
+          final homeNotifications = unreadNotifications.take(2).toList();
+          
+          return CustomScrollView(
+            slivers: [
+              // App Bar
+              SliverAppBar(
+                floating: true,
+                backgroundColor: Colors.white,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: false,
+                title: const Text(
+                  'Golf Society',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
                 ),
-                onPressed: () => context.push('/home/notifications'),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-
-          // Content
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Notifications Section (Dynamic)
-                if (homeNotifications.isNotEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildSectionHeader(context, 'Notifications'),
-                      TextButton(
-                        onPressed: () => context.push('/home/notifications'),
-                        child: const Text('View All', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.black54),
+                    tooltip: 'Admin Console',
+                    onPressed: () => context.push('/admin'),
                   ),
-                  const SizedBox(height: 8),
-                  ...homeNotifications.map((n) => HomeNotificationCard(notification: n)),
-                  const SizedBox(height: 24),
+                  IconButton(
+                    icon: Badge(
+                      label: Text('${unreadNotifications.length}'),
+                      isLabelVisible: unreadNotifications.isNotEmpty,
+                      child: const Icon(Icons.notifications_outlined, color: Colors.black54),
+                    ),
+                    onPressed: () => context.push('/home/notifications'),
+                  ),
+                  const SizedBox(width: 8),
                 ],
-
-                // Next Match Hero Card
-                _buildSectionHeader(context, 'Next Match'),
-                const SizedBox(height: 12),
-                nextMatch.when(
-                  data: (event) {
-                    if (event == null) {
-                      return const Card(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text('No upcoming matches scheduled.'),
-                        ),
-                      );
-                    }
-                    return _NextMatchCard(event: event);
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Text('Error: $err'),
-                ),
+              ),
+    
+              // Content
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    // Notifications Section (Dynamic)
+                    if (homeNotifications.isNotEmpty) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSectionHeader(context, 'Notifications'),
+                          TextButton(
+                            onPressed: () => context.push('/home/notifications'),
+                            child: const Text('View All', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...homeNotifications.map((n) => HomeNotificationCard(notification: n)),
+                      const SizedBox(height: 24),
+                    ],
+    
+                    // Next Match Hero Card
+                    _buildSectionHeader(context, 'Next Match'),
+                    const SizedBox(height: 12),
+                    nextMatch.when(
+                      data: (event) {
+                        if (event == null) {
+                          return const Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('No upcoming matches scheduled.'),
+                            ),
+                          );
+                        }
+                        return _NextMatchCard(event: event);
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Text('Error: $err'),
+                    ),
                 const SizedBox(height: 24),
 
                 // Leaderboard Snippet
@@ -109,6 +114,8 @@ class MemberHomeScreen extends ConsumerWidget {
             ),
           ),
         ],
+          );
+        },
       ),
     );
   }

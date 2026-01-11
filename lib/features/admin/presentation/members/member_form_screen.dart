@@ -360,24 +360,29 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
 
   void _showCustomRoleDialog() {
     final controller = TextEditingController();
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New Role'),
-        content: TextField(controller: controller, decoration: const InputDecoration(labelText: 'Role Title'), textCapitalization: TextCapitalization.words),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                 setState(() => _societyRole = controller.text.trim());
-                 Navigator.pop(context);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+      title: 'New Role',
+      content: BoxyArtFormField(
+        label: 'Role Title',
+        hintText: 'e.g. Tour Manager', // Added hint text
+        controller: controller,
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+        ),
+        TextButton(
+          onPressed: () {
+            if (controller.text.trim().isNotEmpty) {
+              setState(() => _societyRole = controller.text.trim());
+              Navigator.pop(context);
+            }
+          },
+          child: Text('Save', style: TextStyle(color: AppTheme.primaryYellow, fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 
@@ -640,32 +645,24 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
 
 
   void _showExitConfirmation() {
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text('You have unsaved changes. Are you sure you want to leave?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Keep Editing',
-              style: TextStyle(color: Colors.grey[800]),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              setState(() => _isEditMode = false);
-              context.pop(); // Close screen
-            },
-            child: const Text(
-              'Discard',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
+      title: 'Discard Changes?',
+      message: 'You have unsaved changes. Are you sure you want to leave?',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Keep Editing', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close dialog
+            setState(() => _isEditMode = false);
+            context.pop(); // Close screen
+          },
+          child: const Text('Discard', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 

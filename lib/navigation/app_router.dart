@@ -20,7 +20,6 @@ import '../features/admin/presentation/roles/roles_settings_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
-import '../features/admin/presentation/notifications/compose_notification_screen.dart';
 import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
 import '../features/home/presentation/notification_inbox_screen.dart';
 

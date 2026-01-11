@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
 import 'compose_notification_screen.dart';
 import 'audience_manager_screen.dart';
+import 'notification_history_screen.dart';
 
 class NotificationAdminScaffold extends StatefulWidget {
   const NotificationAdminScaffold({super.key});
@@ -17,42 +15,33 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
   final List<Widget> _tabs = [
     const ComposeNotificationScreen(isTabbed: true),
     const AudienceManagerScreen(),
+    const NotificationHistoryScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _tabs[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.grey,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.send_rounded),
-              label: 'Compose',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people_outline_rounded),
-              label: 'Audience',
-            ),
-          ],
-        ),
+      bottomNavigationBar: AdminBottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.send_outlined),
+            activeIcon: Icon(Icons.send_rounded),
+            label: 'Compose',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline_rounded),
+            activeIcon: Icon(Icons.people_rounded),
+            label: 'Audience',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_rounded),
+            activeIcon: Icon(Icons.history_toggle_off_rounded),
+            label: 'History',
+          ),
+        ],
       ),
     );
   }

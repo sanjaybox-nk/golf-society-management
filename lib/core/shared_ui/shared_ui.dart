@@ -3,3 +3,4 @@ export 'inputs.dart';
 export 'cards.dart';
 export 'layout.dart';
 export 'badges.dart';
+export 'dialogs.dart';

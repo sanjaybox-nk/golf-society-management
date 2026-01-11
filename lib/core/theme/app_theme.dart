@@ -94,7 +94,7 @@ class AppTheme {
       // Cards & Dialogs - Highly Rounded
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(25),
         ),
         elevation: 10,
         color: surfaceWhite,
@@ -103,7 +103,7 @@ class AppTheme {
       
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(25),
         ),
         backgroundColor: surfaceWhite,
       ),

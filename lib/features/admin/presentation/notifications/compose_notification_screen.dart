@@ -7,6 +7,7 @@ import 'package:golf_society/features/members/presentation/members_provider.dart
 import 'package:golf_society/models/member.dart';
 import 'distribution_list_provider.dart';
 import 'package:golf_society/models/distribution_list.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ComposeNotificationScreen extends ConsumerStatefulWidget {
   final bool isTabbed;
@@ -21,9 +22,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   
   // Targeting
   String _targetType = 'All Members'; // 'All Members', 'Groups', 'Individual'
-  String? _selectedGroup;
   DistributionList? _selectedCustomList;
-  Member? _selectedMember;
   
   // Message
   final _titleController = TextEditingController();
@@ -35,7 +34,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   String? _selectedEventId;
 
   final List<String> _targetOptions = ['All Members', 'Groups', 'Individual'];
-  final List<String> _fixedGroups = ['Committee', "Men's Section", "Ladies Section"];
   final List<String> _categories = ['Urgent', 'Event', 'News', 'Committee Business'];
   final List<String> _deepLinkOptions = ['None (Just Read)', 'Event Details', 'Fee Payment', 'Member Profile'];
 
@@ -71,30 +69,61 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       recipientCount = 1;
     }
 
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Send'),
-        content: Text('You are about to message $recipientCount people. Confirm?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notification sent successfully!')),
-              );
-              if (!widget.isTabbed) context.pop();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryYellow, foregroundColor: Colors.black),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
+      title: 'Confirm Send',
+      message: 'You are about to message $recipientCount people. Confirm?',
+      onCancel: () => Navigator.pop(context),
+      onConfirm: () async {
+        Navigator.pop(context);
+        
+        // Write to Firestore using the repository
+        try {
+          // Note: Using 'current_user_id' as recipient for testing purposes
+          // In a real app, we would loop through 'members' and create a doc for each
+          await FirebaseFirestore.instance.collection('notifications').add({
+              'recipientId': 'current_user_id', // Target for our test user
+              'title': _titleController.text,
+              'message': _bodyController.text,
+              'category': _category,
+              'timestamp': FieldValue.serverTimestamp(),
+              'isRead': false,
+              'actionUrl': _deepLinkAction,
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Notification sent successfully!')),
+            );
+            
+            if (widget.isTabbed) {
+              _resetForm();
+            } else {
+              context.pop();
+            }
+          }
+        } catch (e) {
+            if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error sending: $e')),
+                );
+            }
+        }
+      },
     );
+  }
+
+  void _resetForm() {
+    setState(() {
+      _titleController.clear();
+      _bodyController.clear();
+      _targetType = 'All Members';
+      _selectedCustomList = null;
+      _selectedMember = null;
+      _category = 'Urgent';
+      _deepLinkAction = 'None (Just Read)';
+      _selectedEventId = null;
+    });
   }
 
   @override
@@ -158,7 +187,8 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   }
 
   Widget _buildTargetSelector(int totalCount) {
-    final customLists = ref.watch(distributionListProvider);
+    final customListsAsync = ref.watch(distributionListProvider);
+    final customLists = customListsAsync.value ?? [];
     final members = ref.watch(allMembersProvider).value ?? [];
 
     return BoxyArtFloatingCard(
@@ -221,30 +251,38 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             ),
             
           if (_targetType == 'Groups')
-            DropdownButtonFormField<dynamic>(
-              value: _selectedCustomList ?? _selectedGroup,
-              hint: const Text('Select Group / List'),
-              decoration: const InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-              ),
-              items: [
-                  ..._fixedGroups.map((g) => DropdownMenuItem(value: g, child: Text(g))),
-                  ...customLists.map((l) => DropdownMenuItem(value: l, child: Text('List: ${l.name}'))),
-              ],
-              onChanged: (v) {
+            if (customLists.isEmpty)
+              Container(
+                 padding: const EdgeInsets.all(16),
+                 width: double.infinity,
+                 decoration: BoxDecoration(
+                   color: Colors.grey.shade100,
+                   borderRadius: BorderRadius.circular(12),
+                   border: Border.all(color: Colors.grey.shade300),
+                 ),
+                 child: const Center(
+                   child: Text(
+                     'No groups found. Create one in Audience Manager.',
+                     style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                   ),
+                 ),
+              )
+            else
+              DropdownButtonFormField<DistributionList>(
+                value: _selectedCustomList,
+                hint: const Text('Select Audience Group'),
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                ),
+                items: customLists.map((l) => DropdownMenuItem(value: l, child: Text(l.name))).toList(),
+                onChanged: (v) {
                   setState(() {
-                      if (v is DistributionList) {
-                          _selectedCustomList = v;
-                          _selectedGroup = null;
-                      } else {
-                          _selectedGroup = v as String?;
-                          _selectedCustomList = null;
-                      }
+                    _selectedCustomList = v;
                   });
-              },
-            ),
+                },
+              ),
             
           if (_targetType == 'Individual')
              Autocomplete<Member>(
@@ -288,7 +326,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _category,
+            initialValue: _category,
             decoration: const InputDecoration(
               labelText: 'Category',
               filled: true,
@@ -308,7 +346,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       child: Column(
         children: [
           DropdownButtonFormField<String>(
-            value: _deepLinkAction,
+            initialValue: _deepLinkAction,
             decoration: const InputDecoration(
               labelText: 'Open Screen on Tap',
               filled: true,
@@ -321,7 +359,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           if (_deepLinkAction == 'Event Details') ...[
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedEventId,
+              initialValue: _selectedEventId,
               hint: const Text('Select Upcoming Event'),
               decoration: const InputDecoration(
                 filled: true,

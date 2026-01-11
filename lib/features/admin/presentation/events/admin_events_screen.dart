@@ -47,22 +47,20 @@ class AdminEventsScreen extends ConsumerWidget {
                   child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
                 ),
                 confirmDismiss: (direction) async {
-                  return await showDialog(
+                  return await showBoxyArtDialog<bool>(
                     context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Delete Event?'),
-                      content: Text('Are you sure you want to delete "${event.title}"?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
+                    title: 'Delete Event?',
+                    message: 'Are you sure you want to delete "${event.title}"?',
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
                   );
                 },
                 onDismissed: (direction) {

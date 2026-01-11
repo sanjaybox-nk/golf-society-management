@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../members/presentation/members_provider.dart';
 
 class CommitteeRolesScreen extends ConsumerStatefulWidget {
@@ -167,96 +168,54 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
   void _showCreateRoleDialog() {
     final controller = TextEditingController();
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New Role Title'),
-        content: BoxyArtFormField(
-          label: 'Role Title', // Changed from hintText to label for consistency
-          hintText: 'e.g. Tour Manager',
-          controller: controller,
-        ),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: BoxyArtButton(
-                  title: 'Cancel',
-                  isGhost: true,
-                  isPrimary: false,
-                  onTap: () => Navigator.pop(context),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: BoxyArtButton(
-                  title: 'Create Role',
-                  onTap: () {
-                    if (controller.text.trim().isNotEmpty) {
-                      final newRole = controller.text.trim();
-                      Navigator.pop(context);
-                      context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(newRole)}');
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+      title: 'New Role Title',
+      content: BoxyArtFormField(
+        label: 'Role Title',
+        hintText: 'e.g. Tour Manager',
+        controller: controller,
       ),
+      onCancel: () => Navigator.pop(context),
+      onConfirm: () {
+        if (controller.text.trim().isNotEmpty) {
+          final newRole = controller.text.trim();
+          Navigator.pop(context);
+          context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(newRole)}');
+        }
+      },
+      confirmText: 'Create Role',
     );
   }
 
   void _showEditRoleDialog(String oldName) {
     final controller = TextEditingController(text: oldName);
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit Title: $oldName'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Renaming this role will update the title for ALL members who currently hold it.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            BoxyArtFormField(
-              label: 'Role Title',
-              controller: controller,
-            ),
-          ],
-        ),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: BoxyArtButton(
-                  title: 'Cancel',
-                  isGhost: true,
-                  isPrimary: false,
-                  onTap: () => Navigator.pop(context),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: BoxyArtButton(
-                  title: 'Save',
-                  onTap: () {
-                    if (controller.text.trim().isNotEmpty && controller.text.trim() != oldName) {
-                      final newName = controller.text.trim();
-                      Navigator.pop(context);
-                      _renameRole(oldName, newName);
-                    }
-                  },
-                ),
-              ),
-            ],
+      title: 'Edit Title: $oldName',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Renaming this role will update the title for ALL members who currently hold it.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          BoxyArtFormField(
+            label: 'Role Title',
+            controller: controller,
           ),
         ],
       ),
+      onCancel: () => Navigator.pop(context),
+      onConfirm: () {
+        if (controller.text.trim().isNotEmpty && controller.text.trim() != oldName) {
+          final newName = controller.text.trim();
+          Navigator.pop(context);
+          _renameRole(oldName, newName);
+        }
+      },
+      confirmText: 'Save',
     );
   }
 

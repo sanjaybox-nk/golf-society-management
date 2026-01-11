@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/golf_event.dart';
 import '../../../models/notification.dart';
+import '../../notifications/data/notifications_repository.dart';
+import '../../notifications/data/firestore_notifications_repository.dart';
 
 // Mock data provider for Next Match
 import '../../events/presentation/events_provider.dart';
@@ -14,34 +16,17 @@ final homeNextMatchProvider = Provider<AsyncValue<GolfEvent?>>((ref) {
   });
 });
 
-// Mock data provider for Notifications
-final homeNotificationsProvider = Provider<List<AppNotification>>((ref) {
-  return [
-    AppNotification(
-      id: '1',
-      title: 'Event Reminder',
-      message: 'Spring Championship - Registration closes in 2 days',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      category: 'Urgent',
-      isRead: false,
-    ),
-    AppNotification(
-      id: '2',
-      title: 'Course Update',
-      message: 'The front nine is now open after maintenance.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-      category: 'Info',
-      isRead: false,
-    ),
-    AppNotification(
-      id: '3',
-      title: 'Payment Due',
-      message: 'Annual membership fee is due on March 15th',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      category: 'Info',
-      isRead: true,
-    ),
-  ];
+
+final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+  return FirestoreNotificationsRepository();
+});
+
+// Real-time Notifications Stream
+final homeNotificationsProvider = StreamProvider<List<AppNotification>>((ref) {
+  final repository = ref.watch(notificationsRepositoryProvider);
+  // TODO: Replace with actual logged-in user ID when Auth is implemented
+  const currentUserId = 'current_user_id'; 
+  return repository.watchNotifications(currentUserId);
 });
 
 // Mock data provider for Leaderboard

@@ -563,35 +563,27 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   void _showExitConfirmation() {
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text('You have unsaved changes. Are you sure you want to leave?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Keep Editing',
-              style: TextStyle(color: Colors.grey[800]),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              setState(() {
-                _isEditing = false;
-                _initControllers(); // Reset changes
-              });
-              Navigator.of(context).pop(); // Close modal
-            },
-            child: const Text(
-              'Discard',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
+      title: 'Discard Changes?',
+      message: 'You have unsaved changes. Are you sure you want to leave?',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Keep Editing', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close dialog
+            setState(() {
+              _isEditing = false;
+              _initControllers(); // Reset changes
+            });
+            Navigator.of(context).pop(); // Close modal
+          },
+          child: const Text('Discard', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 
