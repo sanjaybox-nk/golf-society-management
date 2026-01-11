@@ -47,8 +47,8 @@ class AppTheme {
           backgroundColor: primaryYellow,
           foregroundColor: primaryBlack,
           elevation: 6, // Increased for glow visibility
-          shadowColor: const Color(0xFFB89E00).withOpacity(0.8), // Darker yellow for glow
-          shape: const StadiumBorder(),
+          shadowColor: const Color(0xFFB89E00).withValues(alpha: 0.8), // Darker yellow for glow
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
@@ -62,7 +62,7 @@ class AppTheme {
           foregroundColor: primaryBlack,
           side: const BorderSide(color: primaryBlack, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: const StadiumBorder(),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             fontSize: 16,
@@ -76,15 +76,15 @@ class AppTheme {
         fillColor: surfaceWhite,
         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100), // Pill shape
+          borderRadius: BorderRadius.circular(12), // Matching card radii
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: primaryYellow, width: 2),
         ),
         hintStyle: TextStyle(color: Colors.grey.shade500),
@@ -93,16 +93,16 @@ class AppTheme {
       // Cards & Dialogs - Highly Rounded
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(12),
         ),
         elevation: 10,
         color: surfaceWhite,
-        shadowColor: Colors.black.withOpacity(0.05), // Very soft diffused shadow
+        shadowColor: Colors.black.withValues(alpha: 0.05), // Very soft diffused shadow
       ),
       
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(12),
         ),
         backgroundColor: surfaceWhite,
       ),

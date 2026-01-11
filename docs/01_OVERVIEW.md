@@ -5,8 +5,8 @@
 ## Core Features
 1.  **Member Dashboard**: Personalized view with "Next Match" details and quick actions.
 2.  **Events Hub**: Comprehensive listing of Upcoming and Past events, with registration capabilities.
-3.  **Members Directory**: Searchable list of all society members with live filtering.
-4.  **Locker Room**: User profile management, handicap tracking, and statistics.
+3.  **Members Directory**: Searchable list of all society members with live filtering and photo uploads.
+4.  **Locker Room**: User profile management (Bio, Photo), handicap tracking, and statistics.
 5.  **Archive**: Historical data of past seasons and major winners.
 
 ## Technology Stack

@@ -3,16 +3,15 @@ import '../../../models/golf_event.dart';
 import '../../../models/notification.dart';
 
 // Mock data provider for Next Match
-final homeNextMatchProvider = Provider<GolfEvent>((ref) {
-  return GolfEvent(
-    id: '1',
-    title: 'Spring Championship 2026',
-    location: 'Royal Pines Golf Club',
-    date: DateTime(2026, 3, 15, 9, 0),
-    description: 'Annual Spring Championship - 18 holes stroke play',
-    imageUrl: null,
-    teeOffTime: DateTime(2026, 3, 15, 9, 30),
-  );
+import '../../events/presentation/events_provider.dart';
+
+// Next Match derived from Upcoming Events
+final homeNextMatchProvider = Provider<AsyncValue<GolfEvent?>>((ref) {
+  final upcomingAsync = ref.watch(upcomingEventsProvider);
+  return upcomingAsync.whenData((events) {
+    if (events.isEmpty) return null;
+    return events.first; // First element is the nearest upcoming event
+  });
 });
 
 // Mock data provider for Notifications

@@ -52,6 +52,12 @@ A small, pill-shaped indicator used on Event Cards to show status (e.g., "Regist
 **Notification Badge**
 A small yellow circle indicating unread items (e.g., messages, new events).
 
+**Storage Service**
+The system responsible for securely handling file uploads, such as profile photos, to Firebase Storage. Enforces strict validation rules (e.g., 5MB file size limit).
+
+**Avatar**
+The user's profile photo, displayed in the Header Card and Member lists. Managed via the **Locker Room** or Admin Form.
+
 ## User Flows
 
 **Registration**

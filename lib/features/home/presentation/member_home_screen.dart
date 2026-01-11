@@ -25,6 +25,11 @@ class MemberHomeScreen extends ConsumerWidget {
             title: const Text('Golf Society'),
             actions: [
               IconButton(
+                icon: const Icon(Icons.admin_panel_settings_outlined),
+                tooltip: 'Admin Console',
+                onPressed: () => context.push('/admin'),
+              ),
+              IconButton(
                 icon: Badge(
                   label: Text('${notifications.where((n) => !n.isRead).length}'),
                   child: const Icon(Icons.notifications_outlined),
@@ -58,7 +63,21 @@ class MemberHomeScreen extends ConsumerWidget {
                 // Next Match Hero Card
                 _buildSectionHeader(context, 'Next Match'),
                 const SizedBox(height: 8),
-                _NextMatchCard(event: nextMatch),
+                nextMatch.when(
+                  data: (event) {
+                    if (event == null) {
+                      return const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('No upcoming matches scheduled.'),
+                        ),
+                      );
+                    }
+                    return _NextMatchCard(event: event);
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Text('Error: $err'),
+                ),
                 const SizedBox(height: 24),
 
                 // Leaderboard Snippet
@@ -220,7 +239,7 @@ class _NextMatchCard extends StatelessWidget {
   Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7), size: 18),
+        Icon(icon, color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7), size: 18),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

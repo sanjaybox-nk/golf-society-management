@@ -26,7 +26,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] **Live Leaderboard**: Real-time ranking calculation (Stableford).
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Locker Room (Profile)**
-    - [ ] **Edit Profile**: Form to update handicap, phone, etc.
+    - [x] **Edit Profile**: Form to update handicap, phone, etc.
+    - [x] **Photo Upload**: Profile picture management (5MB limit).
     - [ ] **Stats Engine**: Calculate real trends from Firestore data.
 
 ## 3. Policy & Compliance

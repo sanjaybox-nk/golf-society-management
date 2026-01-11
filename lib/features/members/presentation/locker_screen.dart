@@ -90,7 +90,7 @@ class LockerScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -101,7 +101,7 @@ class LockerScreen extends ConsumerWidget {
                         Text(
                           'Current Handicap',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
+                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),

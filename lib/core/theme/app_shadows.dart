@@ -5,15 +5,25 @@ class AppShadows {
   /// Layered shadows for a very subtle 'lift' that doesn't look dirty.
   static final List<BoxShadow> softScale = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.12), // Darker
+      color: Colors.black.withValues(alpha: 0.12), // Darker
       offset: const Offset(0, 4),
       blurRadius: 15,
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: Colors.black.withOpacity(0.08), // Darker
+      color: Colors.black.withValues(alpha: 0.08), // Darker
       offset: const Offset(0, 10),
       blurRadius: 30,
+      spreadRadius: 0,
+    ),
+  ];
+
+  /// Specifically for form inputs to keep them extremely subtle.
+  static final List<BoxShadow> inputSoft = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.05),
+      offset: const Offset(0, 4),
+      blurRadius: 10,
       spreadRadius: 0,
     ),
   ];
@@ -22,7 +32,7 @@ class AppShadows {
   /// Stronger shadow to show elevation above content.
   static final List<BoxShadow> floatingAlt = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.20), // Darker, was 0.10
+      color: Colors.black.withValues(alpha: 0.20), // Darker, was 0.10
       offset: const Offset(0, 10),
       blurRadius: 20,
       spreadRadius: 0,
@@ -32,7 +42,7 @@ class AppShadows {
   /// Subtle shadow for text on colored backgrounds.
   static final List<Shadow> textHighlight = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.15),
+      color: Colors.black.withValues(alpha: 0.15),
       offset: const Offset(0, 2),
       blurRadius: 4,
     ),
@@ -42,7 +52,7 @@ class AppShadows {
   /// Darker yellow with 20% opacity.
   static final List<BoxShadow> primaryButtonGlow = [
     BoxShadow(
-      color: const Color(0xFFB89E00).withOpacity(0.20), // Darker yellow
+      color: const Color(0xFFB89E00).withValues(alpha: 0.20), // Darker yellow
       offset: const Offset(0, 8),
       blurRadius: 16,
       spreadRadius: 0,

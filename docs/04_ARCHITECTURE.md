@@ -22,9 +22,9 @@ lib/
 ```
 
 ## State Management (Riverpod)
-We use `riverpod_generator` (`@riverpod` annotation) which creates `AutoDisposeNotifier` or `AutoDisposeProvider` by default.
-
--   **Providers**: Located within `feature/presentation/provider_name.dart`.
+We use `riverpod_generator` (`@riverpod` annotation) which- **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore)
+- **Services**: `AuthService` (Firebase Auth), `StorageService` (Firebase Storage - Image Uploads)
+in `feature/presentation/provider_name.dart`.
 -   **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
 
 ## Navigation (GoRouter)

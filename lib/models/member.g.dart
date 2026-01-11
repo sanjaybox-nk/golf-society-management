@@ -11,6 +11,7 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
   firstName: json['firstName'] as String,
   lastName: json['lastName'] as String,
   email: json['email'] as String,
+  nickname: json['nickname'] as String?,
   phone: json['phone'] as String?,
   address: json['address'] as String?,
   bio: json['bio'] as String?,
@@ -21,6 +22,9 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
   role:
       $enumDecodeNullable(_$MemberRoleEnumMap, json['role']) ??
       MemberRole.member,
+  status:
+      $enumDecodeNullable(_$MemberStatusEnumMap, json['status']) ??
+      MemberStatus.member,
   hasPaid: json['hasPaid'] as bool? ?? false,
   isArchived: json['isArchived'] as bool? ?? false,
 );
@@ -30,6 +34,7 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'firstName': instance.firstName,
   'lastName': instance.lastName,
   'email': instance.email,
+  'nickname': instance.nickname,
   'phone': instance.phone,
   'address': instance.address,
   'bio': instance.bio,
@@ -38,6 +43,7 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'whsNumber': instance.whsNumber,
   'isHandicapLocked': instance.isHandicapLocked,
   'role': _$MemberRoleEnumMap[instance.role]!,
+  'status': _$MemberStatusEnumMap[instance.status]!,
   'hasPaid': instance.hasPaid,
   'isArchived': instance.isArchived,
 };
@@ -45,4 +51,14 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
 const _$MemberRoleEnumMap = {
   MemberRole.admin: 'admin',
   MemberRole.member: 'member',
+};
+
+const _$MemberStatusEnumMap = {
+  MemberStatus.member: 'member',
+  MemberStatus.active: 'active',
+  MemberStatus.inactive: 'inactive',
+  MemberStatus.pending: 'pending',
+  MemberStatus.suspended: 'suspended',
+  MemberStatus.archived: 'archived',
+  MemberStatus.left: 'left',
 };

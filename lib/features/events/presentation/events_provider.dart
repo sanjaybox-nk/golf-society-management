@@ -1,58 +1,49 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/golf_event.dart';
+import '../../events/data/events_repository.dart';
+import '../../events/data/firestore_events_repository.dart';
 
-final eventsProvider = Provider<List<GolfEvent>>((ref) {
-  return [
-    // Upcoming Events
-    GolfEvent(
-      id: '1',
-      title: 'Spring Championship 2026',
-      location: 'Royal Pines Golf Club',
-      date: DateTime(2026, 3, 15, 9, 0),
-      teeOffTime: DateTime(2026, 3, 15, 9, 30),
-      description: 'Annual Spring Championship - 18 holes stroke play',
-    ),
-    GolfEvent(
-      id: '2',
-      title: 'April Medal',
-      location: 'Links Course',
-      date: DateTime(2026, 4, 12, 10, 0),
-      teeOffTime: DateTime(2026, 4, 12, 10, 30),
-      description: 'Monthly Medal competition',
-    ),
-    
-    // Past Events
-    GolfEvent(
-      id: '3',
-      title: 'Winter Warmer',
-      location: 'Forest Valley',
-      date: DateTime(2025, 12, 10, 9, 0),
-      teeOffTime: DateTime(2025, 12, 10, 9, 30),
-      description: 'Pre-Christmas get together',
-    ),
-    GolfEvent(
-      id: '4',
-      title: 'Autumn Shield',
-      location: 'Dunes Club',
-      date: DateTime(2025, 10, 15, 8, 30),
-      teeOffTime: DateTime(2025, 10, 15, 9, 0),
-      description: 'Season closing major',
-    ),
-  ];
+enum EventFilter { upcoming, past }
+
+class EventFilterNotifier extends Notifier<EventFilter> {
+  @override
+  EventFilter build() => EventFilter.upcoming;
+  
+  void update(EventFilter filter) => state = filter;
+}
+
+final eventFilterProvider = NotifierProvider<EventFilterNotifier, EventFilter>(EventFilterNotifier.new);
+
+// 1. Repository Provider
+final eventsRepositoryProvider = Provider<EventsRepository>((ref) {
+  return FirestoreEventsRepository(FirebaseFirestore.instance);
 });
 
-final upcomingEventsProvider = Provider<List<GolfEvent>>((ref) {
-  final events = ref.watch(eventsProvider);
-  final now = DateTime.now();
-  final upcoming = events.where((e) => e.date.isAfter(now)).toList();
-  upcoming.sort((a, b) => a.date.compareTo(b.date));
-  return upcoming;
+// 2. Main Events Stream
+final eventsProvider = StreamProvider<List<GolfEvent>>((ref) {
+  final repository = ref.watch(eventsRepositoryProvider);
+  return repository.watchEvents();
 });
 
-final pastEventsProvider = Provider<List<GolfEvent>>((ref) {
-  final events = ref.watch(eventsProvider);
-  final now = DateTime.now();
-  final past = events.where((e) => e.date.isBefore(now)).toList();
-  past.sort((a, b) => b.date.compareTo(a.date)); // Sort descending
-  return past;
+// 3. Derived: Upcoming
+final upcomingEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  final eventsAsync = ref.watch(eventsProvider);
+  return eventsAsync.whenData((events) {
+    final now = DateTime.now();
+    final upcoming = events.where((e) => e.date.isAfter(now)).toList();
+    upcoming.sort((a, b) => a.date.compareTo(b.date));
+    return upcoming;
+  });
+});
+
+// 4. Derived: Past
+final pastEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  final eventsAsync = ref.watch(eventsProvider);
+  return eventsAsync.whenData((events) {
+    final now = DateTime.now();
+    final past = events.where((e) => e.date.isBefore(now)).toList();
+    past.sort((a, b) => b.date.compareTo(a.date));
+    return past;
+  });
 });
