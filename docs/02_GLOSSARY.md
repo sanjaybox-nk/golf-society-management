@@ -58,6 +58,15 @@ The system responsible for securely handling file uploads, such as profile photo
 **Avatar**
 The user's profile photo, displayed in the Header Card and Member lists. Managed via the **Locker Room** or Admin Form.
 
+**Communications Hub**
+The administrative center for society messaging. It allows admins to compose notifications and manage audience distribution lists.
+
+**Distribution List**
+A custom group of members (e.g., "Spain Trip 2026", "New Joiners") saved by an admin for targeted messaging within the Communications Hub.
+
+**Deep Link**
+An action associated with a notification that redirects the user to a specific part of the app (e.g., a specific event details page or their profile) when tapped.
+
 ## User Flows
 
 **Registration**

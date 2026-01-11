@@ -1,10 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 part 'member.freezed.dart';
 part 'member.g.dart';
 
-enum MemberRole { admin, member }
+// Converter to handle Firestore Timestamp objects
+class TimestampConverter implements JsonConverter<DateTime?, Object?> {
+  const TimestampConverter();
+
+  @override
+  DateTime? fromJson(Object? json) {
+    if (json == null) return null;
+    if (json is Timestamp) return json.toDate();
+    if (json is String) return DateTime.parse(json);
+    return null;
+  }
+
+  @override
+  Object? toJson(DateTime? dateTime) {
+    return dateTime?.toIso8601String();
+  }
+}
+
+enum MemberRole { 
+  superAdmin,
+  admin, 
+  restrictedAdmin,
+  viewer,
+  member 
+}
 enum MemberStatus { 
   member, 
   active, // For compatibility
@@ -54,9 +79,11 @@ abstract class Member with _$Member {
     String? whsNumber,
     @Default(false) bool isHandicapLocked,
     @Default(MemberRole.member) MemberRole role,
+    String? societyRole, // [NEW]
     @Default(MemberStatus.member) MemberStatus status,
     @Default(false) bool hasPaid,
     @Default(false) bool isArchived,
+    @TimestampConverter() DateTime? joinedDate,
   }) = _Member;
 
   factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);

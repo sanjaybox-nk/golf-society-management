@@ -8,8 +8,9 @@ import '../../../../models/member.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/theme/app_shadows.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/country_codes.dart';
-import 'dart:io';
+import '../../../../core/shared_ui/floating_action_bar.dart';
 
 class MemberFormScreen extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
@@ -40,6 +41,9 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
   bool _isSaving = false;
   bool _isUploading = false;
   late bool _isEditMode;
+  late MemberRole _role; // [NEW]
+  String? _societyRole; // [NEW]
+  DateTime? _joinedDate; // [NEW]
 
   @override
   void initState() {
@@ -73,6 +77,9 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
     _bioController = TextEditingController(text: m?.bio ?? '');
     _status = m?.status ?? MemberStatus.member;
     _hasPaid = m?.hasPaid ?? false;
+    _role = m?.role ?? MemberRole.member; // [NEW]
+    _societyRole = m?.societyRole; // [NEW]
+    _joinedDate = m?.joinedDate; // [NEW]
     _avatarUrl = m?.avatarUrl;
 
     // Listeners for real-time header card updates
@@ -97,7 +104,15 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -120,7 +135,9 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
         status: _status,
         hasPaid: _hasPaid,
         avatarUrl: _avatarUrl,
-        role: widget.member?.role ?? MemberRole.member,
+        role: _role, // [UPDATED]
+        societyRole: _societyRole, // [NEW]
+        joinedDate: _joinedDate, // [NEW]
       );
 
       if (widget.member == null) {
@@ -175,82 +192,209 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
   Widget build(BuildContext context) {
     final isNewMember = widget.member == null;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
+    return PopScope(
+      canPop: !_isEditMode,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_isEditMode) {
+          _showExitConfirmation();
+        }
+      },
+      child: Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: BoxyArtAppBar(
         title: isNewMember ? 'New Member' : (_isEditMode ? 'Edit Member' : 'Member Details'),
         showBack: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _isEditMode
-                ? TextButton(
-                    onPressed: _isSaving ? null : _save,
-                    child: _isSaving 
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  )
-                : IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: const Icon(Icons.edit_outlined, size: 20, color: Colors.black),
-                    ),
-                    onPressed: () => setState(() => _isEditMode = true),
-                  ),
-          ),
+          if (!_isEditMode)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () => setState(() => _isEditMode = true),
+              ),
+            ),
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 100), // Requested 100px bottom padding
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BoxyArtMemberHeaderCard(
-                  firstName: _firstController.text,
-                  lastName: _lastController.text,
-                  nickname: _nicknameController.text,
-                  status: _status,
-                  hasPaid: _hasPaid,
-                  avatarUrl: _avatarUrl,
-                  handicapController: _handicapController,
-                  whsController: _whsController,
-                  isEditing: _isEditMode,
-                  onCameraTap: _isEditMode ? _pickAndUploadImage : null,
-                  onFeeToggle: (v) => setState(() => _hasPaid = v),
-                  onStatusChanged: (v) => setState(() => _status = v),
-                ),
-                if (_isUploading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 140), // Increased bottom padding for floating bar
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BoxyArtMemberHeaderCard(
+                      firstName: _firstController.text,
+                      lastName: _lastController.text,
+                      nickname: _nicknameController.text,
+                      status: _status,
+                      hasPaid: _hasPaid,
+                      avatarUrl: _avatarUrl,
+                      handicapController: _handicapController,
+                      whsController: _whsController,
+                      isEditing: _isEditMode,
+                      onCameraTap: _isEditMode ? _pickAndUploadImage : null,
+                      onFeeToggle: (v) => setState(() => _hasPaid = v),
+                      onStatusChanged: (v) => setState(() => _status = v),
+                      role: _role,
+                      societyRole: _societyRole,
+                      onSocietyRoleTap: _showSocietyRolePicker,
+                      joinedDate: _joinedDate,
                     ),
-                  ),
-                const SizedBox(height: 20),
-                _buildPersonalInfo(),
-              ],
+                    if (_isUploading)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
+                        child: Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    _buildPersonalInfo(),
+                  ],
+                ),
+              ),
             ),
-          ),
+            
+            // Floating Action Bar
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Visibility(
+                visible: _isEditMode,
+                child: _buildBottomBar(),
+              ),
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      ),
     );
   }
+
+
+  void _showSocietyRolePicker() {
+    final defaultRoles = ['President', 'Captain', 'Vice Captain', 'Secretary', 'Treasurer'];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        decoration: const BoxDecoration(
+          color: Color(0xFFF0F2F5),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Select Society Position', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...defaultRoles.map((r) => _buildSocietyRoleOption(r)),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showCustomRoleDialog();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: const Row(children: [Icon(Icons.add), SizedBox(width: 12), Text('Create Custom Role', style: TextStyle(fontWeight: FontWeight.bold))]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocietyRoleOption(String role) {
+    final isSelected = _societyRole == role;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _societyRole = role);
+        Navigator.pop(context);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: isSelected ? Border.all(color: const Color(0xFF1A237E), width: 2) : null,
+        ),
+        child: Row(
+          children: [
+            Expanded(child: Text(role, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? const Color(0xFF1A237E) : Colors.black))),
+            if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF1A237E)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCustomRoleDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('New Role'),
+        content: TextField(controller: controller, decoration: const InputDecoration(labelText: 'Role Title'), textCapitalization: TextCapitalization.words),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                 setState(() => _societyRole = controller.text.trim());
+                 Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildPersonalInfo() {
     if (!_isEditMode) {
       // View Mode
       return Column(
         children: [
+          if (_bioController.text.isNotEmpty) ...[
+             ProfileInfoRow(
+               icon: Icons.info_outline,
+               label: 'BIO',
+               value: _bioController.text,
+             ),
+             Divider(height: 1, indent: 36, color: Colors.grey.shade300),
+          ],
           if (_nicknameController.text.isNotEmpty) ...[
              ProfileInfoRow(
                icon: Icons.person_outline,
@@ -278,14 +422,6 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
             label: 'ADDRESS',
             value: _addressController.text.isEmpty ? 'Not provided' : _addressController.text,
           ),
-          if (_bioController.text.isNotEmpty) ...[
-             Divider(height: 1, indent: 36, color: Colors.grey.shade300),
-             ProfileInfoRow(
-               icon: Icons.info_outline,
-               label: 'BIO',
-               value: _bioController.text,
-             ),
-          ],
         ],
       );
     }
@@ -294,11 +430,17 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        BoxyArtFormField(
+          label: 'Short Bio',
+          controller: _bioController,
+          maxLines: 2,
+        ),
+        const SizedBox(height: 24),
         Row(
           children: [
             Expanded(
               child: BoxyArtFormField(
-                label: 'First Name',
+                label: 'First Name *',
                 controller: _firstController,
                 validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
@@ -306,7 +448,7 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: BoxyArtFormField(
-                label: 'Last Name',
+                label: 'Last Name *',
                 controller: _lastController,
                 validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
@@ -320,7 +462,7 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
         ),
         const SizedBox(height: 24),
         BoxyArtFormField(
-          label: 'Email',
+          label: 'Email *',
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           validator: (v) => v == null || v.isEmpty ? 'Required' : null,
@@ -437,113 +579,102 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: BoxyArtFormField(
-                label: 'Telephone',
+                label: 'Telephone *',
                 controller: _phoneController,
                 prefixIcon: Icons.phone,
                 keyboardType: TextInputType.phone,
+                validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
               ),
             ),
           ],
         ),
         const SizedBox(height: 24),
         BoxyArtFormField(
-          label: 'Address',
+          label: 'Address *',
           controller: _addressController,
           prefixIcon: Icons.location_on,
           maxLines: 2,
+          validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
         ),
         const SizedBox(height: 24),
-        BoxyArtFormField(
-          label: 'Short Bio',
-          controller: _bioController,
-          maxLines: 3,
+        BoxyArtDatePickerField(
+          label: 'Member Since',
+          value: _joinedDate != null 
+              ? '${_joinedDate!.day.toString().padLeft(2, '0')}/${_joinedDate!.month.toString().padLeft(2, '0')}/${_joinedDate!.year}' 
+              : 'Tap to select date',
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: _joinedDate ?? DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime.now(),
+              builder: (context, child) {
+                  return Theme(
+                    data: AppTheme.lightTheme.copyWith(
+                      colorScheme: const ColorScheme.light(
+                        primary: AppTheme.primaryYellow,
+                        onPrimary: Colors.black,
+                        onSurface: Colors.black,
+                      ),
+                      textButtonTheme: TextButtonThemeData(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black,
+                        ),
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+            );
+            if (date != null) {
+              setState(() => _joinedDate = date);
+            }
+          },
         ),
       ],
     );
   }
 
-  Future<void> _pickAndUploadImage() async {
-    if (_isUploading) return;
 
-    final storage = ref.read(storageServiceProvider);
-    
-    // 1. Pick Image
-    final File? file = await storage.pickImage(source: ImageSource.gallery);
-    if (file == null) return;
 
-    setState(() => _isUploading = true);
 
-    try {
-      // 2. Upload to Storage
-      // If new member, we might need a temporary ID or wait until save?
-      // For now, let's use a UUID or the existing ID if editing.
-      final String memberId = widget.member?.id ?? 
-          'temp_${DateTime.now().millisecondsSinceEpoch}';
-      
-      final String? url = await storage.uploadAvatar(
-        memberId: memberId,
-        file: file,
-      );
 
-      if (url != null) {
-        setState(() => _avatarUrl = url);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e'))
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
-    }
+  void _showExitConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Changes?'),
+        content: const Text('You have unsaved changes. Are you sure you want to leave?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Keep Editing',
+              style: TextStyle(color: Colors.grey[800]),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              setState(() => _isEditMode = false);
+              context.pop(); // Close screen
+            },
+            child: const Text(
+              'Discard',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-
   Widget _buildBottomBar() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(context).padding.bottom + 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextButton(
-              onPressed: () => context.pop(),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _isSaving ? null : _save,
-              style: ElevatedButton.styleFrom(
-                shape: const StadiumBorder(),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _isSaving
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                : const Text('Save Changes'),
-            ),
-          ),
-        ],
-      ),
+    return BoxyArtFloatingActionBar(
+      onCancel: _showExitConfirmation,
+      onSave: _save,
+      saveLabel: 'Save',
+      isLoading: _isSaving,
     );
   }
 }

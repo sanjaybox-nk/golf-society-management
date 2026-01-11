@@ -19,6 +19,8 @@ class MembersScreen extends ConsumerWidget {
     return Scaffold(
       appBar: BoxyArtAppBar(
         title: 'Members',
+        showLeading: false,
+        actions: const [],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(82),
           child: Padding(
@@ -85,14 +87,6 @@ class MembersScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                       if (index == 0) ...[
-                          _SectionHeader(
-                            title: currentFilter == AdminMemberFilter.current
-                              ? 'Current Members'
-                              : 'Past Members'
-                          ),
-                          const SizedBox(height: 16),
-                       ],
                        Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: _MemberTile(member: m),
@@ -158,7 +152,8 @@ class _MemberTile extends StatelessWidget {
               radius: 24,
               backgroundColor: AppTheme.surfaceGrey,
               child: Text(
-                member.firstName[0] + member.lastName[0],
+                (member.firstName.isNotEmpty ? member.firstName[0] : '') + 
+                (member.lastName.isNotEmpty ? member.lastName[0] : ''),
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -179,6 +174,18 @@ class _MemberTile extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
+                  if (member.societyRole != null && member.societyRole!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        member.societyRole!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A237E),
+                        ),
+                      ),
+                    ),
                   if (member.nickname != null && member.nickname!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
@@ -194,7 +201,7 @@ class _MemberTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   // Row 2: HCP | iGolf Membership
                   Text(
-                    'HCP: ${member.handicap.toStringAsFixed(1)} | ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : 'No WHS'}',
+                    'HC: ${member.handicap.toStringAsFixed(1)} | iGolf: ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : '-'}',
                     style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 13,
@@ -211,7 +218,7 @@ class _MemberTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  // Row 4: Status | Fee Status
+                  // Row 4: Status | Since Pill
                   Row(
                     children: [
                       Container(
@@ -229,12 +236,30 @@ class _MemberTile extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const Spacer(),
+                      if (member.joinedDate != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            border: Border.all(color: Colors.black12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Since ${member.joinedDate!.year}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, color: Colors.black54),
           ],
         ),
       ),

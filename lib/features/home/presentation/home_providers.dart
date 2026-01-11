@@ -22,14 +22,24 @@ final homeNotificationsProvider = Provider<List<AppNotification>>((ref) {
       title: 'Event Reminder',
       message: 'Spring Championship - Registration closes in 2 days',
       timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+      category: 'Urgent',
       isRead: false,
     ),
     AppNotification(
       id: '2',
+      title: 'Course Update',
+      message: 'The front nine is now open after maintenance.',
+      timestamp: DateTime.now().subtract(const Duration(hours: 4)),
+      category: 'Info',
+      isRead: false,
+    ),
+    AppNotification(
+      id: '3',
       title: 'Payment Due',
       message: 'Annual membership fee is due on March 15th',
       timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      isRead: false,
+      category: 'Info',
+      isRead: true,
     ),
   ];
 });

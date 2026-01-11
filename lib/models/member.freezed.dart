@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Member {
 
- String get id; String get firstName; String get lastName; String get email; String? get nickname; String? get phone; String? get address; String? get bio; String? get avatarUrl; double get handicap; String? get whsNumber; bool get isHandicapLocked; MemberRole get role; MemberStatus get status; bool get hasPaid; bool get isArchived;
+ String get id; String get firstName; String get lastName; String get email; String? get nickname; String? get phone; String? get address; String? get bio; String? get avatarUrl; double get handicap; String? get whsNumber; bool get isHandicapLocked; MemberRole get role; String? get societyRole;// [NEW]
+ MemberStatus get status; bool get hasPaid; bool get isArchived;@TimestampConverter() DateTime? get joinedDate;
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $MemberCopyWith<Member> get copyWith => _$MemberCopyWithImpl<Member>(this as Mem
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.whsNumber, whsNumber) || other.whsNumber == whsNumber)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.whsNumber, whsNumber) || other.whsNumber == whsNumber)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.societyRole, societyRole) || other.societyRole == societyRole)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.joinedDate, joinedDate) || other.joinedDate == joinedDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,whsNumber,isHandicapLocked,role,status,hasPaid,isArchived);
+int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,whsNumber,isHandicapLocked,role,societyRole,status,hasPaid,isArchived,joinedDate);
 
 @override
 String toString() {
-  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, whsNumber: $whsNumber, isHandicapLocked: $isHandicapLocked, role: $role, status: $status, hasPaid: $hasPaid, isArchived: $isArchived)';
+  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, whsNumber: $whsNumber, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, joinedDate: $joinedDate)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $MemberCopyWith<$Res>  {
   factory $MemberCopyWith(Member value, $Res Function(Member) _then) = _$MemberCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? whsNumber, bool isHandicapLocked, MemberRole role, MemberStatus status, bool hasPaid, bool isArchived
+ String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? whsNumber, bool isHandicapLocked, MemberRole role, String? societyRole, MemberStatus status, bool hasPaid, bool isArchived,@TimestampConverter() DateTime? joinedDate
 });
 
 
@@ -65,7 +66,7 @@ class _$MemberCopyWithImpl<$Res>
 
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? whsNumber = freezed,Object? isHandicapLocked = null,Object? role = null,Object? status = null,Object? hasPaid = null,Object? isArchived = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? whsNumber = freezed,Object? isHandicapLocked = null,Object? role = null,Object? societyRole = freezed,Object? status = null,Object? hasPaid = null,Object? isArchived = null,Object? joinedDate = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -80,10 +81,12 @@ as String?,handicap: null == handicap ? _self.handicap : handicap // ignore: cas
 as double,whsNumber: freezed == whsNumber ? _self.whsNumber : whsNumber // ignore: cast_nullable_to_non_nullable
 as String?,isHandicapLocked: null == isHandicapLocked ? _self.isHandicapLocked : isHandicapLocked // ignore: cast_nullable_to_non_nullable
 as bool,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as MemberRole,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MemberRole,societyRole: freezed == societyRole ? _self.societyRole : societyRole // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as MemberStatus,hasPaid: null == hasPaid ? _self.hasPaid : hasPaid // ignore: cast_nullable_to_non_nullable
 as bool,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,joinedDate: freezed == joinedDate ? _self.joinedDate : joinedDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -168,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? whsNumber,  bool isHandicapLocked,  MemberRole role,  MemberStatus status,  bool hasPaid,  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? whsNumber,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived, @TimestampConverter()  DateTime? joinedDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Member() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.whsNumber,_that.isHandicapLocked,_that.role,_that.status,_that.hasPaid,_that.isArchived);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.whsNumber,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.joinedDate);case _:
   return orElse();
 
 }
@@ -189,10 +192,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickna
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? whsNumber,  bool isHandicapLocked,  MemberRole role,  MemberStatus status,  bool hasPaid,  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? whsNumber,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived, @TimestampConverter()  DateTime? joinedDate)  $default,) {final _that = this;
 switch (_that) {
 case _Member():
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.whsNumber,_that.isHandicapLocked,_that.role,_that.status,_that.hasPaid,_that.isArchived);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.whsNumber,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.joinedDate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +212,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickna
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? whsNumber,  bool isHandicapLocked,  MemberRole role,  MemberStatus status,  bool hasPaid,  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String lastName,  String email,  String? nickname,  String? phone,  String? address,  String? bio,  String? avatarUrl,  double handicap,  String? whsNumber,  bool isHandicapLocked,  MemberRole role,  String? societyRole,  MemberStatus status,  bool hasPaid,  bool isArchived, @TimestampConverter()  DateTime? joinedDate)?  $default,) {final _that = this;
 switch (_that) {
 case _Member() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.whsNumber,_that.isHandicapLocked,_that.role,_that.status,_that.hasPaid,_that.isArchived);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickname,_that.phone,_that.address,_that.bio,_that.avatarUrl,_that.handicap,_that.whsNumber,_that.isHandicapLocked,_that.role,_that.societyRole,_that.status,_that.hasPaid,_that.isArchived,_that.joinedDate);case _:
   return null;
 
 }
@@ -224,7 +227,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.nickna
 @JsonSerializable()
 
 class _Member extends Member {
-  const _Member({required this.id, required this.firstName, required this.lastName, required this.email, this.nickname, this.phone, this.address, this.bio, this.avatarUrl, this.handicap = 0.0, this.whsNumber, this.isHandicapLocked = false, this.role = MemberRole.member, this.status = MemberStatus.member, this.hasPaid = false, this.isArchived = false}): super._();
+  const _Member({required this.id, required this.firstName, required this.lastName, required this.email, this.nickname, this.phone, this.address, this.bio, this.avatarUrl, this.handicap = 0.0, this.whsNumber, this.isHandicapLocked = false, this.role = MemberRole.member, this.societyRole, this.status = MemberStatus.member, this.hasPaid = false, this.isArchived = false, @TimestampConverter() this.joinedDate}): super._();
   factory _Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);
 
 @override final  String id;
@@ -240,9 +243,12 @@ class _Member extends Member {
 @override final  String? whsNumber;
 @override@JsonKey() final  bool isHandicapLocked;
 @override@JsonKey() final  MemberRole role;
+@override final  String? societyRole;
+// [NEW]
 @override@JsonKey() final  MemberStatus status;
 @override@JsonKey() final  bool hasPaid;
 @override@JsonKey() final  bool isArchived;
+@override@TimestampConverter() final  DateTime? joinedDate;
 
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
@@ -257,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.whsNumber, whsNumber) || other.whsNumber == whsNumber)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Member&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.whsNumber, whsNumber) || other.whsNumber == whsNumber)&&(identical(other.isHandicapLocked, isHandicapLocked) || other.isHandicapLocked == isHandicapLocked)&&(identical(other.role, role) || other.role == role)&&(identical(other.societyRole, societyRole) || other.societyRole == societyRole)&&(identical(other.status, status) || other.status == status)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.joinedDate, joinedDate) || other.joinedDate == joinedDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,whsNumber,isHandicapLocked,role,status,hasPaid,isArchived);
+int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,nickname,phone,address,bio,avatarUrl,handicap,whsNumber,isHandicapLocked,role,societyRole,status,hasPaid,isArchived,joinedDate);
 
 @override
 String toString() {
-  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, whsNumber: $whsNumber, isHandicapLocked: $isHandicapLocked, role: $role, status: $status, hasPaid: $hasPaid, isArchived: $isArchived)';
+  return 'Member(id: $id, firstName: $firstName, lastName: $lastName, email: $email, nickname: $nickname, phone: $phone, address: $address, bio: $bio, avatarUrl: $avatarUrl, handicap: $handicap, whsNumber: $whsNumber, isHandicapLocked: $isHandicapLocked, role: $role, societyRole: $societyRole, status: $status, hasPaid: $hasPaid, isArchived: $isArchived, joinedDate: $joinedDate)';
 }
 
 
@@ -277,7 +283,7 @@ abstract mixin class _$MemberCopyWith<$Res> implements $MemberCopyWith<$Res> {
   factory _$MemberCopyWith(_Member value, $Res Function(_Member) _then) = __$MemberCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? whsNumber, bool isHandicapLocked, MemberRole role, MemberStatus status, bool hasPaid, bool isArchived
+ String id, String firstName, String lastName, String email, String? nickname, String? phone, String? address, String? bio, String? avatarUrl, double handicap, String? whsNumber, bool isHandicapLocked, MemberRole role, String? societyRole, MemberStatus status, bool hasPaid, bool isArchived,@TimestampConverter() DateTime? joinedDate
 });
 
 
@@ -294,7 +300,7 @@ class __$MemberCopyWithImpl<$Res>
 
 /// Create a copy of Member
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? whsNumber = freezed,Object? isHandicapLocked = null,Object? role = null,Object? status = null,Object? hasPaid = null,Object? isArchived = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? nickname = freezed,Object? phone = freezed,Object? address = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? handicap = null,Object? whsNumber = freezed,Object? isHandicapLocked = null,Object? role = null,Object? societyRole = freezed,Object? status = null,Object? hasPaid = null,Object? isArchived = null,Object? joinedDate = freezed,}) {
   return _then(_Member(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -309,10 +315,12 @@ as String?,handicap: null == handicap ? _self.handicap : handicap // ignore: cas
 as double,whsNumber: freezed == whsNumber ? _self.whsNumber : whsNumber // ignore: cast_nullable_to_non_nullable
 as String?,isHandicapLocked: null == isHandicapLocked ? _self.isHandicapLocked : isHandicapLocked // ignore: cast_nullable_to_non_nullable
 as bool,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as MemberRole,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MemberRole,societyRole: freezed == societyRole ? _self.societyRole : societyRole // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as MemberStatus,hasPaid: null == hasPaid ? _self.hasPaid : hasPaid // ignore: cast_nullable_to_non_nullable
 as bool,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,joinedDate: freezed == joinedDate ? _self.joinedDate : joinedDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

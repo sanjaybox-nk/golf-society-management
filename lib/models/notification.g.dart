@@ -12,6 +12,7 @@ _AppNotification _$AppNotificationFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       message: json['message'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
+      category: json['category'] as String? ?? 'Info',
       isRead: json['isRead'] as bool? ?? false,
       actionUrl: json['actionUrl'] as String?,
     );
@@ -22,6 +23,7 @@ Map<String, dynamic> _$AppNotificationToJson(_AppNotification instance) =>
       'title': instance.title,
       'message': instance.message,
       'timestamp': instance.timestamp.toIso8601String(),
+      'category': instance.category,
       'isRead': instance.isRead,
       'actionUrl': instance.actionUrl,
     };

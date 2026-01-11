@@ -7,6 +7,7 @@ class AppTheme {
   static const Color primaryBlack = Color(0xFF000000);
   static const Color surfaceWhite = Color(0xFFFFFFFF);
   static const Color surfaceGrey = Color(0xFFF5F5F5);
+  static const Color backgroundGrey = Color(0xFFF0F2F5);
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -20,7 +21,7 @@ class AppTheme {
         onSurface: primaryBlack,
         surfaceContainerHighest: surfaceGrey, // slightly darker than surface
       ),
-      scaffoldBackgroundColor: surfaceWhite,
+      scaffoldBackgroundColor: backgroundGrey,
       
       // Typography
       textTheme: GoogleFonts.poppinsTextTheme().apply(

@@ -12,6 +12,7 @@ abstract class AppNotification with _$AppNotification {
     required String title,
     required String message,
     required DateTime timestamp,
+    @Default('Info') String category,
     @Default(false) bool isRead,
     String? actionUrl,
   }) = _AppNotification;

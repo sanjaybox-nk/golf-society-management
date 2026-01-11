@@ -12,9 +12,10 @@ lib/
 │   ├── utils/              # Helper functions (dates, formatters)
 │   └── constants/          # Environment vars, static keys
 ├── features/               # distinct domains of the application
-│   ├── home/               # Member Dashboard logic & UI
+│   ├── home/               # Member Dashboard & Notifications
 │   ├── events/             # Events listing & details
 │   ├── members/            # Directory & Locker Room
+│   ├── admin/              # Management Console (Events, Members, Communications)
 │   └── auth/               # Login & Registration flows
 ├── models/                 # Shared Data Models (Freezed classes)
 ├── main.dart               # Entry point

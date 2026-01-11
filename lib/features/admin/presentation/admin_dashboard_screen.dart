@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/admin/presentation/events/event_admin_scaffold.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -20,7 +21,9 @@ class AdminDashboardScreen extends StatelessWidget {
             subtitle: 'Schedule and results',
             icon: Icons.calendar_month,
             color: Colors.orange,
-            onTap: () => context.push('/admin/events'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const EventAdminScaffold()),
+            ),
           ),
           _AdminCard(
             title: 'Manage Members',
@@ -41,7 +44,14 @@ class AdminDashboardScreen extends StatelessWidget {
             subtitle: 'App configuration',
             icon: Icons.settings,
             color: Colors.grey,
-            onTap: () {}, // Future
+            onTap: () => context.push('/admin/settings'),
+          ),
+          _AdminCard(
+            title: 'Communications',
+            subtitle: 'Broadcast alerts',
+            icon: Icons.notification_add,
+            color: Colors.redAccent,
+            onTap: () => context.push('/admin/communications'),
           ),
         ],
       ),

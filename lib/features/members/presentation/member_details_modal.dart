@@ -1,12 +1,15 @@
-```
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart'; // [NEW]
 import '../../../../core/services/storage_service.dart'; // [NEW]
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/cards.dart';
+import '../../../../core/shared_ui/inputs.dart';
+import '../../../../core/shared_ui/floating_action_bar.dart';
 import '../../../../core/constants/country_codes.dart';
 import '../../../../models/member.dart';
 import 'members_provider.dart';
+import 'profile_provider.dart'; // [NEW]
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member member;
@@ -61,8 +64,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   late TextEditingController _countryCodeController;
   late TextEditingController _addressController;
   late TextEditingController _bioController;
+  final _formKey = GlobalKey<FormState>();
   String? _avatarUrl; // [NEW]
-  bool _isUploading = false; // [NEW]
 
   @override
   void initState() {
@@ -109,6 +112,16 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
       try {
         final repo = ref.read(membersRepositoryProvider);
         final m = widget.member;
@@ -139,7 +152,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       final file = await storage.pickImage(source: ImageSource.gallery);
       
       if (file != null) {
-        setState(() => _isUploading = true);
         
         final url = await storage.uploadAvatar(
           memberId: widget.member.id, 
@@ -149,204 +161,444 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         if (mounted) {
           setState(() {
             _avatarUrl = url;
-            _isUploading = false;
           });
         }
       }
     } catch (e) {
       if (mounted) {
-         setState(() => _isUploading = false);
          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
       }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF0F2F5),
-      child: SafeArea(
+  // Role Assignment Logic
+  bool _canAssignRoles() {
+    final currentUser = ref.watch(currentUserProvider);
+    return currentUser.role == MemberRole.superAdmin;
+  }
+
+  void _showRolePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFF0F2F5),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with close button
+            const Text(
+              'Assign Role',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ...MemberRole.values.map((role) => _buildRoleOption(role)),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOption(MemberRole role) {
+    final isSelected = widget.member.role == role;
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        if (!isSelected) _confirmRoleChange(role);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: isSelected ? Border.all(color: Colors.purple, width: 2) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
             Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: Row(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.purple.shade50 : Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _getRoleIcon(role),
+                color: isSelected ? Colors.purple : Colors.grey,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Member Details',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
+                  Text(
+                    _getRoleDisplayName(role),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.purple.shade900 : Colors.black,
                     ),
                   ),
-                  // Edit Action
-                  if (_isEditing)
-                    TextButton(
-                      onPressed: _save,
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(
-                          color: Colors.black, // Boxy Art yellow/black theme usually uses black for actions or primary color
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    )
-                  else
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () => setState(() => _isEditing = true),
+                  Text(
+                    _getRoleDescription(role),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
                     ),
+                  ),
                 ],
               ),
             ),
-            
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Member Header Card
-                    BoxyArtMemberHeaderCard(
-                      firstName: _isEditing ? _firstController.text : widget.member.firstName, // Use Controller text for potential live update if we added listeners
-                      lastName: _isEditing ? _lastController.text : widget.member.lastName,
-                      nickname: _isEditing ? _nicknameController.text : widget.member.nickname,
-                      status: widget.member.status,
-                      hasPaid: widget.member.hasPaid,
-                      avatarUrl: _avatarUrl, // [UPDATED]
-                      handicapController: TextEditingController(text: widget.member.handicap.toStringAsFixed(1)),
-                      whsController: TextEditingController(text: widget.member.whsNumber ?? ''),
-                      isEditing: _isEditing,
-                      isAdmin: false,
-                      onCameraTap: _isEditing ? _pickImage : null, // [NEW]
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Personal Details
-                    if (_isEditing) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: BoxyArtFormField(
-                              label: 'First Name',
-                              controller: _firstController,
-                              readOnly: false,
-                            ),
+            if (isSelected) const Icon(Icons.check_circle, color: Colors.purple),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmRoleChange(MemberRole newRole) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Role?'),
+        content: Text('Are you sure you want to make ${widget.member.firstName} a ${_getRoleDisplayName(newRole)}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              await _updateRole(newRole);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateRole(MemberRole newRole) async {
+    try {
+      final repo = ref.read(membersRepositoryProvider);
+      final updatedMember = widget.member.copyWith(role: newRole);
+      await repo.updateMember(updatedMember);
+      if (mounted) {
+         setState(() {
+           Navigator.pop(context); // Close details to refresh?
+         });
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Role updated successfully')));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  String _getRoleDisplayName(MemberRole role) {
+    switch (role) {
+      case MemberRole.superAdmin: return 'Super Admin';
+      case MemberRole.admin: return 'Admin';
+      case MemberRole.restrictedAdmin: return 'Restricted Admin';
+      case MemberRole.viewer: return 'Viewer';
+      case MemberRole.member: return 'Standard Member';
+    }
+  }
+
+  String _getRoleDescription(MemberRole role) {
+     switch (role) {
+      case MemberRole.superAdmin: return 'Full access to all system features.';
+      case MemberRole.admin: return 'Manage members, events, and results.';
+      case MemberRole.restrictedAdmin: return 'Limited management rights.';
+      case MemberRole.viewer: return 'Read-only access to all data.';
+      case MemberRole.member: return 'Standard app access.';
+    }
+  }
+
+  IconData _getRoleIcon(MemberRole role) {
+    switch (role) {
+      case MemberRole.superAdmin: return Icons.admin_panel_settings;
+      case MemberRole.admin: return Icons.security;
+      case MemberRole.restrictedAdmin: return Icons.build_circle_outlined;
+      case MemberRole.viewer: return Icons.visibility_outlined;
+      case MemberRole.member: return Icons.person_outline;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: !_isEditing,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_isEditing) {
+          _showExitConfirmation();
+        }
+      },
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                // Header with close button
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Member Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: BoxyArtFormField(
-                              label: 'Last Name',
-                              controller: _lastController,
-                              readOnly: false,
-                            ),
-                          ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Nickname',
-                        controller: _nicknameController,
-                        readOnly: false,
-                      ),
-                      const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Email',
-                        controller: _emailController,
-                        readOnly: false,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: BoxyArtFormField(
-                              label: 'Code',
-                              controller: _countryCodeController,
-                              readOnly: false, 
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: BoxyArtFormField(
-                              label: 'Phone',
-                              controller: _phoneController,
-                              readOnly: false,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Address',
-                        controller: _addressController,
-                        readOnly: false,
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Bio',
-                        controller: _bioController,
-                        readOnly: false,
-                        maxLines: 4,
-                      ),
-                    ] else ...[
-                      // View Mode
-                      if (widget.member.nickname != null && widget.member.nickname!.isNotEmpty) ...[
-                         ProfileInfoRow(
-                           icon: Icons.person_outline,
-                           label: 'NICKNAME',
-                           value: widget.member.nickname!,
-                         ),
-                         Divider(height: 1, indent: 36, color: Colors.grey.shade300),
-                      ],
-                      ProfileInfoRow(
-                        icon: Icons.email_outlined,
-                        label: 'EMAIL',
-                        value: widget.member.email.isEmpty ? 'Not provided' : widget.member.email,
-                      ),
-                      Divider(height: 1, indent: 36, color: Colors.grey.shade300),
-                      ProfileInfoRow(
-                        icon: Icons.phone_outlined,
-                        label: 'PHONE',
-                        value: widget.member.phone?.isEmpty ?? true ? 'Not provided' : widget.member.phone!,
-                      ),
-                      Divider(height: 1, indent: 36, color: Colors.grey.shade300),
-                      ProfileInfoRow(
-                        icon: Icons.location_on_outlined,
-                        label: 'ADDRESS',
-                        value: widget.member.address?.isEmpty ?? true ? 'Not provided' : widget.member.address!,
-                      ),
-                      if (widget.member.bio != null && widget.member.bio!.isNotEmpty) ...[
-                         Divider(height: 1, indent: 36, color: Colors.grey.shade300),
-                         ProfileInfoRow(
-                           icon: Icons.info_outline,
-                           label: 'BIO',
-                           value: widget.member.bio!,
-                         ),
-                      ],
+                      // Edit Action
+                      if (!_isEditing)
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () => setState(() => _isEditing = true),
+                        ),
                     ],
-                    
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
+                
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24).copyWith(bottom: 120), // Increased bottom padding
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Member Header Card
+                        BoxyArtMemberHeaderCard(
+                          firstName: _isEditing ? _firstController.text : widget.member.firstName,
+                          lastName: _isEditing ? _lastController.text : widget.member.lastName,
+                          nickname: _isEditing ? _nicknameController.text : widget.member.nickname,
+                          status: widget.member.status,
+                          hasPaid: widget.member.hasPaid,
+                          avatarUrl: _avatarUrl,
+                          handicapController: TextEditingController(text: widget.member.handicap.toStringAsFixed(1)),
+                          whsController: TextEditingController(text: widget.member.whsNumber ?? ''),
+                          isEditing: _isEditing,
+                          isAdmin: false,
+                          onCameraTap: _isEditing ? _pickImage : null,
+                          role: widget.member.role,
+                          onRoleTap: _canAssignRoles() ? _showRolePicker : null,
+                          societyRole: widget.member.societyRole,
+                          joinedDate: widget.member.joinedDate,
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Personal Details
+                        if (_isEditing) ...[
+                          BoxyArtFormField(
+                            label: 'Bio',
+                            controller: _bioController,
+                            readOnly: false,
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BoxyArtFormField(
+                                  label: 'First Name *',
+                                  controller: _firstController,
+                                  readOnly: false,
+                                  validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BoxyArtFormField(
+                                  label: 'Last Name *',
+                                  controller: _lastController,
+                                  readOnly: false,
+                                  validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          BoxyArtFormField(
+                            label: 'Nickname',
+                            controller: _nicknameController,
+                            readOnly: false,
+                          ),
+                          const SizedBox(height: 16),
+                          BoxyArtFormField(
+                            label: 'Email *',
+                            controller: _emailController,
+                            readOnly: false,
+                            validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                child: BoxyArtFormField(
+                                  label: 'Code',
+                                  controller: _countryCodeController,
+                                  readOnly: false, 
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: BoxyArtFormField(
+                                  label: 'Phone *',
+                                  controller: _phoneController,
+                                  readOnly: false,
+                                  validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          BoxyArtFormField(
+                            label: 'Address *',
+                            controller: _addressController,
+                            readOnly: false,
+                            maxLines: 2,
+                            validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
+                          ),
+
+                        ] else ...[
+                          // View Mode
+                          if (widget.member.bio != null && widget.member.bio!.isNotEmpty) ...[
+                             ProfileInfoRow(
+                               icon: Icons.info_outline,
+                               label: 'BIO',
+                               value: widget.member.bio!,
+                             ),
+                             Divider(height: 1, indent: 36, color: Colors.grey.shade300),
+                          ],
+                          if (widget.member.nickname != null && widget.member.nickname!.isNotEmpty) ...[
+                             ProfileInfoRow(
+                               icon: Icons.person_outline,
+                               label: 'NICKNAME',
+                               value: widget.member.nickname!,
+                             ),
+                             Divider(height: 1, indent: 36, color: Colors.grey.shade300),
+                          ],
+                          ProfileInfoRow(
+                            icon: Icons.email_outlined,
+                            label: 'EMAIL',
+                            value: widget.member.email.isEmpty ? 'Not provided' : widget.member.email,
+                          ),
+                          Divider(height: 1, indent: 36, color: Colors.grey.shade300),
+                          ProfileInfoRow(
+                            icon: Icons.phone_outlined,
+                            label: 'PHONE',
+                            value: widget.member.phone?.isEmpty ?? true ? 'Not provided' : widget.member.phone!,
+                          ),
+                          Divider(height: 1, indent: 36, color: Colors.grey.shade300),
+                          ProfileInfoRow(
+                            icon: Icons.location_on_outlined,
+                            label: 'ADDRESS',
+                            value: widget.member.address?.isEmpty ?? true ? 'Not provided' : widget.member.address!,
+                          ),
+                          Divider(height: 1, indent: 36, color: Colors.grey.shade300),
+                          ProfileInfoRow(
+                            icon: Icons.calendar_today_outlined,
+                            label: 'MEMBER SINCE',
+                            value: widget.member.joinedDate != null 
+                              ? '${widget.member.joinedDate!.day.toString().padLeft(2, '0')}/${widget.member.joinedDate!.month.toString().padLeft(2, '0')}/${widget.member.joinedDate!.year}' 
+                              : 'Unknown',
+                          ),
+                        ],
+                        
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            // Floating Action Bar
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Visibility(
+                visible: _isEditing,
+                child: _buildBottomBar(),
               ),
             ),
           ],
         ),
       ),
+      ),
+    );
+  }
+
+  void _showExitConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Changes?'),
+        content: const Text('You have unsaved changes. Are you sure you want to leave?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Keep Editing',
+              style: TextStyle(color: Colors.grey[800]),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              setState(() {
+                _isEditing = false;
+                _initControllers(); // Reset changes
+              });
+              Navigator.of(context).pop(); // Close modal
+            },
+            child: const Text(
+              'Discard',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return BoxyArtFloatingActionBar(
+      onCancel: _showExitConfirmation,
+      onSave: _save,
     );
   }
 }

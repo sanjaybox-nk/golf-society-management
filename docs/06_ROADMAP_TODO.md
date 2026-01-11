@@ -29,6 +29,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Edit Profile**: Form to update handicap, phone, etc.
     - [x] **Photo Upload**: Profile picture management (5MB limit).
     - [ ] **Stats Engine**: Calculate real trends from Firestore data.
+- [x] **Communications & Notifications**
+    - [x] **Dynamic Home Notifications**: Real-time alerts on Member Home.
+    - [x] **Notification Inbox**: History view for all society alerts.
+    - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.
+    - [x] **Audience Manager**: Custom distribution list creation and management.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**

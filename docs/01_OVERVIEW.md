@@ -3,11 +3,12 @@
 **Golf Society Management** is a modern Flutter application designed to manage golf societies, events, members, and handicaps. It features a premium "BoxyArt" design system with high-contrast aesthetics and fluid interactions.
 
 ## Core Features
-1.  **Member Dashboard**: Personalized view with "Next Match" details and quick actions.
-2.  **Events Hub**: Comprehensive listing of Upcoming and Past events, with registration capabilities.
-3.  **Members Directory**: Searchable list of all society members with live filtering and photo uploads.
-4.  **Locker Room**: User profile management (Bio, Photo), handicap tracking, and statistics.
-5.  **Archive**: Historical data of past seasons and major winners.
+6.  **Member Dashboard**: Personalized view with dynamic notifications, "Next Match" details, and quick actions.
+7.  **Communications Hub (Admin)**: A sophisticated broadcasting system with custom distribution lists and targeting.
+8.  **Events Hub**: Comprehensive listing of Upcoming and Past events, with registration capabilities.
+9.  **Members Directory**: Searchable list of all society members with live filtering and photo uploads.
+10. **Locker Room**: User profile management (Bio, Photo), handicap tracking, and statistics.
+11. **Archive**: Historical data of past seasons and major winners.
 
 ## Technology Stack
 -   **Framework**: Flutter (Dart)

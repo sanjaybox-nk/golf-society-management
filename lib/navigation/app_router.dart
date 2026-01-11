@@ -15,6 +15,14 @@ import '../features/admin/presentation/events/admin_events_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
 import '../features/admin/presentation/members/admin_members_screen.dart';
 import '../features/admin/presentation/members/member_form_screen.dart';
+import '../features/admin/presentation/settings/admin_settings_screen.dart';
+import '../features/admin/presentation/roles/roles_settings_screen.dart';
+import '../features/admin/presentation/roles/role_members_screen.dart';
+import '../features/admin/presentation/roles/committee_roles_screen.dart';
+import '../features/admin/presentation/roles/committee_role_members_screen.dart';
+import '../features/admin/presentation/notifications/compose_notification_screen.dart';
+import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
+import '../features/home/presentation/notification_inbox_screen.dart';
 
 // Private navigators
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -43,6 +51,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: MemberHomeScreen(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'notifications',
+                    builder: (context, state) => const NotificationInboxScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -135,6 +149,43 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 },
               ),
             ],
+          ),
+          GoRoute(
+            path: 'settings',
+            builder: (context, state) => const AdminSettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'roles',
+                builder: (context, state) => const RolesSettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'members/:roleIndex',
+                    builder: (context, state) {
+                      final roleIndex = int.parse(state.pathParameters['roleIndex']!);
+                      final role = MemberRole.values[roleIndex];
+                      return RoleMembersScreen(role: role);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'committee-roles',
+                builder: (context, state) => const CommitteeRolesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'members/:roleName',
+                    builder: (context, state) {
+                      final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
+                      return CommitteeRoleMembersScreen(role: roleName);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'communications',
+            builder: (context, state) => const NotificationAdminScaffold(),
           ),
         ],
       ),

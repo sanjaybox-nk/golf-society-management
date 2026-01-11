@@ -49,4 +49,6 @@ Use components from `lib/core/widgets/boxy_art_widgets.dart` where possible:
 -   `BoxyArtAppBar`: Transparent header with circular icon buttons.
 -   `BoxyArtFloatingCard`: Standard white card container.
 -   `FloatingBottomSearch`: The signature pill-shaped search bar.
--   `BoxyArtChatBubble`: For messaging interfaces.
+-   `HomeNotificationCard`: Premium status-based alert cards for the dashboard.
+-   `BoxyArtButton`: Multipurpose action button (Primary, Secondary, Ghost).
+-   `BoxyArtFormField`: Unified pill-style input fields.

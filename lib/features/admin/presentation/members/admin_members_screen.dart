@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_theme.dart';
+import 'package:golf_society/core/theme/app_theme.dart';
+import 'package:golf_society/core/theme/app_shadows.dart';
 
-import '../../../members/presentation/members_provider.dart';
-import '../../../../models/member.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../members/presentation/member_details_modal.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/models/member.dart';
+import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/members/presentation/member_details_modal.dart';
 
 class AdminMembersScreen extends ConsumerWidget {
   const AdminMembersScreen({super.key});
-
-
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,6 +22,20 @@ class AdminMembersScreen extends ConsumerWidget {
       appBar: BoxyArtAppBar(
         title: 'Manage Members',
         showBack: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
+            child: SizedBox(
+              height: 40,
+              width: 40,
+              child: FloatingActionButton(
+                mini: true,
+                onPressed: () => context.push('/admin/members/new'),
+                child: const Icon(Icons.person_add, size: 20),
+              ),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(82),
           child: Padding(
@@ -34,13 +47,6 @@ class AdminMembersScreen extends ConsumerWidget {
               },
             ),
           ),
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 90), // Lift above the floating filter bar
-        child: FloatingActionButton(
-          onPressed: () => context.push('/admin/members/new'),
-          child: const Icon(Icons.person_add),
         ),
       ),
       body: membersAsync.when(
@@ -56,51 +62,39 @@ class AdminMembersScreen extends ConsumerWidget {
             if (!matchesSearch) return false;
 
             if (currentFilter == AdminMemberFilter.current) {
-              return m.status == MemberStatus.member || 
-                     m.status == MemberStatus.active ||
-                     m.status == MemberStatus.suspended;
+              return m.status != MemberStatus.archived && 
+                     m.status != MemberStatus.left &&
+                     m.status != MemberStatus.inactive &&
+                     !m.isArchived;
             } else {
               return m.status == MemberStatus.archived || 
                      m.status == MemberStatus.left ||
-                     m.status == MemberStatus.inactive;
+                     m.status == MemberStatus.inactive ||
+                     m.isArchived;
             }
           }).toList();
 
           final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
-          
-          final avgHandicap = sortedMembers.isEmpty 
-              ? 0.0 
-              : sortedMembers.map((m) => m.handicap).reduce((a, b) => a + b) / sortedMembers.length;
+
+          // Calculate counts for badges
+          final currentCount = members.where((m) => 
+            m.status != MemberStatus.archived && 
+            m.status != MemberStatus.left &&
+            m.status != MemberStatus.inactive &&
+            !m.isArchived
+          ).length;
+
+          final pastCount = members.where((m) => 
+            m.status == MemberStatus.archived || 
+            m.status == MemberStatus.left ||
+            m.status == MemberStatus.inactive ||
+            m.isArchived
+          ).length;
 
           return Stack(
             children: [
               Column(
                 children: [
-                   // Metrics and List...
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _MetricCard(
-                        label: currentFilter == AdminMemberFilter.current ? 'Current Total' : 'Past Total',
-                        value: '${sortedMembers.length}',
-                        icon: Icons.groups,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: _MetricCard(
-                        label: 'Avg Handicap',
-                        value: avgHandicap.toStringAsFixed(1),
-                        icon: Icons.golf_course,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24), 
-
               // List
               Expanded(
                 child: sortedMembers.isEmpty 
@@ -120,14 +114,6 @@ class AdminMembersScreen extends ConsumerWidget {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (index == 0) ...[
-                              _AdminSectionHeader(
-                                title: currentFilter == AdminMemberFilter.current 
-                                  ? 'Current Members' 
-                                  : 'Past Members'
-                              ),
-                              const SizedBox(height: 12),
-                            ],
                             _buildDismissibleMember(context, ref, m),
                           ],
                         );
@@ -145,8 +131,8 @@ class AdminMembersScreen extends ConsumerWidget {
             child: FloatingFilterBar<AdminMemberFilter>(
               selectedValue: currentFilter,
               options: [
-                FloatingFilterOption(label: 'Current', value: AdminMemberFilter.current),
-                FloatingFilterOption(label: 'Past', value: AdminMemberFilter.past),
+                FloatingFilterOption(label: 'Current ($currentCount)', value: AdminMemberFilter.current),
+                FloatingFilterOption(label: 'Past ($pastCount)', value: AdminMemberFilter.past),
               ],
               onChanged: (filter) {
                 ref.read(adminMemberFilterProvider.notifier).update(filter);
@@ -161,55 +147,6 @@ class AdminMembersScreen extends ConsumerWidget {
   ),
 );
 }
-}
-
-class _MetricCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _MetricCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceGrey,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.black, size: 20),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              height: 1.0,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _SimpleBadge extends StatelessWidget {
@@ -300,7 +237,7 @@ class _SimpleBadge extends StatelessWidget {
                 radius: 24,
                 backgroundColor: AppTheme.surfaceGrey,
                 child: Text(
-                  member.firstName[0], 
+                  member.firstName.isNotEmpty ? member.firstName[0] : '', 
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)
                 ),
               ),
@@ -318,6 +255,18 @@ class _SimpleBadge extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
+                    if (member.societyRole != null && member.societyRole!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          member.societyRole!,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A237E),
+                          ),
+                        ),
+                      ),
                     if (member.nickname != null && member.nickname!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
@@ -333,7 +282,7 @@ class _SimpleBadge extends StatelessWidget {
                     const SizedBox(height: 4),
                     // Row 2: HCP | iGolf Membership
                     Text(
-                      'HCP: ${member.handicap.toStringAsFixed(1)} | ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : 'No WHS'}',
+                      'HC: ${member.handicap.toStringAsFixed(1)} | iGolf: ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : '-'}',
                       style: const TextStyle(
                         color: Colors.black87,
                         fontSize: 13,
@@ -350,7 +299,7 @@ class _SimpleBadge extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // Row 4: Status | Fee Status
+                    // Row 4: Status | Fee Status | Since Pill
                     Row(
                       children: [
                         _SimpleBadge(
@@ -371,12 +320,30 @@ class _SimpleBadge extends StatelessWidget {
                             color: Color(0xFFFFF3E0),
                             textColor: Color(0xFFE65100),
                           ),
+                        const Spacer(),
+                        if (member.joinedDate != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              border: Border.all(color: Colors.black12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Since ${member.joinedDate!.year}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black.withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+              Icon(Icons.chevron_right, color: Colors.black54),
             ],
           ),
         ),

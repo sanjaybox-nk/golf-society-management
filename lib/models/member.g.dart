@@ -22,11 +22,13 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
   role:
       $enumDecodeNullable(_$MemberRoleEnumMap, json['role']) ??
       MemberRole.member,
+  societyRole: json['societyRole'] as String?,
   status:
       $enumDecodeNullable(_$MemberStatusEnumMap, json['status']) ??
       MemberStatus.member,
   hasPaid: json['hasPaid'] as bool? ?? false,
   isArchived: json['isArchived'] as bool? ?? false,
+  joinedDate: const TimestampConverter().fromJson(json['joinedDate']),
 );
 
 Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
@@ -43,13 +45,18 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'whsNumber': instance.whsNumber,
   'isHandicapLocked': instance.isHandicapLocked,
   'role': _$MemberRoleEnumMap[instance.role]!,
+  'societyRole': instance.societyRole,
   'status': _$MemberStatusEnumMap[instance.status]!,
   'hasPaid': instance.hasPaid,
   'isArchived': instance.isArchived,
+  'joinedDate': const TimestampConverter().toJson(instance.joinedDate),
 };
 
 const _$MemberRoleEnumMap = {
+  MemberRole.superAdmin: 'superAdmin',
   MemberRole.admin: 'admin',
+  MemberRole.restrictedAdmin: 'restrictedAdmin',
+  MemberRole.viewer: 'viewer',
   MemberRole.member: 'member',
 };
 
