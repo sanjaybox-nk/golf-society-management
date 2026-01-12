@@ -75,7 +75,9 @@ Semantic status indicator with automatic light/dark mode adaptation.
   - `text`: Display text (e.g., "Active", "Paid")
   - `baseColor`: Semantic color from `StatusColors` (Positive, Warning, Negative, Neutral)
   - `backgroundColorOverride`: Optional solid background (e.g., `Colors.white` for pills on gradient cards)
-- **Behavior**: Automatically adjusts text color and background opacity based on theme brightness
+- **Behavior**: 
+  - Automatically adjusts text color using `ContrastHelper` for optimal readability.
+  - Automatically adjusts background opacity based on theme brightness.
 
 ### `StatusChip`
 Black pill with white text for role badges.

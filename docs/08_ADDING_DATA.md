@@ -1,25 +1,36 @@
-# Adding Golf Events to Firestore
+# Adding Data
 
-Since we don't have an "Admin App" yet, you will add events directly in the Firebase Console.
+The application now features a fully functional **Admin Console**, so you no longer need to add data manually in the Firebase Console.
 
-## Steps
-1.  Go to **Firebase Console** -> **Build** -> **Firestore Database**.
-2.  Click **Start collection**.
-3.  **Collection ID**: `events` (Lower case).
-4.  Click **Next**.
-5.  **Document ID**: Click **Auto-ID**.
-6.  **Fields** (Add these carefully):
+## 1. Accessing Admin Console
+1.  Open the app.
+2.  Navigate to the **Admin** tab.
+3.  You will see dashboards for **Events**, **Members**, and **Communications**.
 
-| Field | Type | Value Example |
-| :--- | :--- | :--- |
-| **title** | string | `Spring Championship` |
-| **location** | string | `Royal Pines` |
-| **description** | string | `18 Holes Stroke Play` |
-| **date** | timestamp | *Pick a date/time* |
-| **teeOffTime** | timestamp | *Pick a date/time* |
+## 2. Managing Members
+You can now add members directly from the app, including **Profile Pictures**:
+1.  Go to **Admin > Members**.
+2.  Tap the **Add Member** button (top right).
+3.  Fill in the details (Name, Email, Handicap, etc.).
+4.  **Upload Photo**: Tap the camera icon to pick an image from your gallery.
+5.  Tap **Save Member**.
+    - *Note*: This automatically handles Firestore creation & Image Storage.
 
-7.  Click **Save**.
+## 3. Managing Events
+1.  Go to **Admin > Events**.
+2.  Tap **Create Event**.
+3.  Enter Title, Location, Date, and Description.
+4.  Tap **Save Event**.
 
-## Repeat
-Add 2-3 events (some in future, some in past) to test the app.
-The app will automatically update (Real-time!) when you click Save.
+---
+
+## Fallback: Manual Firestore Entry
+*Only use this if the Admin Console is unavailable.*
+
+### Events Collection
+- **Collection ID**: `events`
+- **Fields**:
+  - `title` (string)
+  - `location` (string)
+  - `date` (timestamp)
+  - `description` (string)

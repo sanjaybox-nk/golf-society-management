@@ -24,8 +24,15 @@ Simply copying the file isn't enough; Xcode needs to know about it.
 3.  Right-click the yellow **Runner** folder.
 ### Storage
 - **Bucket**: Default bucket
-- **Rules**: Allow read/write for all users (Development only)
-- **Path Structure**: `/avatars/{memberId}.jpg` for profile photos (Max 5MB)
+- **Rules**: Allow read/write for authenticated users only (Required for App Logic)
+  ```javascript
+  allow read, write: if request.auth != null;
+  ```
+- **Path Structure**: `avatars/{memberId}_{timestamp}.jpg` (Unique filenames for cache busting)
+
+### Authentication
+- **Anonymous Auth**: Must be enabled in the Firebase Console (Build > Authentication > Sign-in method).
+  - *Reason*: The app signs in as an anonymous user to satisfy the "authenticated only" storage rule.
 4.  Select **Add Files to "Runner"...**.
 5.  Select `GoogleService-Info.plist` from the list.
 6.  **Important**: Ensure "Add to targets: Runner" is CHECKED.

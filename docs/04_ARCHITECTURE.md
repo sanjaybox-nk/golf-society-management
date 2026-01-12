@@ -40,3 +40,7 @@ The app uses `StatefulShellRoute` to implement the persistent bottom navigation 
 Models are immutable and generated using `freezed`.
 -   **Location**: `lib/models/`
 -   **Extension**: `.freezed.dart` and `.g.dart` (JsonSerializable).
+-   **Key Models**:
+    -   `Member`: Core user profile.
+    -   `GolfEvent`: Tournament/Event data.
+    -   `SocietyConfig`: Branding and theme settings (persisted in Firestore).
