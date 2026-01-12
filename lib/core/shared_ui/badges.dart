@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/status_colors.dart';
+import '../theme/contrast_helper.dart';
 
 /// A simple status chip created with a solid black background.
 class StatusChip extends StatelessWidget {
@@ -45,8 +47,8 @@ class NotificationBadge extends StatelessWidget {
             top: -4,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: AppTheme.primaryYellow,
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
                 shape: BoxShape.circle,
               ),
               constraints: const BoxConstraints(
@@ -56,8 +58,8 @@ class NotificationBadge extends StatelessWidget {
               child: Center(
                 child: Text(
                   '$count',
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: ContrastHelper.getContrastingText(Theme.of(context).primaryColor),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -109,11 +111,6 @@ class _BoxyArtFeePillState extends State<BoxyArtFeePill> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = widget.isPaid ? Colors.green.shade100 : Colors.orange.shade100;
-    final textColor = widget.isPaid ? const Color(0xFF1B5E20) : const Color(0xFFE65100);
-    final borderColor = widget.isPaid ? Colors.green.shade300 : Colors.orange.shade300;
-    final label = widget.isPaid ? 'Fee Paid' : 'Fee Due';
-
     return ScaleTransition(
       scale: _scale,
       child: GestureDetector(
@@ -123,23 +120,45 @@ class _BoxyArtFeePillState extends State<BoxyArtFeePill> with SingleTickerProvid
           widget.onToggle();
         },
         onTapCancel: () => _controller.reverse(),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: ShapeDecoration(
-            color: bgColor,
-            shape: StadiumBorder(
-              side: BorderSide(color: borderColor, width: 1.5),
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-              letterSpacing: 1.2,
-            ),
-          ),
+        child: BoxyArtStatusPill(
+          text: widget.isPaid ? 'Fee Paid' : 'Fee Due',
+          baseColor: widget.isPaid ? StatusColors.positive : StatusColors.warning,
+        ),
+      ),
+    );
+  }
+}
+
+/// A semantic status pill that adapts to Light/Dark modes.
+class BoxyArtStatusPill extends StatelessWidget {
+  final String text;
+  final Color baseColor;
+  final Color? backgroundColorOverride;
+
+  const BoxyArtStatusPill({
+    super.key,
+    required this.text,
+    required this.baseColor,
+    this.backgroundColorOverride,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColorOverride ??
+            (Theme.of(context).brightness == Brightness.light
+                ? baseColor.withOpacity(0.1)
+                : baseColor.withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: baseColor == Colors.grey ? Colors.black.withValues(alpha: 0.6) : baseColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -168,7 +187,7 @@ class BoxyArtChatBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isMe ? AppTheme.primaryYellow : AppTheme.surfaceGrey,
+          color: isMe ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
@@ -176,29 +195,37 @@ class BoxyArtChatBubble extends StatelessWidget {
             bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              style: TextStyle(
-                color: isMe ? Colors.black : Colors.black87,
-                fontSize: 15,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            if (time != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                time!,
-                style: TextStyle(
-                  color: isMe ? Colors.black54 : Colors.grey[600],
-                  fontSize: 10,
+        child: Builder(
+          builder: (context) {
+            final backgroundColor = isMe ? Theme.of(context).primaryColor : Theme.of(context).cardColor;
+            final textColor = ContrastHelper.getContrastingText(backgroundColor);
+            final subtleTextColor = textColor.withValues(alpha: 0.6);
+            
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  message,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
-              ),
-            ],
-          ],
+                if (time != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    time!,
+                    style: TextStyle(
+                      color: subtleTextColor,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );

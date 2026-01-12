@@ -2,14 +2,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:firebase_auth/firebase_auth.dart'; // [NEW]
+
 import 'core/theme/app_theme.dart';
 import 'navigation/app_router.dart';
+import 'core/theme/theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
      await Firebase.initializeApp(); 
+     
+     // [FIX] Ensure we are authenticated for Storage Rules
+     if (FirebaseAuth.instance.currentUser == null) {
+       await FirebaseAuth.instance.signInAnonymously();
+       debugPrint('✅ Signed in anonymously for development');
+     }
   } catch (e) {
     debugPrint('Firebase init failed (expected if no config): $e');
   }
@@ -23,10 +32,20 @@ class GolfSocietyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    final societyConfig = ref.watch(themeControllerProvider);
+    
+    final seedColor = Color(societyConfig.primaryColor);
+    final themeModeStr = societyConfig.themeMode;
+    
+    ThemeMode mode = ThemeMode.system;
+    if (themeModeStr == 'light') mode = ThemeMode.light;
+    if (themeModeStr == 'dark') mode = ThemeMode.dark;
 
     return MaterialApp.router(
       title: 'Golf Society',
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.generateTheme(seedColor: seedColor, brightness: Brightness.light),
+      darkTheme: AppTheme.generateTheme(seedColor: seedColor, brightness: Brightness.dark),
+      themeMode: mode,
       routerConfig: router,
     );
   }

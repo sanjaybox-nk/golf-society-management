@@ -39,7 +39,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 direction: DismissDirection.endToStart,
                 background: Container(
                   decoration: BoxDecoration(
-                    color: Colors.red.shade400,
+                    color: Theme.of(context).colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.centerRight,
@@ -86,7 +86,7 @@ class AdminEventsScreen extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               '${DateFormat('MMM d').format(event.date)} @ ${event.location}',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12),
                             ),
                           ],
                         ),
@@ -115,14 +115,14 @@ class _DateBadge extends StatelessWidget {
       width: 50,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceGrey,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
           Text(
             DateFormat('MMM').format(date).toUpperCase(),
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color),
           ),
           Text(
             DateFormat('d').format(date),

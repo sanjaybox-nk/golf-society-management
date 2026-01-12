@@ -15,22 +15,14 @@ class AdminBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        canvasColor: const Color(0xFF1E1E1E),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTap,
-        backgroundColor: const Color(0xFF1E1E1E),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white.withValues(alpha: 0.5),
-        type: BottomNavigationBarType.fixed,
-        items: items,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-        elevation: 0,
-      ),
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: onTap,
+      type: BottomNavigationBarType.fixed,
+      items: items,
+      selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+      elevation: 0,
     );
   }
 }

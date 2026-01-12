@@ -1,0 +1,47 @@
+Analyzing Golf Society Management...                            
+
+warning • Unused import: '../theme/app_theme.dart' • lib/core/shared_ui/badges.dart:2:8 • unused_import
+warning • Unused import: '../theme/app_theme.dart' • lib/core/shared_ui/dialogs.dart:2:8 • unused_import
+warning • Unused import: '../theme/app_theme.dart' • lib/core/shared_ui/inputs.dart:2:8 • unused_import
+   info • 'indicatorColor' is deprecated and shouldn't be used. Use TabBarThemeData.indicatorColor instead. This feature was deprecated after v3.28.0-1.0.pre • lib/core/theme/app_theme.dart:34:7 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion • lib/core/theme/theme_controller.dart:26:23 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/presentation/events/tabs/event_dashboard_tab.dart:192:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/presentation/events/tabs/event_dashboard_tab.dart:309:32 • deprecated_member_use
+warning • Unused import: 'package:golf_society/core/theme/app_shadows.dart' • lib/features/admin/presentation/members/admin_members_screen.dart:5:8 • unused_import
+warning • The declaration '_AdminSectionHeader' isn't referenced • lib/features/admin/presentation/members/admin_members_screen.dart:363:7 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/presentation/notifications/audience_manager_screen.dart:290:65 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/features/admin/presentation/notifications/audience_manager_screen.dart:300:28 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/admin/presentation/notifications/audience_manager_screen.dart:369:26 • unnecessary_underscores
+warning • Unused import: 'package:golf_society/models/campaign.dart' • lib/features/admin/presentation/notifications/compose_notification_screen.dart:10:8 • unused_import
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/admin/presentation/notifications/compose_notification_screen.dart:326:17 • deprecated_member_use
+warning • Unused import: 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/notifications/notification_admin_scaffold.dart:2:8 • unused_import
+warning • Unused import: 'package:golf_society/core/theme/app_theme.dart' • lib/features/admin/presentation/notifications/notification_admin_scaffold.dart:3:8 • unused_import
+   info • Unnecessary use of multiple underscores • lib/features/admin/presentation/notifications/notification_history_screen.dart:95:26 • unnecessary_underscores
+warning • Unused import: '../../../../core/theme/app_theme.dart' • lib/features/admin/presentation/roles/committee_roles_screen.dart:5:8 • unused_import
+warning • Unused import: 'package:golf_society/core/theme/app_theme.dart' • lib/features/admin/presentation/settings/branding_settings_screen.dart:5:8 • unused_import
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/branding_settings_screen.dart:57:21 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/branding_settings_screen.dart:59:21 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/branding_settings_screen.dart:64:21 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/branding_settings_screen.dart:66:21 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/branding_settings_screen.dart:71:21 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/features/admin/presentation/settings/branding_settings_screen.dart:73:21 • deprecated_member_use
+warning • Unused import: '../../../models/notification.dart' • lib/features/home/presentation/member_home_screen.dart:7:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/home/presentation/member_home_screen.dart:148:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/home/presentation/member_home_screen.dart:163:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/home/presentation/member_home_screen.dart:176:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/home/presentation/member_home_screen.dart:225:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/home/presentation/member_home_screen.dart:255:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/home/presentation/widgets/home_notification_card.dart:32:37 • deprecated_member_use
+   info • The import of '../../../../core/shared_ui/cards.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/members/presentation/member_details_modal.dart:6:8 • unnecessary_import
+   info • The import of '../../../../core/shared_ui/inputs.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/members/presentation/member_details_modal.dart:7:8 • unnecessary_import
+warning • The declaration '_SectionHeader' isn't referenced • lib/features/members/presentation/members_screen.dart:286:7 • unused_element
+warning • The value of the field '_firestore' isn't used • lib/features/settings/data/society_config_repository.dart:13:9 • unused_field
+   info • Can't use a relative path to import a library in 'lib' • scripts/add_join_dates.dart:4:8 • avoid_relative_lib_imports
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:8:3 • avoid_print
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:16:3 • avoid_print
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:38:5 • avoid_print
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:47:3 • avoid_print
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:48:3 • avoid_print
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:49:3 • avoid_print
+   info • Don't invoke 'print' in production code • scripts/add_join_dates.dart:50:3 • avoid_print
+

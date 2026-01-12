@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:flutter/services.dart';
+import 'contrast_helper.dart';
+
 class AppTheme {
   // Brand Colors
   static const Color primaryYellow = Color(0xFFF7D354);
@@ -9,46 +12,64 @@ class AppTheme {
   static const Color surfaceGrey = Color(0xFFF5F5F5);
   static const Color backgroundGrey = Color(0xFFF0F2F5);
 
-  static ThemeData get lightTheme {
+  static ThemeData generateTheme({required Color seedColor, required Brightness brightness}) {
+    final isDark = brightness == Brightness.dark;
+    
+    // Calculate contrasting text color for the primary color (buttons, etc)
+    final onPrimaryColor = ContrastHelper.getContrastingText(seedColor);
+
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+      primary: seedColor,
+      onPrimary: onPrimaryColor, // Dynamic contrast
+      surface: isDark ? const Color(0xFF1E1E1E) : surfaceWhite, // Dark Card Color
+      onSurface: isDark ? Colors.white : primaryBlack,
+    );
+
+    // Dynamic Text Theme
+    final textTheme = GoogleFonts.poppinsTextTheme().apply(
+      bodyColor: isDark ? Colors.white : primaryBlack,
+      displayColor: isDark ? Colors.white : primaryBlack,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: const ColorScheme.light(
-        primary: primaryYellow,
-        onPrimary: primaryBlack,
-        secondary: primaryBlack,
-        onSecondary: Colors.white,
-        surface: surfaceWhite,
-        onSurface: primaryBlack,
-        surfaceContainerHighest: surfaceGrey, // slightly darker than surface
-      ),
-      scaffoldBackgroundColor: backgroundGrey,
-      
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : backgroundGrey,
+      cardColor: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
+      primaryColor: seedColor,
+      indicatorColor: seedColor, // For tabbars etc
+
       // Typography
-      textTheme: GoogleFonts.poppinsTextTheme().apply(
-        bodyColor: primaryBlack,
-        displayColor: primaryBlack,
-      ),
+      textTheme: textTheme,
+      primaryTextTheme: textTheme,
 
       // App Bar
       appBarTheme: AppBarTheme(
-        backgroundColor: surfaceWhite,
-        foregroundColor: primaryBlack,
+        backgroundColor: Colors.transparent, // Blends with scaffold
+        scrolledUnderElevation: 0,
+        foregroundColor: isDark ? Colors.white : primaryBlack,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         titleTextStyle: GoogleFonts.poppins(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: primaryBlack,
+          color: isDark ? Colors.white : primaryBlack,
+        ),
+        iconTheme: IconThemeData(
+          color: isDark ? Colors.white : primaryBlack,
         ),
       ),
 
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryYellow,
-          foregroundColor: primaryBlack,
-          elevation: 6, // Increased for glow visibility
-          shadowColor: const Color(0xFFB89E00).withValues(alpha: 0.8), // Darker yellow for glow
+          backgroundColor: seedColor, 
+          foregroundColor: onPrimaryColor, // Dynamic contrast
+          elevation: 6, 
+          shadowColor: seedColor.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: GoogleFonts.poppins(
@@ -60,8 +81,8 @@ class AppTheme {
       
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryBlack,
-          side: const BorderSide(color: primaryBlack, width: 1.5),
+          foregroundColor: isDark ? Colors.white : primaryBlack,
+          side: BorderSide(color: isDark ? Colors.white70 : primaryBlack, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: GoogleFonts.poppins(
@@ -74,52 +95,61 @@ class AppTheme {
       // Inputs
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceWhite,
+        fillColor: isDark ? const Color(0xFF2C2C2C) : surfaceWhite,
         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), // Matching card radii
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryYellow, width: 2),
+          borderSide: BorderSide(color: seedColor, width: 2),
         ),
-        hintStyle: TextStyle(color: Colors.grey.shade500),
+        hintStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+        labelStyle: TextStyle(color: isDark ? Colors.grey.shade300 : Colors.black87),
       ),
 
-      // Cards & Dialogs - Highly Rounded
+      // Cards & Dialogs
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25),
         ),
         elevation: 10,
-        color: surfaceWhite,
-        shadowColor: Colors.black.withValues(alpha: 0.05), // Very soft diffused shadow
+        color: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
       ),
       
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25),
         ),
-        backgroundColor: surfaceWhite,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
+        titleTextStyle: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : primaryBlack,
+        ),
+        contentTextStyle: TextStyle(
+            color: isDark ? Colors.grey.shade300 : Colors.black87,
+        ),
       ),
 
-      // Navigation Bar (Dark Style)
+      // Navigation Bar
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: primaryBlack,
-        indicatorColor: surfaceWhite,
+        backgroundColor: isDark ? const Color(0xFF121212) : primaryBlack,
+        indicatorColor: isDark ? seedColor : surfaceWhite,
         labelTextStyle: WidgetStateProperty.all(
           GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey),
         ),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: primaryBlack); // Black icon on White circle
+            return const IconThemeData(color: primaryBlack); 
           }
-          return const IconThemeData(color: Colors.grey); // Grey icon on Black background
+          return const IconThemeData(color: Colors.grey);
         }),
       ),
     );

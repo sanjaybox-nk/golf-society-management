@@ -1,0 +1,18 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'society_config.freezed.dart';
+part 'society_config.g.dart';
+
+@freezed
+abstract class SocietyConfig with _$SocietyConfig {
+  const factory SocietyConfig({
+    @Default(0xFFF7D354) int primaryColor, // Default: BoxyArt Yellow
+    @Default('system') String themeMode, // 'system', 'light', 'dark'
+    @Default([]) List<int> customColors, // User-created custom colors (up to 5)
+    @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)
+    @Default(true) bool useCardGradient, // Whether to use gradient on cards
+  }) = _SocietyConfig;
+
+  factory SocietyConfig.fromJson(Map<String, dynamic> json) =>
+      _$SocietyConfigFromJson(json);
+}

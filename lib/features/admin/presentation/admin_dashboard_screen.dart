@@ -103,7 +103,7 @@ class _AdminCard extends StatelessWidget {
             subtitle,
             style: TextStyle(
               fontSize: 11,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade600,
             ),
             textAlign: TextAlign.center,
           ),

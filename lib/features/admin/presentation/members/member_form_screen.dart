@@ -380,7 +380,7 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
               Navigator.pop(context);
             }
           },
-          child: Text('Save', style: TextStyle(color: AppTheme.primaryYellow, fontWeight: FontWeight.bold)),
+          child: Text('Save', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -615,15 +615,18 @@ class _MemberFormScreenState extends ConsumerState<MemberFormScreen> {
               lastDate: DateTime.now(),
               builder: (context, child) {
                   return Theme(
-                    data: AppTheme.lightTheme.copyWith(
-                      colorScheme: const ColorScheme.light(
-                        primary: AppTheme.primaryYellow,
-                        onPrimary: Colors.black,
+                    data: AppTheme.generateTheme(
+                      seedColor: Theme.of(context).primaryColor, 
+                      brightness: Brightness.light,
+                    ).copyWith(
+                      colorScheme: ColorScheme.light(
+                        primary: Theme.of(context).primaryColor,
+                        onPrimary: Theme.of(context).colorScheme.onPrimary,
                         onSurface: Colors.black,
                       ),
                       textButtonTheme: TextButtonThemeData(
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.black,
+                          foregroundColor: Theme.of(context).primaryColor,
                         ),
                       ),
                     ),

@@ -169,10 +169,13 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: Colors.grey.shade100,
+          backgroundColor: Colors.white,
           backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
           child: member.avatarUrl == null
-              ? Text(member.firstName[0].toUpperCase(), style: const TextStyle(color: Colors.grey))
+              ? Text(
+                  member.firstName.isNotEmpty ? member.firstName[0] : '',
+                  style: const TextStyle(color: Colors.black54),
+                )
               : null,
         ),
         title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -218,13 +221,13 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
         child: Row(
           children: [
             CircleAvatar(
-              radius: 20,
-              backgroundColor: roleColor.withValues(alpha: 0.1),
+              radius: 24,
+              backgroundColor: Colors.white,
               backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
               child: member.avatarUrl == null
                   ? Text(
-                      member.firstName[0].toUpperCase(),
-                      style: TextStyle(color: roleColor, fontWeight: FontWeight.bold),
+                      member.firstName.isNotEmpty ? member.firstName[0] : '',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
                     )
                   : null,
             ),

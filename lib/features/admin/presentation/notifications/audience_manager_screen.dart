@@ -104,7 +104,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryYellow.withValues(alpha: 0.2),
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(Icons.group, color: Colors.black),
@@ -136,8 +136,8 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateListDialog,
-        backgroundColor: AppTheme.primaryYellow,
-        foregroundColor: Colors.black,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Create List', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
@@ -287,7 +287,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                     children: selectedMembers.map((m) {
                       return Chip(
                         label: Text('${m.firstName} ${m.lastName}'),
-                        backgroundColor: AppTheme.primaryYellow.withOpacity(0.2),
+                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
                         deleteIcon: const Icon(Icons.close, size: 18, color: Colors.black54),
                         onDeleted: () => _toggleMember(m.id),
                         side: BorderSide.none,
@@ -358,7 +358,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                       title: Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontWeight: FontWeight.w600)),
                       subtitle: Text(m.email, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                       activeColor: Colors.black,
-                      checkColor: AppTheme.primaryYellow,
+                      checkColor: Theme.of(context).primaryColor,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/theme/status_colors.dart';
 
 part 'member.freezed.dart';
 part 'member.g.dart';
@@ -47,16 +48,15 @@ extension MemberStatusX on MemberStatus {
     switch (this) {
       case MemberStatus.member:
       case MemberStatus.active:
-        return Colors.green.shade700;
+        return StatusColors.positive;
       case MemberStatus.pending:
-        return Colors.blue.shade700;
+        return StatusColors.warning;
       case MemberStatus.suspended:
-        return Colors.orange.shade800;
+        return StatusColors.negative;
       case MemberStatus.archived:
       case MemberStatus.inactive:
-        return Colors.grey.shade600;
       case MemberStatus.left:
-        return Colors.red.shade700;
+        return StatusColors.neutral;
     }
   }
 }

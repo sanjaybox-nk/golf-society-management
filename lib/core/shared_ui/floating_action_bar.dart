@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_shadows.dart';
+import '../../core/theme/contrast_helper.dart';
 
 /// A premium floating action bar for Save/Cancel actions in edit modes.
 /// 
@@ -68,33 +69,40 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: AppShadows.primaryButtonGlow,
               ),
-              child: ElevatedButton(
-                onPressed: isLoading ? null : onSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF7D354), // Brand yellow
-                  foregroundColor: Colors.black,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  disabledBackgroundColor: const Color(0xFFF7D354).withValues(alpha: 0.5),
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  minimumSize: const Size(double.infinity, 56),
-                  textStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                        ),
-                      )
-                    : Text(saveLabel ?? 'Save'),
+              child: Builder(
+                builder: (context) {
+                  final backgroundColor = Theme.of(context).primaryColor;
+                  final textColor = ContrastHelper.getContrastingText(backgroundColor);
+                  
+                  return ElevatedButton(
+                    onPressed: isLoading ? null : onSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: backgroundColor,
+                      foregroundColor: textColor,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      disabledBackgroundColor: backgroundColor.withValues(alpha: 0.5),
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      minimumSize: const Size(double.infinity, 56),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    child: isLoading
+                        ? SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                            ),
+                          )
+                        : Text(saveLabel ?? 'Save'),
+                  );
+                },
               ),
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/contrast_helper.dart';
 import '../theme/app_shadows.dart';
 import 'buttons.dart';
 
@@ -159,10 +160,27 @@ class FloatingFilterBar<T> extends StatelessWidget {
         decoration: ShapeDecoration(
           color: Colors.white,
           shape: const StadiumBorder(),
-          shadows: AppShadows.softScale,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              offset: const Offset(0, 4),
+              blurRadius: 16,
+            ),
+          ],
         ),
         child: Stack(
           children: [
+            // Layer 0: Border Ring
+            Positioned.fill(
+              child: Container(
+                decoration: ShapeDecoration(
+                  shape: const StadiumBorder(
+                    side: BorderSide(color: Color(0x339E9E9E)), // Grey with opacity 0.2 approx
+                  ),
+                ),
+              ),
+            ),
+
             // Layer 1: Active Indicator
             AnimatedAlign(
               duration: const Duration(milliseconds: 250),
@@ -173,9 +191,9 @@ class FloatingFilterBar<T> extends StatelessWidget {
                 child: Container(
                   width: (220 / count) - 8,
                   height: 42,
-                  decoration: const ShapeDecoration(
-                    color: AppTheme.primaryYellow,
-                    shape: StadiumBorder(),
+                  decoration: ShapeDecoration(
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -185,6 +203,14 @@ class FloatingFilterBar<T> extends StatelessWidget {
             Row(
               children: options.map((option) {
                 final isSelected = option.value == selectedValue;
+                
+                // Calculate text color based on background
+                final backgroundColor = isSelected 
+                    ? Theme.of(context).primaryColor.withValues(alpha: 0.8)
+                    : Colors.white;
+                final textColor = ContrastHelper.getContrastingText(backgroundColor);
+                final inactiveTextColor = textColor.withValues(alpha: 0.6);
+                
                 return Expanded(
                   child: InkWell(
                     onTap: () => onChanged(option.value),
@@ -193,7 +219,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
                       child: Text(
                         option.label,
                         style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.black54,
+                          color: isSelected ? textColor : inactiveTextColor,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           fontSize: 14,
                         ),

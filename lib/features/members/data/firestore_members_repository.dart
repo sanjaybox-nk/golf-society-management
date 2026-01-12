@@ -26,7 +26,13 @@ class FirestoreMembersRepository implements MembersRepository {
     return _membersRef()
         .orderBy('lastName') // Default sort
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+        .map((snapshot) {
+          final members = snapshot.docs.map((doc) => doc.data()).toList();
+          for (var m in members) {
+            print('📦 Firestore Member: ${m.firstName} has avatar: ${m.avatarUrl}');
+          }
+          return members;
+        });
   }
 
   @override

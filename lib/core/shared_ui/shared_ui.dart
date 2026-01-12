@@ -4,3 +4,4 @@ export 'cards.dart';
 export 'layout.dart';
 export 'badges.dart';
 export 'dialogs.dart';
+export 'floating_action_bar.dart';

@@ -18,7 +18,7 @@ class CommitteeRoleMembersScreen extends ConsumerStatefulWidget {
 
 class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMembersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final Color _roleColor = const Color(0xFF1A237E); // Navy Blue for all Society Roles
+  Color get _roleColor => Theme.of(context).primaryColor;
   String _searchQuery = '';
 
   @override
@@ -51,7 +51,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
               boxShadow: [
                 BoxShadow(
@@ -115,7 +115,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
                   return Center(
                     child: Text(
                       isSearching ? 'No members found.' : 'No members have this position.',
-                      style: TextStyle(color: Colors.grey.shade500),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                     ),
                   );
                 }
@@ -149,7 +149,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
   Widget _buildCandidateTile(Member member) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -162,10 +162,13 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: Colors.grey.shade100,
+          backgroundColor: Colors.white,
           backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
           child: member.avatarUrl == null
-              ? Text(member.firstName[0].toUpperCase(), style: const TextStyle(color: Colors.grey))
+              ? Text(
+                  member.firstName.isNotEmpty ? member.firstName[0] : '',
+                  style: const TextStyle(color: Colors.black54),
+                )
               : null,
         ),
         title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -193,7 +196,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
+          color: Theme.of(context).colorScheme.error,
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Icon(Icons.delete, color: Colors.white),
@@ -203,7 +206,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: _roleColor, width: 2),
         ),
@@ -211,13 +214,13 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
         child: Row(
           children: [
             CircleAvatar(
-              radius: 20,
-              backgroundColor: _roleColor.withValues(alpha: 0.1),
+              radius: 24,
+              backgroundColor: Colors.white,
               backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
               child: member.avatarUrl == null
                   ? Text(
-                      member.firstName[0].toUpperCase(),
-                      style: TextStyle(color: _roleColor, fontWeight: FontWeight.bold),
+                      member.firstName.isNotEmpty ? member.firstName[0] : '',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
                     )
                   : null,
             ),

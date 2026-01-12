@@ -3,19 +3,60 @@
 The design system, widely referred to as **BoxyArt**, is centralized in `lib/core/theme/`.
 
 ## Key Files
--   **`app_theme.dart`**: Defines the `ThemeData` (Colors, Typography, Component Themes).
+-   **`app_theme.dart`**: Defines the `ThemeData` with dynamic color generation from seed colors.
 -   **`app_shadows.dart`**: Defines the custom static shadow lists.
+-   **`status_colors.dart`**: Semantic color palette for status indicators.
+-   **`contrast_helper.dart`**: Utility for calculating contrasting text colors.
 -   **`boxy_art_widgets.dart`**: Contains reusable UI components implementing the system.
+
+## Dynamic Theming
+
+The theme system supports **dynamic color generation** based on a configurable seed color:
+
+### Theme Generation
+```dart
+AppTheme.generateTheme(
+  seedColor: Color(0xFFF7D354), // BoxyArt Yellow
+  brightness: Brightness.light,
+)
+```
+
+### Society Branding
+Admins can customize the primary color via **Admin Console → Society Branding**. The theme automatically:
+-   Generates a cohesive color scheme from the seed color
+-   Calculates contrasting text colors for accessibility
+-   Adapts to Light/Dark mode preferences
 
 ## Design Rules
 
 ### 1. Colors
--   **Primary**: `#F7D354` (Mustard Yellow) - Used for highlights, buttons, and active states.
--   **Surface**: `#FFFFFF` (White) - Used for cards and "floating" elements.
--   **Background**: `#F5F5F5` (Light Grey) - The canvas behind cards.
--   **Text**: `#000000` (Black) on Primary/White. `GoogleFonts.poppins`.
 
-### 2. Shadows (`AppShadows`)
+#### Primary Colors (Dynamic)
+-   **Primary**: Configurable seed color (default: `#F7D354` BoxyArt Yellow)
+-   **On Primary**: Automatically calculated for optimal contrast (black or white)
+-   **Surface**: Light mode: `#FFFFFF`, Dark mode: `#1E1E1E`
+-   **Background**: Light mode: `#F0F2F5`, Dark mode: `#121212`
+
+#### Status Colors (Semantic)
+Use `StatusColors` for consistent status indicators:
+-   **Positive**: `#4CAF50` (Green) - Success, Active, Paid
+-   **Warning**: `#FF9800` (Orange) - Pending, Due
+-   **Negative**: `#F44336` (Red) - Error, Inactive
+-   **Neutral**: `#9E9E9E` (Grey) - Archived, Default
+
+### 2. Text Contrast
+
+The `ContrastHelper` ensures readable text on any background:
+```dart
+final textColor = ContrastHelper.getContrastingText(backgroundColor);
+```
+This is automatically applied to:
+-   Button text (`onPrimary`)
+-   Member card headers
+-   Status pills
+-   Any component with dynamic backgrounds
+
+### 3. Shadows (`AppShadows`)
 Do **NOT** use default Material Elevation. Use these defined styles:
 -   **`softScale`**: For main content cards (`_EventCard`, `BoxyArtFloatingCard`).
     -   *Look*: Double-layered, soft diffusion. 12% & 8% opacity.
@@ -24,11 +65,26 @@ Do **NOT** use default Material Elevation. Use these defined styles:
 -   **`primaryButtonGlow`**: For Yellow Action Buttons.
     -   *Look*: Colored shadow (Dark Yellow), 80% opacity. Gives a "glow" effect.
 
-### 3. Shapes
--   **Cards**: `BorderRadius.circular(30)`.
--   **Buttons/Inputs**: `StadiumBorder` or `BorderRadius.circular(100)` (Pill shape).
+### 4. Shapes
+-   **Cards**: `BorderRadius.circular(30)` or `BorderRadius.circular(25)`.
+-   **Buttons/Inputs**: `BorderRadius.circular(12)` (Rounded) or `StadiumBorder` (Pill shape).
+-   **Dialogs**: `BorderRadius.circular(25)`.
 
-### 4. Implementation Pattern
+### 5. Theme-Aware Development
+
+**Always use `Theme.of(context)` instead of hardcoded colors:**
+```dart
+// ✅ Correct
+color: Theme.of(context).primaryColor
+color: Theme.of(context).cardColor
+textColor: Theme.of(context).textTheme.bodyLarge?.color
+
+// ❌ Avoid
+color: Color(0xFFF7D354)
+color: Colors.white
+```
+
+### 6. Implementation Pattern
 To apply a shadow correctly without clipping:
 ```dart
 Container(

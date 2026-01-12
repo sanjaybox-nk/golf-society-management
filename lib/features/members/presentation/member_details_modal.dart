@@ -71,7 +71,17 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   void initState() {
     super.initState();
     _initControllers();
-    _avatarUrl = widget.member.avatarUrl; // [NEW]
+    
+    // [FIX] Sanitize URL to remove corrupted timestamp params from previous bug
+    String? url = widget.member.avatarUrl;
+    if (url != null) {
+      if (url.contains('?t=')) {
+        url = url.split('?t=')[0];
+      } else if (url.contains('&t=')) {
+        url = url.split('&t=')[0];
+      }
+    }
+    _avatarUrl = url;
   }
 
   void _initControllers() {
@@ -137,6 +147,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
             phone: phone,
             address: _addressController.text.trim(),
             bio: _bioController.text.trim(),
+            avatarUrl: _avatarUrl,
         );
 
         await repo.updateMember(updatedMember);
@@ -153,6 +164,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       
       if (file != null) {
         
+        // Show loading indicator
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Uploading image...'), duration: Duration(seconds: 1)),
+          );
+        }
+
+
         final url = await storage.uploadAvatar(
           memberId: widget.member.id, 
           file: file
@@ -271,26 +290,16 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   void _confirmRoleChange(MemberRole newRole) {
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Change Role?'),
-        content: Text('Are you sure you want to make ${widget.member.firstName} a ${_getRoleDisplayName(newRole)}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context); // Close dialog
-              await _updateRole(newRole);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      title: 'Change Role?',
+      message: 'Are you sure you want to make ${widget.member.firstName} a ${_getRoleDisplayName(newRole)}?',
+      confirmText: 'Confirm',
+      onConfirm: () async {
+        Navigator.pop(context); // Close dialog
+        await _updateRole(newRole);
+      },
+      onCancel: () => Navigator.pop(context),
     );
   }
 
@@ -568,12 +577,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       title: 'Discard Changes?',
       message: 'You have unsaved changes. Are you sure you want to leave?',
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Keep Editing', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+        BoxyArtButton(
+          title: 'Keep Editing',
+          onTap: () => Navigator.of(context).pop(),
+          isPrimary: true,
         ),
-        TextButton(
-          onPressed: () {
+        BoxyArtButton(
+          title: 'Discard',
+          onTap: () {
             Navigator.of(context).pop(); // Close dialog
             setState(() {
               _isEditing = false;
@@ -581,7 +592,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
             });
             Navigator.of(context).pop(); // Close modal
           },
-          child: const Text('Discard', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          isGhost: true,
         ),
       ],
     );

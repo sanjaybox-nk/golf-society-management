@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 
 import '../../../core/widgets/boxy_art_widgets.dart';
+import '../../../core/theme/theme_controller.dart';
+import '../../../core/theme/contrast_helper.dart';
 import '../../../models/member.dart';
 import 'members_provider.dart';
 import 'member_details_modal.dart';
+import '../../../../core/shared_ui/badges.dart';
+import '../../../../core/theme/status_colors.dart';
 
 class MembersScreen extends ConsumerWidget {
   const MembersScreen({super.key});
@@ -120,23 +124,42 @@ class MembersScreen extends ConsumerWidget {
   }
 }
 
-class _MemberTile extends StatelessWidget {
+class _MemberTile extends ConsumerWidget {
   final Member member;
 
   const _MemberTile({required this.member});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
+    final cardTintIntensity = config.cardTintIntensity;
+    final useGradient = config.useCardGradient;
+    
+    // Calculate effective background color for contrast
+    final primaryColor = Theme.of(context).primaryColor;
+    final cardColor = Theme.of(context).cardColor;
+    final effectiveBackgroundColor = useGradient
+        ? Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity * 0.75), cardColor)
+        : Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity), cardColor);
+    
+    // Get contrasting text color
+    final textColor = ContrastHelper.getContrastingText(effectiveBackgroundColor);
+    final subTextColor = textColor.withValues(alpha: 0.7);
+    
     return GestureDetector(
       onTap: () => MemberDetailsModal.show(context, member),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          color: useGradient ? Theme.of(context).cardColor : Color.alphaBlend(Theme.of(context).primaryColor.withValues(alpha: cardTintIntensity), Theme.of(context).cardColor),
+          gradient: useGradient ? LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFFF8E1), Color(0xFFF7D354)],
-          ),
+            colors: [
+              Theme.of(context).primaryColor.withValues(alpha: cardTintIntensity * 0.5),
+              Theme.of(context).primaryColor.withValues(alpha: cardTintIntensity),
+            ],
+          ) : null,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -150,15 +173,19 @@ class _MemberTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: AppTheme.surfaceGrey,
-              child: Text(
-                (member.firstName.isNotEmpty ? member.firstName[0] : '') + 
-                (member.lastName.isNotEmpty ? member.lastName[0] : ''),
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              backgroundColor: Colors.white,
+              backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
+              child: member.avatarUrl == null
+                  ? Text(
+                      (member.firstName.isNotEmpty ? member.firstName[0] : '') +
+                          (member.lastName.isNotEmpty ? member.lastName[0] : ''),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -168,10 +195,10 @@ class _MemberTile extends StatelessWidget {
                   // Row 1: Name
                   Text(
                     '${member.firstName} ${member.lastName}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: Colors.black,
+                      color: textColor,
                     ),
                   ),
                   if (member.societyRole != null && member.societyRole!.isNotEmpty)
@@ -179,10 +206,10 @@ class _MemberTile extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         member.societyRole!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A237E),
+                          color: textColor,
                         ),
                       ),
                     ),
@@ -191,10 +218,10 @@ class _MemberTile extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         member.nickname!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black54,
+                          color: subTextColor,
                         ),
                       ),
                     ),
@@ -202,64 +229,57 @@ class _MemberTile extends StatelessWidget {
                   // Row 2: HCP | iGolf Membership
                   Text(
                     'HC: ${member.handicap.toStringAsFixed(1)} | iGolf: ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : '-'}',
-                    style: const TextStyle(
-                      color: Colors.black87,
+                    style: TextStyle(
+                      color: subTextColor,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  // Row 3: Email
-                  Text(
-                    member.email,
-                    style: TextStyle(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      fontSize: 12,
-                    ),
-                  ),
                   const SizedBox(height: 6),
-                  // Row 4: Status | Since Pill
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(member.status).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          member.status.displayName,
-                          style: TextStyle(
-                            color: _getStatusColor(member.status),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      BoxyArtStatusPill(
+                        text: member.status.displayName,
+                        baseColor: member.status.color,
                       ),
-                      const Spacer(),
-                      if (member.joinedDate != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.6),
-                            border: Border.all(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'Since ${member.joinedDate!.year}',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black.withValues(alpha: 0.6),
-                            ),
-                          ),
+                      if (member.hasPaid) ...[
+                        const SizedBox(width: 8),
+                        BoxyArtStatusPill(
+                          text: 'Fee Paid',
+                          baseColor: StatusColors.positive,
                         ),
+                      ] else ...[
+                        const SizedBox(width: 8),
+                        BoxyArtStatusPill(
+                          text: 'Fee Due',
+                          baseColor: StatusColors.warning,
+                        ),
+                      ],
                     ],
                   ),
+                  if (member.joinedDate != null) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        border: Border.all(color: Colors.black12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Since ${member.joinedDate!.year}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.black54),
+            Icon(Icons.chevron_right, color: subTextColor),
           ],
         ),
       ),

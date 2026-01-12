@@ -27,7 +27,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final membersAsync = ref.watch(allMembersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const BoxyArtAppBar(title: 'Committee Roles', showBack: true),
       body: membersAsync.when(
         data: (members) {
@@ -69,7 +69,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -95,12 +95,12 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A237E).withValues(alpha: 0.1),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    color: const Color(0xFF1A237E),
+                    color: Theme.of(context).primaryColor,
                     size: 24,
                   ),
                 ),
@@ -113,10 +113,10 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                     children: [
                       Text(
                         role,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       if (description.isNotEmpty) ...[
@@ -127,7 +127,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                             height: 1.4,
                           ),
                         ),

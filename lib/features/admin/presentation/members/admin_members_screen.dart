@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/theme/app_theme.dart';
 import 'package:golf_society/core/theme/app_shadows.dart';
+import 'package:golf_society/core/theme/status_colors.dart';
+import 'package:golf_society/core/shared_ui/badges.dart';
+import 'package:golf_society/core/theme/contrast_helper.dart'; // [NEW]
 
+import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/models/member.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
@@ -149,28 +153,7 @@ class AdminMembersScreen extends ConsumerWidget {
 }
 }
 
-class _SimpleBadge extends StatelessWidget {
-  final String label;
-  final Color color;
-  final Color textColor;
 
-  const _SimpleBadge({required this.label, required this.color, required this.textColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}
  Widget _buildDismissibleMember(BuildContext context, WidgetRef ref, Member member) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 16),
@@ -205,114 +188,134 @@ class _SimpleBadge extends StatelessWidget {
       child: GestureDetector(
         onTap: () => context.push('/admin/members/edit/${member.id}', extra: member),
         onLongPress: () => MemberDetailsModal.show(context, member),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFF8E1), Color(0xFFF7D354)],
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+        child: Builder(
+          builder: (context) {
+            // Get card tint intensity from config
+            final config = ref.watch(themeControllerProvider);
+            final cardTintIntensity = config.cardTintIntensity;
+            final useGradient = config.useCardGradient;
+
+            // Calculate Background Color based on actual tint
+            final Color cardColor = Theme.of(context).cardColor;
+            final Color primaryColor = Theme.of(context).primaryColor;
+            final Color effectiveBackgroundColor = useGradient
+                ? Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity * 0.75), cardColor)
+                : Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity), cardColor);
+            
+            // Calculate Contrasting Text Color
+            final Color textColor = ContrastHelper.getContrastingText(effectiveBackgroundColor);
+            final Color subTextColor = textColor.withValues(alpha: 0.7);
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: useGradient ? cardColor : Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity), cardColor),
+                gradient: useGradient ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    primaryColor.withValues(alpha: cardTintIntensity * 0.5),
+                    primaryColor.withValues(alpha: cardTintIntensity),
+                  ],
+                ) : null,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppTheme.surfaceGrey,
-                child: Text(
-                  member.firstName.isNotEmpty ? member.firstName[0] : '', 
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Row 1: Name
-                    Text(
-                      '${member.firstName} ${member.lastName}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
-                    ),
-                    if (member.societyRole != null && member.societyRole!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          member.societyRole!,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A237E),
-                          ),
-                        ),
-                      ),
-                    if (member.nickname != null && member.nickname!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          member.nickname!,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 4),
-                    // Row 2: HCP | iGolf Membership
-                    Text(
-                      'HC: ${member.handicap.toStringAsFixed(1)} | iGolf: ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : '-'}',
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Row 3: Email
-                    Text(
-                      member.email,
-                      style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    // Row 4: Status | Fee Status | Since Pill
-                    Row(
-                      children: [
-                        _SimpleBadge(
-                          label: member.status.displayName,
-                          color: _getAdminStatusColor(member.status).withValues(alpha: 0.15),
-                          textColor: _getAdminStatusColor(member.status),
-                        ),
-                        const SizedBox(width: 8),
-                        if (member.hasPaid)
-                          const _SimpleBadge(
-                            label: 'Fee Paid',
-                            color: Color(0xFFE8F5E9),
-                            textColor: Color(0xFF2E7D32),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.white,
+                    backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
+                    child: member.avatarUrl == null
+                        ? Text(
+                            member.firstName.isNotEmpty ? member.firstName[0] : '',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54,
+                            ),
                           )
-                        else
-                          const _SimpleBadge(
-                            label: 'Fee Due',
-                            color: Color(0xFFFFF3E0),
-                            textColor: Color(0xFFE65100),
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Row 1: Name
+                        Text(
+                          '${member.firstName} ${member.lastName}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: textColor,
                           ),
-                        const Spacer(),
-                        if (member.joinedDate != null)
+                        ),
+                        if (member.societyRole != null && member.societyRole!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              member.societyRole!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                        if (member.nickname != null && member.nickname!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              member.nickname!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: subTextColor,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        // Row 2: HCP | iGolf Membership
+                        Text(
+                          'HC: ${member.handicap.toStringAsFixed(1)} | iGolf: ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : '-'}',
+                          style: TextStyle(
+                            color: subTextColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        // Row 4: Status | Fee Status | Since Pill
+                        Row(
+                          children: [
+                            BoxyArtStatusPill(
+                              text: member.status.displayName,
+                              baseColor: member.status.color,
+                            ),
+                            if (member.hasPaid) ...[
+                              const SizedBox(width: 8),
+                              const BoxyArtStatusPill(
+                                text: 'Fee Paid',
+                                baseColor: StatusColors.positive,
+                              ),
+                            ] else ...[
+                             const SizedBox(width: 8),
+                              const BoxyArtStatusPill(
+                                text: 'Fee Due',
+                                baseColor: StatusColors.warning,
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (member.joinedDate != null) ...[
+                          const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
@@ -329,36 +332,21 @@ class _SimpleBadge extends StatelessWidget {
                               ),
                             ),
                           ),
+                        ],
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  Icon(Icons.chevron_right, color: subTextColor),
+                ],
               ),
-              Icon(Icons.chevron_right, color: Colors.black54),
-            ],
-          ),
+            );
+          },
         ),
       ),
     ),
   );
 }
 
-Color _getAdminStatusColor(MemberStatus status) {
-  switch (status) {
-    case MemberStatus.member:
-    case MemberStatus.active:
-      return Colors.green.shade700;
-    case MemberStatus.pending:
-      return Colors.blue.shade700;
-    case MemberStatus.suspended:
-      return Colors.orange.shade800;
-    case MemberStatus.archived:
-    case MemberStatus.inactive:
-      return Colors.grey.shade600;
-    case MemberStatus.left:
-      return Colors.red.shade700;
-  }
-}
 
 class _AdminSectionHeader extends StatelessWidget {
   final String title;

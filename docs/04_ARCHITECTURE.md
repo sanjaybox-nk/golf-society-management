@@ -7,8 +7,9 @@ The project follows a **Feature-First** architecture combined with Riverpod for 
 ```
 lib/
 ├── core/                   # Shared resources across the app
-│   ├── theme/              # AppTheme, AppShadows, Typography
-│   ├── widgets/            # Reusable widgets (BoxyArt libraries)
+│   ├── theme/              # AppTheme, AppShadows, StatusColors, ContrastHelper
+│   ├── shared_ui/          # Modular UI library (buttons, cards, inputs, badges, layout)
+│   ├── widgets/            # Legacy facade (boxy_art_widgets.dart)
 │   ├── utils/              # Helper functions (dates, formatters)
 │   └── constants/          # Environment vars, static keys
 ├── features/               # distinct domains of the application
@@ -23,9 +24,10 @@ lib/
 ```
 
 ## State Management (Riverpod)
-We use `riverpod_generator` (`@riverpod` annotation) which- **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore)
+We use `riverpod_generator` (`@riverpod` annotation) which auto-generates providers.
+- **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore)
 - **Services**: `AuthService` (Firebase Auth), `StorageService` (Firebase Storage - Image Uploads)
-in `feature/presentation/provider_name.dart`.
+- **Providers**: Defined in `feature/presentation/provider_name.dart`.
 -   **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
 
 ## Navigation (GoRouter)

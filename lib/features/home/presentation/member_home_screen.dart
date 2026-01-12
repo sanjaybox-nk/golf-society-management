@@ -20,7 +20,7 @@ class MemberHomeScreen extends ConsumerWidget {
     final topPlayers = ref.watch(homeLeaderboardProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7), // Match provided aesthetic
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Match provided aesthetic
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
@@ -37,17 +37,17 @@ class MemberHomeScreen extends ConsumerWidget {
               // App Bar
               SliverAppBar(
                 floating: true,
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 centerTitle: false,
-                title: const Text(
+                title: Text(
                   'Golf Society',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.black54),
+                    icon: Icon(Icons.admin_panel_settings_outlined, color: Theme.of(context).iconTheme.color),
                     tooltip: 'Admin Console',
                     onPressed: () => context.push('/admin'),
                   ),
@@ -55,7 +55,7 @@ class MemberHomeScreen extends ConsumerWidget {
                     icon: Badge(
                       label: Text('${unreadNotifications.length}'),
                       isLabelVisible: unreadNotifications.isNotEmpty,
-                      child: const Icon(Icons.notifications_outlined, color: Colors.black54),
+                      child: Icon(Icons.notifications_outlined, color: Theme.of(context).iconTheme.color),
                     ),
                     onPressed: () => context.push('/home/notifications'),
                   ),
@@ -123,10 +123,8 @@ class MemberHomeScreen extends ConsumerWidget {
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 18,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
         fontWeight: FontWeight.w800,
-        color: Colors.black87,
       ),
     );
   }
@@ -206,8 +204,8 @@ class _NextMatchCard extends StatelessWidget {
               context.go('/events');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFCEF53D), // Kaza Yellow/Green
-              foregroundColor: Colors.black,
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               minimumSize: const Size(double.infinity, 54),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 0,
@@ -248,11 +246,11 @@ class _LeaderboardSnippet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -287,16 +285,16 @@ class _LeaderboardSnippet extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: isFirst ? const Color(0xFFCEF53D) : Colors.grey.shade100,
+              color: isFirst ? Theme.of(context).primaryColor : Theme.of(context).scaffoldBackgroundColor,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
                 '$position',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 14,
-                  color: Colors.black,
+                  color: isFirst ? Colors.black : Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
             ),
@@ -308,16 +306,16 @@ class _LeaderboardSnippet extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: isFirst ? FontWeight.bold : FontWeight.w500,
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
           ),
           Text(
             '${player['points']}',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 16,
-              color: Colors.black,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ],

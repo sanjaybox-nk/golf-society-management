@@ -69,14 +69,24 @@ Internal widget pattern for dashboards (found in `admin_members_screen.dart`).
 
 ## 4. Badges (`badges.dart`)
 
+### `BoxyArtStatusPill`
+Semantic status indicator with automatic light/dark mode adaptation.
+- **Properties**:
+  - `text`: Display text (e.g., "Active", "Paid")
+  - `baseColor`: Semantic color from `StatusColors` (Positive, Warning, Negative, Neutral)
+  - `backgroundColorOverride`: Optional solid background (e.g., `Colors.white` for pills on gradient cards)
+- **Behavior**: Automatically adjusts text color and background opacity based on theme brightness
+
 ### `StatusChip`
-Black pill with white text.
+Black pill with white text for role badges.
 
 ### `BoxyArtFeePill`
 Interactive toggle for Fee Status (Paid/Due).
+- Uses `StatusColors.positive` (green) for Paid
+- Uses `StatusColors.warning` (orange) for Due
 
 ### `NotificationBadge`
-Red/Yellow dot wrapper.
+Red/Yellow dot wrapper for unread counts.
 
 ## 5. Layout (`layout.dart`)
 

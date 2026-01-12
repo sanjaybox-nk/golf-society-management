@@ -8,7 +8,7 @@ class AdminSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const BoxyArtAppBar(title: 'Settings', showBack: true),
       body: ListView(
         padding: const EdgeInsets.all(24),
@@ -37,6 +37,13 @@ class AdminSettingsScreen extends StatelessWidget {
                 subtitle: 'App basics and display settings',
                 iconColor: Colors.grey,
                 // onTap: () {},
+              ),
+              _SettingsTile(
+                icon: Icons.palette_outlined,
+                title: 'Society Branding',
+                subtitle: 'Customize colors and theme',
+                iconColor: Colors.pink,
+                onTap: () => context.push('/admin/settings/branding'),
               ),
               _SettingsTile(
                 icon: Icons.notifications_none,
@@ -78,14 +85,14 @@ class _SettingsGroup extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade600,
               letterSpacing: 0.5,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -102,7 +109,7 @@ class _SettingsGroup extends StatelessWidget {
                 children: [
                   entry.value,
                   if (!isLast) 
-                    Divider(height: 1, indent: 56, color: Colors.grey.shade100),
+                    Divider(height: 1, indent: 56, color: Theme.of(context).dividerColor),
                 ],
               );
             }).toList(),
@@ -148,7 +155,7 @@ class _SettingsTile extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+        child: Text(subtitle, style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade600)),
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
     );

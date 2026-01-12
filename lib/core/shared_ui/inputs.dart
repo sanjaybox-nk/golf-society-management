@@ -45,7 +45,7 @@ class BoxyArtFormField extends StatelessWidget {
         ),
         Container(
           decoration: ShapeDecoration(
-            color: const Color(0xFFF5F5F5), // Light grey background
+            color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(maxLines > 1 ? 20 : 100),
             ),
@@ -107,7 +107,7 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
         ),
         Container(
           decoration: ShapeDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
             shape: const StadiumBorder(),
             shadows: AppShadows.inputSoft,
           ),
@@ -122,7 +122,7 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
               ),
               icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
               style: const TextStyle(fontSize: 14, color: Colors.black87),
-              dropdownColor: Colors.white,
+              dropdownColor: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -168,7 +168,7 @@ class BoxyArtDatePickerField extends StatelessWidget {
             height: 50,
             width: double.infinity,
             decoration: ShapeDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
               shape: const StadiumBorder(),
               shadows: AppShadows.inputSoft,
             ),
@@ -209,7 +209,7 @@ class BoxyArtSwitchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: ShapeDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         shape: const StadiumBorder(),
         shadows: AppShadows.inputSoft,
       ),
@@ -226,8 +226,8 @@ class BoxyArtSwitchField extends StatelessWidget {
           ),
           value: value,
           onChanged: onChanged,
-          activeThumbColor: AppTheme.primaryYellow,
-          activeTrackColor: AppTheme.primaryYellow.withValues(alpha: 0.2),
+          activeThumbColor: Theme.of(context).primaryColor,
+          activeTrackColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           visualDensity: VisualDensity.compact,
         ),
@@ -254,7 +254,7 @@ class BoxyArtSearchBar extends StatelessWidget {
     return Container(
       height: 50,
       decoration: ShapeDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         shape: const StadiumBorder(),
         shadows: AppShadows.inputSoft,
       ),

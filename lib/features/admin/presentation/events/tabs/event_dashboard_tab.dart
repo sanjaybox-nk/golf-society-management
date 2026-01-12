@@ -18,9 +18,9 @@ class EventDashboardTab extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
@@ -35,13 +35,13 @@ class EventDashboardTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   const Text(
+                   Text(
                     'Welcome Back, Admin',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
-                      color: Colors.black,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -159,16 +159,16 @@ class EventDashboardTab extends StatelessWidget {
                     title: 'Approve 2 Guest Requests',
                     subtitle: 'From Monthly Medal registration',
                     icon: Icons.person_add_sharp,
-                    color: Colors.orange.shade50,
-                    iconColor: Colors.orange.shade700,
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    iconColor: Colors.orange,
                   ),
                   const SizedBox(height: 12),
                   _buildActionItem(
                     title: 'Publish Draw for Saturday',
                     subtitle: 'Deadline approaching (6h remaining)',
                     icon: Icons.notification_important_outlined,
-                    color: Colors.red.shade50,
-                    iconColor: Colors.red.shade700,
+                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                    iconColor: Theme.of(context).colorScheme.error,
                   ),
                   
                   const SizedBox(height: 40),
@@ -189,17 +189,17 @@ class EventDashboardTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppTheme.primaryYellow.withOpacity(0.15),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Column(
+            child: Column(
               children: [
                 Text(
                   'OCT',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black54,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
                 Text(
@@ -207,7 +207,7 @@ class EventDashboardTab extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ],
@@ -295,7 +295,7 @@ class _VitalSignCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(25), // Boxy Art style
         boxShadow: AppShadows.inputSoft,
       ),

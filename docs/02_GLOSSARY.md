@@ -26,9 +26,11 @@ The scheduled start time for a match or specific flight.
 
 **BoxyArt Theme**
 The custom visual language of the app. Characterized by:
--   **Mustard Yellow & Black**: High contrast branding.
--   **Soft Shadows**: Custom shadows (`softScale`) that create a floating effect on white cards.
--   **Pill Shapes**: All inputs and buttons are fully rounded (Stadium border).
+-   **Dynamic Branding**: Configurable primary color (default: Mustard Yellow) with automatic contrast calculation.
+-   **Soft Shadows**: Custom shadows (`softScale`) that create a floating effect on cards.
+-   **Rounded Shapes**: Cards use `BorderRadius.circular(25-30)`, inputs and buttons use `BorderRadius.circular(12)`.
+-   **Semantic Status Colors**: Consistent color palette for status indicators (Positive/Green, Warning/Orange, Negative/Red, Neutral/Grey).
+-   **Accessibility**: Automatic text color calculation ensures readability on any background.
 
 **Locker Room**
 The creative name for the **User Profile** section. Here, users can:
@@ -46,8 +48,8 @@ A specialized search bar found in the **Members Directory**. Instead of sitting 
 -   **Search**: Triggers text input.
 -   **Filter**: Opens advanced filtering options.
 
-**Status Chip**
-A small, pill-shaped indicator used on Event Cards to show status (e.g., "Register", "Full", "Completed"). In the BoxyArt theme, these are typically Black with White text.
+**Status Pill**
+A small, pill-shaped indicator used throughout the app to show status (e.g., "Active", "Paid", "Due"). Uses semantic colors from `StatusColors` and automatically adapts to light/dark mode. Also known as `BoxyArtStatusPill`.
 
 **Notification Badge**
 A small yellow circle indicating unread items (e.g., messages, new events).

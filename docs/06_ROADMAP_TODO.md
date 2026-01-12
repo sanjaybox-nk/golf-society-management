@@ -35,6 +35,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.
     - [x] **Audience Manager**: Custom distribution list creation and management.
     - [x] **Notification History (Admin)**: Searchable archive of sent society alerts.
+- [x] **Society Branding & Theme System**
+    - [x] **Dynamic Theme Engine**: Configurable seed color with automatic contrast calculation.
+    - [x] **Branding Settings Screen**: Live preview, color picker, dark mode policy.
+    - [x] **Status Color System**: Semantic palette for consistent status indicators.
+    - [x] **Contrast Helper**: Automatic text color calculation for accessibility.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**

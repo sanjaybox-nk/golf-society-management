@@ -23,14 +23,14 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     final notificationsAsync = ref.watch(adminNotificationsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const BoxyArtAppBar(title: 'History', showBack: false),
       body: Column(
         children: [
           // Filter Bar
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             child: Column(
               children: [
                 BoxyArtSearchBar(
@@ -40,7 +40,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text('Group By:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Text('Group By:', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color)),
                     const SizedBox(width: 12),
                     _GroupChip(
                       label: 'Date',
@@ -181,13 +181,13 @@ class _GroupChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.grey.shade200,
+          color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black54,
+            color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).textTheme.bodyMedium?.color,
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -217,7 +217,7 @@ class _HistoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryYellow.withValues(alpha: 0.2),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -308,7 +308,7 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey))),
+          SizedBox(width: 80, child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color))),
           Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
         ],
       ),

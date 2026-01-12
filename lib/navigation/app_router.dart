@@ -17,6 +17,7 @@ import '../features/admin/presentation/members/admin_members_screen.dart';
 import '../features/admin/presentation/members/member_form_screen.dart';
 import '../features/admin/presentation/settings/admin_settings_screen.dart';
 import '../features/admin/presentation/roles/roles_settings_screen.dart';
+import '../features/admin/presentation/settings/branding_settings_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
@@ -153,6 +154,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: 'settings',
             builder: (context, state) => const AdminSettingsScreen(),
             routes: [
+              GoRoute(
+                path: 'branding',
+                builder: (context, state) => const BrandingSettingsScreen(),
+              ),
               GoRoute(
                 path: 'roles',
                 builder: (context, state) => const RolesSettingsScreen(),

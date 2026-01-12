@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_shadows.dart';
+import '../theme/contrast_helper.dart';
 
 /// A standard BoxyArt themed button.
 ///
@@ -32,8 +33,11 @@ class BoxyArtButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = AppTheme.primaryYellow; // Default Primary
-    Color textColor = Colors.black;
+    // Default Primary
+    Color bgColor = Theme.of(context).primaryColor;
+    Color textColor = Theme.of(context).colorScheme.onPrimary;
+    
+    // Shadows rely on context too if we want dynamic shadow colors
     List<BoxShadow>? shadows = [
       BoxShadow(
         color: Colors.black.withValues(alpha: 0.15),
@@ -43,12 +47,12 @@ class BoxyArtButton extends StatelessWidget {
     ];
 
     if (isSecondary) {
-      bgColor = Colors.white;
-      textColor = Colors.black;
+      bgColor = Theme.of(context).cardColor;
+      textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
       shadows = AppShadows.inputSoft;
     } else if (isGhost) {
       bgColor = Colors.transparent;
-      textColor = Colors.grey.shade600;
+      textColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey;
       shadows = null;
     }
 
@@ -111,7 +115,7 @@ class BoxyArtCircularIconBtn extends StatelessWidget {
       borderRadius: BorderRadius.circular(100),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           shape: BoxShape.circle,
           boxShadow: AppShadows.floatingAlt,
         ),
@@ -129,13 +133,16 @@ class BoxyArtThemedCircleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = Theme.of(context).primaryColor;
+    final iconColor = ContrastHelper.getContrastingText(backgroundColor);
+    
     return Container(
       padding: const EdgeInsets.all(6),
-      decoration: const BoxDecoration(
-        color: AppTheme.primaryYellow,
+      decoration: BoxDecoration(
+        color: backgroundColor,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: Colors.black, size: 14),
+      child: Icon(icon, color: iconColor, size: 14),
     );
   }
 }

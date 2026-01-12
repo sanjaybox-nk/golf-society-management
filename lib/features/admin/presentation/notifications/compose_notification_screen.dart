@@ -24,6 +24,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   // Targeting
   String _targetType = 'All Members'; // 'All Members', 'Groups', 'Individual'
   DistributionList? _selectedCustomList;
+  Member? _selectedMember; // For Individual targets
   
   // Message
   final _titleController = TextEditingController();
@@ -230,10 +231,10 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   Widget _buildSectionHeader(String title) {
     return Text(
       title.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.bold,
-        color: Colors.grey,
+        color: Theme.of(context).textTheme.bodyMedium?.color,
         letterSpacing: 1.2,
       ),
     );
@@ -250,7 +251,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Theme.of(context).scaffoldBackgroundColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -262,7 +263,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.primaryYellow : Colors.transparent,
+                        color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -271,7 +272,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? Colors.black : Colors.black54,
+                          color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                       ),
                     ),
@@ -324,10 +325,10 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
               DropdownButtonFormField<DistributionList>(
                 value: _selectedCustomList,
                 hint: const Text('Select Audience Group'),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                  border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                 ),
                 items: customLists.map((l) => DropdownMenuItem(value: l, child: Text(l.name))).toList(),
                 onChanged: (v) {
@@ -380,11 +381,11 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: _category,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Category',
               filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+              fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+              border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
             ),
             items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
             onChanged: (v) => setState(() => _category = v!),
@@ -400,11 +401,11 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
         children: [
           DropdownButtonFormField<String>(
             initialValue: _deepLinkAction,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Open Screen on Tap',
               filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+              fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+              border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
             ),
             items: _deepLinkOptions.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
             onChanged: (v) => setState(() => _deepLinkAction = v!),
@@ -414,10 +415,10 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             DropdownButtonFormField<String>(
               initialValue: _selectedEventId,
               hint: const Text('Select Upcoming Event'),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
               ),
               items: [
                 const DropdownMenuItem(value: '1', child: Text('Monthly Medal - Augusta')),

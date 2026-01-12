@@ -37,9 +37,9 @@ class StorageService {
         throw Exception('File is too large. Maximum size is 5MB.');
       }
 
-      final String fileName = 'avatars/$memberId.jpg';
+      final String fileName = 'avatars/${memberId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final Reference ref = _storage.ref().child(fileName);
-      
+
       // Upload the file
       final UploadTask uploadTask = ref.putFile(
         file,
@@ -48,11 +48,17 @@ class StorageService {
 
       final TaskSnapshot snapshot = await uploadTask;
       
+      if (snapshot.state != TaskState.success) {
+        throw Exception('Upload not successful. State: ${snapshot.state}');
+      }
+      
       // Get the download URL
       final String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
       if (e is FirebaseException) {
+         // Log the full error to debug console
+         print('Firebase Storage Error: ${e.code} - ${e.message}');
          throw Exception('Upload failed: ${e.message}');
       }
       rethrow;
