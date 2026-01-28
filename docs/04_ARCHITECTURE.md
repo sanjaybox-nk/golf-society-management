@@ -13,11 +13,13 @@ lib/
 │   ├── utils/              # Helper functions (dates, formatters)
 │   └── constants/          # Environment vars, static keys
 ├── features/               # distinct domains of the application
-│   ├── home/               # Member Dashboard & Notifications
-│   ├── events/             # Events listing & details
-│   ├── members/            # Directory & Locker Room
-│   ├── admin/              # Management Console (Events, Members, Communications)
-│   └── auth/               # Login & Registration flows
+├── home/               # Member Dashboard & Notifications
+├── events/             # Events listing & details
+│   ├── domain/         # Business logic (RegistrationLogic.dart)
+│   ├── presentation/   # UI Tabs and Registration Cards
+├── members/            # Directory & Locker Room
+├── admin/              # Management Console (Events, Members, Communications)
+└── auth/               # Login & Registration flows
 ├── models/                 # Shared Data Models (Freezed classes)
 ├── main.dart               # Entry point
 └── router.dart             # GoRouter configuration
@@ -28,7 +30,12 @@ We use `riverpod_generator` (`@riverpod` annotation) which auto-generates provid
 - **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore)
 - **Services**: `AuthService` (Firebase Auth), `StorageService` (Firebase Storage - Image Uploads)
 - **Providers**: Defined in `feature/presentation/provider_name.dart`.
--   **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
+- **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
+
+## Domain Logic
+Complex business rules are encapsulated in standalone logic classes within the `domain/` folder of each feature.
+- **RegistrationLogic**: Centralized helper for calculating FCFS positions, status pills, and buggy allocations. Ensures consistency between Member and Admin apps.
+- **RegistrationItem**: A "View Model" bridge that flattens complex nested registration data for simple rendering in UI components.
 
 ## Navigation (GoRouter)
 The app uses `StatefulShellRoute` to implement the persistent bottom navigation bar.

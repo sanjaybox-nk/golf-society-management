@@ -8,7 +8,7 @@ import '../../../core/theme/contrast_helper.dart';
 import '../../../models/member.dart';
 import 'members_provider.dart';
 import 'member_details_modal.dart';
-import '../../../../core/shared_ui/badges.dart';
+
 import '../../../../core/theme/status_colors.dart';
 
 class MembersScreen extends ConsumerWidget {

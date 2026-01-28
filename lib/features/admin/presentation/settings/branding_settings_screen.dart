@@ -376,7 +376,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
   }
   
   Future<void> _showAddCustomColorDialog() async {
-    final Color? result = await showColorPickerDialog(
+    final result = await showColorPickerDialog(
       context,
       widget.selectedColor,
       title: Text('Add Color', style: Theme.of(context).textTheme.titleLarge),
@@ -406,7 +406,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
   }
   
   Future<void> _showEditCustomColorDialog(int index, Color currentColor) async {
-    final Color? result = await showColorPickerDialog(
+    final result = await showColorPickerDialog(
       context,
       currentColor,
       title: Text('Edit Color', style: Theme.of(context).textTheme.titleLarge),

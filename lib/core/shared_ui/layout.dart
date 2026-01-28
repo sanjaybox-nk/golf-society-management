@@ -11,6 +11,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onProfilePressed;
   final bool showBack;
   final bool showLeading;
+  final VoidCallback? onBack;
 
   final PreferredSizeWidget? bottom;
   final List<Widget>? actions;
@@ -22,6 +23,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onProfilePressed,
     this.showBack = false,
     this.showLeading = true,
+    this.onBack,
     this.bottom,
     this.actions,
   });
@@ -43,7 +45,9 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.all(8.0),
               child: BoxyArtCircularIconBtn(
                 icon: showBack ? Icons.arrow_back : Icons.menu,
-                onTap: showBack ? () => Navigator.maybePop(context) : onMenuPressed,
+                onTap: showBack 
+                    ? (onBack ?? () => Navigator.maybePop(context)) 
+                    : onMenuPressed,
               ),
             )
           : null,

@@ -11,29 +11,128 @@ class FirestoreEventsRepository implements EventsRepository {
       _firestore.collection('events');
 
   @override
-  Stream<List<GolfEvent>> watchEvents() {
-    return _eventsRef.orderBy('date', descending: false).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        // We ensure the ID from Firestore is used in the model
-        final data = doc.data();
-        // If 'id' is part of the data, fine, otherwise inject it?
-        // Our GolfEvent freezed model has 'required String id'.
-        // We should assume data contains it OR inject doc.id.
-        // For robustness, let's inject doc.id if missing or mismatch.
-        data['id'] = doc.id; 
-        return GolfEvent.fromJson(data);
-      }).toList();
+  Stream<List<GolfEvent>> watchEvents({String? seasonId, EventStatus? status}) {
+    Query<Map<String, dynamic>> query = _eventsRef;
+    if (seasonId != null) {
+      query = query.where('seasonId', isEqualTo: seasonId);
+    }
+    if (status != null) {
+      query = query.where('status', isEqualTo: status.name);
+    }
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => _mapEvent(doc)).toList();
     });
   }
 
   @override
-  Future<List<GolfEvent>> getEvents() async {
-    final snapshot = await _eventsRef.orderBy('date', descending: false).get();
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id;
+  Future<List<GolfEvent>> getEvents({String? seasonId, EventStatus? status}) async {
+    Query<Map<String, dynamic>> query = _eventsRef;
+    if (seasonId != null) {
+      query = query.where('seasonId', isEqualTo: seasonId);
+    }
+    if (status != null) {
+      query = query.where('status', isEqualTo: status.name);
+    }
+    final snapshot = await query.get();
+    return snapshot.docs.map((doc) => _mapEvent(doc)).toList();
+  }
+
+  GolfEvent _mapEvent(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data() ?? {};
+    data['id'] = doc.id;
+
+    // Sanitize data (robust list reading)
+    // Firestore sometimes initializes empty arrays as maps or we might have legacy data
+    const listFields = [
+      'registrations',
+      'facilities',
+      'notes',
+      'galleryUrls',
+      'results',
+      'flashUpdates'
+    ];
+    for (final field in listFields) {
+      final val = data[field];
+      if (val != null && val is! List) {
+        // Force to empty list if not a list (handles Maps, legacy data, etc.)
+        data[field] = [];
+      }
+    }
+
+    // 1. Sanitize Top-level required strings
+    if (data['title'] == null) data['title'] = 'Untitled Event';
+    if (data['seasonId'] == null) data['seasonId'] = 'unknown_season';
+
+    // 2. Sanitize Simple String Lists (remove nulls)
+    for (final field in ['facilities', 'galleryUrls', 'flashUpdates']) {
+      if (data[field] is List) {
+        data[field] = (data[field] as List).whereType<String>().toList();
+      }
+    }
+
+    // 3. Deep sanitize registrations
+    if (data['registrations'] != null && data['registrations'] is List) {
+      final List rawRegs = data['registrations'];
+      final List<Map<String, dynamic>> safeRegs = [];
+      
+      for (var item in rawRegs) {
+        if (item is Map) {
+          final Map<String, dynamic> regMap = Map<String, dynamic>.from(item);
+          
+          // Strings
+          if (regMap['memberId'] == null) regMap['memberId'] = 'unknown_id';
+          if (regMap['memberName'] == null) regMap['memberName'] = 'Unknown Member';
+          
+          // Bools (default to false/true based on model defaults)
+          if (regMap['isGuest'] == null) regMap['isGuest'] = false;
+          if (regMap['attendingGolf'] == null) regMap['attendingGolf'] = true;
+          if (regMap['attendingDinner'] == null) regMap['attendingDinner'] = false;
+          if (regMap['hasPaid'] == null) regMap['hasPaid'] = false;
+          if (regMap['needsBuggy'] == null) regMap['needsBuggy'] = false;
+          if (regMap['guestAttendingDinner'] == null) regMap['guestAttendingDinner'] = false;
+          
+          // Doubles
+          if (regMap['cost'] == null) regMap['cost'] = 0.0;
+
+          safeRegs.add(regMap);
+        }
+      }
+      data['registrations'] = safeRegs;
+    }
+
+    // 4. Final Safety Net for List Fields
+    // Explicitly force all list fields to be Lists, no matter what
+    if (data['registrations'] is! List) data['registrations'] = [];
+    if (data['facilities'] is! List) data['facilities'] = [];
+    if (data['notes'] is! List) data['notes'] = [];
+    if (data['galleryUrls'] is! List) data['galleryUrls'] = [];
+    if (data['results'] is! List) data['results'] = [];
+    if (data['flashUpdates'] is! List) data['flashUpdates'] = [];
+
+    try {
       return GolfEvent.fromJson(data);
-    }).toList();
+    } catch (e) {
+      // Log the error for debugging
+      // ignore: avoid_print
+      print('Error parsing event ${doc.id}: $e');
+      // Return a safe "Error" event instead of crashing the app
+      // This allows the list to load even if one event is corrupted
+      return GolfEvent(
+        id: doc.id,
+        title: data['title']?.toString() ?? 'Error Loading Event',
+        seasonId: data['seasonId']?.toString() ?? '',
+        date: DateTime.now(),
+        // Pass empty lists to ensure it doesn't crash further up
+        registrations: [],
+        facilities: [],
+        notes: [],
+        galleryUrls: [],
+        results: [],
+        flashUpdates: [],
+        status: EventStatus.draft,
+        description: 'Data Error: $e',
+      );
+    }
   }
 
   @override

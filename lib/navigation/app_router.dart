@@ -23,14 +23,28 @@ import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
 import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
 import '../features/home/presentation/notification_inbox_screen.dart';
+import '../features/events/presentation/event_details_screen.dart';
+import '../features/admin/presentation/seasons/admin_seasons_screen.dart';
+import '../features/events/presentation/event_registration_screen.dart';
+import '../features/admin/presentation/events/event_registrations_admin_screen.dart';
+import '../features/admin/presentation/events/event_admin_shell.dart';
+import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
+import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 
 // Private navigators
+import '../features/events/presentation/event_user_shell.dart';
+import '../features/events/presentation/tabs/event_user_details_tab.dart';
+import '../features/events/presentation/tabs/event_user_registration_tab.dart';
+import '../features/events/presentation/tabs/event_user_placeholders.dart';
+import '../features/events/presentation/tabs/event_gallery_user_tab.dart';
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _eventsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'events');
 final _membersNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'members');
 final _lockerNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'locker');
 final _archiveNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'archive');
+
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -68,9 +82,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: EventsScreen(),
                 ),
+                  ),
+                ],
               ),
-            ],
-          ),
           StatefulShellBranch(
             navigatorKey: _membersNavigatorKey,
             routes: [
@@ -106,31 +120,59 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(
-        path: '/admin',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: AdminDashboardScreen(),
-        ),
-        routes: [
           GoRoute(
-            path: 'events',
+            path: '/admin',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: AdminEventsScreen(),
+              child: AdminDashboardScreen(),
             ),
             routes: [
               GoRoute(
-                path: 'new',
-                builder: (context, state) => const EventFormScreen(),
+                path: 'events',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: AdminEventsScreen(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const EventFormScreen(),
+                  ),
+                  ShellRoute(
+                    builder: (context, state, child) {
+                      return EventAdminShell(child: child);
+                    },
+                    routes: [
+                      GoRoute(
+                        path: 'manage/:id/event',
+                        builder: (context, state) {
+                          final event = state.extra as GolfEvent?;
+                          return EventFormScreen(event: event);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'manage/:id/registrations',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return EventRegistrationsAdminScreen(eventId: id);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'manage/:id/grouping',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return EventAdminGroupingScreen(eventId: id);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'manage/:id/scores',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return EventAdminScoresScreen(eventId: id);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              GoRoute(
-                path: 'edit/:id',
-                builder: (context, state) {
-                  final event = state.extra as GolfEvent;
-                  return EventFormScreen(event: event);
-                },
-              ),
-            ],
-          ),
           GoRoute(
             path: 'members',
             pageBuilder: (context, state) => const NoTransitionPage(
@@ -191,8 +233,73 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: 'communications',
             builder: (context, state) => const NotificationAdminScaffold(),
           ),
+          GoRoute(
+            path: 'seasons',
+            builder: (context, state) => const AdminSeasonsScreen(),
+          ),
         ],
       ),
+    GoRoute(
+      path: '/events/:id',
+    redirect: (context, state) {
+      final id = state.pathParameters['id'];
+      if (state.uri.pathSegments.length == 2) {
+        return '/events/$id/details';
+      }
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: 'register-form', 
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return EventRegistrationScreen(eventId: id);
+        },
+      ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return EventUserShell(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: 'details',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return EventUserDetailsTab(eventId: id);
+            },
+          ),
+          GoRoute(
+            path: 'register',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return EventRegistrationUserTab(eventId: id);
+            },
+          ),
+          GoRoute(
+            path: 'grouping',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return EventGroupingUserTab(eventId: id);
+            },
+          ),
+          GoRoute(
+            path: 'scores',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return EventScoresUserTab(eventId: id);
+            },
+          ),
+          GoRoute(
+            path: 'gallery',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return EventGalleryUserTab(eventId: id);
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
     ],
   );
 });

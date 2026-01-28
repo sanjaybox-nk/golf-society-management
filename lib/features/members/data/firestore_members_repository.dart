@@ -28,9 +28,6 @@ class FirestoreMembersRepository implements MembersRepository {
         .snapshots()
         .map((snapshot) {
           final members = snapshot.docs.map((doc) => doc.data()).toList();
-          for (var m in members) {
-            print('📦 Firestore Member: ${m.firstName} has avatar: ${m.avatarUrl}');
-          }
           return members;
         });
   }

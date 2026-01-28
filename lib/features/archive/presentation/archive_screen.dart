@@ -9,16 +9,25 @@ class ArchiveScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final seasons = ref.watch(archiveSeasonsProvider);
+    final seasonsAsync = ref.watch(archiveSeasonsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Archive')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: seasons.length,
-        itemBuilder: (context, index) {
-          return _SeasonCard(season: seasons[index]);
+      body: seasonsAsync.when(
+        data: (seasons) {
+          if (seasons.isEmpty) {
+            return const Center(child: Text('No archived seasons yet.'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: seasons.length,
+            itemBuilder: (context, index) {
+              return _SeasonCard(season: seasons[index]);
+            },
+          );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
   }

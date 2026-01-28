@@ -15,6 +15,16 @@ _EventRegistration _$EventRegistrationFromJson(Map<String, dynamic> json) =>
       attendingDinner: json['attendingDinner'] as bool? ?? false,
       hasPaid: json['hasPaid'] as bool? ?? false,
       cost: (json['cost'] as num?)?.toDouble() ?? 0.0,
+      needsBuggy: json['needsBuggy'] as bool? ?? false,
+      dietaryRequirements: json['dietaryRequirements'] as String?,
+      specialNeeds: json['specialNeeds'] as String?,
+      guestName: json['guestName'] as String?,
+      guestHandicap: json['guestHandicap'] as String?,
+      guestAttendingDinner: json['guestAttendingDinner'] as bool? ?? false,
+      guestNeedsBuggy: json['guestNeedsBuggy'] as bool? ?? false,
+      registeredAt: const OptionalTimestampConverter().fromJson(
+        json['registeredAt'],
+      ),
     );
 
 Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
@@ -26,4 +36,14 @@ Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
       'attendingDinner': instance.attendingDinner,
       'hasPaid': instance.hasPaid,
       'cost': instance.cost,
+      'needsBuggy': instance.needsBuggy,
+      'dietaryRequirements': instance.dietaryRequirements,
+      'specialNeeds': instance.specialNeeds,
+      'guestName': instance.guestName,
+      'guestHandicap': instance.guestHandicap,
+      'guestAttendingDinner': instance.guestAttendingDinner,
+      'guestNeedsBuggy': instance.guestNeedsBuggy,
+      'registeredAt': const OptionalTimestampConverter().toJson(
+        instance.registeredAt,
+      ),
     };

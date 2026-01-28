@@ -64,4 +64,19 @@ class StorageService {
       rethrow;
     }
   }
+
+  /// Uploads a generic image and returns download URL
+  Future<String> uploadImage({
+    required String path,
+    required File file,
+  }) async {
+    try {
+      final Reference ref = _storage.ref().child('$path/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final UploadTask uploadTask = ref.putFile(file, SettableMetadata(contentType: 'image/jpeg'));
+      final TaskSnapshot snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Upload failed: $e');
+    }
+  }
 }

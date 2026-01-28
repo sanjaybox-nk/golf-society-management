@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Season {
 
- String get id; int get year; List<GolfEvent> get events;// Add AGM data later if needed, dynamic map for now
+ String get id; String get name; int get year; SeasonStatus get status; bool get isCurrent;// Add AGM data later if needed, dynamic map for now
  Map<String, dynamic> get agmData;
 /// Create a copy of Season
 /// with the given fields replaced by the non-null parameter values.
@@ -29,16 +29,16 @@ $SeasonCopyWith<Season> get copyWith => _$SeasonCopyWithImpl<Season>(this as Sea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Season&&(identical(other.id, id) || other.id == id)&&(identical(other.year, year) || other.year == year)&&const DeepCollectionEquality().equals(other.events, events)&&const DeepCollectionEquality().equals(other.agmData, agmData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Season&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.year, year) || other.year == year)&&(identical(other.status, status) || other.status == status)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other.agmData, agmData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,year,const DeepCollectionEquality().hash(events),const DeepCollectionEquality().hash(agmData));
+int get hashCode => Object.hash(runtimeType,id,name,year,status,isCurrent,const DeepCollectionEquality().hash(agmData));
 
 @override
 String toString() {
-  return 'Season(id: $id, year: $year, events: $events, agmData: $agmData)';
+  return 'Season(id: $id, name: $name, year: $year, status: $status, isCurrent: $isCurrent, agmData: $agmData)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $SeasonCopyWith<$Res>  {
   factory $SeasonCopyWith(Season value, $Res Function(Season) _then) = _$SeasonCopyWithImpl;
 @useResult
 $Res call({
- String id, int year, List<GolfEvent> events, Map<String, dynamic> agmData
+ String id, String name, int year, SeasonStatus status, bool isCurrent, Map<String, dynamic> agmData
 });
 
 
@@ -66,12 +66,14 @@ class _$SeasonCopyWithImpl<$Res>
 
 /// Create a copy of Season
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? year = null,Object? events = null,Object? agmData = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? year = null,Object? status = null,Object? isCurrent = null,Object? agmData = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,year: null == year ? _self.year : year // ignore: cast_nullable_to_non_nullable
-as int,events: null == events ? _self.events : events // ignore: cast_nullable_to_non_nullable
-as List<GolfEvent>,agmData: null == agmData ? _self.agmData : agmData // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SeasonStatus,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as bool,agmData: null == agmData ? _self.agmData : agmData // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }
@@ -157,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int year,  List<GolfEvent> events,  Map<String, dynamic> agmData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int year,  SeasonStatus status,  bool isCurrent,  Map<String, dynamic> agmData)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Season() when $default != null:
-return $default(_that.id,_that.year,_that.events,_that.agmData);case _:
+return $default(_that.id,_that.name,_that.year,_that.status,_that.isCurrent,_that.agmData);case _:
   return orElse();
 
 }
@@ -178,10 +180,10 @@ return $default(_that.id,_that.year,_that.events,_that.agmData);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int year,  List<GolfEvent> events,  Map<String, dynamic> agmData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int year,  SeasonStatus status,  bool isCurrent,  Map<String, dynamic> agmData)  $default,) {final _that = this;
 switch (_that) {
 case _Season():
-return $default(_that.id,_that.year,_that.events,_that.agmData);case _:
+return $default(_that.id,_that.name,_that.year,_that.status,_that.isCurrent,_that.agmData);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +200,10 @@ return $default(_that.id,_that.year,_that.events,_that.agmData);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int year,  List<GolfEvent> events,  Map<String, dynamic> agmData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int year,  SeasonStatus status,  bool isCurrent,  Map<String, dynamic> agmData)?  $default,) {final _that = this;
 switch (_that) {
 case _Season() when $default != null:
-return $default(_that.id,_that.year,_that.events,_that.agmData);case _:
+return $default(_that.id,_that.name,_that.year,_that.status,_that.isCurrent,_that.agmData);case _:
   return null;
 
 }
@@ -213,18 +215,14 @@ return $default(_that.id,_that.year,_that.events,_that.agmData);case _:
 @JsonSerializable()
 
 class _Season extends Season {
-  const _Season({required this.id, required this.year, final  List<GolfEvent> events = const [], final  Map<String, dynamic> agmData = const {}}): _events = events,_agmData = agmData,super._();
+  const _Season({required this.id, required this.name, required this.year, this.status = SeasonStatus.active, this.isCurrent = false, final  Map<String, dynamic> agmData = const {}}): _agmData = agmData,super._();
   factory _Season.fromJson(Map<String, dynamic> json) => _$SeasonFromJson(json);
 
 @override final  String id;
+@override final  String name;
 @override final  int year;
- final  List<GolfEvent> _events;
-@override@JsonKey() List<GolfEvent> get events {
-  if (_events is EqualUnmodifiableListView) return _events;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_events);
-}
-
+@override@JsonKey() final  SeasonStatus status;
+@override@JsonKey() final  bool isCurrent;
 // Add AGM data later if needed, dynamic map for now
  final  Map<String, dynamic> _agmData;
 // Add AGM data later if needed, dynamic map for now
@@ -248,16 +246,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Season&&(identical(other.id, id) || other.id == id)&&(identical(other.year, year) || other.year == year)&&const DeepCollectionEquality().equals(other._events, _events)&&const DeepCollectionEquality().equals(other._agmData, _agmData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Season&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.year, year) || other.year == year)&&(identical(other.status, status) || other.status == status)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other._agmData, _agmData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,year,const DeepCollectionEquality().hash(_events),const DeepCollectionEquality().hash(_agmData));
+int get hashCode => Object.hash(runtimeType,id,name,year,status,isCurrent,const DeepCollectionEquality().hash(_agmData));
 
 @override
 String toString() {
-  return 'Season(id: $id, year: $year, events: $events, agmData: $agmData)';
+  return 'Season(id: $id, name: $name, year: $year, status: $status, isCurrent: $isCurrent, agmData: $agmData)';
 }
 
 
@@ -268,7 +266,7 @@ abstract mixin class _$SeasonCopyWith<$Res> implements $SeasonCopyWith<$Res> {
   factory _$SeasonCopyWith(_Season value, $Res Function(_Season) _then) = __$SeasonCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int year, List<GolfEvent> events, Map<String, dynamic> agmData
+ String id, String name, int year, SeasonStatus status, bool isCurrent, Map<String, dynamic> agmData
 });
 
 
@@ -285,12 +283,14 @@ class __$SeasonCopyWithImpl<$Res>
 
 /// Create a copy of Season
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? year = null,Object? events = null,Object? agmData = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? year = null,Object? status = null,Object? isCurrent = null,Object? agmData = null,}) {
   return _then(_Season(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,year: null == year ? _self.year : year // ignore: cast_nullable_to_non_nullable
-as int,events: null == events ? _self._events : events // ignore: cast_nullable_to_non_nullable
-as List<GolfEvent>,agmData: null == agmData ? _self._agmData : agmData // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SeasonStatus,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as bool,agmData: null == agmData ? _self._agmData : agmData // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../models/golf_event.dart';
-import '../../../models/notification.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 
@@ -143,7 +142,7 @@ class _NextMatchCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -158,7 +157,7 @@ class _NextMatchCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.golf_course, color: Colors.white, size: 24),
@@ -171,7 +170,7 @@ class _NextMatchCard extends StatelessWidget {
                     Text(
                       'UPCOMING MATCH',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
                         letterSpacing: 1.2,
@@ -191,7 +190,7 @@ class _NextMatchCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          _buildInfoRow(context, Icons.location_on_outlined, event.location),
+          _buildInfoRow(context, Icons.location_on_outlined, event.courseName ?? 'TBA'),
           const SizedBox(height: 12),
           _buildInfoRow(
             context,
@@ -220,7 +219,7 @@ class _NextMatchCard extends StatelessWidget {
   Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white.withOpacity(0.4), size: 18),
+        Icon(icon, color: Colors.white.withValues(alpha: 0.4), size: 18),
         const SizedBox(width: 12),
         Expanded(
           child: Text(

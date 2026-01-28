@@ -149,8 +149,8 @@ class BoxyArtStatusPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColorOverride ??
             (Theme.of(context).brightness == Brightness.light
-                ? baseColor.withOpacity(0.1)
-                : baseColor.withOpacity(0.2)),
+                ? baseColor.withValues(alpha: 0.1)
+                : baseColor.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

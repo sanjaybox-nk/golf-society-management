@@ -18,7 +18,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
 
 ## 2. Core Features Completion
 - [ ] **Events**
-    - [ ] **Event Details Screen**: View full info, seeing who registered.
+    - [x] **Event Details Screen**: View full info, seeing who registered.
+    - [x] **Interactive Registration (Admin)**: Card-based UI with direct status toggles.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**

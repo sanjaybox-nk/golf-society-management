@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../features/members/presentation/members_provider.dart';
+import '../../../../models/member.dart';
+import 'dart:math';
 
-class AdminSettingsScreen extends StatelessWidget {
+class AdminSettingsScreen extends ConsumerWidget {
   const AdminSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const BoxyArtAppBar(title: 'Settings', showBack: true),
@@ -61,9 +65,72 @@ class AdminSettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+          _SettingsGroup(
+            title: 'DEVELOPMENT',
+            children: [
+              _SettingsTile(
+                icon: Icons.science,
+                title: 'Seed Members',
+                subtitle: 'Generate 60 dummy members',
+                iconColor: Colors.amber,
+                onTap: () => _seedMembers(context, ref),
+              ),
+            ],
+          ),
+          const SizedBox(height: 100),
         ],
       ),
     );
+  }
+
+  Future<void> _seedMembers(BuildContext context, WidgetRef ref) async {
+    // Basic confirmation
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context, 
+      title: 'Seed Members?',
+      message: 'This will add 60 dummy members to your database. Continue?',
+      confirmText: 'Seed',
+      onCancel: () => Navigator.of(context).pop(false),
+      onConfirm: () => Navigator.of(context).pop(true),
+    );
+    
+    if (confirm != true) return;
+
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding 60 members...')));
+
+    try {
+      final repo = ref.read(membersRepositoryProvider);
+      final random = Random();
+      
+      final firstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen'];
+      final lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson'];
+
+      for (int i = 0; i < 60; i++) {
+        final firstName = firstNames[random.nextInt(firstNames.length)];
+        final lastName = lastNames[random.nextInt(lastNames.length)];
+        final gender = random.nextBool() ? 'Male' : 'Female';
+        final handicap = 5 + random.nextDouble() * 25; // 5 to 30
+        
+        await repo.addMember(Member(
+          id: '', // Auto-generated
+          firstName: firstName,
+          lastName: lastName,
+          email: '${firstName.toLowerCase()}.${lastName.toLowerCase()}$i@example.com',
+          phone: '07700 900${random.nextInt(999).toString().padLeft(3, '0')}',
+          handicap: double.parse(handicap.toStringAsFixed(1)),
+          whsNumber: '100${random.nextInt(90000)}',
+          status: MemberStatus.active,
+          joinedDate: DateTime.now().subtract(Duration(days: random.nextInt(365 * 5))),
+          hasPaid: random.nextBool(),
+        ));
+      }
+
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Successfully added 60 members!')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 }
 

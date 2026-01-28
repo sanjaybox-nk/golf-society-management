@@ -9,7 +9,11 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Admin Console', showBack: true),
+      appBar: BoxyArtAppBar(
+        title: 'Admin Console',
+        showBack: true,
+        onBack: () => context.go('/home'),
+      ),
       body: GridView.count(
         crossAxisCount: 2,
         padding: const EdgeInsets.all(24),
@@ -21,9 +25,7 @@ class AdminDashboardScreen extends StatelessWidget {
             subtitle: 'Schedule and results',
             icon: Icons.calendar_month,
             color: Colors.orange,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const EventAdminScaffold()),
-            ),
+            onTap: () => context.push('/admin/events'),
           ),
           _AdminCard(
             title: 'Manage Members',
@@ -31,6 +33,13 @@ class AdminDashboardScreen extends StatelessWidget {
             icon: Icons.people,
             color: Colors.blue,
             onTap: () => context.push('/admin/members'),
+          ),
+          _AdminCard(
+            title: 'Manage Seasons',
+            subtitle: 'Archive and setup',
+            icon: Icons.layers,
+            color: Colors.teal,
+            onTap: () => context.push('/admin/seasons'),
           ),
           _AdminCard(
             title: 'Audit Logs',

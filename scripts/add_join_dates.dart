@@ -1,7 +1,9 @@
 import 'dart:math';
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import '../lib/firebase_options.dart';
+import 'package:golf_society/firebase_options.dart';
 
 /// Script to add random joinedDate to members who don't have one
 void main() async {

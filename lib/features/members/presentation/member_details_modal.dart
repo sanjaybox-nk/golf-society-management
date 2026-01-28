@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart'; // [NEW]
 import '../../../../core/services/storage_service.dart'; // [NEW]
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/shared_ui/cards.dart';
-import '../../../../core/shared_ui/inputs.dart';
-import '../../../../core/shared_ui/floating_action_bar.dart';
+
 import '../../../../core/constants/country_codes.dart';
 import '../../../../models/member.dart';
 import 'members_provider.dart';

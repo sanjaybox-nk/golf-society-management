@@ -287,7 +287,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                     children: selectedMembers.map((m) {
                       return Chip(
                         label: Text('${m.firstName} ${m.lastName}'),
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                         deleteIcon: const Icon(Icons.close, size: 18, color: Colors.black54),
                         onDeleted: () => _toggleMember(m.id),
                         side: BorderSide.none,

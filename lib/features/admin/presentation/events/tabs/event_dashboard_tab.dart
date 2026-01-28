@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
 import 'package:golf_society/core/theme/app_shadows.dart';
 
 class EventDashboardTab extends StatelessWidget {
@@ -306,7 +305,7 @@ class _VitalSignCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 22),

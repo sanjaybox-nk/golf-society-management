@@ -62,6 +62,16 @@ Complex widget for the Member Detail screen header. Handles Avatar, Stats, and F
 Specialized widget for the Home Screen feed.
 - **Features**: Status-based icons (Urgent/Info), truncated body text, and relative timestamps.
 
+### `RegistrationCard`
+The core widget for event participation management. Used in both Member and Admin apps.
+- **Modes**:
+  - **Display Only**: Regular list view for members.
+  - **Interactive (Admin)**: Allows toggling of Paid/Golf/Buggy/Dinner statuses via direct icon clicks.
+- **Indicators**:
+  - **Status Pill**: Shows Confirmed, Reserved, etc.
+  - **Position Badge**: Shows FCFS list position.
+  - **Interaction Icons**: Golf Club (Golf), Electric Car (Buggy), Restaurant (Dinner).
+
 ### `_MetricCard` (Pattern)
 Internal widget pattern for dashboards (found in `admin_members_screen.dart`). 
 - **Style**: Soft shadow, circular icon, large bold value.
@@ -72,9 +82,14 @@ Internal widget pattern for dashboards (found in `admin_members_screen.dart`).
 ### `BoxyArtStatusPill`
 Semantic status indicator with automatic light/dark mode adaptation.
 - **Properties**:
-  - `text`: Display text (e.g., "Active", "Paid")
-  - `baseColor`: Semantic color from `StatusColors` (Positive, Warning, Negative, Neutral)
-  - `backgroundColorOverride`: Optional solid background (e.g., `Colors.white` for pills on gradient cards)
+  - `text`: Display text (e.g., "Active", "Paid", "Confirmed", "Dinner", "Waitlist")
+  - `baseColor`: Semantic color from `StatusColors` (Positive/Green, Warning/Orange, Negative/Red, Neutral/Grey, Info/Blue)
+- **Special States**:
+  - **Confirmed**: Positive (Green)
+  - **Reserved/Pending**: Warning (Orange)
+  - **Waitlist**: Negative (Red)
+  - **Dinner Only**: Info (Blue)
+  - **Withdrawn/Off**: Neutral (Grey)
 - **Behavior**: 
   - Automatically adjusts text color using `ContrastHelper` for optimal readability.
   - Automatically adjusts background opacity based on theme brightness.

@@ -71,11 +71,26 @@ An action associated with a notification that redirects the user to a specific p
 
 ## User Flows
 
+**Registration Statuses**
+The app uses a 5-state system to manage event entries:
+-   **Confirmed** (Green): Member has registered and paid within the allowed capacity.
+-   **Reserved** (Orange): Member has registered but not yet paid (within capacity).
+-   **Waitlist** (Red): Registered after capacity was reached. Position is tracked for automatic promotion.
+-   **Dinner** (Blue): Member is attending the dinner/social only (not playing golf). Excluded from golfer headcount.
+-   **Withdrawn** (Grey): Member has cancelled participation but remains in admin records for history.
+
+**FCFS (First-Come, First-Served)**
+The core priority system. Event spots and budget buggy spaces are allocated strictly based on the `registeredAt` timestamp.
+
+**Buggy Allocation**
+Automatically calculated based on the available buggy count defined by the admin. The system assigns "Confirmed" buggy status to the first N players who requested one, moving others to the "Waitlist" buggy status.
+
 **Registration**
 1.  Navigate to **Events**.
 2.  Tap on an **Upcoming Event** card.
 3.  Tap the **Register** chip (Black pill).
-4.  (Future) Pay entry fee via Stripe integration.
+4.  Choose Golf and/or Dinner options.
+5.  State is tracked in real-time.
 
 **Member Search**
 1.  Go to **Members**.

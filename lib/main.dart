@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart'; // [NEW]
 import 'core/theme/app_theme.dart';
 import 'navigation/app_router.dart';
 import 'core/theme/theme_controller.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +49,16 @@ class GolfSocietyApp extends ConsumerWidget {
       darkTheme: AppTheme.generateTheme(seedColor: seedColor, brightness: Brightness.dark),
       themeMode: mode,
       routerConfig: router,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('en', 'GB'),
+      ],
     );
   }
 }

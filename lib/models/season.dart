@@ -1,8 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'golf_event.dart';
 
 part 'season.freezed.dart';
 part 'season.g.dart';
+
+enum SeasonStatus { active, closed }
 
 @freezed
 abstract class Season with _$Season {
@@ -10,8 +11,10 @@ abstract class Season with _$Season {
   
   const factory Season({
     required String id,
+    required String name,
     required int year,
-    @Default([]) List<GolfEvent> events,
+    @Default(SeasonStatus.active) SeasonStatus status,
+    @Default(false) bool isCurrent,
     // Add AGM data later if needed, dynamic map for now
     @Default({}) Map<String, dynamic> agmData,
   }) = _Season;

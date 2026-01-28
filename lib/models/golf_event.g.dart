@@ -6,24 +6,61 @@ part of 'golf_event.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_EventNote _$EventNoteFromJson(Map<String, dynamic> json) => _EventNote(
+  title: json['title'] as String?,
+  content: json['content'] as String,
+  imageUrl: json['imageUrl'] as String?,
+);
+
+Map<String, dynamic> _$EventNoteToJson(_EventNote instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'content': instance.content,
+      'imageUrl': instance.imageUrl,
+    };
+
 _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   id: json['id'] as String,
   title: json['title'] as String,
-  location: json['location'] as String,
-  date: DateTime.parse(json['date'] as String),
+  seasonId: json['seasonId'] as String,
+  date: const TimestampConverter().fromJson(json['date'] as Object),
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
-  regTime: json['regTime'] == null
-      ? null
-      : DateTime.parse(json['regTime'] as String),
-  teeOffTime: json['teeOffTime'] == null
-      ? null
-      : DateTime.parse(json['teeOffTime'] as String),
+  regTime: const OptionalTimestampConverter().fromJson(json['regTime']),
+  teeOffTime: const OptionalTimestampConverter().fromJson(json['teeOffTime']),
+  registrationDeadline: const OptionalTimestampConverter().fromJson(
+    json['registrationDeadline'],
+  ),
   registrations:
       (json['registrations'] as List<dynamic>?)
           ?.map((e) => EventRegistration.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  courseName: json['courseName'] as String?,
+  courseDetails: json['courseDetails'] as String?,
+  dressCode: json['dressCode'] as String?,
+  availableBuggies: (json['availableBuggies'] as num?)?.toInt(),
+  maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
+  facilities:
+      (json['facilities'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  memberCost: (json['memberCost'] as num?)?.toDouble(),
+  guestCost: (json['guestCost'] as num?)?.toDouble(),
+  dinnerCost: (json['dinnerCost'] as num?)?.toDouble(),
+  dinnerLocation: json['dinnerLocation'] as String?,
+  notes:
+      (json['notes'] as List<dynamic>?)
+          ?.map((e) => EventNote.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  galleryUrls:
+      (json['galleryUrls'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  showRegistrationButton: json['showRegistrationButton'] as bool? ?? true,
   grouping: json['grouping'] as Map<String, dynamic>? ?? const {},
   results:
       (json['results'] as List<dynamic>?)
@@ -36,21 +73,47 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  status:
+      $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
+      EventStatus.draft,
 );
 
-Map<String, dynamic> _$GolfEventToJson(_GolfEvent instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'location': instance.location,
-      'date': instance.date.toIso8601String(),
-      'description': instance.description,
-      'imageUrl': instance.imageUrl,
-      'regTime': instance.regTime?.toIso8601String(),
-      'teeOffTime': instance.teeOffTime?.toIso8601String(),
-      'registrations': instance.registrations,
-      'grouping': instance.grouping,
-      'results': instance.results,
-      'courseConfig': instance.courseConfig,
-      'flashUpdates': instance.flashUpdates,
-    };
+Map<String, dynamic> _$GolfEventToJson(
+  _GolfEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'title': instance.title,
+  'seasonId': instance.seasonId,
+  'date': const TimestampConverter().toJson(instance.date),
+  'description': instance.description,
+  'imageUrl': instance.imageUrl,
+  'regTime': const OptionalTimestampConverter().toJson(instance.regTime),
+  'teeOffTime': const OptionalTimestampConverter().toJson(instance.teeOffTime),
+  'registrationDeadline': const OptionalTimestampConverter().toJson(
+    instance.registrationDeadline,
+  ),
+  'registrations': instance.registrations.map((e) => e.toJson()).toList(),
+  'courseName': instance.courseName,
+  'courseDetails': instance.courseDetails,
+  'dressCode': instance.dressCode,
+  'availableBuggies': instance.availableBuggies,
+  'maxParticipants': instance.maxParticipants,
+  'facilities': instance.facilities,
+  'memberCost': instance.memberCost,
+  'guestCost': instance.guestCost,
+  'dinnerCost': instance.dinnerCost,
+  'dinnerLocation': instance.dinnerLocation,
+  'notes': instance.notes.map((e) => e.toJson()).toList(),
+  'galleryUrls': instance.galleryUrls,
+  'showRegistrationButton': instance.showRegistrationButton,
+  'grouping': instance.grouping,
+  'results': instance.results,
+  'courseConfig': instance.courseConfig,
+  'flashUpdates': instance.flashUpdates,
+  'status': _$EventStatusEnumMap[instance.status]!,
+};
+
+const _$EventStatusEnumMap = {
+  EventStatus.draft: 'draft',
+  EventStatus.published: 'published',
+};

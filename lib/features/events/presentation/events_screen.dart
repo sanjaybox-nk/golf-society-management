@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/widgets/boxy_art_widgets.dart';
@@ -18,12 +19,12 @@ class EventsScreen extends ConsumerWidget {
       body: Stack(
         children: [
           _EventsList(
-            provider: currentFilter == EventFilter.upcoming 
-              ? upcomingEventsProvider 
-              : pastEventsProvider, 
+            provider: currentFilter == EventFilter.upcoming
+                ? upcomingEventsProvider
+                : pastEventsProvider,
             isUpcoming: currentFilter == EventFilter.upcoming,
           ),
-          
+
           // Floating Filter Bar
           Positioned(
             left: 0,
@@ -32,8 +33,14 @@ class EventsScreen extends ConsumerWidget {
             child: FloatingFilterBar<EventFilter>(
               selectedValue: currentFilter,
               options: [
-                FloatingFilterOption(label: 'Upcoming', value: EventFilter.upcoming),
-                FloatingFilterOption(label: 'Past Results', value: EventFilter.past),
+                FloatingFilterOption(
+                  label: 'Upcoming',
+                  value: EventFilter.upcoming,
+                ),
+                FloatingFilterOption(
+                  label: 'Past Results',
+                  value: EventFilter.past,
+                ),
               ],
               onChanged: (filter) {
                 ref.read(eventFilterProvider.notifier).update(filter);
@@ -50,10 +57,7 @@ class _EventsList extends ConsumerWidget {
   final Provider<AsyncValue<List<GolfEvent>>> provider;
   final bool isUpcoming;
 
-  const _EventsList({
-    required this.provider,
-    required this.isUpcoming,
-  });
+  const _EventsList({required this.provider, required this.isUpcoming});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,9 +78,9 @@ class _EventsList extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Text(
                   isUpcoming ? 'No upcoming events' : 'No past events found',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.grey,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: Colors.grey),
                 ),
               ],
             ),
@@ -101,26 +105,21 @@ class _EventCard extends StatelessWidget {
   final GolfEvent event;
   final bool isUpcoming;
 
-  const _EventCard({
-    required this.event,
-    required this.isUpcoming,
-  });
+  const _EventCard({required this.event, required this.isUpcoming});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: BoxyArtFloatingCard(
-        onTap: () {
-          // TODO: Navigate to event details
-        },
+        onTap: () => context.push('/events/${event.id}'),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Date Badge
             _DateBadge(date: event.date),
             const SizedBox(width: 16),
-            
+
             // Event Info
             Expanded(
               child: Column(
@@ -129,20 +128,23 @@ class _EventCard extends StatelessWidget {
                   Text(
                     event.title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.primary),
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          event.location,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[700],
-                              ),
+                          event.courseName ?? 'TBA',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Colors.grey[700]),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -157,7 +159,7 @@ class _EventCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(width: 8),
 
             // Action / Arrow
@@ -165,7 +167,9 @@ class _EventCard extends StatelessWidget {
               children: [
                 if (isUpcoming)
                   Theme(
-                    data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+                    data: Theme.of(
+                      context,
+                    ).copyWith(canvasColor: Colors.transparent),
                     child: const Chip(
                       label: Text('Register'),
                       labelStyle: TextStyle(fontSize: 12, color: Colors.white),
@@ -198,9 +202,7 @@ class _DateBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -208,17 +210,17 @@ class _DateBadge extends StatelessWidget {
           Text(
             DateFormat('MMM').format(date).toUpperCase(), // Month (e.g. MAY)
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
           ),
           Text(
             DateFormat('d').format(date), // Day (e.g. 15)
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  height: 1,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              fontWeight: FontWeight.bold,
+              height: 1,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),
