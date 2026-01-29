@@ -25,8 +25,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
     return eventAsync.when(
       data: (event) {
-        if (event == null) return const Center(child: Text('Event not found'));
-
         return Scaffold(
           appBar: BoxyArtAppBar(
             title: 'Registrations',
@@ -320,11 +318,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     }
 
     final updated = reg.copyWith(statusOverride: nextOverride, hasPaid: nextHasPaid);
-    _updateRegistration(ref, event, updated);
-  }
-
-  void _togglePaid(WidgetRef ref, GolfEvent event, EventRegistration reg) {
-    final updated = reg.copyWith(hasPaid: !reg.hasPaid);
     _updateRegistration(ref, event, updated);
   }
 

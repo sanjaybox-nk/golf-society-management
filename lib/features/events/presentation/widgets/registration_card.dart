@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../models/event_registration.dart';
 import '../../../../models/member.dart';
 import '../../domain/registration_logic.dart';
 
@@ -42,8 +41,8 @@ class RegistrationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isWithdrawn = status == RegistrationStatus.withdrawn;
-    final Color? avatarColor = isGuest ? Colors.orange.withValues(alpha: 0.1) : Theme.of(context).primaryColor.withValues(alpha: 0.1);
-    final Color? textColor = isGuest ? Colors.orange : Theme.of(context).primaryColor;
+    final Color avatarColor = isGuest ? Colors.orange.withValues(alpha: 0.1) : Theme.of(context).primaryColor.withValues(alpha: 0.1);
+    final Color textColor = isGuest ? Colors.orange : Theme.of(context).primaryColor;
 
     // Avatar Logic
     Widget avatarChild;

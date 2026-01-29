@@ -10,7 +10,6 @@ final societyConfigStreamProvider = StreamProvider<SocietyConfig>((ref) {
 });
 
 class SocietyConfigRepository {
-  final _firestore = FirebaseFirestore.instance;
   final _docRef = FirebaseFirestore.instance.collection('config').doc('society');
 
   Stream<SocietyConfig> getConfigStream() {

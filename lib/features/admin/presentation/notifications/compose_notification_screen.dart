@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/models/member.dart';
 import 'distribution_list_provider.dart';
 import 'package:golf_society/models/distribution_list.dart';
-import 'package:golf_society/models/campaign.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ComposeNotificationScreen extends ConsumerStatefulWidget {
@@ -323,7 +321,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
               )
             else
               DropdownButtonFormField<DistributionList>(
-                value: _selectedCustomList,
+                initialValue: _selectedCustomList,
                 hint: const Text('Select Audience Group'),
                 decoration: InputDecoration(
                   filled: true,

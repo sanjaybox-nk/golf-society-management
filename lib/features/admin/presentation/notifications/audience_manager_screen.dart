@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/models/distribution_list.dart';
 import 'distribution_list_provider.dart';
@@ -297,7 +296,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                   );
                 },
                 loading: () => const SizedBox(),
-                error: (_, __) => const SizedBox(),
+                error: (error, stackTrace) => const SizedBox(),
               ),
             ),
           
@@ -366,7 +365,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, __) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(child: Text('Error: $e')),
             ),
           ),          
           // Footer Action

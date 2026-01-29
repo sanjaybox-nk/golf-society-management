@@ -127,7 +127,6 @@ class AdminSettingsScreen extends ConsumerWidget {
       for (int i = 0; i < 60; i++) {
         final firstName = firstNames[random.nextInt(firstNames.length)];
         final lastName = lastNames[random.nextInt(lastNames.length)];
-        final gender = random.nextBool() ? 'Male' : 'Female';
         final handicap = 5 + random.nextDouble() * 25; // 5 to 30
         
         await repo.addMember(Member(

@@ -1,5 +1,5 @@
+// ignore_for_file: avoid_print, unused_import
 import 'package:firebase_core/firebase_core.dart';
-// ignore_for_file: avoid_print
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/models/golf_event.dart';
 import 'dart:io';

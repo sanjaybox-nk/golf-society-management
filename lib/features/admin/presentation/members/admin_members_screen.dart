@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
-import 'package:golf_society/core/theme/app_shadows.dart';
 import 'package:golf_society/core/theme/status_colors.dart';
-import 'package:golf_society/core/shared_ui/badges.dart';
-import 'package:golf_society/core/theme/contrast_helper.dart'; // [NEW]
+import 'package:golf_society/core/theme/contrast_helper.dart';
 
 import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
@@ -348,20 +345,3 @@ class AdminMembersScreen extends ConsumerWidget {
 }
 
 
-class _AdminSectionHeader extends StatelessWidget {
-  final String title;
-  const _AdminSectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-        color: Colors.grey,
-        letterSpacing: 0.5,
-      ),
-    );
-  }
-}

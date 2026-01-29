@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
-import '../../../../models/event_registration.dart';
 import '../widgets/event_sliver_app_bar.dart';
 
 import '../../domain/registration_logic.dart';
@@ -42,7 +39,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
                   child: allMembersAsync.when(
                     data: (members) => _buildRegistrationContent(context, event, members),
                     loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => const Text('Error loading members'),
+                    error: (error, stackTrace) => const Text('Error loading members'),
                   ),
                 ),
               ),

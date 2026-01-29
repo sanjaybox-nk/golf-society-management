@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../members/presentation/members_provider.dart';
 
 class CommitteeRolesScreen extends ConsumerStatefulWidget {

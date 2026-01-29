@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
 import 'package:golf_society/models/campaign.dart';
 import 'package:intl/intl.dart';
 import 'admin_notifications_provider.dart';
@@ -92,7 +91,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                 return _buildGroupedList(filtered);
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, __) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(child: Text('Error: $e')),
             ),
           ),
         ],

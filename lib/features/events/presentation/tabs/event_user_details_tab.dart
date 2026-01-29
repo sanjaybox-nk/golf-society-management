@@ -7,7 +7,6 @@ import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
-import '../../../../models/event_registration.dart';
 import '../widgets/event_sliver_app_bar.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_theme.dart';
 
 import '../../../core/widgets/boxy_art_widgets.dart';
 import '../../../core/theme/theme_controller.dart';
@@ -286,39 +285,7 @@ class _MemberTile extends ConsumerWidget {
     );
   }
 }
- Color _getStatusColor(MemberStatus status) {
-  switch (status) {
-    case MemberStatus.member:
-    case MemberStatus.active:
-      return Colors.green.shade700;
-    case MemberStatus.pending:
-      return Colors.blue.shade700;
-    case MemberStatus.suspended:
-      return Colors.orange.shade800;
-    case MemberStatus.archived:
-    case MemberStatus.inactive:
-      return Colors.grey.shade600;
-    case MemberStatus.left:
-      return Colors.red.shade700;
-  }
-}
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        letterSpacing: -0.5,
-      ),
-    );
-  }
-}
 
 class _EmptyMembers extends StatelessWidget {
   const _EmptyMembers();

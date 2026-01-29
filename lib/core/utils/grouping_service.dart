@@ -1,7 +1,6 @@
 import 'dart:math';
 import '../../features/events/domain/registration_logic.dart';
 import '../../models/golf_event.dart';
-import '../../models/event_registration.dart';
 
 class TeeGroup {
   final int index;

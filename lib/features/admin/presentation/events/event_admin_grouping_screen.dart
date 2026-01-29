@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../../models/golf_event.dart';
@@ -20,7 +19,6 @@ class EventAdminGroupingScreen extends ConsumerStatefulWidget {
 
 class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScreen> {
   List<TeeGroup>? _localGroups;
-  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +206,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
       child: SafeArea(
         child: Row(
@@ -251,6 +249,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       });
     } else if (action == 'buggy') {
       _togglePlayerBuggy(p, currentGroup);
+    } else if (action == 'move') {
+      _showMoveDialog(p, currentGroup);
     }
   }
 
@@ -307,7 +307,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   Future<void> _saveGrouping(GolfEvent event) async {
     if (_localGroups == null) return;
     
-    setState(() => _isSaving = true);
     try {
       final updatedEvent = event.copyWith(
         grouping: {
@@ -319,8 +318,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grouping saved successfully')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
     }
   }
 

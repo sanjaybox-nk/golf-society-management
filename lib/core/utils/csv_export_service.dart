@@ -37,9 +37,7 @@ class CsvExportService {
         item.needsBuggy ? 'Yes' : 'No',
         (item.isGuest ? item.registration.guestAttendingDinner : item.registration.attendingDinner) ? 'Yes' : 'No',
         item.hasPaid ? 'Yes' : 'No',
-        item.registeredAt != null 
-            ? DateFormat('yyyy-MM-dd HH:mm').format(item.registeredAt) 
-            : 'N/A',
+        DateFormat('yyyy-MM-dd HH:mm').format(item.registeredAt),
       ]);
     }
 

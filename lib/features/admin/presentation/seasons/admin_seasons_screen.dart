@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/season.dart';
 import '../../../events/presentation/events_provider.dart';

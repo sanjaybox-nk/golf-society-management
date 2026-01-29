@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/features/admin/presentation/events/event_admin_scaffold.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});

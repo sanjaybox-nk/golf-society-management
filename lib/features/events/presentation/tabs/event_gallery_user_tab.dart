@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';

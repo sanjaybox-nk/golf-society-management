@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/core/theme/theme_controller.dart';
-import 'package:golf_society/core/theme/app_theme.dart';
 import 'package:golf_society/core/theme/contrast_helper.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
@@ -400,9 +399,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
       constraints: const BoxConstraints(minHeight: 480, minWidth: 320, maxWidth: 320),
     );
     
-    if (result != null) {
-      widget.onAddCustomColor(result);
-    }
+    widget.onAddCustomColor(result);
   }
   
   Future<void> _showEditCustomColorDialog(int index, Color currentColor) async {
@@ -430,8 +427,6 @@ class _ColorPaletteState extends State<_ColorPalette> {
       constraints: const BoxConstraints(minHeight: 480, minWidth: 320, maxWidth: 320),
     );
     
-    if (result != null) {
-      widget.onUpdateCustomColor(index, result);
-    }
+    widget.onUpdateCustomColor(index, result);
   }
 }
