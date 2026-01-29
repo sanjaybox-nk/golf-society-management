@@ -25,7 +25,11 @@ abstract class EventRegistration with _$EventRegistration {
     String? guestHandicap,
     @Default(false) bool guestAttendingDinner,
     @Default(false) bool guestNeedsBuggy,
+    @Default(false) bool isCaptain,
     @OptionalTimestampConverter() DateTime? registeredAt,
+    String? statusOverride, // 'confirmed', 'reserved', 'waitlist'
+    String? buggyStatusOverride, // 'confirmed', 'reserved', 'waitlist'
+    String? guestBuggyStatusOverride, // 'confirmed', 'reserved', 'waitlist'
   }) = _EventRegistration;
 
   factory EventRegistration.fromJson(Map<String, dynamic> json) => _$EventRegistrationFromJson(json);

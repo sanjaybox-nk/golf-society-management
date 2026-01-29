@@ -60,7 +60,6 @@ class BoxyArtButton extends StatelessWidget {
       onTap: isLoading ? null : onTap,
       child: Container(
         width: fullWidth ? double.infinity : null,
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(16),

@@ -22,9 +22,13 @@ _EventRegistration _$EventRegistrationFromJson(Map<String, dynamic> json) =>
       guestHandicap: json['guestHandicap'] as String?,
       guestAttendingDinner: json['guestAttendingDinner'] as bool? ?? false,
       guestNeedsBuggy: json['guestNeedsBuggy'] as bool? ?? false,
+      isCaptain: json['isCaptain'] as bool? ?? false,
       registeredAt: const OptionalTimestampConverter().fromJson(
         json['registeredAt'],
       ),
+      statusOverride: json['statusOverride'] as String?,
+      buggyStatusOverride: json['buggyStatusOverride'] as String?,
+      guestBuggyStatusOverride: json['guestBuggyStatusOverride'] as String?,
     );
 
 Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
@@ -43,7 +47,11 @@ Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
       'guestHandicap': instance.guestHandicap,
       'guestAttendingDinner': instance.guestAttendingDinner,
       'guestNeedsBuggy': instance.guestNeedsBuggy,
+      'isCaptain': instance.isCaptain,
       'registeredAt': const OptionalTimestampConverter().toJson(
         instance.registeredAt,
       ),
+      'statusOverride': instance.statusOverride,
+      'buggyStatusOverride': instance.buggyStatusOverride,
+      'guestBuggyStatusOverride': instance.guestBuggyStatusOverride,
     };

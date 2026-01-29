@@ -51,6 +51,8 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<EventNote> notes,
     @Default([]) List<String> galleryUrls,
     @Default(true) bool showRegistrationButton,
+    @Default(10) int teeOffInterval,
+    @Default(false) bool isGroupingPublished,
     // Grouping/Tee Sheet data
     @Default({}) Map<String, dynamic> grouping,
     // Results/Leaderboard data
@@ -60,6 +62,11 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<String> flashUpdates,
     @Default(EventStatus.draft) EventStatus status,
   }) = _GolfEvent;
+
+  bool get isRegistrationClosed {
+    if (registrationDeadline == null) return false;
+    return DateTime.now().isAfter(registrationDeadline!);
+  }
 
   factory GolfEvent.fromJson(Map<String, dynamic> json) => _$GolfEventFromJson(json);
   @override

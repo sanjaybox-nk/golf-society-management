@@ -122,7 +122,15 @@ class RegistrationLogic {
     required int indexInList,
     required int capacity,
     required DateTime? deadline,
+    String? statusOverride,
   }) {
+    // 1. Manual Override
+    if (statusOverride != null) {
+      if (statusOverride == 'confirmed') return RegistrationStatus.confirmed;
+      if (statusOverride == 'reserved') return RegistrationStatus.reserved;
+      if (statusOverride == 'waitlist') return RegistrationStatus.waitlist;
+    }
+
     if (isGuest) {
       final now = DateTime.now();
       if (deadline != null && now.isBefore(deadline)) {
@@ -147,8 +155,16 @@ class RegistrationLogic {
     required bool hasPaid,
     required int buggyIndexInQueue,
     required int buggyCapacity,
+    String? buggyStatusOverride,
   }) {
     if (!needsBuggy) return RegistrationStatus.none;
+
+    // 1. Manual Override
+    if (buggyStatusOverride != null) {
+      if (buggyStatusOverride == 'confirmed') return RegistrationStatus.confirmed;
+      if (buggyStatusOverride == 'reserved') return RegistrationStatus.reserved;
+      if (buggyStatusOverride == 'waitlist') return RegistrationStatus.waitlist;
+    }
     
     if (buggyCapacity > 0 && buggyIndexInQueue >= buggyCapacity) {
       return RegistrationStatus.waitlist;

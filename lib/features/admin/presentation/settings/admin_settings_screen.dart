@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../features/members/presentation/members_provider.dart';
+import '../../../../features/events/presentation/events_provider.dart';
 import '../../../../models/member.dart';
 import 'dart:math';
 
@@ -65,6 +67,21 @@ class AdminSettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          _SettingsGroup(
+            title: 'MAINTENANCE',
+            children: [
+              _SettingsTile(
+                icon: Icons.delete_forever_outlined,
+                title: 'Clear Database',
+                subtitle: 'Remove all members and registrations',
+                iconColor: Colors.red,
+                onTap: () => _clearDatabase(context, ref),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          
           _SettingsGroup(
             title: 'DEVELOPMENT',
             children: [
@@ -131,6 +148,78 @@ class AdminSettingsScreen extends ConsumerWidget {
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
+
+  Future<void> _clearDatabase(BuildContext context, WidgetRef ref) async {
+    // High-risk confirmation
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context, 
+      title: 'DANGER: Clear Database?',
+      message: 'This will PERMANENTLY delete all members and all event registrations. There is no undo. Continue?',
+      confirmText: 'DESTRUCTIVE DELETE',
+      onCancel: () => Navigator.of(context).pop(false),
+      onConfirm: () => Navigator.of(context).pop(true),
+    );
+    
+    if (confirm != true) return;
+
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Clearing database... 🧹')));
+
+    try {
+      final membersRepo = ref.read(membersRepositoryProvider);
+      final eventsRepo = ref.read(eventsRepositoryProvider);
+      final firestore = FirebaseFirestore.instance;
+
+      // 1. Clear Members
+      debugPrint('🧹 Fetching members to delete...');
+      final members = await membersRepo.getMembers();
+      debugPrint('🧹 Found ${members.length} members.');
+      
+      if (members.isNotEmpty) {
+        // Use batches for efficiency (Firestore limit is 500 per batch)
+        final memberChunks = _chunkList(members, 400);
+        for (final chunk in memberChunks) {
+          final batch = firestore.batch();
+          for (final member in chunk) {
+            batch.delete(firestore.collection('members').doc(member.id));
+          }
+          await batch.commit();
+          debugPrint('🧹 Deleted batch of ${chunk.length} members.');
+        }
+      }
+
+      // 2. Delete All Events
+      debugPrint('🧹 Fetching events to delete...');
+      final events = await eventsRepo.getEvents();
+      debugPrint('🧹 Found ${events.length} events.');
+      
+      if (events.isNotEmpty) {
+        final eventChunks = _chunkList(events, 400);
+        for (final chunk in eventChunks) {
+          final batch = firestore.batch();
+          for (final event in chunk) {
+            batch.delete(firestore.collection('events').doc(event.id));
+          }
+          await batch.commit();
+          debugPrint('🧹 Deleted batch of ${chunk.length} events.');
+        }
+      }
+
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Database cleared (Members & Events)!')));
+    } catch (e) {
+      debugPrint('❌ Error clearing database: $e');
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  List<List<T>> _chunkList<T>(List<T> list, int size) {
+    List<List<T>> chunks = [];
+    for (int i = 0; i < list.length; i += size) {
+      chunks.add(list.sublist(i, i + size > list.length ? list.length : i + size));
+    }
+    return chunks;
   }
 }
 

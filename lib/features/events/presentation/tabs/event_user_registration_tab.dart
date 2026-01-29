@@ -204,11 +204,11 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildMetricItem(context, 'Confirmed', '$confirmedCount', Icons.check_circle, iconColor: Colors.green, alignment: CrossAxisAlignment.center),
+                          child: _buildMetricItem(context, 'Confirmed', '$confirmedCount', Icons.check_circle, iconColor: Colors.green),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildMetricItem(context, 'Capacity', '$maxParticipants', Icons.event_seat, alignment: CrossAxisAlignment.end),
+                          child: _buildMetricItem(context, 'Capacity', '$maxParticipants', Icons.event_seat),
                         ),
                       ],
                     ),
@@ -220,11 +220,11 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildMetricItem(context, 'Buggies', buggyMetricStr, Icons.electric_car, suffix: 'spaces', iconColor: Colors.black54, alignment: CrossAxisAlignment.center),
+                          child: _buildMetricItem(context, 'Buggies', buggyMetricStr, Icons.electric_car, suffix: 'spaces', iconColor: Colors.black54),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildMetricItem(context, 'Dinner', '$dinnerCount', Icons.restaurant, alignment: CrossAxisAlignment.end),
+                          child: _buildMetricItem(context, 'Dinner', '$dinnerCount', Icons.restaurant),
                         ),
                       ],
                     ),
@@ -314,26 +314,14 @@ class EventRegistrationUserTab extends ConsumerWidget {
     );
   }
   
-  Widget _buildMetricItem(BuildContext context, String label, String value, IconData icon, {bool isHighlight = false, Color? iconColor, String? suffix, CrossAxisAlignment alignment = CrossAxisAlignment.start}) {
+  Widget _buildMetricItem(BuildContext context, String label, String value, IconData icon, {bool isHighlight = false, Color? iconColor, String? suffix}) {
     // Determine the flex alignment for the Align widget
-    Alignment alignValue;
-    switch (alignment) {
-      case CrossAxisAlignment.center:
-        alignValue = Alignment.center;
-        break;
-      case CrossAxisAlignment.end:
-        alignValue = Alignment.centerRight;
-        break;
-      case CrossAxisAlignment.start:
-      default:
-        alignValue = Alignment.centerLeft;
-        break;
-    }
+    Alignment alignValue = Alignment.centerLeft;
 
     return Align(
       alignment: alignValue,
       child: Column(
-        crossAxisAlignment: alignment, 
+        crossAxisAlignment: CrossAxisAlignment.start, 
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,

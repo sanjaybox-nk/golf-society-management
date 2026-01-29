@@ -20,7 +20,13 @@ You can now add members directly from the app, including **Profile Pictures**:
 1.  Go to **Admin > Events**.
 2.  Tap **Create Event**.
 3.  Enter Title, Location, Date, and Description.
-4.  Tap **Save Event**.
+4. Tap **Save Event**.
+
+## 4. Managing Registrations
+From the **Admin > Events** dashboard, tap **Registrations** on any event to manage participants:
+1.  **Status Toggles**: Tap a status badge (e.g., `CONFIRMED`) to cycle through manual overrides.
+2.  **Buggy Toggles**: Tap the buggy icon to manually assign/waitlist buggy requests.
+3.  **Groupings**: Tap **Groupings** to auto-generate and publish tee sheets.
 
 ---
 

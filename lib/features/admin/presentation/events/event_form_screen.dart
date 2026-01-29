@@ -58,6 +58,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late TextEditingController _guestCostController;
   late TextEditingController _dinnerCostController;
   late TextEditingController _dinnerLocationController;
+  late TextEditingController _intervalController;
   
   late List<NoteItemController> _notesControllers;
   late List<TextEditingController> _facilitiesControllers;
@@ -89,6 +90,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _guestCostController = TextEditingController(text: e?.guestCost?.toString() ?? '');
     _dinnerCostController = TextEditingController(text: e?.dinnerCost?.toString() ?? '');
     _dinnerLocationController = TextEditingController(text: e?.dinnerLocation ?? '');
+    _intervalController = TextEditingController(text: e?.teeOffInterval.toString() ?? '10');
     
     _notesControllers = (e?.notes ?? []).map((n) => NoteItemController(
       title: n.title,
@@ -121,6 +123,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _guestCostController.dispose();
     _dinnerCostController.dispose();
     _dinnerLocationController.dispose();
+    _intervalController.dispose();
     for (var note in _notesControllers) {
       note.dispose();
     }
@@ -283,6 +286,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
         guestCost: double.tryParse(_guestCostController.text),
         dinnerCost: double.tryParse(_dinnerCostController.text),
         dinnerLocation: _dinnerLocationController.text.trim(),
+        teeOffInterval: int.tryParse(_intervalController.text) ?? 10,
         showRegistrationButton: _showRegistrationButton,
         notes: finalizeNotes,
         facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
@@ -455,6 +459,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      BoxyArtFormField(
+                        label: 'Group Tee-off Interval (minutes)',
+                        controller: _intervalController,
+                        keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 16),
                       BoxyArtDatePickerField(
