@@ -19,6 +19,7 @@ class AdminEventsScreen extends ConsumerWidget {
       appBar: BoxyArtAppBar(
         title: 'Manage Events',
         showBack: true,
+        isLarge: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.auto_fix_high),
@@ -31,21 +32,35 @@ class AdminEventsScreen extends ConsumerWidget {
         onPressed: () => context.push('/admin/events/new'),
         child: const Icon(Icons.add),
       ),
-      body: eventsAsync.when(
-        data: (events) {
-          if (events.isEmpty) {
-            return const Center(child: Text('No events found.'));
-          }
-          // Sort by date descending (newest first) for admin
-          final sortedEvents = [...events]
-            ..sort((a, b) => b.date.compareTo(a.date));
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(
+            title: 'Event Management',
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+          ),
+          Expanded(
+            child: eventsAsync.when(
+              data: (events) {
+                if (events.isEmpty) {
+                  return const Center(child: Text('No events found.'));
+                }
+                // Sort by date descending (newest first) for admin
+                final sortedEvents = [...events]
+                  ..sort((a, b) => b.date.compareTo(a.date));
 
-          return ListView.separated(
+                return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            itemCount: sortedEvents.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemCount: sortedEvents.length + 1,
+            separatorBuilder: (context, index) => SizedBox(height: index == 0 ? 12 : 16),
             itemBuilder: (context, index) {
-              final event = sortedEvents[index];
+              if (index == 0) {
+                return const BoxyArtSectionTitle(
+                  title: 'Manage Events',
+                  padding: EdgeInsets.zero,
+                );
+              }
+              final event = sortedEvents[index - 1];
               return Dismissible(
                 key: Key(event.id),
                 direction: DismissDirection.endToStart,
@@ -173,8 +188,11 @@ class AdminEventsScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+            ),
+          ),
+        ],
       ),
     );
   }

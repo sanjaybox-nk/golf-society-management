@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/season.dart';
+import '../../../core/widgets/boxy_art_widgets.dart';
 import 'archive_provider.dart';
 
 class ArchiveScreen extends ConsumerWidget {
@@ -12,22 +13,33 @@ class ArchiveScreen extends ConsumerWidget {
     final seasonsAsync = ref.watch(archiveSeasonsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Archive')),
-      body: seasonsAsync.when(
-        data: (seasons) {
-          if (seasons.isEmpty) {
-            return const Center(child: Text('No archived seasons yet.'));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: seasons.length,
-            itemBuilder: (context, index) {
-              return _SeasonCard(season: seasons[index]);
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+      appBar: const BoxyArtAppBar(title: 'Archive', showBack: true, isLarge: true),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(
+            title: 'Archived Seasons',
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+          ),
+          Expanded(
+            child: seasonsAsync.when(
+              data: (seasons) {
+                if (seasons.isEmpty) {
+                  return const Center(child: Text('No archived seasons yet.'));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: seasons.length,
+                  itemBuilder: (context, index) {
+                    return _SeasonCard(season: seasons[index]);
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -68,12 +80,9 @@ class _SeasonCard extends StatelessWidget {
           const Divider(),
           _buildDetailRow(context, 'Player of the Year', poty, Icons.emoji_events),
           const SizedBox(height: 12),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Major Winners',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
-            ),
+          const BoxyArtSectionTitle(
+            title: 'Major Winners',
+            padding: EdgeInsets.zero,
           ),
           const SizedBox(height: 4),
           ...majors.map((winner) => Padding(

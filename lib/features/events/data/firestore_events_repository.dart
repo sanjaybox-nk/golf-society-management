@@ -70,6 +70,13 @@ class FirestoreEventsRepository implements EventsRepository {
       }
     }
 
+    // 3. Sanitize Boolean Flags (default values)
+    if (data['hasBreakfast'] == null) data['hasBreakfast'] = false;
+    if (data['hasLunch'] == null) data['hasLunch'] = false;
+    if (data['hasDinner'] == null) data['hasDinner'] = true;
+    if (data['showRegistrationButton'] == null) data['showRegistrationButton'] = true;
+    if (data['isGroupingPublished'] == null) data['isGroupingPublished'] = false;
+
     // 3. Deep sanitize registrations
     if (data['registrations'] != null && data['registrations'] is List) {
       final List rawRegs = data['registrations'];

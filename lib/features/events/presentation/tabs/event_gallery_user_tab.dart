@@ -6,6 +6,7 @@ import '../../../../core/services/storage_service.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
 import '../widgets/event_sliver_app_bar.dart';
+import '../../../../core/widgets/boxy_art_widgets.dart';
 
 class EventGalleryUserTab extends ConsumerStatefulWidget {
   final String eventId;
@@ -71,6 +72,12 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
               EventSliverAppBar(
                 event: event,
                 title: 'Event Gallery',
+              ),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: BoxyArtSectionTitle(title: 'Event Gallery'),
+                ),
               ),
               event.galleryUrls.isEmpty
               ? SliverFillRemaining(

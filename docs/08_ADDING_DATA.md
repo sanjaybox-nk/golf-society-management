@@ -19,14 +19,15 @@ You can now add members directly from the app, including **Profile Pictures**:
 ## 3. Managing Events
 1.  Go to **Admin > Events**.
 2.  Tap **Create Event**.
-3.  Enter Title, Location, Date, and Description.
+3.  Enter **Title**, **Course Name**, **Course Details**, **Date**, and **Description**.
 4. Tap **Save Event**.
 
 ## 4. Managing Registrations
 From the **Admin > Events** dashboard, tap **Registrations** on any event to manage participants:
 1.  **Status Toggles**: Tap a status badge (e.g., `CONFIRMED`) to cycle through manual overrides.
 2.  **Buggy Toggles**: Tap the buggy icon to manually assign/waitlist buggy requests.
-3.  **Groupings**: Tap **Groupings** to auto-generate and publish tee sheets.
+3.  **History**: Scroll to the bottom of a participant's details to view their registration history (audit trail).
+4.  **Groupings**: Tap **Groupings** to auto-generate and publish tee sheets.
 
 ---
 
@@ -37,6 +38,11 @@ From the **Admin > Events** dashboard, tap **Registrations** on any event to man
 - **Collection ID**: `events`
 - **Fields**:
   - `title` (string)
-  - `location` (string)
+  - `courseName` (string)
+  - `courseDetails` (string)
   - `date` (timestamp)
   - `description` (string)
+  - `buggyCost` (number)
+  - `availableBuggies` (number)
+  - `maxParticipants` (number)
+  - `showRegistrationButton` (boolean)

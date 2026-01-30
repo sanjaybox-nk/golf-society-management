@@ -23,6 +23,7 @@ class AdminMembersScreen extends ConsumerWidget {
       appBar: BoxyArtAppBar(
         title: 'Manage Members',
         showBack: true,
+        isLarge: true,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
@@ -50,11 +51,19 @@ class AdminMembersScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: membersAsync.when(
-        data: (members) {
-          if (members.isEmpty) {
-            return const Center(child: Text('No members found.'));
-          }
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(
+            title: 'Society Members',
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+          ),
+          Expanded(
+            child: membersAsync.when(
+              data: (members) {
+                if (members.isEmpty) {
+                  return const Center(child: Text('No members found.'));
+                }
           
           final filtered = members.where((m) {
             final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
@@ -109,9 +118,15 @@ class AdminMembersScreen extends ConsumerWidget {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8).copyWith(bottom: 100),
-                      itemCount: sortedMembers.length,
+                      itemCount: sortedMembers.length + 1,
                       itemBuilder: (context, index) {
-                        final m = sortedMembers[index];
+                        if (index == 0) {
+                          return const BoxyArtSectionTitle(
+                            title: 'Society Members',
+                            padding: EdgeInsets.only(bottom: 16),
+                          );
+                        }
+                        final m = sortedMembers[index - 1];
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -146,6 +161,9 @@ class AdminMembersScreen extends ConsumerWidget {
     loading: () => const Center(child: CircularProgressIndicator()),
     error: (err, stack) => Center(child: Text('Error: $err')),
   ),
+),
+],
+),
 );
 }
 }

@@ -23,6 +23,7 @@ class MembersScreen extends ConsumerWidget {
       appBar: BoxyArtAppBar(
         title: 'Members',
         showLeading: false,
+        isLarge: true,
         actions: const [],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(82),
@@ -84,9 +85,17 @@ class MembersScreen extends ConsumerWidget {
             children: [
               ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24).copyWith(bottom: 110),
-                itemCount: sortedList.length,
+                itemCount: sortedList.length + 1,
                 itemBuilder: (context, index) {
-                  final m = sortedList[index];
+                  if (index == 0) {
+                    return const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BoxyArtSectionTitle(title: 'Member Directory', padding: EdgeInsets.only(bottom: 16)),
+                      ],
+                    );
+                  }
+                  final m = sortedList[index - 1];
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

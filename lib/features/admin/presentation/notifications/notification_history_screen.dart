@@ -25,7 +25,12 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const BoxyArtAppBar(title: 'History', showBack: false),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const BoxyArtSectionTitle(
+            title: 'Sent Notifications',
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+          ),
           // Filter Bar
           Container(
             padding: const EdgeInsets.all(16),
@@ -146,17 +151,9 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
+            BoxyArtSectionTitle(
+              title: key,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-              child: Text(
-                key.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 12, 
-                  fontWeight: FontWeight.bold, 
-                  color: Colors.grey,
-                  letterSpacing: 1.1
-                ),
-              ),
             ),
             ...groupItems.map((c) => _HistoryCard(campaign: c)),
           ],

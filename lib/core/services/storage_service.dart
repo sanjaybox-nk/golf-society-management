@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,7 +59,7 @@ class StorageService {
     } catch (e) {
       if (e is FirebaseException) {
          // Log the full error to debug console
-         print('Firebase Storage Error: ${e.code} - ${e.message}');
+         debugPrint('Firebase Storage Error: ${e.code} - ${e.message}');
          throw Exception('Upload failed: ${e.message}');
       }
       rethrow;

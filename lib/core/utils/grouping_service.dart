@@ -83,7 +83,7 @@ class GroupingService {
     required Map<String, double> memberHandicaps,
   }) {
     // 1. Get confirmed golfers (excluding waitlist if we strictly follow capacity)
-    // For automatic grouping, we only take those who are "CONFIRMED" or "RESERVED" 
+    // For automatic grouping, we only take those who are "CONFIRMED" or "RESERVE" 
     // depending on your definition of "committed to play".
     // Usually, we group everyone who is confirmed.
     final golfers = participants.where((p) => p.registration.attendingGolf).toList();
@@ -104,14 +104,16 @@ class GroupingService {
         final availableBuggies = event.availableBuggies ?? 0;
         final buggyCapacity = availableBuggies * 2;
         final buggyQueue = participants.where((i) => i.needsBuggy).toList();
+        final confirmedBuggyCount = participants.where((i) => 
+          i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
 
         if (guest != null) {
           slots.add(_TeeSlot(players: [
-            _toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity),
-            _toParticipant(guest, memberHandicaps, buggyQueue, buggyCapacity),
+            _toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount),
+            _toParticipant(guest, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount),
           ]));
         } else {
-          slots.add(_TeeSlot(players: [_toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity)]));
+          slots.add(_TeeSlot(players: [_toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount)]));
         }
         processedMemberIds.add(host.registration.memberId);
       } else {
@@ -120,7 +122,10 @@ class GroupingService {
            final availableBuggies = event.availableBuggies ?? 0;
            final buggyCapacity = availableBuggies * 2;
            final buggyQueue = participants.where((i) => i.needsBuggy).toList();
-           slots.add(_TeeSlot(players: [_toParticipant(golfer, memberHandicaps, buggyQueue, buggyCapacity)]));
+           final confirmedBuggyCount = participants.where((i) => 
+             i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
+             
+           slots.add(_TeeSlot(players: [_toParticipant(golfer, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount)]));
            processedMemberIds.add(golfer.registration.memberId);
         }
       }
@@ -329,6 +334,7 @@ class GroupingService {
     Map<String, double> memberHandicaps,
     List<RegistrationItem> buggyQueue,
     int buggyCapacity,
+    int confirmedBuggyCount,
   ) {
     double handicap = 0.0;
     if (item.isGuest) {
@@ -340,9 +346,10 @@ class GroupingService {
     final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
     final buggyStatus = RegistrationLogic.calculateBuggyStatus(
       needsBuggy: item.needsBuggy, 
-      hasPaid: item.registration.hasPaid, 
+      isConfirmed: item.isConfirmed, 
       buggyIndexInQueue: buggyIndex, 
       buggyCapacity: buggyCapacity,
+      confirmedBuggyCount: confirmedBuggyCount,
       buggyStatusOverride: item.isGuest 
           ? item.registration.guestBuggyStatusOverride 
           : item.registration.buggyStatusOverride,

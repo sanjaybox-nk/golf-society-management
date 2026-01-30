@@ -42,15 +42,18 @@ class CsvExportService {
     }
 
     // 1. Process Participants (sorted as in UI)
+    final confirmedCount = participants.where((p) => p.isConfirmed).length;
     for (int i = 0; i < participants.length; i++) {
         final item = participants[i];
         final status = RegistrationLogic.calculateStatus(
           isGuest: item.isGuest, 
-          registeredAt: item.registeredAt, 
+          isConfirmed: item.isConfirmed,
           hasPaid: item.hasPaid, 
           indexInList: i, 
           capacity: event.maxParticipants ?? 999, 
-          deadline: event.registrationDeadline
+          confirmedCount: confirmedCount,
+          isEventClosed: event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!),
+          statusOverride: item.statusOverride,
         );
         addRow(item, status.name.toUpperCase());
     }

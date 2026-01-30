@@ -6,10 +6,12 @@ class BoxyArtFormField extends StatelessWidget {
   final String label;
   final String? hintText;
   final TextEditingController? controller;
+  final String? initialValue;
+  final ValueChanged<String>? onChanged;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final IconData? prefixIcon;
-  final int maxLines;
+  final int? maxLines;
   final bool readOnly;
   final FocusNode? focusNode;
 
@@ -18,6 +20,8 @@ class BoxyArtFormField extends StatelessWidget {
     required this.label,
     this.hintText,
     this.controller,
+    this.initialValue,
+    this.onChanged,
     this.validator,
     this.keyboardType,
     this.prefixIcon,
@@ -46,12 +50,14 @@ class BoxyArtFormField extends StatelessWidget {
           decoration: ShapeDecoration(
             color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(maxLines > 1 ? 20 : 100),
+              borderRadius: BorderRadius.circular(maxLines != null && maxLines! > 1 ? 20 : 100),
             ),
             shadows: AppShadows.inputSoft,
           ),
           child: TextFormField(
             controller: controller,
+            initialValue: initialValue,
+            onChanged: onChanged,
             validator: validator,
             keyboardType: keyboardType,
             maxLines: maxLines,

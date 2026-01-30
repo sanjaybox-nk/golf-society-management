@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/theme/theme_controller.dart';
 
 import '../../../models/golf_event.dart';
 import 'home_providers.dart';
@@ -17,6 +19,7 @@ class MemberHomeScreen extends ConsumerWidget {
     
     final nextMatch = ref.watch(homeNextMatchProvider);
     final topPlayers = ref.watch(homeLeaderboardProvider);
+    final societyConfig = ref.watch(themeControllerProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Match provided aesthetic
@@ -40,9 +43,28 @@ class MemberHomeScreen extends ConsumerWidget {
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 centerTitle: false,
-                title: Text(
-                  'Golf Society',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                title: Row(
+                  children: [
+                    if (societyConfig.logoUrl != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          societyConfig.logoUrl!,
+                          height: 42,
+                          width: 42,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.golf_course, size: 42),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Text(
+                      societyConfig.societyName.endsWith('Golf Society') 
+                          ? societyConfig.societyName 
+                          : '${societyConfig.societyName} Golf Society',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
                 actions: [
                   IconButton(
@@ -72,7 +94,7 @@ class MemberHomeScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildSectionHeader(context, 'Notifications'),
+                          const BoxyArtSectionTitle(title: 'Notifications'),
                           TextButton(
                             onPressed: () => context.push('/home/notifications'),
                             child: const Text('View All', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
@@ -85,7 +107,7 @@ class MemberHomeScreen extends ConsumerWidget {
                     ],
     
                     // Next Match Hero Card
-                    _buildSectionHeader(context, 'Next Match'),
+                    const BoxyArtSectionTitle(title: 'Next Match'),
                     const SizedBox(height: 12),
                     nextMatch.when(
                       data: (event) {
@@ -105,7 +127,7 @@ class MemberHomeScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // Leaderboard Snippet
-                _buildSectionHeader(context, 'Order of Merit - Top 3'),
+                const BoxyArtSectionTitle(title: 'Order of Merit - Top 3'),
                 const SizedBox(height: 12),
                 _LeaderboardSnippet(topPlayers: topPlayers),
                 const SizedBox(height: 40),
@@ -119,14 +141,6 @@ class MemberHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w800,
-      ),
-    );
-  }
 }
 
 class _NextMatchCard extends StatelessWidget {

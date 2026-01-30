@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
+import '../../../events/presentation/tabs/event_user_details_tab.dart';
 
 import '../../../events/presentation/events_provider.dart';
 import '../../../../models/golf_event.dart';
@@ -12,6 +13,7 @@ import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/services/storage_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../core/theme/theme_controller.dart';
 
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event; // Null = New Event
@@ -56,8 +58,11 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late TextEditingController _maxParticipantsController;
   late TextEditingController _memberCostController;
   late TextEditingController _guestCostController;
+  late TextEditingController _breakfastCostController;
+  late TextEditingController _lunchCostController;
   late TextEditingController _dinnerCostController;
   late TextEditingController _dinnerLocationController;
+  late TextEditingController _buggyCostController;
   late TextEditingController _intervalController;
   
   late List<NoteItemController> _notesControllers;
@@ -70,6 +75,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late DateTime? _deadlineDate;
   late TimeOfDay? _deadlineTime;
   
+  bool _hasBreakfast = false;
+  bool _hasLunch = false;
+  bool _hasDinner = true;
   bool _showRegistrationButton = true;
   bool _isSaving = false;
   String? _selectedSeasonId;
@@ -88,8 +96,11 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _maxParticipantsController = TextEditingController(text: e?.maxParticipants?.toString() ?? '');
     _memberCostController = TextEditingController(text: e?.memberCost?.toString() ?? '');
     _guestCostController = TextEditingController(text: e?.guestCost?.toString() ?? '');
+    _breakfastCostController = TextEditingController(text: e?.breakfastCost?.toString() ?? '');
+    _lunchCostController = TextEditingController(text: e?.lunchCost?.toString() ?? '');
     _dinnerCostController = TextEditingController(text: e?.dinnerCost?.toString() ?? '');
     _dinnerLocationController = TextEditingController(text: e?.dinnerLocation ?? '');
+    _buggyCostController = TextEditingController(text: e?.buggyCost?.toString() ?? '');
     _intervalController = TextEditingController(text: e?.teeOffInterval.toString() ?? '10');
     
     _notesControllers = (e?.notes ?? []).map((n) => NoteItemController(
@@ -106,6 +117,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _registrationTime = TimeOfDay.fromDateTime(e?.regTime ?? DateTime.now().add(const Duration(hours: 8, minutes: 30)));
     _deadlineDate = e?.registrationDeadline;
     _deadlineTime = e?.registrationDeadline != null ? TimeOfDay.fromDateTime(e!.registrationDeadline!) : null;
+    _hasBreakfast = e?.hasBreakfast ?? false;
+    _hasLunch = e?.hasLunch ?? false;
+    _hasDinner = e?.hasDinner ?? true;
     _showRegistrationButton = e?.showRegistrationButton ?? true;
     _selectedSeasonId = e?.seasonId;
   }
@@ -121,8 +135,11 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _maxParticipantsController.dispose();
     _memberCostController.dispose();
     _guestCostController.dispose();
+    _breakfastCostController.dispose();
+    _lunchCostController.dispose();
     _dinnerCostController.dispose();
     _dinnerLocationController.dispose();
+    _buggyCostController.dispose();
     _intervalController.dispose();
     for (var note in _notesControllers) {
       note.dispose();
@@ -208,90 +225,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
     try {
       final repo = ref.read(eventsRepositoryProvider);
-      
-      // FALLBACK: If seasonId is null (e.g. initial load of new event), pick active season
-      String? finalSeasonId = _selectedSeasonId;
-      if (finalSeasonId == null) {
-        final activeSeason = ref.read(activeSeasonProvider).value;
-        finalSeasonId = activeSeason?.id;
+      final newEvent = await _constructEventFromForm();
+
+      if (widget.event == null) {
+        await repo.addEvent(newEvent);
+      } else {
+        await repo.updateEvent(newEvent);
       }
-
-      if (finalSeasonId == null || finalSeasonId.isEmpty) {
-        throw Exception('No active season found. Please create or activate a season first.');
-      }
-      
-      final teeOffDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
-      );
-
-      final regDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _registrationTime.hour,
-        _registrationTime.minute,
-      );
-
-      DateTime? deadlineFull;
-      if (_deadlineDate != null && _deadlineTime != null) {
-        deadlineFull = DateTime(
-          _deadlineDate!.year,
-          _deadlineDate!.month,
-          _deadlineDate!.day,
-          _deadlineTime!.hour,
-          _deadlineTime!.minute,
-        );
-      }
-
-      final storage = ref.read(storageServiceProvider);
-      final List<EventNote> finalizeNotes = [];
-
-      for (var n in _notesControllers) {
-        String? finalUrl = n.imageUrl;
-        // If it's a local file, upload it
-        if (n.imageUrl != null && n.imageUrl!.startsWith('/')) {
-           finalUrl = await storage.uploadImage(
-             path: 'events/notes',
-             file: File(n.imageUrl!),
-           );
-        }
-
-        final content = jsonEncode(n.quillController.document.toDelta().toJson());
-        finalizeNotes.add(EventNote(
-          title: n.titleController.text.trim(),
-          content: content,
-          imageUrl: finalUrl,
-        ));
-      }
-
-      final newEvent = GolfEvent(
-        id: widget.event?.id ?? '', 
-        title: _titleController.text.trim(),
-        seasonId: finalSeasonId,
-        date: _selectedDate,
-        teeOffTime: teeOffDateTime,
-        regTime: regDateTime,
-        registrationDeadline: deadlineFull,
-        description: _descriptionController.text.trim(),
-        courseName: _courseNameController.text.trim(),
-        courseDetails: _courseDetailsController.text.trim(),
-        dressCode: _dressCodeController.text.trim(),
-        availableBuggies: int.tryParse(_buggiesController.text),
-        maxParticipants: int.tryParse(_maxParticipantsController.text),
-        memberCost: double.tryParse(_memberCostController.text),
-        guestCost: double.tryParse(_guestCostController.text),
-        dinnerCost: double.tryParse(_dinnerCostController.text),
-        dinnerLocation: _dinnerLocationController.text.trim(),
-        teeOffInterval: int.tryParse(_intervalController.text) ?? 10,
-        showRegistrationButton: _showRegistrationButton,
-        notes: finalizeNotes,
-        facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
-        status: widget.event?.status ?? EventStatus.draft,
-      );
 
       if (widget.event == null) {
         await repo.addEvent(newEvent);
@@ -325,6 +265,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     });
 
     // Initialize seasonId if null (for new events)
+    final societyConfig = ref.watch(themeControllerProvider);
+    final currency = societyConfig.currencySymbol;
+
     if (_selectedSeasonId == null) {
       final activeSeason = ref.watch(activeSeasonProvider).value;
       if (activeSeason != null) {
@@ -338,68 +281,49 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       resizeToAvoidBottomInset: true,
       appBar: BoxyArtAppBar(
         title: isEditing ? 'Edit Event' : 'New Event',
-        showBack: true,
-        onBack: () => context.go('/admin/events'),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+        centerTitle: true,
+        isLarge: true,
+        topRow: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.visibility, size: 20, color: Colors.white),
+              tooltip: 'Preview',
+              onPressed: _showPreview,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
             ),
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => context.pop(),
-                    child: Text(
-                      'Cancel',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF233D5E), // Premium dark blue
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text(
-                            'Save',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                  ),
-                ),
-              ],
-            ),
+          ],
+        ),
+        leading: TextButton(
+          onPressed: () => context.go('/admin/events'),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.only(left: 12),
+            alignment: Alignment.centerLeft,
+          ),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: TextButton(
+              onPressed: _isSaving ? null : _save,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                alignment: Alignment.centerRight,
+              ),
+              child: _isSaving 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -411,7 +335,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               children: [
                 // Seasonal context is handled automatically via listeners
 
-                _buildSectionTitle('Basic Info'),
+                const BoxyArtSectionTitle(title: 'Basic Info'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -424,14 +348,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       BoxyArtFormField(
                         label: 'Description',
                         controller: _descriptionController,
-                        maxLines: 3,
+                        maxLines: null,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
                 
-                _buildSectionTitle('DateTime & Registration'),
+                const BoxyArtSectionTitle(title: 'DateTime & Registration'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -485,7 +409,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionTitle('Course Details'),
+                const BoxyArtSectionTitle(title: 'Course Details'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -505,10 +429,24 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         controller: _dressCodeController,
                       ),
                       const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Available Buggies',
-                        controller: _buggiesController,
-                        keyboardType: TextInputType.number,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtFormField(
+                              label: 'Available Buggies',
+                              controller: _buggiesController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: BoxyArtFormField(
+                              label: 'Buggy Cost ($currency)',
+                              controller: _buggyCostController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       BoxyArtFormField(
@@ -522,7 +460,53 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionTitle('Costs'),
+                const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
+                BoxyArtFloatingCard(
+                  child: Column(
+                    children: [
+                      BoxyArtSwitchField(
+                        label: 'Offer Breakfast',
+                        value: _hasBreakfast,
+                        onChanged: (v) => setState(() => _hasBreakfast = v),
+                      ),
+                      if (_hasBreakfast)
+                        BoxyArtFormField(
+                          label: 'Breakfast Cost ($currency)',
+                          controller: _breakfastCostController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      const Divider(height: 32),
+                      const SizedBox(height: 12),
+                      BoxyArtSwitchField(
+                        label: 'Offer Lunch',
+                        value: _hasLunch,
+                        onChanged: (v) => setState(() => _hasLunch = v),
+                      ),
+                      if (_hasLunch)
+                        BoxyArtFormField(
+                          label: 'Lunch Cost ($currency)',
+                          controller: _lunchCostController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      const Divider(height: 32),
+                      const SizedBox(height: 12),
+                      BoxyArtSwitchField(
+                        label: 'Offer Dinner',
+                        value: _hasDinner,
+                        onChanged: (v) => setState(() => _hasDinner = v),
+                      ),
+                      if (_hasDinner)
+                        BoxyArtFormField(
+                          label: 'Dinner Cost ($currency)',
+                          controller: _dinnerCostController,
+                          keyboardType: TextInputType.number,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                const BoxyArtSectionTitle(title: 'Other Costs'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -530,7 +514,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         children: [
                           Expanded(
                             child: BoxyArtFormField(
-                              label: 'Member Cost (£)',
+                              label: 'Member Cost ($currency)',
                               controller: _memberCostController,
                               keyboardType: TextInputType.number,
                             ),
@@ -538,25 +522,19 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: BoxyArtFormField(
-                              label: 'Guest Cost (£)',
+                              label: 'Guest Cost ($currency)',
                               controller: _guestCostController,
                               keyboardType: TextInputType.number,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Dinner Cost (£)',
-                        controller: _dinnerCostController,
-                        keyboardType: TextInputType.number,
-                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionTitle('Dinner Info'),
+                const BoxyArtSectionTitle(title: 'Dinner Info'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -569,7 +547,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionTitle('Facilities'),
+                const BoxyArtSectionTitle(title: 'Facilities'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -592,26 +570,30 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionTitle('Notes & Content'),
+                const BoxyArtSectionTitle(title: 'Notes & Content'),
                 ..._notesControllers.asMap().entries.map((entry) {
                    return _buildRichNoteItem(entry.key, entry.value);
                 }),
                 
                 const SizedBox(height: 16),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: BoxyArtButton(
-                        title: 'Add Note',
-                        onTap: _addNote,
+                    TextButton.icon(
+                      onPressed: _addNote,
+                      icon: const Icon(Icons.add_comment_outlined, color: Colors.black, size: 20),
+                      label: const Text(
+                        'Add Note',
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: BoxyArtButton(
-                        title: 'Add Photo',
-                        onTap: _addNoteWithPhoto,
-                        isGhost: true,
+                    const SizedBox(width: 24),
+                    TextButton.icon(
+                      onPressed: _addNoteWithPhoto,
+                      icon: const Icon(Icons.add_a_photo_outlined, color: Colors.black, size: 20),
+                      label: const Text(
+                        'Add Photo',
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -657,15 +639,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 child: note.imageUrl!.startsWith('http') 
                   ? Image.network(
                       note.imageUrl!,
-                      height: 150,
                       width: double.infinity,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                     )
                   : Image.file(
                       File(note.imageUrl!),
-                      height: 150,
                       width: double.infinity,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                     ),
               ),
               const SizedBox(height: 16),
@@ -703,7 +683,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
             ),
             const SizedBox(height: 8),
             Container(
-              height: 150,
+              constraints: const BoxConstraints(minHeight: 100),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade200),
                 borderRadius: BorderRadius.circular(8),
@@ -714,7 +694,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 config: QuillEditorConfig(
                   padding: EdgeInsets.zero,
                   autoFocus: false,
-                  expands: true,
+                  expands: false,
                 ),
               ),
             ),
@@ -724,18 +704,124 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 8),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-          color: Colors.grey,
-        ),
-      ),
+  Future<GolfEvent> _constructEventFromForm() async {
+    // FALLBACK: If seasonId is null (e.g. initial load of new event), pick active season
+    String? finalSeasonId = _selectedSeasonId;
+    if (finalSeasonId == null) {
+      final activeSeason = ref.read(activeSeasonProvider).value;
+      finalSeasonId = activeSeason?.id;
+    }
+
+    if (finalSeasonId == null || finalSeasonId.isEmpty) {
+      throw Exception('No active season found. Please create or activate a season first.');
+    }
+    
+    final teeOffDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    final regDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _registrationTime.hour,
+      _registrationTime.minute,
+    );
+
+    DateTime? deadlineFull;
+    if (_deadlineDate != null && _deadlineTime != null) {
+      deadlineFull = DateTime(
+        _deadlineDate!.year,
+        _deadlineDate!.month,
+        _deadlineDate!.day,
+        _deadlineTime!.hour,
+        _deadlineTime!.minute,
+      );
+    }
+
+    final storage = ref.read(storageServiceProvider);
+    final List<EventNote> finalizeNotes = [];
+
+    for (var n in _notesControllers) {
+      String? finalUrl = n.imageUrl;
+      // If it's a local file, upload it
+      if (n.imageUrl != null && n.imageUrl!.startsWith('/')) {
+         finalUrl = await storage.uploadImage(
+           path: 'events/notes',
+           file: File(n.imageUrl!),
+         );
+      }
+
+      final content = jsonEncode(n.quillController.document.toDelta().toJson());
+      finalizeNotes.add(EventNote(
+        title: n.titleController.text.trim(),
+        content: content,
+        imageUrl: finalUrl,
+      ));
+    }
+
+    return GolfEvent(
+      id: widget.event?.id ?? '', 
+      title: _titleController.text.trim(),
+      seasonId: finalSeasonId,
+      date: _selectedDate,
+      teeOffTime: teeOffDateTime,
+      regTime: regDateTime,
+      registrationDeadline: deadlineFull,
+      description: _descriptionController.text.trim(),
+      courseName: _courseNameController.text.trim(),
+      courseDetails: _courseDetailsController.text.trim(),
+      dressCode: _dressCodeController.text.trim(),
+      availableBuggies: int.tryParse(_buggiesController.text),
+      maxParticipants: int.tryParse(_maxParticipantsController.text),
+      memberCost: double.tryParse(_memberCostController.text),
+      guestCost: double.tryParse(_guestCostController.text),
+      breakfastCost: double.tryParse(_breakfastCostController.text),
+      lunchCost: double.tryParse(_lunchCostController.text),
+      dinnerCost: double.tryParse(_dinnerCostController.text),
+      buggyCost: double.tryParse(_buggyCostController.text),
+      hasBreakfast: _hasBreakfast,
+      hasLunch: _hasLunch,
+      hasDinner: _hasDinner,
+      dinnerLocation: _dinnerLocationController.text.trim(),
+      teeOffInterval: int.tryParse(_intervalController.text) ?? 10,
+      showRegistrationButton: _showRegistrationButton,
+      notes: finalizeNotes,
+      facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
+      status: widget.event?.status ?? EventStatus.draft,
+      registrations: widget.event?.registrations ?? [], // Preserve existing registrations!
     );
   }
+
+  void _showPreview() async {
+    // We don't need to validate the whole form for preview, but let's at least construct the object
+    try {
+      final mockEvent = await _constructEventFromForm();
+      if (!mounted) return;
+      
+      final config = ref.read(themeControllerProvider);
+
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, anim1, anim2) {
+          return EventDetailsContent(
+            event: mockEvent,
+            currencySymbol: config.currencySymbol,
+            isPreview: true,
+            onCancel: () => Navigator.pop(context),
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Preview Error: $e')));
+    }
+  }
+
 }

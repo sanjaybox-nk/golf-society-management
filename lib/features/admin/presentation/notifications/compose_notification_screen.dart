@@ -190,15 +190,15 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader('Step 1: Who is this for?'),
+            const BoxyArtSectionTitle(title: 'Step 1: Who is this for?'),
             const SizedBox(height: 12),
             _buildTargetSelector(totalRecipients),
             const SizedBox(height: 32),
-            _buildSectionHeader('Step 2: The Message'),
+            const BoxyArtSectionTitle(title: 'Step 2: The Message'),
             const SizedBox(height: 12),
             _buildMessageForm(),
             const SizedBox(height: 32),
-            _buildSectionHeader('Step 3: Deep Link'),
+            const BoxyArtSectionTitle(title: 'Step 3: Deep Link'),
             const SizedBox(height: 12),
             _buildDeepLinkSelector(),
             const SizedBox(height: 48),
@@ -226,17 +226,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title.toUpperCase(),
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.bodyMedium?.color,
-        letterSpacing: 1.2,
-      ),
-    );
-  }
 
   Widget _buildTargetSelector(int totalCount) {
     final customListsAsync = ref.watch(distributionListProvider);

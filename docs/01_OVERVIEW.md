@@ -17,7 +17,12 @@
 -   **Backend**: Firebase (Firestore, Auth, Functions) - *Integration in progress*
 -   **Typography**: Google Fonts (Poppins)
 
-## visual Identity ("BoxyArt")
+## Detailed Documentation
+For deep dives into specific system logic, see:
+-   [Registration Logic](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/10_REGISTRATION_LOGIC.md)
+-   [Grouping & Tee Sheets](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/11_GROUPING_LOGIC.md)
+
+## Visual Identity ("BoxyArt")
 The app uses a strict design system called **BoxyArt**:
 -   **Primary Color**: Mustard Yellow (`#F7D354`)
 -   **Secondary Color**: Solid Black (`#000000`)

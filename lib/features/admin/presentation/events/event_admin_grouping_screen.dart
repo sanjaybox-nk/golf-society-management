@@ -46,7 +46,9 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               BoxyArtAppBar(
                 title: 'Grouping',
                 showBack: true,
+                centerTitle: true,
                 onBack: () => context.go('/admin/events'),
+                isLarge: true,
                 actions: [
                   if (_localGroups != null)
                     IconButton(
@@ -153,7 +155,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       default:
         color = Colors.grey;
     }
-    return Icon(Icons.electric_car, color: color, size: 14);
+    return Icon(Icons.electric_rickshaw, color: color, size: 14);
   }
   Widget _buildPlayerTile(TeeGroupParticipant p, TeeGroup group) {
     return ListTile(

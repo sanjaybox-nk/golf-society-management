@@ -39,7 +39,9 @@ class AppTheme {
       scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : backgroundGrey,
       cardColor: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
       primaryColor: seedColor,
-      indicatorColor: seedColor, // For tabbars etc
+      tabBarTheme: TabBarThemeData(
+        indicatorColor: seedColor,
+      ),
 
       // Typography
       textTheme: textTheme,

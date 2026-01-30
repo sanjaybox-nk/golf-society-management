@@ -124,7 +124,7 @@ class EventGroupingUserTab extends ConsumerWidget {
           if (p.needsBuggy)
             const Padding(
               padding: EdgeInsets.only(right: 8.0),
-              child: Icon(Icons.electric_car, size: 16, color: Colors.blue),
+              child: Icon(Icons.electric_rickshaw, size: 16, color: Colors.blue),
             ),
           if (p.isGuest)
              const Text('Guest', style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic)),

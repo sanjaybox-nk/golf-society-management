@@ -12,8 +12,10 @@ class EventAdminScoresScreen extends StatelessWidget {
     return Scaffold(
       appBar: BoxyArtAppBar(
         title: 'Event Scores',
+        centerTitle: true,
         showBack: true,
         onBack: () => context.go('/admin/events'),
+        isLarge: true,
       ),
       body: const Center(
         child: Column(

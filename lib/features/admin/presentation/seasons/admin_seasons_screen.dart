@@ -12,28 +12,39 @@ class AdminSeasonsScreen extends ConsumerWidget {
     final seasonsAsync = ref.watch(seasonsProvider);
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Manage Seasons', showBack: true),
+      appBar: const BoxyArtAppBar(title: 'Manage Seasons', showBack: true, isLarge: true),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddSeasonDialog(context, ref),
         child: const Icon(Icons.add),
       ),
-      body: seasonsAsync.when(
-        data: (seasons) {
-          if (seasons.isEmpty) {
-            return const Center(child: Text('No seasons created yet.'));
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(24),
-            itemCount: seasons.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final season = seasons[index];
-              return _SeasonCard(season: season);
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(
+            title: 'Seasons Manager',
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+          ),
+          Expanded(
+            child: seasonsAsync.when(
+              data: (seasons) {
+                if (seasons.isEmpty) {
+                  return const Center(child: Text('No seasons created yet.'));
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  itemCount: seasons.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final season = seasons[index];
+                    return _SeasonCard(season: season);
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+            ),
+          ),
+        ],
       ),
     );
   }

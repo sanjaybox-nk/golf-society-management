@@ -22,6 +22,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Interactive Registration (Admin)**: Card-based UI with direct status toggles.
     - [x] **Manual Overrides**: Admins can force registration (Confirmed/Reserved/Waitlist) and buggy status.
     - [x] **Smart Buggy Allocation**: Integrated calculation based on FCFS, payment, and capacity.
+    - [x] **Registration History**: Detailed audit trail for status changes and member edits.
+    - [x] **Data Resilience**: Protection against registration data loss during event updates.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**

@@ -11,55 +11,67 @@ class AdminDashboardScreen extends StatelessWidget {
       appBar: BoxyArtAppBar(
         title: 'Admin Console',
         showBack: true,
+        isLarge: true,
         onBack: () => context.go('/home'),
       ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: const EdgeInsets.all(24),
-        mainAxisSpacing: 20,
-        crossAxisSpacing: 20,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _AdminCard(
-            title: 'Manage Events',
-            subtitle: 'Schedule and results',
-            icon: Icons.calendar_month,
-            color: Colors.orange,
-            onTap: () => context.push('/admin/events'),
+          const BoxyArtSectionTitle(
+            title: 'Admin Dashboard',
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 4),
           ),
-          _AdminCard(
-            title: 'Manage Members',
-            subtitle: 'Directory and roles',
-            icon: Icons.people,
-            color: Colors.blue,
-            onTap: () => context.push('/admin/members'),
-          ),
-          _AdminCard(
-            title: 'Manage Seasons',
-            subtitle: 'Archive and setup',
-            icon: Icons.layers,
-            color: Colors.teal,
-            onTap: () => context.push('/admin/seasons'),
-          ),
-          _AdminCard(
-            title: 'Audit Logs',
-            subtitle: 'Recent changes',
-            icon: Icons.history,
-            color: Colors.purple,
-            onTap: () {}, // Future
-          ),
-          _AdminCard(
-            title: 'Settings',
-            subtitle: 'App configuration',
-            icon: Icons.settings,
-            color: Colors.grey,
-            onTap: () => context.push('/admin/settings'),
-          ),
-          _AdminCard(
-            title: 'Communications',
-            subtitle: 'Broadcast alerts',
-            icon: Icons.notification_add,
-            color: Colors.redAccent,
-            onTap: () => context.push('/admin/communications'),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              padding: const EdgeInsets.all(24),
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              children: [
+                _AdminCard(
+                  title: 'Manage Events',
+                  subtitle: 'Schedule and results',
+                  icon: Icons.calendar_month,
+                  color: Colors.orange,
+                  onTap: () => context.push('/admin/events'),
+                ),
+                _AdminCard(
+                  title: 'Manage Members',
+                  subtitle: 'Directory and roles',
+                  icon: Icons.people,
+                  color: Colors.blue,
+                  onTap: () => context.push('/admin/members'),
+                ),
+                _AdminCard(
+                  title: 'Manage Seasons',
+                  subtitle: 'Archive and setup',
+                  icon: Icons.layers,
+                  color: Colors.teal,
+                  onTap: () => context.push('/admin/seasons'),
+                ),
+                _AdminCard(
+                  title: 'Audit Logs',
+                  subtitle: 'Recent changes',
+                  icon: Icons.history,
+                  color: Colors.purple,
+                  onTap: () {}, // Future
+                ),
+                _AdminCard(
+                  title: 'Settings',
+                  subtitle: 'App configuration',
+                  icon: Icons.settings,
+                  color: Colors.grey,
+                  onTap: () => context.push('/admin/settings'),
+                ),
+                _AdminCard(
+                  title: 'Communications',
+                  subtitle: 'Broadcast alerts',
+                  icon: Icons.notification_add,
+                  color: Colors.redAccent,
+                  onTap: () => context.push('/admin/communications'),
+                ),
+              ],
+            ),
           ),
         ],
       ),

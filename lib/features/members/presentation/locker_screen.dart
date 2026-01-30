@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/widgets/boxy_art_widgets.dart';
 
 
 import 'profile_provider.dart';
@@ -17,10 +18,23 @@ class LockerScreen extends ConsumerWidget {
         slivers: [
           SliverAppBar(
             pinned: true,
-            title: const Text('Locker Room'),
+            expandedHeight: 88,
+            backgroundColor: Theme.of(context).primaryColor,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              title: Text(
+                'Locker Room',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
+                    ),
+              ),
+            ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.edit_outlined),
+                icon: const Icon(Icons.edit_outlined, color: Colors.white),
                 onPressed: () {
                   // TODO: Navigate to Edit Profile
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +136,7 @@ class LockerScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Stats Grid
-                  _buildSectionTitle(context, 'Season Stats'),
+                  const BoxyArtSectionTitle(title: 'Season Stats'),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -155,7 +169,7 @@ class LockerScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Settings Menu
-                  _buildSectionTitle(context, 'Settings'),
+                  const BoxyArtSectionTitle(title: 'Settings'),
                   const SizedBox(height: 8),
                   Card(
                     elevation: 0,
@@ -213,17 +227,6 @@ class LockerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
 }
 
 class _StatCard extends StatelessWidget {

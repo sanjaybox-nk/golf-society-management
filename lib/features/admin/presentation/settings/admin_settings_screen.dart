@@ -15,84 +15,106 @@ class AdminSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: const BoxyArtAppBar(title: 'Settings', showBack: true),
+      appBar: const BoxyArtAppBar(title: 'Settings', showBack: true, isLarge: true),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         children: [
-          _SettingsGroup(
-            title: 'ACCESS & PERMISSIONS',
-            children: [
-              _SettingsTile(
-                icon: Icons.shield_outlined,
-                title: 'System Roles',
-                subtitle: 'View available administrative roles',
-                iconColor: Colors.purple,
-                onTap: () => context.push('/admin/settings/roles'),
-              ),
-            ],
+          const BoxyArtSectionTitle(
+            title: 'Access & Permissions',
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          ),
+          BoxyArtFloatingCard(
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.shield_outlined,
+                  title: 'System Roles',
+                  subtitle: 'View available administrative roles',
+                  iconColor: Colors.purple,
+                  onTap: () => context.push('/admin/settings/roles'),
+                ),
+              ],
+            ),
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           
-          _SettingsGroup(
-            title: 'APP CONFIGURATION',
-            children: [
-              _SettingsTile(
-                icon: Icons.tune,
-                title: 'General',
-                subtitle: 'App basics and display settings',
-                iconColor: Colors.grey,
-                // onTap: () {},
-              ),
-              _SettingsTile(
-                icon: Icons.palette_outlined,
-                title: 'Society Branding',
-                subtitle: 'Customize colors and theme',
-                iconColor: Colors.pink,
-                onTap: () => context.push('/admin/settings/branding'),
-              ),
-              _SettingsTile(
-                icon: Icons.notifications_none,
-                title: 'Notifications',
-                subtitle: 'Push notification preferences',
-                iconColor: Colors.grey,
-                // onTap: () {},
-              ),
-              _SettingsTile(
-                icon: Icons.badge_outlined,
-                title: 'Committee Roles',
-                subtitle: 'Manage society specific titles',
-                iconColor: const Color(0xFF1A237E), // Navy
-                onTap: () => context.push('/admin/settings/committee-roles'),
-              ),
-            ],
+          const BoxyArtSectionTitle(
+            title: 'App Configuration',
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
           ),
-          _SettingsGroup(
-            title: 'MAINTENANCE',
-            children: [
-              _SettingsTile(
-                icon: Icons.delete_forever_outlined,
-                title: 'Clear Database',
-                subtitle: 'Remove all members and registrations',
-                iconColor: Colors.red,
-                onTap: () => _clearDatabase(context, ref),
-              ),
-            ],
+          BoxyArtFloatingCard(
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.tune,
+                  title: 'General',
+                  subtitle: 'App basics and display settings',
+                  iconColor: Colors.grey,
+                  onTap: () => context.push('/admin/settings/general'),
+                ),
+                _SettingsTile(
+                  icon: Icons.palette_outlined,
+                  title: 'Society Branding',
+                  subtitle: 'Customize colors and theme',
+                  iconColor: Colors.pink,
+                  onTap: () => context.push('/admin/settings/branding'),
+                ),
+                _SettingsTile(
+                  icon: Icons.notifications_none,
+                  title: 'Notifications',
+                  subtitle: 'Push notification preferences',
+                  iconColor: Colors.grey,
+                ),
+                _SettingsTile(
+                  icon: Icons.badge_outlined,
+                  title: 'Committee Roles',
+                  subtitle: 'Manage society specific titles',
+                  iconColor: const Color(0xFF1A237E), // Navy
+                  onTap: () => context.push('/admin/settings/committee-roles'),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+          
+          const BoxyArtSectionTitle(
+            title: 'Maintenance',
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          ),
+          BoxyArtFloatingCard(
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.delete_forever_outlined,
+                  title: 'Clear Database',
+                  subtitle: 'Remove all members and registrations',
+                  iconColor: Colors.red,
+                  onTap: () => _clearDatabase(context, ref),
+                ),
+              ],
+            ),
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           
-          _SettingsGroup(
-            title: 'DEVELOPMENT',
-            children: [
-              _SettingsTile(
-                icon: Icons.science,
-                title: 'Seed Members',
-                subtitle: 'Generate 60 dummy members',
-                iconColor: Colors.amber,
-                onTap: () => _seedMembers(context, ref),
-              ),
-            ],
+          const BoxyArtSectionTitle(
+            title: 'Development',
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          ),
+          BoxyArtFloatingCard(
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.science,
+                  title: 'Seed Members',
+                  subtitle: 'Generate 60 dummy members',
+                  iconColor: Colors.amber,
+                  onTap: () => _seedMembers(context, ref),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 100),
         ],
@@ -222,58 +244,6 @@ class AdminSettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SettingsGroup extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SettingsGroup({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade600,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: children.asMap().entries.map((entry) {
-              final isLast = entry.key == children.length - 1;
-              return Column(
-                children: [
-                  entry.value,
-                  if (!isLast) 
-                    Divider(height: 1, indent: 56, color: Theme.of(context).dividerColor),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;

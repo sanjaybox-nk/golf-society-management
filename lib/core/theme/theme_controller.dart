@@ -22,8 +22,20 @@ class ThemeController extends Notifier<SocietyConfig> {
     });
   }
 
+  Future<void> setSocietyName(String name) async {
+    final newConfig = state.copyWith(societyName: name);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setLogoUrl(String? url) async {
+    final newConfig = state.copyWith(logoUrl: url);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setPrimaryColor(Color color) async {
-    final hex = color.value; // Store as ARGB int
+    final hex = color.toARGB32(); // Store as ARGB int
     final newConfig = state.copyWith(primaryColor: hex);
     state = newConfig; // Optimistic update
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
@@ -36,7 +48,7 @@ class ThemeController extends Notifier<SocietyConfig> {
   }
 
   Future<void> addCustomColor(Color color) async {
-    final hex = color.value;
+    final hex = color.toARGB32();
     final currentCustomColors = List<int>.from(state.customColors);
     
     // Limit to 5 custom colors
@@ -49,7 +61,7 @@ class ThemeController extends Notifier<SocietyConfig> {
   }
 
   Future<void> updateCustomColor(int index, Color color) async {
-    final hex = color.value;
+    final hex = color.toARGB32();
     final currentCustomColors = List<int>.from(state.customColors);
     
     if (index < 0 || index >= currentCustomColors.length) return;
@@ -81,6 +93,12 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setUseCardGradient(bool useGradient) async {
     final newConfig = state.copyWith(useCardGradient: useGradient);
+    state = newConfig; // Optimistic update
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setCurrency(String symbol, String code) async {
+    final newConfig = state.copyWith(currencySymbol: symbol, currencyCode: code);
     state = newConfig; // Optimistic update
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

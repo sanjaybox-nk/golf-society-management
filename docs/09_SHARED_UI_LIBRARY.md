@@ -108,10 +108,22 @@ Red/Yellow dot wrapper for unread counts.
 ## 5. Layout (`layout.dart`)
 
 ### `BoxyArtAppBar`
-Transparent app bar with custom circular actions.
+Standard screen header.
+- `title` (String): Display text.
+- `isLarge` (bool): If true, creates a 88dp colored header (Primary color).
+- `showBack` (bool): Optional back button.
+- `actions` (List<Widget>): Custom action buttons.
+
+### `BoxyArtSectionTitle`
+Grey, uppercase bold label (12pt) used to group content. Always visible even in empty states.
 
 ### `FloatingBottomSearch`
 The signature "Floating Dock" for Search and Filter.
+
+### `BoxyArtSectionTitle`
+A standardized section header used throughout the application. 
+- **Style**: Uppercase, Bold, Grey text, Letter spacing 1.2.
+- **Usage**: Used for grouping logically related content on a page (e.g. "EVENT DETAILS", "COSTS").
 
 ### `BoxyArtFloatingActionBar` (`floating_action_bar.dart`)
 A premium floating bar for Save/Cancel actions.

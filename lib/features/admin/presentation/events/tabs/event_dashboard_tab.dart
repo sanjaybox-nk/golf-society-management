@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/core/theme/app_shadows.dart';
+import 'package:golf_society/core/theme/theme_controller.dart';
 
-class EventDashboardTab extends StatelessWidget {
+class EventDashboardTab extends ConsumerWidget {
   const EventDashboardTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final societyConfig = ref.watch(themeControllerProvider);
+    final currency = societyConfig.currencySymbol;
+
     return Container(
       color: const Color(0xFFF5F5F7), // Main page background
       child: SingleChildScrollView(
@@ -80,12 +85,12 @@ class EventDashboardTab extends StatelessWidget {
                         icon: Icons.how_to_reg,
                         iconColor: Colors.blue,
                       ),
-                      const _VitalSignCard(
+                      _VitalSignCard(
                         label: 'Fees Collected',
-                        value: '£480',
+                        value: '${currency}480',
                         icon: Icons.payments,
                         iconColor: Colors.green,
-                        subtitle: '£120 Outstanding',
+                        subtitle: '${currency}120 Outstanding',
                         subtitleColor: Colors.red,
                       ),
                       const _VitalSignCard(

@@ -33,17 +33,9 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-            child: Text(
-              'Your Distribution Lists'.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-                letterSpacing: 1.2,
-              ),
-            ),
+          const BoxyArtSectionTitle(
+            title: 'Your Distribution Lists',
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 12),
           ),
           Expanded(
             child: listsAsync.when(

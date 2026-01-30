@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/core/theme/contrast_helper.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:golf_society/core/services/storage_service.dart';
 
 class BrandingSettingsScreen extends ConsumerWidget {
   const BrandingSettingsScreen({super.key});
@@ -22,20 +24,35 @@ class BrandingSettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Preview Card
-            const Text(
-              'LIVE PREVIEW',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2),
+            // 0. Identity
+            const BoxyArtSectionTitle(title: 'Society Identity'),
+            const SizedBox(height: 12),
+            BoxyArtFloatingCard(
+              child: Column(
+                children: [
+                  BoxyArtFormField(
+                    label: 'Society Name',
+                    initialValue: config.societyName,
+                    onChanged: (v) => controller.setSocietyName(v),
+                  ),
+                  const SizedBox(height: 16),
+                  _LogoPicker(
+                    currentUrl: config.logoUrl,
+                    onUrlChanged: (v) => controller.setLogoUrl(v),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(height: 32),
+
+            // 1. Preview Card
+            const BoxyArtSectionTitle(title: 'Live Preview'),
             const SizedBox(height: 12),
             _buildPreviewCard(currentColor, config.themeMode),
             const SizedBox(height: 32),
 
             // 2. Color Palette
-            const Text(
-              'PRIMARY COLOR',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2),
-            ),
+            const BoxyArtSectionTitle(title: 'Primary Color'),
             const SizedBox(height: 12),
             _ColorPalette(
               selectedColor: currentColor,
@@ -47,10 +64,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
             const SizedBox(height: 32),
 
             // 3. Card Appearance
-            const Text(
-              'CARD APPEARANCE',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2),
-            ),
+            const BoxyArtSectionTitle(title: 'Card Appearance'),
             const SizedBox(height: 12),
             BoxyArtFloatingCard(
               child: Column(
@@ -66,7 +80,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       ),
                       Switch(
                         value: config.useCardGradient,
-                        activeColor: Theme.of(context).primaryColor,
+                        activeThumbColor: Theme.of(context).primaryColor,
                         onChanged: (value) => controller.setUseCardGradient(value),
                       ),
                     ],
@@ -148,36 +162,31 @@ class BrandingSettingsScreen extends ConsumerWidget {
             const SizedBox(height: 32),
 
             // 4. Appearance Mode
-            const Text(
-              'APP APPEARANCE',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2),
-            ),
+            const BoxyArtSectionTitle(title: 'App Appearance'),
             const SizedBox(height: 12),
             BoxyArtFloatingCard(
-              child: Column(
-                children: [
-                  RadioListTile<String>(
-                    title: const Text('System Default'),
-                    value: 'system',
-                    groupValue: config.themeMode,
-                    activeColor: currentColor,
-                    onChanged: (v) => controller.setThemeMode(v!),
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('Always Light'),
-                    value: 'light',
-                    groupValue: config.themeMode,
-                    activeColor: currentColor,
-                    onChanged: (v) => controller.setThemeMode(v!),
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('Always Dark'),
-                    value: 'dark',
-                    groupValue: config.themeMode,
-                    activeColor: currentColor,
-                    onChanged: (v) => controller.setThemeMode(v!),
-                  ),
-                ],
+              child: RadioGroup<String>(
+                groupValue: config.themeMode,
+                onChanged: (v) => controller.setThemeMode(v!),
+                child: Column(
+                  children: [
+                    RadioListTile<String>(
+                      title: const Text('System Default'),
+                      value: 'system',
+                      activeColor: currentColor,
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Always Light'),
+                      value: 'light',
+                      activeColor: currentColor,
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Always Dark'),
+                      value: 'dark',
+                      activeColor: currentColor,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -428,5 +437,112 @@ class _ColorPaletteState extends State<_ColorPalette> {
     );
     
     widget.onUpdateCustomColor(index, result);
+  }
+}
+
+class _LogoPicker extends ConsumerStatefulWidget {
+  final String? currentUrl;
+  final ValueChanged<String?> onUrlChanged;
+
+  const _LogoPicker({
+    required this.currentUrl,
+    required this.onUrlChanged,
+  });
+
+  @override
+  ConsumerState<_LogoPicker> createState() => _LogoPickerState();
+}
+
+class _LogoPickerState extends ConsumerState<_LogoPicker> {
+  bool _isUploading = false;
+
+  Future<void> _pickAndUpload() async {
+    final storage = ref.read(storageServiceProvider);
+    
+    setState(() => _isUploading = true);
+    
+    try {
+      final file = await storage.pickImage(source: ImageSource.gallery);
+      if (file == null) {
+        setState(() => _isUploading = false);
+        return;
+      }
+
+      final url = await storage.uploadImage(
+        path: 'branding',
+        file: file,
+      );
+
+      widget.onUrlChanged(url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 12, bottom: 8),
+          child: Text(
+            'Society Logo',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade300),
+                image: widget.currentUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(widget.currentUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: widget.currentUrl == null
+                  ? const Icon(Icons.golf_course, size: 32, color: Colors.grey)
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BoxyArtButton(
+                    title: 'Upload Logo',
+                    onTap: _pickAndUpload,
+                    isLoading: _isUploading,
+                    fullWidth: false,
+                  ),
+                  if (widget.currentUrl != null) ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => widget.onUrlChanged(null),
+                      child: const Text('Remove Logo', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

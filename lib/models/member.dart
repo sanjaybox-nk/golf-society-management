@@ -86,5 +86,7 @@ abstract class Member with _$Member {
     @TimestampConverter() DateTime? joinedDate,
   }) = _Member;
 
+  String get displayName => '$firstName $lastName';
+
   factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);
 }

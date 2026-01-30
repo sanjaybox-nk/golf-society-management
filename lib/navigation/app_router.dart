@@ -18,6 +18,8 @@ import '../features/admin/presentation/members/member_form_screen.dart';
 import '../features/admin/presentation/settings/admin_settings_screen.dart';
 import '../features/admin/presentation/roles/roles_settings_screen.dart';
 import '../features/admin/presentation/settings/branding_settings_screen.dart';
+import '../features/admin/presentation/settings/general_settings_screen.dart';
+import '../features/admin/presentation/settings/currency_selection_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
@@ -198,6 +200,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'branding',
                 builder: (context, state) => const BrandingSettingsScreen(),
+              ),
+              GoRoute(
+                path: 'general',
+                builder: (context, state) => const GeneralSettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'currency',
+                    builder: (context, state) => const CurrencySelectionScreen(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'roles',

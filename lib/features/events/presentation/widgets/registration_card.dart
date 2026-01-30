@@ -8,15 +8,19 @@ class RegistrationCard extends StatelessWidget {
   final int? position;
   final RegistrationStatus status;
   final RegistrationStatus buggyStatus;
+  final bool attendingBreakfast;
+  final bool attendingLunch;
   final bool attendingDinner;
   final bool hasGuest;
   final Member? memberProfile;
   final bool isGuest;
   final bool isDinnerOnly;
   
-  // Interaction Callbacks (Admin)
-  final VoidCallback? onStatusToggle;
+  // Interaction Callbacks
+  final Function(RegistrationStatus)? onStatusChanged;
   final VoidCallback? onBuggyToggle;
+  final VoidCallback? onBreakfastToggle;
+  final VoidCallback? onLunchToggle;
   final VoidCallback? onDinnerToggle;
   final VoidCallback? onGolfToggle;
 
@@ -27,13 +31,17 @@ class RegistrationCard extends StatelessWidget {
     this.position,
     required this.status,
     required this.buggyStatus,
+    this.attendingBreakfast = false,
+    this.attendingLunch = false,
     required this.attendingDinner,
     this.hasGuest = false,
     this.memberProfile,
     this.isGuest = false,
     this.isDinnerOnly = false,
-    this.onStatusToggle,
+    this.onStatusChanged,
     this.onBuggyToggle,
+    this.onBreakfastToggle,
+    this.onLunchToggle,
     this.onDinnerToggle,
     this.onGolfToggle,
   });
@@ -69,6 +77,7 @@ class RegistrationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         side: isWithdrawn ? BorderSide(color: Colors.grey[300]!) : BorderSide.none,
       ),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: Row(
@@ -102,10 +111,36 @@ class RegistrationCard extends StatelessWidget {
                     ),
                     Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                     const SizedBox(height: 4),
-                    GestureDetector(
-                      onTap: onStatusToggle,
-                      child: _buildStatusPill(status),
-                    ),
+                    if (onStatusChanged != null)
+                      PopupMenuButton<RegistrationStatus>(
+                        initialValue: status,
+                        onSelected: onStatusChanged,
+                        color: Colors.white,
+                        surfaceTintColor: Colors.white,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: RegistrationStatus.confirmed, 
+                            child: Text('Confirmed', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
+                          ),
+                          const PopupMenuItem(
+                            value: RegistrationStatus.reserved, 
+                            child: Text('Reserved', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold))
+                          ),
+                          const PopupMenuItem(
+                            value: RegistrationStatus.waitlist, 
+                            child: Text('Waitlist', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
+                          ),
+                          const PopupMenuItem(
+                            value: RegistrationStatus.withdrawn, 
+                            child: Text('Withdrawn', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))
+                          ),
+                        ],
+                        child: _buildStatusPill(status),
+                      )
+                    else
+                      _buildStatusPill(status),
                   ],
                 ),
               ),
@@ -116,68 +151,168 @@ class RegistrationCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Golf Slot (Admin only)
-                if (onGolfToggle != null)
-                Container(
-                  width: 32,
-                  alignment: Alignment.center,
-                  child: InkWell(
-                    onTap: onGolfToggle,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Icon(
-                        Icons.sports_golf, 
-                        color: !isWithdrawn && !isDinnerOnly ? Colors.green : Colors.grey[300], 
-                        size: 20
+                // Golf & Guest Column (Left of Grid)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (!isGuest && !isDinnerOnly)
+                      Container(
+                        width: 28,
+                        height: 24,
+                        alignment: Alignment.center,
+                        child: onGolfToggle != null 
+                        ? InkWell(
+                            onTap: onGolfToggle,
+                            borderRadius: BorderRadius.circular(4),
+                            child: Icon(
+                              Icons.sports_golf, 
+                              color: !isWithdrawn ? Colors.green : Colors.grey[300], 
+                              size: 18
+                            ),
+                          )
+                        : Icon(
+                            Icons.sports_golf, 
+                            color: !isWithdrawn ? Colors.green : Colors.grey[300], 
+                            size: 18
+                          ),
                       ),
-                    ),
-                  ),
-                ),
-
-                // Guest Slot
-                Container(
-                  width: 32, 
-                  alignment: Alignment.center,
-                  child: hasGuest && !isWithdrawn ? Container(
-                     width: 20, 
-                     height: 20,
-                     alignment: Alignment.center,
-                     decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
-                     child: const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.orange)),
-                   ) : null,
+                    
+                    if (hasGuest && !isWithdrawn)
+                      Container(
+                        width: 28, 
+                        height: 24,
+                        alignment: Alignment.center,
+                        child: const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange)),
+                      ),
+                  ],
                 ),
                 
-                // Buggy Slot
-                Container(
-                  width: 32,
-                  alignment: Alignment.center,
-                  child: InkWell(
-                    onTap: onBuggyToggle,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: _buildBuggyIcon(buggyStatus),
-                    ),
-                  ),
-                ),
+                const SizedBox(width: 4),
 
-                // Dinner Slot
-                Container(
-                  width: 32,
-                  alignment: Alignment.center,
-                  child: InkWell(
-                    onTap: onDinnerToggle,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Icon(
-                        Icons.restaurant, 
-                        color: attendingDinner ? (isWithdrawn ? Colors.grey : Colors.grey[800]) : Colors.grey[300], 
-                        size: 20
-                      ),
+                // 2x2 Grid for Resources (Buggy, Breakfast, Lunch, Dinner)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Row 1: Buggy, Breakfast
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 28,
+                          alignment: Alignment.center,
+                          child: onBuggyToggle != null
+                              ? InkWell(
+                                  onTap: onBuggyToggle,
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: _buildBuggyIcon(buggyStatus, size: 18),
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: _buildBuggyIcon(buggyStatus, size: 18),
+                                ),
+                        ),
+                        Container(
+                          width: 32,
+                          height: 28,
+                          alignment: Alignment.center,
+                          child: onBreakfastToggle != null
+                              ? InkWell(
+                                  onTap: onBreakfastToggle,
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: Icon(
+                                      Icons.coffee, 
+                                      color: attendingBreakfast 
+                                          ? (isWithdrawn ? Colors.grey : _getStatusColor(status)) 
+                                          : Colors.grey[300], 
+                                      size: 18
+                                    ),
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Icon(
+                                    Icons.coffee, 
+                                    color: attendingBreakfast 
+                                        ? (isWithdrawn ? Colors.grey : _getStatusColor(status)) 
+                                        : Colors.grey[300], 
+                                    size: 18
+                                  ),
+                                ),
+                        ),
+                      ],
                     ),
-                  ),
+                    
+                    // Row 2: Lunch, Dinner
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 28,
+                          alignment: Alignment.center,
+                          child: onLunchToggle != null
+                              ? InkWell(
+                                  onTap: onLunchToggle,
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: Icon(
+                                      Icons.restaurant_menu, 
+                                      color: attendingLunch 
+                                          ? (isWithdrawn ? Colors.grey : _getStatusColor(status)) 
+                                          : Colors.grey[300], 
+                                      size: 18
+                                    ),
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Icon(
+                                    Icons.restaurant_menu, 
+                                    color: attendingLunch 
+                                        ? (isWithdrawn ? Colors.grey : _getStatusColor(status)) 
+                                        : Colors.grey[300], 
+                                    size: 18
+                                  ),
+                                ),
+                        ),
+                        Container(
+                          width: 32,
+                          height: 28,
+                          alignment: Alignment.center,
+                          child: onDinnerToggle != null
+                              ? InkWell(
+                                  onTap: onDinnerToggle,
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: Icon(
+                                      Icons.restaurant, 
+                                      color: attendingDinner 
+                                          ? (isWithdrawn ? Colors.grey : _getStatusColor(status)) 
+                                          : Colors.grey[300], 
+                                      size: 18
+                                    ),
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Icon(
+                                    Icons.restaurant, 
+                                    color: attendingDinner 
+                                        ? (isWithdrawn ? Colors.grey : _getStatusColor(status)) 
+                                        : Colors.grey[300], 
+                                    size: 18
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -199,7 +334,7 @@ class RegistrationCard extends StatelessWidget {
         break;
       case RegistrationStatus.reserved:
         color = Colors.orange;
-        text = 'RESERVED';
+        text = 'RESERVE';
         break;
       case RegistrationStatus.waitlist:
         color = Colors.red;
@@ -232,14 +367,14 @@ class RegistrationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBuggyIcon(RegistrationStatus status) {
-    if (status == RegistrationStatus.none && onBuggyToggle == null) {
-       return const SizedBox.shrink();
-    }
-    
-    // If Admin (onBuggyToggle != null), show an outlined icon if none
+  Widget _buildBuggyIcon(RegistrationStatus status, {double size = 20.0}) {
+    // If Admin/Editable (onBuggyToggle != null), show an outlined icon if none
     if (status == RegistrationStatus.none) {
-      return Icon(Icons.electric_car_outlined, color: Colors.grey[300], size: 20);
+      if (onBuggyToggle != null) {
+        return Icon(Icons.electric_rickshaw_outlined, color: Colors.grey[300], size: size);
+      } else {
+        return const SizedBox.shrink();
+      }
     }
 
     Color color;
@@ -250,6 +385,15 @@ class RegistrationCard extends StatelessWidget {
       case RegistrationStatus.pendingGuest: color = Colors.grey; break;
       default: color = Colors.grey;
     }
-    return Icon(Icons.electric_car, color: color, size: 20);
+    return Icon(Icons.electric_rickshaw, color: color, size: size);
+  }
+
+  Color _getStatusColor(RegistrationStatus status) {
+    switch (status) {
+      case RegistrationStatus.confirmed: return Colors.green;
+      case RegistrationStatus.reserved: return Colors.orange;
+      case RegistrationStatus.waitlist: return Colors.red;
+      default: return Colors.grey[800]!;
+    }
   }
 }

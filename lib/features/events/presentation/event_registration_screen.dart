@@ -22,12 +22,16 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   // Form fields
   bool _attendingGolf = true;
   bool _needsBuggy = false;
+  bool _attendingBreakfast = false;
+  bool _attendingLunch = false;
   bool _attendingDinner = false;
   bool _hasPaid = false;
   
   bool _registerGuest = false;
   final _guestNameController = TextEditingController();
   final _guestHandicapController = TextEditingController();
+  bool _guestAttendingBreakfast = false;
+  bool _guestAttendingLunch = false;
   bool _guestAttendingDinner = false;
   bool _guestNeedsBuggy = false;
 
@@ -53,30 +57,61 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       final repo = ref.read(eventsRepositoryProvider);
       
       // For now, we'll assume the user is a mock member or we'd get their ID from auth
-      // In a real app, we'd use ref.read(authProvider).user.id
       const memberId = 'current-user-id';
       const memberName = 'Current Member';
+
+      double totalCost = 0;
+      if (_attendingGolf) totalCost += event.memberCost ?? 0.0;
+      if (_attendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
+      if (_attendingLunch) totalCost += event.lunchCost ?? 0.0;
+      if (_attendingDinner) totalCost += event.dinnerCost ?? 0.0;
+      if (_needsBuggy) totalCost += event.buggyCost ?? 0.0;
+
+      if (_registerGuest) {
+        totalCost += event.guestCost ?? 0.0;
+        if (_guestAttendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
+        if (_guestAttendingLunch) totalCost += event.lunchCost ?? 0.0;
+        if (_guestAttendingDinner) totalCost += event.dinnerCost ?? 0.0;
+        if (_guestNeedsBuggy) totalCost += event.buggyCost ?? 0.0;
+      }
+
+      final newList = List<EventRegistration>.from(event.registrations);
+      final existingIndex = newList.indexWhere((r) => r.memberId == memberId);
+      final existingReg = existingIndex >= 0 ? newList[existingIndex] : null;
+
+      final historyItem = RegistrationHistoryItem(
+        timestamp: DateTime.now(),
+        action: existingReg == null ? 'Registered' : 'Updated Details',
+        description: existingReg == null ? 'Initial registration' : 'Member updated their registration details',
+        actor: memberName,
+      );
 
       final registration = EventRegistration(
         memberId: memberId,
         memberName: memberName,
         attendingGolf: _attendingGolf,
         needsBuggy: _needsBuggy,
+        attendingBreakfast: _attendingBreakfast,
+        attendingLunch: _attendingLunch,
         attendingDinner: _attendingDinner,
         hasPaid: _hasPaid,
+        cost: totalCost,
         dietaryRequirements: _dietaryController.text.trim(),
         specialNeeds: _specialNeedsController.text.trim(),
         guestName: _registerGuest ? _guestNameController.text.trim() : null,
         guestHandicap: _registerGuest ? _guestHandicapController.text.trim() : null,
+        guestAttendingBreakfast: _registerGuest && _guestAttendingBreakfast,
+        guestAttendingLunch: _registerGuest && _guestAttendingLunch,
         guestAttendingDinner: _registerGuest && _guestAttendingDinner,
         guestNeedsBuggy: _registerGuest && _guestNeedsBuggy,
-        registeredAt: DateTime.now(),
+        registeredAt: existingReg?.registeredAt ?? DateTime.now(), // Preserve original time if updating
+        isConfirmed: existingReg?.isConfirmed ?? false, // Preserve status
+        guestIsConfirmed: existingReg?.guestIsConfirmed ?? false,
+        statusOverride: existingReg?.statusOverride,
+        buggyStatusOverride: existingReg?.buggyStatusOverride,
+        guestBuggyStatusOverride: existingReg?.guestBuggyStatusOverride,
+        history: [...(existingReg?.history ?? []), historyItem],
       );
-
-      // Create a new list with this registration
-      // If the member already registered, we should probably update it instead of adding
-      final newList = List<EventRegistration>.from(event.registrations);
-      final existingIndex = newList.indexWhere((r) => r.memberId == memberId);
       
       if (existingIndex >= 0) {
         newList[existingIndex] = registration;
@@ -112,7 +147,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       data: (events) {
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
         
-        // Initialize with existing registration data if not already done
         if (!_isInitialized) {
           const currentMemberId = 'current-user-id';
           final myReg = event.registrations.where((r) => r.memberId == currentMemberId).firstOrNull;
@@ -120,6 +154,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           if (myReg != null) {
             _attendingGolf = myReg.attendingGolf;
             _needsBuggy = myReg.needsBuggy;
+            _attendingBreakfast = myReg.attendingBreakfast;
+            _attendingLunch = myReg.attendingLunch;
             _attendingDinner = myReg.attendingDinner;
             _hasPaid = myReg.hasPaid;
             
@@ -127,6 +163,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
               _registerGuest = true;
               _guestNameController.text = myReg.guestName!;
               _guestHandicapController.text = myReg.guestHandicap ?? '';
+              _guestAttendingBreakfast = myReg.guestAttendingBreakfast;
+              _guestAttendingLunch = myReg.guestAttendingLunch;
               _guestAttendingDinner = myReg.guestAttendingDinner;
               _guestNeedsBuggy = myReg.guestNeedsBuggy;
             }
@@ -153,27 +191,48 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                    BoxyArtFloatingCard(
                      child: Column(
                        children: [
-                         _buildSwitchTile(
-                           'I am playing golf', 
-                           _attendingGolf, 
-                           (val) => setState(() => _attendingGolf = val),
+                         BoxyArtSwitchField(
+                           label: 'I am playing golf', 
+                           value: _attendingGolf, 
+                           onChanged: (val) => setState(() => _attendingGolf = val),
                          ),
                          if (_attendingGolf) ...[
-                           _buildSwitchTile(
-                             'I need a buggy', 
-                             _needsBuggy, 
-                             (val) => setState(() => _needsBuggy = val),
+                           const SizedBox(height: 12),
+                           BoxyArtSwitchField(
+                             label: 'I need a buggy', 
+                             value: _needsBuggy, 
+                             onChanged: (val) => setState(() => _needsBuggy = val),
                            ),
                          ],
-                         _buildSwitchTile(
-                           'I will attend dinner', 
-                           _attendingDinner, 
-                           (val) => setState(() => _attendingDinner = val),
-                         ),
-                         _buildSwitchTile(
-                           'I have paid', 
-                           _hasPaid, 
-                           (val) => setState(() => _hasPaid = val),
+                         if (event.hasBreakfast == true && event.breakfastCost != null) ...[
+                           const SizedBox(height: 12),
+                           BoxyArtSwitchField(
+                             label: 'I will attend breakfast${event.breakfastCost == 0 ? ' (incl)' : ''}', 
+                             value: _attendingBreakfast, 
+                             onChanged: (val) => setState(() => _attendingBreakfast = val),
+                           ),
+                         ],
+                         if (event.hasLunch == true && event.lunchCost != null) ...[
+                           const SizedBox(height: 12),
+                           BoxyArtSwitchField(
+                             label: 'I will attend lunch${event.lunchCost == 0 ? ' (incl)' : ''}', 
+                             value: _attendingLunch, 
+                             onChanged: (val) => setState(() => _attendingLunch = val),
+                           ),
+                         ],
+                         if (event.hasDinner == true && event.dinnerCost != null) ...[
+                           const SizedBox(height: 12),
+                           BoxyArtSwitchField(
+                             label: 'I will attend dinner${event.dinnerCost == 0 ? ' (incl)' : ''}', 
+                             value: _attendingDinner, 
+                             onChanged: (val) => setState(() => _attendingDinner = val),
+                           ),
+                         ],
+                         const SizedBox(height: 12),
+                         BoxyArtSwitchField(
+                           label: 'I have paid', 
+                           value: _hasPaid, 
+                           onChanged: (val) => setState(() => _hasPaid = val),
                          ),
                        ],
                      ),
@@ -184,14 +243,14 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                    BoxyArtFloatingCard(
                      child: Column(
                        children: [
-                         _buildSwitchTile(
-                           'Register a guest', 
-                           _registerGuest, 
-                           (val) => setState(() => _registerGuest = val),
+                         BoxyArtSwitchField(
+                           label: 'Register a guest', 
+                           value: _registerGuest, 
+                           onChanged: (val) => setState(() => _registerGuest = val),
                          ),
                          if (_registerGuest) ...[
                            const Padding(
-                             padding: EdgeInsets.symmetric(vertical: 8.0),
+                             padding: EdgeInsets.symmetric(vertical: 12.0),
                              child: Divider(),
                            ),
                             _buildTextFieldWithLabel(
@@ -206,18 +265,37 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                               controller: _guestHandicapController,
                               hintText: 'e.g. 18',
                             ),
-                            const SizedBox(height: 8),
-                            _buildSwitchTile(
-                              'Guest will attend dinner', 
-                              _guestAttendingDinner, 
-                              (val) => setState(() => _guestAttendingDinner = val),
+                            if (event.hasBreakfast == true && event.breakfastCost != null) ...[
+                              const SizedBox(height: 16),
+                              BoxyArtSwitchField(
+                                label: 'Guest will attend breakfast${event.breakfastCost == 0 ? ' (incl)' : ''}', 
+                                value: _guestAttendingBreakfast, 
+                                onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
+                              ),
+                            ],
+                            if (event.hasLunch == true && event.lunchCost != null) ...[
+                              const SizedBox(height: 12),
+                              BoxyArtSwitchField(
+                                label: 'Guest will attend lunch${event.lunchCost == 0 ? ' (incl)' : ''}', 
+                                value: _guestAttendingLunch, 
+                                onChanged: (val) => setState(() => _guestAttendingLunch = val),
+                              ),
+                            ],
+                            if (event.hasDinner == true && event.dinnerCost != null) ...[
+                              const SizedBox(height: 12),
+                              BoxyArtSwitchField(
+                                label: 'Guest will attend dinner${event.dinnerCost == 0 ? ' (incl)' : ''}', 
+                                value: _guestAttendingDinner, 
+                                onChanged: (val) => setState(() => _guestAttendingDinner = val),
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                            BoxyArtSwitchField(
+                              label: 'Guest needs a buggy', 
+                              value: _guestNeedsBuggy, 
+                              onChanged: (val) => setState(() => _guestNeedsBuggy = val),
                             ),
-                            _buildSwitchTile(
-                              'Guest needs a buggy', 
-                              _guestNeedsBuggy, 
-                              (val) => setState(() => _guestNeedsBuggy = val),
-                            ),
-                          ],
+                         ],
                        ],
                      ),
                    ),
@@ -276,17 +354,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           color: Colors.grey,
         ),
       ),
-    );
-  }
-
-  Widget _buildSwitchTile(String title, bool value, ValueChanged<bool> onChanged) {
-    return SwitchListTile(
-      title: Text(title, style: const TextStyle(fontSize: 14)),
-      value: value,
-      onChanged: onChanged,
-      contentPadding: EdgeInsets.zero,
-      activeThumbColor: Theme.of(context).primaryColor,
-      activeTrackColor: Theme.of(context).primaryColor.withValues(alpha: 0.5),
     );
   }
 

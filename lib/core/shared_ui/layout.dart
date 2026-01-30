@@ -14,6 +14,11 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final PreferredSizeWidget? bottom;
   final List<Widget>? actions;
+  final bool isLarge;
+  final bool? centerTitle;
+  final Widget? leading;
+  final double? leadingWidth;
+  final Widget? topRow;
 
   const BoxyArtAppBar({
     super.key,
@@ -25,21 +30,116 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.bottom,
     this.actions,
+    this.isLarge = false,
+    this.centerTitle,
+    this.leading,
+    this.leadingWidth,
+    this.topRow,
   });
+
+  static const double largeHeight = 128.0;
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+
+    if (isLarge && topRow != null) {
+      return AppBar(
+        backgroundColor: primaryColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        toolbarHeight: largeHeight,
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 10), // Space for status bar
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Row 1: Top secondary actions
+              SizedBox(
+                height: 32,
+                child: topRow!,
+              ),
+              const SizedBox(height: 8),
+              // Row 2: Primary actions aligned horizontally
+              Row(
+                children: [
+                  // Leading area
+                  SizedBox(
+                    width: 100,
+                    child: leading ?? (showLeading && showBack 
+                      ? Align(
+                          alignment: Alignment.centerLeft,
+                          child: BoxyArtCircularIconBtn(
+                            icon: Icons.arrow_back,
+                            onTap: onBack ?? () => Navigator.maybePop(context),
+                            backgroundColor: Colors.white24,
+                            iconColor: Colors.white,
+                          ),
+                        )
+                      : const SizedBox.shrink()),
+                  ),
+                  // Title area
+                  Expanded(
+                    child: Text(
+                      title,
+                      textAlign: centerTitle ?? false ? TextAlign.center : TextAlign.left,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: onPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                  // Actions area
+                  SizedBox(
+                    width: 100,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: actions ?? [],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return AppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: isLarge ? primaryColor : Colors.transparent,
       elevation: 0,
-      centerTitle: true,
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w600,
+      centerTitle: centerTitle ?? false,
+      leadingWidth: leadingWidth,
+      toolbarHeight: isLarge ? largeHeight : null,
+      title: Padding(
+        padding: isLarge ? const EdgeInsets.only(top: 10) : EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: centerTitle == true ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          children: [
+            if (topRow != null && isLarge) ...[
+              topRow!,
+              const SizedBox(height: 4),
+            ],
+            Text(
+              title,
+              style: isLarge 
+                ? Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: onPrimary,
+                    fontWeight: FontWeight.bold,
+                  )
+                : Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ],
         ),
       ),
-      leading: showLeading
+      leading: leading ?? (showLeading
           ? Padding(
               padding: const EdgeInsets.all(8.0),
               child: BoxyArtCircularIconBtn(
@@ -47,9 +147,11 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onTap: showBack 
                     ? (onBack ?? () => Navigator.maybePop(context)) 
                     : onMenuPressed,
+                backgroundColor: isLarge ? Colors.white24 : null,
+                iconColor: isLarge ? Colors.white : null,
               ),
             )
-          : null,
+          : null),
       automaticallyImplyLeading: showLeading,
       actions: actions ?? const [],
       bottom: bottom,
@@ -57,7 +159,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
+  Size get preferredSize => Size.fromHeight((isLarge ? largeHeight : kToolbarHeight) + (bottom?.preferredSize.height ?? 0));
 }
 
 /// A floating bottom bar with Search and Filter segments.
@@ -298,6 +400,36 @@ class ProfileInfoRow extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A standard section title with BoxyArt styling (uppercase, bold, grey).
+class BoxyArtSectionTitle extends StatelessWidget {
+  final String title;
+  final EdgeInsetsGeometry padding;
+  final bool isLevel2;
+
+  const BoxyArtSectionTitle({
+    super.key,
+    required this.title,
+    this.padding = const EdgeInsets.only(left: 4, bottom: 8),
+    this.isLevel2 = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: isLevel2 ? 10 : 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+          letterSpacing: 1.2,
         ),
       ),
     );

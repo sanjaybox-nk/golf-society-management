@@ -15,7 +15,7 @@ class EventsScreen extends ConsumerWidget {
     final currentFilter = ref.watch(eventFilterProvider);
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Events'),
+      appBar: const BoxyArtAppBar(title: 'Events', isLarge: true),
       body: Stack(
         children: [
           _EventsList(
@@ -89,9 +89,18 @@ class _EventsList extends ConsumerWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.all(16).copyWith(bottom: 100),
-          itemCount: events.length,
+          itemCount: events.length + 1,
           itemBuilder: (context, index) {
-            return _EventCard(event: events[index], isUpcoming: isUpcoming);
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: BoxyArtSectionTitle(
+                  title: isUpcoming ? 'Upcoming Events' : 'Past Results',
+                  padding: const EdgeInsets.only(bottom: 16),
+                ),
+              );
+            }
+            return _EventCard(event: events[index - 1], isUpcoming: isUpcoming);
           },
         );
       },

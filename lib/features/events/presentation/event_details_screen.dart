@@ -7,6 +7,7 @@ import 'events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
+import '../../../core/theme/theme_controller.dart';
 
 class EventDetailsScreen extends ConsumerWidget {
   final String eventId;
@@ -20,7 +21,10 @@ class EventDetailsScreen extends ConsumerWidget {
     return eventsAsync.when(
       data: (events) {
         final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
-        return _EventDetailsContent(event: event);
+        return _EventDetailsContent(
+          event: event, 
+          currencySymbol: ref.watch(themeControllerProvider).currencySymbol,
+        );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
@@ -30,8 +34,9 @@ class EventDetailsScreen extends ConsumerWidget {
 
 class _EventDetailsContent extends StatelessWidget {
   final GolfEvent event;
+  final String currencySymbol;
 
-  const _EventDetailsContent({required this.event});
+  const _EventDetailsContent({required this.event, required this.currencySymbol});
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +195,7 @@ class _EventDetailsContent extends StatelessWidget {
               BoxyArtButton(
                 title: isPastDeadline 
                     ? 'Registration closed' 
-                    : (isRegistered ? 'Edit Registration' : 'Register Now'),
+                    : (isRegistered ? 'Update Registration' : 'Register Now'),
                 onTap: isRegistrationDisabled 
                     ? null 
                     : () {
@@ -430,19 +435,83 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildCostsSection(BuildContext context) {
+    final bool hasBreakfast = event.hasBreakfast && event.breakfastCost != null;
+    final bool hasLunch = event.hasLunch && event.lunchCost != null;
+    final bool hasDinner = event.hasDinner && event.dinnerCost != null;
+
+    final double memberSubtotal = (event.memberCost ?? 0) +
+        (hasBreakfast ? (event.breakfastCost ?? 0) : 0) +
+        (hasLunch ? (event.lunchCost ?? 0) : 0) +
+        (hasDinner ? (event.dinnerCost ?? 0) : 0);
+
+    final double guestSubtotal = (event.guestCost ?? 0) +
+        (hasBreakfast ? (event.breakfastCost ?? 0) : 0) +
+        (hasLunch ? (event.lunchCost ?? 0) : 0) +
+        (hasDinner ? (event.dinnerCost ?? 0) : 0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle('Costs'),
+        
+        // Member Card
+        const BoxyArtSectionTitle(title: 'Member Costs', isLevel2: true),
         BoxyArtFloatingCard(
           child: Column(
             children: [
               _buildCostRow('Member Golf', event.memberCost),
-              _buildCostRow('Guest Golf', event.guestCost),
-              _buildCostRow('Dinner', event.dinnerCost),
+              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
+              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
+              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
+              const Divider(height: 24),
+              _buildCostRow('Member Total', memberSubtotal, isTotal: true),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+
+        // Guest Card
+        const BoxyArtSectionTitle(title: 'Guest Costs', isLevel2: true),
+        BoxyArtFloatingCard(
+          child: Column(
+            children: [
+              _buildCostRow('Guest Golf', event.guestCost),
+              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
+              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
+              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
+              const Divider(height: 24),
+              _buildCostRow('Guest Total', guestSubtotal, isTotal: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Summary Card
+        BoxyArtFloatingCard(
+          child: _buildCostRow('Grand Total', memberSubtotal + guestSubtotal, isTotal: true),
+        ),
+
+        if (event.buggyCost != null) ...[
+          const SizedBox(height: 16),
+          _buildSectionTitle('Buggy Payment'),
+          BoxyArtFloatingCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCostRow('Buggy Cost', event.buggyCost),
+                const SizedBox(height: 8),
+                const Text(
+                  'Cost of Buggy to be paid to Pro Shop and shared with your buggy partner',
+                  style: TextStyle(
+                    color: Colors.grey, 
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -532,15 +601,32 @@ class _EventDetailsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildCostRow(String label, double? cost) {
+  Widget _buildCostRow(String label, double? cost, {bool isTotal = false}) {
     if (cost == null) return const SizedBox.shrink();
+    
+    final String costText = cost == 0 
+        ? '(incl)' 
+        : '$currencySymbol${cost.toStringAsFixed(2)}';
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(vertical: isTotal ? 8.0 : 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          Text('£${cost.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(
+            label, 
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            )
+          ),
+          Text(
+            costText, 
+            style: TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontSize: isTotal ? 16 : 14,
+            )
+          ),
         ],
       ),
     );

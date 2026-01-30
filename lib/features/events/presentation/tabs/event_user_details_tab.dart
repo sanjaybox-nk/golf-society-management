@@ -8,6 +8,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import '../widgets/event_sliver_app_bar.dart';
+import '../../../../core/theme/theme_controller.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
@@ -21,7 +22,8 @@ class EventUserDetailsTab extends ConsumerWidget {
     return eventsAsync.when(
       data: (events) {
         final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
-        return _EventDetailsContent(event: event);
+        final config = ref.watch(themeControllerProvider);
+        return EventDetailsContent(event: event, currencySymbol: config.currencySymbol);
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
@@ -29,10 +31,19 @@ class EventUserDetailsTab extends ConsumerWidget {
   }
 }
 
-class _EventDetailsContent extends StatelessWidget {
+class EventDetailsContent extends StatelessWidget {
   final GolfEvent event;
+  final String currencySymbol;
+  final bool isPreview;
+  final VoidCallback? onCancel;
 
-  const _EventDetailsContent({required this.event});
+  const EventDetailsContent({
+    super.key,
+    required this.event, 
+    required this.currencySymbol,
+    this.isPreview = false,
+    this.onCancel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +83,8 @@ class _EventDetailsContent extends StatelessWidget {
     return EventSliverAppBar(
       event: event,
       title: event.title,
+      isPreview: isPreview,
+      onCancel: onCancel,
     );
   }
 
@@ -81,7 +94,7 @@ class _EventDetailsContent extends StatelessWidget {
       children: [
         _buildRegistrationCard(context), // Added Registration Card here
         const SizedBox(height: 24),
-        _buildSectionTitle('Event Details'),
+        const BoxyArtSectionTitle(title: 'Event Details'),
         BoxyArtFloatingCard(
           child: Column(
             children: [
@@ -107,12 +120,22 @@ class _EventDetailsContent extends StatelessWidget {
                 'Tee-off',
                 _buildDetailValue(DateFormat('h:mm a').format(event.teeOffTime ?? event.date)),
               ),
-               _buildDetailRow(
-              'Registration',
-              _buildDetailValue(event.regTime != null 
-                ? DateFormat('h:mm a').format(event.regTime!)
-                : 'TBA'),
-            ),
+              _buildDetailRow(
+                'Registration',
+                _buildDetailValue(event.regTime != null 
+                  ? DateFormat('h:mm a').format(event.regTime!)
+                  : 'TBA'),
+              ),
+              _buildDetailRow(
+                'Availability',
+                _buildDetailValue(() {
+                  if (event.maxParticipants == null) return 'Unlimited';
+                  final confirmedCount = event.registrations.where((r) => r.isConfirmed).length;
+                  final remaining = event.maxParticipants! - confirmedCount;
+                  if (remaining <= 0) return 'Event is full';
+                  return '${event.maxParticipants} spots, $remaining remaining';
+                }()),
+              ),
               if (event.description != null && event.description!.isNotEmpty) ...[
                 const Divider(height: 32),
                 Center(
@@ -137,6 +160,8 @@ class _EventDetailsContent extends StatelessWidget {
 
   // Copied from EventRegistrationUserTab and adapted
   Widget _buildRegistrationCard(BuildContext context) {
+    if (!event.showRegistrationButton) return const SizedBox.shrink();
+
     // For now, we'll assume the user is a mock member
     const currentMemberId = 'current-user-id';
     
@@ -145,7 +170,18 @@ class _EventDetailsContent extends StatelessWidget {
     
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
-    final isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
+
+    final confirmedCount = event.registrations.where((r) => r.isConfirmed).length;
+    final isFull = event.maxParticipants != null && confirmedCount >= event.maxParticipants!;
+
+    // Disabled if:
+    // 1. Deadline passed (always)
+    // 2. Button hidden by config (always)
+    // 3. Full AND Not Registered (New users stuck)
+    final isRegistrationDisabled = 
+        isPastDeadline || 
+        !event.showRegistrationButton ||
+        (!isRegistered && isFull);
 
     return BoxyArtFloatingCard(
       child: Column(
@@ -154,7 +190,7 @@ class _EventDetailsContent extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  isPastDeadline 
+                  isPastDeadline || isFull
                     ? 'Registration Closed'
                     : 'Secure your spot',
                   style: const TextStyle(
@@ -163,14 +199,14 @@ class _EventDetailsContent extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (!isPastDeadline && event.registrationDeadline != null) ...[
+                if (!isPastDeadline && event.registrationDeadline != null && !isFull) ...[
                   const SizedBox(height: 4),
                   Text(
                     'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
                     style: const TextStyle(color: Colors.grey, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
-                ] else if (!isPastDeadline) ...[
+                ] else if (!isPastDeadline && !isFull) ...[
                   const SizedBox(height: 4),
                   const Text(
                     'Register below to join the event',
@@ -203,30 +239,32 @@ class _EventDetailsContent extends StatelessWidget {
                 ),
               ],
             ),
-             const Divider(height: 32),
-               // Simple summary row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildSummaryIcon(Icons.golf_course, 'Golf', myRegistration.attendingGolf),
-                  _buildSummaryIcon(Icons.electric_rickshaw, 'Buggy', myRegistration.needsBuggy),
-                  _buildSummaryIcon(Icons.restaurant, 'Dinner', myRegistration.attendingDinner),
-                   _buildSummaryIcon(Icons.person_add, 'Guest', myRegistration.guestName != null),
-                ],
-              ),
-              const SizedBox(height: 24),
           ],
-          
           BoxyArtButton(
             title: isPastDeadline 
                 ? 'Registration closed' 
-                : (isRegistered ? 'Edit Registration' : 'Register Now'),
+                : (isFull && !isRegistered 
+                    ? 'Event Full' 
+                    : (isRegistered ? 'Edit My Registration' : 'Register Now')),
             onTap: isRegistrationDisabled 
                 ? null 
                 : () {
                     GoRouter.of(context).push('/events/${event.id}/register-form');
                   },
           ),
+          
+          if (isRegistered) ...[
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildSummaryIcon(Icons.attach_money, 'Paid', myRegistration.hasPaid),
+                _buildSummaryIcon(Icons.breakfast_dining, 'Breakfast', myRegistration.attendingBreakfast),
+                _buildSummaryIcon(Icons.lunch_dining, 'Lunch', myRegistration.attendingLunch),
+                _buildSummaryIcon(Icons.dinner_dining, 'Dinner', myRegistration.attendingDinner),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -257,7 +295,7 @@ class _EventDetailsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Course Details'),
+        const BoxyArtSectionTitle(title: 'Course Details'),
         BoxyArtFloatingCard(
           child: Column(
             children: [
@@ -333,7 +371,7 @@ class _EventDetailsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Notes & Content'),
+        const BoxyArtSectionTitle(title: 'Notes & Content'),
         ...event.notes.map((note) => _buildNoteCard(context, note)),
       ],
     );
@@ -371,9 +409,8 @@ class _EventDetailsContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
                   note.imageUrl!,
-                  height: 200,
                   width: double.infinity,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fitWidth,
                   errorBuilder: (_, _, _) => Container(
                     height: 150,
                     width: double.infinity,
@@ -400,19 +437,79 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildCostsSection(BuildContext context) {
+    final bool hasBreakfast = event.hasBreakfast && event.breakfastCost != null;
+    final bool hasLunch = event.hasLunch && event.lunchCost != null;
+    final bool hasDinner = event.hasDinner && event.dinnerCost != null;
+
+    final double memberSubtotal = (event.memberCost ?? 0) +
+        (hasBreakfast ? (event.breakfastCost ?? 0) : 0) +
+        (hasLunch ? (event.lunchCost ?? 0) : 0) +
+        (hasDinner ? (event.dinnerCost ?? 0) : 0);
+
+    final double guestSubtotal = (event.guestCost ?? 0) +
+        (hasBreakfast ? (event.breakfastCost ?? 0) : 0) +
+        (hasLunch ? (event.lunchCost ?? 0) : 0) +
+        (hasDinner ? (event.dinnerCost ?? 0) : 0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Costs'),
+        const BoxyArtSectionTitle(title: 'Costs'),
+        
+        // Member Card
+        const BoxyArtSectionTitle(title: 'Member Costs', isLevel2: true),
         BoxyArtFloatingCard(
           child: Column(
             children: [
               _buildCostRow('Member Golf', event.memberCost),
-              _buildCostRow('Guest Golf', event.guestCost),
-              _buildCostRow('Dinner', event.dinnerCost),
+              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
+              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
+              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
+              const Divider(height: 24),
+              _buildCostRow('Member Total', memberSubtotal, isTotal: true),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+
+        // Guest Card
+        const BoxyArtSectionTitle(title: 'Guest Costs', isLevel2: true),
+        BoxyArtFloatingCard(
+          child: Column(
+            children: [
+              _buildCostRow('Guest Golf', event.guestCost),
+              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
+              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
+              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
+              const Divider(height: 24),
+              _buildCostRow('Guest Total', guestSubtotal, isTotal: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+
+        if (event.buggyCost != null) ...[
+          const SizedBox(height: 16),
+          const BoxyArtSectionTitle(title: 'Buggy Payment'),
+          BoxyArtFloatingCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCostRow('Buggy Cost', event.buggyCost),
+                const SizedBox(height: 8),
+                const Text(
+                  'Cost of Buggy to be paid to Pro Shop and shared with your buggy partner',
+                  style: TextStyle(
+                    color: Colors.grey, 
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -423,7 +520,7 @@ class _EventDetailsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Dinner Location'),
+        const BoxyArtSectionTitle(title: 'Dinner Location'),
         BoxyArtFloatingCard(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start, // Top aligned, not middle aligned
@@ -451,7 +548,7 @@ class _EventDetailsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Updates'),
+        const BoxyArtSectionTitle(title: 'Updates'),
         ...event.flashUpdates.map((update) => Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: BoxyArtFloatingCard(
@@ -468,25 +565,33 @@ class _EventDetailsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: Colors.grey),
-      ),
-    );
-  }
 
-  Widget _buildCostRow(String label, double? cost) {
+  Widget _buildCostRow(String label, double? cost, {bool isTotal = false}) {
     if (cost == null) return const SizedBox.shrink();
+    
+    final String costText = cost == 0 
+        ? '(incl)' 
+        : '$currencySymbol${cost.toStringAsFixed(2)}';
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(vertical: isTotal ? 8.0 : 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          Text('£${cost.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(
+            label, 
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            )
+          ),
+          Text(
+            costText, 
+            style: TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontSize: isTotal ? 16 : 14,
+            )
+          ),
         ],
       ),
     );

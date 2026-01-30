@@ -78,12 +78,16 @@ The app uses a 5-state system to manage event entries:
 -   **Waitlist** (Red): Registered after capacity was reached. Position is tracked for automatic promotion.
 -   **Dinner** (Blue): Member is attending the dinner/social only (not playing golf). Excluded from golfer headcount.
 -   **Withdrawn** (Grey): Member has cancelled participation but remains in admin records for history.
+-   **Registration History**: A structured audit trail stored within each registration, logging timestamps, actors (Admin/Member), and specific actions (e.g., status updates or detail edits).
+
+**Confirmed but Withdrawn Metric**
+A specialized metric displayed in brackets (e.g., `21 (1)`). It simulates the registration queue to identify participants who held a potential confirmed spot but later withdrew.
 
 **FCFS (First-Come, First-Served)**
 The core priority system. Event spots and budget buggy spaces are allocated strictly based on the `registeredAt` timestamp.
 
 **Buggy Allocation**
-Automatically calculated based on the available buggy count defined by the admin. The system assigns "Confirmed" buggy status to the first N players who requested one, moving others to the "Waitlist" buggy status.
+Automatically calculated based on the available buggy count defined by the admin. The system assigns "Confirmed" buggy status to the first N players who requested one, moving others to the "Waitlist" buggy status. **Buggy Cost** is an optional per-buggy fee tracked for each event.
 
 **Registration**
 1.  Navigate to **Events**.
