@@ -176,9 +176,10 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Register for Event'),
-            centerTitle: true,
+          appBar: BoxyArtAppBar(
+            title: 'Register',
+            subtitle: event.title,
+            showBack: true,
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),

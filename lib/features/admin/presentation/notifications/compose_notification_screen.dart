@@ -73,9 +73,9 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       context: context,
       title: 'Confirm Send',
       message: 'You are about to message $recipientCount people. Confirm?',
-      onCancel: () => Navigator.pop(context),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
       onConfirm: () async {
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: true).pop();
         
         final firestore = FirebaseFirestore.instance;
         final batch = firestore.batch();
@@ -213,16 +213,9 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       ),
     );
 
-    if (widget.isTabbed) {
-      return Scaffold(
-        appBar: const BoxyArtAppBar(title: 'Compose Notification', showBack: true),
-        body: content,
-      );
-    }
-
-    return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Compose Notification', showBack: true),
-      body: content,
+    return Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: content,
     );
   }
 

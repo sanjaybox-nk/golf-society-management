@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../members/presentation/members_provider.dart';
 
+import '../../../../core/theme/contrast_helper.dart';
+
 class CommitteeRolesScreen extends ConsumerStatefulWidget {
   const CommitteeRolesScreen({super.key});
 
@@ -24,10 +26,22 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
   Widget build(BuildContext context) {
     // Combine standard roles with any custom roles found in the member database
     final membersAsync = ref.watch(allMembersProvider);
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: const BoxyArtAppBar(title: 'Committee Roles', showBack: true),
+      appBar: BoxyArtAppBar(
+        title: 'Committee Roles',
+        isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.pop(),
+            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ),
       body: membersAsync.when(
         data: (members) {
           // Extract custom roles (roles embedded in members that aren't in the standard list)
@@ -175,11 +189,11 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
         hintText: 'e.g. Tour Manager',
         controller: controller,
       ),
-      onCancel: () => Navigator.pop(context),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
       onConfirm: () {
         if (controller.text.trim().isNotEmpty) {
           final newRole = controller.text.trim();
-          Navigator.pop(context);
+          Navigator.of(context, rootNavigator: true).pop();
           context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(newRole)}');
         }
       },
@@ -206,11 +220,11 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
           ),
         ],
       ),
-      onCancel: () => Navigator.pop(context),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
       onConfirm: () {
         if (controller.text.trim().isNotEmpty && controller.text.trim() != oldName) {
           final newName = controller.text.trim();
-          Navigator.pop(context);
+          Navigator.of(context, rootNavigator: true).pop();
           _renameRole(oldName, newName);
         }
       },
@@ -252,12 +266,12 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
         count++;
       }
       if (mounted) {
-        Navigator.pop(context); // Pop loading
+        Navigator.of(context, rootNavigator: true).pop(); // Pop loading
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Updated role for $count members.')));
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: true).pop();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating roles: $e')));
       }
     }

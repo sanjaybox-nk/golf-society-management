@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../theme/status_colors.dart';
 import '../theme/contrast_helper.dart';
 
@@ -226,6 +227,49 @@ class BoxyArtChatBubble extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// A stylized date badge for event lists.
+class BoxyArtDateBadge extends StatelessWidget {
+  final DateTime date;
+
+  const BoxyArtDateBadge({super.key, required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 60,
+      height: 70,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            DateFormat('MMM').format(date).toUpperCase(), // Month (e.g. MAY)
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+          Text(
+            DateFormat('d').format(date), // Day (e.g. 15)
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              height: 1,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

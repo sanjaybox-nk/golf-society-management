@@ -8,63 +8,64 @@ import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/models/member.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
 import 'package:golf_society/features/members/presentation/member_details_modal.dart';
 
-class AdminMembersScreen extends ConsumerWidget {
+class AdminMembersScreen extends ConsumerStatefulWidget {
   const AdminMembersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminMembersScreen> createState() => _AdminMembersScreenState();
+}
+
+class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
+  final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.removeListener(_onFocusChange);
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final searchQuery = ref.watch(adminMemberSearchQueryProvider).toLowerCase();
     final currentFilter = ref.watch(adminMemberFilterProvider);
+    final isFocused = _searchFocusNode.hasFocus;
 
-    return Scaffold(
-      appBar: BoxyArtAppBar(
+    return GestureDetector(
+      onTap: () => _searchFocusNode.unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        appBar: BoxyArtAppBar(
         title: 'Manage Members',
-        showBack: true,
         isLarge: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
-            child: SizedBox(
-              height: 40,
-              width: 40,
-              child: FloatingActionButton(
-                mini: true,
-                onPressed: () => context.push('/admin/members/new'),
-                child: const Icon(Icons.person_add, size: 20),
-              ),
-            ),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(82),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            child: BoxyArtSearchBar(
-              hintText: 'Search admin members...',
-              onChanged: (value) {
-                ref.read(adminMemberSearchQueryProvider.notifier).update(value);
-              },
-            ),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.home, color: Colors.white, size: 28),
+          onPressed: () => context.go('/home'),
         ),
+        actions: const [
+          SizedBox(width: 8),
+        ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BoxyArtSectionTitle(
-            title: 'Society Members',
-            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
-          ),
-          Expanded(
-            child: membersAsync.when(
-              data: (members) {
-                if (members.isEmpty) {
-                  return const Center(child: Text('No members found.'));
-                }
-          
+      body: membersAsync.when(
+        data: (members) {
+          if (members.isEmpty) {
+            return const Center(child: Text('No members found.'));
+          }
+
           final filtered = members.where((m) {
             final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
             final matchesSearch = name.contains(searchQuery);
@@ -72,104 +73,251 @@ class AdminMembersScreen extends ConsumerWidget {
             if (!matchesSearch) return false;
 
             if (currentFilter == AdminMemberFilter.current) {
-              return m.status != MemberStatus.archived && 
-                     m.status != MemberStatus.left &&
-                     m.status != MemberStatus.inactive &&
-                     !m.isArchived;
+              return m.status == MemberStatus.member || 
+                     m.status == MemberStatus.active;
+            } else if (currentFilter == AdminMemberFilter.committee) {
+              return m.societyRole != null && m.societyRole!.isNotEmpty;
             } else {
-              return m.status == MemberStatus.archived || 
-                     m.status == MemberStatus.left ||
-                     m.status == MemberStatus.inactive ||
-                     m.isArchived;
+              // Other
+              return m.status != MemberStatus.member && 
+                     m.status != MemberStatus.active;
             }
           }).toList();
 
-          final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
+          // Sort
+          final sortedMembers = [...filtered];
+          if (currentFilter == AdminMemberFilter.other) {
+            // Define sort order for Other statuses
+            final statusOrder = [
+              MemberStatus.pending,
+              MemberStatus.suspended,
+              MemberStatus.inactive,
+              MemberStatus.archived,
+              MemberStatus.left,
+            ];
+            
+            sortedMembers.sort((a, b) {
+              final statusCompare = statusOrder.indexOf(a.status).compareTo(statusOrder.indexOf(b.status));
+              if (statusCompare != 0) return statusCompare;
+              return a.lastName.compareTo(b.lastName);
+            });
+          } else {
+            // Default sort
+            sortedMembers.sort((a, b) => a.lastName.compareTo(b.lastName));
+          }
 
-          // Calculate counts for badges
-          final currentCount = members.where((m) => 
-            m.status != MemberStatus.archived && 
-            m.status != MemberStatus.left &&
-            m.status != MemberStatus.inactive &&
-            !m.isArchived
-          ).length;
+          // Build List Items (including headers)
+          final List<Widget> listItems = [];
+          
+          // 1. Top Section Title
+          if (currentFilter == AdminMemberFilter.current) {
+             listItems.add(const BoxyArtSectionTitle(
+               title: 'Current Members',
+               padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+             ));
+          } else if (currentFilter == AdminMemberFilter.committee) {
+             listItems.add(const BoxyArtSectionTitle(
+               title: 'Committee Members',
+               padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+             ));
+          } else {
+             // For Other, we don't need a top generic title if we have sub-headers, 
+             // OR we keep it as a main header. 
+             // Let's keep "Other Members" for consistency, then sub-headers.
+             listItems.add(const BoxyArtSectionTitle(
+               title: 'Other Members',
+               padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+             ));
+          }
 
-          final pastCount = members.where((m) => 
-            m.status == MemberStatus.archived || 
-            m.status == MemberStatus.left ||
-            m.status == MemberStatus.inactive ||
-            m.isArchived
-          ).length;
-
-          return Stack(
-            children: [
-              Column(
+          // 2. Search & Toggle Row
+          listItems.add(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: Row(
                 children: [
-              // List
-              Expanded(
-                child: sortedMembers.isEmpty 
-                  ? Center(
-                      child: Text(
-                        currentFilter == AdminMemberFilter.current 
-                          ? 'No current members found.' 
-                          : 'No past members found.',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8).copyWith(bottom: 100),
-                      itemCount: sortedMembers.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          return const BoxyArtSectionTitle(
-                            title: 'Society Members',
-                            padding: EdgeInsets.only(bottom: 16),
-                          );
-                        }
-                        final m = sortedMembers[index - 1];
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildDismissibleMember(context, ref, m),
-                          ],
-                        );
+                  Expanded(
+                    child: BoxyArtSearchBar(
+                      focusNode: _searchFocusNode,
+                      hintText: 'Search members...',
+                      onChanged: (value) {
+                        ref.read(adminMemberSearchQueryProvider.notifier).update(value);
                       },
                     ),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    width: isFocused ? 0 : 12,
+                    child: const SizedBox(),
+                  ),
+                  // Compact Toggle Switch
+                  ClipRect(
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      alignment: Alignment.centerLeft,
+                      widthFactor: isFocused ? 0 : 1,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: isFocused ? 0 : 1,
+                        child: Container(
+                          height: 36,
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildToggleOption(
+                                context: context,
+                                label: 'C',
+                                isSelected: currentFilter == AdminMemberFilter.current,
+                                onTap: () => ref.read(adminMemberFilterProvider.notifier).update(AdminMemberFilter.current),
+                              ),
+                              _buildToggleOption(
+                                context: context,
+                                label: 'O',
+                                isSelected: currentFilter == AdminMemberFilter.other,
+                                onTap: () => ref.read(adminMemberFilterProvider.notifier).update(AdminMemberFilter.other),
+                              ),
+                              _buildToggleOption(
+                                context: context,
+                                label: '★',
+                                isSelected: currentFilter == AdminMemberFilter.committee,
+                                onTap: () => ref.read(adminMemberFilterProvider.notifier).update(AdminMemberFilter.committee),
+                                isIcon: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    width: isFocused ? 0 : 8,
+                    child: const SizedBox(),
+                  ),
+                  ClipRect(
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      alignment: Alignment.centerLeft,
+                      widthFactor: isFocused ? 0 : 1,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: isFocused ? 0 : 1,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.person_add,
+                            color: Theme.of(context).primaryColor,
+                            size: 28,
+                          ),
+                          onPressed: () => MemberDetailsModal.show(context, null),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          
-          // Floating Filter Bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: FloatingFilterBar<AdminMemberFilter>(
-              selectedValue: currentFilter,
-              options: [
-                FloatingFilterOption(label: 'Current ($currentCount)', value: AdminMemberFilter.current),
-                FloatingFilterOption(label: 'Past ($pastCount)', value: AdminMemberFilter.past),
-              ],
-              onChanged: (filter) {
-                ref.read(adminMemberFilterProvider.notifier).update(filter);
-              },
             ),
-          ),
-        ],
-      );
-    },
-    loading: () => const Center(child: CircularProgressIndicator()),
-    error: (err, stack) => Center(child: Text('Error: $err')),
-  ),
-),
-],
-),
-);
-}
+          );
+
+          // 3. Member List with Sub-Headers
+          MemberStatus? lastStatus;
+          
+          for (var member in sortedMembers) {
+            // Insert Sub-Header for "Other" filter only
+            if (currentFilter == AdminMemberFilter.other) {
+              if (member.status != lastStatus) {
+                listItems.add(
+                   Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                    child: Text(
+                      member.status.displayName.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.grey.shade500,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  )
+                );
+                lastStatus = member.status;
+              }
+            }
+            
+            listItems.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _buildDismissibleMember(context, ref, member),
+              )
+            );
+          }
+
+          return DefaultTabController(
+            length: 2,
+            initialIndex: currentFilter == AdminMemberFilter.current ? 0 : 1,
+            child: ListView.builder(
+              padding: const EdgeInsets.only(bottom: 40),
+              itemCount: listItems.length,
+              itemBuilder: (context, index) => listItems[index],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    ),
+    );
+  }
+
+  Widget _buildToggleOption({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    bool isIcon = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: isIcon 
+            ? Icon(
+                Icons.star_rounded, 
+                size: 20, 
+                color: isSelected ? Colors.white : Colors.amber.shade600
+              )
+            : Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black54,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+      ),
+    );
+  }
 }
 
 
- Widget _buildDismissibleMember(BuildContext context, WidgetRef ref, Member member) {
+Widget _buildDismissibleMember(BuildContext context, WidgetRef ref, Member member) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: Dismissible(
@@ -189,8 +337,8 @@ class AdminMembersScreen extends ConsumerWidget {
           context: context,
           title: 'Delete Member?',
           message: 'Delete ${member.firstName} ${member.lastName}?',
-          onCancel: () => Navigator.of(context).pop(false),
-          onConfirm: () => Navigator.of(context).pop(true),
+          onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+          onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
           confirmText: 'Delete',
         );
       },
@@ -200,163 +348,11 @@ class AdminMembersScreen extends ConsumerWidget {
           SnackBar(content: Text('Deleted ${member.firstName}')),
         );
       },
-      child: GestureDetector(
-        onTap: () => context.push('/admin/members/edit/${member.id}', extra: member),
+      child: MemberTile(
+        member: member,
+        onTap: () => MemberDetailsModal.show(context, member),
         onLongPress: () => MemberDetailsModal.show(context, member),
-        child: Builder(
-          builder: (context) {
-            // Get card tint intensity from config
-            final config = ref.watch(themeControllerProvider);
-            final cardTintIntensity = config.cardTintIntensity;
-            final useGradient = config.useCardGradient;
-
-            // Calculate Background Color based on actual tint
-            final Color cardColor = Theme.of(context).cardColor;
-            final Color primaryColor = Theme.of(context).primaryColor;
-            final Color effectiveBackgroundColor = useGradient
-                ? Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity * 0.75), cardColor)
-                : Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity), cardColor);
-            
-            // Calculate Contrasting Text Color
-            final Color textColor = ContrastHelper.getContrastingText(effectiveBackgroundColor);
-            final Color subTextColor = textColor.withValues(alpha: 0.7);
-
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: useGradient ? cardColor : Color.alphaBlend(primaryColor.withValues(alpha: cardTintIntensity), cardColor),
-                gradient: useGradient ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    primaryColor.withValues(alpha: cardTintIntensity * 0.5),
-                    primaryColor.withValues(alpha: cardTintIntensity),
-                  ],
-                ) : null,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.white,
-                    backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
-                    child: member.avatarUrl == null
-                        ? Text(
-                            member.firstName.isNotEmpty ? member.firstName[0] : '',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Row 1: Name
-                        Text(
-                          '${member.firstName} ${member.lastName}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: textColor,
-                          ),
-                        ),
-                        if (member.societyRole != null && member.societyRole!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              member.societyRole!,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                        if (member.nickname != null && member.nickname!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              member.nickname!,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: subTextColor,
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 4),
-                        // Row 2: HCP | iGolf Membership
-                        Text(
-                          'HC: ${member.handicap.toStringAsFixed(1)} | iGolf: ${member.whsNumber?.isNotEmpty == true ? member.whsNumber : '-'}',
-                          style: TextStyle(
-                            color: subTextColor,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        // Row 4: Status | Fee Status | Since Pill
-                        Row(
-                          children: [
-                            BoxyArtStatusPill(
-                              text: member.status.displayName,
-                              baseColor: member.status.color,
-                            ),
-                            if (member.hasPaid) ...[
-                              const SizedBox(width: 8),
-                              const BoxyArtStatusPill(
-                                text: 'Fee Paid',
-                                baseColor: StatusColors.positive,
-                              ),
-                            ] else ...[
-                             const SizedBox(width: 8),
-                              const BoxyArtStatusPill(
-                                text: 'Fee Due',
-                                baseColor: StatusColors.warning,
-                              ),
-                            ],
-                          ],
-                        ),
-                        if (member.joinedDate != null) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              border: Border.all(color: Colors.black12),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Since ${member.joinedDate!.year}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black.withValues(alpha: 0.6),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right, color: subTextColor),
-                ],
-              ),
-            );
-          },
-        ),
+        showFeeStatus: true,
       ),
     ),
   );

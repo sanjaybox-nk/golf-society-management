@@ -37,6 +37,19 @@ class FirestoreEventsRepository implements EventsRepository {
     return snapshot.docs.map((doc) => _mapEvent(doc)).toList();
   }
 
+  @override
+  Future<GolfEvent?> getEvent(String id) async {
+    try {
+      final doc = await _eventsRef.doc(id).get();
+      if (!doc.exists) return null;
+      return _mapEvent(doc);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error getting event $id: $e');
+      return null;
+    }
+  }
+
   GolfEvent _mapEvent(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     data['id'] = doc.id;

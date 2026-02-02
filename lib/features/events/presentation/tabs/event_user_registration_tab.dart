@@ -33,6 +33,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
               EventSliverAppBar(
                 event: event,
                 title: 'Registration',
+                subtitle: event.title,
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -80,35 +81,43 @@ class EventRegistrationUserTab extends ConsumerWidget {
     
     final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
 
-    // Pre-calculate confirmed counts to drive waitlist logic
-    final confirmedCount = sortedItems.where((item) => item.isConfirmed).length;
-    final confirmedBuggyCount = sortedItems.where((item) => 
-      item.buggyStatusOverride == 'confirmed' || (item.isConfirmed && item.needsBuggy)).length;
+    // 1. Calculate confirmed items for participation display
+    int rollingConfirmedCount = 0;
+    final itemStatuses = <RegistrationItem, RegistrationStatus>{};
+    final buggyStatuses = <RegistrationItem, RegistrationStatus>{};
 
-    // Pre-calculate view models to preserve FCFS order/index
-    final itemViewModels = List.generate(sortedItems.length, (index) {
-        final item = sortedItems[index];
+    for (int i = 0; i < sortedItems.length; i++) {
+        final item = sortedItems[i];
         final status = RegistrationLogic.calculateStatus(
           isGuest: item.isGuest,
           isConfirmed: item.isConfirmed,
           hasPaid: item.hasPaid,
-          indexInList: index,
           capacity: maxParticipants,
-          confirmedCount: confirmedCount,
+          confirmedCount: rollingConfirmedCount,
           isEventClosed: isClosed,
           statusOverride: item.statusOverride,
         );
+        itemStatuses[item] = status;
+        if (status == RegistrationStatus.confirmed) {
+          rollingConfirmedCount++;
+        }
+
+        // Buggy Status
+        final confirmedBuggyCount = sortedItems.take(i).where((prev) => 
+          itemStatuses[prev] == RegistrationStatus.confirmed && prev.needsBuggy).length;
+        
         final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
-        final buggyStatus = RegistrationLogic.calculateBuggyStatus(
+        buggyStatuses[item] = RegistrationLogic.calculateBuggyStatus(
           needsBuggy: item.needsBuggy,
-          isConfirmed: item.isConfirmed,
+          isConfirmed: status == RegistrationStatus.confirmed,
           buggyIndexInQueue: buggyIndex,
           buggyCapacity: buggyCapacity,
           confirmedBuggyCount: confirmedBuggyCount,
-          buggyStatusOverride: item.buggyStatusOverride,
+          buggyStatusOverride: item.isGuest ? item.registration.guestBuggyStatusOverride : item.registration.buggyStatusOverride,
         );
-        
-        // Find Member Profile
+    }
+
+    final itemViewModels = sortedItems.map((item) {
         Member? member;
         try {
           if (!item.isGuest) {
@@ -118,108 +127,66 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
         return _RegistrationViewModel(
           item: item,
-          status: status,
-          buggyStatus: buggyStatus,
-          position: index + 1,
-          memberProfile: member,
-        );
-    });
-
-
-    // Dinner Only Items
-    final dinnerItems = RegistrationLogic.getDinnerOnlyItems(event);
-    final dinnerModels = dinnerItems.map((item) {
-        // Find Member Profile
-        Member? member;
-        try {
-            member = members.firstWhere((m) => m.id == item.registration.memberId);
-        } catch (_) {}
-
-        return _RegistrationViewModel(
-          item: item,
-          status: RegistrationStatus.dinner,
-          buggyStatus: RegistrationStatus.none,
-          position: 0, 
+          status: itemStatuses[item]!,
+          buggyStatus: buggyStatuses[item]!,
+          position: sortedItems.indexOf(item) + 1,
           memberProfile: member,
         );
     }).toList();
 
-    // Withdrawn Items
+
+    // 2. Prepare other sections
+    final dinnerItems = RegistrationLogic.getDinnerOnlyItems(event);
+    final dinnerModels = dinnerItems.map((item) {
+        Member? member;
+        try {
+            member = members.firstWhere((m) => m.id == item.registration.memberId);
+        } catch (_) {}
+        return _RegistrationViewModel(item: item, status: RegistrationStatus.dinner, buggyStatus: RegistrationStatus.none, position: 0, memberProfile: member);
+    }).toList();
+
     final withdrawnItems = RegistrationLogic.getWithdrawnItems(event);
     final withdrawnModels = withdrawnItems.map((item) {
         Member? member;
         try {
             member = members.firstWhere((m) => m.id == item.registration.memberId);
         } catch (_) {}
-
-        return _RegistrationViewModel(
-          item: item,
-          status: RegistrationStatus.withdrawn,
-          buggyStatus: RegistrationStatus.none,
-          position: 0, 
-          memberProfile: member,
-        );
+        return _RegistrationViewModel(item: item, status: RegistrationStatus.withdrawn, buggyStatus: RegistrationStatus.none, position: 0, memberProfile: member);
     }).toList();
 
-    // Calculate Metrics
-    final waitlistCount = sortedItems.where((item) => 
-      RegistrationLogic.calculateStatus(
-        isGuest: item.isGuest, 
-        isConfirmed: item.isConfirmed,
-        hasPaid: item.hasPaid, 
-        indexInList: sortedItems.indexOf(item), 
-        capacity: maxParticipants, 
-        confirmedCount: confirmedCount,
-        isEventClosed: isClosed,
-        statusOverride: item.statusOverride,
-      ) == RegistrationStatus.waitlist
-    ).length;
+    // 3. Stats Logic (Standardized)
+    final stats = RegistrationLogic.getRegistrationStats(event);
     
-    final closingDateStr = event.registrationDeadline != null 
-      ? DateFormat('EEE, d MMM @ HH:mm').format(event.registrationDeadline!)
-      : 'No Deadline';
+    final playingValue = stats.confirmedGuests > 0 
+        ? '${stats.confirmedGolfers} (${stats.confirmedGuests})' 
+        : '${stats.confirmedGolfers}';
 
-    // Buggy Metrics (Confirmed Only)
-    final confirmedBuggies = itemViewModels.where((vm) => vm.buggyStatus == RegistrationStatus.confirmed).length;
-    final buggyMetricStr = '$confirmedBuggies/$buggyCapacity';
-
-    // Dinner Metrics (Golfers + Guests + Dinner Only - Confirmed Only)
-    final dinnerCount = itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && (vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner)).length + 
-                        dinnerModels.where((vm) => vm.status == RegistrationStatus.confirmed).length;
-
-    // Confirmed Metrics (Golfers Only - Exclude Dinner Only)
-    final confirmedMembersCount = itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).length;
-    final confirmedGuestsCount = itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).length;
-    final totalPlaying = confirmedMembersCount + confirmedGuestsCount;
-    final playingValue = confirmedGuestsCount > 0 ? '$totalPlaying ($confirmedGuestsCount)' : '$totalPlaying';
-
-    // For metrics display, we use totalPlaying but for logic we use confirmedCount
-    final reservedCount = itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved).length;
-                           
-    final memberViewModels = itemViewModels.where((vm) => !vm.item.isGuest).toList();
-    final guestViewModels = itemViewModels.where((vm) => vm.item.isGuest).toList();
-
-    final guestCount = guestViewModels.length;
+    final reserveValue = stats.reserveGuests > 0 
+        ? '${stats.reserveGolfers} (${stats.reserveGuests})' 
+        : '${stats.reserveGolfers}';
 
     final int capacity = event.maxParticipants ?? 0;
-    final int availableSlots = capacity - confirmedCount;
+    final int availableSlots = capacity - stats.confirmedGolfers;
     final String availableSlotsStr = capacity > 0 
         ? '${availableSlots > 0 ? availableSlots : 0} spaces'
         : 'Unlimited';
+
+    final closingDateStr = event.registrationDeadline != null 
+      ? DateFormat('EEE, d MMM @ HH:mm').format(event.registrationDeadline!)
+      : 'No Deadline';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // METRICS CARD
         Card(
-          elevation: 1, // Standard elevation
-          color: Theme.of(context).cardColor, // Standard card color (usually white/surface)
+          elevation: 1,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0), // Reduced vertical padding
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               children: [
                 Row(
@@ -227,28 +194,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
                   children: [
                     _buildMetricItem(context, 'Total', '${event.registrations.length}', Icons.group, iconColor: const Color(0xFF2C3E50)),
                     _buildMetricItem(context, 'Playing', playingValue, Icons.check_circle, iconColor: const Color(0xFF27AE60)),
-                    _buildMetricItem(context, 'Reserve', '$reservedCount', Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
+                    _buildMetricItem(context, 'Reserve', reserveValue, Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
+                    _buildMetricItem(context, 'Guests', '${stats.confirmedGuests + stats.reserveGuests}', Icons.person_add, iconColor: Colors.purple),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildMetricItem(context, 'Guests', '$guestCount', Icons.person_add, iconColor: const Color(0xFFE67E22)),
-                    _buildMetricItem(context, 'Buggies', buggyMetricStr, Icons.electric_rickshaw, suffix: 'spaces', iconColor: const Color(0xFF34495E)),
-                    _buildMetricItem(context, 'Dinner', '$dinnerCount', Icons.restaurant, iconColor: const Color(0xFF8E44AD)),
+                    _buildMetricItem(context, 'Buggies', '${stats.buggyCount}/$buggyCapacity', Icons.electric_rickshaw, iconColor: const Color(0xFF2C3E50), suffix: 'spaces'),
+                    _buildMetricItem(context, 'Dinner', '${stats.dinnerCount}', Icons.restaurant, iconColor: Colors.purple),
+                    if (stats.waitlistGolfers > 0)
+                      _buildMetricItem(context, 'Waitlist', '${stats.waitlistGolfers}', Icons.priority_high, iconColor: const Color(0xFFC0392B)),
                   ],
                 ),
-                if (waitlistCount > 0) ...[
-                  const SizedBox(height: 16),
-                  Center(
-                    child: _buildMetricItem(context, 'Waitlist', '$waitlistCount', Icons.hourglass_empty, iconColor: const Color(0xFFC0392B), isHighlight: true),
-                  ),
-                ],
                 
-                const Divider(height: 16), // Compact divider
+                const Divider(height: 24),
                 
-                // Closing Date
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -262,20 +224,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         child: Text('|', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       ),
                     ],
-                    Icon(
-                      isClosed ? Icons.lock : Icons.timer, 
-                      size: 14, 
-                      color: isClosed ? Colors.red : Colors.grey[700]
-                    ),
+                    Icon(isClosed ? Icons.lock : Icons.timer, size: 14, color: isClosed ? Colors.red : Colors.grey),
                     const SizedBox(width: 6),
-                    Text(
-                      isClosed ? 'Registration Closed' : 'Closes: $closingDateStr',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: isClosed ? Colors.red : Colors.grey[800],
-                      ),
-                    ),
+                    Text(isClosed ? 'Registration Closed' : 'Closes: $closingDateStr',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isClosed ? Colors.red : Colors.grey[800])),
                   ],
                 ),
               ],
@@ -284,82 +236,69 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
 
-        BoxyArtSectionTitle(title: 'Playing (${memberViewModels.where((vm) => vm.status == RegistrationStatus.confirmed).length})'),
-        const SizedBox(height: 8),
-        ...memberViewModels.where((vm) => vm.status == RegistrationStatus.confirmed).map((vm) => RegistrationCard(
-          name: vm.item.name,
-          label: 'Member',
-          position: vm.position,
-          status: vm.status,
-          buggyStatus: vm.buggyStatus,
-          attendingBreakfast: vm.item.registration.attendingBreakfast,
-          attendingLunch: vm.item.registration.attendingLunch,
-          attendingDinner: vm.item.registration.attendingDinner,
-          hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-          isGuest: false,
-          memberProfile: vm.memberProfile,
-        )),
-
-        if (memberViewModels.any((vm) => vm.status == RegistrationStatus.reserved)) ...[
-          const SizedBox(height: 24),
-          BoxyArtSectionTitle(title: 'Reserved (${memberViewModels.where((vm) => vm.status == RegistrationStatus.reserved).length})'),
-          const SizedBox(height: 8),
-          ...memberViewModels.where((vm) => vm.status == RegistrationStatus.reserved).map((vm) => RegistrationCard(
+        // PLAYING (Members + Guests)
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed)) ...[
+          BoxyArtSectionTitle(title: 'Playing (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed).map((vm) => RegistrationCard(
             name: vm.item.name,
-            label: 'Member',
+            label: vm.item.isGuest ? 'Guest of ${vm.item.registration.memberName}' : 'Member',
             position: vm.position,
             status: vm.status,
             buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.registration.attendingDinner,
-            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-            isGuest: false,
+            attendingBreakfast: vm.item.isGuest ? vm.item.registration.guestAttendingBreakfast : vm.item.registration.attendingBreakfast,
+            attendingLunch: vm.item.isGuest ? vm.item.registration.guestAttendingLunch : vm.item.registration.attendingLunch,
+            attendingDinner: vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner,
+            hasGuest: !vm.item.isGuest && vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            hasPaid: vm.item.registration.hasPaid,
+            isGuest: vm.item.isGuest,
             memberProfile: vm.memberProfile,
           )),
         ],
 
-        if (memberViewModels.any((vm) => vm.status == RegistrationStatus.waitlist)) ...[
+        // WAITLIST (Members + Guests)
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist)) ...[
           const SizedBox(height: 24),
-          BoxyArtSectionTitle(title: 'Waitlist (${memberViewModels.where((vm) => vm.status == RegistrationStatus.waitlist).length})'),
-          const SizedBox(height: 8),
-          ...memberViewModels.where((vm) => vm.status == RegistrationStatus.waitlist).map((vm) => RegistrationCard(
+          BoxyArtSectionTitle(title: 'Waitlist (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist).map((vm) => RegistrationCard(
             name: vm.item.name,
-            label: 'Member',
+            label: vm.item.isGuest ? 'Guest of ${vm.item.registration.memberName}' : 'Member',
             position: vm.position,
             status: vm.status,
             buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.registration.attendingDinner,
-            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-            isGuest: false,
+            attendingBreakfast: vm.item.isGuest ? vm.item.registration.guestAttendingBreakfast : vm.item.registration.attendingBreakfast,
+            attendingLunch: vm.item.isGuest ? vm.item.registration.guestAttendingLunch : vm.item.registration.attendingLunch,
+            attendingDinner: vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner,
+            hasGuest: !vm.item.isGuest && vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            hasPaid: vm.item.registration.hasPaid,
+            isGuest: vm.item.isGuest,
             memberProfile: vm.memberProfile,
           )),
         ],
 
-        if (guestViewModels.isNotEmpty) ...[
+        // RESERVED (Members + Guests)
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved)) ...[
           const SizedBox(height: 24),
-          BoxyArtSectionTitle(title: 'Guests (${guestViewModels.length})'),
-          const SizedBox(height: 8),
-          ...guestViewModels.map((vm) => RegistrationCard(
+          BoxyArtSectionTitle(title: 'Reserved (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved).map((vm) => RegistrationCard(
             name: vm.item.name,
-            label: 'Guest of ${vm.item.registration.memberName}',
+            label: vm.item.isGuest ? 'Guest of ${vm.item.registration.memberName}' : 'Member',
             position: vm.position,
             status: vm.status,
             buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-            attendingLunch: vm.item.registration.guestAttendingLunch,
-            attendingDinner: vm.item.registration.guestAttendingDinner,
-            isGuest: true,
-            memberProfile: null,
+            attendingBreakfast: vm.item.isGuest ? vm.item.registration.guestAttendingBreakfast : vm.item.registration.attendingBreakfast,
+            attendingLunch: vm.item.isGuest ? vm.item.registration.guestAttendingLunch : vm.item.registration.attendingLunch,
+            attendingDinner: vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner,
+            hasGuest: !vm.item.isGuest && vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            hasPaid: vm.item.registration.hasPaid,
+            isGuest: vm.item.isGuest,
+            memberProfile: vm.memberProfile,
           )),
         ],
 
+        // DINNER ONLY
         if (dinnerModels.isNotEmpty) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
-          const SizedBox(height: 8),
           ...dinnerModels.map((vm) => RegistrationCard(
             name: vm.item.name,
             label: 'Dinner Only',
@@ -368,15 +307,16 @@ class EventRegistrationUserTab extends ConsumerWidget {
             attendingBreakfast: false,
             attendingLunch: false,
             attendingDinner: true,
+            hasPaid: vm.item.registration.hasPaid,
             isDinnerOnly: true,
             memberProfile: vm.memberProfile,
           )),
         ],
 
+        // WITHDRAWN
         if (withdrawnModels.isNotEmpty) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Withdrawn (${withdrawnModels.length})'),
-          const SizedBox(height: 8),
           ...withdrawnModels.map((vm) => RegistrationCard(
             name: vm.item.name,
             label: 'Withdrawn',
@@ -385,6 +325,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             attendingBreakfast: false,
             attendingLunch: false,
             attendingDinner: false,
+            hasPaid: vm.item.registration.hasPaid,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -451,9 +392,9 @@ class EventRegistrationUserTab extends ConsumerWidget {
                   ),
                 ),
               if (suffix != null)
-                const Text(
-                  'spaces',
-                  style: TextStyle(fontSize: 8, color: Colors.white70),
+                Text(
+                  suffix,
+                  style: const TextStyle(fontSize: 8, color: Colors.white70),
                 ),
             ],
           ),

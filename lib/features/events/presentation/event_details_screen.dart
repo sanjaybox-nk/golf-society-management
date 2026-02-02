@@ -41,59 +41,36 @@ class _EventDetailsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildRegistrationSection(context),
-                  const SizedBox(height: 24),
-                  _buildDetailsSection(context),
-                  const SizedBox(height: 24),
-                  _buildCourseDetailsSection(context),
-                  const SizedBox(height: 24),
-                  _buildCostsSection(context),
-                  const SizedBox(height: 24),
-                  _buildDinnerLocationSection(context),
-                  const SizedBox(height: 24),
-                  _buildNotesSection(context),
-                  const SizedBox(height: 24),
-                  _buildGallerySection(context),
-                  const SizedBox(height: 24),
-                  _buildNotificationsSection(context),
-                  const SizedBox(height: 100),
-                ],
-              ),
-            ),
-          ),
-        ],
+      appBar: BoxyArtAppBar(
+        title: event.title,
+        subtitle: '${event.courseName ?? 'TBA'} • ${DateFormat('d MMM y').format(event.date)}',
+        showBack: true,
       ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 90, // Reduced from 120 (25% reduction approx)
-      pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          event.title, 
-          style: const TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          )
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildRegistrationSection(context),
+              const SizedBox(height: 24),
+              _buildDetailsSection(context),
+              const SizedBox(height: 24),
+              _buildCourseDetailsSection(context),
+              const SizedBox(height: 24),
+              _buildCostsSection(context),
+              const SizedBox(height: 24),
+              _buildDinnerLocationSection(context),
+              const SizedBox(height: 24),
+              _buildNotesSection(context),
+              const SizedBox(height: 24),
+              _buildGallerySection(context),
+              const SizedBox(height: 24),
+              _buildNotificationsSection(context),
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
-        background: event.imageUrl != null 
-          ? Image.network(event.imageUrl!, fit: BoxFit.cover)
-          : Container(
-              color: Theme.of(context).primaryColor,
-              // Icon removed as requested
-            ),
       ),
     );
   }

@@ -7,6 +7,9 @@ abstract class EventsRepository {
   /// Single fetch of events
   Future<List<GolfEvent>> getEvents({String? seasonId, EventStatus? status});
 
+  /// Get a single event by ID
+  Future<GolfEvent?> getEvent(String id);
+
   /// Create a new event
   Future<void> addEvent(GolfEvent event);
 

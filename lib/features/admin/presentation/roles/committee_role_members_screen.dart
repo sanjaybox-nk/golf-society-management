@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
+
+import '../../../../core/theme/contrast_helper.dart';
 
 class CommitteeRoleMembersScreen extends ConsumerStatefulWidget {
   final String role; // e.g. "Captain"
@@ -38,12 +41,21 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F2F5),
       appBar: BoxyArtAppBar(
         title: widget.role,
-        showBack: true,
+        isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.pop(),
+            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+          ),
+        ),
       ),
       body: Column(
         children: [

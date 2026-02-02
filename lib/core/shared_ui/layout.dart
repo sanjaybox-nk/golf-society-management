@@ -19,6 +19,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final double? leadingWidth;
   final Widget? topRow;
+  final String? subtitle;
 
   const BoxyArtAppBar({
     super.key,
@@ -35,109 +36,95 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.leadingWidth,
     this.topRow,
+    this.subtitle,
   });
 
-  static const double largeHeight = 128.0;
+  static const double largeHeight = 100.0;
 
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
     final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
-    if (isLarge && topRow != null) {
+    if (isLarge) {
       return AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
         toolbarHeight: largeHeight,
-        titleSpacing: 0,
-        title: Padding(
-          padding: const EdgeInsets.only(top: 10), // Space for status bar
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Row 1: Top secondary actions
-              SizedBox(
-                height: 32,
-                child: topRow!,
-              ),
-              const SizedBox(height: 8),
-              // Row 2: Primary actions aligned horizontally
-              Row(
-                children: [
-                  // Leading area
-                  SizedBox(
-                    width: 100,
-                    child: leading ?? (showLeading && showBack 
-                      ? Align(
-                          alignment: Alignment.centerLeft,
-                          child: BoxyArtCircularIconBtn(
-                            icon: Icons.arrow_back,
-                            onTap: onBack ?? () => Navigator.maybePop(context),
-                            backgroundColor: Colors.white24,
-                            iconColor: Colors.white,
-                          ),
-                        )
-                      : const SizedBox.shrink()),
-                  ),
-                  // Title area
-                  Expanded(
-                    child: Text(
-                      title,
-                      textAlign: centerTitle ?? false ? TextAlign.center : TextAlign.left,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: onPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-                  // Actions area
-                  SizedBox(
-                    width: 100,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: actions ?? [],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return AppBar(
-      backgroundColor: isLarge ? primaryColor : Colors.transparent,
-      elevation: 0,
-      centerTitle: centerTitle ?? false,
-      leadingWidth: leadingWidth,
-      toolbarHeight: isLarge ? largeHeight : null,
-      title: Padding(
-        padding: isLarge ? const EdgeInsets.only(top: 10) : EdgeInsets.zero,
-        child: Column(
+        leadingWidth: leadingWidth,
+        centerTitle: true,
+        title: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: centerTitle == true ? CrossAxisAlignment.center : CrossAxisAlignment.start,
           children: [
-            if (topRow != null && isLarge) ...[
-              topRow!,
-              const SizedBox(height: 4),
+            if (topRow != null) ...[
+              SizedBox(height: 32, child: topRow!),
+              const SizedBox(height: 8),
             ],
             Text(
               title,
-              style: isLarge 
-                ? Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: onPrimary,
-                    fontWeight: FontWeight.bold,
-                  )
-                : Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: onPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
             ),
+            if (subtitle != null)
+              Text(
+                subtitle!,
+                style: TextStyle(
+                  color: onPrimary.withValues(alpha: 0.8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
           ],
         ),
+        leading: leading ?? (showLeading 
+          ? Center(
+              child: BoxyArtCircularIconBtn(
+                icon: showBack ? Icons.arrow_back : Icons.menu,
+                onTap: showBack 
+                    ? (onBack ?? () => Navigator.maybePop(context)) 
+                    : onMenuPressed,
+                backgroundColor: Colors.white24,
+                iconColor: onPrimary,
+              ),
+            )
+          : null),
+        actions: actions ?? [],
+        bottom: bottom,
+      );
+    }
+    
+    // Standard size - ALSO Orange/Primary now
+    return AppBar(
+      backgroundColor: primaryColor,
+      elevation: 0,
+      centerTitle: centerTitle ?? false,
+      leadingWidth: leadingWidth,
+      title: Column(
+         mainAxisSize: MainAxisSize.min,
+         children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: onPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24, // Consistent size
+                  ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle!,
+                style: TextStyle(
+                  color: onPrimary.withValues(alpha: 0.8),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+         ],
       ),
       leading: leading ?? (showLeading
           ? Padding(
@@ -147,8 +134,8 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onTap: showBack 
                     ? (onBack ?? () => Navigator.maybePop(context)) 
                     : onMenuPressed,
-                backgroundColor: isLarge ? Colors.white24 : null,
-                iconColor: isLarge ? Colors.white : null,
+                backgroundColor: Colors.white24,
+                iconColor: onPrimary,
               ),
             )
           : null),
@@ -380,17 +367,18 @@ class ProfileInfoRow extends StatelessWidget {
                 children: [
                   Text(
                     label.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Colors.black45,
                       letterSpacing: 0.5,
+                      fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
@@ -430,6 +418,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Colors.grey,
           letterSpacing: 1.2,
+          fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
         ),
       ),
     );

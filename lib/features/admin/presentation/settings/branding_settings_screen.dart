@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/core/theme/contrast_helper.dart';
@@ -15,10 +16,22 @@ class BrandingSettingsScreen extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
     
-    final currentColor = Color(config.primaryColor);
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+    final currentColor = primaryColor;
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Society Branding', showBack: true),
+      appBar: BoxyArtAppBar(
+        title: 'Society Branding',
+        isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.pop(),
+            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

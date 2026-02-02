@@ -15,7 +15,18 @@ class AdminSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: const BoxyArtAppBar(title: 'Settings', showBack: true, isLarge: true),
+      appBar: BoxyArtAppBar(
+        title: 'Settings',
+        subtitle: 'App-wide configuration',
+        isLarge: true,
+        leading: IconButton(
+          icon: const Icon(Icons.home, color: Colors.white, size: 28),
+          onPressed: () => context.go('/home'),
+        ),
+        actions: const [
+          SizedBox(width: 8),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         children: [
@@ -32,6 +43,18 @@ class AdminSettingsScreen extends ConsumerWidget {
                   subtitle: 'View available administrative roles',
                   iconColor: Colors.purple,
                   onTap: () => context.push('/admin/settings/roles'),
+                ),
+                _SettingsTile(
+                  icon: Icons.history_outlined,
+                  title: 'Audit Logs',
+                  subtitle: 'View recent administrative changes',
+                  iconColor: Colors.blueGrey,
+                  onTap: () {
+                    // Placeholder for now
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Audit Logs are coming soon!'))
+                    );
+                  },
                 ),
               ],
             ),
@@ -52,6 +75,13 @@ class AdminSettingsScreen extends ConsumerWidget {
                   subtitle: 'App basics and display settings',
                   iconColor: Colors.grey,
                   onTap: () => context.push('/admin/settings/general'),
+                ),
+                _SettingsTile(
+                  icon: Icons.layers_outlined,
+                  title: 'Manage Seasons',
+                  subtitle: 'Archive and setup event seasons',
+                  iconColor: Colors.teal,
+                  onTap: () => context.push('/admin/settings/seasons'),
                 ),
                 _SettingsTile(
                   icon: Icons.palette_outlined,
@@ -129,8 +159,8 @@ class AdminSettingsScreen extends ConsumerWidget {
       title: 'Seed Members?',
       message: 'This will add 60 dummy members to your database. Continue?',
       confirmText: 'Seed',
-      onCancel: () => Navigator.of(context).pop(false),
-      onConfirm: () => Navigator.of(context).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
     );
     
     if (confirm != true) return;
@@ -178,8 +208,8 @@ class AdminSettingsScreen extends ConsumerWidget {
       title: 'DANGER: Clear Database?',
       message: 'This will PERMANENTLY delete all members and all event registrations. There is no undo. Continue?',
       confirmText: 'DESTRUCTIVE DELETE',
-      onCancel: () => Navigator.of(context).pop(false),
-      onConfirm: () => Navigator.of(context).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
     );
     
     if (confirm != true) return;

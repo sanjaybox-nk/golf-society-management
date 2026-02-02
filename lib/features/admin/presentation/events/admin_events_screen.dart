@@ -18,49 +18,39 @@ class AdminEventsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: BoxyArtAppBar(
         title: 'Manage Events',
-        showBack: true,
         isLarge: true,
+        leading: IconButton(
+          icon: const Icon(Icons.home, color: Colors.white, size: 28),
+          onPressed: () => context.go('/home'),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.auto_fix_high),
+            icon: const Icon(Icons.auto_fix_high, color: Colors.white, size: 24),
             tooltip: 'Seed Test Event',
             onPressed: () => _seedTestEvent(context, ref),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/admin/events/new'),
         child: const Icon(Icons.add),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BoxyArtSectionTitle(
-            title: 'Event Management',
-            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
-          ),
-          Expanded(
-            child: eventsAsync.when(
-              data: (events) {
-                if (events.isEmpty) {
-                  return const Center(child: Text('No events found.'));
-                }
-                // Sort by date descending (newest first) for admin
-                final sortedEvents = [...events]
-                  ..sort((a, b) => b.date.compareTo(a.date));
+      body: eventsAsync.when(
+        data: (events) {
+          if (events.isEmpty) {
+            return const Center(child: Text('No events found.'));
+          }
+          // Sort by date descending (newest first) for admin
+          final sortedEvents = [...events]
+            ..sort((a, b) => b.date.compareTo(a.date));
 
-                return ListView.separated(
+          return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            itemCount: sortedEvents.length + 1,
-            separatorBuilder: (context, index) => SizedBox(height: index == 0 ? 12 : 16),
+            itemCount: sortedEvents.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
-              if (index == 0) {
-                return const BoxyArtSectionTitle(
-                  title: 'Manage Events',
-                  padding: EdgeInsets.zero,
-                );
-              }
-              final event = sortedEvents[index - 1];
+              final event = sortedEvents[index];
               return Dismissible(
                 key: Key(event.id),
                 direction: DismissDirection.endToStart,
@@ -85,7 +75,7 @@ class AdminEventsScreen extends ConsumerWidget {
                         'Are you sure you want to delete "${event.title}"?',
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
+                        onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
                         child: const Text(
                           'Cancel',
                           style: TextStyle(
@@ -95,7 +85,7 @@ class AdminEventsScreen extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
+                        onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
                         child: const Text(
                           'Delete',
                           style: TextStyle(
@@ -120,12 +110,17 @@ class AdminEventsScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      _DateBadge(date: event.date),
+                      BoxyArtDateBadge(date: event.date),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            GestureDetector(
+                               onTap: () => _toggleEventStatus(context, ref, event),
+                               child: _StatusChip(status: event.status),
+                            ),
+                            const SizedBox(height: 4),
                             Text(
                               event.title,
                               style: const TextStyle(
@@ -151,7 +146,7 @@ class AdminEventsScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          _StatusChip(status: event.status),
+// Status chip moved to main column
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -165,16 +160,7 @@ class AdminEventsScreen extends ConsumerWidget {
                                     extra: event,
                                   ),
                               ),
-                              if (event.status == EventStatus.draft) ...[
-                                const SizedBox(width: 12),
-                                IconButton(
-                                  icon: const Icon(Icons.publish, color: Colors.green, size: 20),
-                                  tooltip: 'Publish',
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () => _publishEvent(context, ref, event),
-                                ),
-                              ],
+// Publish button removed (moved to Status Chip)
                             ],
                           ),
                         ],
@@ -188,11 +174,8 @@ class AdminEventsScreen extends ConsumerWidget {
             },
           );
         },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
-          ),
-        ],
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
   }
@@ -258,37 +241,50 @@ class AdminEventsScreen extends ConsumerWidget {
     }
   }
 
-  void _publishEvent(BuildContext context, WidgetRef ref, GolfEvent event) async {
+  void _toggleEventStatus(BuildContext context, WidgetRef ref, GolfEvent event) async {
+    final isDraft = event.status == EventStatus.draft;
+    final action = isDraft ? 'Publish' : 'Unpublish';
+    final message = isDraft
+        ? 'This will make "${event.title}" visible to all members. Continue?'
+        : 'This will hide "${event.title}" from members. Continue?';
+        
     final confirm = await showBoxyArtDialog<bool>(
       context: context,
-      title: 'Publish Event?',
-      message: 'This will make "${event.title}" visible to all members. Continue?',
+      title: '$action Event?',
+      message: message,
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
           child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Publish', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          child: Text(
+            action, 
+            style: TextStyle(
+              color: isDraft ? Colors.green : Colors.orange, 
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );
 
     if (confirm == true) {
       try {
+        final newStatus = isDraft ? EventStatus.published : EventStatus.draft;
         await ref.read(eventsRepositoryProvider).updateEvent(
-          event.copyWith(status: EventStatus.published),
+          event.copyWith(status: newStatus),
         );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Published "${event.title}" 🚀')),
+            SnackBar(content: Text('Event ${newStatus.name} 🚀')),
           );
         }
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error publishing: $e')),
+            SnackBar(content: Text('Error updating status: $e')),
           );
         }
       }
@@ -326,35 +322,3 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-class _DateBadge extends StatelessWidget {
-  final DateTime date;
-  const _DateBadge({required this.date});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 50,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            DateFormat('MMM').format(date).toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
-          Text(
-            DateFormat('d').format(date),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-}

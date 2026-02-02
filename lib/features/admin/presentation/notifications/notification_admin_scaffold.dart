@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../widgets/admin_bottom_nav_bar.dart';
 import 'compose_notification_screen.dart';
 import 'audience_manager_screen.dart';
@@ -23,6 +25,17 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: BoxyArtAppBar(
+        title: 'Communications',
+        isLarge: true,
+        leading: IconButton(
+          icon: const Icon(Icons.home, color: Colors.white, size: 28),
+          onPressed: () => context.go('/home'),
+        ),
+        actions: const [
+          SizedBox(width: 8),
+        ],
+      ),
       body: _tabs[_currentIndex],
       bottomNavigationBar: AdminBottomNavBar(
         currentIndex: _currentIndex,

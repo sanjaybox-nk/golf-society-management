@@ -8,13 +8,16 @@ The application now features a fully functional **Admin Console**, so you no lon
 3.  You will see dashboards for **Events**, **Members**, and **Communications**.
 
 ## 2. Managing Members
-You can now add members directly from the app, including **Profile Pictures**:
+You can now manage members via the **Member List**, including **Profile Pictures**, **Roles**, and **Payment Status**:
 1.  Go to **Admin > Members**.
-2.  Tap the **Add Member** button (top right).
-3.  Fill in the details (Name, Email, Handicap, etc.).
-4.  **Upload Photo**: Tap the camera icon to pick an image from your gallery.
-5.  Tap **Save Member**.
-    - *Note*: This automatically handles Firestore creation & Image Storage.
+2.  **Add Member**: Tap the **+** (plus) icon.
+3.  **Edit Member**: Tap any member to see their details, then tap the **Edit** (pencil) icon.
+4.  **Smarter Inputs**: 
+    - **Country Code**: Searchable autocomplete with **Flag Emojis** for easy identification.
+    - **Date Picker**: Standardized pill-style date entry for membership start dates.
+    - **Society Roles**: Picker-based selection for committee positions (President, Captain, etc.).
+5.  **Photo Upload**: Tap the camera icon on the profile card to pick an image from your gallery.
+6.  **Quick Toggles**: Tap the **Status** (Active/Inactive) or **Fee** (Due/Paid) badges directly from the list to update without opening the full profile.
 
 ## 3. Managing Events
 1.  Go to **Admin > Events**.

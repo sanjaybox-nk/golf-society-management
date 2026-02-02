@@ -10,7 +10,7 @@ final currentUserProvider = Provider<Member>((ref) {
     email: 'sanjay.patel@example.com',
     handicap: 14.2,
     whsNumber: '1234567890',
-    role: MemberRole.member,
+    role: MemberRole.superAdmin,
     hasPaid: true,
     bio: 'Golf enthusiast looking to break 80 this season.',
     // address: '123 Fairway Lane',

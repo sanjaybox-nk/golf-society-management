@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/season.dart';
 import '../../../events/presentation/events_provider.dart';
+
+import '../../../../core/theme/contrast_helper.dart';
 
 class AdminSeasonsScreen extends ConsumerWidget {
   const AdminSeasonsScreen({super.key});
@@ -10,9 +13,21 @@ class AdminSeasonsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final seasonsAsync = ref.watch(seasonsProvider);
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Manage Seasons', showBack: true, isLarge: true),
+      appBar: BoxyArtAppBar(
+        title: 'Manage Seasons', 
+        isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.pop(),
+            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddSeasonDialog(context, ref),
         child: const Icon(Icons.add),
@@ -69,7 +84,7 @@ class AdminSeasonsScreen extends ConsumerWidget {
         );
 
         await ref.read(seasonsRepositoryProvider).addSeason(newSeason);
-        if (context.mounted) Navigator.of(context).pop();
+        if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
       },
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -187,7 +202,7 @@ class _SeasonCard extends ConsumerWidget {
           'playerOfTheYear': 'TBD',
           'majorWinners': [],
         });
-        if (context.mounted) Navigator.of(context).pop();
+        if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
       },
       confirmText: 'Close & Archive',
     );

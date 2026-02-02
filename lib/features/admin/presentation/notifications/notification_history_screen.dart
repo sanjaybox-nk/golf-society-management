@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
@@ -23,7 +22,6 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: const BoxyArtAppBar(title: 'History', showBack: false),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -283,7 +281,7 @@ class _HistoryCard extends StatelessWidget {
         ],
       ),
       confirmText: 'Type to Send Again', // Future feature maybe?
-      onConfirm: () => Navigator.pop(context), 
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(), 
     );
   }
   

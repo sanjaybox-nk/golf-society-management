@@ -33,11 +33,13 @@ The system automatically calculates a participant's status based on the followin
 4.  **Capacity Check**: If the event is full (Confirmed Count >= Capacity), the status becomes **Waitlist**.
 5.  **Withdrawn**: If the user withdraws, they become **Withdrawn**.
 
-### Guest Specific Rules
-Guests have additional constraints to ensure fair access for members:
-1.  **Held in Reserve**: Guests will *always* default to **Reserved** status while the event registration is still **Open**, even if there is plenty of capacity. This guarantees that spots are kept available for members until the registration deadline passes.
-2.  **Independent Status**: A Guest's status is independent of their Host Member. If a Member is manually confirmed, the Guest remains **Reserved** until the deadline or until specifically confirmed by an Admin.
-3.  **Deadline Allocation**: Once the event hits its Registration Deadline (Event Closed), guests will be automatically allocated to any remaining spots based on FCFS.
+### Strict Promotion Rules
+To ensure groupings are accurate and stable:
+1.  **Member Auto-Promotion**: Unconfirmed members remain in **Reserved** status until the **Registration Deadline passes**. Once the deadline is reached, they are automatically promoted to **Confirmed** (if space available).
+2.  **Guest Auto-Promotion**: Guests remain in **Reserved** status until the **Registration Deadline passes**. Once the deadline is reached, they are automatically promoted to **Confirmed** (if space available after members have been processed).
+3.  **Manual Promotion**: Admins can use **Status Overrides** to promote a member or guest to **Confirmed** at any time.
+
+Once a player is **Confirmed**, they are eligible for inclusion in the Tee Sheet.
 
 ---
 

@@ -17,8 +17,9 @@ import '../../../../core/theme/theme_controller.dart';
 
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event; // Null = New Event
+  final String? eventId; // Used if event object is missing (e.g. deep link)
 
-  const EventFormScreen({super.key, this.event});
+  const EventFormScreen({super.key, this.event, this.eventId});
 
   @override
   ConsumerState<EventFormScreen> createState() => _EventFormScreenState();
@@ -46,6 +47,7 @@ class NoteItemController {
 
 class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
   
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -65,15 +67,16 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late TextEditingController _buggyCostController;
   late TextEditingController _intervalController;
   
-  late List<NoteItemController> _notesControllers;
-  late List<TextEditingController> _facilitiesControllers;
+  late List<NoteItemController> _notesControllers = [];
+  late List<TextEditingController> _facilitiesControllers = [];
   
-  late DateTime _selectedDate;
-  late TimeOfDay _selectedTime;
-  late TimeOfDay _registrationTime;
+  // Default values
+  late DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  late TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+  late TimeOfDay _registrationTime = const TimeOfDay(hour: 8, minute: 30);
   
-  late DateTime? _deadlineDate;
-  late TimeOfDay? _deadlineTime;
+  DateTime? _deadlineDate;
+  TimeOfDay? _deadlineTime;
   
   bool _hasBreakfast = false;
   bool _hasLunch = false;
@@ -81,47 +84,109 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   bool _showRegistrationButton = true;
   bool _isSaving = false;
   String? _selectedSeasonId;
+  
+  // Track the event being edited (either passed or fetched)
+  GolfEvent? _editingEvent;
 
   @override
   void initState() {
     super.initState();
-    final e = widget.event;
-    _titleController = TextEditingController(text: e?.title ?? '');
-    _descriptionController = TextEditingController(text: e?.description ?? '');
+    if (widget.event != null) {
+      _populateForm(widget.event!);
+    } else if (widget.eventId != null && widget.eventId != 'new') {
+      _isLoading = true;
+      // Fetch event after build
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchEvent());
+       // Initialize with defaults temporarily to avoid late initialization errors
+       _initializeDefaults();
+    } else {
+      _initializeDefaults();
+    }
+  }
+
+  void _initializeDefaults() {
+    _titleController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _courseNameController = TextEditingController();
+    _courseDetailsController = TextEditingController();
+    _dressCodeController = TextEditingController();
+    _buggiesController = TextEditingController();
+    _maxParticipantsController = TextEditingController();
+    _memberCostController = TextEditingController();
+    _guestCostController = TextEditingController();
+    _breakfastCostController = TextEditingController();
+    _lunchCostController = TextEditingController();
+    _dinnerCostController = TextEditingController();
+    _dinnerLocationController = TextEditingController();
+    _buggyCostController = TextEditingController();
+    _intervalController = TextEditingController(text: '10');
+    _facilitiesControllers = [TextEditingController()];
     
-    _courseNameController = TextEditingController(text: e?.courseName ?? '');
-    _courseDetailsController = TextEditingController(text: e?.courseDetails ?? '');
-    _dressCodeController = TextEditingController(text: e?.dressCode ?? '');
-    _buggiesController = TextEditingController(text: e?.availableBuggies?.toString() ?? '');
-    _maxParticipantsController = TextEditingController(text: e?.maxParticipants?.toString() ?? '');
-    _memberCostController = TextEditingController(text: e?.memberCost?.toString() ?? '');
-    _guestCostController = TextEditingController(text: e?.guestCost?.toString() ?? '');
-    _breakfastCostController = TextEditingController(text: e?.breakfastCost?.toString() ?? '');
-    _lunchCostController = TextEditingController(text: e?.lunchCost?.toString() ?? '');
-    _dinnerCostController = TextEditingController(text: e?.dinnerCost?.toString() ?? '');
-    _dinnerLocationController = TextEditingController(text: e?.dinnerLocation ?? '');
-    _buggyCostController = TextEditingController(text: e?.buggyCost?.toString() ?? '');
-    _intervalController = TextEditingController(text: e?.teeOffInterval.toString() ?? '10');
+    // Set default selected season if available in provider (handled in build via listen)
+  }
+
+  Future<void> _fetchEvent() async {
+    try {
+      final repo = ref.read(eventsRepositoryProvider);
+      final event = await repo.getEvent(widget.eventId!);
+      if (mounted) {
+        if (event != null) {
+          setState(() {
+            _populateForm(event);
+            _isLoading = false;
+          });
+        } else {
+          // Event not found
+           setState(() => _isLoading = false);
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event not found')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading event: $e')));
+      }
+    }
+  }
+
+  void _populateForm(GolfEvent e) {
+    _editingEvent = e;
+    _titleController = TextEditingController(text: e.title);
+    _descriptionController = TextEditingController(text: e.description);
     
-    _notesControllers = (e?.notes ?? []).map((n) => NoteItemController(
+    _courseNameController = TextEditingController(text: e.courseName);
+    _courseDetailsController = TextEditingController(text: e.courseDetails);
+    _dressCodeController = TextEditingController(text: e.dressCode);
+    _buggiesController = TextEditingController(text: e.availableBuggies?.toString() ?? '');
+    _maxParticipantsController = TextEditingController(text: e.maxParticipants?.toString() ?? '');
+    _memberCostController = TextEditingController(text: e.memberCost?.toString() ?? '');
+    _guestCostController = TextEditingController(text: e.guestCost?.toString() ?? '');
+    _breakfastCostController = TextEditingController(text: e.breakfastCost?.toString() ?? '');
+    _lunchCostController = TextEditingController(text: e.lunchCost?.toString() ?? '');
+    _dinnerCostController = TextEditingController(text: e.dinnerCost?.toString() ?? '');
+    _dinnerLocationController = TextEditingController(text: e.dinnerLocation);
+    _buggyCostController = TextEditingController(text: e.buggyCost?.toString() ?? '');
+    _intervalController = TextEditingController(text: e.teeOffInterval.toString());
+    
+    _notesControllers = (e.notes).map((n) => NoteItemController(
       title: n.title,
       content: n.content,
       imageUrl: n.imageUrl,
     )).toList();
     
-    _facilitiesControllers = (e?.facilities ?? []).map((f) => TextEditingController(text: f)).toList();
+    _facilitiesControllers = (e.facilities).map((f) => TextEditingController(text: f)).toList();
     if (_facilitiesControllers.isEmpty) _facilitiesControllers.add(TextEditingController());
 
-    _selectedDate = e?.date ?? DateTime.now().add(const Duration(days: 1));
-    _selectedTime = TimeOfDay.fromDateTime(e?.teeOffTime ?? DateTime.now().add(const Duration(hours: 9)));
-    _registrationTime = TimeOfDay.fromDateTime(e?.regTime ?? DateTime.now().add(const Duration(hours: 8, minutes: 30)));
-    _deadlineDate = e?.registrationDeadline;
-    _deadlineTime = e?.registrationDeadline != null ? TimeOfDay.fromDateTime(e!.registrationDeadline!) : null;
-    _hasBreakfast = e?.hasBreakfast ?? false;
-    _hasLunch = e?.hasLunch ?? false;
-    _hasDinner = e?.hasDinner ?? true;
-    _showRegistrationButton = e?.showRegistrationButton ?? true;
-    _selectedSeasonId = e?.seasonId;
+    _selectedDate = e.date;
+    _selectedTime = TimeOfDay.fromDateTime(e.teeOffTime ?? DateTime.now());
+    _registrationTime = TimeOfDay.fromDateTime(e.regTime ?? DateTime.now());
+    _deadlineDate = e.registrationDeadline;
+    _deadlineTime = e.registrationDeadline != null ? TimeOfDay.fromDateTime(e.registrationDeadline!) : null;
+    _hasBreakfast = e.hasBreakfast;
+    _hasLunch = e.hasLunch;
+    _hasDinner = e.hasDinner;
+    _showRegistrationButton = e.showRegistrationButton;
+    _selectedSeasonId = e.seasonId;
   }
 
   @override
@@ -156,6 +221,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: child!,
+          ),
+        );
+      },
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -166,6 +239,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: isTeeOff ? _selectedTime : _registrationTime,
+      builder: (context, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: child!,
+          ),
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -184,6 +265,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       initialDate: _deadlineDate ?? _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: child!,
+          ),
+        );
+      },
     );
     if (pickedDate != null) {
       if (!mounted) return;
@@ -226,14 +315,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     try {
       final repo = ref.read(eventsRepositoryProvider);
       final newEvent = await _constructEventFromForm();
+      final isEditing = _editingEvent != null || widget.event != null;
 
-      if (widget.event == null) {
-        await repo.addEvent(newEvent);
-      } else {
-        await repo.updateEvent(newEvent);
-      }
-
-      if (widget.event == null) {
+      if (!isEditing) {
         await repo.addEvent(newEvent);
       } else {
         await repo.updateEvent(newEvent);
@@ -275,26 +359,27 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       }
     }
 
-    final isEditing = widget.event != null;
+    final isEditing = _editingEvent != null || widget.event != null;
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showPreview,
+        backgroundColor: Theme.of(context).primaryColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: const Icon(Icons.visibility, color: Colors.white),
+      ),
       appBar: BoxyArtAppBar(
         title: isEditing ? 'Edit Event' : 'New Event',
         centerTitle: true,
         isLarge: true,
-        topRow: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.visibility, size: 20, color: Colors.white),
-              tooltip: 'Preview',
-              onPressed: _showPreview,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-          ],
-        ),
+        leadingWidth: 100,
         leading: TextButton(
           onPressed: () => context.go('/admin/events'),
           style: TextButton.styleFrom(
@@ -765,7 +850,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     }
 
     return GolfEvent(
-      id: widget.event?.id ?? '', 
+      id: _editingEvent?.id ?? widget.event?.id ?? '', 
       title: _titleController.text.trim(),
       seasonId: finalSeasonId,
       date: _selectedDate,

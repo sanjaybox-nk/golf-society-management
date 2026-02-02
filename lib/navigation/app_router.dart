@@ -14,12 +14,12 @@ import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/events/admin_events_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
 import '../features/admin/presentation/members/admin_members_screen.dart';
-import '../features/admin/presentation/members/member_form_screen.dart';
 import '../features/admin/presentation/settings/admin_settings_screen.dart';
 import '../features/admin/presentation/roles/roles_settings_screen.dart';
 import '../features/admin/presentation/settings/branding_settings_screen.dart';
 import '../features/admin/presentation/settings/general_settings_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
+import '../features/admin/presentation/settings/grouping_strategy_selection_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
@@ -31,6 +31,8 @@ import '../features/admin/presentation/events/event_registrations_admin_screen.d
 import '../features/admin/presentation/events/event_admin_shell.dart';
 import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
+import '../features/admin/presentation/events/event_admin_reports_screen.dart';
+import '../features/admin/presentation/admin_shell.dart';
 
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';
@@ -121,14 +123,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-          GoRoute(
-            path: '/admin',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: AdminDashboardScreen(),
-            ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AdminShell(navigationShell: navigationShell);
+        },
+        branches: [
+          // 1. Dashboard
+          StatefulShellBranch(
             routes: [
               GoRoute(
-                path: 'events',
+                path: '/admin',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: AdminDashboardScreen(),
+                ),
+              ),
+            ],
+          ),
+          // 2. Events
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/events',
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: AdminEventsScreen(),
                 ),
@@ -138,115 +153,143 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const EventFormScreen(),
                   ),
                   ShellRoute(
-                    builder: (context, state, child) {
-                      return EventAdminShell(child: child);
+                    pageBuilder: (context, state, child) {
+                      return NoTransitionPage(
+                        child: EventAdminShell(child: child),
+                      );
                     },
                     routes: [
                       GoRoute(
                         path: 'manage/:id/event',
-                        builder: (context, state) {
+                        pageBuilder: (context, state) {
                           final event = state.extra as GolfEvent?;
-                          return EventFormScreen(event: event);
+                          final eventId = state.pathParameters['id'];
+                          return NoTransitionPage(
+                            child: EventFormScreen(event: event, eventId: eventId),
+                          );
                         },
                       ),
                       GoRoute(
                         path: 'manage/:id/registrations',
-                        builder: (context, state) {
+                        pageBuilder: (context, state) {
                           final id = state.pathParameters['id']!;
-                          return EventRegistrationsAdminScreen(eventId: id);
+                          return NoTransitionPage(
+                            child: EventRegistrationsAdminScreen(eventId: id),
+                          );
                         },
                       ),
                       GoRoute(
                         path: 'manage/:id/grouping',
-                        builder: (context, state) {
+                        pageBuilder: (context, state) {
                           final id = state.pathParameters['id']!;
-                          return EventAdminGroupingScreen(eventId: id);
+                          return NoTransitionPage(
+                            child: EventAdminGroupingScreen(eventId: id),
+                          );
                         },
                       ),
                       GoRoute(
                         path: 'manage/:id/scores',
-                        builder: (context, state) {
+                        pageBuilder: (context, state) {
                           final id = state.pathParameters['id']!;
-                          return EventAdminScoresScreen(eventId: id);
+                          return NoTransitionPage(
+                            child: EventAdminScoresScreen(eventId: id),
+                          );
+                        },
+                      ),
+                      GoRoute(
+                        path: 'manage/:id/reports',
+                        pageBuilder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return NoTransitionPage(
+                            child: EventAdminReportsScreen(eventId: id),
+                          );
                         },
                       ),
                     ],
                   ),
                 ],
               ),
-          GoRoute(
-            path: 'members',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: AdminMembersScreen(),
-            ),
+            ],
+          ),
+          // 3. Members
+          StatefulShellBranch(
             routes: [
               GoRoute(
-                path: 'new',
-                builder: (context, state) => const MemberFormScreen(),
-              ),
-              GoRoute(
-                path: 'edit/:id',
-                builder: (context, state) {
-                   final member = state.extra as Member;
-                   return MemberFormScreen(member: member);
-                },
+                path: '/admin/members',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: AdminMembersScreen(),
+                ),
               ),
             ],
           ),
-          GoRoute(
-            path: 'settings',
-            builder: (context, state) => const AdminSettingsScreen(),
+          // 4. Comms
+          StatefulShellBranch(
             routes: [
               GoRoute(
-                path: 'branding',
-                builder: (context, state) => const BrandingSettingsScreen(),
+                path: '/admin/communications',
+                builder: (context, state) => const NotificationAdminScaffold(),
               ),
+            ],
+          ),
+          // 5. Settings
+          StatefulShellBranch(
+            routes: [
               GoRoute(
-                path: 'general',
-                builder: (context, state) => const GeneralSettingsScreen(),
+                path: '/admin/settings',
+                builder: (context, state) => const AdminSettingsScreen(),
                 routes: [
                   GoRoute(
-                    path: 'currency',
-                    builder: (context, state) => const CurrencySelectionScreen(),
+                    path: 'branding',
+                    builder: (context, state) => const BrandingSettingsScreen(),
                   ),
-                ],
-              ),
-              GoRoute(
-                path: 'roles',
-                builder: (context, state) => const RolesSettingsScreen(),
-                routes: [
                   GoRoute(
-                    path: 'members/:roleIndex',
-                    builder: (context, state) {
-                      final roleIndex = int.parse(state.pathParameters['roleIndex']!);
-                      final role = MemberRole.values[roleIndex];
-                      return RoleMembersScreen(role: role);
-                    },
+                    path: 'general',
+                    builder: (context, state) => const GeneralSettingsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'currency',
+                        builder: (context, state) => const CurrencySelectionScreen(),
+                      ),
+                      GoRoute(
+                        path: 'grouping-strategy',
+                        builder: (context, state) => const GroupingStrategySelectionScreen(),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              GoRoute(
-                path: 'committee-roles',
-                builder: (context, state) => const CommitteeRolesScreen(),
-                routes: [
                   GoRoute(
-                    path: 'members/:roleName',
-                    builder: (context, state) {
-                      final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
-                      return CommitteeRoleMembersScreen(role: roleName);
-                    },
+                    path: 'roles',
+                    builder: (context, state) => const RolesSettingsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'members/:roleIndex',
+                        builder: (context, state) {
+                          final roleIndex = int.parse(state.pathParameters['roleIndex']!);
+                          final role = MemberRole.values[roleIndex];
+                          return RoleMembersScreen(role: role);
+                        },
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'committee-roles',
+                    builder: (context, state) => const CommitteeRolesScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'members/:roleName',
+                        builder: (context, state) {
+                          final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
+                          return CommitteeRoleMembersScreen(role: roleName);
+                        },
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'seasons',
+                    builder: (context, state) => const AdminSeasonsScreen(),
                   ),
                 ],
               ),
             ],
-          ),
-          GoRoute(
-            path: 'communications',
-            builder: (context, state) => const NotificationAdminScaffold(),
-          ),
-          GoRoute(
-            path: 'seasons',
-            builder: (context, state) => const AdminSeasonsScreen(),
           ),
         ],
       ),

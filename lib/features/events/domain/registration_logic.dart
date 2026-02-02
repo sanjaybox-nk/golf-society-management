@@ -44,11 +44,11 @@ class RegistrationLogic {
           registration: r,
           isGuest: true,
           registeredAt: r.registeredAt ?? DateTime.now(),
-          hasPaid: r.hasPaid, // Guest payment usually linked to member payment
-          isConfirmed: r.guestIsConfirmed,
+          hasPaid: r.hasPaid, // Guest payment linked to member
+          isConfirmed: r.guestIsConfirmed, // Use guest-specific confirmation
           name: r.guestName!,
           needsBuggy: r.guestNeedsBuggy,
-          statusOverride: null, // Guests don't have overrides yet, or we use member's?
+          statusOverride: null, 
           buggyStatusOverride: r.guestBuggyStatusOverride,
           originalRegistration: r,
         ));
@@ -75,9 +75,10 @@ class RegistrationLogic {
   }
 
   static int _getRank(RegistrationItem item) {
-    if (!item.isGuest && item.hasPaid && item.isConfirmed) return 0; // Playing (Confirmed)
-    if (!item.isGuest) return 1; // All Other Members (Paid or Unpaid)
-    return 2; // Guests 
+    if (!item.isGuest && item.isConfirmed) return 0; // Confirmed Member (Playing/Waitlist)
+    if (item.isGuest && item.isConfirmed) return 1;  // Confirmed Guest (Playing/Waitlist)
+    if (!item.isGuest) return 2;                    // Unconfirmed Member (Reserved)
+    return 3;                                       // Unconfirmed Guest (Reserved)
   }
 
   /// Returns a list of members who are ONLY attending dinner (not golf).
@@ -107,38 +108,182 @@ class RegistrationLogic {
     return items;
   }
 
-  /// Returns a list of members who are NOT attending golf AND NOT attending dinner (Withdrawn).
-  static List<RegistrationItem> getWithdrawnItems(GolfEvent event) {
-    final items = <RegistrationItem>[];
-    
-    for (var r in event.registrations) {
-      // Member Withdrawn (Either explicitly or by deselecting everything)
-      final bool explicitlyWithdrawn = r.statusOverride == 'withdrawn';
-      final bool nothingSelected = !r.attendingGolf && !r.attendingDinner;
+  static RegistrationStats getRegistrationStats(GolfEvent event) {
+    int totalRegistrations = event.registrations.length;
+    int confirmedGolfers = 0;
+    int confirmedMembers = 0;
+    int confirmedGuests = 0;
+    int reserveGolfers = 0;
+    int reserveMembers = 0;
+    int reserveGuests = 0;
+    int waitlistGolfers = 0;
+    int dinnerCount = 0;
+    int breakfastCount = 0;
+    int lunchCount = 0;
+    int buggyCount = 0;
+    int withdrawnCount = 0;
+    int withdrawnConfirmedCount = 0;
+    int dinnerOnlyCount = 0;
 
-      if (explicitlyWithdrawn || nothingSelected) {
-         items.add(RegistrationItem(
-           registration: r,
-           isGuest: false,
-           registeredAt: r.registeredAt ?? DateTime.now(),
-           hasPaid: r.hasPaid,
-           isConfirmed: r.isConfirmed,
-           name: r.memberName,
-           needsBuggy: false,
-           statusOverride: r.statusOverride,
-           originalRegistration: r,
-         ));
-      }
-      
-      // Guest Withdrawn (Member is playing but guest was deselected)
-      if (r.attendingGolf && (r.guestName == null || r.guestName!.isEmpty)) {
-        // We don't necessarily track "withdrawn guests" unless they were previously there.
-        // But the user mentioned "a guest where the member has deselected the guest toggle".
-        // This is hard to track without history, but if the registration had a guest name 
-        // and now doesn't, it's withdrawn.
+    final sortedPool = getSortedItems(event);
+    final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
+    final capacity = event.maxParticipants ?? 999;
+    
+    // Pass 1: Active Golf Pool (Members & Guests playing golf)
+    int rollingTakenSlots = 0;
+    for (int i = 0; i < sortedPool.length; i++) {
+      final item = sortedPool[i];
+      final status = calculateStatus(
+        isGuest: item.isGuest,
+        isConfirmed: item.isConfirmed,
+        hasPaid: item.hasPaid,
+        capacity: capacity,
+        confirmedCount: rollingTakenSlots,
+        isEventClosed: isClosed,
+        statusOverride: item.statusOverride,
+      );
+
+      if (status == RegistrationStatus.confirmed) {
+        rollingTakenSlots++;
+        confirmedGolfers++;
+        if (item.isGuest) {
+          confirmedGuests++;
+        } else {
+          confirmedMembers++;
+        }
+
+        // Services for confirmed golfers
+        if (item.needsBuggy) buggyCount++;
+        final reg = item.registration;
+        if (item.isGuest) {
+          if (reg.guestAttendingBreakfast) breakfastCount++;
+          if (reg.guestAttendingLunch) lunchCount++;
+          if (reg.guestAttendingDinner) dinnerCount++;
+        } else {
+          if (reg.attendingBreakfast) breakfastCount++;
+          if (reg.attendingLunch) lunchCount++;
+          if (reg.attendingDinner) dinnerCount++;
+        }
+      } else if (status == RegistrationStatus.reserved) {
+        rollingTakenSlots++;
+        reserveGolfers++;
+        if (item.isGuest) {
+          reserveGuests++;
+        } else {
+          reserveMembers++;
+        }
+      } else if (status == RegistrationStatus.waitlist) {
+        waitlistGolfers++;
       }
     }
+
+    // Pass 2: Dinner Only Participants
+    final dinnerOnlyItems = getDinnerOnlyItems(event);
+    dinnerOnlyCount = dinnerOnlyItems.length;
+    for (var item in dinnerOnlyItems) {
+      // Dinner only are implicitly confirmed for dinner if in this list
+      dinnerCount++;
+      if (item.registration.attendingBreakfast) breakfastCount++;
+      if (item.registration.attendingLunch) lunchCount++;
+    }
+
+    // Pass 3: Withdrawn Participants (Audit)
+    final withdrawnItems = getWithdrawnItems(event);
+    withdrawnCount = withdrawnItems.length;
     
+    // Simulate what would have happened if NOT withdrawn to find "Withdrawn Confirmed"
+    final allSorted = getSortedItems(event, includeWithdrawn: true);
+    int simTakenSlots = 0;
+    for (int i = 0; i < allSorted.length; i++) {
+      final item = allSorted[i];
+      final simStatus = calculateStatus(
+        isGuest: item.isGuest,
+        isConfirmed: item.isConfirmed,
+        hasPaid: item.hasPaid,
+        capacity: capacity,
+        confirmedCount: simTakenSlots,
+        isEventClosed: isClosed,
+        statusOverride: null, // Ignore actual withdrawn override
+      );
+      if (simStatus == RegistrationStatus.confirmed || simStatus == RegistrationStatus.reserved) {
+        simTakenSlots++;
+        if (item.statusOverride == 'withdrawn') {
+          withdrawnConfirmedCount++;
+        }
+      }
+    }
+
+    return RegistrationStats(
+      totalRegistrations: totalRegistrations,
+      confirmedGolfers: confirmedGolfers,
+      confirmedMembers: confirmedMembers,
+      confirmedGuests: confirmedGuests,
+      reserveGolfers: reserveGolfers,
+      reserveMembers: reserveMembers,
+      reserveGuests: reserveGuests,
+      waitlistGolfers: waitlistGolfers,
+      dinnerCount: dinnerCount,
+      breakfastCount: breakfastCount,
+      lunchCount: lunchCount,
+      buggyCount: buggyCount,
+      withdrawnCount: withdrawnCount,
+      withdrawnConfirmedCount: withdrawnConfirmedCount,
+      dinnerOnlyCount: dinnerOnlyCount,
+    );
+  }
+
+  /// Returns the total number of confirmed participants attending golf (Members + Guests).
+  /// Excludes dinner-only participants.
+  static int getConfirmedGolfersCount(GolfEvent event) {
+    int count = 0;
+    for (var r in event.registrations) {
+      if (r.statusOverride == 'withdrawn') continue;
+
+      // Member confirmed and playing golf
+      if (r.attendingGolf) {
+        if (r.isConfirmed) count++;
+        
+        // Guest confirmed (Only counted if member is playing, per getSortedItems logic)
+        if (r.guestName != null && r.guestName!.isNotEmpty && r.guestIsConfirmed) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  /// Returns a list of all participants who have withdrawn.
+  static List<RegistrationItem> getWithdrawnItems(GolfEvent event) {
+    final items = <RegistrationItem>[];
+    for (var r in event.registrations) {
+      if (r.statusOverride == 'withdrawn' || (!r.attendingGolf && !r.attendingDinner)) {
+        items.add(RegistrationItem(
+          registration: r,
+          isGuest: false,
+          registeredAt: r.registeredAt ?? DateTime.now(),
+          hasPaid: r.hasPaid,
+          isConfirmed: r.isConfirmed,
+          name: r.memberName,
+          needsBuggy: r.needsBuggy,
+          statusOverride: r.statusOverride,
+          originalRegistration: r,
+        ));
+
+        if (r.guestName != null && r.guestName!.isNotEmpty) {
+          items.add(RegistrationItem(
+            registration: r,
+            isGuest: true,
+            registeredAt: r.registeredAt ?? DateTime.now(),
+            hasPaid: r.hasPaid,
+            isConfirmed: r.guestIsConfirmed, // Use guest-specific confirmation
+            name: r.guestName!,
+            needsBuggy: r.guestNeedsBuggy,
+            statusOverride: null,
+            originalRegistration: r,
+          ));
+        }
+      }
+    }
     items.sort((a, b) => a.name.compareTo(b.name));
     return items;
   }
@@ -148,34 +293,43 @@ class RegistrationLogic {
     required bool isGuest,
     required bool isConfirmed,
     required bool hasPaid,
-    required int indexInList,
-    required int capacity,
     required int confirmedCount,
+    required int capacity,
     required bool isEventClosed,
     String? statusOverride,
   }) {
     // 1. Manual Override
     if (statusOverride != null) {
-      if (statusOverride == 'confirmed') return RegistrationStatus.confirmed;
+      if (statusOverride == 'confirmed') {
+        if (capacity > 0 && confirmedCount >= capacity) return RegistrationStatus.waitlist;
+        return RegistrationStatus.confirmed;
+      }
       if (statusOverride == 'reserved') return RegistrationStatus.reserved;
       if (statusOverride == 'waitlist') return RegistrationStatus.waitlist;
       if (statusOverride == 'withdrawn') return RegistrationStatus.withdrawn;
     }
 
-    // 2. Guests: Must wait until event is closed (unless manual override above handled it)
-    if (isGuest && !isEventClosed) {
-      return RegistrationStatus.reserved;
+    // 2. Explicit Confirmation (Admin Tick / Paid)
+    if (isConfirmed) {
+      if (capacity > 0 && confirmedCount >= capacity) return RegistrationStatus.waitlist;
+      return RegistrationStatus.confirmed;
     }
 
-    if (isConfirmed) return RegistrationStatus.confirmed;
-
-    // 3. Capacity Check (Waitlist)
-    // They only appear in the waitlist if all the slots are taken (confirmed).
-    if (capacity > 0 && confirmedCount >= capacity) {
-      return RegistrationStatus.waitlist;
+    // 3. Post-Deadline Auto-Promotion (Specific cases)
+    if (isEventClosed) {
+      // Guests are auto-promoted once the deadline passes if space is available (Point 2)
+      if (isGuest) {
+        if (capacity > 0 && confirmedCount >= capacity) return RegistrationStatus.waitlist;
+        return RegistrationStatus.confirmed;
+      }
+      
+      // NOTE: Unconfirmed Members remain "Reserved" even after closure.
+      // This satisfies Point 3 (Manual promotion by Admin) and Point 1 (Only confirmed count).
+      // Automatic promotion for members only happens if they have the isConfirmed flag.
     }
 
-    // Irrespective of available slots everyone is on a reserve list until confirmed.
+    // 4. Default Handling (Reserved/Waitlist)
+    if (capacity > 0 && confirmedCount >= capacity) return RegistrationStatus.waitlist;
     return RegistrationStatus.reserved;
   }
 
@@ -197,16 +351,53 @@ class RegistrationLogic {
       if (buggyStatusOverride == 'waitlist') return RegistrationStatus.waitlist;
     }
     
-    // 2. Confirmation Check
-    if (isConfirmed) return RegistrationStatus.confirmed;
-
-    // 3. Capacity Check
-    if (buggyCapacity > 0 && confirmedBuggyCount >= buggyCapacity) {
-      return RegistrationStatus.waitlist;
+    // 2. Capacity Check (FCFS)
+    if (buggyCapacity > 0 && buggyIndexInQueue >= buggyCapacity) {
+      return RegistrationStatus.reserved; 
     }
+
+    // 3. Confirmation Check (Only if within capacity)
+    if (isConfirmed) return RegistrationStatus.confirmed;
     
     return RegistrationStatus.reserved;
   }
+
+}
+
+class RegistrationStats {
+  final int totalRegistrations;
+  final int confirmedGolfers;
+  final int confirmedMembers;
+  final int confirmedGuests;
+  final int reserveGolfers;
+  final int reserveMembers;
+  final int reserveGuests;
+  final int waitlistGolfers;
+  final int dinnerCount;
+  final int breakfastCount;
+  final int lunchCount;
+  final int buggyCount;
+  final int withdrawnCount;
+  final int withdrawnConfirmedCount;
+  final int dinnerOnlyCount;
+
+  RegistrationStats({
+    required this.totalRegistrations,
+    required this.confirmedGolfers,
+    required this.confirmedMembers,
+    required this.confirmedGuests,
+    required this.reserveGolfers,
+    required this.reserveMembers,
+    required this.reserveGuests,
+    required this.waitlistGolfers,
+    required this.dinnerCount,
+    required this.breakfastCount,
+    required this.lunchCount,
+    required this.buggyCount,
+    required this.withdrawnCount,
+    required this.withdrawnConfirmedCount,
+    required this.dinnerOnlyCount,
+  });
 }
 
 class RegistrationItem {

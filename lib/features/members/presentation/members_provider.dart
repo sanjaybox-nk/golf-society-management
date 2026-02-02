@@ -21,7 +21,7 @@ final memberSearchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
 final adminMemberSearchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
 
 // Filter State for Admin
-enum AdminMemberFilter { current, past }
+enum AdminMemberFilter { current, other, committee }
 
 class AdminMemberFilterNotifier extends Notifier<AdminMemberFilter> {
   @override

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 
+import '../../../../core/theme/contrast_helper.dart';
+
 class RolesSettingsScreen extends ConsumerWidget {
   const RolesSettingsScreen({super.key});
 
@@ -19,10 +21,22 @@ class RolesSettingsScreen extends ConsumerWidget {
     };
 
     final roles = MemberRole.values;
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F2F5),
-      appBar: const BoxyArtAppBar(title: 'System Roles', showBack: true),
+      appBar: BoxyArtAppBar(
+        title: 'System Roles',
+        isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.pop(),
+            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.all(24),
         itemCount: roles.length,

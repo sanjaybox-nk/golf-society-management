@@ -67,59 +67,54 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
       data: (events) {
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
         return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              EventSliverAppBar(
-                event: event,
-                title: 'Event Gallery',
+          appBar: BoxyArtAppBar(
+            title: 'Event Gallery',
+            subtitle: event.title,
+            showBack: true,
+          ),
+          body: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: BoxyArtSectionTitle(title: 'Event Gallery'),
               ),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: BoxyArtSectionTitle(title: 'Event Gallery'),
-                ),
+              Expanded(
+                child: event.galleryUrls.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.photo_library, size: 64, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            const Text('No photos yet', style: TextStyle(color: Colors.grey, fontSize: 18)),
+                            const SizedBox(height: 8),
+                            const Text('Be the first to upload!', style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: event.galleryUrls.length,
+                        itemBuilder: (context, index) {
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              event.galleryUrls[index],
+                              fit: BoxFit.cover,
+                              loadingBuilder: (ctx, child, loading) {
+                                if (loading == null) return child;
+                                return Container(color: Colors.grey.shade200);
+                              },
+                            ),
+                          );
+                        },
+                      ),
               ),
-              event.galleryUrls.isEmpty
-              ? SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.photo_library, size: 64, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        const Text('No photos yet', style: TextStyle(color: Colors.grey, fontSize: 18)),
-                        const SizedBox(height: 8),
-                        const Text('Be the first to upload!', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            event.galleryUrls[index],
-                            fit: BoxFit.cover,
-                            loadingBuilder: (ctx, child, loading) {
-                               if (loading == null) return child;
-                               return Container(color: Colors.grey.shade200);
-                            },
-                          ),
-                        );
-                      },
-                      childCount: event.galleryUrls.length,
-                    ),
-                  ),
-                ),
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(

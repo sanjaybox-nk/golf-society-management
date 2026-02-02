@@ -13,9 +13,17 @@ class EventAdminScoresScreen extends StatelessWidget {
       appBar: BoxyArtAppBar(
         title: 'Event Scores',
         centerTitle: true,
-        showBack: true,
-        onBack: () => context.go('/admin/events'),
+        // showBack: false, // Removed as leading is now custom
+        // showLeading: false, // Removed as leading is now custom
         isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go('/admin/events'),
+            child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ),
+        // actions: [], // Removed actions as 'Back' button moved to leading
       ),
       body: const Center(
         child: Column(

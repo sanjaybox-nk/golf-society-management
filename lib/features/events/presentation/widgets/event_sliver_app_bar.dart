@@ -5,6 +5,7 @@ import '../../../../models/golf_event.dart';
 class EventSliverAppBar extends StatelessWidget {
   final GolfEvent event;
   final String title;
+  final String? subtitle;
   final bool isPreview;
   final VoidCallback? onCancel;
 
@@ -12,6 +13,7 @@ class EventSliverAppBar extends StatelessWidget {
     super.key,
     required this.event,
     required this.title,
+    this.subtitle,
     this.isPreview = false,
     this.onCancel,
   });
@@ -21,71 +23,79 @@ class EventSliverAppBar extends StatelessWidget {
     if (isPreview) {
       return SliverAppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        toolbarHeight: 120,
+        toolbarHeight: 100.0,
         pinned: true,
         automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Row 1: Top Action (Cancel)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: onCancel,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Back',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Row 2: Title
-              Center(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+        centerTitle: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go('/admin/events'),
+            child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+          ),
+        ),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+        actions: [
+          if (event.isRegistrationClosed == false) ...[
+            // Show edit button if needed
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () => context.push('/admin/events/${event.id}/edit'),
+            ),
+            const SizedBox(width: 8),
+          ]
+        ],
       );
     }
 
     return SliverAppBar(
-      expandedHeight: 88, 
-      automaticallyImplyLeading: !isPreview,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.home, color: Colors.white),
-          onPressed: () => context.go('/home'),
-        ),
+      expandedHeight: 100.0, 
+      automaticallyImplyLeading: false,
+      leading: IconButton(
+        icon: const Icon(Icons.home, color: Colors.white),
+        onPressed: () => context.go('/home'),
+      ),
+      actions: const [
+         SizedBox(width: 8),
       ],
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        centerTitle: false,
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-        title: Text(
-          title, 
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
-          )
+        centerTitle: true,
+        titlePadding: const EdgeInsets.only(bottom: 16),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              title, 
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Colors.white, 
+                fontWeight: FontWeight.bold,
+                shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
+              )
+            ),
+            if (subtitle != null)
+              Text(
+                subtitle!,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 13,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+          ],
         ),
         background: event.imageUrl != null 
           ? Image.network(event.imageUrl!, fit: BoxFit.cover)

@@ -32,7 +32,7 @@ Admins can customize the primary color via **Admin Console → Society Branding*
 ### 1. Colors
 
 #### Primary Colors (Dynamic)
--   **Primary**: Configurable seed color (default: `#F7D354` BoxyArt Yellow)
+-   **Primary**: Configurable seed color (e.g., Mustard Yellow `#F7D354`, Navy `#1A237E`, Indigo `#3F51B5`).
 -   **On Primary**: Automatically calculated for optimal contrast (black or white)
 -   **Surface**: Light mode: `#FFFFFF`, Dark mode: `#1E1E1E`
 -   **Background**: Light mode: `#F0F2F5`, Dark mode: `#121212`
@@ -64,10 +64,13 @@ Do **NOT** use default Material Elevation. Use these defined styles:
     -   *Look*: Stronger, defines edges on white-on-white. 20% opacity.
 -   **`primaryButtonGlow`**: For Yellow Action Buttons.
     -   *Look*: Colored shadow (Dark Yellow), 80% opacity. Gives a "glow" effect.
+-   **`inputSoft`**: Specifically for form inputs (`BoxyArtFormField`, `BoxyArtDatePickerField`).
+    -   *Look*: Extremely subtle offset (4px) with 5% opacity to maintain clarity on white cards.
 
 ### 4. Shapes
 -   **Cards**: `BorderRadius.circular(30)` or `BorderRadius.circular(25)`.
--   **Buttons/Inputs**: `BorderRadius.circular(12)` (Rounded) or `StadiumBorder` (Pill shape).
+-   **Buttons/Inputs**: `BorderRadius.circular(100)` (Pill shape).
+    -   *Note*: Use `RoundedRectangleBorder(borderRadius: BorderRadius.circular(100))` for input containers to ensure consistent shadow rendering compared to `StadiumBorder`.
 -   **Dialogs**: `BorderRadius.circular(25)`.
 
 ### 5. Theme-Aware Development

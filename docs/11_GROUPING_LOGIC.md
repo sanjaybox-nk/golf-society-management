@@ -5,7 +5,10 @@ The grouping system automatically generates balanced and varied tee sheets for s
 ## Generation Workflow
 
 ### 1. Participant Selection
-The grouping service only includes participants marked as **Attending Golf**. It handles both members and guests.
+To ensure field stability, the grouping service ONLY includes participants with **RegistrationStatus.confirmed**. 
+
+- **Reserved** (unconfirmed) members and guests are ignored during the initial generation.
+- This ensures that only players who have paid or been manually vetted by the Admin are assigned tee times.
 
 ### 2. Locked Pairs (Guests)
 To ensure a positive guest experience, **Guests are always locked to their host member**. The algorithm treats them as a single "slot" of 2 players that cannot be split during the initial distribution or optimization passes.
@@ -44,6 +47,13 @@ The grouping system automatically manages golf buggy availability:
 - **Priority Queue**: Buggy allocation follows the **Members First** principle. If there are more requests than seats, guests are moved to the buggy waitlist first.
 - **Pairing Strategy**: The UI attempts to pair buggy users within the same tee group to maximize buggy efficiency. If a group has an odd number of buggy users (e.g., 3), the system identifies the "shared" buggy status.
 
+### 6. Buggy Co-location Optimization
+The optimization engine includes a weighted factor for **Buggy Efficiency**:
+- **Goal**: Pair confirmed buggy users together in the same group (2 users sharing 1 buggy).
+- **Penalty**: Groups with a single buggy user (or an odd number of buggy users) incur a "Buggy Efficiency Penalty" in the cost function.
+- **Effect**: This drives the algorithm to swap buggy users into the same groups.
+- **Solos**: If the total number of confirmed buggy users is **odd**, the system accepts that exactly one group will have a solo buggy rider.
+
 ---
 
 ### Swapping Rules
@@ -52,7 +62,16 @@ The grouping system automatically manages golf buggy availability:
 
 ---
 
-## Final Post-Processing
 After optimization, the system performs a final pass to:
 - **Assign Captains**: Each group is assigned a Captain (prioritizing members).
 - **Synchronize Buggy Status**: Every player's `buggyStatus` is recalculated based on the final group composition and the global available capacity.
+
+---
+
+## 7. Squad Pool & Late Changes
+The grouping system is dynamic. If the field changes after groupings are generated (due to late confirmations or withdrawals), the Admin can manage the field via the **Squad Pool**:
+
+- **Unassigned Players**: Players promoted to **Confirmed** status (automatically after the deadline or manually) who are not in a group will appear in the **Squad Pool** at the top of the grouping screen.
+- **Manual Assignment (Drag & Drop)**: Admins can drag players from the Squad Pool into any group with an **Empty Slot**.
+- **Swapping**: Players can be swapped between groups, or moved from a group back to the pool (by clicking "Remove").
+- **Late Withdrawals**: Admins can "Withdraw" a player directly from their grouping tile. This removes them from the group AND updates their registration status to **Withdrawn** in Firestore.

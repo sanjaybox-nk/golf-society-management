@@ -40,7 +40,7 @@ class EventUserShell extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            padding: const EdgeInsets.only(top: 4.0, bottom: 0.0, left: 8.0, right: 8.0),
             child: BottomNavigationBar(
               currentIndex: currentIndex,
               onTap: (index) => _onTap(context, index),

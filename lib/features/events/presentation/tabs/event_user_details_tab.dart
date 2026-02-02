@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import '../widgets/event_sliver_app_bar.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../domain/registration_logic.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
@@ -83,6 +84,7 @@ class EventDetailsContent extends StatelessWidget {
     return EventSliverAppBar(
       event: event,
       title: event.title,
+      subtitle: '${event.courseName ?? 'TBA'} • ${DateFormat('d MMM yyyy').format(event.date)}',
       isPreview: isPreview,
       onCancel: onCancel,
     );
@@ -129,10 +131,10 @@ class EventDetailsContent extends StatelessWidget {
               _buildDetailRow(
                 'Availability',
                 _buildDetailValue(() {
+                  final stats = RegistrationLogic.getRegistrationStats(event);
                   if (event.maxParticipants == null) return 'Unlimited';
-                  final confirmedCount = event.registrations.where((r) => r.isConfirmed).length;
-                  final remaining = event.maxParticipants! - confirmedCount;
-                  if (remaining <= 0) return 'Event is full';
+                  final remaining = event.maxParticipants! - stats.confirmedGolfers;
+                  if (remaining <= 0) return 'Event is full (Join Waitlist)';
                   return '${event.maxParticipants} spots, $remaining remaining';
                 }()),
               ),
@@ -158,9 +160,8 @@ class EventDetailsContent extends StatelessWidget {
     );
   }
 
-  // Copied from EventRegistrationUserTab and adapted
   Widget _buildRegistrationCard(BuildContext context) {
-    if (!event.showRegistrationButton) return const SizedBox.shrink();
+    if (isPreview || !event.showRegistrationButton) return const SizedBox.shrink();
 
     // For now, we'll assume the user is a mock member
     const currentMemberId = 'current-user-id';
@@ -171,17 +172,15 @@ class EventDetailsContent extends StatelessWidget {
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
 
-    final confirmedCount = event.registrations.where((r) => r.isConfirmed).length;
-    final isFull = event.maxParticipants != null && confirmedCount >= event.maxParticipants!;
+    final stats = RegistrationLogic.getRegistrationStats(event);
+    final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
 
     // Disabled if:
     // 1. Deadline passed (always)
     // 2. Button hidden by config (always)
-    // 3. Full AND Not Registered (New users stuck)
     final isRegistrationDisabled = 
         isPastDeadline || 
-        !event.showRegistrationButton ||
-        (!isRegistered && isFull);
+        !event.showRegistrationButton;
 
     return BoxyArtFloatingCard(
       child: Column(
@@ -190,27 +189,27 @@ class EventDetailsContent extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  isPastDeadline || isFull
+                  isPastDeadline 
                     ? 'Registration Closed'
-                    : 'Secure your spot',
+                    : (isFull ? 'Event Full' : 'Secure your spot'),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (!isPastDeadline && event.registrationDeadline != null && !isFull) ...[
+                if (!isPastDeadline && event.registrationDeadline != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+                    isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
                     style: const TextStyle(color: Colors.grey, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
-                ] else if (!isPastDeadline && !isFull) ...[
+                ] else if (!isPastDeadline) ...[
                   const SizedBox(height: 4),
-                  const Text(
-                    'Register below to join the event',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  Text(
+                    isFull ? 'Join the waitlist below' : 'Register below to join the event',
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -243,9 +242,7 @@ class EventDetailsContent extends StatelessWidget {
           BoxyArtButton(
             title: isPastDeadline 
                 ? 'Registration closed' 
-                : (isFull && !isRegistered 
-                    ? 'Event Full' 
-                    : (isRegistered ? 'Edit My Registration' : 'Register Now')),
+                : (isRegistered ? 'Edit My Registration' : (isFull ? 'Register Now (Waitlist)' : 'Register Now')),
             onTap: isRegistrationDisabled 
                 ? null 
                 : () {

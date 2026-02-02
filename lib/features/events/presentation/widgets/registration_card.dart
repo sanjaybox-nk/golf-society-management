@@ -12,6 +12,7 @@ class RegistrationCard extends StatelessWidget {
   final bool attendingLunch;
   final bool attendingDinner;
   final bool hasGuest;
+  final bool hasPaid;
   final Member? memberProfile;
   final bool isGuest;
   final bool isDinnerOnly;
@@ -22,7 +23,6 @@ class RegistrationCard extends StatelessWidget {
   final VoidCallback? onBreakfastToggle;
   final VoidCallback? onLunchToggle;
   final VoidCallback? onDinnerToggle;
-  final VoidCallback? onGolfToggle;
 
   const RegistrationCard({
     super.key,
@@ -35,6 +35,7 @@ class RegistrationCard extends StatelessWidget {
     this.attendingLunch = false,
     required this.attendingDinner,
     this.hasGuest = false,
+    this.hasPaid = false,
     this.memberProfile,
     this.isGuest = false,
     this.isDinnerOnly = false,
@@ -43,7 +44,6 @@ class RegistrationCard extends StatelessWidget {
     this.onBreakfastToggle,
     this.onLunchToggle,
     this.onDinnerToggle,
-    this.onGolfToggle,
   });
 
   @override
@@ -155,35 +155,33 @@ class RegistrationCard extends StatelessWidget {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (!isGuest && !isDinnerOnly)
-                      Container(
-                        width: 28,
-                        height: 24,
-                        alignment: Alignment.center,
-                        child: onGolfToggle != null 
-                        ? InkWell(
-                            onTap: onGolfToggle,
-                            borderRadius: BorderRadius.circular(4),
-                            child: Icon(
-                              Icons.sports_golf, 
-                              color: !isWithdrawn ? Colors.green : Colors.grey[300], 
-                              size: 18
-                            ),
-                          )
-                        : Icon(
+                    // Top Row: Golf Ball (Payment Status)
+                    Container(
+                      width: 28,
+                      height: 28, // Match height of grid row
+                      alignment: Alignment.center,
+                      child: !isGuest && !isDinnerOnly 
+                        ? Icon(
                             Icons.sports_golf, 
-                            color: !isWithdrawn ? Colors.green : Colors.grey[300], 
+                            color: (status == RegistrationStatus.confirmed || status == RegistrationStatus.waitlist)
+                                ? Colors.green
+                                : (hasPaid 
+                                    ? (isWithdrawn ? Colors.grey : Colors.amber) 
+                                    : Colors.grey[300]), 
                             size: 18
-                          ),
-                      ),
+                          )
+                        : const SizedBox.shrink(),
+                    ),
                     
-                    if (hasGuest && !isWithdrawn)
-                      Container(
-                        width: 28, 
-                        height: 24,
-                        alignment: Alignment.center,
-                        child: const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange)),
-                      ),
+                    // Bottom Row: Guest Indicator
+                    Container(
+                      width: 28, 
+                      height: 28, // Match height of grid row
+                      alignment: Alignment.center,
+                      child: hasGuest && !isWithdrawn 
+                        ? const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange))
+                        : const SizedBox.shrink(),
+                    ),
                   ],
                 ),
                 

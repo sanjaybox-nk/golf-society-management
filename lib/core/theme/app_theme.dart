@@ -65,6 +65,17 @@ class AppTheme {
         ),
       ),
 
+      // Floating Action Button
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: seedColor,
+        foregroundColor: onPrimaryColor,
+        elevation: 6,
+        focusElevation: 8,
+        hoverElevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        iconSize: 28,
+      ),
+
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -153,6 +164,33 @@ class AppTheme {
           }
           return const IconThemeData(color: Colors.grey);
         }),
+      ),
+
+      // Date Picker Theme
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
+        headerBackgroundColor: seedColor,
+        headerForegroundColor: onPrimaryColor,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        dayStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+        weekdayStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.grey),
+        yearStyle: GoogleFonts.poppins(),
+        headerHeadlineStyle: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold),
+        headerHelpStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500),
+      ),
+
+      // Time Picker Theme
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
+        hourMinuteColor: isDark ? Colors.white10 : Colors.grey.shade100,
+        hourMinuteTextColor: isDark ? Colors.white : primaryBlack,
+        dayPeriodColor: seedColor.withValues(alpha: 0.1),
+        dayPeriodTextColor: seedColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        helpTextStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500),
       ),
     );
   }

@@ -24,7 +24,7 @@ For deep dives into specific system logic, see:
 
 ## Visual Identity ("BoxyArt")
 The app uses a strict design system called **BoxyArt**:
--   **Primary Color**: Mustard Yellow (`#F7D354`)
+-   **Primary Color**: Configurable seed color (e.g., Mustard Yellow `#F7D354`, Navy, Indigo).
 -   **Secondary Color**: Solid Black (`#000000`)
 -   **Shapes**: High border radius (`30px` for cards, `100px` stadium for buttons).
 -   **Shadows**: Custom "Soft Scale" and "Floating Alt" shadows (no default elevation).

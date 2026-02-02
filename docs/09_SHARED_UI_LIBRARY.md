@@ -36,7 +36,8 @@ Standard text input with pill shape and soft shadow.
 pill-shaped dropdown.
 
 ### `BoxyArtDatePickerField`
-Read-only field that looks like input but triggers tap.
+- **Shape**: Uses `RoundedRectangleBorder(borderRadius: BorderRadius.circular(100))` for standard appearance.
+- **Behavior**: Read-only field that looks like a standard input but triggers a tap callback (usually for `showDatePicker`).
 
 ### `BoxyArtSwitchField`
 Switch tile with styled track/thumb.
@@ -56,7 +57,10 @@ Generic container with "Soft Scale" shadow and rounded corners. Use for lists or
 Grouped settings container.
 
 ### `BoxyArtMemberHeaderCard`
-Complex widget for the Member Detail screen header. Handles Avatar, Stats, and Fee toggle.
+A high-impact header component for the Member Detail screen.
+- **Identity Section**: Circular avatar with "Since [Year]" label positioned underneath. Top-right section for Name, handicap, and iGolf/WHS stats.
+- **Admin Controls**: Includes interactive `BoxyArtStatusPill` and `BoxyArtFeePill` when in edit mode or viewed by an admin. 
+- **Theming**: Automatically uses the society's primary color for role badges and interactive highlights.
 
 ### `HomeNotificationCard`
 Specialized widget for the Home Screen feed.
@@ -72,10 +76,13 @@ The core widget for event participation management. Used in both Member and Admi
   - **Position Badge**: Shows FCFS list position.
   - **Interaction Icons**: Golf Club (Golf), Electric Car (Buggy), Restaurant (Dinner).
 
-### `_MetricCard` (Pattern)
-Internal widget pattern for dashboards (found in `admin_members_screen.dart`). 
-- **Style**: Soft shadow, circular icon, large bold value.
-- **Layout**: Usually placed inside a `SingleChildScrollView` + `Row` for horizontal scrolling.
+### `MemberTile`
+The standard list item for member directories.
+- **Layout**: Features a left-side avatar, central name/stats section, and right-aligned context indicators.
+- **Admin Enhancements**:
+  - **Quick Toggles**: Admins can tap the Status pill to open a change menu or tap the Fee pill to toggle payment status directly from the list.
+  - **Committee Badge**: Displays high-priority society roles (e.g., PRESIDENT) in a right-aligned primary-colored badge.
+  - **Interaction Guard**: Tapping specific badges (e.g., Committee roles) does not trigger navigation, ensuring specialized clicks are captured correctly.
 
 ## 4. Badges (`badges.dart`)
 

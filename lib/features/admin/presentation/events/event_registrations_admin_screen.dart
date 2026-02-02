@@ -17,7 +17,7 @@ import '../../../../core/theme/theme_controller.dart';
 class EventRegistrationsAdminScreen extends ConsumerWidget {
   final String eventId;
 
-  const EventRegistrationsAdminScreen({super.key, required this.eventId});
+  const EventRegistrationsAdminScreen({super.key, required this.eventId}); // No changes here, just for context match if needed, but the chunk is above.
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,52 +31,36 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
             title: 'Registrations',
             centerTitle: true,
             isLarge: true,
-            showBack: false,
-            topRow: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.casino, color: Colors.white),
-                  tooltip: 'Seed Random Registrations',
-                  onPressed: () => _seedRandomRegistrations(context, ref, event),
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 8),
-                Builder(
-                  builder: (buttonContext) => IconButton(
-                    icon: const Icon(Icons.download, color: Colors.white),
-                    tooltip: 'Export CSV',
-                    onPressed: () {
-                      final RenderBox? box = buttonContext.findRenderObject() as RenderBox?;
-                      final shareOrigin = box != null
-                          ? box.localToGlobal(Offset.zero) & box.size
-                          : null;
-
-                      CsvExportService.exportRegistrations(
-                        event: event,
-                        participants: RegistrationLogic.getSortedItems(event),
-                        dinnerOnly: RegistrationLogic.getDinnerOnlyItems(event),
-                        sharePositionOrigin: shareOrigin,
-                      );
-                    },
-                    constraints: const BoxConstraints(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
+            leadingWidth: 70, 
+            leading: Center(
+              child: TextButton(
+                onPressed: () => context.canPop() ? context.pop() : context.go('/admin/events'),
+                child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
             ),
-            leading: null,
             actions: [
-              TextButton(
-                onPressed: () => context.go('/admin/events'),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.only(right: 12),
-                  alignment: Alignment.centerRight,
-                  fixedSize: const Size.fromWidth(100), // Match the slot width for easy hit target
-                ),
-                child: const Text(
-                  'Back',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+              IconButton(
+                icon: const Icon(Icons.casino, color: Colors.white),
+                tooltip: 'Seed Random Registrations',
+                onPressed: () => _seedRandomRegistrations(context, ref, event),
+              ),
+              Builder(
+                builder: (buttonContext) => IconButton(
+                  icon: const Icon(Icons.download, color: Colors.white),
+                  tooltip: 'Export CSV',
+                  onPressed: () {
+                    final RenderBox? box = buttonContext.findRenderObject() as RenderBox?;
+                    final shareOrigin = box != null
+                        ? box.localToGlobal(Offset.zero) & box.size
+                        : null;
+
+                    CsvExportService.exportRegistrations(
+                      event: event,
+                      participants: RegistrationLogic.getSortedItems(event),
+                      dinnerOnly: RegistrationLogic.getDinnerOnlyItems(event),
+                      sharePositionOrigin: shareOrigin,
+                    );
+                  },
                 ),
               ),
             ],
@@ -103,62 +87,68 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final buggyCapacity = availableBuggies * 2;
     final buggyQueue = sortedItems.where((i) => i.needsBuggy).toList();
 
-    final confirmedCountOverall = sortedItems.where((i) => i.isConfirmed).length;
-    final confirmedBuggyCountOverall = sortedItems.where((i) =>
-      i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
-
     // Map profile data
     final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
     final closingDateStr = event.registrationDeadline != null
       ? DateFormat('EEE, d MMM @ HH:mm').format(event.registrationDeadline!)
       : 'No Deadline';
 
+    // 1. Calculate confirmed items for participation display
+    int rollingConfirmedCount = 0;
+    final itemStatuses = <RegistrationItem, RegistrationStatus>{};
+    final buggyStatuses = <RegistrationItem, RegistrationStatus>{};
+
+    for (int i = 0; i < sortedItems.length; i++) {
+        final item = sortedItems[i];
+        final status = RegistrationLogic.calculateStatus(
+          isGuest: item.isGuest,
+          isConfirmed: item.isConfirmed,
+          hasPaid: item.hasPaid,
+          capacity: maxParticipants,
+          confirmedCount: rollingConfirmedCount,
+          isEventClosed: isClosed,
+          statusOverride: item.statusOverride,
+        );
+        itemStatuses[item] = status;
+        if (status == RegistrationStatus.confirmed) {
+          rollingConfirmedCount++;
+        }
+
+        // Buggy Status
+        final confirmedBuggyCount = sortedItems.take(i).where((prev) => 
+          itemStatuses[prev] == RegistrationStatus.confirmed && prev.needsBuggy).length;
+        
+        final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
+        buggyStatuses[item] = RegistrationLogic.calculateBuggyStatus(
+          needsBuggy: item.needsBuggy,
+          isConfirmed: status == RegistrationStatus.confirmed,
+          buggyIndexInQueue: buggyIndex,
+          buggyCapacity: buggyCapacity,
+          confirmedBuggyCount: confirmedBuggyCount,
+          buggyStatusOverride: item.isGuest ? item.registration.guestBuggyStatusOverride : item.registration.buggyStatusOverride,
+        );
+    }
+
     final memberModels = sortedItems.where((i) => !i.isGuest).map((item) {
       final profile = members.where((m) => m.id == item.registration.memberId).firstOrNull;
-      final status = RegistrationLogic.calculateStatus(
-        isGuest: false,
-        isConfirmed: item.isConfirmed,
-        hasPaid: item.hasPaid,
-        indexInList: sortedItems.indexOf(item),
-        capacity: maxParticipants,
-        confirmedCount: confirmedCountOverall,
-        isEventClosed: isClosed,
-        statusOverride: item.statusOverride,
+      return _RegistrationViewModel(
+        item: item, 
+        status: itemStatuses[item]!, 
+        buggyStatus: buggyStatuses[item]!, 
+        position: sortedItems.indexOf(item) + 1, 
+        memberProfile: profile
       );
-      final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
-      final buggyStatus = RegistrationLogic.calculateBuggyStatus(
-        needsBuggy: item.needsBuggy,
-        isConfirmed: item.isConfirmed,
-        buggyIndexInQueue: buggyIndex,
-        buggyCapacity: buggyCapacity,
-        confirmedBuggyCount: confirmedBuggyCountOverall,
-        buggyStatusOverride: item.registration.buggyStatusOverride,
-      );
-      return _RegistrationViewModel(item: item, status: status, buggyStatus: buggyStatus, position: sortedItems.indexOf(item) + 1, memberProfile: profile);
     }).toList();
 
     final guestModels = sortedItems.where((i) => i.isGuest).map((item) {
       final profile = members.where((m) => m.id == item.registration.memberId).firstOrNull;
-      final status = RegistrationLogic.calculateStatus(
-        isGuest: true,
-        isConfirmed: item.isConfirmed,
-        hasPaid: item.hasPaid,
-        indexInList: sortedItems.indexOf(item),
-        capacity: maxParticipants,
-        confirmedCount: confirmedCountOverall,
-        isEventClosed: isClosed,
-        statusOverride: item.statusOverride,
+      return _RegistrationViewModel(
+        item: item, 
+        status: itemStatuses[item]!, 
+        buggyStatus: buggyStatuses[item]!, 
+        position: sortedItems.indexOf(item) + 1, 
+        memberProfile: profile
       );
-      final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
-      final buggyStatus = RegistrationLogic.calculateBuggyStatus(
-        needsBuggy: item.needsBuggy,
-        isConfirmed: item.isConfirmed,
-        buggyIndexInQueue: buggyIndex,
-        buggyCapacity: buggyCapacity,
-        confirmedBuggyCount: confirmedBuggyCountOverall,
-        buggyStatusOverride: item.registration.guestBuggyStatusOverride,
-      );
-      return _RegistrationViewModel(item: item, status: status, buggyStatus: buggyStatus, position: sortedItems.indexOf(item) + 1, memberProfile: profile);
     }).toList();
 
     final dinnerModels = dinnerOnlyItems.map((item) {
@@ -172,79 +162,17 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
       return _RegistrationViewModel(item: item, status: RegistrationStatus.withdrawn, buggyStatus: RegistrationStatus.none, position: 0, memberProfile: profile);
     }).toList();
 
-    // Stats Logic
-    final waitlistCount = sortedItems.where((item) =>
-      RegistrationLogic.calculateStatus(
-        isGuest: item.isGuest,
-        isConfirmed: item.isConfirmed,
-        hasPaid: item.hasPaid,
-        indexInList: sortedItems.indexOf(item),
-        capacity: maxParticipants,
-        confirmedCount: confirmedCountOverall,
-        isEventClosed: isClosed,
-        statusOverride: item.registration.statusOverride,
-      ) == RegistrationStatus.waitlist
-    ).length;
+    // Stats Logic (Standardized)
+    final stats = RegistrationLogic.getRegistrationStats(event);
 
-
-    final confirmedBuggies = memberModels.where((vm) => vm.buggyStatus == RegistrationStatus.confirmed).length +
-                             guestModels.where((vm) => vm.buggyStatus == RegistrationStatus.confirmed).length;
-
-    // Dinner Metrics (Golfers + Guests + Dinner Only - Confirmed Only)
-    final dinnerCount = memberModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.registration.attendingDinner).length +
-                        guestModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.registration.guestAttendingDinner).length +
-                        dinnerModels.where((vm) => vm.status == RegistrationStatus.confirmed).length;
-
-    // Confirmed Metrics (Golfers Only - Exclude Dinner Only)
-    final confirmedMembersCount = memberModels.where((vm) => vm.status == RegistrationStatus.confirmed).length;
-    final totalPlaying = confirmedMembersCount;
-
-    // Calculate "Confirmed but Withdrawn" by simulating what would happen if they hadn't withdrawn
-    final allItems = RegistrationLogic.getSortedItems(event, includeWithdrawn: true);
-    int withdrawnConfirmedCount = 0;
-    
-    // We need to simulate the rolling confirmed count for the simulation
-    int simConfirmedCount = 0;
-    
-    for (int i = 0; i < allItems.length; i++) {
-       final item = allItems[i];
-       
-       // Calculate status IGNORING 'withdrawn' override (to see if they qualify)
-       final simulatedStatus = RegistrationLogic.calculateStatus(
-         isGuest: item.isGuest,
-         isConfirmed: item.isConfirmed, // This might be false if withdrawal cleared it, but FCFS (capacity) will catch them
-         hasPaid: item.hasPaid,
-         indexInList: i,
-         capacity: maxParticipants,
-         confirmedCount: simConfirmedCount,
-         isEventClosed: isClosed,
-         // Pass null to ignore 'withdrawn' override, BUT preserve 'confirmed' override if it existed? 
-         // If they withdrew, the override is 'withdrawn'. We want to see if they would be confirmed naturally.
-         // If they had a 'confirmed' override before, we lost it. Assume logic (FCFS) applies.
-         statusOverride: null, 
-       );
-
-       if (simulatedStatus == RegistrationStatus.confirmed) {
-         simConfirmedCount++;
-         // If this item is actually withdrawn, count it
-         if (item.statusOverride == 'withdrawn') {
-            withdrawnConfirmedCount++;
-         }
-       }
-    }
-
-    final playingValue = withdrawnConfirmedCount > 0 ? '$totalPlaying ($withdrawnConfirmedCount)' : '$totalPlaying';
-
-    // Use the confirmedCountOverall defined at the top
-    final confirmedCount = confirmedCountOverall;
-    final reservedCount = memberModels.where((vm) => vm.status == RegistrationStatus.reserved).length +
-                           guestModels.where((vm) => vm.status == RegistrationStatus.reserved).length;
+    final playingValue = stats.confirmedGuests > 0 ? '${stats.confirmedGolfers} (${stats.confirmedGuests})' : '${stats.confirmedGolfers}';
+    final reserveValue = stats.reserveGuests > 0 ? '${stats.reserveGolfers} (${stats.reserveGuests})' : '${stats.reserveGolfers}';
 
     final config = ref.watch(themeControllerProvider);
     final currency = config.currencySymbol;
 
     final int capacity = event.maxParticipants ?? 0;
-    final int availableSlots = capacity - confirmedCount;
+    final int availableSlots = capacity - stats.confirmedGolfers;
     final String availableSlotsStr = capacity > 0
         ? '${availableSlots > 0 ? availableSlots : 0} spaces'
         : 'Unlimited';
@@ -285,7 +213,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
             elevation: 1,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+              side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
             ),
             child: Padding(
               padding: const EdgeInsets.all(12.0),
@@ -296,18 +224,18 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                     children: [
                       _buildMetricItem(context, 'Total', '${event.registrations.length}', Icons.group, iconColor: const Color(0xFF2C3E50)),
                       _buildMetricItem(context, 'Playing', playingValue, Icons.check_circle, iconColor: const Color(0xFF27AE60)),
-                      _buildMetricItem(context, 'Reserve', '$reservedCount', Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
-                      _buildMetricItem(context, 'Guests', '${guestModels.length}', Icons.person_add, iconColor: Colors.purple),
+                      _buildMetricItem(context, 'Reserve', reserveValue, Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
+                      _buildMetricItem(context, 'Guests', '${stats.confirmedGuests + stats.reserveGuests}', Icons.person_add, iconColor: Colors.purple),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildMetricItem(context, 'Buggies', '$confirmedBuggies/$buggyCapacity', Icons.electric_rickshaw, iconColor: const Color(0xFF2C3E50), suffix: 'spaces'),
-                      _buildMetricItem(context, 'Dinner', '$dinnerCount', Icons.restaurant, iconColor: Colors.purple),
-                      if (waitlistCount > 0)
-                        _buildMetricItem(context, 'Waitlist', '$waitlistCount', Icons.priority_high, iconColor: const Color(0xFFC0392B)),
+                      _buildMetricItem(context, 'Buggies', '${stats.buggyCount}/$buggyCapacity', Icons.electric_rickshaw, iconColor: const Color(0xFF2C3E50), suffix: 'spaces'),
+                      _buildMetricItem(context, 'Dinner', '${stats.dinnerCount}', Icons.restaurant, iconColor: Colors.purple),
+                      if (stats.waitlistGolfers > 0)
+                        _buildMetricItem(context, 'Waitlist', '${stats.waitlistGolfers}', Icons.priority_high, iconColor: const Color(0xFFC0392B)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -359,37 +287,13 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingLunch: vm.item.registration.attendingLunch,
               attendingDinner: vm.item.registration.attendingDinner,
               hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+              hasPaid: vm.item.registration.hasPaid,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
               onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
               onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
               onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-              onGolfToggle: () => _toggleGolf(ref, event, vm.item.registration),
-            )),
-          ],
-
-          // MEMBERS - RESERVED
-          if (reservedMembers.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            BoxyArtSectionTitle(title: 'Reserved (${reservedMembers.length})'),
-            ...reservedMembers.map((vm) => RegistrationCard(
-              name: vm.item.name,
-              label: 'Member',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.attendingBreakfast,
-              attendingLunch: vm.item.registration.attendingLunch,
-              attendingDinner: vm.item.registration.attendingDinner,
-              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-              memberProfile: vm.memberProfile,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-              onGolfToggle: () => _toggleGolf(ref, event, vm.item.registration),
             )),
           ],
 
@@ -407,13 +311,37 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingLunch: vm.item.registration.attendingLunch,
               attendingDinner: vm.item.registration.attendingDinner,
               hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+              hasPaid: vm.item.registration.hasPaid,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
               onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
               onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
               onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-              onGolfToggle: () => _toggleGolf(ref, event, vm.item.registration),
+            )),
+          ],
+
+          // MEMBERS - RESERVED
+          if (reservedMembers.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            BoxyArtSectionTitle(title: 'Reserved (${reservedMembers.length})'),
+            ...reservedMembers.map((vm) => RegistrationCard(
+              name: vm.item.name,
+              label: 'Member',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.attendingBreakfast,
+              attendingLunch: vm.item.registration.attendingLunch,
+              attendingDinner: vm.item.registration.attendingDinner,
+              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+              hasPaid: vm.item.registration.hasPaid,
+              memberProfile: vm.memberProfile,
+              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
             )),
           ],
 
@@ -430,6 +358,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
               attendingLunch: vm.item.registration.guestAttendingLunch,
               attendingDinner: vm.item.registration.guestAttendingDinner,
+              hasPaid: vm.item.registration.hasPaid,
               memberProfile: null, // Guests don't have a profile link on the card
               isGuest: true,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
@@ -437,7 +366,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
               onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
               onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
-              onGolfToggle: null,
             )),
           ],
 
@@ -453,6 +381,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingBreakfast: vm.item.registration.attendingBreakfast,
               attendingLunch: vm.item.registration.attendingLunch,
               attendingDinner: true,
+              hasPaid: vm.item.registration.hasPaid,
               isDinnerOnly: true,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
@@ -460,7 +389,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
               onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
               onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-              onGolfToggle: () => _toggleGolf(ref, event, vm.item.registration),
             )),
           ],
 
@@ -476,13 +404,13 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingBreakfast: vm.item.registration.attendingBreakfast,
               attendingLunch: vm.item.registration.attendingLunch,
               attendingDinner: false,
+              hasPaid: vm.item.registration.hasPaid,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
               onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
               onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
               onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-              onGolfToggle: () => _toggleGolf(ref, event, vm.item.registration),
             )),
           ],
         ],
@@ -591,11 +519,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final updated = isGuest 
       ? reg.copyWith(guestAttendingDinner: !reg.guestAttendingDinner)
       : reg.copyWith(attendingDinner: !reg.attendingDinner);
-    _updateRegistration(ref, event, updated);
-  }
-
-  void _toggleGolf(WidgetRef ref, GolfEvent event, EventRegistration reg) {
-    final updated = reg.copyWith(attendingGolf: !reg.attendingGolf);
     _updateRegistration(ref, event, updated);
   }
 

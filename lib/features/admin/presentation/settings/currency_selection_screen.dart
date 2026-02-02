@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/theme/theme_controller.dart';
 
+import '../../../../core/theme/contrast_helper.dart';
+
 class CurrencySelectionScreen extends ConsumerStatefulWidget {
   const CurrencySelectionScreen({super.key});
 
@@ -42,15 +44,25 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
   Widget build(BuildContext context) {
     final societyConfig = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
+    final primaryColor = Theme.of(context).primaryColor;
+    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
     // Popular currencies for quick access
     final popularCodes = ['GBP', 'USD', 'EUR', 'JPY', 'AUD', 'CAD'];
     final popularCurrencies = _allCurrencies.where((c) => popularCodes.contains(c.code)).toList();
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(
+      appBar: BoxyArtAppBar(
         title: 'Select Currency',
-        showBack: true,
+        subtitle: 'App-wide display currency',
+        isLarge: true,
+        leadingWidth: 70,
+        leading: Center(
+          child: TextButton(
+            onPressed: () => context.pop(),
+            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+          ),
+        ),
       ),
       body: Column(
         children: [

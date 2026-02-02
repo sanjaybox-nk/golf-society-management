@@ -15,6 +15,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(true) bool useCardGradient, // Whether to use gradient on cards
     @Default('£') String currencySymbol, // Default currency symbol
     @Default('GBP') String currencyCode, // Default currency code
+    @Default('balanced') String groupingStrategy, // 'balanced', 'progressive', 'similar', 'random'
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>

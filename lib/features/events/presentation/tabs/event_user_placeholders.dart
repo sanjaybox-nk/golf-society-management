@@ -25,40 +25,52 @@ class EventGroupingUserTab extends ConsumerWidget {
             : [];
 
         return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              EventSliverAppBar(
-                event: event,
-                title: 'Grouping',
-              ),
-              if (!isPublished || groups.isEmpty)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.grid_view_rounded, size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text('Grouping not published', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
+          appBar: BoxyArtAppBar(
+            title: 'Grouping',
+            subtitle: event.title,
+            showBack: true,
+          ),
+          body: !isPublished
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.lock_clock_rounded, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      const Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
                   ),
                 )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
+              : groups.every((g) => g.players.isEmpty)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                          const SizedBox(height: 16),
+                          const Text('No players confirmed yet', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 48),
+                            child: Text(
+                              'The field is currently being finalized. Check back once registration is closed.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: groups.length,
+                      itemBuilder: (context, index) {
                         final group = groups[index];
                         return _buildGroupCard(context, group);
                       },
-                      childCount: groups.length,
                     ),
-                  ),
-                ),
-            ],
-          ),
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -113,21 +125,39 @@ class EventGroupingUserTab extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              p.name,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: p.isCaptain ? FontWeight.bold : FontWeight.normal,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  p.name,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: p.isCaptain ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                if (p.isGuest) ...[
+                  const SizedBox(width: 8),
+                  const Text(
+                    'G', 
+                    style: TextStyle(
+                      fontSize: 13, 
+                      color: Colors.orange, 
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
+          if (p.isCaptain)
+            const Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Icon(Icons.shield, color: Colors.orange, size: 16),
+            ),
           if (p.needsBuggy)
             const Padding(
-              padding: EdgeInsets.only(right: 8.0),
+              padding: EdgeInsets.only(left: 8.0),
               child: Icon(Icons.electric_rickshaw, size: 16, color: Colors.blue),
             ),
-          if (p.isGuest)
-             const Text('Guest', style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic)),
         ],
       ),
     );
@@ -146,14 +176,12 @@ class EventScoresUserTab extends ConsumerWidget {
       data: (events) {
         final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
         return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              EventSliverAppBar(
-                event: event,
-                title: 'Leaderboard',
-              ),
-              const SliverFillRemaining(
-                child: Center(
+          appBar: BoxyArtAppBar(
+            title: 'Leaderboard',
+            subtitle: event.title,
+            showBack: true,
+          ),
+          body: const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -163,9 +191,6 @@ class EventScoresUserTab extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),

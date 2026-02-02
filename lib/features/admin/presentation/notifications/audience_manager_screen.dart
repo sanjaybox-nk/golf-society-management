@@ -29,7 +29,6 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
-      appBar: const BoxyArtAppBar(title: 'Communications Hub', showBack: true),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

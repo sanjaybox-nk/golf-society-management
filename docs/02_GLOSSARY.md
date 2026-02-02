@@ -45,8 +45,14 @@ The central tab for all competition info.
 
 **Floating Bottom Search**
 A specialized search bar found in the **Members Directory**. Instead of sitting at the top, it "floats" at the bottom of the screen for easier thumb reach. It contains:
--   **Search**: Triggers text input.
--   **Filter**: Opens advanced filtering options.
+-   **Search**: Triggers real-time text input filtering.
+-   **Filter Toggles**: 
+  - **C (Current)**: Shows strictly Active members.
+  - **O (Other)**: Shows Inactive, Pending, and Archived members.
+  - **★ (Committee)**: Filters the list to show only members holding a society role (e.g., Captain).
+
+**Admin Sub-grouping**
+To improve management efficiency, the Member List (Admin View) automatically sub-groups "Other" members by their specific status (Pending, Suspended, etc.) with clearly labeled section headers.
 
 **Status Pill**
 A small, pill-shaped indicator used throughout the app to show status (e.g., "Active", "Paid", "Due"). Uses semantic colors from `StatusColors` and automatically adapts to light/dark mode. Also known as `BoxyArtStatusPill`.

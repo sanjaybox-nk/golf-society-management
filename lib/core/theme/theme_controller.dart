@@ -102,4 +102,10 @@ class ThemeController extends Notifier<SocietyConfig> {
     state = newConfig; // Optimistic update
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
+
+  Future<void> setGroupingStrategy(String strategy) async {
+    final newConfig = state.copyWith(groupingStrategy: strategy);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
 }

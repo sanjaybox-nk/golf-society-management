@@ -174,7 +174,7 @@ class BoxyArtDatePickerField extends StatelessWidget {
             width: double.infinity,
             decoration: ShapeDecoration(
               color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
-              shape: const StadiumBorder(),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
               shadows: AppShadows.inputSoft,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -246,12 +246,14 @@ class BoxyArtSearchBar extends StatelessWidget {
   final String hintText;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
 
   const BoxyArtSearchBar({
     super.key,
     required this.hintText,
     this.onChanged,
     this.controller,
+    this.focusNode,
   });
 
   @override
@@ -265,6 +267,7 @@ class BoxyArtSearchBar extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         onChanged: onChanged,
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(

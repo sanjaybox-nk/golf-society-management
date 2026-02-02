@@ -12,109 +12,93 @@ class EventsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentFilter = ref.watch(eventFilterProvider);
+    final upcomingAsync = ref.watch(upcomingEventsProvider);
+    final pastAsync = ref.watch(pastEventsProvider);
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Events', isLarge: true),
-      body: Stack(
-        children: [
-          _EventsList(
-            provider: currentFilter == EventFilter.upcoming
-                ? upcomingEventsProvider
-                : pastEventsProvider,
-            isUpcoming: currentFilter == EventFilter.upcoming,
-          ),
-
-          // Floating Filter Bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: FloatingFilterBar<EventFilter>(
-              selectedValue: currentFilter,
-              options: [
-                FloatingFilterOption(
-                  label: 'Upcoming',
-                  value: EventFilter.upcoming,
-                ),
-                FloatingFilterOption(
-                  label: 'Past Results',
-                  value: EventFilter.past,
-                ),
-              ],
-              onChanged: (filter) {
-                ref.read(eventFilterProvider.notifier).update(filter);
-              },
+      appBar: const BoxyArtAppBar(
+        title: 'Events', 
+        subtitle: 'Society calendar',
+        isLarge: true,
+        showLeading: false, // Remove menu icon
+      ),
+      body: CustomScrollView(
+        slivers: [
+          // Upcoming Section
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(title: 'Upcoming Events'),
             ),
           ),
+          upcomingAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('No upcoming events scheduled')),
+                  ),
+                );
+              }
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    // Highlight the first event (Next Match)
+                    final isNextMatch = index == 0;
+                    return _EventCard(event: events[index], isHighlighted: isNextMatch);
+                  },
+                  childCount: events.length,
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+            error: (err, stack) => SliverToBoxAdapter(child: Text('Error: $err')),
+          ),
+
+          // Past Section
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 32, 20, 8), // Extra top spacing
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(title: 'Past Events'),
+            ),
+          ),
+          pastAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('No past events this season')),
+                  ),
+                );
+              }
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _EventCard(event: events[index], isHighlighted: false);
+                  },
+                  childCount: events.length,
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+            error: (err, stack) => SliverToBoxAdapter(child: Text('Error: $err')),
+          ),
+          
+          // Bottom padding
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
     );
   }
 }
 
-class _EventsList extends ConsumerWidget {
-  final Provider<AsyncValue<List<GolfEvent>>> provider;
-  final bool isUpcoming;
-
-  const _EventsList({required this.provider, required this.isUpcoming});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(provider);
-
-    return eventsAsync.when(
-      data: (events) {
-        if (events.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isUpcoming ? Icons.event_busy : Icons.history,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  isUpcoming ? 'No upcoming events' : 'No past events found',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: Colors.grey),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16).copyWith(bottom: 100),
-          itemCount: events.length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: BoxyArtSectionTitle(
-                  title: isUpcoming ? 'Upcoming Events' : 'Past Results',
-                  padding: const EdgeInsets.only(bottom: 16),
-                ),
-              );
-            }
-            return _EventCard(event: events[index - 1], isUpcoming: isUpcoming);
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
-    );
-  }
-}
-
 class _EventCard extends StatelessWidget {
   final GolfEvent event;
-  final bool isUpcoming;
+  final bool isHighlighted;
 
-  const _EventCard({required this.event, required this.isUpcoming});
+  const _EventCard({required this.event, this.isHighlighted = false});
 
   @override
   Widget build(BuildContext context) {
@@ -122,11 +106,14 @@ class _EventCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: BoxyArtFloatingCard(
         onTap: () => context.push('/events/${event.id}'),
+        border: isHighlighted 
+            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+            : null,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Date Badge
-            _DateBadge(date: event.date),
+            BoxyArtDateBadge(date: event.date),
             const SizedBox(width: 16),
 
             // Event Info
@@ -162,7 +149,7 @@ class _EventCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tee-off: ${DateFormat('h:mm a').format(event.teeOffTime ?? event.date)}',
+                    'Registration: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -174,21 +161,7 @@ class _EventCard extends StatelessWidget {
             // Action / Arrow
             Column(
               children: [
-                if (isUpcoming)
-                  Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(canvasColor: Colors.transparent),
-                    child: const Chip(
-                      label: Text('Register'),
-                      labelStyle: TextStyle(fontSize: 12, color: Colors.white),
-                      backgroundColor: Colors.black,
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  )
-                else
-                  const Icon(Icons.chevron_right, color: Colors.grey),
+                const Icon(Icons.chevron_right, color: Colors.grey),
               ],
             ),
           ],
@@ -198,41 +171,3 @@ class _EventCard extends StatelessWidget {
   }
 }
 
-class _DateBadge extends StatelessWidget {
-  final DateTime date;
-
-  const _DateBadge({required this.date});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      height: 70,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            DateFormat('MMM').format(date).toUpperCase(), // Month (e.g. MAY)
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-            ),
-          ),
-          Text(
-            DateFormat('d').format(date), // Day (e.g. 15)
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              height: 1,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

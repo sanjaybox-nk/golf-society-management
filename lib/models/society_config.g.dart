@@ -21,6 +21,7 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       useCardGradient: json['useCardGradient'] as bool? ?? true,
       currencySymbol: json['currencySymbol'] as String? ?? '£',
       currencyCode: json['currencyCode'] as String? ?? 'GBP',
+      groupingStrategy: json['groupingStrategy'] as String? ?? 'balanced',
     );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'useCardGradient': instance.useCardGradient,
       'currencySymbol': instance.currencySymbol,
       'currencyCode': instance.currencyCode,
+      'groupingStrategy': instance.groupingStrategy,
     };
