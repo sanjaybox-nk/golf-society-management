@@ -52,7 +52,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         toolbarHeight: largeHeight,
-        leadingWidth: leadingWidth,
+        leadingWidth: leadingWidth ?? 80,
         centerTitle: true,
         title: Column(
           mainAxisSize: MainAxisSize.min,
@@ -81,15 +81,26 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
         leading: leading ?? (showLeading 
-          ? Center(
-              child: BoxyArtCircularIconBtn(
-                icon: showBack ? Icons.arrow_back : Icons.menu,
-                onTap: showBack 
-                    ? (onBack ?? () => Navigator.maybePop(context)) 
-                    : onMenuPressed,
-                backgroundColor: Colors.white24,
-                iconColor: onPrimary,
-              ),
+          ? (showBack 
+              ? TextButton(
+                  onPressed: onBack ?? () => Navigator.maybePop(context),
+                  child: Text(
+                    'Back',
+                    style: TextStyle(
+                      color: onPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                )
+              : Center(
+                  child: BoxyArtCircularIconBtn(
+                    icon: Icons.menu,
+                    onTap: onMenuPressed,
+                    backgroundColor: Colors.white24,
+                    iconColor: onPrimary,
+                  ),
+                )
             )
           : null),
         actions: actions ?? [],
@@ -102,7 +113,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: primaryColor,
       elevation: 0,
       centerTitle: centerTitle ?? false,
-      leadingWidth: leadingWidth,
+      leadingWidth: leadingWidth ?? 80,
       title: Column(
          mainAxisSize: MainAxisSize.min,
          children: [
@@ -127,16 +138,27 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
          ],
       ),
       leading: leading ?? (showLeading
-          ? Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: BoxyArtCircularIconBtn(
-                icon: showBack ? Icons.arrow_back : Icons.menu,
-                onTap: showBack 
-                    ? (onBack ?? () => Navigator.maybePop(context)) 
-                    : onMenuPressed,
-                backgroundColor: Colors.white24,
-                iconColor: onPrimary,
-              ),
+          ? (showBack 
+              ? TextButton(
+                  onPressed: onBack ?? () => Navigator.maybePop(context),
+                  child: Text(
+                    'Back',
+                    style: TextStyle(
+                      color: onPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: BoxyArtCircularIconBtn(
+                    icon: Icons.menu,
+                    onTap: onMenuPressed,
+                    backgroundColor: Colors.white24,
+                    iconColor: onPrimary,
+                  ),
+                )
             )
           : null),
       automaticallyImplyLeading: showLeading,
@@ -409,16 +431,21 @@ class BoxyArtSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
       padding: padding,
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: isLevel2 ? 10 : 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey,
-          letterSpacing: 1.2,
-          fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title.toUpperCase(),
+          style: TextStyle(
+            fontSize: isLevel2 ? 10 : 12,
+            fontWeight: FontWeight.w900, // Maximized Boldness
+            color: isDark ? Colors.white54 : Colors.grey,
+            letterSpacing: 1.5, // Increased spacing
+            fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+          ),
         ),
       ),
     );

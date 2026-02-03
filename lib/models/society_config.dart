@@ -16,6 +16,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('£') String currencySymbol, // Default currency symbol
     @Default('GBP') String currencyCode, // Default currency code
     @Default('balanced') String groupingStrategy, // 'balanced', 'progressive', 'similar', 'random'
+    @Default(true) bool useWhsHandicaps, // Default: Use WHS (Slope/Rating)
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>

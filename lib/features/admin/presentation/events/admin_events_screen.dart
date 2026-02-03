@@ -25,6 +25,10 @@ class AdminEventsScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () => context.push('/admin/settings'),
+          ),
+          IconButton(
             icon: const Icon(Icons.auto_fix_high, color: Colors.white, size: 24),
             tooltip: 'Seed Test Event',
             onPressed: () => _seedTestEvent(context, ref),

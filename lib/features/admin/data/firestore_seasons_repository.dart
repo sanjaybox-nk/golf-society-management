@@ -12,23 +12,57 @@ class FirestoreSeasonsRepository implements SeasonsRepository {
 
   @override
   Stream<List<Season>> watchSeasons() {
-    return _seasonsRef.orderBy('year', descending: true).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return Season.fromJson(data);
-      }).toList();
+    return _seasonsRef
+        .orderBy('year', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => _mapSeason(doc)).toList();
     });
   }
 
   @override
   Future<List<Season>> getSeasons() async {
     final snapshot = await _seasonsRef.orderBy('year', descending: true).get();
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id;
+    return snapshot.docs.map((doc) => _mapSeason(doc)).toList();
+  }
+
+  Season _mapSeason(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data() ?? {};
+    data['id'] = doc.id;
+
+    // Robust Sanitization
+    if (data['name'] == null) data['name'] = 'Season ${data['year'] ?? ''}';
+    if (data['year'] == null) data['year'] = DateTime.now().year;
+    
+    // Core Dates - Fallback to current year boundaries if missing
+    final year = data['year'] as int;
+    if (data['startDate'] == null) {
+      data['startDate'] = Timestamp.fromDate(DateTime(year, 1, 1));
+    }
+    if (data['endDate'] == null) {
+      data['endDate'] = Timestamp.fromDate(DateTime(year, 12, 31));
+    }
+
+    // Default Enums and Flags
+    if (data['status'] == null) data['status'] = SeasonStatus.active.name;
+    if (data['isCurrent'] == null) data['isCurrent'] = false;
+    if (data['pointsMode'] == null) data['pointsMode'] = PointsMode.position.name;
+
+    try {
       return Season.fromJson(data);
-    }).toList();
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error parsing season ${doc.id}: $e');
+      // Return a safe fallback to prevent breaking the entire list
+      return Season(
+        id: doc.id,
+        name: data['name']?.toString() ?? 'Error Loading Season',
+        year: year,
+        startDate: (data['startDate'] as Timestamp).toDate(),
+        endDate: (data['endDate'] as Timestamp).toDate(),
+        status: SeasonStatus.active,
+      );
+    }
   }
 
   @override
@@ -58,15 +92,17 @@ class FirestoreSeasonsRepository implements SeasonsRepository {
       'isCurrent': false, // Ensure archived season is not current
     });
   }
+
   @override
   Future<void> setCurrentSeason(String seasonId) async {
     // 1. Unset current from all
-    final currentOnes = await _seasonsRef.where('isCurrent', isEqualTo: true).get();
+    final currentOnes =
+        await _seasonsRef.where('isCurrent', isEqualTo: true).get();
     final batch = _firestore.batch();
     for (var doc in currentOnes.docs) {
       batch.update(doc.reference, {'isCurrent': false});
     }
-    
+
     // 2. Set new current
     batch.update(_seasonsRef.doc(seasonId), {'isCurrent': true});
     await batch.commit();

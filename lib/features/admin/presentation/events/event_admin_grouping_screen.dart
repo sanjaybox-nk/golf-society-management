@@ -11,6 +11,9 @@ import '../../providers/admin_ui_providers.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../models/society_config.dart'; // Added
+import '../../../../models/competition.dart'; // Added
+import '../../../competitions/presentation/competitions_provider.dart'; // Added
 
 class EventAdminGroupingScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -57,6 +60,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     final eventsAsync = ref.watch(upcomingEventsProvider);
     final allEventsAsync = ref.watch(adminEventsProvider); // For variety logic
     final membersAsync = ref.watch(allMembersProvider);
+    final societyConfig = ref.watch(themeControllerProvider); // Corrected
+    final competitionsAsync = ref.watch(competitionsListProvider(null)); // Added
 
     return eventsAsync.when(
       data: (events) {
@@ -67,6 +72,11 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
         final allEvents = allEventsAsync.value ?? [];
         final history = allEvents.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
+        
+        // Handicap & Rules Context
+        final config = societyConfig;
+        final comps = competitionsAsync.value ?? [];
+        final comp = comps.where((c) => c.id == event.id).firstOrNull; // EventID = CompID
         
         // Initialize local groups if not already done
         if (_localGroups == null && event.grouping.containsKey('groups')) {
@@ -234,7 +244,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     child: _buildPublishBar(event),
                   ),
                 if (_showGenerationOptions)
-                  _buildGenerationOverlay(context, event, allEvents, handicapMap),
+                  _buildGenerationOverlay(context, event, allEvents, handicapMap, config, comp?.rules),
               ],
             ),
           ),
@@ -797,7 +807,14 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     );
   }
 
-  Widget _buildGenerationOverlay(BuildContext context, GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap) {
+  Widget _buildGenerationOverlay(
+    BuildContext context, 
+    GolfEvent event, 
+    List<GolfEvent> allEvents, 
+    Map<String, double> handicapMap,
+    SocietyConfig config,
+    CompetitionRules? rules,
+  ) {
     // Initial values
     String selectedStrategy = ref.read(themeControllerProvider).groupingStrategy;
     bool pairBuggies = false;
@@ -890,6 +907,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                                     handicapMap, 
                                     prioritizeBuggyPairing: pairBuggies,
                                     strategyOverride: selectedStrategy,
+                                    config: config,
+                                    rules: rules,
                                   );
                                 },
                               ),
@@ -929,10 +948,17 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     );
   }
 
-  void _handleAutoGenerate(GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap, {bool prioritizeBuggyPairing = false, String? strategyOverride}) {
+  void _handleAutoGenerate(
+    GolfEvent event, 
+    List<GolfEvent> allEvents, 
+    Map<String, double> handicapMap, {
+    bool prioritizeBuggyPairing = false, 
+    String? strategyOverride,
+    required SocietyConfig config,
+    CompetitionRules? rules,
+  }) {
     final participants = RegistrationLogic.getSortedItems(event);
     final previousInSeason = allEvents.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
-    final config = ref.read(themeControllerProvider);
     final strategy = strategyOverride ?? config.groupingStrategy;
 
     setState(() {
@@ -943,6 +969,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         memberHandicaps: handicapMap,
         prioritizeBuggyPairing: prioritizeBuggyPairing,
         strategy: strategy,
+        rules: rules,
+        useWhs: config.useWhsHandicaps,
       );
     });
     _updateDirty(true);

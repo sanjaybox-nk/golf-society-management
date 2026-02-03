@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/season.dart';
+import '../features/events/presentation/events_provider.dart';
 
 import '../core/widgets/scaffold_with_nav_bar.dart';
 import '../models/golf_event.dart';
@@ -33,6 +35,13 @@ import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
+import '../features/admin/presentation/competitions/admin_competitions_screen.dart';
+import '../features/admin/presentation/competitions/competition_builder_screen.dart';
+// import '../features/admin/presentation/competitions/scoring_review_queue_screen.dart'; // Removed
+import '../features/admin/presentation/competitions/competition_type_selection_screen.dart'; // Added
+import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart'; // Added
+import '../models/competition.dart'; // Added for enum
+import '../features/admin/presentation/seasons/season_form_screen.dart';
 
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';
@@ -40,6 +49,8 @@ import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/tabs/event_user_registration_tab.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/events/presentation/tabs/event_gallery_user_tab.dart';
+import '../features/competitions/presentation/scorecard_entry_screen.dart';
+import '../features/competitions/presentation/season_standings_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -47,6 +58,14 @@ final _eventsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'events');
 final _membersNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'members');
 final _lockerNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'locker');
 final _archiveNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'archive');
+
+// Admin Navigators
+final _adminDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'adminDashboard');
+final _adminEventsKey = GlobalKey<NavigatorState>(debugLabel: 'adminEvents');
+final _adminLeaderboardsKey = GlobalKey<NavigatorState>(debugLabel: 'adminLeaderboards');
+final _adminMembersKey = GlobalKey<NavigatorState>(debugLabel: 'adminMembers');
+final _adminCommsKey = GlobalKey<NavigatorState>(debugLabel: 'adminComms');
+final _adminSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'adminSettings');
 
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -107,6 +126,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: LockerScreen(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'standings',
+                    builder: (context, state) => const SeasonStandingsScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -128,19 +153,132 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return AdminShell(navigationShell: navigationShell);
         },
         branches: [
-          // 1. Dashboard
+          // 0. Dashboard
           StatefulShellBranch(
+            navigatorKey: _adminDashboardKey,
             routes: [
               GoRoute(
                 path: '/admin',
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: AdminDashboardScreen(),
                 ),
+                routes: [
+                  // Settings - Integrated into Dashboard branch for persistent menu
+                  GoRoute(
+                    path: 'settings',
+                    builder: (context, state) => const AdminSettingsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'branding',
+                        builder: (context, state) => const BrandingSettingsScreen(),
+                      ),
+                      GoRoute(
+                        path: 'general',
+                        builder: (context, state) => const GeneralSettingsScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'currency',
+                            builder: (context, state) => const CurrencySelectionScreen(),
+                          ),
+                          GoRoute(
+                            path: 'grouping-strategy',
+                            builder: (context, state) => const GroupingStrategySelectionScreen(),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'roles',
+                        builder: (context, state) => const RolesSettingsScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'members/:roleIndex',
+                            builder: (context, state) {
+                              final roleIndex = int.parse(state.pathParameters['roleIndex']!);
+                              final role = MemberRole.values[roleIndex];
+                              return RoleMembersScreen(role: role);
+                            },
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'committee-roles',
+                        builder: (context, state) => const CommitteeRolesScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'members/:roleName',
+                            builder: (context, state) {
+                              final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
+                              return CommitteeRoleMembersScreen(role: roleName);
+                            },
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'seasons',
+                        builder: (context, state) => const AdminSeasonsScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            builder: (context, state) => const SeasonFormScreen(),
+                          ),
+                          GoRoute(
+                            path: 'edit/:id',
+                            builder: (context, state) {
+                              final season = state.extra as Season?;
+                              final id = state.pathParameters['id']!;
+                              return SeasonFormScreen(season: season, seasonId: id);
+                            },
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'templates',
+                        builder: (context, state) => const CompetitionTypeSelectionScreen(isTemplate: true),
+                        routes: [
+                          GoRoute(
+                            path: 'gallery/:type',
+                            builder: (context, state) {
+                               final typeStr = state.pathParameters['type']!;
+                               return CompetitionTemplateGalleryScreen(typeStr: typeStr, isTemplate: true);
+                            },
+                          ),
+                          GoRoute(
+                            path: 'create/:type',
+                            builder: (context, state) {
+                               final typeStr = state.pathParameters['type']!;
+                               
+                               // Try matching Subtype (for Pairs)
+                               final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
+                               if (subtype != null) {
+                                 return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
+                               }
+
+                               // Match string to enum
+                               final format = CompetitionFormat.values.firstWhere(
+                                 (e) => e.name == typeStr,
+                                 orElse: () => CompetitionFormat.stableford, // Fallback
+                               );
+                               return CompetitionBuilderScreen(format: format, isTemplate: true);
+                            },
+                          ),
+                          GoRoute(
+                            path: 'edit/:id',
+                            builder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              return CompetitionBuilderScreen(competitionId: id, isTemplate: true);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
-          // 2. Events
+          // 1. Events
           StatefulShellBranch(
+            navigatorKey: _adminEventsKey,
             routes: [
               GoRoute(
                 path: '/admin/events',
@@ -151,6 +289,42 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     builder: (context, state) => const EventFormScreen(),
+                  ),
+                  // Competition Picker - Integrated into Events branch
+                  GoRoute(
+                    path: 'competitions/new',
+                    builder: (context, state) => const CompetitionTypeSelectionScreen(isPicker: true),
+                    routes: [
+                      GoRoute(
+                        path: 'gallery/:type',
+                        builder: (context, state) {
+                           final typeStr = state.pathParameters['type']!;
+                           return CompetitionTemplateGalleryScreen(typeStr: typeStr, isPicker: true);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'create/:type',
+                        builder: (context, state) {
+                           final typeStr = state.pathParameters['type']!;
+                           final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
+                           if (subtype != null) {
+                             return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
+                           }
+                           final format = CompetitionFormat.values.firstWhere(
+                             (e) => e.name == typeStr,
+                             orElse: () => CompetitionFormat.stableford,
+                           );
+                           return CompetitionBuilderScreen(format: format, isTemplate: true);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'edit/:id',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return CompetitionBuilderScreen(competitionId: id, isTemplate: true);
+                        },
+                      ),
+                    ],
                   ),
                   ShellRoute(
                     pageBuilder: (context, state, child) {
@@ -211,8 +385,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // 3. Members
+          // 2. Members
           StatefulShellBranch(
+            navigatorKey: _adminMembersKey,
             routes: [
               GoRoute(
                 path: '/admin/members',
@@ -222,8 +397,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // 4. Comms
+          // 3. Comms
           StatefulShellBranch(
+            navigatorKey: _adminCommsKey,
             routes: [
               GoRoute(
                 path: '/admin/communications',
@@ -231,61 +407,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // 5. Settings
+          // 4. Leaderboards (formerly index 5)
           StatefulShellBranch(
+            navigatorKey: _adminLeaderboardsKey,
             routes: [
               GoRoute(
-                path: '/admin/settings',
-                builder: (context, state) => const AdminSettingsScreen(),
+                path: '/admin/leaderboards',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: AdminLeaderboardsScreen(), 
+                ),
                 routes: [
                   GoRoute(
-                    path: 'branding',
-                    builder: (context, state) => const BrandingSettingsScreen(),
-                  ),
-                  GoRoute(
-                    path: 'general',
-                    builder: (context, state) => const GeneralSettingsScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'currency',
-                        builder: (context, state) => const CurrencySelectionScreen(),
-                      ),
-                      GoRoute(
-                        path: 'grouping-strategy',
-                        builder: (context, state) => const GroupingStrategySelectionScreen(),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'roles',
-                    builder: (context, state) => const RolesSettingsScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'members/:roleIndex',
-                        builder: (context, state) {
-                          final roleIndex = int.parse(state.pathParameters['roleIndex']!);
-                          final role = MemberRole.values[roleIndex];
-                          return RoleMembersScreen(role: role);
-                        },
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'committee-roles',
-                    builder: (context, state) => const CommitteeRolesScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'members/:roleName',
-                        builder: (context, state) {
-                          final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
-                          return CommitteeRoleMembersScreen(role: roleName);
-                        },
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'seasons',
-                    builder: (context, state) => const AdminSeasonsScreen(),
+                    path: 'manage/:id',
+                    builder: (context, state) => const Scaffold(body: Center(child: Text('Management Screen'))),
                   ),
                 ],
               ),
@@ -293,7 +427,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-    GoRoute(
+      GoRoute(
       path: '/events/:id',
     redirect: (context, state) {
       final id = state.pathParameters['id'];
@@ -342,6 +476,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id']!;
               return EventScoresUserTab(eventId: id);
             },
+            routes: [
+              GoRoute(
+                path: 'entry',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  // We need the competitionId, but for now we'll assume it's linked to the event
+                  return ScorecardEntryScreen(competitionId: id); 
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: 'gallery',
@@ -354,6 +498,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   ),
-    ],
+],
   );
 });

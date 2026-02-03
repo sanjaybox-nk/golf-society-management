@@ -14,6 +14,8 @@ import '../../../../core/services/storage_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../models/competition.dart'; // Added
+import '../../../competitions/presentation/competitions_provider.dart'; // Added
 
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event; // Null = New Event
@@ -84,6 +86,11 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   bool _showRegistrationButton = true;
   bool _isSaving = false;
   String? _selectedSeasonId;
+  
+  // New Event Config
+  bool _isMultiDay = false;
+  DateTime? _endDate;
+  String? _selectedTemplateId;
   
   // Track the event being edited (either passed or fetched)
   GolfEvent? _editingEvent;
@@ -322,6 +329,32 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       } else {
         await repo.updateEvent(newEvent);
       }
+      
+      // AUTO-CREATE COMPETITION FROM TEMPLATE
+      if (_selectedTemplateId != null) {
+         final templates = ref.read(templatesListProvider).value;
+         final template = templates?.firstWhere((t) => t.id == _selectedTemplateId, orElse: () => throw Exception("Template not found"));
+         
+         if (template != null) {
+            final compRepo = ref.read(competitionsRepositoryProvider);
+            // Check if competition already exists for this event? 
+            // For now, we overwrite or create. Using EventID as CompetitionID ensures 1:1
+            final newComp = Competition(
+              id: newEvent.id, // Linked 1:1
+              type: CompetitionType.event,
+              status: CompetitionStatus.draft,
+              rules: template.rules, // COPY RULES
+              startDate: newEvent.date,
+              endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
+              publishSettings: {},
+              isDirty: true,
+            );
+            
+            // Create or Update
+            // We use addCompetition (which usually uses set(), so acts as upsert if ID constant)
+            await compRepo.addCompetition(newComp);
+         }
+      }
 
       if (mounted) {
         context.pop(); 
@@ -445,11 +478,135 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   child: Column(
                     children: [
                       BoxyArtDatePickerField(
-                        label: 'Event Date',
+                        label: 'Start Date',
                         value: DateFormat.yMMMd().format(_selectedDate),
                         onTap: _pickDate,
                       ),
                       const SizedBox(height: 16),
+                      BoxyArtSwitchField(
+                        label: 'Multi-Day Event', 
+                        value: _isMultiDay, 
+                        onChanged: (v) => setState(() => _isMultiDay = v),
+                      ),
+                      if (_isMultiDay) ...[
+                        const SizedBox(height: 16),
+                         BoxyArtDatePickerField(
+                          label: 'End Date',
+                          value: _endDate != null ? DateFormat.yMMMd().format(_endDate!) : 'Select End Date',
+                          onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context, 
+                                initialDate: _endDate ?? _selectedDate, 
+                                firstDate: _selectedDate, 
+                                lastDate: DateTime(2030)
+                              );
+                              if (picked != null) setState(() => _endDate = picked);
+                          },
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+
+                      const BoxyArtSectionTitle(
+                        title: 'COMPETITION RULES',
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 12),
+                      BoxyArtFloatingCard(
+                        padding: const EdgeInsets.all(16),
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final templates = ref.watch(templatesListProvider).value ?? [];
+                            final selectedTemplate = templates.where((t) => t.id == _selectedTemplateId).firstOrNull;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (selectedTemplate == null)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'No Rules Applied',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 20,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Add a game format to enable scoring for this event.',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      BoxyArtButton(
+                                        title: 'ADD GAME FORMAT',
+                                        icon: Icons.add,
+                                        fullWidth: true,
+                                        onTap: () async {
+                                          final result = await context.push<String>('/admin/events/competitions/new');
+                                          if (result != null) {
+                                            setState(() => _selectedTemplateId = result);
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () async {
+                                            final result = await context.push<String>('/admin/events/competitions/new');
+                                            if (result != null) {
+                                              setState(() => _selectedTemplateId = result);
+                                            }
+                                          },
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                                child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      (selectedTemplate.name != null && selectedTemplate.name!.isNotEmpty)
+                                                          ? selectedTemplate.name!.toUpperCase()
+                                                          : selectedTemplate.rules.format.name.toUpperCase(),
+                                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                    ),
+                                                    Text(
+                                                      '${(selectedTemplate.rules.handicapAllowance * 100).toInt()}% Allowance • ${selectedTemplate.rules.mode.name}',
+                                                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () => setState(() => _selectedTemplateId = null),
+                                        icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(

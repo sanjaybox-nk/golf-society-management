@@ -32,6 +32,13 @@ From the **Admin > Events** dashboard, tap **Registrations** on any event to man
 3.  **History**: Scroll to the bottom of a participant's details to view their registration history (audit trail).
 4.  **Groupings**: Tap **Groupings** to auto-generate and publish tee sheets.
 
+## 5. Managing Game Templates
+1.  Go to **Admin > Settings > Game Templates**.
+2.  **Add Template**: Tap **START BLANK** or select an existing game type.
+3.  **Configure Rules**: Set the **Format** (Stableford, Scramble, etc.), **Handicap Allowance**, and **Tie-Break Method**.
+4.  **Save**: Give the template a name and tap **SAVE AS TEMPLATE**.
+5.  **Applying to Events**: When creating/editing an event, tap **ADD GAME FORMAT** to pick from your saved templates or create a one-off set of rules.
+
 ---
 
 ## Fallback: Manual Firestore Entry

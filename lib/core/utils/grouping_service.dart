@@ -1,6 +1,8 @@
 import 'dart:math';
 import '../../features/events/domain/registration_logic.dart';
 import '../../models/golf_event.dart';
+import '../../models/competition.dart';
+import 'handicap_calculator.dart';
 
 class TeeGroup {
   final int index;
@@ -81,6 +83,8 @@ class GroupingService {
     required List<RegistrationItem> participants,
     required List<GolfEvent> previousEventsInSeason,
     required Map<String, double> memberHandicaps,
+    CompetitionRules? rules, // New
+    bool useWhs = true, // New
     bool prioritizeBuggyPairing = false,
     String strategy = 'balanced',
   }) {
@@ -89,6 +93,13 @@ class GroupingService {
     final List<RegistrationItem> golfers = [];
     final capacity = event.maxParticipants ?? 999;
     final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
+
+    // Helper to calculate P-HC
+    final hcConfig = _HandicapContext(
+      rules: rules,
+      courseConfig: event.courseConfig ?? {},
+      useWhs: useWhs,
+    );
 
     for (int i = 0; i < participants.length; i++) {
         final item = participants[i];
@@ -136,13 +147,14 @@ class GroupingService {
         final confirmedBuggyCount = participants.where((i) => 
           i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
 
+
         if (guest != null) {
           slots.add(_TeeSlot(players: [
-            _toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount),
-            _toParticipant(guest, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount),
+            _toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig),
+            _toParticipant(guest, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig),
           ]));
         } else {
-          slots.add(_TeeSlot(players: [_toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount)]));
+          slots.add(_TeeSlot(players: [_toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig)]));
         }
         processedMemberIds.add(host.registration.memberId);
       } else {
@@ -154,7 +166,7 @@ class GroupingService {
            final confirmedBuggyCount = participants.where((i) => 
              i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
              
-           slots.add(_TeeSlot(players: [_toParticipant(golfer, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount)]));
+           slots.add(_TeeSlot(players: [_toParticipant(golfer, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig)]));
            processedMemberIds.add(golfer.registration.memberId);
         }
       }
@@ -492,12 +504,24 @@ class GroupingService {
     List<RegistrationItem> buggyQueue,
     int buggyCapacity,
     int confirmedBuggyCount,
+    _HandicapContext? hcConfig,
   ) {
-    double handicap = 0.0;
+    double rawHandicap = 0.0;
     if (item.isGuest) {
-      handicap = double.tryParse(item.registration.guestHandicap ?? '') ?? 28.0;
+      rawHandicap = double.tryParse(item.registration.guestHandicap ?? '') ?? 28.0;
     } else {
-      handicap = memberHandicaps[item.registration.memberId] ?? 28.0;
+      rawHandicap = memberHandicaps[item.registration.memberId] ?? 28.0;
+    }
+
+    double finalHandicap = rawHandicap;
+    if (hcConfig != null && hcConfig.rules != null) {
+       final playing = HandicapCalculator.calculatePlayingHandicap(
+         handicapIndex: rawHandicap, 
+         rules: hcConfig.rules!, 
+         courseConfig: hcConfig.courseConfig,
+         useWhs: hcConfig.useWhs,
+       );
+       finalHandicap = playing.toDouble();
     }
 
     final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
@@ -516,11 +540,18 @@ class GroupingService {
       registrationMemberId: item.registration.memberId,
       name: item.name,
       isGuest: item.isGuest,
-      handicap: handicap,
+      handicap: finalHandicap,
       needsBuggy: item.needsBuggy,
       buggyStatus: buggyStatus,
     );
   }
+}
+
+class _HandicapContext {
+  final CompetitionRules? rules;
+  final Map<String, dynamic> courseConfig;
+  final bool useWhs;
+  _HandicapContext({this.rules, required this.courseConfig, required this.useWhs});
 }
 
 class _TeeSlot {

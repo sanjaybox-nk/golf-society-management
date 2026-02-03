@@ -27,7 +27,7 @@ lib/
 
 ## State Management (Riverpod)
 We use `riverpod_generator` (`@riverpod` annotation) which auto-generates providers.
-- **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore)
+- **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore), `CompetitionsRepository` (Firestore)
 - **Services**: `AuthService` (Firebase Auth), `StorageService` (Firebase Storage - Image Uploads)
 - **Providers**: Defined in `feature/presentation/provider_name.dart`.
 - **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
@@ -50,4 +50,5 @@ Models are immutable and generated using `freezed`.
 -   **Key Models**:
     -   `Member`: Core user profile.
     -   `GolfEvent`: Tournament/Event data.
+    -   `Competition`: Scoring rules, formats, and configurations.
     -   `SocietyConfig`: Branding and theme settings (persisted in Firestore).

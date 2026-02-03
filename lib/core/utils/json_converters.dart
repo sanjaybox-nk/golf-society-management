@@ -5,7 +5,8 @@ class TimestampConverter implements JsonConverter<DateTime, Object> {
   const TimestampConverter();
 
   @override
-  DateTime fromJson(Object json) {
+  DateTime fromJson(Object? json) {
+    if (json == null) return DateTime.now();
     if (json is Timestamp) return json.toDate();
     if (json is String) return DateTime.parse(json);
     return DateTime.now(); // Fallback

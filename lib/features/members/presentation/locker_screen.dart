@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
 
 
@@ -96,26 +97,19 @@ class LockerScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
                   
                   // Handicap Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+                  BoxyArtFloatingCard(
+                    onTap: () {
+                      // TODO: Navigate to Handicap details
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Handicap details coming soon')),
+                      );
+                    },
                     child: Column(
                       children: [
-                        Text(
+                        const Text(
                           'Current Handicap',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
+                            color: Colors.grey,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -124,7 +118,7 @@ class LockerScreen extends ConsumerWidget {
                         Text(
                           user.handicap.toStringAsFixed(1),
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(context).primaryColor,
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
                           ),
@@ -137,6 +131,7 @@ class LockerScreen extends ConsumerWidget {
 
                   // Stats Grid
                   const BoxyArtSectionTitle(title: 'Season Stats'),
+                  const SizedBox(height: 16),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -164,6 +159,20 @@ class LockerScreen extends ConsumerWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => GoRouter.of(context).push('/locker/standings'),
+                      icon: const Icon(Icons.leaderboard_outlined, size: 18),
+                      label: const Text('VIEW SEASON STANDINGS'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.all(16),
+                        side: BorderSide(color: Theme.of(context).primaryColor),
+                        foregroundColor: Theme.of(context).primaryColor,
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 32),

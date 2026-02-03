@@ -23,8 +23,12 @@ class AdminDashboardScreen extends ConsumerWidget {
           icon: const Icon(Icons.home, color: Colors.white, size: 28),
           onPressed: () => context.go('/home'),
         ),
-        actions: const [
-          SizedBox(width: 8),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () => context.push('/admin/settings'),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(

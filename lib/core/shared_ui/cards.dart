@@ -9,14 +9,15 @@ import '../../models/member.dart';
 import 'badges.dart';
 
 /// A card with a soft diffused shadow and high rounded corners.
-class BoxyArtFloatingCard extends StatelessWidget {
+class BoxyArtFloatingCard extends ConsumerWidget {
   final Widget child;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final double width;
   final double? height;
   final EdgeInsetsGeometry? padding;
-  final BoxBorder? border; // [NEW]
+  final EdgeInsetsGeometry? margin;
+  final BoxBorder? border;
 
   const BoxyArtFloatingCard({
     super.key,
@@ -26,29 +27,63 @@ class BoxyArtFloatingCard extends StatelessWidget {
     this.width = double.infinity,
     this.height,
     this.padding,
+    this.margin,
     this.border,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Calculate themed background
+    final primary = Theme.of(context).primaryColor;
+    final baseColor = Theme.of(context).cardColor;
+    
+    // Apply tint based on config
+    final tintedColor = Color.alphaBlend(
+      primary.withValues(alpha: config.cardTintIntensity * (isDark ? 0.15 : 0.05)),
+      baseColor,
+    );
+
     return Container(
       width: width,
       height: height,
+      margin: margin,
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: AppShadows.softScale,
-        border: border,
+        color: tintedColor,
+        gradient: config.useCardGradient 
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  tintedColor,
+                  isDark ? tintedColor.withValues(alpha: 0.8) : tintedColor.withValues(alpha: 0.95),
+                ],
+              ) 
+            : null,
+        borderRadius: BorderRadius.circular(24), // More dramatic rounding
+        boxShadow: isDark ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ] : AppShadows.softScale,
+        border: border ?? Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.03),
+          width: 1,
+        ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
             onLongPress: onLongPress,
             child: Padding(
-              padding: padding ?? const EdgeInsets.all(20),
+              padding: padding ?? const EdgeInsets.all(24),
               child: child,
             ),
           ),
@@ -433,26 +468,27 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
               const SizedBox(width: 4),
 
               // 3. Member Role Badge (System Role) - Moved here
-              if ((role != null && role != MemberRole.member) || onRoleTap != null)
-                 GestureDetector(
-                   onTap: canEdit ? onRoleTap : null,
-                   child: Container(
-                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                     decoration: BoxDecoration(
-                       color: Theme.of(context).primaryColor,
-                       borderRadius: BorderRadius.circular(20),
-                     ),
-                     child: Text(
-                       _getRoleLabel(role ?? MemberRole.viewer).toUpperCase(),
-                       style: const TextStyle(
-                         color: Colors.white,
-                         fontSize: 10,
-                         fontWeight: FontWeight.bold,
-                         letterSpacing: 0.5,
+                  if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
+                     GestureDetector(
+                       onTap: canEdit ? onRoleTap : null,
+                       child: Container(
+                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                         decoration: BoxDecoration(
+                           color: Colors.transparent,
+                           borderRadius: BorderRadius.circular(20),
+                           border: Border.all(color: Theme.of(context).primaryColor, width: 1.5),
+                         ),
+                         child: Text(
+                           _getRoleLabel(role ?? MemberRole.viewer).toUpperCase(),
+                           style: TextStyle(
+                             color: Theme.of(context).primaryColor,
+                             fontSize: 10,
+                             fontWeight: FontWeight.bold,
+                             letterSpacing: 0.5,
+                           ),
+                         ),
                        ),
                      ),
-                   ),
-                 ),
 
               const Spacer(),
 
@@ -461,24 +497,38 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                 GestureDetector(
                   onTap: onSocietyRoleTap,
                   behavior: HitTestBehavior.opaque,
-                  child: Text(
-                    societyRole?.isNotEmpty == true ? societyRole! : 'No Title',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: societyRole?.isNotEmpty == true 
-                          ? textColor
-                          : subTextColor,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      (societyRole?.isNotEmpty == true ? societyRole! : 'No Title').toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                 )
               else if (societyRole?.isNotEmpty == true)
-                Text(
-                  societyRole!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    societyRole!.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
             ],

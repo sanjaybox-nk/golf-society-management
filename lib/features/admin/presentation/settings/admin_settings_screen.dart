@@ -31,6 +31,58 @@ class AdminSettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         children: [
           const BoxyArtSectionTitle(
+            title: 'Society Configurations',
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          ),
+          BoxyArtFloatingCard(
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.badge_outlined,
+                  title: 'Committee Roles',
+                  subtitle: 'Manage society specific titles',
+                  iconColor: const Color(0xFF1A237E), // Navy
+                  onTap: () => context.push('/admin/settings/committee-roles'),
+                ),
+                _SettingsTile(
+                  icon: Icons.rule_folder_outlined,
+                  title: 'Game Templates',
+                  subtitle: 'Manage competition formats & rules',
+                  iconColor: Colors.orange,
+                  onTap: () => context.push('/admin/settings/templates'),
+                ),
+                _SettingsTile(
+                  icon: Icons.tune,
+                  title: 'General',
+                  subtitle: 'App basics and display settings',
+                  iconColor: Colors.grey,
+                  onTap: () => context.push('/admin/settings/general'),
+                ),
+                _SettingsTile(
+                  icon: Icons.layers_outlined,
+                  title: 'Manage Seasons',
+                  subtitle: 'Archive and setup event seasons',
+                  iconColor: Colors.teal,
+                  onTap: () => context.push('/admin/settings/seasons'),
+                ),
+                _SettingsTile(
+                  icon: Icons.notifications_none,
+                  title: 'Notifications',
+                  subtitle: 'Push notification preferences',
+                  iconColor: Colors.grey,
+                ),
+                _SettingsTile(
+                  icon: Icons.palette_outlined,
+                  title: 'Society Branding',
+                  subtitle: 'Customize colors and theme',
+                  iconColor: Colors.pink,
+                  onTap: () => context.push('/admin/settings/branding'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          const BoxyArtSectionTitle(
             title: 'Access & Permissions',
             padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
           ),
@@ -56,66 +108,6 @@ class AdminSettingsScreen extends ConsumerWidget {
                     );
                   },
                 ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          const BoxyArtSectionTitle(
-            title: 'App Configuration',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.tune,
-                  title: 'General',
-                  subtitle: 'App basics and display settings',
-                  iconColor: Colors.grey,
-                  onTap: () => context.push('/admin/settings/general'),
-                ),
-                _SettingsTile(
-                  icon: Icons.layers_outlined,
-                  title: 'Manage Seasons',
-                  subtitle: 'Archive and setup event seasons',
-                  iconColor: Colors.teal,
-                  onTap: () => context.push('/admin/settings/seasons'),
-                ),
-                _SettingsTile(
-                  icon: Icons.palette_outlined,
-                  title: 'Society Branding',
-                  subtitle: 'Customize colors and theme',
-                  iconColor: Colors.pink,
-                  onTap: () => context.push('/admin/settings/branding'),
-                ),
-                _SettingsTile(
-                  icon: Icons.notifications_none,
-                  title: 'Notifications',
-                  subtitle: 'Push notification preferences',
-                  iconColor: Colors.grey,
-                ),
-                _SettingsTile(
-                  icon: Icons.badge_outlined,
-                  title: 'Committee Roles',
-                  subtitle: 'Manage society specific titles',
-                  iconColor: const Color(0xFF1A237E), // Navy
-                  onTap: () => context.push('/admin/settings/committee-roles'),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-          
-          const BoxyArtSectionTitle(
-            title: 'Maintenance',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
                 _SettingsTile(
                   icon: Icons.delete_forever_outlined,
                   title: 'Clear Database',
@@ -126,7 +118,7 @@ class AdminSettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 32),
           
           const BoxyArtSectionTitle(

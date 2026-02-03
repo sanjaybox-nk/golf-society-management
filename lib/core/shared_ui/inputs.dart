@@ -50,7 +50,13 @@ class BoxyArtFormField extends StatelessWidget {
           decoration: ShapeDecoration(
             color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(maxLines != null && maxLines! > 1 ? 20 : 100),
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white12 
+                    : const Color(0xFFE0E0E0),
+                width: 1,
+              ),
             ),
             shadows: AppShadows.inputSoft,
           ),
@@ -69,6 +75,10 @@ class BoxyArtFormField extends StatelessWidget {
               hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
               prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.black54, size: 20) : null,
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              filled: false,
+              fillColor: Colors.transparent,
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             ),
             style: const TextStyle(fontSize: 14, color: Colors.black87),
@@ -113,22 +123,36 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
         Container(
           decoration: ShapeDecoration(
             color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
-            shape: const StadiumBorder(),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white12 
+                    : const Color(0xFFE0E0E0),
+                width: 1,
+              ),
+            ),
             shadows: AppShadows.inputSoft,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<T>(
               initialValue: value,
               items: items,
               onChanged: onChanged,
+              isExpanded: true,
+              alignment: Alignment.centerLeft,
               decoration: const InputDecoration(
+                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
+                fillColor: Colors.transparent,
               ),
               icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
               style: const TextStyle(fontSize: 14, color: Colors.black87),
               dropdownColor: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),
@@ -174,7 +198,15 @@ class BoxyArtDatePickerField extends StatelessWidget {
             width: double.infinity,
             decoration: ShapeDecoration(
               color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white12 
+                    : const Color(0xFFE0E0E0),
+                width: 1,
+              ),
+            ),
               shadows: AppShadows.inputSoft,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -215,7 +247,15 @@ class BoxyArtSwitchField extends StatelessWidget {
     return Container(
       decoration: ShapeDecoration(
         color: Theme.of(context).cardColor,
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white12 
+                : const Color(0xFFE0E0E0),
+            width: 1,
+          ),
+        ),
         shadows: AppShadows.inputSoft,
       ),
       child: Material(
@@ -262,7 +302,15 @@ class BoxyArtSearchBar extends StatelessWidget {
       height: 50,
       decoration: ShapeDecoration(
         color: Theme.of(context).cardColor,
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white12 
+                : const Color(0xFFE0E0E0),
+            width: 1,
+          ),
+        ),
         shadows: AppShadows.inputSoft,
       ),
       child: TextField(

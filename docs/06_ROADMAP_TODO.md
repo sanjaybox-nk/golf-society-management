@@ -27,8 +27,10 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**
+    - [/] **Competition Setup**: Define rules, formats, and handicap allowances.
+    - [/] **Template Gallery**: Reusable society-approved game formats.
     - [ ] **Digital Scorecard**: Input strokes hole-by-hole.
-    - [ ] **Live Leaderboard**: Real-time ranking calculation (Stableford).
+    - [ ] **Live Leaderboard**: Real-time ranking calculation.
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Locker Room (Profile)**
     - [x] **Edit Profile**: Form to update handicap, phone, etc.

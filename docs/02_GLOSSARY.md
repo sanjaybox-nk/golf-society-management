@@ -106,3 +106,20 @@ Automatically calculated based on the available buggy count defined by the admin
 1.  Go to **Members**.
 2.  Tap the floating **Search** button at the bottom.
 3.  Type a name. The list filters in real-time.
+
+## Scoring & Competition Concepts
+
+**Game Template**
+A reusable set of scoring rules (Format, Mode, Handicap Allowance) that can be applied to any event. Adhering to templates ensures consistency across the society season.
+
+**Handicap Allowance**
+The percentage of a player's course handicap used for a specific competition (e.g., 95% for individual Stableford).
+
+**Scramble (Texas/Florida)**
+A team format where every player tees off, the best shot is selected, and all players play their next shot from that position. **Texas** usually requires a minimum number of tee shots per player; **Florida** involves the player whose shot was selected sitting out the next stroke.
+
+**Countback (Tie-Break)**
+The method used to resolve tied scores by looking at the best performance over the final 9, 6, 3, or 1 holes.
+
+**Gross Stableford**
+A variation of Stableford scoring where points are awarded based on the raw score without any handicap adjustment.

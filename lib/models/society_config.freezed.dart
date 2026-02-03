@@ -22,7 +22,8 @@ mixin _$SocietyConfig {
  bool get useCardGradient;// Whether to use gradient on cards
  String get currencySymbol;// Default currency symbol
  String get currencyCode;// Default currency code
- String get groupingStrategy;
+ String get groupingStrategy;// 'balanced', 'progressive', 'similar', 'random'
+ bool get useWhsHandicaps;
 /// Create a copy of SocietyConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,16 +36,16 @@ $SocietyConfigCopyWith<SocietyConfig> get copyWith => _$SocietyConfigCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other.customColors, customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other.customColors, customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy)&&(identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,societyName,logoUrl,primaryColor,themeMode,const DeepCollectionEquality().hash(customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy);
+int get hashCode => Object.hash(runtimeType,societyName,logoUrl,primaryColor,themeMode,const DeepCollectionEquality().hash(customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy,useWhsHandicaps);
 
 @override
 String toString() {
-  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy)';
+  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps)';
 }
 
 
@@ -55,7 +56,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res>  {
   factory $SocietyConfigCopyWith(SocietyConfig value, $Res Function(SocietyConfig) _then) = _$SocietyConfigCopyWithImpl;
 @useResult
 $Res call({
- String societyName, String? logoUrl, int primaryColor, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy
+ String societyName, String? logoUrl, int primaryColor, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy, bool useWhsHandicaps
 });
 
 
@@ -72,7 +73,7 @@ class _$SocietyConfigCopyWithImpl<$Res>
 
 /// Create a copy of SocietyConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,Object? useWhsHandicaps = null,}) {
   return _then(_self.copyWith(
 societyName: null == societyName ? _self.societyName : societyName // ignore: cast_nullable_to_non_nullable
 as String,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
@@ -84,7 +85,8 @@ as double,useCardGradient: null == useCardGradient ? _self.useCardGradient : use
 as bool,currencySymbol: null == currencySymbol ? _self.currencySymbol : currencySymbol // ignore: cast_nullable_to_non_nullable
 as String,currencyCode: null == currencyCode ? _self.currencyCode : currencyCode // ignore: cast_nullable_to_non_nullable
 as String,groupingStrategy: null == groupingStrategy ? _self.groupingStrategy : groupingStrategy // ignore: cast_nullable_to_non_nullable
-as String,
+as String,useWhsHandicaps: null == useWhsHandicaps ? _self.useWhsHandicaps : useWhsHandicaps // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -169,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SocietyConfig() when $default != null:
-return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy);case _:
+return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps);case _:
   return orElse();
 
 }
@@ -190,10 +192,10 @@ return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps)  $default,) {final _that = this;
 switch (_that) {
 case _SocietyConfig():
-return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy);case _:
+return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +212,10 @@ return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps)?  $default,) {final _that = this;
 switch (_that) {
 case _SocietyConfig() when $default != null:
-return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy);case _:
+return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps);case _:
   return null;
 
 }
@@ -225,7 +227,7 @@ return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMo
 @JsonSerializable()
 
 class _SocietyConfig implements SocietyConfig {
-  const _SocietyConfig({this.societyName = 'Golf Society', this.logoUrl, this.primaryColor = 0xFFF7D354, this.themeMode = 'system', final  List<int> customColors = const [], this.cardTintIntensity = 0.1, this.useCardGradient = true, this.currencySymbol = '£', this.currencyCode = 'GBP', this.groupingStrategy = 'balanced'}): _customColors = customColors;
+  const _SocietyConfig({this.societyName = 'Golf Society', this.logoUrl, this.primaryColor = 0xFFF7D354, this.themeMode = 'system', final  List<int> customColors = const [], this.cardTintIntensity = 0.1, this.useCardGradient = true, this.currencySymbol = '£', this.currencyCode = 'GBP', this.groupingStrategy = 'balanced', this.useWhsHandicaps = true}): _customColors = customColors;
   factory _SocietyConfig.fromJson(Map<String, dynamic> json) => _$SocietyConfigFromJson(json);
 
 @override@JsonKey() final  String societyName;
@@ -252,6 +254,8 @@ class _SocietyConfig implements SocietyConfig {
 @override@JsonKey() final  String currencyCode;
 // Default currency code
 @override@JsonKey() final  String groupingStrategy;
+// 'balanced', 'progressive', 'similar', 'random'
+@override@JsonKey() final  bool useWhsHandicaps;
 
 /// Create a copy of SocietyConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -266,16 +270,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other._customColors, _customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other._customColors, _customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy)&&(identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,societyName,logoUrl,primaryColor,themeMode,const DeepCollectionEquality().hash(_customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy);
+int get hashCode => Object.hash(runtimeType,societyName,logoUrl,primaryColor,themeMode,const DeepCollectionEquality().hash(_customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy,useWhsHandicaps);
 
 @override
 String toString() {
-  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy)';
+  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps)';
 }
 
 
@@ -286,7 +290,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res> implements $SocietyConfigCopy
   factory _$SocietyConfigCopyWith(_SocietyConfig value, $Res Function(_SocietyConfig) _then) = __$SocietyConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String societyName, String? logoUrl, int primaryColor, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy
+ String societyName, String? logoUrl, int primaryColor, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy, bool useWhsHandicaps
 });
 
 
@@ -303,7 +307,7 @@ class __$SocietyConfigCopyWithImpl<$Res>
 
 /// Create a copy of SocietyConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,Object? useWhsHandicaps = null,}) {
   return _then(_SocietyConfig(
 societyName: null == societyName ? _self.societyName : societyName // ignore: cast_nullable_to_non_nullable
 as String,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
@@ -315,7 +319,8 @@ as double,useCardGradient: null == useCardGradient ? _self.useCardGradient : use
 as bool,currencySymbol: null == currencySymbol ? _self.currencySymbol : currencySymbol // ignore: cast_nullable_to_non_nullable
 as String,currencyCode: null == currencyCode ? _self.currencyCode : currencyCode // ignore: cast_nullable_to_non_nullable
 as String,groupingStrategy: null == groupingStrategy ? _self.groupingStrategy : groupingStrategy // ignore: cast_nullable_to_non_nullable
-as String,
+as String,useWhsHandicaps: null == useWhsHandicaps ? _self.useWhsHandicaps : useWhsHandicaps // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
