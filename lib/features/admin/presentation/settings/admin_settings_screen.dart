@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../features/members/presentation/members_provider.dart';
 import '../../../../features/events/presentation/events_provider.dart';
-import '../../../../models/member.dart';
-import 'dart:math';
+import '../../../../core/services/seeding_service.dart';
+import '../../../../features/competitions/presentation/competitions_provider.dart';
 
 class AdminSettingsScreen extends ConsumerWidget {
   const AdminSettingsScreen({super.key});
@@ -50,6 +50,13 @@ class AdminSettingsScreen extends ConsumerWidget {
                   subtitle: 'Manage competition formats & rules',
                   iconColor: Colors.orange,
                   onTap: () => context.push('/admin/settings/templates'),
+                ),
+                _SettingsTile(
+                  icon: Icons.emoji_events_outlined,
+                  title: 'Leaderboard Templates',
+                  subtitle: 'Manage season point systems',
+                  iconColor: Colors.amber,
+                  onTap: () => context.push('/admin/settings/leaderboards'),
                 ),
                 _SettingsTile(
                   icon: Icons.tune,
@@ -122,18 +129,57 @@ class AdminSettingsScreen extends ConsumerWidget {
           const SizedBox(height: 32),
           
           const BoxyArtSectionTitle(
-            title: 'Development',
+            title: 'Testing Lab',
             padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
           ),
           BoxyArtFloatingCard(
             child: Column(
               children: [
                 _SettingsTile(
-                  icon: Icons.science,
-                  title: 'Seed Members',
-                  subtitle: 'Generate 60 dummy members',
-                  iconColor: Colors.amber,
-                  onTap: () => _seedMembers(context, ref),
+                  icon: Icons.foundation,
+                  title: 'Seed Stable Foundation',
+                  subtitle: '60 members + Lab Open event',
+                  iconColor: Colors.blue,
+                  onTap: () => _seedLabFoundation(context, ref),
+                ),
+                _SettingsTile(
+                  icon: Icons.refresh,
+                  title: 'Reset Lab Event',
+                  subtitle: 'Clear registrations/scores for Lab Open',
+                  iconColor: Colors.orange,
+                  onTap: () => _resetLabEvent(context, ref),
+                ),
+                _SettingsTile(
+                  icon: Icons.groups_outlined,
+                  title: 'Seed Team Logistics (Phase 3)',
+                  subtitle: 'Scramble/Pairs historical seeding',
+                  iconColor: Colors.purple,
+                  onTap: () => _seedPhase3(context, ref),
+                ),
+                _SettingsTile(
+                  icon: Icons.vibration_outlined,
+                  title: 'Hardening & Tie-Breaks (Phase 4)',
+                  subtitle: 'Verify shared positions/countback',
+                  iconColor: Colors.redAccent,
+                  onTap: () => _seedPhase4(context, ref),
+                ),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: ref.watch(templatesListProvider).when(
+                    data: (templates) => BoxyArtDropdownField<String>(
+                      label: 'Swap Lab Format',
+                      items: templates.map((t) => DropdownMenuItem(
+                        value: t.id,
+                        child: Text(t.rules.format.name.toUpperCase()),
+                      )).toList(),
+                      onChanged: (val) {
+                        if (val != null) _swapLabFormat(context, ref, val);
+                      },
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Text('Error: $e'),
+                  ),
                 ),
               ],
             ),
@@ -144,13 +190,12 @@ class AdminSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _seedMembers(BuildContext context, WidgetRef ref) async {
-    // Basic confirmation
+  Future<void> _seedLabFoundation(BuildContext context, WidgetRef ref) async {
     final confirm = await showBoxyArtDialog<bool>(
       context: context, 
-      title: 'Seed Members?',
-      message: 'This will add 60 dummy members to your database. Continue?',
-      confirmText: 'Seed',
+      title: 'Initialize Lab?',
+      message: 'This will seed 60 stable members and create "The Lab Open" event. Continue?',
+      confirmText: 'Initialize',
       onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
       onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
     );
@@ -159,35 +204,71 @@ class AdminSettingsScreen extends ConsumerWidget {
 
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Seeding 60 members...')));
+    messenger.showSnackBar(const SnackBar(content: Text('Building Lab foundation...')));
 
     try {
-      final repo = ref.read(membersRepositoryProvider);
-      final random = Random();
-      
-      final firstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen'];
-      final lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson'];
+      await ref.read(seedingServiceProvider).seedStableFoundation();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Lab Foundation Ready!')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 
-      for (int i = 0; i < 60; i++) {
-        final firstName = firstNames[random.nextInt(firstNames.length)];
-        final lastName = lastNames[random.nextInt(lastNames.length)];
-        final handicap = 5 + random.nextDouble() * 25; // 5 to 30
-        
-        await repo.addMember(Member(
-          id: '', // Auto-generated
-          firstName: firstName,
-          lastName: lastName,
-          email: '${firstName.toLowerCase()}.${lastName.toLowerCase()}$i@example.com',
-          phone: '07700 900${random.nextInt(999).toString().padLeft(3, '0')}',
-          handicap: double.parse(handicap.toStringAsFixed(1)),
-          whsNumber: '100${random.nextInt(90000)}',
-          status: MemberStatus.active,
-          joinedDate: DateTime.now().subtract(Duration(days: random.nextInt(365 * 5))),
-          hasPaid: random.nextBool(),
-        ));
-      }
+  Future<void> _resetLabEvent(BuildContext context, WidgetRef ref) async {
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context, 
+      title: 'Reset Lab Event?',
+      message: 'This will re-seed registrations for "The Lab Open". Scores will be reset. Continue?',
+      confirmText: 'Reset',
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    );
+    
+    if (confirm != true) return;
 
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Successfully added 60 members!')));
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      await ref.read(seedingServiceProvider).seedRegistrations('lab_open_001');
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Lab Event Reset!')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _swapLabFormat(BuildContext context, WidgetRef ref, String templateId) async {
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Swapping game format...')));
+
+    try {
+      await ref.read(seedingServiceProvider).swapLabEventFormat(templateId);
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Format Swapped! Recalculating...')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _seedPhase3(BuildContext context, WidgetRef ref) async {
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding Phase 3: Team Logistics...')));
+    try {
+      await ref.read(seedingServiceProvider).seedTeamsPhase();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Phase 3 Ready!')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _seedPhase4(BuildContext context, WidgetRef ref) async {
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Seeding Phase 4: Hardening...')));
+    try {
+      await ref.read(seedingServiceProvider).seedHardeningPhase();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Phase 4 Ready!')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }

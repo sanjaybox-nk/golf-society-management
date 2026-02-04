@@ -28,13 +28,18 @@ lib/
 ## State Management (Riverpod)
 We use `riverpod_generator` (`@riverpod` annotation) which auto-generates providers.
 - **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore), `CompetitionsRepository` (Firestore)
-- **Services**: `AuthService` (Firebase Auth), `StorageService` (Firebase Storage - Image Uploads)
+- **Services**: 
+    - `AuthService` (Firebase Auth)
+    - `StorageService` (Firebase Storage - Image Uploads)
+    - `SeedingService` (Testing Lab - Iterative data initialization)
+    - `LeaderboardInvokerService` (Season Standings Calculator)
 - **Providers**: Defined in `feature/presentation/provider_name.dart`.
 - **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
 
 ## Domain Logic
 Complex business rules are encapsulated in standalone logic classes within the `domain/` folder of each feature.
 - **RegistrationLogic**: Centralized helper for calculating FCFS positions, status pills, and buggy allocations. Ensures consistency between Member and Admin apps.
+- **Scoring Calculators**: Domain-specific engines for calculating standings (OOM, Stableford, Eclectic, etc.).
 - **RegistrationItem**: A "View Model" bridge that flattens complex nested registration data for simple rendering in UI components.
 
 ## Navigation (GoRouter)

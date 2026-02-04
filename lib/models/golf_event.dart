@@ -6,7 +6,7 @@ import '../core/utils/json_converters.dart';
 part 'golf_event.freezed.dart';
 part 'golf_event.g.dart';
 
-enum EventStatus { draft, published }
+enum EventStatus { draft, published, completed, cancelled }
 
 @freezed
 abstract class EventNote with _$EventNote {
@@ -63,7 +63,9 @@ abstract class GolfEvent with _$GolfEvent {
     // Results/Leaderboard data
     @Default([]) List<Map<String, dynamic>> results,
     // Course configuration (Par, SI, holes)
+    String? courseId,
     @Default({}) Map<String, dynamic> courseConfig,
+    String? selectedTeeName,
     @Default([]) List<String> flashUpdates,
     @Default(EventStatus.draft) EventStatus status,
   }) = _GolfEvent;

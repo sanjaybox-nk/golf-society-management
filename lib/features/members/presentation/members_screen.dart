@@ -2,27 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/boxy_art_widgets.dart';
-import '../../../core/theme/theme_controller.dart';
-import '../../../core/theme/contrast_helper.dart';
 import '../../../models/member.dart';
 import 'members_provider.dart';
 import 'member_details_modal.dart';
 import 'widgets/member_tile.dart';
-
-import '../../../../core/theme/status_colors.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../core/widgets/boxy_art_widgets.dart';
-import '../../../core/theme/theme_controller.dart';
-import '../../../models/member.dart';
-import 'members_provider.dart';
-import 'member_details_modal.dart';
-import 'widgets/member_tile.dart';
-
-import '../../../../core/theme/status_colors.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
   const MembersScreen({super.key});

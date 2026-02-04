@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/season.dart';
+import '../../../models/leaderboard_standing.dart';
 import 'seasons_repository.dart';
 
 class FirestoreSeasonsRepository implements SeasonsRepository {
@@ -46,7 +47,7 @@ class FirestoreSeasonsRepository implements SeasonsRepository {
     // Default Enums and Flags
     if (data['status'] == null) data['status'] = SeasonStatus.active.name;
     if (data['isCurrent'] == null) data['isCurrent'] = false;
-    if (data['pointsMode'] == null) data['pointsMode'] = PointsMode.position.name;
+
 
     try {
       return Season.fromJson(data);
@@ -106,5 +107,38 @@ class FirestoreSeasonsRepository implements SeasonsRepository {
     // 2. Set new current
     batch.update(_seasonsRef.doc(seasonId), {'isCurrent': true});
     await batch.commit();
+  }
+
+  @override
+  Future<void> updateLeaderboardStandings(String seasonId, String leaderboardId, List<LeaderboardStanding> standings) async {
+    final batch = _firestore.batch();
+    final collection = _seasonsRef.doc(seasonId)
+        .collection('leaderboards')
+        .doc(leaderboardId)
+        .collection('standings');
+
+    // Ideally, we might want to delete old standings first or use set efficiently.
+    // simpler approach: Overwrite specific documents.
+    // If we need to clear removed members, we might need a separate delete step.
+    // For now, assume simple overwrite/update.
+    
+    for (var s in standings) {
+      batch.set(collection.doc(s.memberId), s.toJson());
+    }
+    
+    await batch.commit();
+  }
+
+  @override
+  Stream<List<LeaderboardStanding>> watchLeaderboardStandings(String seasonId, String leaderboardId) {
+    return _seasonsRef.doc(seasonId)
+        .collection('leaderboards')
+        .doc(leaderboardId)
+        .collection('standings')
+        .orderBy('points', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) => LeaderboardStanding.fromJson(doc.data())).toList();
+        });
   }
 }

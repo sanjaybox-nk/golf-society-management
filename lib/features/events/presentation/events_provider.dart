@@ -6,6 +6,7 @@ import '../../events/data/events_repository.dart';
 import '../../events/data/firestore_events_repository.dart';
 import '../../admin/data/seasons_repository.dart';
 import '../../admin/data/firestore_seasons_repository.dart';
+import '../../admin/data/leaderboard_templates_repository.dart';
 
 enum EventFilter { upcoming, past }
 
@@ -24,6 +25,10 @@ final eventsRepositoryProvider = Provider<EventsRepository>((ref) {
 
 final seasonsRepositoryProvider = Provider<SeasonsRepository>((ref) {
   return FirestoreSeasonsRepository(FirebaseFirestore.instance);
+});
+
+final leaderboardTemplatesRepositoryProvider = Provider<LeaderboardTemplatesRepository>((ref) {
+  return FirestoreLeaderboardTemplatesRepository(FirebaseFirestore.instance);
 });
 
 // Seasons Stream

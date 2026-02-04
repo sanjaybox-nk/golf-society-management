@@ -39,6 +39,12 @@ class FirestoreMembersRepository implements MembersRepository {
   }
 
   @override
+  Future<Member?> getMember(String id) async {
+    final doc = await _membersRef().doc(id).get();
+    return doc.data();
+  }
+
+  @override
   Future<void> addMember(Member member) async {
     // If ID is empty, let Firestore generate it
     if (member.id.isEmpty) {

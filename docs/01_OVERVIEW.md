@@ -9,6 +9,8 @@
 9.  **Members Directory**: Searchable list of all society members with live filtering and photo uploads.
 10. **Locker Room**: User profile management (Bio, Photo), handicap tracking, and statistics.
 11. **Archive**: Historical data of past seasons and major winners.
+12. **Season Standings**: Advanced leaderboards (OoM, Birdie Tree, Eclectic) with industry-standard point systems.
+13. **Testing Lab (Admin)**: A sophisticated sandbox for seeding historical data and verifying scoring logic across development phases.
 
 ## Technology Stack
 -   **Framework**: Flutter (Dart)
@@ -21,6 +23,8 @@
 For deep dives into specific system logic, see:
 -   [Registration Logic](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/10_REGISTRATION_LOGIC.md)
 -   [Grouping & Tee Sheets](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/11_GROUPING_LOGIC.md)
+-   [Games & Competitions](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/13_GAMES_AND_COMPETITIONS.md)
+-   [Testing Lab & Seeding](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/14_TESTING_LAB_AND_SEEDING.md)
 
 ## Visual Identity ("BoxyArt")
 The app uses a strict design system called **BoxyArt**:

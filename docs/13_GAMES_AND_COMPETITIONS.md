@@ -37,7 +37,23 @@ The primary driver of the scoring logic.
 -   **Aggregation**: `Total Sum`, `Single Best`, or `Stableford Sum`.
 -   **Tie-Breaks**: Standard countback methods (`Back 9`, `Back 6`, `Back 3`, `Back 1`).
 
-## 3. UI Flow
+## 3. Season Leaderboards
+
+The system supports long-term season standings with various calculation engines.
+
+### 3.1 Order of Merit (OoM) - Point System
+The standard approach for society tour standings.
+-   **Point Conversion**: Rankings (1st, 2nd, 3rd...) are converted into points based on a configurable map (e.g., 25, 18, 15, 12...).
+-   **Appearance Points**: Bonus points awarded just for participating.
+-   **Best N Counting**: Supports "Best X of Y" rules (e.g., only your best 8 rounds out of 11 are totaled).
+-   **Individual Credit**: Points for team-based events (Scramble/Pairs) are attributed to each individual member of the entry for their individual season total.
+
+### 3.2 Advanced Leaderboards
+-   **Birdie Tree**: Tracks birdies, eagles, and albatrosses throughout the season.
+-   **Eclectic**: Constructs the "perfect round" by taking the best score on each individual hole across all qualifying events.
+-   **Best Of Series**: Tracks the best $N$ scores by raw metric (Net, Stableford) without point conversion.
+
+## 4. UI Flow
 
 ### Selecting a Format
 Admins are presented with a simplified selector:

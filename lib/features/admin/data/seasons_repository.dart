@@ -1,4 +1,5 @@
 import '../../../models/season.dart';
+import '../../../models/leaderboard_standing.dart';
 
 abstract class SeasonsRepository {
   Stream<List<Season>> watchSeasons();
@@ -8,4 +9,8 @@ abstract class SeasonsRepository {
   Future<void> deleteSeason(String seasonId);
   Future<void> closeSeason(String seasonId, Map<String, dynamic> agmData);
   Future<void> setCurrentSeason(String seasonId);
+  
+  // Leaderboard Standings
+  Future<void> updateLeaderboardStandings(String seasonId, String leaderboardId, List<LeaderboardStanding> standings);
+  Stream<List<LeaderboardStanding>> watchLeaderboardStandings(String seasonId, String leaderboardId);
 }

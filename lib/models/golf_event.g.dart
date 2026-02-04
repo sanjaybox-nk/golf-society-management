@@ -75,7 +75,9 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           ?.map((e) => e as Map<String, dynamic>)
           .toList() ??
       const [],
+  courseId: json['courseId'] as String?,
   courseConfig: json['courseConfig'] as Map<String, dynamic>? ?? const {},
+  selectedTeeName: json['selectedTeeName'] as String?,
   flashUpdates:
       (json['flashUpdates'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -124,7 +126,9 @@ Map<String, dynamic> _$GolfEventToJson(
   'isGroupingPublished': instance.isGroupingPublished,
   'grouping': instance.grouping,
   'results': instance.results,
+  'courseId': instance.courseId,
   'courseConfig': instance.courseConfig,
+  'selectedTeeName': instance.selectedTeeName,
   'flashUpdates': instance.flashUpdates,
   'status': _$EventStatusEnumMap[instance.status]!,
 };
@@ -132,4 +136,6 @@ Map<String, dynamic> _$GolfEventToJson(
 const _$EventStatusEnumMap = {
   EventStatus.draft: 'draft',
   EventStatus.published: 'published',
+  EventStatus.completed: 'completed',
+  EventStatus.cancelled: 'cancelled',
 };

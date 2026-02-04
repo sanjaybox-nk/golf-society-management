@@ -24,16 +24,23 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Smart Buggy Allocation**: Integrated calculation based on FCFS, payment, and capacity.
     - [x] **Registration History**: Detailed audit trail for status changes and member edits.
     - [x] **Data Resilience**: Protection against registration data loss during event updates.
+    - [x] **Event Form Stability**: TextEditingController & FocusNode refactor for Course Config.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**
-    - [/] **Competition Setup**: Define rules, formats, and handicap allowances.
-    - [/] **Template Gallery**: Reusable society-approved game formats.
-    - [ ] **Digital Scorecard**: Input strokes hole-by-hole.
-    - [ ] **Live Leaderboard**: Real-time ranking calculation.
+    - [x] **Competition Setup**: Define rules, formats, and handicap allowances.
+    - [x] **Template Gallery**: Reusable society-approved game formats.
+    - [x] **Marker Counter (Birdie Tree)**: Track birdies/eagles across season.
+    - [x] **Eclectic**: Best hole scores across multiple rounds.
+    - [x] **Digital Scorecard**: Input strokes hole-by-hole.
+    - [x] **Live Leaderboard**: Real-time ranking calculation.
+    - [x] **Order of Merit (OoM) Points**: Industry standard point conversion (25, 18, 15, 12).
+    - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
+    - [x] **Team Attribution**: Individual credit for team/pairs events.
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Locker Room (Profile)**
     - [x] **Edit Profile**: Form to update handicap, phone, etc.
+    - [x] **Profile Input Stability**: ListenableBuilder refactor to prevent cursor jumping.
     - [x] **Photo Upload**: Profile picture management (5MB limit).
     - [ ] **Stats Engine**: Calculate real trends from Firestore data.
 - [x] **Communications & Notifications**
@@ -68,6 +75,10 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [ ] **Corner Cases**
     - [ ] No internet connection (Offline handling).
     - [ ] Large text sizes (Accessibility).
+- [x] **Testing & Verification**
+    - [x] **Iterative Testing Lab**: Multi-phase sandbox for seeding and verification.
+    - [x] **Phase 3 (Teams)**: Scramble/Pairs logic verification.
+    - [x] **Phase 4 (Hardening)**: Stress-test for ties and countbacks.
 
 ## 5. Deployment
 - [ ] **CI/CD**

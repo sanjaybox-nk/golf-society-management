@@ -54,6 +54,8 @@ _CompetitionRules _$CompetitionRulesFromJson(
       $enumDecodeNullable(_$TieBreakMethodEnumMap, json['tieBreak']) ??
       TieBreakMethod.back9,
   holeByHoleRequired: json['holeByHoleRequired'] as bool? ?? true,
+  minDrivesPerPlayer: (json['minDrivesPerPlayer'] as num?)?.toInt() ?? 0,
+  useWHSScrambleAllowance: json['useWHSScrambleAllowance'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
@@ -70,6 +72,8 @@ Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
       'aggregation': _$AggregationMethodEnumMap[instance.aggregation]!,
       'tieBreak': _$TieBreakMethodEnumMap[instance.tieBreak]!,
       'holeByHoleRequired': instance.holeByHoleRequired,
+      'minDrivesPerPlayer': instance.minDrivesPerPlayer,
+      'useWHSScrambleAllowance': instance.useWHSScrambleAllowance,
     };
 
 const _$CompetitionFormatEnumMap = {

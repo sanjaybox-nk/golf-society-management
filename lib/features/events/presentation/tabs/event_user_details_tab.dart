@@ -6,10 +6,12 @@ import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:go_router/go_router.dart';
 import '../widgets/event_sliver_app_bar.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../domain/registration_logic.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
@@ -102,18 +104,37 @@ class EventDetailsContent extends StatelessWidget {
             children: [
               _buildDetailRow(
                 'Course',
-                Column(
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailValue(event.courseName ?? 'TBA'),
-                    if (event.courseDetails != null && event.courseDetails!.isNotEmpty)
-                      Text(
-                        event.courseDetails!,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailValue(event.courseName ?? 'TBA'),
+                          if (event.courseDetails != null && event.courseDetails!.isNotEmpty)
+                            Text(
+                              event.courseDetails!,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (event.courseName != null)
+                      IconButton(
+                        icon: Icon(
+                          Icons.location_on_outlined, 
+                          color: Theme.of(context).primaryColor,
+                          size: 23,
                         ),
+                        onPressed: () => _launchMap(event.courseName!, event.courseDetails),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
                   ],
                 ),
@@ -158,6 +179,31 @@ class EventDetailsContent extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _launchMap(String courseName, String? details) async {
+    final query = details != null && details.isNotEmpty 
+        ? '$courseName, $details' 
+        : courseName;
+    final encodedQuery = Uri.encodeComponent(query);
+    
+    // Use platform specific URL schemes if possible, fallback to universal
+    final String googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$encodedQuery';
+    final String appleMapsUrl = 'https://maps.apple.com/?q=$encodedQuery';
+
+    final Uri url = Uri.parse(Platform.isIOS ? appleMapsUrl : googleMapsUrl);
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback to generic browser search if map apps can't be launched
+        final searchUrl = Uri.parse('https://www.google.com/search?q=$encodedQuery');
+        await launchUrl(searchUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      // Silently fail or show error
+    }
   }
 
   Widget _buildRegistrationCard(BuildContext context) {

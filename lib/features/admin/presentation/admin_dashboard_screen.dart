@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/core/services/seeding_service.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -109,6 +110,30 @@ class AdminDashboardScreen extends ConsumerWidget {
                          ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Global Reports is coming soon'))
                         );
+                      },
+                    ),
+                    const Divider(height: 32),
+                    _DashboardActionTile(
+                      icon: Icons.cloud_download_outlined,
+                      title: 'Initialize System Data',
+                      subtitle: 'Seed courses and templates to database',
+                      color: Colors.teal,
+                      onTap: () async {
+                        try {
+                          final seeding = ref.read(seedingServiceProvider);
+                          await seeding.seedInitialData();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('System initialized successfully!'))
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Initialization failed: $e'))
+                            );
+                          }
+                        }
                       },
                     ),
                   ],

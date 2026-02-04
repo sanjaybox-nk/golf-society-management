@@ -92,14 +92,14 @@ class BoxyArtFormField extends StatelessWidget {
 /// A standard dropdown field with BoxyArt styling.
 class BoxyArtDropdownField<T> extends StatelessWidget {
   final String label;
-  final T value;
+  final T? value;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?>? onChanged;
 
   const BoxyArtDropdownField({
     super.key,
     required this.label,
-    required this.value,
+    this.value,
     required this.items,
     this.onChanged,
   });

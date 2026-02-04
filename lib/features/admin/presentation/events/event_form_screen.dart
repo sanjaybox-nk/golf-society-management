@@ -16,6 +16,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../models/competition.dart'; // Added
 import '../../../competitions/presentation/competitions_provider.dart'; // Added
+import '../../../../models/course.dart';
+import '../../../courses/presentation/courses_provider.dart';
+import '../../../courses/presentation/add_course_dialog.dart';
 
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event; // Null = New Event
@@ -94,6 +97,19 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   
   // Track the event being edited (either passed or fetched)
   GolfEvent? _editingEvent;
+  String? _selectedCourseId;
+
+  // Hole Configuration
+  late List<TextEditingController> _holeParsControllers;
+  late List<TextEditingController> _holeSIsControllers;
+  late List<FocusNode> _holeSIsFocusNodes;
+  late TextEditingController _slopeController;
+  late TextEditingController _ratingController;
+  late List<TextEditingController> _holeYardagesControllers;
+  late FocusNode _slopeFocusNode;
+  late FocusNode _ratingFocusNode;
+  String? _selectedTeeName;
+  List<TeeConfig> _availableTees = [];
 
   @override
   void initState() {
@@ -129,6 +145,17 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _intervalController = TextEditingController(text: '10');
     _facilitiesControllers = [TextEditingController()];
     
+    _holeParsControllers = List.generate(18, (i) => TextEditingController(text: '4'));
+    _holeSIsControllers = List.generate(18, (i) => TextEditingController(text: (i + 1).toString()));
+    _holeYardagesControllers = List.generate(18, (i) => TextEditingController(text: '0'));
+    _holeSIsFocusNodes = List.generate(18, (i) => FocusNode());
+    _slopeController = TextEditingController(text: '113');
+    _ratingController = TextEditingController(text: '72.0');
+    _slopeFocusNode = FocusNode();
+    _ratingFocusNode = FocusNode();
+    _selectedTeeName = null;
+    _availableTees = [];
+    
     // Set default selected season if available in provider (handled in build via listen)
   }
 
@@ -158,6 +185,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
   void _populateForm(GolfEvent e) {
     _editingEvent = e;
+    _selectedCourseId = e.courseId;
     _titleController = TextEditingController(text: e.title);
     _descriptionController = TextEditingController(text: e.description);
     
@@ -180,8 +208,28 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       content: n.content,
       imageUrl: n.imageUrl,
     )).toList();
-    
     _facilitiesControllers = (e.facilities).map((f) => TextEditingController(text: f)).toList();
+
+      if (e.courseConfig['holes'] != null) {
+        final List<dynamic> holes = e.courseConfig['holes'];
+        _holeParsControllers = holes.map((h) => TextEditingController(text: (h['par'] as num).toInt().toString())).toList();
+        _holeSIsControllers = holes.map((h) => TextEditingController(text: (h['si'] as num).toInt().toString())).toList();
+        _holeYardagesControllers = holes.map((h) => TextEditingController(text: (h['yardage'] as num?)?.toInt().toString() ?? '0')).toList();
+        _holeSIsFocusNodes = List.generate(18, (i) => FocusNode());
+        _slopeController = TextEditingController(text: ((e.courseConfig['slope'] as num?)?.toInt() ?? 113).toString());
+        _ratingController = TextEditingController(text: ((e.courseConfig['rating'] as num?)?.toDouble() ?? 72.0).toString());
+      } else {
+        _holeParsControllers = List.generate(18, (i) => TextEditingController(text: '4'));
+        _holeSIsControllers = List.generate(18, (i) => TextEditingController(text: (i + 1).toString()));
+        _holeYardagesControllers = List.generate(18, (i) => TextEditingController(text: '0'));
+        _holeSIsFocusNodes = List.generate(18, (i) => FocusNode());
+        _slopeController = TextEditingController(text: '113');
+        _ratingController = TextEditingController(text: '72.0');
+      }
+      
+      _slopeFocusNode = FocusNode();
+      _ratingFocusNode = FocusNode();
+      _selectedTeeName = e.selectedTeeName;
     if (_facilitiesControllers.isEmpty) _facilitiesControllers.add(TextEditingController());
 
     _selectedDate = e.date;
@@ -194,6 +242,50 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _hasDinner = e.hasDinner;
     _showRegistrationButton = e.showRegistrationButton;
     _selectedSeasonId = e.seasonId;
+    _selectedCourseId = e.courseId;
+  }
+
+  void _onCourseSelected(Course course) {
+    setState(() {
+      _selectedCourseId = course.id;
+      _courseNameController.text = course.name;
+      _courseDetailsController.text = course.address;
+      _availableTees = course.tees;
+      if (_availableTees.isNotEmpty) {
+        _applyTeeConfig(_availableTees.first);
+      }
+    });
+  }
+
+  void _applyTeeConfig(TeeConfig tee) {
+    setState(() {
+      _selectedTeeName = tee.name;
+      _slopeController.text = tee.slope.toString();
+      _ratingController.text = tee.rating.toString();
+      for (int i = 0; i < 18; i++) {
+        _holeParsControllers[i].text = tee.holePars[i].toString();
+        _holeSIsControllers[i].text = tee.holeSIs[i].toString();
+        _holeYardagesControllers[i].text = tee.yardages[i].toString();
+      }
+    });
+  }
+
+  void _showAddCourseDialog() async {
+    final result = await showGeneralDialog<Course>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Add Course',
+      pageBuilder: (context, _, _) => AddCourseDialog(initialName: _courseNameController.text),
+    );
+
+    if (result != null) {
+      // Save it to Firestore
+      final repo = ref.read(courseRepositoryProvider);
+      final newId = await repo.saveCourse(result);
+      
+      // Select it with the new ID
+      _onCourseSelected(result.copyWith(id: newId)); 
+    }
   }
 
   @override
@@ -213,6 +305,19 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _dinnerLocationController.dispose();
     _buggyCostController.dispose();
     _intervalController.dispose();
+    _slopeController.dispose();
+    _ratingController.dispose();
+    _slopeFocusNode.dispose();
+    _ratingFocusNode.dispose();
+    for (var controller in _holeParsControllers) {
+      controller.dispose();
+    }
+    for (var controller in _holeSIsControllers) {
+      controller.dispose();
+    }
+    for (var node in _holeSIsFocusNodes) {
+      node.dispose();
+    }
     for (var note in _notesControllers) {
       note.dispose();
     }
@@ -316,6 +421,18 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Validate SI uniqueness
+    final sis = _holeSIsControllers.map((c) => int.tryParse(c.text)).whereType<int>().toList();
+    if (sis.length < 18) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All Hole SIs must be valid numbers')));
+      return;
+    }
+    final uniqueSis = sis.toSet();
+    if (uniqueSis.length < 18) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hole SIs must be unique (1-18)')));
+       return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -458,12 +575,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   child: Column(
                     children: [
                       BoxyArtFormField(
+                        key: const ValueKey('event_title'),
                         label: 'Event Title',
                         controller: _titleController,
                         validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
                       BoxyArtFormField(
+                        key: const ValueKey('event_description'),
                         label: 'Description',
                         controller: _descriptionController,
                         maxLines: null,
@@ -651,22 +770,162 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                const BoxyArtSectionTitle(title: 'Course Details'),
+                const BoxyArtSectionTitle(title: 'Course Selection'),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
-                      BoxyArtFormField(
-                        label: 'Course Name',
-                        controller: _courseNameController,
+                      // Course Lookup field
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final coursesAsync = ref.watch(coursesProvider);
+                          
+                          return coursesAsync.when(
+                            data: (allCourses) {
+                              return Autocomplete<Course>(
+                                initialValue: TextEditingValue(text: _courseNameController.text),
+                                optionsBuilder: (textEditingValue) {
+                                  if (textEditingValue.text.isEmpty) {
+                                    return const Iterable<Course>.empty();
+                                  }
+                                  final query = textEditingValue.text.toLowerCase();
+                                  final matches = allCourses.where((course) {
+                                    return course.name.toLowerCase().contains(query) ||
+                                           course.address.toLowerCase().contains(query);
+                                  }).toList();
+
+                                  if (matches.isEmpty) {
+                                    // Return a dummy course to show "No results"
+                                    return [
+                                      Course(
+                                        id: 'none',
+                                        name: 'No courses found',
+                                        address: 'Tap below to define a new course',
+                                        tees: [],
+                                      )
+                                    ];
+                                  }
+                                  return matches;
+                                },
+                                displayStringForOption: (course) => course.name,
+                                onSelected: (course) {
+                                  if (course.id == 'none') return;
+                                  _onCourseSelected(course);
+                                },
+                                fieldViewBuilder: (context, controller, focus, onSubmitted) {
+                                  return BoxyArtFormField(
+                                    label: 'Course Name (Search)',
+                                    controller: controller,
+                                    focusNode: focus,
+                                    hintText: 'Type to search courses...',
+                                    prefixIcon: Icons.search,
+                                    onChanged: (val) {
+                                      _courseNameController.text = val;
+                                    },
+                                  );
+                                },
+                                optionsViewBuilder: (context, onSelected, options) {
+                                  return Align(
+                                    alignment: Alignment.topLeft,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 4.0),
+                                      child: Material(
+                                        elevation: 8,
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: Container(
+                                          width: MediaQuery.of(context).size.width - 64,
+                                          constraints: const BoxConstraints(maxHeight: 250),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.grey.shade200),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: ListView.builder(
+                                            padding: EdgeInsets.zero,
+                                            shrinkWrap: true,
+                                            itemCount: options.length,
+                                            itemBuilder: (context, index) {
+                                              final course = options.elementAt(index);
+                                              final isNone = course.id == 'none';
+                                              
+                                              return ListTile(
+                                                title: Text(
+                                                  course.name, 
+                                                  style: TextStyle(
+                                                    fontWeight: isNone ? FontWeight.normal : FontWeight.bold,
+                                                    color: isNone ? Colors.grey : Colors.black87,
+                                                    fontSize: 14,
+                                                    fontStyle: isNone ? FontStyle.italic : FontStyle.normal,
+                                                  )
+                                                ),
+                                                subtitle: Text(
+                                                  course.address, 
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey.shade600,
+                                                  )
+                                                ),
+                                                onTap: isNone ? null : () => onSelected(course),
+                                                dense: true,
+                                                hoverColor: Colors.grey.shade100,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            loading: () => const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                            error: (err, _) => Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text('Error loading courses: $err', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                            ),
+                          );
+                        }
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: _showAddCourseDialog,
+                          icon: const Icon(Icons.add_circle_outline, size: 16),
+                          label: const Text('COULDN\'T FIND IT? DEFINE NEW COURSE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       BoxyArtFormField(
-                        label: 'Course Details',
+                        key: const ValueKey('event_course_details'),
+                        label: 'Course Location (Auto-filled)',
                         controller: _courseDetailsController,
+                        readOnly: true,
                         maxLines: 2,
                       ),
+                      if (_availableTees.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        BoxyArtDropdownField<String>(
+                          label: 'Tee Position',
+                          value: _selectedTeeName,
+                          items: _availableTees.map((t) => DropdownMenuItem(
+                            value: t.name,
+                            child: Text(t.name),
+                          )).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              final tee = _availableTees.firstWhere((t) => t.name == val);
+                              _applyTeeConfig(tee);
+                            }
+                          },
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       BoxyArtFormField(
+                        key: const ValueKey('event_dress_code'),
                         label: 'Dress Code',
                         controller: _dressCodeController,
                       ),
@@ -697,6 +956,115 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         keyboardType: TextInputType.number,
                         hintText: 'Max players (leave empty for unlimited)',
                       ),
+                    ],
+                  ),
+                ),
+                const BoxyArtSectionTitle(title: 'Course Scorecard Details'),
+                BoxyArtFloatingCard(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtFormField(
+                              label: 'Course Rating',
+                              controller: _ratingController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              focusNode: _ratingFocusNode,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: BoxyArtFormField(
+                              label: 'Slope Rating',
+                              controller: _slopeController,
+                              keyboardType: TextInputType.number,
+                              focusNode: _slopeFocusNode,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Hole-by-Hole Data',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
+                      // Header
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          children: [
+                            SizedBox(width: 30, child: Text('Hole', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
+                            Expanded(child: Text('Par', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
+                            Expanded(child: Text('SI', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
+                            Expanded(child: Text('Yardage', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
+                          ],
+                        ),
+                      ),
+                      const Divider(),
+                      ...List.generate(18, (index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 30,
+                                child: Text('${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: TextField(
+                                    controller: _holeParsControllers[index],
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                      isDense: true,
+                                    ),
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: TextField(
+                                    controller: _holeSIsControllers[index],
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    focusNode: _holeSIsFocusNodes[index],
+                                    decoration: InputDecoration(
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                      isDense: true,
+                                    ),
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: TextField(
+                                    controller: _holeYardagesControllers[index],
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                      isDense: true,
+                                    ),
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -1036,6 +1404,19 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
       status: widget.event?.status ?? EventStatus.draft,
       registrations: widget.event?.registrations ?? [], // Preserve existing registrations!
+      courseId: _selectedCourseId,
+      selectedTeeName: _selectedTeeName,
+      courseConfig: {
+        'holes': List.generate(18, (i) => {
+          'hole': i + 1,
+          'par': int.tryParse(_holeParsControllers[i].text) ?? 4,
+          'si': int.tryParse(_holeSIsControllers[i].text) ?? (i + 1),
+          'yardage': int.tryParse(_holeYardagesControllers[i].text) ?? 0,
+        }),
+        'par': _holeParsControllers.fold(0, (sum, c) => sum + (int.tryParse(c.text) ?? 4)),
+        'slope': int.tryParse(_slopeController.text) ?? 113,
+        'rating': double.tryParse(_ratingController.text) ?? 72.0,
+      },
     );
   }
 
@@ -1065,5 +1446,4 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Preview Error: $e')));
     }
   }
-
 }

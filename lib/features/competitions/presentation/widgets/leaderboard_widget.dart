@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/competition.dart';
 
 class LeaderboardWidget extends StatelessWidget {

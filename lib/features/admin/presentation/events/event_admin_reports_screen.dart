@@ -33,7 +33,6 @@ class EventAdminReportsScreen extends ConsumerWidget {
     // Get items using RegistrationLogic
     final sortedItems = RegistrationLogic.getSortedItems(event);
     final dinnerOnlyItems = RegistrationLogic.getDinnerOnlyItems(event);
-    final withdrawnItems = RegistrationLogic.getWithdrawnItems(event);
 
     // Standardized Stats
     final stats = RegistrationLogic.getRegistrationStats(event);

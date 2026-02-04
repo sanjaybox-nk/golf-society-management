@@ -938,7 +938,9 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
       value: value,
+      // ignore: deprecated_member_use
       groupValue: groupValue,
+      // ignore: deprecated_member_use
       onChanged: (val) {
         if (val != null) onChanged(val);
       },

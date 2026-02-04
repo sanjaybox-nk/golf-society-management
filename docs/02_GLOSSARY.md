@@ -42,6 +42,11 @@ The creative name for the **User Profile** section. Here, users can:
 The central tab for all competition info.
 -   **Upcoming**: Future events you can register for.
 -   **Past Results**: History of completed matches.
+-   **Event Statuses**:
+    -   *Draft*: Event being prepared (Admin only).
+    -   *Published*: Visible to members and open for registration/scoring.
+    -   *Completed*: Event finished and archived in history.
+    -   *Cancelled*: Event that was abandoned or called off.
 
 **Floating Bottom Search**
 A specialized search bar found in the **Members Directory**. Instead of sitting at the top, it "floats" at the bottom of the screen for easier thumb reach. It contains:

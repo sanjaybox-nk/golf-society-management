@@ -259,6 +259,9 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       tieBreak: _tieBreak, 
       holeByHoleRequired: true,
       roundsCount: _roundsCount,
+      aggregation: _scoringFormat == CompetitionFormat.stableford 
+          ? AggregationMethod.stablefordSum 
+          : AggregationMethod.totalSum,
     );
   }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../theme/app_theme.dart';
 import '../theme/app_shadows.dart';
 import '../theme/status_colors.dart';
 import '../theme/contrast_helper.dart'; // [NEW]
@@ -158,6 +157,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
   final String? avatarUrl;
   final TextEditingController? handicapController;
   final TextEditingController? whsController;
+  final FocusNode? handicapFocusNode;
+  final FocusNode? whsFocusNode;
   final VoidCallback? onCameraTap;
   final ValueChanged<bool>? onFeeToggle;
   final ValueChanged<MemberStatus>? onStatusChanged;
@@ -179,6 +180,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     this.avatarUrl,
     this.handicapController,
     this.whsController,
+    this.handicapFocusNode,
+    this.whsFocusNode,
     this.onCameraTap,
     this.onFeeToggle,
     this.onStatusChanged,
@@ -193,11 +196,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get card settings from config
-    final config = ref.watch(themeControllerProvider);
-    final cardTintIntensity = config.cardTintIntensity;
-    final useGradient = config.useCardGradient;
-    
     // Determine status display label
     final String statusLabel = (status == MemberStatus.member || status == MemberStatus.active) 
         ? "Active" 
@@ -326,6 +324,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   ),
                                   child: TextFormField(
                                     controller: handicapController,
+                                    focusNode: handicapFocusNode,
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                     readOnly: !isAdmin,
                                     decoration: const InputDecoration(
@@ -356,6 +355,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   ),
                                   child: TextFormField(
                                     controller: whsController,
+                                    focusNode: whsFocusNode,
                                     decoration: const InputDecoration(
                                       isDense: true,
                                       border: InputBorder.none,

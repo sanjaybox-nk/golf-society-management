@@ -9,7 +9,6 @@ import '../../../../models/member.dart';
 import 'members_provider.dart';
 import 'profile_provider.dart'; // [NEW]
 import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_theme.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
@@ -66,6 +65,17 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   late TextEditingController _bioController;
   late TextEditingController _handicapController;
   late TextEditingController _whsController;
+  
+  late FocusNode _firstFocusNode;
+  late FocusNode _lastFocusNode;
+  late FocusNode _nicknameFocusNode;
+  late FocusNode _emailFocusNode;
+  late FocusNode _phoneFocusNode;
+  late FocusNode _whsFocusNode;
+  late FocusNode _handicapFocusNode;
+  late FocusNode _addressFocusNode;
+  late FocusNode _bioFocusNode;
+
   final _formKey = GlobalKey<FormState>();
   
   String? _avatarUrl;
@@ -139,17 +149,22 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _countryCodeController = TextEditingController(text: code);
     _phoneController = TextEditingController(text: phone);
 
-    // Listeners for real-time header card updates
-    _firstController.addListener(() => setState(() {}));
-    _lastController.addListener(() => setState(() {}));
-    _nicknameController.addListener(() => setState(() {}));
+    _firstFocusNode = FocusNode();
+    _lastFocusNode = FocusNode();
+    _nicknameFocusNode = FocusNode();
+    _emailFocusNode = FocusNode();
+    _phoneFocusNode = FocusNode();
+    _whsFocusNode = FocusNode();
+    _handicapFocusNode = FocusNode();
+    _addressFocusNode = FocusNode();
+    _bioFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _firstController.dispose();
     _lastController.dispose();
-    _nicknameController.dispose();
+     _nicknameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _countryCodeController.dispose();
@@ -157,6 +172,15 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _bioController.dispose();
     _handicapController.dispose();
     _whsController.dispose();
+    _firstFocusNode.dispose();
+    _lastFocusNode.dispose();
+    _nicknameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _whsFocusNode.dispose();
+    _handicapFocusNode.dispose();
+    _addressFocusNode.dispose();
+    _bioFocusNode.dispose();
     super.dispose();
   }
 
@@ -482,25 +506,34 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                   // Member Header Card
-                    BoxyArtMemberHeaderCard(
-                      firstName: _firstController.text,
-                      lastName: _lastController.text,
-                      nickname: _nicknameController.text,
-                      status: _status,
-                      hasPaid: _hasPaid,
-                      avatarUrl: _avatarUrl,
-                      handicapController: _handicapController,
-                      whsController: _whsController,
-                      isEditing: _isEditing,
-                      isAdmin: _isAdmin(),
-                      onCameraTap: _isEditing ? _pickImage : null,
-                      onFeeToggle: (v) => setState(() => _hasPaid = v),
-                      onStatusChanged: (v) => setState(() => _status = v),
-                      role: _role,
-                      onRoleTap: _canAssignRoles() ? _showRolePicker : null,
-                      societyRole: _societyRole,
-                      onSocietyRoleTap: _isAdmin() ? _showSocietyRolePicker : null,
-                      joinedDate: _joinedDate,
+                    ListenableBuilder(
+                      listenable: Listenable.merge([
+                        _firstController,
+                        _lastController,
+                        _nicknameController,
+                      ]),
+                      builder: (context, _) => BoxyArtMemberHeaderCard(
+                        firstName: _firstController.text,
+                        lastName: _lastController.text,
+                        nickname: _nicknameController.text,
+                        status: _status,
+                        hasPaid: _hasPaid,
+                        avatarUrl: _avatarUrl,
+                        handicapController: _handicapController,
+                        whsController: _whsController,
+                        handicapFocusNode: _handicapFocusNode,
+                        whsFocusNode: _whsFocusNode,
+                        isEditing: _isEditing,
+                        isAdmin: _isAdmin(),
+                        onCameraTap: _isEditing ? _pickImage : null,
+                        onFeeToggle: (v) => setState(() => _hasPaid = v),
+                        onStatusChanged: (v) => setState(() => _status = v),
+                        role: _role,
+                        onRoleTap: _canAssignRoles() ? _showRolePicker : null,
+                        societyRole: _societyRole,
+                        onSocietyRoleTap: _isAdmin() ? _showSocietyRolePicker : null,
+                        joinedDate: _joinedDate,
+                      ),
                     ),
 
                     
@@ -537,8 +570,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                           if (_isEditing) ...[
                             // EDIT MODE FORM
                             BoxyArtFormField(
+                              key: const ValueKey('member_bio'),
                               label: 'Bio',
                               controller: _bioController,
+                              focusNode: _bioFocusNode,
                               readOnly: false,
                               maxLines: 2,
                             ),
@@ -547,8 +582,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                               children: [
                                 Expanded(
                                   child: BoxyArtFormField(
+                                    key: const ValueKey('member_first'),
                                     label: 'First Name *',
                                     controller: _firstController,
+                                    focusNode: _firstFocusNode,
                                     readOnly: false,
                                     validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
                                   ),
@@ -556,8 +593,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: BoxyArtFormField(
+                                    key: const ValueKey('member_last'),
                                     label: 'Last Name *',
                                     controller: _lastController,
+                                    focusNode: _lastFocusNode,
                                     readOnly: false,
                                     validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
                                   ),
@@ -566,14 +605,18 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                             ),
                             const SizedBox(height: 16),
                             BoxyArtFormField(
+                              key: const ValueKey('member_nickname'),
                               label: 'Nickname',
                               controller: _nicknameController,
+                              focusNode: _nicknameFocusNode,
                               readOnly: false,
                             ),
                             const SizedBox(height: 16),
                             BoxyArtFormField(
+                              key: const ValueKey('member_email'),
                               label: 'Email *',
                               controller: _emailController,
+                              focusNode: _emailFocusNode,
                               readOnly: false,
                               validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
                             ),
@@ -684,8 +727,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                  const SizedBox(width: 12),
                                  Expanded(
                                    child: BoxyArtFormField(
+                                     key: const ValueKey('member_phone'),
                                      label: 'Phone *',
                                      controller: _phoneController,
+                                     focusNode: _phoneFocusNode,
                                      readOnly: false,
                                      validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
                                    ),
@@ -694,8 +739,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                              ),
                              const SizedBox(height: 16),
                              BoxyArtFormField(
+                               key: const ValueKey('member_address'),
                                label: 'Address *',
                                controller: _addressController,
+                               focusNode: _addressFocusNode,
                                readOnly: false,
                                maxLines: 2,
                                validator: (v) => v?.isNotEmpty != true ? 'Required' : null,

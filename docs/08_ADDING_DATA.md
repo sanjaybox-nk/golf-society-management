@@ -23,7 +23,8 @@ You can now manage members via the **Member List**, including **Profile Pictures
 1.  Go to **Admin > Events**.
 2.  Tap **Create Event**.
 3.  Enter **Title**, **Course Name**, **Course Details**, **Date**, and **Description**.
-4. Tap **Save Event**.
+4.  **Hole Configuration**: Fill in the **Par** and **Stroke Index (SI)** for each of the 18 holes. This data is essential for "Birdie Tree" and "Par 3 Challenge" leaderboards.
+5. Tap **Save Event**.
 
 ## 4. Managing Registrations
 From the **Admin > Events** dashboard, tap **Registrations** on any event to manage participants:
@@ -36,8 +37,14 @@ From the **Admin > Events** dashboard, tap **Registrations** on any event to man
 1.  Go to **Admin > Settings > Game Templates**.
 2.  **Add Template**: Tap **START BLANK** or select an existing game type.
 3.  **Configure Rules**: Set the **Format** (Stableford, Scramble, etc.), **Handicap Allowance**, and **Tie-Break Method**.
-4.  **Save**: Give the template a name and tap **SAVE AS TEMPLATE**.
-5.  **Applying to Events**: When creating/editing an event, tap **ADD GAME FORMAT** to pick from your saved templates or create a one-off set of rules.
+4.  **Special Game Formats**:
+    *   **Texas Scramble**: Team-based format. Configure **Minimum Drives per Player** and **WHS Weighting** (25/20/15/10% for 4-man teams).
+    *   **4-Ball Better Ball (4BBB)**: Pairs format. Select **Stableford** or **Stroke Play**. Allowances default to **85%** (WHS standard).
+    *   **Eclectic**: Tracks best hole scores across multiple rounds. Supports Net (with allowance) or Gross.
+    *   **Marker Counter**: Tracks specific markers (Birdies, Eagles, Pars, etc.). Can be filtered to specific hole types (e.g., **Par 3 Challenge**).
+    *   **Order of Merit / Best of Series**: Aggregates points based on finishing positions.
+5.  **Save**: Give the template a name and tap **SAVE AS TEMPLATE**.
+6.  **Applying to Events**: When creating/editing an event, tap **ADD GAME FORMAT** to pick from your saved templates or create a one-off set of rules.
 
 ---
 

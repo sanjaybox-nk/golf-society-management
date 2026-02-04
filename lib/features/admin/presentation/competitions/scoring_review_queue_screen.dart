@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
 
 class ScoringReviewQueueScreen extends ConsumerWidget {
   const ScoringReviewQueueScreen({super.key});
@@ -40,7 +39,7 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
+                          color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(Icons.rate_review_outlined, color: Colors.orange),

@@ -120,7 +120,7 @@ class _CompetitionsList extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.emoji_events_outlined, size: 64, color: Colors.grey.withOpacity(0.3)),
+                Icon(Icons.emoji_events_outlined, size: 64, color: Colors.grey.withValues(alpha: 0.3)),
                 const SizedBox(height: 16),
                 Text('No ${status.name} competitions', style: const TextStyle(color: Colors.grey)),
               ],

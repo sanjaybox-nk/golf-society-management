@@ -48,6 +48,8 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(AggregationMethod.totalSum) AggregationMethod aggregation,
     @Default(TieBreakMethod.back9) TieBreakMethod tieBreak,
     @Default(true) bool holeByHoleRequired,
+    @Default(0) int minDrivesPerPlayer,
+    @Default(false) bool useWHSScrambleAllowance,
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>

@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../events_provider.dart';
-import '../widgets/event_sliver_app_bar.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
-import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/models/competition.dart';
 
 class EventGroupingUserTab extends ConsumerWidget {

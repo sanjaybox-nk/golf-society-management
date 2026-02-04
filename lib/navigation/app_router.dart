@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/season.dart';
-import '../features/events/presentation/events_provider.dart';
 
 import '../core/widgets/scaffold_with_nav_bar.dart';
 import '../models/golf_event.dart';
@@ -42,6 +41,10 @@ import '../features/admin/presentation/competitions/competition_type_selection_s
 import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart'; // Added
 import '../models/competition.dart'; // Added for enum
 import '../features/admin/presentation/seasons/season_form_screen.dart';
+import '../features/admin/presentation/leaderboards/leaderboard_type_selection_screen.dart';
+import '../features/admin/presentation/leaderboards/leaderboard_builder_screen.dart';
+import '../features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart'; // Added
+import '../models/leaderboard_config.dart'; // Ensure this is imported
 
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';
@@ -65,8 +68,6 @@ final _adminEventsKey = GlobalKey<NavigatorState>(debugLabel: 'adminEvents');
 final _adminLeaderboardsKey = GlobalKey<NavigatorState>(debugLabel: 'adminLeaderboards');
 final _adminMembersKey = GlobalKey<NavigatorState>(debugLabel: 'adminMembers');
 final _adminCommsKey = GlobalKey<NavigatorState>(debugLabel: 'adminComms');
-final _adminSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'adminSettings');
-
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -270,6 +271,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           ),
                         ],
                       ),
+                      GoRoute(
+                        path: 'leaderboards/create/:type',
+                        builder: (context, state) {
+                           final typeStr = state.pathParameters['type']!;
+                           final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                           return LeaderboardBuilderScreen(type: type, isTemplate: false); 
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -425,6 +434,50 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          // 5. Leaderboard Templates (New Settings Branch)
+          StatefulShellBranch(
+             navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'leaderboardTemplates'),
+             routes: [
+               GoRoute(
+                 path: '/admin/settings/leaderboards', // Using dedicated path
+                 builder: (context, state) => const LeaderboardTypeSelectionScreen(isTemplate: true),
+                 routes: [
+                   GoRoute(
+                     path: 'gallery/:type',
+                     builder: (context, state) {
+                       final typeStr = state.pathParameters['type']!;
+                       final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                       return LeaderboardTemplateGalleryScreen(type: type, isTemplate: true);
+                     },
+                   ),
+                   GoRoute(
+                     path: 'create/:type/builder',
+                     builder: (context, state) {
+                       final typeStr = state.pathParameters['type']!;
+                       final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                       final config = state.extra as LeaderboardConfig?;
+                       return LeaderboardBuilderScreen(
+                         type: type, 
+                         isTemplate: true,
+                         existingConfig: config,
+                       );
+                     },
+                   ),
+                   GoRoute(
+                     path: 'edit/:id',
+                     builder: (context, state) {
+                       final config = state.extra as LeaderboardConfig;
+                       return LeaderboardBuilderScreen(
+                         type: _getTypeFromConfig(config),
+                         existingConfig: config,
+                         isTemplate: true
+                       );
+                     },
+                   ),
+                 ],
+               ),
+             ],
+          ),
         ],
       ),
       GoRoute(
@@ -501,3 +554,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 ],
   );
 });
+
+LeaderboardType _getTypeFromConfig(LeaderboardConfig config) {
+  return config.map(
+    orderOfMerit: (_) => LeaderboardType.orderOfMerit,
+    bestOfSeries: (_) => LeaderboardType.bestOfSeries,
+    eclectic: (_) => LeaderboardType.eclectic,
+    markerCounter: (_) => LeaderboardType.markerCounter,
+  );
+}

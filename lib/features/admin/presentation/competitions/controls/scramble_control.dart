@@ -16,6 +16,8 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
   CompetitionSubtype _subtype = CompetitionSubtype.texas;
   int _teamSize = 4;
   double _allowance = 0.1; // 10% combined is common for 4-man
+  int _minDrives = 4;
+  bool _useWHSWeighting = true;
 
   @override
   CompetitionFormat get format => CompetitionFormat.scramble;
@@ -26,6 +28,8 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
     if (widget.competition != null) {
       _subtype = widget.competition!.rules.subtype;
       _allowance = widget.competition!.rules.handicapAllowance;
+      _minDrives = widget.competition!.rules.minDrivesPerPlayer;
+      _useWHSWeighting = widget.competition!.rules.useWHSScrambleAllowance;
       // Team size isn't explicitly in rules, derived or stored in publishSettings? 
       // For now we'll just track it locally or assume it's part of the event setup.
     }
@@ -87,9 +91,47 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
               const SizedBox(height: 24),
               _buildInfoCard(),
               const SizedBox(height: 24),
-              _buildAllowanceSlider(),
+              BoxyArtFormField(
+                label: 'Minimum Drives per Player',
+                initialValue: _minDrives.toString(),
+                keyboardType: TextInputType.number,
+                onChanged: (val) {
+                  setState(() => _minDrives = int.tryParse(val) ?? 4);
+                },
+              ),
+              const SizedBox(height: 24),
+              _buildWHSWeightingToggle(),
+              const SizedBox(height: 24),
+              if (!_useWHSWeighting) _buildAllowanceSlider(),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWHSWeightingToggle() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Use WHS Recommended Weighting',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              Text(
+                '4-man: 25/20/15/10% | 3-man: 30/20/10%',
+                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: _useWHSWeighting,
+          onChanged: (val) => setState(() => _useWHSWeighting = val),
+          activeThumbColor: Colors.orange,
         ),
       ],
     );
@@ -212,6 +254,8 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       handicapAllowance: _allowance,
       holeByHoleRequired: true,
       aggregation: AggregationMethod.totalSum, // Scramble is total strokes (net)
+      minDrivesPerPlayer: _minDrives,
+      useWHSScrambleAllowance: _useWHSWeighting,
     );
   }
 }

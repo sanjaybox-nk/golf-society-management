@@ -97,7 +97,7 @@ class GroupingService {
     // Helper to calculate P-HC
     final hcConfig = _HandicapContext(
       rules: rules,
-      courseConfig: event.courseConfig ?? {},
+      courseConfig: event.courseConfig,
       useWhs: useWhs,
     );
 

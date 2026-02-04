@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
-import '../widgets/event_sliver_app_bar.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 
 class EventGalleryUserTab extends ConsumerStatefulWidget {

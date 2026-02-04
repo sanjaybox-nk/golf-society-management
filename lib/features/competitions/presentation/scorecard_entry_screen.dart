@@ -6,6 +6,8 @@ import 'package:golf_society/features/members/presentation/profile_provider.dart
 import '../../competitions/presentation/competitions_provider.dart';
 import '../../../../models/scorecard.dart';
 import '../../../../models/competition.dart';
+import '../../../../models/golf_event.dart';
+import '../../events/presentation/events_provider.dart';
 
 class ScorecardEntryScreen extends ConsumerStatefulWidget {
   final String competitionId;
@@ -26,30 +28,38 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final compAsync = ref.watch(competitionDetailProvider(widget.competitionId));
+    final eventAsync = ref.watch(eventProvider(widget.competitionId)); // Assuming compId == eventId for now
 
     return compAsync.when(
       data: (comp) {
         if (comp == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
         
-        final rules = comp.rules;
-        return Scaffold(
-          backgroundColor: Colors.black,
-          appBar: BoxyArtAppBar(
-            title: 'SCORECARD',
-            subtitle: rules.format.name.toUpperCase(),
-            centerTitle: true,
-            actions: [
-              TextButton(
-                onPressed: _isSaving ? null : () => _submit(comp),
-                child: _isSaving
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('SUBMIT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        return eventAsync.when(
+          data: (event) {
+            // Let's use a simpler approach: get course from courseConfig (migration phase)
+            final rules = comp.rules;
+            return Scaffold(
+              backgroundColor: Colors.black,
+              appBar: BoxyArtAppBar(
+                title: 'SCORECARD',
+                subtitle: rules.format.name.toUpperCase(),
+                centerTitle: true,
+                actions: [
+                  TextButton(
+                    onPressed: _isSaving ? null : () => _submit(comp),
+                    child: _isSaving
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('SUBMIT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
-            ],
-          ),
-          body: rules.holeByHoleRequired
-              ? _buildHoleByHoleEntry(comp)
-              : _buildTotalOnlyEntry(comp),
+              body: rules.holeByHoleRequired
+                  ? _buildHoleByHoleEntry(comp, event)
+                  : _buildTotalOnlyEntry(comp),
+            );
+          },
+          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, s) => Scaffold(body: Center(child: Text('Error loading event: $e'))),
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -57,10 +67,11 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
     );
   }
 
-  Widget _buildHoleByHoleEntry(Competition comp) {
+  Widget _buildHoleByHoleEntry(Competition comp, GolfEvent event) {
     return Column(
       children: [
         _buildHoleSelector(),
+        _buildHoleInfo(event),
         Expanded(
           child: Center(
             child: _buildScoreInput(_currentHole),
@@ -68,6 +79,53 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
         ),
         _buildStatsBar(comp),
       ],
+    );
+  }
+
+  Widget _buildHoleInfo(GolfEvent event) {
+    // Determine Par and SI for current hole
+    int? par;
+    int? si;
+
+    if (event.courseConfig['holes'] is List) {
+      final holes = event.courseConfig['holes'] as List;
+      if (holes.length >= _currentHole) {
+        final holeData = holes[_currentHole - 1];
+        par = (holeData['par'] as num?)?.toInt();
+        si = (holeData['si'] as num?)?.toInt();
+      }
+    }
+
+    if (par == null || si == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildInfoChip('PAR $par', Colors.white30),
+          const SizedBox(width: 8),
+          _buildInfoChip('SI $si', Colors.orange.withAlpha(50), textColor: Colors.orange),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String label, Color bgColor, {Color textColor = Colors.white70}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -267,8 +325,8 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
         id: widget.scorecardId ?? '',
         competitionId: widget.competitionId,
         roundId: 'round_1', // Assuming 1 round for now
-        entryId: member?.id ?? 'temp_user',
-        submittedByUserId: member?.id ?? 'temp_user',
+        entryId: member.id,
+        submittedByUserId: member.id,
         holeScores: List.generate(18, (i) => _holeScores[i + 1]),
         grossTotal: _totalGross ?? _holeScores.values.whereType<int>().fold<int>(0, (a, b) => a + b),
         status: ScorecardStatus.submitted,

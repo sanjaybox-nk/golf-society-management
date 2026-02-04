@@ -34,13 +34,22 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
 
   @override
   Stream<List<Competition>> watchCompetitions({CompetitionStatus? status}) {
-    Query<Competition> query = _compsRef().where('templateId', isNull: true); // Only actual competitions
+    var query = _firestore.collection('competitions').where('isTemplate', isEqualTo: false);
     if (status != null) {
       query = query.where('status', isEqualTo: status.name);
     }
-    return query.snapshots().map((s) => s.docs.map((d) => d.data()).toList());
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Competition.fromJson(doc.data())).toList();
+    });
   }
 
+  @override
+  Future<List<Competition>> getCompetitions() async {
+    final snapshot = await _firestore.collection('competitions')
+        .where('isTemplate', isEqualTo: false)
+        .get();
+    return snapshot.docs.map((doc) => Competition.fromJson(doc.data())).toList();
+  }
   @override
   Future<Competition?> getCompetition(String id) async {
     final doc = await _compsRef().doc(id).get();
@@ -104,5 +113,11 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
   @override
   Future<void> updateScorecard(Scorecard scorecard) async {
     await _scorecardsRef(scorecard.competitionId).doc(scorecard.id).set(scorecard);
+  }
+
+  @override
+  Future<List<Competition>> getTemplates() async {
+    final querySnapshot = await _firestore.collection('templates').get();
+    return querySnapshot.docs.map((doc) => Competition.fromJson({...doc.data(), 'id': doc.id})).toList();
   }
 }

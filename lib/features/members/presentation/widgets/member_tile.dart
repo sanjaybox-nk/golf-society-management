@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/theme_controller.dart';
-import '../../../../core/theme/contrast_helper.dart';
 import '../../../../core/theme/status_colors.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 import '../member_details_modal.dart';
 import '../members_provider.dart';

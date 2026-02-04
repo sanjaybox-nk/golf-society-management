@@ -16,16 +16,11 @@ _Season _$SeasonFromJson(Map<String, dynamic> json) => _Season(
       $enumDecodeNullable(_$SeasonStatusEnumMap, json['status']) ??
       SeasonStatus.active,
   isCurrent: json['isCurrent'] as bool? ?? false,
-  pointsMode:
-      $enumDecodeNullable(_$PointsModeEnumMap, json['pointsMode']) ??
-      PointsMode.position,
-  bestN: (json['bestN'] as num?)?.toInt() ?? 8,
-  tiePolicy:
-      $enumDecodeNullable(_$TiePolicyEnumMap, json['tiePolicy']) ??
-      TiePolicy.countback,
-  participationPointsRules:
-      json['participationPointsRules'] as Map<String, dynamic>? ?? const {},
-  eclecticRules: json['eclecticRules'] as Map<String, dynamic>? ?? const {},
+  leaderboards:
+      (json['leaderboards'] as List<dynamic>?)
+          ?.map((e) => LeaderboardConfig.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   agmData: json['agmData'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -37,27 +32,11 @@ Map<String, dynamic> _$SeasonToJson(_Season instance) => <String, dynamic>{
   'endDate': const TimestampConverter().toJson(instance.endDate),
   'status': _$SeasonStatusEnumMap[instance.status]!,
   'isCurrent': instance.isCurrent,
-  'pointsMode': _$PointsModeEnumMap[instance.pointsMode]!,
-  'bestN': instance.bestN,
-  'tiePolicy': _$TiePolicyEnumMap[instance.tiePolicy]!,
-  'participationPointsRules': instance.participationPointsRules,
-  'eclecticRules': instance.eclecticRules,
+  'leaderboards': instance.leaderboards.map((e) => e.toJson()).toList(),
   'agmData': instance.agmData,
 };
 
 const _$SeasonStatusEnumMap = {
   SeasonStatus.active: 'active',
   SeasonStatus.closed: 'closed',
-};
-
-const _$PointsModeEnumMap = {
-  PointsMode.position: 'position',
-  PointsMode.stableford: 'stableford',
-  PointsMode.combined: 'combined',
-};
-
-const _$TiePolicyEnumMap = {
-  TiePolicy.countback: 'countback',
-  TiePolicy.shared: 'shared',
-  TiePolicy.playoff: 'playoff',
 };
