@@ -21,7 +21,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(eventsProvider);
     final allMembersAsync = ref.watch(allMembersProvider); // Fetch members
 
     return eventsAsync.when(
@@ -166,9 +166,8 @@ class EventRegistrationUserTab extends ConsumerWidget {
         : '${stats.reserveGolfers}';
 
     final int capacity = event.maxParticipants ?? 0;
-    final int availableSlots = capacity - stats.confirmedGolfers;
     final String availableSlotsStr = capacity > 0 
-        ? '${availableSlots > 0 ? availableSlots : 0} spaces'
+        ? '${stats.confirmedGolfers}/$capacity spaces'
         : 'Unlimited';
 
     final closingDateStr = event.registrationDeadline != null 
@@ -236,61 +235,121 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
 
-        // PLAYING (Members + Guests)
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed)) ...[
-          BoxyArtSectionTitle(title: 'Playing (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed).map((vm) => RegistrationCard(
+        // PLAYING MEMBERS
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest)) ...[
+          BoxyArtSectionTitle(title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).map((vm) => RegistrationCard(
             name: vm.item.name,
-            label: vm.item.isGuest ? 'Guest of ${vm.item.registration.memberName}' : 'Member',
+            label: 'Member',
             position: vm.position,
             status: vm.status,
             buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.isGuest ? vm.item.registration.guestAttendingBreakfast : vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.isGuest ? vm.item.registration.guestAttendingLunch : vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner,
-            hasGuest: !vm.item.isGuest && vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            attendingBreakfast: vm.item.registration.attendingBreakfast,
+            attendingLunch: vm.item.registration.attendingLunch,
+            attendingDinner: vm.item.registration.attendingDinner,
+            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
             hasPaid: vm.item.registration.hasPaid,
-            isGuest: vm.item.isGuest,
+            isGuest: false,
             memberProfile: vm.memberProfile,
           )),
         ],
 
-        // WAITLIST (Members + Guests)
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist)) ...[
+        // PLAYING GUESTS
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest)) ...[
           const SizedBox(height: 24),
-          BoxyArtSectionTitle(title: 'Waitlist (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist).map((vm) => RegistrationCard(
+          BoxyArtSectionTitle(title: 'Playing Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).map((vm) => RegistrationCard(
             name: vm.item.name,
-            label: vm.item.isGuest ? 'Guest of ${vm.item.registration.memberName}' : 'Member',
+            label: 'Guest of ${vm.item.registration.memberName}',
             position: vm.position,
             status: vm.status,
             buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.isGuest ? vm.item.registration.guestAttendingBreakfast : vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.isGuest ? vm.item.registration.guestAttendingLunch : vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner,
-            hasGuest: !vm.item.isGuest && vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+            attendingLunch: vm.item.registration.guestAttendingLunch,
+            attendingDinner: vm.item.registration.guestAttendingDinner,
+            hasGuest: false,
             hasPaid: vm.item.registration.hasPaid,
-            isGuest: vm.item.isGuest,
+            isGuest: true,
             memberProfile: vm.memberProfile,
           )),
         ],
 
-        // RESERVED (Members + Guests)
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved)) ...[
+        // WAITLIST MEMBERS
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest)) ...[
           const SizedBox(height: 24),
-          BoxyArtSectionTitle(title: 'Reserved (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved).map((vm) => RegistrationCard(
+          BoxyArtSectionTitle(title: 'Waitlist Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).map((vm) => RegistrationCard(
             name: vm.item.name,
-            label: vm.item.isGuest ? 'Guest of ${vm.item.registration.memberName}' : 'Member',
+            label: 'Member',
             position: vm.position,
             status: vm.status,
             buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.isGuest ? vm.item.registration.guestAttendingBreakfast : vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.isGuest ? vm.item.registration.guestAttendingLunch : vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.isGuest ? vm.item.registration.guestAttendingDinner : vm.item.registration.attendingDinner,
-            hasGuest: !vm.item.isGuest && vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            attendingBreakfast: vm.item.registration.attendingBreakfast,
+            attendingLunch: vm.item.registration.attendingLunch,
+            attendingDinner: vm.item.registration.attendingDinner,
+            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
             hasPaid: vm.item.registration.hasPaid,
-            isGuest: vm.item.isGuest,
+            isGuest: false,
+            memberProfile: vm.memberProfile,
+          )),
+        ],
+
+        // WAITLIST GUESTS
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest)) ...[
+          const SizedBox(height: 24),
+          BoxyArtSectionTitle(title: 'Waitlist Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).map((vm) => RegistrationCard(
+            name: vm.item.name,
+            label: 'Guest of ${vm.item.registration.memberName}',
+            position: vm.position,
+            status: vm.status,
+            buggyStatus: vm.buggyStatus,
+            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+            attendingLunch: vm.item.registration.guestAttendingLunch,
+            attendingDinner: vm.item.registration.guestAttendingDinner,
+            hasGuest: false,
+            hasPaid: vm.item.registration.hasPaid,
+            isGuest: true,
+            memberProfile: vm.memberProfile,
+          )),
+        ],
+
+        // RESERVED MEMBERS
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest)) ...[
+          const SizedBox(height: 24),
+          BoxyArtSectionTitle(title: 'Reserved Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).map((vm) => RegistrationCard(
+            name: vm.item.name,
+            label: 'Member',
+            position: vm.position,
+            status: vm.status,
+            buggyStatus: vm.buggyStatus,
+            attendingBreakfast: vm.item.registration.attendingBreakfast,
+            attendingLunch: vm.item.registration.attendingLunch,
+            attendingDinner: vm.item.registration.attendingDinner,
+            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+            hasPaid: vm.item.registration.hasPaid,
+            isGuest: false,
+            memberProfile: vm.memberProfile,
+          )),
+        ],
+
+        // RESERVED GUESTS
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest)) ...[
+          const SizedBox(height: 24),
+          BoxyArtSectionTitle(title: 'Reserved Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).map((vm) => RegistrationCard(
+            name: vm.item.name,
+            label: 'Guest of ${vm.item.registration.memberName}',
+            position: vm.position,
+            status: vm.status,
+            buggyStatus: vm.buggyStatus,
+            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+            attendingLunch: vm.item.registration.guestAttendingLunch,
+            attendingDinner: vm.item.registration.guestAttendingDinner,
+            hasGuest: false,
+            hasPaid: vm.item.registration.hasPaid,
+            isGuest: true,
             memberProfile: vm.memberProfile,
           )),
         ],

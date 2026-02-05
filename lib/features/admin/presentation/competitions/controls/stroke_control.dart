@@ -17,6 +17,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
   int _handicapCap = 28;
   int _roundsCount = 1;
   AggregationMethod _aggregation = AggregationMethod.totalSum;
+  bool _applyCapToIndex = true;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stroke;
@@ -29,6 +30,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       _handicapCap = widget.competition!.rules.handicapCap;
       _roundsCount = widget.competition!.rules.roundsCount;
       _aggregation = widget.competition!.rules.aggregation;
+      _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
     }
   }
 
@@ -72,6 +74,28 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
                   keyboardType: TextInputType.number,
                   onChanged: (val) => setState(() => _handicapCap = int.tryParse(val) ?? 28),
                 ),
+              const SizedBox(height: 24),
+              BoxyArtSwitchField(
+                label: 'Hard Cap Playing HC\n(Off = Cap Index + WHS)',
+                value: !_applyCapToIndex,
+                onChanged: (val) {
+                  setState(() {
+                    _applyCapToIndex = !val;
+                  });
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _applyCapToIndex 
+                        ? "Cap applies to baseline Index. WHS adjustments can exceed the cap."
+                        : "Cap applies to final Playing HC. Player will never exceed $_handicapCap.",
+                    style: const TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -130,6 +154,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       holeByHoleRequired: true,
       roundsCount: _roundsCount,
       aggregation: _aggregation,
+      applyCapToIndex: _applyCapToIndex,
     );
   }
 }

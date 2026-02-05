@@ -19,6 +19,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   int _roundsCount = 1;
   AggregationMethod _aggregation = AggregationMethod.stablefordSum; 
   bool _isGross = false;
+  bool _applyCapToIndex = true;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stableford;
@@ -27,13 +28,14 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   void initState() {
     super.initState();
     if (widget.competition != null) {
+      name = widget.competition!.name ?? ''; // Initialize name
       _allowance = widget.competition!.rules.handicapAllowance;
       _handicapCap = widget.competition!.rules.handicapCap;
       _tieBreak = widget.competition!.rules.tieBreak;
       _roundsCount = widget.competition!.rules.roundsCount;
-      _roundsCount = widget.competition!.rules.roundsCount;
       _aggregation = widget.competition!.rules.aggregation;
       _isGross = widget.competition!.rules.subtype == CompetitionSubtype.grossStableford;
+      _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
     }
   }
 
@@ -109,15 +111,34 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
 
               const SizedBox(height: 24),
               BoxyArtSwitchField(
+                label: 'Hard Cap Playing HC\n(Off = Cap Index + WHS)',
+                value: !_applyCapToIndex,
+                onChanged: (val) {
+                  setState(() {
+                    _applyCapToIndex = !val;
+                  });
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _applyCapToIndex 
+                        ? "Cap applies to baseline Index. WHS adjustments can exceed the cap."
+                        : "Cap applies to final Playing HC. Player will never exceed $_handicapCap.",
+                    style: const TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              BoxyArtSwitchField(
                 label: 'Gross Scoring\n(Points against Par)',
                 value: _isGross,
                 onChanged: (val) {
                   setState(() {
                     _isGross = val;
-                    // Reset allowance logic:
-                    // Gross ON -> 0% (scratch)
-                    // Gross OFF -> 100% (full handicap) as per user request
-                    _allowance = _isGross ? 0.0 : 1.0; 
                   });
                 },
               ),
@@ -214,6 +235,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       holeByHoleRequired: true,
       roundsCount: _roundsCount,
       aggregation: _aggregation,
+      applyCapToIndex: _applyCapToIndex,
     );
   }
 }

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../features/members/presentation/members_provider.dart';
-import '../../../../features/events/presentation/events_provider.dart';
 import '../../../../core/services/seeding_service.dart';
 import '../../../../features/competitions/presentation/competitions_provider.dart';
 
@@ -194,7 +191,7 @@ class AdminSettingsScreen extends ConsumerWidget {
     final confirm = await showBoxyArtDialog<bool>(
       context: context, 
       title: 'Initialize Lab?',
-      message: 'This will seed 60 stable members and create "The Lab Open" event. Continue?',
+      message: 'This will seed 60 members (inc. Committee), 3 past events (Jan/Feb 2026), and 1 upcoming event (The Lab Open). All within the current 2026 season. Continue?',
       confirmText: 'Initialize',
       onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
       onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
@@ -204,11 +201,14 @@ class AdminSettingsScreen extends ConsumerWidget {
 
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Building Lab foundation...')));
+    messenger.showSnackBar(const SnackBar(content: Text('Building Lab foundation... (Members & Events)')));
 
     try {
       await ref.read(seedingServiceProvider).seedStableFoundation();
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Lab Foundation Ready!')));
+      messenger.showSnackBar(const SnackBar(
+        content: Text('✅ Lab Ready! Check "Events" to see all 4 matches in the 2026 season.'),
+        duration: Duration(seconds: 4),
+      ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
@@ -233,7 +233,13 @@ class AdminSettingsScreen extends ConsumerWidget {
       await ref.read(seedingServiceProvider).seedRegistrations('lab_open_001');
       messenger.showSnackBar(const SnackBar(content: Text('✅ Lab Event Reset!')));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      final errorMsg = e.toString().contains('not found') 
+        ? 'Lab Event not found. Please run "Seed Stable Foundation" first.'
+        : 'Error: $e';
+      messenger.showSnackBar(SnackBar(
+        content: Text(errorMsg),
+        duration: const Duration(seconds: 5),
+      ));
     }
   }
 
@@ -279,8 +285,8 @@ class AdminSettingsScreen extends ConsumerWidget {
     final confirm = await showBoxyArtDialog<bool>(
       context: context, 
       title: 'DANGER: Clear Database?',
-      message: 'This will PERMANENTLY delete all members and all event registrations. There is no undo. Continue?',
-      confirmText: 'DESTRUCTIVE DELETE',
+      message: 'This will PERMANENTLY delete ALL society data (Members, Events, Scores, Standings). There is no undo. Continue?',
+      confirmText: 'PURGE EVERYTHING',
       onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
       onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
     );
@@ -289,61 +295,15 @@ class AdminSettingsScreen extends ConsumerWidget {
 
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Clearing database... 🧹')));
+    messenger.showSnackBar(const SnackBar(content: Text('Starting full database purge... 🧹')));
 
     try {
-      final membersRepo = ref.read(membersRepositoryProvider);
-      final eventsRepo = ref.read(eventsRepositoryProvider);
-      final firestore = FirebaseFirestore.instance;
-
-      // 1. Clear Members
-      debugPrint('🧹 Fetching members to delete...');
-      final members = await membersRepo.getMembers();
-      debugPrint('🧹 Found ${members.length} members.');
-      
-      if (members.isNotEmpty) {
-        // Use batches for efficiency (Firestore limit is 500 per batch)
-        final memberChunks = _chunkList(members, 400);
-        for (final chunk in memberChunks) {
-          final batch = firestore.batch();
-          for (final member in chunk) {
-            batch.delete(firestore.collection('members').doc(member.id));
-          }
-          await batch.commit();
-          debugPrint('🧹 Deleted batch of ${chunk.length} members.');
-        }
-      }
-
-      // 2. Delete All Events
-      debugPrint('🧹 Fetching events to delete...');
-      final events = await eventsRepo.getEvents();
-      debugPrint('🧹 Found ${events.length} events.');
-      
-      if (events.isNotEmpty) {
-        final eventChunks = _chunkList(events, 400);
-        for (final chunk in eventChunks) {
-          final batch = firestore.batch();
-          for (final event in chunk) {
-            batch.delete(firestore.collection('events').doc(event.id));
-          }
-          await batch.commit();
-          debugPrint('🧹 Deleted batch of ${chunk.length} events.');
-        }
-      }
-
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Database cleared (Members & Events)!')));
+      await ref.read(seedingServiceProvider).clearAllData();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Clean Slate Achieved! All collections wiped.')));
     } catch (e) {
       debugPrint('❌ Error clearing database: $e');
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
-  }
-
-  List<List<T>> _chunkList<T>(List<T> list, int size) {
-    List<List<T>> chunks = [];
-    for (int i = 0; i < list.length; i += size) {
-      chunks.add(list.sublist(i, i + size > list.length ? list.length : i + size));
-    }
-    return chunks;
   }
 }
 

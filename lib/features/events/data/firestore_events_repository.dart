@@ -156,15 +156,14 @@ class FirestoreEventsRepository implements EventsRepository {
   }
 
   @override
-  Future<void> addEvent(GolfEvent event) async {
+  Future<String> addEvent(GolfEvent event) async {
     // We let Firestore generate the ID, or use the one provided if valid?
-    // Usually we add(), getting a ref, then update the ID inside? 
-    // Or just set().
-    // Let's use set() if ID is valid, or add() if empty.
     if (event.id.isEmpty) {
-       await _eventsRef.add(event.toJson());
+       final docRef = await _eventsRef.add(event.toJson());
+       return docRef.id;
     } else {
        await _eventsRef.doc(event.id).set(event.toJson());
+       return event.id;
     }
   }
 

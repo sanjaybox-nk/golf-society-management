@@ -23,14 +23,15 @@ class TeeGroup {
     players: (json['players'] as List).map((p) => TeeGroupParticipant.fromJson(p)).toList(),
   );
 
-  double get totalHandicap => players.fold(0, (sum, p) => sum + p.handicap);
+  double get totalHandicap => players.fold(0, (sum, p) => sum + p.playingHandicap);
 }
 
 class TeeGroupParticipant {
   final String registrationMemberId; // Host member ID
   final String name;
   final bool isGuest;
-  final double handicap;
+  final double handicapIndex;     // The raw index (e.g. 33.2)
+  final double playingHandicap;   // The adjusted/capped value (e.g. 28.0)
   bool needsBuggy;
   RegistrationStatus buggyStatus;
   bool isCaptain;
@@ -39,7 +40,8 @@ class TeeGroupParticipant {
     required this.registrationMemberId,
     required this.name,
     required this.isGuest,
-    required this.handicap,
+    required this.handicapIndex,
+    required this.playingHandicap,
     required this.needsBuggy,
     this.buggyStatus = RegistrationStatus.none,
     this.isCaptain = false,
@@ -49,7 +51,8 @@ class TeeGroupParticipant {
     'registrationMemberId': registrationMemberId,
     'name': name,
     'isGuest': isGuest,
-    'handicap': handicap,
+    'handicapIndex': handicapIndex,
+    'playingHandicap': playingHandicap,
     'needsBuggy': needsBuggy,
     'buggyStatus': buggyStatus.name,
     'isCaptain': isCaptain,
@@ -59,7 +62,8 @@ class TeeGroupParticipant {
     registrationMemberId: json['registrationMemberId'],
     name: json['name'],
     isGuest: json['isGuest'],
-    handicap: (json['handicap'] as num?)?.toDouble() ?? 0.0,
+    handicapIndex: (json['handicapIndex'] as num?)?.toDouble() ?? (json['handicap'] as num?)?.toDouble() ?? 0.0,
+    playingHandicap: (json['playingHandicap'] as num?)?.toDouble() ?? (json['handicap'] as num?)?.toDouble() ?? 0.0,
     needsBuggy: json['needsBuggy'] ?? false,
     buggyStatus: RegistrationStatus.values.firstWhere(
       (e) => e.name == json['buggyStatus'], 
@@ -244,33 +248,12 @@ class GroupingService {
     }
 
     // 6. Post-Processing: Captains & Buggies
-    final random = Random();
-    for (var group in groups) {
-      if (group.players.isEmpty) continue;
-      
-      // Assign Captain (randomly if none assigned, but usually first member)
-      final membersOnly = group.players.where((p) => !p.isGuest).toList();
-      if (membersOnly.isNotEmpty) {
-        membersOnly[random.nextInt(membersOnly.length)].isCaptain = true;
-      } else {
-        group.players.first.isCaptain = true;
-      }
-
-      // Buggy Optimization
-      // Group buggy users together. They are already in the same group, 
-      // but in the UI we might want to represent them paired.
-      // Logic: If there are 2 buggy users, they share one buggy. 
-      // This is mostly a UI representation detail.
-    }
-
-    // 7. Variety & Handicap Optimization (Refinement Pass)
-    // Swap individuals (non-guests) between groups of same size to improve variety and balance
-    // 7. Variety & Handicap Optimization (Refinement Pass)
-    // Swap individuals (non-guests) between groups of same size to improve variety and balance
+    // Optimization: Variety & Handicap Optimization (Refinement Pass)
     _optimize(groups, previousEventsInSeason, prioritizeBuggyPairing, strategy);
 
     return groups;
   }
+
 
   static void _optimize(List<TeeGroup> groups, List<GolfEvent> history, bool prioritizeBuggyPairing, String strategy) {
     // 1. Calculate historical pairing counts
@@ -383,12 +366,12 @@ class GroupingService {
     
     // Strategy Specific Costs
     if (strategy == 'balanced') {
-       double hc1 = g1Players.fold(0.0, (s, p) => s + p.handicap);
-       double hc2 = g2Players.fold(0.0, (s, p) => s + p.handicap);
+       double hc1 = g1Players.fold(0.0, (s, p) => s + p.playingHandicap);
+       double hc2 = g2Players.fold(0.0, (s, p) => s + p.playingHandicap);
        cost += (hc1 - hc2).abs() * 0.5;
     } else if (strategy == 'progressive') {
-        double avg1 = g1Players.fold(0.0, (s, p) => s + p.handicap) / g1Players.length;
-        double avg2 = g2Players.fold(0.0, (s, p) => s + p.handicap) / g2Players.length;
+        double avg1 = g1Players.fold(0.0, (s, p) => s + p.playingHandicap) / g1Players.length;
+        double avg2 = g2Players.fold(0.0, (s, p) => s + p.playingHandicap) / g2Players.length;
         
         if (g1.index < g2.index && avg1 > avg2) cost += 1000.0;
         if (g2.index < g1.index && avg2 > avg1) cost += 1000.0;
@@ -493,8 +476,8 @@ class GroupingService {
 
   static double _calculateVariance(List<TeeGroupParticipant> players) {
     if (players.isEmpty) return 0.0;
-    final avg = players.fold(0.0, (s, p) => s + p.handicap) / players.length;
-    final sumSquaredDiff = players.fold(0.0, (s, p) => s + pow(p.handicap - avg, 2));
+    final avg = players.fold(0.0, (s, p) => s + p.playingHandicap) / players.length;
+    final sumSquaredDiff = players.fold(0.0, (s, p) => s + pow(p.playingHandicap - avg, 2));
     return sumSquaredDiff / players.length;
   }
 
@@ -540,7 +523,8 @@ class GroupingService {
       registrationMemberId: item.registration.memberId,
       name: item.name,
       isGuest: item.isGuest,
-      handicap: finalHandicap,
+      handicapIndex: rawHandicap,
+      playingHandicap: finalHandicap,
       needsBuggy: item.needsBuggy,
       buggyStatus: buggyStatus,
     );
@@ -560,6 +544,6 @@ class _TeeSlot {
 
   double get averageHandicap {
     if (players.isEmpty) return 0.0;
-    return players.fold(0.0, (s, p) => s + p.handicap) / players.length;
+    return players.fold(0.0, (s, p) => s + p.playingHandicap) / players.length;
   }
 }

@@ -10,8 +10,8 @@ abstract class EventsRepository {
   /// Get a single event by ID
   Future<GolfEvent?> getEvent(String id);
 
-  /// Create a new event
-  Future<void> addEvent(GolfEvent event);
+  /// Create a new event, returns the created ID
+  Future<String> addEvent(GolfEvent event);
 
   /// Update existing event
   Future<void> updateEvent(GolfEvent event);

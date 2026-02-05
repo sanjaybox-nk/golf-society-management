@@ -29,100 +29,63 @@ class CompetitionBuilderScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    CompetitionFormat? activeFormat;
-    
-    // 1. If we are editing an existing competition, use its format
+    // 1. If we have a competition object already, we can use it directly
     if (competition != null) {
-      activeFormat = competition!.rules.format;
-    } 
-    // 2. If creating new, use the specific format passed
-    else if (format != null) {
-      activeFormat = format;
-    }
-    // 3. Special Case: Pairs (subtype provided) - Format might be determined inside control, 
-    // but we need a non-null activeFormat to proceed. We can use format if passed, or default.
-    else if (subtype != null) {
-      activeFormat = CompetitionFormat.matchPlay; // Default placeholder for shell
+      return _buildScaffold(context, competition!.rules.format, competition: competition);
     }
 
-    // 3. If neither, try to fetch by ID
-    // If neither, we can't show a specific control.
-    if (activeFormat == null && competitionId != null) {
-       if (isTemplate) {
-          final templatesAsync = ref.watch(templatesListProvider);
-          return templatesAsync.when(
-            data: (templates) {
-              final template = templates.where((t) => t.id == competitionId).firstOrNull;
-              if (template == null) return const Scaffold(body: Center(child: Text("Template not found")));
-              return Scaffold(
-                backgroundColor: const Color(0xFFF2F2F7),
-                appBar: BoxyArtAppBar(
-                  title: 'EDIT TEMPLATE',
-                  centerTitle: true,
-                  isLarge: true,
-                  leadingWidth: 80,
-                  leading: GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        Text(
-                          'Back',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                body: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: _buildControl(template.rules.format, context, template: template),
-                ),
-              );
-            },
-            loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-            error: (e, s) => Scaffold(body: Center(child: Text("Error: $e"))),
-          );
-       }
-      // For regular competitions, adding similar logic would be good, but for now specific to templates issue.
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (activeFormat == null) {
-       return const Scaffold(body: Center(child: Text("Error: No format determined for competition builder.")));
-    }
-
-    // Determine readable game name
-    String gameName;
-    final compToUse = competition; 
-    final activeSubtype = subtype ?? compToUse?.rules.subtype;
-    
-    if (activeSubtype != null) {
-      if (activeSubtype == CompetitionSubtype.fourball) {
-        gameName = 'FOURBALL';
-      } else if (activeSubtype == CompetitionSubtype.foursomes) {
-        gameName = 'FOURSOMES';
+    // 2. If we have an ID, we need to fetch it
+    if (competitionId != null) {
+      if (isTemplate) {
+        final templatesAsync = ref.watch(templatesListProvider);
+        return templatesAsync.when(
+          data: (templates) {
+            final template = templates.where((t) => t.id == competitionId).firstOrNull;
+            if (template == null) return const Scaffold(body: Center(child: Text("Template not found")));
+            return _buildScaffold(context, template.rules.format, template: template);
+          },
+          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, s) => Scaffold(body: Center(child: Text("Error: $e"))),
+        );
       } else {
-        gameName = activeSubtype.name.toUpperCase();
+        // Fetch event-specific competition
+        final compAsync = ref.watch(competitionDetailProvider(competitionId!));
+        return compAsync.when(
+          data: (comp) {
+            if (comp == null) return const Scaffold(body: Center(child: Text("Competition not found")));
+            return _buildScaffold(context, comp.rules.format, competition: comp);
+          },
+          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, s) => Scaffold(body: Center(child: Text("Error: $e"))),
+        );
       }
-    } else {
-      // Split camelCase format (e.g. matchPlay -> MATCH PLAY)
-      gameName = activeFormat.name
-          .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}')
-          .trim()
-          .toUpperCase();
     }
 
-    final String title = gameName;
+    // 3. If creating new, use format or subtype
+    if (format != null) {
+      return _buildScaffold(context, format!);
+    }
+    
+    if (subtype != null) {
+      // Default placeholder format for shell, pairs control will handle reality
+      return _buildScaffold(context, CompetitionFormat.matchPlay); 
+    }
+
+    return const Scaffold(body: Center(child: Text("Error: No data provided for competition builder.")));
+  }
+
+  Widget _buildScaffold(BuildContext context, CompetitionFormat activeFormat, {Competition? competition, Competition? template}) {
+    final compToUse = competition ?? template;
+    final activeSubtype = subtype ?? compToUse?.rules.subtype;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
       appBar: BoxyArtAppBar(
-        title: title,
+        title: CompetitionRules(
+          format: activeFormat, 
+          subtype: activeSubtype ?? CompetitionSubtype.none,
+        ).gameName,
+        subtitle: isTemplate ? 'edit saved game' : (compToUse != null ? 'event customization' : null),
         centerTitle: true,
         isLarge: true,
         leadingWidth: 80,
@@ -145,13 +108,13 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: _buildControl(activeFormat, context),
+        child: _buildControl(activeFormat, context, competition: competition, template: template),
       ),
     );
   }
 
-  Widget _buildControl(CompetitionFormat format, BuildContext context, {Competition? template}) {
-    final compToUse = competition ?? template;
+  Widget _buildControl(CompetitionFormat format, BuildContext context, {Competition? competition, Competition? template}) {
+    final compToUse = competition ?? this.competition ?? template;
     final activeSubtype = subtype ?? compToUse?.rules.subtype;
 
     if (activeSubtype == CompetitionSubtype.fourball || activeSubtype == CompetitionSubtype.foursomes) {
@@ -176,4 +139,5 @@ class CompetitionBuilderScreen extends ConsumerWidget {
         return MaxScoreControl(competition: compToUse, competitionId: competitionId, isTemplate: isTemplate);
     }
   }
+
 }

@@ -326,14 +326,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                            return CompetitionBuilderScreen(format: format, isTemplate: true);
                         },
                       ),
-                      GoRoute(
-                        path: 'edit/:id',
-                        builder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return CompetitionBuilderScreen(competitionId: id, isTemplate: true);
-                        },
-                      ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'competitions/edit/:id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return CompetitionBuilderScreen(competitionId: id, isTemplate: false);
+                    },
                   ),
                   ShellRoute(
                     pageBuilder: (context, state, child) {

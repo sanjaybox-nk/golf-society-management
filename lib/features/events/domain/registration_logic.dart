@@ -117,6 +117,8 @@ class RegistrationLogic {
     int reserveMembers = 0;
     int reserveGuests = 0;
     int waitlistGolfers = 0;
+    int waitlistMembers = 0;
+    int waitlistGuests = 0;
     int dinnerCount = 0;
     int breakfastCount = 0;
     int lunchCount = 0;
@@ -174,6 +176,11 @@ class RegistrationLogic {
         }
       } else if (status == RegistrationStatus.waitlist) {
         waitlistGolfers++;
+        if (item.isGuest) {
+          waitlistGuests++;
+        } else {
+          waitlistMembers++;
+        }
       }
     }
 
@@ -222,6 +229,8 @@ class RegistrationLogic {
       reserveMembers: reserveMembers,
       reserveGuests: reserveGuests,
       waitlistGolfers: waitlistGolfers,
+      waitlistMembers: waitlistMembers,
+      waitlistGuests: waitlistGuests,
       dinnerCount: dinnerCount,
       breakfastCount: breakfastCount,
       lunchCount: lunchCount,
@@ -373,6 +382,8 @@ class RegistrationStats {
   final int reserveMembers;
   final int reserveGuests;
   final int waitlistGolfers;
+  final int waitlistMembers;
+  final int waitlistGuests;
   final int dinnerCount;
   final int breakfastCount;
   final int lunchCount;
@@ -390,6 +401,8 @@ class RegistrationStats {
     required this.reserveMembers,
     required this.reserveGuests,
     required this.waitlistGolfers,
+    required this.waitlistMembers,
+    required this.waitlistGuests,
     required this.dinnerCount,
     required this.breakfastCount,
     required this.lunchCount,

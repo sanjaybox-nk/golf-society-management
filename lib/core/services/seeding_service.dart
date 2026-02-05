@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/models/competition.dart';
 import 'package:golf_society/models/season.dart';
@@ -11,7 +12,11 @@ import 'package:golf_society/models/golf_event.dart';
 import 'package:golf_society/models/event_registration.dart';
 import 'package:golf_society/models/scorecard.dart';
 import 'dart:math';
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/core/utils/grouping_service.dart';
+import 'package:golf_society/features/events/domain/registration_logic.dart';
 
 class SeedingService {
   final Ref ref;
@@ -20,6 +25,29 @@ class SeedingService {
 
   Future<void> seedInitialData() async {
     await seedCourses();
+    await seedTemplates();
+    await seedCurrentSeason();
+  }
+
+  Future<void> clearAllData() async {
+    final db = FirebaseFirestore.instance;
+    
+    final collections = [
+      'members',
+      'events',
+      'scorecards',
+      'competitions',
+      'seasons',
+    ];
+
+    for (var collName in collections) {
+      final snapshot = await db.collection(collName).get();
+      final batch = db.batch();
+      for (var doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
   }
 
   Future<void> seedTeamsPhase() async {
@@ -72,11 +100,14 @@ class SeedingService {
             'par': selectedCourse.tees.first.holePars[i],
             'si': selectedCourse.tees.first.holeSIs[i],
           }),
-          'par': selectedCourse.tees.first.holePars.fold(0, (sum, p) => sum + p),
+          'par': selectedCourse.tees.first.holePars.fold(0, (total, val) => total + val),
         },
       );
 
       await eventRepo.addEvent(event);
+      if (event.id.isEmpty) {
+        throw Exception('Historical event created with empty ID: ${event.title}');
+      }
       await seedRegistrations(event.id, isPast: true);
     }
   }
@@ -179,7 +210,10 @@ class SeedingService {
     ];
 
     for (var t in templates) {
-      await repo.addCompetition(t);
+      // Generate a unique ID for each template based on the format
+      final templateId = 'template_${t.rules.format.name.toLowerCase()}_${t.rules.subtype.name}_${t.rules.mode.name}';
+      final templateWithId = t.copyWith(id: templateId);
+      await repo.addCompetition(templateWithId);
     }
   }
 
@@ -189,47 +223,48 @@ class SeedingService {
     
     if (seasons.isEmpty) {
       final now = DateTime.now();
-      final season = Season(
-        id: '',
+      
+      // 2026 Season (Current)
+      final season2026 = Season(
+        id: 'season_2026',
         name: '${now.year} Society Tour',
         year: now.year,
         startDate: DateTime(now.year, 1, 1),
         endDate: DateTime(now.year, 12, 31),
         status: SeasonStatus.active,
         isCurrent: true,
-        leaderboards: [
-          LeaderboardConfig.orderOfMerit(
-            id: 'oom_2024',
-            name: 'Order of Merit',
-            source: OOMSource.position,
-            appearancePoints: 2, // Participation points as per image
-            positionPointsMap: {
-              1: 25,
-              2: 18,
-              3: 15,
-              4: 12,
-            },
-          ),
-          LeaderboardConfig.markerCounter(
-            id: 'birdie_tree_2024',
-            name: 'Birdie Tree',
-            targetTypes: {MarkerType.birdie, MarkerType.eagle, MarkerType.albatross},
-          ),
-          LeaderboardConfig.bestOfSeries(
-            id: 'best_8_2024',
-            name: 'Best 8 Series',
-            bestN: 8,
-            metric: BestOfMetric.stableford,
-          ),
-          LeaderboardConfig.eclectic(
-            id: 'eclectic_2024',
-            name: 'Season Eclectic',
-            metric: EclecticMetric.strokes,
-          ),
-        ],
+        leaderboards: _defaultLeaderboards(now.year.toString()),
       );
-      await repo.addSeason(season);
+      await repo.addSeason(season2026);
     }
+  }
+
+  List<LeaderboardConfig> _defaultLeaderboards(String suffix) {
+    return [
+      LeaderboardConfig.orderOfMerit(
+        id: 'oom_$suffix',
+        name: 'Order of Merit',
+        source: OOMSource.position,
+        appearancePoints: 2,
+        positionPointsMap: {1: 25, 2: 18, 3: 15, 4: 12},
+      ),
+      LeaderboardConfig.markerCounter(
+        id: 'birdie_tree_$suffix',
+        name: 'Birdie Tree',
+        targetTypes: {MarkerType.birdie, MarkerType.eagle, MarkerType.albatross},
+      ),
+      LeaderboardConfig.bestOfSeries(
+        id: 'best_8_$suffix',
+        name: 'Best 8 Series',
+        bestN: 8,
+        metric: BestOfMetric.stableford,
+      ),
+      LeaderboardConfig.eclectic(
+        id: 'eclectic_$suffix',
+        name: 'Season Eclectic',
+        metric: EclecticMetric.strokes,
+      ),
+    ];
   }
 
   Future<void> seedCourses() async {
@@ -318,6 +353,14 @@ class SeedingService {
         final firstName = firstNames[random.nextInt(firstNames.length)];
         final lastName = lastNames[random.nextInt(lastNames.length)];
         
+        // Finalize committee roles for first 5 members
+        String? societyRole;
+        if (i == 0) societyRole = 'President';
+        if (i == 1) societyRole = 'Captain';
+        if (i == 2) societyRole = 'Vice Captain';
+        if (i == 3) societyRole = 'Secretary';
+        if (i == 4) societyRole = 'Treasurer';
+
         // Distribution of handicaps
         double handicap;
         int rand = random.nextInt(100);
@@ -339,6 +382,7 @@ class SeedingService {
           phone: '07700 900${random.nextInt(999).toString().padLeft(3, '0')}',
           handicap: double.parse(handicap.toStringAsFixed(1)),
           whsNumber: 'WHS${100000 + i}',
+          societyRole: societyRole,
           status: MemberStatus.active,
           joinedDate: DateTime.now().subtract(Duration(days: random.nextInt(365 * 5))),
           hasPaid: true, // As requested: assume all paid
@@ -378,6 +422,7 @@ class SeedingService {
       courseName: selectedCourse.name,
       courseDetails: selectedCourse.address,
       selectedTeeName: selectedCourse.tees.isNotEmpty ? selectedCourse.tees.first.name : null,
+      dressCode: 'Smart casual. Tailored shorts permitted. No denim or collarless shirts.',
       maxParticipants: 40,
       memberCost: 45.0,
       guestCost: 65.0,
@@ -387,6 +432,31 @@ class SeedingService {
       breakfastCost: 10.0,
       lunchCost: 15.0,
       dinnerCost: 25.0,
+      availableBuggies: 10,
+      buggyCost: 30.0,
+      facilities: ['Driving Range', 'Practice Greens', 'Clubhouse Bar', 'Pro Shop'],
+      dinnerLocation: 'The Old Course Clubhouse, Main Dining Room',
+      notes: [
+        EventNote(
+          title: 'Welcome',
+          content: jsonEncode([{"insert": "Looking forward to seeing everyone at The Lab Open! This is our flagship event of the season.\n"}]),
+        ),
+        EventNote(
+          title: 'Weather Update',
+          content: jsonEncode([{"insert": "Forecast looking good for the day - sunny intervals with light winds. Pack sunscreen!\n"}]),
+        ),
+        EventNote(
+          title: 'Prize Giving',
+          content: jsonEncode([{"insert": "Prize presentation will take place immediately after dinner in the main lounge. Trophies for 1st, 2nd, 3rd places plus nearest-the-pin and longest drive.\n"}]),
+        ),
+        EventNote(
+          content: jsonEncode([{"insert": "Please ensure golf shoes have soft spikes only. Metal spikes are not permitted on the course.\n"}]),
+        ),
+      ],
+      flashUpdates: [
+        'Early bird registration discount available until ${DateFormat('MMM d').format(teeOffTime.subtract(const Duration(days: 10)))}',
+        'Buggies are limited - book early to avoid disappointment',
+      ],
       status: EventStatus.published,
       courseConfig: selectedCourse.tees.isNotEmpty ? {
         'holes': List.generate(18, (i) => {
@@ -395,13 +465,16 @@ class SeedingService {
           'si': selectedCourse.tees.first.holeSIs[i],
           'yardage': selectedCourse.tees.first.yardages[i],
         }),
-        'par': selectedCourse.tees.first.holePars.fold(0, (sum, p) => sum + p),
+        'par': selectedCourse.tees.first.holePars.fold(0, (total, val) => total + val),
         'slope': selectedCourse.tees.first.slope,
         'rating': selectedCourse.tees.first.rating,
       } : {},
     );
 
     await eventRepo.addEvent(labEvent);
+    if (labEvent.id.isEmpty) {
+      throw Exception('Lab event created with empty ID');
+    }
     await seedRegistrations(labEvent.id);
   }
 
@@ -411,33 +484,68 @@ class SeedingService {
     if (seasons.isEmpty) return;
     
     final activeSeason = seasons.firstWhere((s) {
-      return s.status == SeasonStatus.active;
+      return s.year == 2026;
     }, orElse: () => seasons.first);
 
     final courseRepo = ref.read(courseRepositoryProvider);
     final courses = await courseRepo.watchCourses().first;
     if (courses.isEmpty) return;
 
-    final baseDate = DateTime.now();
-
     final historyConfigs = [
       {
-        'id': 'hist_001',
-        'title': 'Winter Stableford',
-        'date': DateTime(baseDate.year, 1, 15, 9),
+        'id': 'hist_2026_001',
+        'title': 'Season Opener (Stableford)',
+        'date': DateTime(2026, 1, 10, 9),
         'format': CompetitionFormat.stableford,
+        'dressCode': 'Smart casual - winter layers recommended',
+        'dinnerLocation': 'The Clubhouse, Main Bar Area',
+        'notes': [
+          EventNote(
+            title: 'Season Kickoff',
+            content: jsonEncode([{"insert": "Welcome to the 2026 season! Let's start the year with a great turnout.\n"}]),
+          ),
+          EventNote(
+            content: jsonEncode([{"insert": "Winter greens in play. Preferred lies allowed.\n"}]),
+          ),
+        ],
       },
       {
-        'id': 'hist_002',
-        'title': 'Spring Medal',
-        'date': DateTime(baseDate.year, 3, 20, 10),
+        'id': 'hist_2026_002',
+        'title': 'Winter Medal',
+        'date': DateTime(2026, 1, 24, 10),
         'format': CompetitionFormat.stroke,
+        'dressCode': 'Traditional golf attire required',
+        'dinnerLocation': 'The Halfway House Restaurant',
+        'notes': [
+          EventNote(
+            title: 'Medal Competition',
+            content: jsonEncode([{"insert": "This is our first medal of the season - play well for Order of Merit points!\n"}]),
+          ),
+          EventNote(
+            title: 'Course Conditions',
+            content: jsonEncode([{"insert": "Course playing firm and fast. Check pin positions carefully.\n"}]),
+          ),
+          EventNote(
+            content: jsonEncode([{"insert": "Photography station set up at the 18th green for post-round photos.\n"}]),
+          ),
+        ],
       },
       {
-        'id': 'hist_003',
-        'title': 'May Invitational',
-        'date': DateTime(baseDate.year, 5, 12, 11),
-        'format': CompetitionFormat.stableford, // Another stableford for leaderboard density
+        'id': 'hist_2026_003',
+        'title': 'February Invitational',
+        'date': DateTime(2026, 2, 1, 11),
+        'format': CompetitionFormat.stableford,
+        'dressCode': 'Smart casual. Guests welcome.',
+        'dinnerLocation': 'The Grand Hall, Banquet Room',
+        'notes': [
+          EventNote(
+            title: 'Invitational Event',
+            content: jsonEncode([{"insert": "Bring your guests! This is our annual invitational with prizes for best guest score.\n"}]),
+          ),
+          EventNote(
+            content: jsonEncode([{"insert": "Special menu available for dinner - pre-orders close 2 days before event.\n"}]),
+          ),
+        ],
       },
     ];
 
@@ -458,7 +566,21 @@ class SeedingService {
         courseName: selectedCourse.name,
         courseDetails: selectedCourse.address,
         selectedTeeName: selectedCourse.tees.isNotEmpty ? selectedCourse.tees.first.name : null,
+        dressCode: config['dressCode'] as String?,
         maxParticipants: 40,
+        memberCost: 40.0,
+        guestCost: 60.0,
+        hasBreakfast: date.hour < 12,
+        hasLunch: date.hour >= 11,
+        hasDinner: true,
+        breakfastCost: 8.0,
+        lunchCost: 12.0,
+        dinnerCost: 22.0,
+        availableBuggies: 8,
+        buggyCost: 25.0,
+        facilities: ['Driving Range', 'Putting Green', 'Clubhouse'],
+        dinnerLocation: config['dinnerLocation'] as String?,
+        notes: config['notes'] as List<EventNote>? ?? [],
         status: EventStatus.completed,
         courseConfig: selectedCourse.tees.isNotEmpty ? {
           'holes': List.generate(18, (i) => {
@@ -467,23 +589,33 @@ class SeedingService {
             'si': selectedCourse.tees.first.holeSIs[i],
             'yardage': selectedCourse.tees.first.yardages[i],
           }),
-          'par': selectedCourse.tees.first.holePars.fold(0, (sum, p) => sum + p),
+          'par': selectedCourse.tees.first.holePars.fold(0, (total, val) => total + val),
           'slope': selectedCourse.tees.first.slope,
           'rating': selectedCourse.tees.first.rating,
         } : {},
       );
 
       await eventRepo.addEvent(event);
+      if (event.id.isEmpty) {
+        throw Exception('Historical event created with empty ID: ${event.title}');
+      }
       await seedRegistrations(event.id, isPast: true);
     }
   }
 
   Future<void> seedRegistrations(String eventId, {bool isPast = false}) async {
+    // Validate eventId before attempting Firestore access
+    if (eventId.isEmpty) {
+      throw Exception('Cannot seed registrations: Event ID is empty');
+    }
+
     final eventRepo = ref.read(eventsRepositoryProvider);
     final memberRepo = ref.read(membersRepositoryProvider);
     
     final event = await eventRepo.getEvent(eventId);
-    if (event == null) return;
+    if (event == null) {
+      throw Exception('Cannot seed registrations: Event "$eventId" not found. Please run "Seed Stable Foundation" first.');
+    }
 
     final members = await memberRepo.getMembers();
     if (members.isEmpty) return;
@@ -491,11 +623,65 @@ class SeedingService {
     final random = Random();
     final List<EventRegistration> registrations = [];
     
-    // Fill 32 slots with members (8 groups of 4)
-    final memberParticipants = members.take(32).toList();
+    // Realistic guest names
+    final guestNames = [
+      'Emma Thompson',
+      'Oliver Bennett',
+      'Sophie Clarke',
+      'Harry Wilson',
+      'Charlotte Davis',
+      'George Walker',
+      'Amelia Foster',
+      'William Hughes',
+      'Lucy Martinez',
+      'Jack Anderson',
+    ];
+    
+    // 1. Set random event capacity (28, 32, 36) - must be multiple of 4
+    final eventCapacity = (7 + random.nextInt(3)) * 4; // 28, 32, or 36
+    
+    // 2. Over-register by 5-12 people
+    final totalRegistrations = eventCapacity + 5 + random.nextInt(8); // capacity + 5-12
+    final numGuests = 6 + random.nextInt(5); // 6-10 guests
+    final numMembers = totalRegistrations - numGuests;
+    
+    // 3. Add 2-4 dinner-only members
+    final numDinnerOnly = 2 + random.nextInt(3); // 2-4
+    
     final isMorning = event.teeOffTime?.hour != null && event.teeOffTime!.hour < 13;
+    
+    // Calculate buggy assignments
+    final availableBuggies = event.availableBuggies ?? 10;
+    final buggyCapacity = availableBuggies * 2;
+    final buggiesNeeded = (buggyCapacity * (0.5 + random.nextDouble() * 0.4)).round();
+    
+    // Member golfers (playing golf)
+    final memberParticipants = members.take(numMembers).toList();
+    final memberIndicesWithBuggies = <int>{};
+    while (memberIndicesWithBuggies.length < buggiesNeeded && memberIndicesWithBuggies.length < memberParticipants.length) {
+      memberIndicesWithBuggies.add(random.nextInt(memberParticipants.length));
+    }
 
-    for (var m in memberParticipants) {
+    // Create member registrations - some will bring guests
+    int nextGuestIndex = 0;
+    final guestBringingMembers = <int>{}; // Track which members bring guests
+    
+    // Randomly select members to bring guests (up to numGuests total)
+    while (guestBringingMembers.length < numGuests && guestBringingMembers.length < numMembers) {
+      final memberIndex = random.nextInt(numMembers);
+      guestBringingMembers.add(memberIndex);
+    }
+    
+    for (int i = 0; i < memberParticipants.length; i++) {
+      final m = memberParticipants[i];
+      
+      // Randomly assign some as withdrawn (2-5%)
+      final isWithdrawn = random.nextDouble() < 0.03;
+      final registrationTime = DateTime.now().subtract(Duration(days: random.nextInt(30)));
+      
+      // Does this member bring a guest?
+      final bringsGuest = guestBringingMembers.contains(i) && nextGuestIndex < numGuests && !isWithdrawn;
+      
       registrations.add(EventRegistration(
         memberId: m.id,
         memberName: m.displayName,
@@ -503,61 +689,156 @@ class SeedingService {
         attendingBreakfast: isMorning,
         attendingLunch: !isMorning,
         attendingDinner: random.nextBool(),
-        hasPaid: true,
-        isConfirmed: true,
-        registeredAt: DateTime.now(),
+        needsBuggy: !isWithdrawn && memberIndicesWithBuggies.contains(i),
+        hasPaid: !isWithdrawn,
+        isConfirmed: !isWithdrawn,
+        statusOverride: isWithdrawn ? 'withdrawn' : null,
+        registeredAt: registrationTime,
+        // Guest data if this member brings a guest (same registration time and payment status)
+        guestName: bringsGuest ? guestNames[nextGuestIndex % guestNames.length] : null,
+        guestHandicap: bringsGuest ? (random.nextInt(20) + 5).toString() : null,
+        guestAttendingBreakfast: bringsGuest && isMorning,
+        guestAttendingLunch: bringsGuest && !isMorning,
+        guestAttendingDinner: bringsGuest && random.nextBool(),
+        guestNeedsBuggy: bringsGuest && random.nextBool() && (buggiesNeeded - memberIndicesWithBuggies.length) > 0,
+        guestIsConfirmed: bringsGuest,
       ));
+      
+      if (bringsGuest) nextGuestIndex++;
     }
 
-    // Add 8 guests (to hit 40)
-    for (int i = 0; i < 8; i++) {
+    // Add dinner-only members
+    final dinnerOnlyMembers = members.skip(numMembers).take(numDinnerOnly).toList();
+    for (final m in dinnerOnlyMembers) {
       registrations.add(EventRegistration(
-        memberId: 'guest_$i',
-        memberName: 'Guest User $i',
-        isGuest: true,
-        attendingGolf: true,
-        attendingBreakfast: isMorning,
-        attendingLunch: !isMorning,
-        attendingDinner: random.nextBool(),
+        memberId: m.id,
+        memberName: m.displayName,
+        attendingGolf: false,
+        attendingBreakfast: false,
+        attendingLunch: false,
+        attendingDinner: true,
         hasPaid: true,
         isConfirmed: true,
-        registeredAt: DateTime.now(),
-        guestHandicap: (random.nextInt(20) + 5).toString(),
+        registeredAt: DateTime.now().subtract(Duration(days: random.nextInt(20))),
       ));
     }
 
-    // Team Grouping for Texas Scramble (Auto-grouping into 10 teams of 4)
-    final Map<String, dynamic> grouping = {};
-    for (int i = 0; i < 10; i++) {
-        final teamId = 'team_${i + 1}';
-        final membersInTeam = registrations.skip(i * 4).take(4).map((r) => r.memberId).toList();
-        grouping[teamId] = {
-            'name': 'Team ${i + 1}',
-            'members': membersInTeam,
-            'teeTime': event.teeOffTime?.add(Duration(minutes: i * 10)).toIso8601String(),
-        };
+    // Flatten and sort by Rank (Priority) then Time
+    // Rank logic: Member (Confirmed candidate) > Guest (Confirmed candidate)
+    
+    final pool = <({int regIndex, bool isGuest, DateTime time, int rank})>[];
+    for (int i = 0; i < registrations.length; i++) {
+      final r = registrations[i];
+      if (!r.attendingGolf || r.statusOverride == 'withdrawn') continue;
+      
+      final time = r.registeredAt ?? DateTime.now();
+      pool.add((regIndex: i, isGuest: false, time: time, rank: 0));
+      if (r.guestName != null && r.guestName!.isNotEmpty) {
+        pool.add((regIndex: i, isGuest: true, time: time, rank: 1));
+      }
     }
+
+    // Sort by Priority (Member > Guest) then FCFS
+    pool.sort((a, b) {
+      if (a.rank != b.rank) return a.rank.compareTo(b.rank);
+      return a.time.compareTo(b.time);
+    });
+    
+    // Now allocate slots in this priority order
+    int slotsAllocated = 0;
+    final confirmedSet = <String>{}; // "index_isGuest"
+    
+    for (var item in pool) {
+      // Determine if they can play (confirmed)
+      // Most who get a slot pay (93%), but 7% stay "reserved" (unconfirmed)
+      bool getsSlot = slotsAllocated < eventCapacity;
+      bool isPaid = getsSlot && (random.nextDouble() > 0.07);
+      
+      // If over capacity, they can still have paid but they are waitlisted
+      // In seeding terms, we'll mark them as isConfirmed = true so they hit the waitlist
+      if (!getsSlot) {
+        isPaid = random.nextBool();
+      }
+
+      if (isPaid || getsSlot) {
+         confirmedSet.add("${item.regIndex}_${item.isGuest}");
+         if (isPaid && getsSlot) slotsAllocated++;
+      }
+    }
+
+    // Apply back to registrations
+    for (int i = 0; i < registrations.length; i++) {
+        final reg = registrations[i];
+        if (!reg.attendingGolf || reg.statusOverride == 'withdrawn') continue;
+
+        final memberConfirmed = confirmedSet.contains("${i}_false");
+        final guestConfirmed = confirmedSet.contains("${i}_true");
+        
+        // Final hasPaid is true if either member or guest is confirmed/paid
+        // (Guest payment is linked to member)
+        final hasPaid = memberConfirmed || guestConfirmed;
+
+        registrations[i] = reg.copyWith(
+          hasPaid: hasPaid,
+          isConfirmed: memberConfirmed,
+          guestIsConfirmed: guestConfirmed,
+        );
+    }
+
+    // 4. GENERATE REALISTIC GROUPING USING APP LOGIC (GroupingService)
+    // This replaces the old generic Texas Scramble grouping logic
+    final allEvents = await eventRepo.watchEvents().first; 
+    final history = allEvents.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
+    final handicapMap = {for (var m in members) m.id: m.handicap};
+
+    // IMPORTANT: Create an updated event object so the logic uses the registrations we just generated
+    final updatedEvent = event.copyWith(
+      registrations: registrations,
+      maxParticipants: eventCapacity,
+    );
+
+    final flattenedItems = RegistrationLogic.getSortedItems(updatedEvent);
+    
+    final groups = GroupingService.generateInitialGrouping(
+      event: updatedEvent,
+      participants: flattenedItems,
+      previousEventsInSeason: history,
+      memberHandicaps: handicapMap,
+    );
+
+    final Map<String, dynamic> groupingData = {
+      'groups': groups.map((g) => g.toJson()).toList(),
+      'locked': true,
+      'isPublished': true,
+    };
 
     await eventRepo.updateEvent(event.copyWith(
+      maxParticipants: eventCapacity,
       registrations: registrations,
-      grouping: grouping,
+      grouping: groupingData,
+      isGroupingPublished: true,
     ));
 
-    // For Teams/Pairs, create scorecards for the ENTRIES (teams), not individual members
-    final bool isTeams = grouping.isNotEmpty;
+    // 5. SEED SCORES
+    // We determine if we seed per group (Team) or per individual (Singles)
+    // For now, based on the format provided in the event title or history config
+    final bool isTexasScramble = event.title.toLowerCase().contains('scramble');
     
-    if (isTeams) {
+    if (isTexasScramble) {
       await seedTeamScores(
         eventId, 
-        grouping, 
+        groupingData, 
         event.courseConfig,
         status: isPast ? ScorecardStatus.finalScore : ScorecardStatus.submitted,
       );
     } else {
       await seedScores(
         eventId, 
-        registrations, 
+        flattenedItems, 
         event.courseConfig,
+        eventCapacity,
+        event.isRegistrationClosed,
+        handicapMap,
         status: isPast ? ScorecardStatus.finalScore : ScorecardStatus.submitted,
       );
     }
@@ -565,7 +846,7 @@ class SeedingService {
 
   Future<void> seedTeamScores(
     String eventId,
-    Map<String, dynamic> grouping,
+    Map<String, dynamic> groupingData,
     Map<String, dynamic> courseConfig,
     {ScorecardStatus status = ScorecardStatus.submitted}
   ) async {
@@ -574,8 +855,11 @@ class SeedingService {
     final holes = courseConfig['holes'] as List<dynamic>? ?? [];
     if (holes.isEmpty) return;
 
-    for (var entry in grouping.entries) {
-      final teamId = entry.key;
+    final groupsList = groupingData['groups'] as List? ?? [];
+    
+    for (var gData in groupsList) {
+      final group = TeeGroup.fromJson(gData);
+      final teamId = 'team_${group.index}'; // Standard app entryId for teams
       final List<int?> holeScores = [];
       
       for (var holeData in holes) {
@@ -604,29 +888,43 @@ class SeedingService {
 
   Future<void> seedScores(
     String eventId, 
-    List<EventRegistration> registrations, 
+    List<RegistrationItem> items, 
     Map<String, dynamic> courseConfig,
+    int capacity,
+    bool isClosed,
+    Map<String, double> memberHandicaps,
     {ScorecardStatus status = ScorecardStatus.submitted}
   ) async {
     final scorecardRepo = ref.read(scorecardRepositoryProvider);
-    final memberRepo = ref.read(membersRepositoryProvider);
     final random = Random();
 
     final holes = courseConfig['holes'] as List<dynamic>? ?? [];
     if (holes.isEmpty) return;
 
-    for (var reg in registrations) {
-      if (!reg.attendingGolf) {
-        continue;
-      }
+    int confirmedCount = 0;
+    for (var item in items) {
+      final regStatus = RegistrationLogic.calculateStatus(
+        isGuest: item.isGuest, 
+        isConfirmed: item.isConfirmed, 
+        hasPaid: item.hasPaid, 
+        confirmedCount: confirmedCount, 
+        capacity: capacity, 
+        isEventClosed: isClosed,
+        statusOverride: item.statusOverride,
+      );
+
+      if (regStatus != RegistrationStatus.confirmed) continue;
+      confirmedCount++;
+
+      // Entry ID logic: memberId for players, memberId_guest for guests
+      final String entryId = item.isGuest ? "${item.registration.memberId}_guest" : item.registration.memberId;
 
       // Determine skill level for randomization
       double handicap = 18.0;
-      if (!reg.isGuest) {
-        final member = await memberRepo.getMember(reg.memberId);
-        handicap = member?.handicap ?? 18.0;
+      if (item.isGuest) {
+        handicap = double.tryParse(item.registration.guestHandicap ?? '18') ?? 18.0;
       } else {
-        handicap = double.tryParse(reg.guestHandicap ?? '18') ?? 18.0;
+        handicap = memberHandicaps[item.registration.memberId] ?? 18.0;
       }
 
       // Skill modifier: higher handicap = higher random offset
@@ -636,9 +934,6 @@ class SeedingService {
       for (var holeData in holes) {
           final par = holeData['par'] as int? ?? 4;
           
-          // Generate a believable score
-          // 0: albatross, 1: eagle, 2: birdie, 3: par, 4: bogey, 5: dbl, etc.
-          // This is a rough normal distribution biased by skill
           final r = random.nextDouble() * 10;
           int score;
           
@@ -659,19 +954,17 @@ class SeedingService {
           holeScores.add(score);
       }
 
-      final scorecard = Scorecard(
-        id: '', // Firestore will assign
+      await scorecardRepo.addScorecard(Scorecard(
+        id: '',
         competitionId: eventId,
         roundId: 'round_1',
-        entryId: reg.memberId,
+        entryId: entryId,
         submittedByUserId: 'system_seed',
         status: status,
         holeScores: holeScores,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-      );
-
-      await scorecardRepo.addScorecard(scorecard);
+      ));
     }
   }
 

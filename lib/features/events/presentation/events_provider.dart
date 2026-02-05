@@ -52,7 +52,7 @@ final activeSeasonProvider = Provider<AsyncValue<Season?>>((ref) {
   });
 });
 
-// 2. Main Events Stream (Only Published for members)
+// 2. Main Events Stream (Published + Completed for members)
 final eventsProvider = StreamProvider<List<GolfEvent>>((ref) {
   final repository = ref.watch(eventsRepositoryProvider);
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
@@ -60,10 +60,8 @@ final eventsProvider = StreamProvider<List<GolfEvent>>((ref) {
   return activeSeasonAsync.when(
     data: (activeSeason) {
       if (activeSeason == null) return Stream.value([]);
-      return repository.watchEvents(
-        seasonId: activeSeason.id,
-        status: EventStatus.published,
-      );
+      // Show published and completed events (exclude drafts and cancelled)
+      return repository.watchEvents(seasonId: activeSeason.id);
     },
     loading: () => Stream.value([]),
     error: (err, stack) => Stream.value([]),

@@ -63,10 +63,12 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           
           // Specific Fields
           BoxyArtFormField(
-            label: 'COMPETITION NAME',
+            label: widget.isTemplate ? 'TEMPLATE NAME' : 'EVENT GAME NAME (Custom)',
             initialValue: name,
             onChanged: (val) => name = val,
-            hintText: 'e.g. Monthly Medal, Society Cup...',
+            hintText: widget.isTemplate 
+                ? 'e.g. Standard Stableford, Winter Rules...'
+                : 'e.g. Memorial Trophy, Society Scramble...',
             validator: (val) => (val == null || val.isEmpty) ? 'Please enter a name' : null,
           ),
           const SizedBox(height: 16),
@@ -93,9 +95,11 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
        setState(() => _isSaving = true);
        final rules = buildRules();
        
+       final existingComp = widget.competition;
        final newComp = Competition(
-        id: widget.competitionId ?? const Uuid().v4(),
+        id: existingComp?.id ?? widget.competitionId ?? const Uuid().v4(),
         name: name,
+        templateId: existingComp?.templateId, // Preserve template link
         type: widget.isTemplate ? CompetitionType.game : CompetitionType.event,
         status: CompetitionStatus.draft,
         rules: rules,
@@ -103,18 +107,25 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
         endDate: widget.isTemplate ? DateTime(2099) : endDate,
         publishSettings: {},
         isDirty: true,
+        // If it's an event competition (not a template), we increment the version to flag it as customized
+        computeVersion: widget.isTemplate ? 0 : (existingComp?.computeVersion ?? 0) + 1,
       );
        String? createdId;
        
        try {
         final repo = ref.read(competitionsRepositoryProvider);
+        
+        debugPrint('🎮 Saving competition: ID=${newComp.id}, Name=${newComp.name}, Allowance=${newComp.rules.handicapAllowance}');
+        
         if (widget.competition == null) {
+          debugPrint('  → Creating NEW competition');
           if (widget.isTemplate) {
             createdId = await repo.addTemplate(newComp);
           } else {
             createdId = await repo.addCompetition(newComp);
           }
         } else {
+          debugPrint('  → Updating EXISTING competition');
           if (widget.isTemplate) {
             await repo.updateTemplate(newComp);
           } else {
@@ -122,6 +133,11 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           }
           createdId = newComp.id;
         }
+        
+        debugPrint('  ✅ Save complete! ID=$createdId');
+        
+        // Invalidate the cache so fresh data is loaded next time
+        ref.invalidate(competitionDetailProvider(createdId));
         
         if (mounted) {
            ScaffoldMessenger.of(context).clearSnackBars();

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../../core/shared_ui/shared_ui.dart';
+import '../../../../core/utils/handicap_calculator.dart';
+import '../../../../models/competition.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/event_registration.dart';
 import '../../../../models/member.dart';
@@ -11,9 +13,9 @@ import '../../providers/admin_ui_providers.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../../core/theme/theme_controller.dart';
-import '../../../../models/society_config.dart'; // Added
-import '../../../../models/competition.dart'; // Added
-import '../../../competitions/presentation/competitions_provider.dart'; // Added
+import '../../../../models/society_config.dart';
+import '../../../competitions/presentation/competitions_provider.dart';
+import '../../../events/presentation/widgets/grouping_widgets.dart';
 
 class EventAdminGroupingScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -32,6 +34,10 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   bool _isDirty = false;
   bool _showGenerationOptions = false;
   final ScrollController _scrollController = ScrollController();
+  
+  // Swap state
+  TeeGroupParticipant? _selectedForSwap;
+  TeeGroup? _selectedGroupForSwap;
 
   @override
   void dispose() {
@@ -57,8 +63,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
 
   @override
   Widget build(BuildContext context) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
-    final allEventsAsync = ref.watch(adminEventsProvider); // For variety logic
+    final eventsAsync = ref.watch(adminEventsProvider);
     final membersAsync = ref.watch(allMembersProvider);
     final societyConfig = ref.watch(themeControllerProvider); // Corrected
     final competitionsAsync = ref.watch(competitionsListProvider(null)); // Added
@@ -70,8 +75,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         final memberMap = {for (var m in members) m.id: m};
         
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
-        final allEvents = allEventsAsync.value ?? [];
-        final history = allEvents.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
+        final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
         
         // Handicap & Rules Context
         final config = societyConfig;
@@ -114,22 +118,35 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                rollingCount++;
                final playerId = '${item.registration.memberId}|${item.isGuest}';
                if (!assignedPlayerIds.contains(playerId)) {
-                 // Map to participant
-                 final double handicap;
-                 if (item.isGuest) {
-                    handicap = double.tryParse(item.registration.guestHandicap ?? '') ?? 28.0;
-                 } else {
-                    handicap = handicapMap[item.registration.memberId] ?? 28.0;
-                 }
-                 
-                 unassignedSquad.add(TeeGroupParticipant(
-                   registrationMemberId: item.registration.memberId,
-                   name: item.name,
-                   isGuest: item.isGuest,
-                   handicap: handicap,
-                   needsBuggy: item.needsBuggy,
-                   buggyStatus: RegistrationStatus.confirmed, 
-                 ));
+                  // Map to participant
+                  final double rawHandicap;
+                  if (item.isGuest) {
+                     rawHandicap = double.tryParse(item.registration.guestHandicap ?? '') ?? 28.0;
+                  } else {
+                     rawHandicap = handicapMap[item.registration.memberId] ?? 28.0;
+                  }
+
+                  final double playingHandicap;
+                  if (comp?.rules != null) {
+                    playingHandicap = HandicapCalculator.calculatePlayingHandicap(
+                      handicapIndex: rawHandicap,
+                      rules: comp!.rules,
+                      courseConfig: event.courseConfig,
+                      useWhs: config.useWhsHandicaps,
+                    ).toDouble();
+                  } else {
+                    playingHandicap = rawHandicap;
+                  }
+                  
+                  unassignedSquad.add(TeeGroupParticipant(
+                    registrationMemberId: item.registration.memberId,
+                    name: item.name,
+                    isGuest: item.isGuest,
+                    handicapIndex: rawHandicap,
+                    playingHandicap: playingHandicap,
+                    needsBuggy: item.needsBuggy,
+                    buggyStatus: RegistrationStatus.confirmed, 
+                  ));
                }
              }
           }
@@ -187,7 +204,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                                   }
                                   final members = membersAsync.value ?? [];
                                   final handicapMap = {for (var m in members) m.id: m.handicap};
-                                  _showRegenerationOptions(event, allEventsAsync.value ?? [], handicapMap);
+                                  _showRegenerationOptions(event, events, handicapMap);
                                 }
                               : null,
                         ),
@@ -231,8 +248,8 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     ),
                     Expanded(
                       child: _localGroups == null 
-                        ? _buildEmptyState(event, allEventsAsync.value ?? [], handicapMap)
-                        : _buildGroupingList(event, memberMap, history),
+                        ? _buildEmptyState(event, events, handicapMap)
+                        : _buildGroupingList(event, memberMap, history, rules: comp?.rules, useWhs: config.useWhsHandicaps),
                     ),
                   ],
                 ),
@@ -244,7 +261,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     child: _buildPublishBar(event),
                   ),
                 if (_showGenerationOptions)
-                  _buildGenerationOverlay(context, event, allEvents, handicapMap, config, comp?.rules),
+                  _buildGenerationOverlay(context, event, events, handicapMap, config, comp?.rules),
               ],
             ),
           ),
@@ -319,12 +336,12 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     feedback: Material(
                       elevation: 4,
                       borderRadius: BorderRadius.circular(24),
-                      child: _buildAvatar(p, memberMap),
+                      child: GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: 48),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildAvatar(p, memberMap),
+                        GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: 40),
                         const SizedBox(height: 4),
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -352,289 +369,102 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     );
   }
 
-  Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history) {
-    return ListView.builder(
-      controller: _scrollController,
+  Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history, {CompetitionRules? rules, bool useWhs = true}) {
+    return ReorderableListView.builder(
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final item = _localGroups!.removeAt(oldIndex);
+          _localGroups!.insert(newIndex, item);
+          
+          // Re-index and update tee times if needed
+          _updateGroupIndicesAndTimes(event);
+          _updateDirty(true);
+        });
+      },
+      scrollController: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: _localGroups!.length,
       itemBuilder: (context, index) {
         final group = _localGroups![index];
-        return _buildGroupCard(group, memberMap, history);
-      },
-    );
-  }
+        return GroupingCard(
+          key: ValueKey('group_${group.index}_${group.teeTime.millisecondsSinceEpoch}'),
+          group: group,
+          memberMap: memberMap,
+          history: history,
+          totalGroups: _localGroups!.length,
+          rules: rules,
+          courseConfig: event.courseConfig,
+          useWhs: useWhs,
+          isAdmin: true,
+          isLocked: _isLocked ?? false,
+          onMove: _handleMove,
+          onAction: (action, p, g) => _handlePlayerAction(action, p, g),
+          onTapParticipant: _handleParticipantTap,
+          isSelected: (p) => p == _selectedForSwap,
+          emptySlotBuilder: (g) => DragTarget<Map<String, dynamic>>(
+            onWillAcceptWithDetails: (details) => _isLocked != true && (details.data['group'] != g || g.players.length < 4),
+            onAcceptWithDetails: (details) {
+              final sourcePlayer = details.data['player'] as TeeGroupParticipant;
+              final sourceGroup = details.data['group'] as TeeGroup?;
+              _handleMove(sourcePlayer, sourceGroup, g, null);
+            },
+            onMove: (details) {
+              // Auto-scroll logic
+              final RenderBox? box = context.findRenderObject() as RenderBox?;
+              if (box != null) {
+                final position = box.globalToLocal(details.offset);
+                _checkAutoScroll(position.dy, box.size.height);
+              }
+            },
+            builder: (context, candidateData, rejectedData) {
+              final isOver = candidateData.isNotEmpty;
 
-  Widget _buildGroupCard(TeeGroup group, Map<String, Member> memberMap, List<GolfEvent> history) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: BoxyArtFloatingCard(
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Group ${group.index + 1} - ${TimeOfDay.fromDateTime(group.teeTime).format(context)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              Text(
-                'HC: ${group.totalHandicap.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ],
-          ),
-          const Divider(),
-          ...group.players.map((p) => _buildPlayerTile(p, group, memberMap, history)),
-          if (group.players.length < 4) _buildEmptySlot(group, memberMap),
-        ],
-      ),
-    ),
-  );
-}
-
-  Widget _buildEmptySlot(TeeGroup group, Map<String, Member> memberMap) {
-    return DragTarget<Map<String, dynamic>>(
-      onWillAcceptWithDetails: (details) => _isLocked != true && (details.data['group'] != group || group.players.length < 4),
-      onAcceptWithDetails: (details) {
-        final sourcePlayer = details.data['player'] as TeeGroupParticipant;
-        final sourceGroup = details.data['group'] as TeeGroup?;
-        _handleMove(sourcePlayer, sourceGroup, group, null);
-      },
-      onMove: (details) {
-        // Auto-scroll logic
-        final RenderBox? box = context.findRenderObject() as RenderBox?;
-        if (box != null) {
-          final position = box.globalToLocal(details.offset);
-          _checkAutoScroll(position.dy, box.size.height);
-        }
-      },
-      builder: (context, candidateData, rejectedData) {
-        final isOver = candidateData.isNotEmpty;
-        
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          height: 60,
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isOver ? Theme.of(context).primaryColor : Colors.grey.shade200,
-              style: isOver ? BorderStyle.solid : BorderStyle.none,
-              width: 2,
-            ),
-            color: isOver ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add_circle_outline, size: 16, color: Colors.grey.shade400),
-              const SizedBox(width: 8),
-              Text('EMPTY SLOT', style: TextStyle(color: Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-
-  Widget _buildBuggyIcon(RegistrationStatus status, {double size = 14}) {
-    Color color;
-    switch (status) {
-      case RegistrationStatus.confirmed:
-        color = Colors.green;
-        break;
-      case RegistrationStatus.reserved:
-        color = Colors.orange;
-        break;
-      case RegistrationStatus.waitlist:
-        color = Colors.red;
-        break;
-      default:
-        color = Colors.grey.shade300;
-    }
-    return Icon(Icons.electric_rickshaw, color: color, size: size);
-  }
-
-  Widget _buildAvatar(TeeGroupParticipant p, Map<String, Member> memberMap, {
-    double size = 40,
-    int? groupIndex,
-    int? totalGroups,
-    List<GolfEvent>? history,
-  }) {
-    final member = memberMap[p.registrationMemberId];
-    final bool hasProfilePic = member?.avatarUrl != null && !p.isGuest;
-
-    Color borderColor = Colors.transparent;
-    String varietyTooltip = 'Fresh slot variety';
-
-    if (groupIndex != null && totalGroups != null && history != null && !p.isGuest) {
-        final matches = GroupingService.getTeeTimeVariety(p.registrationMemberId, groupIndex, totalGroups, history);
-        if (matches == 0) {
-          borderColor = Colors.grey.shade300;
-          varietyTooltip = 'Good slot variety';
-        } else if (matches == 1) {
-          borderColor = Colors.amber;
-          varietyTooltip = 'Played in this slot in 1 of last 3 events';
-        } else {
-          borderColor = Colors.red;
-          varietyTooltip = 'Played in this slot in $matches of last 3 events';
-        }
-    }
-
-    return Tooltip(
-      message: varietyTooltip,
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: borderColor != Colors.transparent 
-            ? Border.all(color: borderColor, width: 2.5) 
-            : null,
-        ),
-        child: CircleAvatar(
-          radius: size / 2,
-          backgroundColor: p.isCaptain ? Colors.orange : Colors.grey.shade200,
-          backgroundImage: hasProfilePic ? NetworkImage(member!.avatarUrl!) : null,
-          child: !hasProfilePic
-              ? Text(
-                  p.name.isNotEmpty ? p.name[0].toUpperCase() : '?',
-                  style: TextStyle(
-                    color: p.isCaptain ? Colors.white : Colors.black54,
-                    fontWeight: FontWeight.bold,
-                    fontSize: size * 0.4,
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 60,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isOver ? Theme.of(context).primaryColor : Colors.grey.shade200,
+                    style: isOver ? BorderStyle.solid : BorderStyle.none,
+                    width: 2,
                   ),
-                )
-              : null,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlayerTile(TeeGroupParticipant p, TeeGroup group, Map<String, Member> memberMap, List<GolfEvent> history) {
-    return DragTarget<Map<String, dynamic>>(
-      onWillAcceptWithDetails: (details) => _isLocked != true && details.data['player'] != p,
-      onAcceptWithDetails: (details) {
-        final sourcePlayer = details.data['player'] as TeeGroupParticipant;
-        final sourceGroup = details.data['group'] as TeeGroup?;
-        _handleMove(sourcePlayer, sourceGroup, group, p);
-      },
-      onMove: (details) {
-        // Auto-scroll logic
-        final RenderBox? box = context.findRenderObject() as RenderBox?;
-        if (box != null) {
-          final position = box.globalToLocal(details.offset);
-          _checkAutoScroll(position.dy, box.size.height);
-        }
-      },
-      builder: (context, candidateData, rejectedData) {
-        final isOver = candidateData.isNotEmpty;
-        
-        return LongPressDraggable<Map<String, dynamic>>(
-          data: {'player': p, 'group': group},
-          delay: const Duration(milliseconds: 500),
-          feedback: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(24),
-            child: _buildAvatar(p, memberMap, size: 48, groupIndex: group.index, totalGroups: _localGroups!.length, history: history),
-          ),
-          childWhenDragging: Opacity(
-            opacity: 0.3,
-            child: _buildTileContent(p, group, memberMap, history),
-          ),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isOver ? Theme.of(context).primaryColor : Colors.transparent,
-                width: 2,
-              ),
-              color: isOver ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : Colors.transparent,
-            ),
-            child: _buildTileContent(p, group, memberMap, history),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTileContent(TeeGroupParticipant p, TeeGroup group, Map<String, Member> memberMap, List<GolfEvent> history, {bool isFeedback = false}) {
-    return ListTile(
-      contentPadding: isFeedback ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 8),
-      leading: isFeedback ? _buildAvatar(p, memberMap, size: 40, groupIndex: group.index, totalGroups: _localGroups!.length, history: history) 
-      : PopupMenuButton<String>(
-        onSelected: (val) => _handlePlayerAction(val, p, group),
-        color: Colors.white,
-        surfaceTintColor: Colors.white,
-        elevation: 4,
-        offset: const Offset(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        itemBuilder: (context) => [
-          const PopupMenuItem(value: 'move', child: Row(children: [Icon(Icons.drive_file_move_outlined, size: 18), SizedBox(width: 8), Text('Move to Group...')])),
-          const PopupMenuItem(value: 'remove', child: Row(children: [Icon(Icons.person_remove_outlined, size: 18), SizedBox(width: 8), Text('Remove from Group')])),
-          const PopupMenuItem(
-            value: 'withdraw', 
-            child: Row(children: [Icon(Icons.exit_to_app, size: 18, color: Colors.red), SizedBox(width: 8), Text('Withdraw Member', style: TextStyle(color: Colors.red))]),
-          ),
-        ],
-        child: _buildAvatar(p, memberMap, size: 40, groupIndex: group.index, totalGroups: _localGroups!.length, history: history),
-      ),
-      title: Text(
-        p.name, 
-        style: const TextStyle(fontWeight: FontWeight.w500),
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text('HC: ${p.handicap.toStringAsFixed(1)}', style: const TextStyle(fontSize: 12)),
-      trailing: isFeedback ? null : Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Guest Indicator
-          if (p.isGuest)
-            const SizedBox(
-              width: 32,
-              child: Tooltip(
-                message: 'Guest',
-                child: Center(
-                  child: Text(
-                    'G', 
-                    style: TextStyle(
-                      fontSize: 14, 
-                      color: Colors.orange, 
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  color: isOver ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
                 ),
-              ),
-            ),
-
-          // Buggy Toggle
-          IconButton(
-            constraints: const BoxConstraints(maxWidth: 32),
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            icon: _buildBuggyIcon(p.buggyStatus, size: 18),
-            tooltip: 'Toggle Buggy',
-            onPressed: () => _handlePlayerAction('buggy', p, group),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_circle_outline, size: 16, color: Colors.grey.shade400),
+                    const SizedBox(width: 8),
+                    Text('EMPTY SLOT', style: TextStyle(color: Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                  ],
+                ),
+              );
+            },
           ),
-          
-          // Captain Toggle
-          IconButton(
-            constraints: const BoxConstraints(maxWidth: 32),
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            icon: Icon(
-              p.isCaptain ? Icons.shield : Icons.shield_outlined,
-              color: p.isCaptain ? Colors.orange : Colors.grey.shade300,
-              size: 18,
-            ),
-            tooltip: 'Toggle Captain',
-            onPressed: () => _handlePlayerAction('captain', p, group),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  void _updateGroupIndicesAndTimes(GolfEvent event) {
+    if (_localGroups == null) return;
+    DateTime currentTime = event.teeOffTime ?? DateTime.now();
+    int interval = event.teeOffInterval;
+
+    for (int i = 0; i < _localGroups!.length; i++) {
+      final oldGroup = _localGroups![i];
+      _localGroups![i] = TeeGroup(
+        index: i,
+        teeTime: currentTime,
+        players: oldGroup.players,
+      );
+      currentTime = currentTime.add(Duration(minutes: interval));
+    }
+  }
+
 
   void _handleMove(TeeGroupParticipant sourceP, TeeGroup? sourceG, TeeGroup targetG, TeeGroupParticipant? targetP) {
     setState(() {
@@ -683,15 +513,27 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         }
       }
 
-      // 4. Captaincy Enforcement (One per group)
-      final groupCaptains = targetG.players.where((pl) => pl.isCaptain).toList();
-      if (groupCaptains.length > 1) {
-        // If we just moved a captain into a group that already had one,
-        // untoggle the one who was just moved.
-        sourceP.isCaptain = false;
-      }
-
       _updateDirty(true);
+    });
+  }
+
+  void _handleParticipantTap(TeeGroupParticipant p, TeeGroup g) {
+    if (_isLocked == true) return;
+
+    setState(() {
+      if (_selectedForSwap == null) {
+        _selectedForSwap = p;
+        _selectedGroupForSwap = g;
+      } else if (_selectedForSwap == p) {
+        // Deselect
+        _selectedForSwap = null;
+        _selectedGroupForSwap = null;
+      } else {
+        // Perform Swap
+        _handleMove(_selectedForSwap!, _selectedGroupForSwap, g, p);
+        _selectedForSwap = null;
+        _selectedGroupForSwap = null;
+      }
     });
   }
 
@@ -717,9 +559,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   void _handlePlayerAction(String action, TeeGroupParticipant p, TeeGroup currentGroup) {
     if (action == 'captain') {
       setState(() {
-        for (var player in currentGroup.players) {
-          player.isCaptain = (player == p);
-        }
+        p.isCaptain = !p.isCaptain;
         _updateDirty(true);
       });
     } else if (action == 'remove') {
@@ -766,7 +606,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     );
 
     if (confirmed == true && mounted) {
-      final eventsAsync = ref.read(upcomingEventsProvider);
+      final eventsAsync = ref.read(adminEventsProvider);
       final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
       if (event == null) return;
 

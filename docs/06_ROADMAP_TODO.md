@@ -29,6 +29,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**
     - [x] **Competition Setup**: Define rules, formats, and handicap allowances.
+        - [x] **Customization Flow**: On-the-fly creation and deep-linked rules editing.
+        - [x] **Rich Visualization**: Rule-summarizing cards with dynamic status pills.
     - [x] **Template Gallery**: Reusable society-approved game formats.
     - [x] **Marker Counter (Birdie Tree)**: Track birdies/eagles across season.
     - [x] **Eclectic**: Best hole scores across multiple rounds.

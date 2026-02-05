@@ -94,9 +94,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   bool _isMultiDay = false;
   DateTime? _endDate;
   String? _selectedTemplateId;
+  String? _initialTemplateId;
+  bool _isCustomized = false;
   
   // Track the event being edited (either passed or fetched)
   GolfEvent? _editingEvent;
+  Competition? _eventCompetition;
   String? _selectedCourseId;
 
   // Hole Configuration
@@ -116,6 +119,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     super.initState();
     if (widget.event != null) {
       _populateForm(widget.event!);
+      // Fetch competition for state restoration
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchCompetition(widget.event!.id));
     } else if (widget.eventId != null && widget.eventId != 'new') {
       _isLoading = true;
       // Fetch event after build
@@ -163,23 +168,38 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     try {
       final repo = ref.read(eventsRepositoryProvider);
       final event = await repo.getEvent(widget.eventId!);
-      if (mounted) {
-        if (event != null) {
-          setState(() {
-            _populateForm(event);
-            _isLoading = false;
-          });
-        } else {
-          // Event not found
-           setState(() => _isLoading = false);
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event not found')));
-        }
+      
+      if (mounted && event != null) {
+        setState(() => _populateForm(event));
+        await _fetchCompetition(event.id);
+        if (mounted) setState(() => _isLoading = false);
+      } else if (mounted) {
+         setState(() => _isLoading = false);
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event not found')));
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading event: $e')));
       }
+    }
+  }
+
+  Future<void> _fetchCompetition(String eventId) async {
+    try {
+      final compRepo = ref.read(competitionsRepositoryProvider);
+      final comp = await compRepo.getCompetition(eventId);
+      if (mounted && comp != null) {
+        setState(() {
+          _eventCompetition = comp;
+          _selectedTemplateId = comp.templateId;
+          _initialTemplateId = comp.templateId;
+          // Detection: if computeVersion > 0, it means it was edited in the builder
+          _isCustomized = comp.computeVersion != null && comp.computeVersion! > 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching competition: $e');
     }
   }
 
@@ -419,7 +439,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     setState(() => _facilitiesControllers.add(TextEditingController()));
   }
 
-  Future<void> _save() async {
+  Future<void> _save({bool shouldPop = true}) async {
     if (!_formKey.currentState!.validate()) return;
 
     // Validate SI uniqueness
@@ -440,40 +460,62 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       final repo = ref.read(eventsRepositoryProvider);
       final newEvent = await _constructEventFromForm();
       final isEditing = _editingEvent != null || widget.event != null;
-
+      
+      String finalEventId;
       if (!isEditing) {
-        await repo.addEvent(newEvent);
+        finalEventId = await repo.addEvent(newEvent);
       } else {
         await repo.updateEvent(newEvent);
+        finalEventId = newEvent.id;
       }
       
-      // AUTO-CREATE COMPETITION FROM TEMPLATE
-      if (_selectedTemplateId != null) {
-         final templates = ref.read(templatesListProvider).value;
-         final template = templates?.firstWhere((t) => t.id == _selectedTemplateId, orElse: () => throw Exception("Template not found"));
-         
-         if (template != null) {
-            final compRepo = ref.read(competitionsRepositoryProvider);
-            // Check if competition already exists for this event? 
-            // For now, we overwrite or create. Using EventID as CompetitionID ensures 1:1
-            final newComp = Competition(
-              id: newEvent.id, // Linked 1:1
-              type: CompetitionType.event,
-              status: CompetitionStatus.draft,
-              rules: template.rules, // COPY RULES
-              startDate: newEvent.date,
-              endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
-              publishSettings: {},
-              isDirty: true,
-            );
-            
-            // Create or Update
-            // We use addCompetition (which usually uses set(), so acts as upsert if ID constant)
-            await compRepo.addCompetition(newComp);
-         }
+      // AUTO-CREATE OR UPDATE COMPETITION
+      final compRepo = ref.read(competitionsRepositoryProvider);
+      final hasTemplate = _selectedTemplateId != null;
+      final templateChanged = _selectedTemplateId != _initialTemplateId;
+      
+      if (hasTemplate && templateChanged) {
+          // USER SELECTED A NEW TEMPLATE - Apply template rules
+          final templates = ref.read(templatesListProvider).value;
+          final template = templates?.firstWhere((t) => t.id == _selectedTemplateId, orElse: () => throw Exception("Template not found"));
+          
+          if (template != null) {
+             final newComp = Competition(
+               id: finalEventId, 
+               templateId: _selectedTemplateId, 
+               type: CompetitionType.event,
+               status: CompetitionStatus.draft,
+               rules: template.rules, 
+               startDate: newEvent.date,
+               endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
+               publishSettings: {},
+               isDirty: true,
+             );
+             await compRepo.addCompetition(newComp);
+          }
+      } else if (_eventCompetition != null) {
+          // EXISTING OR CUSTOMIZED COMPETITION - Sync dates
+          final updatedComp = _eventCompetition!.copyWith(
+             startDate: newEvent.date,
+             endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
+          );
+          await compRepo.updateCompetition(updatedComp);
+      } else if (!hasTemplate && _eventCompetition == null) {
+          // NO GAME SELECTED - Clear remnant
+          await compRepo.deleteCompetition(finalEventId);
       }
 
-      if (mounted) {
+      // Update _editingEvent after save so subsequent operations have access to the event ID
+      if (!isEditing && mounted) {
+        final savedEvent = await repo.getEvent(finalEventId);
+        if (savedEvent != null) {
+          setState(() {
+            _editingEvent = savedEvent;
+          });
+        }
+      }
+
+      if (mounted && shouldPop) {
         context.pop(); 
       }
     } catch (e) {
@@ -634,94 +676,227 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Consumer(
                           builder: (context, ref, child) {
-                            final templates = ref.watch(templatesListProvider).value ?? [];
-                            final selectedTemplate = templates.where((t) => t.id == _selectedTemplateId).firstOrNull;
+                                  final templatesAsync = ref.watch(templatesListProvider);
+                                  final templates = templatesAsync.value ?? [];
+                                  final selectedTemplate = templates.where((t) => t.id == _selectedTemplateId).firstOrNull;
+                                  
+                                  // Source of truth: We have a game if a template is selected OR we already have an event competition
+                                  final hasGame = _selectedTemplateId != null || _eventCompetition != null;
+                                  final displayComp = _eventCompetition ?? selectedTemplate;
 
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (selectedTemplate == null)
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'No Rules Applied',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 20,
-                                          letterSpacing: -0.5,
+                                  if (!hasGame || displayComp == null) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'NO RULES APPLIED',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Add a game format to enable scoring for this event.',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      BoxyArtButton(
-                                        title: 'ADD GAME FORMAT',
-                                        icon: Icons.add,
-                                        fullWidth: true,
-                                        onTap: () async {
-                                          final result = await context.push<String>('/admin/events/competitions/new');
-                                          if (result != null) {
-                                            setState(() => _selectedTemplateId = result);
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: InkWell(
+                                        const SizedBox(height: 12),
+                                        BoxyArtButton(
+                                          title: 'ADD GAME FORMAT',
                                           onTap: () async {
                                             final result = await context.push<String>('/admin/events/competitions/new');
                                             if (result != null) {
-                                              setState(() => _selectedTemplateId = result);
+                                              setState(() {
+                                                _selectedTemplateId = result;
+                                                _isCustomized = false;
+                                                _eventCompetition = null;
+                                              });
                                             }
                                           },
-                                          child: Row(
-                                            children: [
-                                              CircleAvatar(
-                                                backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                                child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      (selectedTemplate.name != null && selectedTemplate.name!.isNotEmpty)
-                                                          ? selectedTemplate.name!.toUpperCase()
-                                                          : selectedTemplate.rules.format.name.toUpperCase(),
-                                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                    ),
-                                                    Text(
-                                                      '${(selectedTemplate.rules.handicapAllowance * 100).toInt()}% Allowance • ${selectedTemplate.rules.mode.name}',
-                                                      style: const TextStyle(color: Colors.grey, fontSize: 13),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
                                         ),
+                                      ],
+                                    );
+                                  }
+
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: InkWell(
+                                              onTap: () async {
+                                                final result = await context.push<String>('/admin/events/competitions/new');
+                                                if (result != null) {
+                                                  setState(() {
+                                                    _selectedTemplateId = result;
+                                                    _isCustomized = false;
+                                                    _eventCompetition = null;
+                                                  });
+                                                }
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                                    child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          (_isCustomized && _eventCompetition?.name != null && _eventCompetition!.name!.isNotEmpty)
+                                                              ? _eventCompetition!.name!.toUpperCase()
+                                                              : (displayComp.name?.toUpperCase() ?? displayComp.rules.gameName),
+                                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                        ),
+                                                        const SizedBox(height: 8),
+                                                        Wrap(
+                                                          spacing: 8,
+                                                          runSpacing: 4,
+                                                          children: [
+                                                            BoxyArtStatusPill(
+                                                              text: displayComp.rules.gameName,
+                                                              baseColor: Colors.black87,
+                                                            ),
+                                                            BoxyArtStatusPill(
+                                                              text: displayComp.rules.scoringType.toUpperCase(),
+                                                              baseColor: displayComp.rules.scoringType == 'GROSS' ? Colors.redAccent : Colors.teal,
+                                                            ),
+                                                            BoxyArtStatusPill(
+                                                              text: displayComp.rules.defaultAllowanceLabel,
+                                                              baseColor: Theme.of(context).primaryColor,
+                                                            ),
+                                                            BoxyArtStatusPill(
+                                                              text: displayComp.rules.mode.name.toUpperCase(),
+                                                              baseColor: Colors.blueGrey,
+                                                            ),
+                                                            if (displayComp.rules.minDrivesPerPlayer > 0)
+                                                              BoxyArtStatusPill(
+                                                                text: '${displayComp.rules.minDrivesPerPlayer} DRIVES',
+                                                                baseColor: Colors.orange,
+                                                              ),
+                                                            if (displayComp.rules.applyCapToIndex)
+                                                              BoxyArtStatusPill(
+                                                                text: 'CAP: ${displayComp.rules.handicapCap}',
+                                                                baseColor: Colors.deepPurple,
+                                                              ),
+                                                            if (displayComp.rules.roundsCount > 1 && displayComp.rules.aggregation != AggregationMethod.totalSum)
+                                                              BoxyArtStatusPill(
+                                                                text: displayComp.rules.aggregation.name.replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[1]}').toUpperCase(),
+                                                                baseColor: Colors.blue,
+                                                              ),
+                                                            if (displayComp.rules.tieBreak != TieBreakMethod.back9 && displayComp.rules.tieBreak != TieBreakMethod.playoff)
+                                                              BoxyArtStatusPill(
+                                                                text: 'TB: ${displayComp.rules.tieBreak.name.toUpperCase()}',
+                                                                baseColor: Colors.brown,
+                                                              ),
+                                                            if (displayComp.rules.format == CompetitionFormat.maxScore && displayComp.rules.maxScoreConfig != null)
+                                                              BoxyArtStatusPill(
+                                                                text: displayComp.rules.maxScoreConfig!.type == MaxScoreType.parPlusX 
+                                                                    ? 'CAP: PAR + ${displayComp.rules.maxScoreConfig!.value}' 
+                                                                    : 'CAP: ${displayComp.rules.maxScoreConfig!.value}',
+                                                                baseColor: Colors.deepOrange,
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () => setState(() {
+                                              _selectedTemplateId = null;
+                                              _isCustomized = false;
+                                              _eventCompetition = null;
+                                            }),
+                                            icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
+                                          ),
+                                        ],
                                       ),
-                                      IconButton(
-                                        onPressed: () => setState(() => _selectedTemplateId = null),
-                                        icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
+                                      const Divider(height: 1, indent: 56),
+                                      Row(
+                                        children: [
+                                          const SizedBox(width: 56),
+                                          TextButton.icon(
+                                            onPressed: () async {
+                                              // Ensure we have an event ID (save if needed)
+                                              String? eventId = _editingEvent?.id ?? widget.event?.id;
+                                              
+                                              if (eventId == null) {
+                                                // New event - must save first to get an ID
+                                                bool? proceed = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) => AlertDialog(
+                                                    title: const Text("Save Event First?"),
+                                                    content: const Text("To customize rules, we need to save the basic event details first."),
+                                                    actions: [
+                                                      TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
+                                                      TextButton(
+                                                        onPressed: () => context.pop(true), 
+                                                        child: const Text("Save & Customize"),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (proceed != true) return;
+                                                await _save(shouldPop: false);
+                                                if (!mounted) return;
+                                                eventId = _editingEvent?.id ?? widget.event?.id;
+                                                if (eventId == null) return; // Still no ID, abort
+                                              }
+
+                                              // Create competition on-the-fly if template is selected but competition doesn't exist
+                                              final compRepo = ref.read(competitionsRepositoryProvider);
+                                              if (_selectedTemplateId != null && _eventCompetition == null) {
+                                                final templates = ref.read(templatesListProvider).value;
+                                                final template = templates?.firstWhere(
+                                                  (t) => t.id == _selectedTemplateId, 
+                                                  orElse: () => throw Exception("Template not found")
+                                                );
+                                                
+                                                if (template != null) {
+                                                  final newComp = Competition(
+                                                    id: eventId, 
+                                                    templateId: _selectedTemplateId, 
+                                                    type: CompetitionType.event,
+                                                    status: CompetitionStatus.draft,
+                                                    rules: template.rules, 
+                                                    startDate: _selectedDate,
+                                                    endDate: _isMultiDay && _endDate != null ? _endDate! : _selectedDate,
+                                                    publishSettings: {},
+                                                    isDirty: true,
+                                                  );
+                                                  await compRepo.addCompetition(newComp);
+                                                  if (mounted) {
+                                                    setState(() {
+                                                      _eventCompetition = newComp;
+                                                      _initialTemplateId = _selectedTemplateId; // Mark template as applied
+                                                    });
+                                                  }
+                                                }
+                                              }
+                                              
+                                              if (!mounted) return;
+
+                                              // Navigate to competition editor
+                                              // ignore: use_build_context_synchronously
+                                              final router = GoRouter.of(context);
+                                              await router.push('/admin/events/competitions/edit/$eventId');
+                                              if (mounted) _fetchCompetition(eventId);
+                                            },
+                                            icon: Icon(_isCustomized ? Icons.edit_note : Icons.tune, size: 18),
+                                            label: Text(_isCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES'),
+                                            style: TextButton.styleFrom(
+                                              padding: EdgeInsets.zero,
+                                              minimumSize: const Size(0, 36),
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
-                                  ),
-                              ],
-                            );
+                                  );
                           },
                         ),
                       ),
@@ -950,12 +1125,19 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      BoxyArtFormField(
-                        label: 'Available Spaces',
-                        controller: _maxParticipantsController,
-                        keyboardType: TextInputType.number,
-                        hintText: 'Max players (leave empty for unlimited)',
-                      ),
+                        BoxyArtFormField(
+                          label: 'Available Spaces',
+                          controller: _maxParticipantsController,
+                          keyboardType: TextInputType.number,
+                          hintText: 'Max players (multiples of 4)',
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return null;
+                            final val = int.tryParse(v);
+                            if (val == null) return 'Invalid number';
+                            if (val % 4 != 0) return 'Must be a multiple of 4';
+                            return null;
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -1402,8 +1584,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       showRegistrationButton: _showRegistrationButton,
       notes: finalizeNotes,
       facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
-      status: widget.event?.status ?? EventStatus.draft,
-      registrations: widget.event?.registrations ?? [], // Preserve existing registrations!
+      status: _editingEvent?.status ?? widget.event?.status ?? EventStatus.draft,
+      registrations: _editingEvent?.registrations ?? widget.event?.registrations ?? [], // Preserve existing registrations!
+      // CRITICAL: Preserve published event data (groupings, scores, leaderboards)
+      isGroupingPublished: _editingEvent?.isGroupingPublished ?? widget.event?.isGroupingPublished ?? false,
+      grouping: _editingEvent?.grouping ?? widget.event?.grouping ?? {},
+      results: _editingEvent?.results ?? widget.event?.results ?? [],
+      flashUpdates: _editingEvent?.flashUpdates ?? widget.event?.flashUpdates ?? [],
       courseId: _selectedCourseId,
       selectedTeeName: _selectedTeeName,
       courseConfig: {

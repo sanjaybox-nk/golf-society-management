@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
 import '../../../models/golf_event.dart';
+import '../../../models/competition.dart';
+import '../../competitions/presentation/competitions_provider.dart';
 import 'events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
@@ -243,6 +245,30 @@ class _EventDetailsContent extends StatelessWidget {
                 ? DateFormat('h:mm a').format(event.regTime!)
                 : 'TBA'),
             ),
+              Consumer(
+                builder: (context, ref, _) {
+                  final compAsync = ref.watch(competitionDetailProvider(event.id));
+                  return compAsync.when(
+                    data: (comp) {
+                      if (comp == null) return const SizedBox.shrink();
+                      return Column(
+                        children: [
+                          _buildDetailRow(
+                            'Game Type',
+                            _buildDetailValue(comp.rules.gameName),
+                          ),
+                          _buildDetailRow(
+                            'Scoring',
+                            _buildDetailValue(comp.rules.scoringType),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (err, stack) => const SizedBox.shrink(),
+                  );
+                },
+              ),
               if (event.description != null && event.description!.isNotEmpty) ...[
                 const Divider(height: 32),
                 Center(

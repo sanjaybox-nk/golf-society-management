@@ -50,6 +50,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(true) bool holeByHoleRequired,
     @Default(0) int minDrivesPerPlayer,
     @Default(false) bool useWHSScrambleAllowance,
+    @Default(true) bool applyCapToIndex,
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>
@@ -78,4 +79,36 @@ abstract class Competition with _$Competition {
 
   factory Competition.fromJson(Map<String, dynamic> json) =>
       _$CompetitionFromJson(json);
+}
+
+extension CompetitionRulesX on CompetitionRules {
+  String get gameName {
+    if (subtype != CompetitionSubtype.none) {
+      if (subtype == CompetitionSubtype.fourball) return 'FOURBALL';
+      if (subtype == CompetitionSubtype.foursomes) return 'FOURSOMES';
+      if (subtype == CompetitionSubtype.grossStableford) return 'GROSS STABLEFORD';
+      if (subtype == CompetitionSubtype.texas) return 'TEXAS SCRAMBLE';
+      if (subtype == CompetitionSubtype.florida) return 'FLORIDA SCRAMBLE';
+      return subtype.name.toUpperCase();
+    }
+    
+    // Split camelCase format (e.g. matchPlay -> MATCH PLAY)
+    return format.name
+        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}')
+        .trim()
+        .toUpperCase();
+  }
+
+  String get scoringType {
+    if (subtype == CompetitionSubtype.grossStableford) return 'GROSS';
+    if (handicapAllowance == 0) return 'GROSS';
+    return 'NET';
+  }
+
+  String get defaultAllowanceLabel {
+    final allowancePercent = (handicapAllowance * 100).round();
+    if (format == CompetitionFormat.matchPlay) return '$allowancePercent% DIFF';
+    if (format == CompetitionFormat.scramble && useWHSScrambleAllowance) return 'WHS HCP';
+    return '$allowancePercent% HCP';
+  }
 }

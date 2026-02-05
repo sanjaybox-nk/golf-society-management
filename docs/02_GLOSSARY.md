@@ -128,3 +128,6 @@ The method used to resolve tied scores by looking at the best performance over t
 
 **Gross Stableford**
 A variation of Stableford scoring where points are awarded based on the raw score without any handicap adjustment.
+
+**Max Score**
+A stroke-play format with a scoring cap per hole (e.g., Par + 5 or a fixed value like 10). This prevents a single "blow-up" hole from ruining a player's entire round and speeds up play.

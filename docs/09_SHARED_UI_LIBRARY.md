@@ -112,7 +112,17 @@ Interactive toggle for Fee Status (Paid/Due).
 ### `NotificationBadge`
 Red/Yellow dot wrapper for unread counts.
 
-## 5. Layout (`layout.dart`)
+## 5. Usage Patterns
+
+### Rich Rule Summaries
+Used for summarizing complex configurations (like Competition Rules) into a compact card.
+- **Implementation**: Combine `BoxyArtFloatingCard` with a `Wrap` containing multiple `BoxyArtStatusPill` widgets.
+- **Styling**: 
+    - Use bold, black/neutral pills for the primary identity (e.g., format name).
+    - Use semantic colors for properties (Red for GROSS, Teal for NET, Orange for special drives/rules).
+    - Only show non-default properties to keep the UI clean.
+
+## 6. Layout (`layout.dart`)
 
 ### `BoxyArtAppBar`
 Standard screen header.

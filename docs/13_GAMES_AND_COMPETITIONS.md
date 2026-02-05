@@ -67,7 +67,31 @@ Admins are presented with a simplified selector:
 -   **Start Blank**: Create a one-off custom rule set for a special event.
 -   **Save as Template**: Any custom game can be saved back to the library for future use.
 
-## 4. Technical Architecture
+## 4. Event Customization Workflow
+
+When an Admin creates or edits an event, the system ensures a seamless flow for game rules:
+
+### On-the-Fly Creation
+Admins can select a template and immediately click **CUSTOMIZE RULES**. If the event is new, the system prompts to save the basic event details first to generate a stable ID. Once saved, the competition is created on-the-fly using the template as a baseline, allowing the Admin to edit rules without back-and-forth saves.
+
+### Persistence & Syncing
+- **ID Preservation**: When customizing a game for an event, the Competition ID is synced to the Event ID.
+- **Cache Invalidation**: After saving changes in the Competition Builder, the system explicitly invalidates the `competitionDetailProvider` cache to ensure the Event Form reflects the new rules immediately upon return.
+- **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI.
+
+## 5. Rule Visualization (Game Card)
+
+The `EventFormScreen` uses a rich, badge-based visualization to summarize the active game rules at a glance.
+
+### Visual Components
+- **Identity Badge**: [STABLEFORD] or [TEXAS SCRAMBLE] – Always shown in bold to identify the base format.
+- **Scoring Type**: [GROSS] (Red) or [NET] (Teal).
+- **Allowance**: [XX% HCP] or [100% DIFF].
+- **Mode**: [SINGLES], [PAIRS], or [TEAMS].
+- **Specifics**: Only shown if non-default (e.g., [4 DRIVES], [CAP: 10], [SINGLE BEST]).
+
+## 6. Technical Architecture
 -   **Repository**: `CompetitionsRepository` manages persistence in Firestore.
 -   **Models**: `Competition` (main entity) and `CompetitionRules` (configuration).
 -   **Scaffolding**: The builder screens use a `BaseCompetitionControl` pattern to ensure a consistent UX across different game formats.
+-   **Cache Handling**: Uses `ref.invalidate(competitionDetailProvider(id))` to force UI refreshes after deep-link edits.

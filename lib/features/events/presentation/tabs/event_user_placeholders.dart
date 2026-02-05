@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../events_provider.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
 import 'package:golf_society/models/competition.dart';
+import '../../../members/presentation/members_provider.dart';
+import '../widgets/grouping_widgets.dart';
+import '../../../competitions/presentation/competitions_provider.dart';
 
 class EventGroupingUserTab extends ConsumerWidget {
   final String eventId;
@@ -14,7 +16,9 @@ class EventGroupingUserTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(eventsProvider);
+    final membersAsync = ref.watch(allMembersProvider);
+    final competitionsAsync = ref.watch(competitionsListProvider(null));
 
     return eventsAsync.when(
       data: (events) {
@@ -70,7 +74,21 @@ class EventGroupingUserTab extends ConsumerWidget {
                       itemCount: groups.length,
                       itemBuilder: (context, index) {
                         final group = groups[index];
-                        return _buildGroupCard(context, group);
+                        final members = membersAsync.value ?? [];
+                        final memberMap = {for (var m in members) m.id: m};
+                        final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
+                        final comps = competitionsAsync.value ?? [];
+                        final comp = comps.where((c) => c.id == event.id).firstOrNull;
+
+                        return GroupingCard(
+                          group: group,
+                          memberMap: memberMap,
+                          history: history,
+                          totalGroups: groups.length,
+                          rules: comp?.rules,
+                          courseConfig: event.courseConfig,
+                          isAdmin: false,
+                        );
                       },
                     ),
         );
@@ -80,90 +98,6 @@ class EventGroupingUserTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupCard(BuildContext context, TeeGroup group) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: BoxyArtFloatingCard(
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Group ${group.index + 1}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  DateFormat.Hm().format(group.teeTime),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...group.players.map((p) => _buildPlayerRow(p)),
-        ],
-      ),
-    ),
-  );
-}
-
-  Widget _buildPlayerRow(TeeGroupParticipant p) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        children: [
-          Icon(
-            p.isGuest ? Icons.person_outline : Icons.person,
-            size: 20,
-            color: p.isCaptain ? Colors.orange : Colors.black54,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Row(
-              children: [
-                Text(
-                  p.name,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: p.isCaptain ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                if (p.isGuest) ...[
-                  const SizedBox(width: 8),
-                  const Text(
-                    'G', 
-                    style: TextStyle(
-                      fontSize: 13, 
-                      color: Colors.orange, 
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (p.isCaptain)
-            const Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Icon(Icons.shield, color: Colors.orange, size: 16),
-            ),
-          if (p.needsBuggy)
-            const Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Icon(Icons.electric_rickshaw, size: 16, color: Colors.blue),
-            ),
-        ],
-      ),
-    );
-  }
 }
 
 
@@ -173,7 +107,7 @@ class EventScoresUserTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(eventsProvider);
 
     return eventsAsync.when(
       data: (events) {

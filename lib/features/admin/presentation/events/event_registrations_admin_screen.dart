@@ -172,9 +172,8 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final currency = config.currencySymbol;
 
     final int capacity = event.maxParticipants ?? 0;
-    final int availableSlots = capacity - stats.confirmedGolfers;
     final String availableSlotsStr = capacity > 0
-        ? '${availableSlots > 0 ? availableSlots : 0} spaces'
+        ? '${stats.confirmedGolfers}/$capacity spaces'
         : 'Unlimited';
 
     // Financial Metrics (Confirmed Only)
@@ -202,8 +201,11 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
             (r.guestAttendingLunch && r.guestIsConfirmed ? (event.lunchCost ?? 0.0) : 0.0));
 
     final playingMembers = memberModels.where((vm) => vm.status == RegistrationStatus.confirmed).toList();
+    final playingGuests = guestModels.where((vm) => vm.status == RegistrationStatus.confirmed).toList();
     final reservedMembers = memberModels.where((vm) => vm.status == RegistrationStatus.reserved).toList();
+    final reservedGuests = guestModels.where((vm) => vm.status == RegistrationStatus.reserved).toList();
     final waitlistMembers = memberModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
+    final waitlistGuests = guestModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
 
     return ListView(
         padding: const EdgeInsets.all(16),
@@ -345,21 +347,69 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
             )),
           ],
 
-          // GUESTS
-          if (guestModels.isNotEmpty) ...[
+          // GUESTS - PLAYING
+          if (playingGuests.isNotEmpty) ...[
             const SizedBox(height: 24),
-            BoxyArtSectionTitle(title: 'Guests (${guestModels.length})'),
-            ...guestModels.map((vm) => RegistrationCard(
-              name: vm.item.name, // Use the actual guest name
-             label: 'Guest of ${vm.item.registration.memberName}',
-             position: null,
-             status: vm.status,
+            BoxyArtSectionTitle(title: 'Playing Guests (${playingGuests.length})'),
+            ...playingGuests.map((vm) => RegistrationCard(
+              name: vm.item.name, 
+              label: 'Guest of ${vm.item.registration.memberName}',
+              position: vm.position,
+              status: vm.status,
               buggyStatus: vm.buggyStatus,
               attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
               attendingLunch: vm.item.registration.guestAttendingLunch,
               attendingDinner: vm.item.registration.guestAttendingDinner,
               hasPaid: vm.item.registration.hasPaid,
-              memberProfile: null, // Guests don't have a profile link on the card
+              memberProfile: null, 
+              isGuest: true,
+              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
+              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
+              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
+              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+            )),
+          ],
+
+          // WAITLIST GUESTS
+          if (waitlistGuests.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            BoxyArtSectionTitle(title: 'Waitlist Guests (${waitlistGuests.length})'),
+            ...waitlistGuests.map((vm) => RegistrationCard(
+              name: vm.item.name, 
+              label: 'Guest of ${vm.item.registration.memberName}',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+              attendingLunch: vm.item.registration.guestAttendingLunch,
+              attendingDinner: vm.item.registration.guestAttendingDinner,
+              hasPaid: vm.item.registration.hasPaid,
+              memberProfile: null, 
+              isGuest: true,
+              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
+              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
+              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
+              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+            )),
+          ],
+
+          // RESERVED GUESTS
+          if (reservedGuests.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            BoxyArtSectionTitle(title: 'Reserved Guests (${reservedGuests.length})'),
+            ...reservedGuests.map((vm) => RegistrationCard(
+              name: vm.item.name, 
+              label: 'Guest of ${vm.item.registration.memberName}',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+              attendingLunch: vm.item.registration.guestAttendingLunch,
+              attendingDinner: vm.item.registration.guestAttendingDinner,
+              hasPaid: vm.item.registration.hasPaid,
+              memberProfile: null, 
               isGuest: true,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),

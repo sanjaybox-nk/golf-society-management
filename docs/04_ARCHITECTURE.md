@@ -35,6 +35,9 @@ We use `riverpod_generator` (`@riverpod` annotation) which auto-generates provid
     - `LeaderboardInvokerService` (Season Standings Calculator)
 - **Providers**: Defined in `feature/presentation/provider_name.dart`.
 - **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
+- **Cache Management**: 
+    - For mutable Firestore data that is deep-linked (e.g., editing a Competition from within an Event Form), we use explicit cache invalidation.
+    - `ref.invalidate(provider(id))` is called after a successful save to ensure subsequent loads retrieve the latest document from the repository.
 
 ## Domain Logic
 Complex business rules are encapsulated in standalone logic classes within the `domain/` folder of each feature.

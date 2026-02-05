@@ -60,7 +60,7 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
 
   @override
   Widget build(BuildContext context) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(eventsProvider);
 
     return eventsAsync.when(
       data: (events) {

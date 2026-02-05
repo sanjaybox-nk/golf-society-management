@@ -32,7 +32,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
       appBar: BoxyArtAppBar(
-        title: '$gameName GALLERY',
+        title: gameName,
         showBack: true,
         isLarge: true,
       ),
@@ -51,7 +51,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
               onTap: () async {
                 if (isPicker) {
                    // Navigate to builder in non-template mode
-                   final result = await context.push<String>('/admin/competitions/new/create/$typeStr');
+                   final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
                    if (result != null && context.mounted) {
                      context.pop(result);
                    }
@@ -73,12 +73,16 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
               data: (templates) {
                 // Filter templates by subtype or format
                 final filtered = templates.where((t) {
-                  if (subtype != null && subtype != CompetitionSubtype.none) {
-                    return t.rules.subtype == subtype;
-                  }
-                  // For generic formats (Stableford, Scramble, etc) match the format.
-                  // This allows internal subtypes like Texas Scramble to show up.
-                  return t.rules.format == format;
+                   final rules = t.rules;
+                   
+                   // If we are looking for a SPECIFIC subtype (Foursomes, Fourball, Scramble, etc)
+                   if (subtype != null && subtype != CompetitionSubtype.none) {
+                     return rules.subtype == subtype;
+                   }
+                   
+                   // If we are in a GENERIC format gallery (Stableford, Stroke, Max Score)
+                   // We ONLY show Singles (subtype == none) to prevent Foursomes/Fourball "leaking" in.
+                   return rules.format == format && rules.subtype == CompetitionSubtype.none;
                 }).toList();
 
                 if (filtered.isEmpty) {
@@ -125,7 +129,10 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                 }
               },
               badges: [
-                _RuleBadge(label: _getDefaultAllowance(format, subtype)),
+                _RuleBadge(label: CompetitionRules(
+                  format: format, 
+                  subtype: subtype ?? CompetitionSubtype.none,
+                ).defaultAllowanceLabel),
                 const _RuleBadge(label: '1 ROUND'),
               ],
             ),
@@ -135,13 +142,6 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
     );
   }
 
-  String _getDefaultAllowance(CompetitionFormat format, CompetitionSubtype? subtype) {
-    if (subtype == CompetitionSubtype.fourball) return '90% HCP';
-    if (subtype == CompetitionSubtype.foursomes) return '50% HCP';
-    if (format == CompetitionFormat.stableford) return '95% HCP';
-    if (format == CompetitionFormat.matchPlay) return '100% DIFF';
-    return '100% HCP';
-  }
 
   Widget _buildTemplateCard(BuildContext context, Competition template, WidgetRef ref) {
     return Dismissible(
@@ -183,7 +183,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
         context,
         title: (template.name != null && template.name!.isNotEmpty) 
             ? template.name!.toUpperCase() 
-            : template.rules.format.name.toUpperCase(),
+            : template.rules.gameName,
         subtitle: '${template.rules.mode.name} • ${template.rules.roundsCount} ROUND',
         icon: _getFormatIcon(template.rules.format),
         onTap: () {
@@ -198,7 +198,52 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
           context.push('/admin/settings/templates/edit/${template.id}');
         },
         badges: [
-          _RuleBadge(label: '${(template.rules.handicapAllowance * 100).toInt()}% HCP'),
+          // MODE BADGE (SINGLES/PAIRS/TEAMS)
+          _RuleBadge(label: template.rules.mode.name.toUpperCase()),
+          
+          // GROSS/NET
+          if (template.rules.handicapAllowance == 0 || template.rules.subtype == CompetitionSubtype.grossStableford)
+            const _RuleBadge(label: 'GROSS')
+          else
+            const _RuleBadge(label: 'NET'),
+
+          // ALLOWANCE
+          if (template.rules.format == CompetitionFormat.scramble && template.rules.useWHSScrambleAllowance)
+            const _RuleBadge(label: 'WHS ALLOWANCE')
+          else if (template.rules.handicapAllowance > 0)
+            _RuleBadge(label: '${(template.rules.handicapAllowance * 100).toInt()}% HCP'),
+
+          // HCP MODE
+          if (template.rules.handicapMode != HandicapMode.whs)
+            _RuleBadge(label: '${template.rules.handicapMode.name.toUpperCase()} HCP'),
+
+          // CAP
+          if (template.rules.handicapCap != 28)
+            _RuleBadge(label: 'CAP: ${template.rules.handicapCap}'),
+
+          // MAX SCORE
+          if (template.rules.format == CompetitionFormat.maxScore && template.rules.maxScoreConfig != null)
+             _RuleBadge(
+               label: template.rules.maxScoreConfig!.type == MaxScoreType.fixed 
+                 ? 'MAX ${template.rules.maxScoreConfig!.value}' 
+                 : 'MAX PAR+${template.rules.maxScoreConfig!.value}'
+             ),
+
+          // SERIES/MULTI-ROUND
+          if (template.rules.roundsCount > 1) ...[
+            _RuleBadge(label: '${template.rules.roundsCount} ROUNDS'),
+            _RuleBadge(
+              label: template.rules.aggregation == AggregationMethod.singleBest 
+                ? 'BEST ROUND' 
+                : 'CUMULATIVE'
+            ),
+          ],
+
+          // SCRAMBLE DRIVES
+          if (template.rules.format == CompetitionFormat.scramble && template.rules.minDrivesPerPlayer > 0)
+            _RuleBadge(label: 'MIN ${template.rules.minDrivesPerPlayer} DRIVES'),
+
+          // TIE-BREAK
           _RuleBadge(label: template.rules.tieBreak.name.toUpperCase()),
         ],
       ),

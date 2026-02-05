@@ -366,13 +366,9 @@ class RegistrationCard extends StatelessWidget {
   }
 
   Widget _buildBuggyIcon(RegistrationStatus status, {double size = 20.0}) {
-    // If Admin/Editable (onBuggyToggle != null), show an outlined icon if none
+    // Always show grey icon if no buggy
     if (status == RegistrationStatus.none) {
-      if (onBuggyToggle != null) {
-        return Icon(Icons.electric_rickshaw_outlined, color: Colors.grey[300], size: size);
-      } else {
-        return const SizedBox.shrink();
-      }
+      return Icon(Icons.electric_rickshaw_outlined, color: Colors.grey[300], size: size);
     }
 
     Color color;

@@ -60,48 +60,46 @@ class EventSliverAppBar extends StatelessWidget {
       );
     }
 
+
     return SliverAppBar(
-      expandedHeight: 100.0, 
-      automaticallyImplyLeading: false,
-      leading: IconButton(
-        icon: const Icon(Icons.home, color: Colors.white),
-        onPressed: () => context.go('/home'),
-      ),
-      actions: const [
-         SizedBox(width: 8),
-      ],
+      backgroundColor: Theme.of(context).primaryColor,
+      toolbarHeight: 100.0,
       pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        titlePadding: const EdgeInsets.only(bottom: 16),
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              title, 
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white, 
-                fontWeight: FontWeight.bold,
-                shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
-              )
-            ),
-            if (subtitle != null)
-              Text(
-                subtitle!,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 13,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-          ],
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      leadingWidth: 70,
+      leading: Center(
+        child: IconButton(
+          icon: const Icon(Icons.home, color: Colors.white),
+          onPressed: () => context.go('/home'),
         ),
-        background: event.imageUrl != null 
-          ? Image.network(event.imageUrl!, fit: BoxFit.cover)
-          : Container(
-              color: Theme.of(context).primaryColor,
+      ),
+      title: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle!,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

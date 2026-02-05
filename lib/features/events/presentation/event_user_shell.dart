@@ -98,13 +98,30 @@ class EventUserShell extends StatelessWidget {
     
     if (segments.length < 2) return;
     final id = segments[1];
+    
+    // Determine current index to detect if tapping same tab
+    int currentIndex = 0;
+    if (location.endsWith('/register')) {
+      currentIndex = 1;
+    } else if (location.endsWith('/grouping')) {
+      currentIndex = 2;
+    } else if (location.endsWith('/scores')) {
+      currentIndex = 3;
+    } else if (location.endsWith('/gallery')) {
+      currentIndex = 4;
+    }
 
     switch (index) {
       case 0:
-        context.go('/events/$id');
+        // If already on Event details tab, go back to events list
+        if (currentIndex == 0) {
+          context.go('/events');
+        } else {
+          context.go('/events/$id');
+        }
         break;
       case 1:
-        context.go('/events/$id/register'); // Note: This matches the route we'll define
+        context.go('/events/$id/register');
         break;
       case 2:
         context.go('/events/$id/grouping');

@@ -12,6 +12,8 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
       toFirestore: (comp, _) {
         final json = comp.toJson();
         json.remove('id');
+        // Deep serialization for rules
+        json['rules'] = comp.rules.toJson();
         return json;
       },
     );
@@ -58,12 +60,22 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
 
   @override
   Future<String> addCompetition(Competition competition) async {
-    final doc = await _compsRef().add(competition);
-    return doc.id;
+    // Validate that ID is not empty - competitions should always have an ID
+    // (either from the event they're linked to, or auto-generated before calling this)
+    if (competition.id.isEmpty) {
+      throw Exception('Cannot add competition with empty ID. Competition must have a valid ID (typically the event ID for event-linked competitions).');
+    }
+    
+    // Use the ID from the object to ensure 1:1 mapping with events
+    await _compsRef().doc(competition.id).set(competition);
+    return competition.id;
   }
 
   @override
   Future<void> updateCompetition(Competition competition) async {
+    if (competition.id.isEmpty) {
+      throw Exception('Cannot update competition with empty ID');
+    }
     await _compsRef().doc(competition.id).set(competition);
   }
 
@@ -86,13 +98,19 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
 
   @override
   Future<String> addTemplate(Competition template) async {
-    final doc = await _firestore.collection('templates').add(template.toJson()..remove('id'));
+    final json = template.toJson();
+    json.remove('id');
+    json['rules'] = template.rules.toJson();
+    final doc = await _firestore.collection('templates').add(json);
     return doc.id;
   }
 
   @override
   Future<void> updateTemplate(Competition template) async {
-    await _firestore.collection('templates').doc(template.id).set(template.toJson()..remove('id'));
+    final json = template.toJson();
+    json.remove('id');
+    json['rules'] = template.rules.toJson();
+    await _firestore.collection('templates').doc(template.id).set(json);
   }
 
   @override

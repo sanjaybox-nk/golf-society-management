@@ -20,7 +20,7 @@ class EventUserDetailsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(eventsProvider);
     
     return eventsAsync.when(
       data: (events) {
@@ -70,8 +70,6 @@ class EventDetailsContent extends StatelessWidget {
                   _buildDinnerLocationSection(context),
                   const SizedBox(height: 24),
                   _buildNotesSection(context),
-                  const SizedBox(height: 24),
-                  _buildNotificationsSection(context),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -155,7 +153,7 @@ class EventDetailsContent extends StatelessWidget {
                   final stats = RegistrationLogic.getRegistrationStats(event);
                   if (event.maxParticipants == null) return 'Unlimited';
                   final remaining = event.maxParticipants! - stats.confirmedGolfers;
-                  if (remaining <= 0) return 'Event is full (Join Waitlist)';
+                  if (remaining <= 0) return 'Event is full';
                   return '${event.maxParticipants} spots, $remaining remaining';
                 }()),
               ),
@@ -566,7 +564,7 @@ class EventDetailsContent extends StatelessWidget {
         const BoxyArtSectionTitle(title: 'Dinner Location'),
         BoxyArtFloatingCard(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start, // Top aligned, not middle aligned
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(Icons.restaurant, color: Colors.grey, size: 20),
               const SizedBox(width: 12),
@@ -579,31 +577,20 @@ class EventDetailsContent extends StatelessWidget {
                   ),
                 ),
               ),
+              IconButton(
+                icon: Icon(
+                  Icons.location_on_outlined,
+                  color: Theme.of(context).primaryColor,
+                  size: 23,
+                ),
+                onPressed: () => _launchMap(event.dinnerLocation!, null),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildNotificationsSection(BuildContext context) {
-    if (event.flashUpdates.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'Updates'),
-        ...event.flashUpdates.map((update) => Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: BoxyArtFloatingCard(
-            child: Row(
-              children: [
-                const Icon(Icons.campaign, color: Colors.orange),
-                const SizedBox(width: 12),
-                Expanded(child: Text(update)),
-              ],
-            ),
-          ),
-        )),
       ],
     );
   }

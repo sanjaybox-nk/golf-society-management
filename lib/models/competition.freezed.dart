@@ -281,7 +281,7 @@ as int,
 /// @nodoc
 mixin _$CompetitionRules {
 
- CompetitionFormat get format; CompetitionSubtype get subtype; CompetitionMode get mode; HandicapMode get handicapMode; int get handicapCap; double get handicapAllowance; bool get useCourseAllowance; MaxScoreConfig? get maxScoreConfig; int get roundsCount; AggregationMethod get aggregation; TieBreakMethod get tieBreak; bool get holeByHoleRequired; int get minDrivesPerPlayer; bool get useWHSScrambleAllowance;
+ CompetitionFormat get format; CompetitionSubtype get subtype; CompetitionMode get mode; HandicapMode get handicapMode; int get handicapCap; double get handicapAllowance; bool get useCourseAllowance; MaxScoreConfig? get maxScoreConfig; int get roundsCount; AggregationMethod get aggregation; TieBreakMethod get tieBreak; bool get holeByHoleRequired; int get minDrivesPerPlayer; bool get useWHSScrambleAllowance; bool get applyCapToIndex;
 /// Create a copy of CompetitionRules
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -294,16 +294,16 @@ $CompetitionRulesCopyWith<CompetitionRules> get copyWith => _$CompetitionRulesCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionRules&&(identical(other.format, format) || other.format == format)&&(identical(other.subtype, subtype) || other.subtype == subtype)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.handicapMode, handicapMode) || other.handicapMode == handicapMode)&&(identical(other.handicapCap, handicapCap) || other.handicapCap == handicapCap)&&(identical(other.handicapAllowance, handicapAllowance) || other.handicapAllowance == handicapAllowance)&&(identical(other.useCourseAllowance, useCourseAllowance) || other.useCourseAllowance == useCourseAllowance)&&(identical(other.maxScoreConfig, maxScoreConfig) || other.maxScoreConfig == maxScoreConfig)&&(identical(other.roundsCount, roundsCount) || other.roundsCount == roundsCount)&&(identical(other.aggregation, aggregation) || other.aggregation == aggregation)&&(identical(other.tieBreak, tieBreak) || other.tieBreak == tieBreak)&&(identical(other.holeByHoleRequired, holeByHoleRequired) || other.holeByHoleRequired == holeByHoleRequired)&&(identical(other.minDrivesPerPlayer, minDrivesPerPlayer) || other.minDrivesPerPlayer == minDrivesPerPlayer)&&(identical(other.useWHSScrambleAllowance, useWHSScrambleAllowance) || other.useWHSScrambleAllowance == useWHSScrambleAllowance));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionRules&&(identical(other.format, format) || other.format == format)&&(identical(other.subtype, subtype) || other.subtype == subtype)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.handicapMode, handicapMode) || other.handicapMode == handicapMode)&&(identical(other.handicapCap, handicapCap) || other.handicapCap == handicapCap)&&(identical(other.handicapAllowance, handicapAllowance) || other.handicapAllowance == handicapAllowance)&&(identical(other.useCourseAllowance, useCourseAllowance) || other.useCourseAllowance == useCourseAllowance)&&(identical(other.maxScoreConfig, maxScoreConfig) || other.maxScoreConfig == maxScoreConfig)&&(identical(other.roundsCount, roundsCount) || other.roundsCount == roundsCount)&&(identical(other.aggregation, aggregation) || other.aggregation == aggregation)&&(identical(other.tieBreak, tieBreak) || other.tieBreak == tieBreak)&&(identical(other.holeByHoleRequired, holeByHoleRequired) || other.holeByHoleRequired == holeByHoleRequired)&&(identical(other.minDrivesPerPlayer, minDrivesPerPlayer) || other.minDrivesPerPlayer == minDrivesPerPlayer)&&(identical(other.useWHSScrambleAllowance, useWHSScrambleAllowance) || other.useWHSScrambleAllowance == useWHSScrambleAllowance)&&(identical(other.applyCapToIndex, applyCapToIndex) || other.applyCapToIndex == applyCapToIndex));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,format,subtype,mode,handicapMode,handicapCap,handicapAllowance,useCourseAllowance,maxScoreConfig,roundsCount,aggregation,tieBreak,holeByHoleRequired,minDrivesPerPlayer,useWHSScrambleAllowance);
+int get hashCode => Object.hash(runtimeType,format,subtype,mode,handicapMode,handicapCap,handicapAllowance,useCourseAllowance,maxScoreConfig,roundsCount,aggregation,tieBreak,holeByHoleRequired,minDrivesPerPlayer,useWHSScrambleAllowance,applyCapToIndex);
 
 @override
 String toString() {
-  return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance)';
+  return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, applyCapToIndex: $applyCapToIndex)';
 }
 
 
@@ -314,7 +314,7 @@ abstract mixin class $CompetitionRulesCopyWith<$Res>  {
   factory $CompetitionRulesCopyWith(CompetitionRules value, $Res Function(CompetitionRules) _then) = _$CompetitionRulesCopyWithImpl;
 @useResult
 $Res call({
- CompetitionFormat format, CompetitionSubtype subtype, CompetitionMode mode, HandicapMode handicapMode, int handicapCap, double handicapAllowance, bool useCourseAllowance, MaxScoreConfig? maxScoreConfig, int roundsCount, AggregationMethod aggregation, TieBreakMethod tieBreak, bool holeByHoleRequired, int minDrivesPerPlayer, bool useWHSScrambleAllowance
+ CompetitionFormat format, CompetitionSubtype subtype, CompetitionMode mode, HandicapMode handicapMode, int handicapCap, double handicapAllowance, bool useCourseAllowance, MaxScoreConfig? maxScoreConfig, int roundsCount, AggregationMethod aggregation, TieBreakMethod tieBreak, bool holeByHoleRequired, int minDrivesPerPlayer, bool useWHSScrambleAllowance, bool applyCapToIndex
 });
 
 
@@ -331,7 +331,7 @@ class _$CompetitionRulesCopyWithImpl<$Res>
 
 /// Create a copy of CompetitionRules
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? format = null,Object? subtype = null,Object? mode = null,Object? handicapMode = null,Object? handicapCap = null,Object? handicapAllowance = null,Object? useCourseAllowance = null,Object? maxScoreConfig = freezed,Object? roundsCount = null,Object? aggregation = null,Object? tieBreak = null,Object? holeByHoleRequired = null,Object? minDrivesPerPlayer = null,Object? useWHSScrambleAllowance = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? format = null,Object? subtype = null,Object? mode = null,Object? handicapMode = null,Object? handicapCap = null,Object? handicapAllowance = null,Object? useCourseAllowance = null,Object? maxScoreConfig = freezed,Object? roundsCount = null,Object? aggregation = null,Object? tieBreak = null,Object? holeByHoleRequired = null,Object? minDrivesPerPlayer = null,Object? useWHSScrambleAllowance = null,Object? applyCapToIndex = null,}) {
   return _then(_self.copyWith(
 format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
 as CompetitionFormat,subtype: null == subtype ? _self.subtype : subtype // ignore: cast_nullable_to_non_nullable
@@ -347,6 +347,7 @@ as AggregationMethod,tieBreak: null == tieBreak ? _self.tieBreak : tieBreak // i
 as TieBreakMethod,holeByHoleRequired: null == holeByHoleRequired ? _self.holeByHoleRequired : holeByHoleRequired // ignore: cast_nullable_to_non_nullable
 as bool,minDrivesPerPlayer: null == minDrivesPerPlayer ? _self.minDrivesPerPlayer : minDrivesPerPlayer // ignore: cast_nullable_to_non_nullable
 as int,useWHSScrambleAllowance: null == useWHSScrambleAllowance ? _self.useWHSScrambleAllowance : useWHSScrambleAllowance // ignore: cast_nullable_to_non_nullable
+as bool,applyCapToIndex: null == applyCapToIndex ? _self.applyCapToIndex : applyCapToIndex // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -444,10 +445,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance,  bool applyCapToIndex)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompetitionRules() when $default != null:
-return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance);case _:
+return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance,_that.applyCapToIndex);case _:
   return orElse();
 
 }
@@ -465,10 +466,10 @@ return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.h
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance,  bool applyCapToIndex)  $default,) {final _that = this;
 switch (_that) {
 case _CompetitionRules():
-return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance);case _:
+return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance,_that.applyCapToIndex);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -485,10 +486,10 @@ return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.h
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionFormat format,  CompetitionSubtype subtype,  CompetitionMode mode,  HandicapMode handicapMode,  int handicapCap,  double handicapAllowance,  bool useCourseAllowance,  MaxScoreConfig? maxScoreConfig,  int roundsCount,  AggregationMethod aggregation,  TieBreakMethod tieBreak,  bool holeByHoleRequired,  int minDrivesPerPlayer,  bool useWHSScrambleAllowance,  bool applyCapToIndex)?  $default,) {final _that = this;
 switch (_that) {
 case _CompetitionRules() when $default != null:
-return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance);case _:
+return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.handicapCap,_that.handicapAllowance,_that.useCourseAllowance,_that.maxScoreConfig,_that.roundsCount,_that.aggregation,_that.tieBreak,_that.holeByHoleRequired,_that.minDrivesPerPlayer,_that.useWHSScrambleAllowance,_that.applyCapToIndex);case _:
   return null;
 
 }
@@ -500,7 +501,7 @@ return $default(_that.format,_that.subtype,_that.mode,_that.handicapMode,_that.h
 @JsonSerializable()
 
 class _CompetitionRules implements CompetitionRules {
-  const _CompetitionRules({this.format = CompetitionFormat.stableford, this.subtype = CompetitionSubtype.none, this.mode = CompetitionMode.singles, this.handicapMode = HandicapMode.whs, this.handicapCap = 28, this.handicapAllowance = 0.95, this.useCourseAllowance = true, this.maxScoreConfig, this.roundsCount = 1, this.aggregation = AggregationMethod.totalSum, this.tieBreak = TieBreakMethod.back9, this.holeByHoleRequired = true, this.minDrivesPerPlayer = 0, this.useWHSScrambleAllowance = false});
+  const _CompetitionRules({this.format = CompetitionFormat.stableford, this.subtype = CompetitionSubtype.none, this.mode = CompetitionMode.singles, this.handicapMode = HandicapMode.whs, this.handicapCap = 28, this.handicapAllowance = 0.95, this.useCourseAllowance = true, this.maxScoreConfig, this.roundsCount = 1, this.aggregation = AggregationMethod.totalSum, this.tieBreak = TieBreakMethod.back9, this.holeByHoleRequired = true, this.minDrivesPerPlayer = 0, this.useWHSScrambleAllowance = false, this.applyCapToIndex = true});
   factory _CompetitionRules.fromJson(Map<String, dynamic> json) => _$CompetitionRulesFromJson(json);
 
 @override@JsonKey() final  CompetitionFormat format;
@@ -517,6 +518,7 @@ class _CompetitionRules implements CompetitionRules {
 @override@JsonKey() final  bool holeByHoleRequired;
 @override@JsonKey() final  int minDrivesPerPlayer;
 @override@JsonKey() final  bool useWHSScrambleAllowance;
+@override@JsonKey() final  bool applyCapToIndex;
 
 /// Create a copy of CompetitionRules
 /// with the given fields replaced by the non-null parameter values.
@@ -531,16 +533,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionRules&&(identical(other.format, format) || other.format == format)&&(identical(other.subtype, subtype) || other.subtype == subtype)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.handicapMode, handicapMode) || other.handicapMode == handicapMode)&&(identical(other.handicapCap, handicapCap) || other.handicapCap == handicapCap)&&(identical(other.handicapAllowance, handicapAllowance) || other.handicapAllowance == handicapAllowance)&&(identical(other.useCourseAllowance, useCourseAllowance) || other.useCourseAllowance == useCourseAllowance)&&(identical(other.maxScoreConfig, maxScoreConfig) || other.maxScoreConfig == maxScoreConfig)&&(identical(other.roundsCount, roundsCount) || other.roundsCount == roundsCount)&&(identical(other.aggregation, aggregation) || other.aggregation == aggregation)&&(identical(other.tieBreak, tieBreak) || other.tieBreak == tieBreak)&&(identical(other.holeByHoleRequired, holeByHoleRequired) || other.holeByHoleRequired == holeByHoleRequired)&&(identical(other.minDrivesPerPlayer, minDrivesPerPlayer) || other.minDrivesPerPlayer == minDrivesPerPlayer)&&(identical(other.useWHSScrambleAllowance, useWHSScrambleAllowance) || other.useWHSScrambleAllowance == useWHSScrambleAllowance));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionRules&&(identical(other.format, format) || other.format == format)&&(identical(other.subtype, subtype) || other.subtype == subtype)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.handicapMode, handicapMode) || other.handicapMode == handicapMode)&&(identical(other.handicapCap, handicapCap) || other.handicapCap == handicapCap)&&(identical(other.handicapAllowance, handicapAllowance) || other.handicapAllowance == handicapAllowance)&&(identical(other.useCourseAllowance, useCourseAllowance) || other.useCourseAllowance == useCourseAllowance)&&(identical(other.maxScoreConfig, maxScoreConfig) || other.maxScoreConfig == maxScoreConfig)&&(identical(other.roundsCount, roundsCount) || other.roundsCount == roundsCount)&&(identical(other.aggregation, aggregation) || other.aggregation == aggregation)&&(identical(other.tieBreak, tieBreak) || other.tieBreak == tieBreak)&&(identical(other.holeByHoleRequired, holeByHoleRequired) || other.holeByHoleRequired == holeByHoleRequired)&&(identical(other.minDrivesPerPlayer, minDrivesPerPlayer) || other.minDrivesPerPlayer == minDrivesPerPlayer)&&(identical(other.useWHSScrambleAllowance, useWHSScrambleAllowance) || other.useWHSScrambleAllowance == useWHSScrambleAllowance)&&(identical(other.applyCapToIndex, applyCapToIndex) || other.applyCapToIndex == applyCapToIndex));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,format,subtype,mode,handicapMode,handicapCap,handicapAllowance,useCourseAllowance,maxScoreConfig,roundsCount,aggregation,tieBreak,holeByHoleRequired,minDrivesPerPlayer,useWHSScrambleAllowance);
+int get hashCode => Object.hash(runtimeType,format,subtype,mode,handicapMode,handicapCap,handicapAllowance,useCourseAllowance,maxScoreConfig,roundsCount,aggregation,tieBreak,holeByHoleRequired,minDrivesPerPlayer,useWHSScrambleAllowance,applyCapToIndex);
 
 @override
 String toString() {
-  return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance)';
+  return 'CompetitionRules(format: $format, subtype: $subtype, mode: $mode, handicapMode: $handicapMode, handicapCap: $handicapCap, handicapAllowance: $handicapAllowance, useCourseAllowance: $useCourseAllowance, maxScoreConfig: $maxScoreConfig, roundsCount: $roundsCount, aggregation: $aggregation, tieBreak: $tieBreak, holeByHoleRequired: $holeByHoleRequired, minDrivesPerPlayer: $minDrivesPerPlayer, useWHSScrambleAllowance: $useWHSScrambleAllowance, applyCapToIndex: $applyCapToIndex)';
 }
 
 
@@ -551,7 +553,7 @@ abstract mixin class _$CompetitionRulesCopyWith<$Res> implements $CompetitionRul
   factory _$CompetitionRulesCopyWith(_CompetitionRules value, $Res Function(_CompetitionRules) _then) = __$CompetitionRulesCopyWithImpl;
 @override @useResult
 $Res call({
- CompetitionFormat format, CompetitionSubtype subtype, CompetitionMode mode, HandicapMode handicapMode, int handicapCap, double handicapAllowance, bool useCourseAllowance, MaxScoreConfig? maxScoreConfig, int roundsCount, AggregationMethod aggregation, TieBreakMethod tieBreak, bool holeByHoleRequired, int minDrivesPerPlayer, bool useWHSScrambleAllowance
+ CompetitionFormat format, CompetitionSubtype subtype, CompetitionMode mode, HandicapMode handicapMode, int handicapCap, double handicapAllowance, bool useCourseAllowance, MaxScoreConfig? maxScoreConfig, int roundsCount, AggregationMethod aggregation, TieBreakMethod tieBreak, bool holeByHoleRequired, int minDrivesPerPlayer, bool useWHSScrambleAllowance, bool applyCapToIndex
 });
 
 
@@ -568,7 +570,7 @@ class __$CompetitionRulesCopyWithImpl<$Res>
 
 /// Create a copy of CompetitionRules
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? format = null,Object? subtype = null,Object? mode = null,Object? handicapMode = null,Object? handicapCap = null,Object? handicapAllowance = null,Object? useCourseAllowance = null,Object? maxScoreConfig = freezed,Object? roundsCount = null,Object? aggregation = null,Object? tieBreak = null,Object? holeByHoleRequired = null,Object? minDrivesPerPlayer = null,Object? useWHSScrambleAllowance = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? format = null,Object? subtype = null,Object? mode = null,Object? handicapMode = null,Object? handicapCap = null,Object? handicapAllowance = null,Object? useCourseAllowance = null,Object? maxScoreConfig = freezed,Object? roundsCount = null,Object? aggregation = null,Object? tieBreak = null,Object? holeByHoleRequired = null,Object? minDrivesPerPlayer = null,Object? useWHSScrambleAllowance = null,Object? applyCapToIndex = null,}) {
   return _then(_CompetitionRules(
 format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
 as CompetitionFormat,subtype: null == subtype ? _self.subtype : subtype // ignore: cast_nullable_to_non_nullable
@@ -584,6 +586,7 @@ as AggregationMethod,tieBreak: null == tieBreak ? _self.tieBreak : tieBreak // i
 as TieBreakMethod,holeByHoleRequired: null == holeByHoleRequired ? _self.holeByHoleRequired : holeByHoleRequired // ignore: cast_nullable_to_non_nullable
 as bool,minDrivesPerPlayer: null == minDrivesPerPlayer ? _self.minDrivesPerPlayer : minDrivesPerPlayer // ignore: cast_nullable_to_non_nullable
 as int,useWHSScrambleAllowance: null == useWHSScrambleAllowance ? _self.useWHSScrambleAllowance : useWHSScrambleAllowance // ignore: cast_nullable_to_non_nullable
+as bool,applyCapToIndex: null == applyCapToIndex ? _self.applyCapToIndex : applyCapToIndex // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

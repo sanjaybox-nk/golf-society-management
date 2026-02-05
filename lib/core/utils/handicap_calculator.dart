@@ -1,4 +1,3 @@
-
 import '../../models/competition.dart';
 
 class HandicapCalculator {
@@ -20,17 +19,16 @@ class HandicapCalculator {
     // User request implies simple system. Let's follow standard WHS flow but allow non-WHS shortcut.
     
     double baseHandicap = handicapIndex;
-
-    // Apply Hard Cap on Index if specified? 
-    // Usually cap applies to Playing HC. But let's check rules.
-    // rules.handicapCap is int. Let's apply it at the end usually.
+    
+    // 1. Apply Hard Cap on INDEX if specified
+    if (rules.applyCapToIndex && baseHandicap > rules.handicapCap) {
+      baseHandicap = rules.handicapCap.toDouble();
+    }
 
     double courseHandicap = baseHandicap;
 
     if (useWhs) {
        // WHS Formula: Index * (Slope / 113) + (Rating - Par)
-       // We need slope/rating from courseConfig.
-       // Structure of courseConfig is flexible map currently. Let's assume standard keys or simple fallback.
        final slope = _parseValue(courseConfig['slope'] ?? 113);
        final rating = _parseValue(courseConfig['rating'] ?? 72);
        final par = _parseValue(courseConfig['par'] ?? 72);
@@ -44,9 +42,8 @@ class HandicapCalculator {
     // 3. Rounding (Standard .5 rounds up)
     int rounded = playingHandicap.round();
 
-    // 4. Apply Cap (Max Playing Handicap)
-    // If cap is 28, and calc is 30, use 28.
-    if (rounded > rules.handicapCap) {
+    // 4. Apply Cap on FINAL PLAYING HC if not already capped at index level
+    if (!rules.applyCapToIndex && rounded > rules.handicapCap) {
       rounded = rules.handicapCap;
     }
 
