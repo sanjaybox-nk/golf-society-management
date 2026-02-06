@@ -42,8 +42,8 @@ class HandicapCalculator {
     // 3. Rounding (Standard .5 rounds up)
     int rounded = playingHandicap.round();
 
-    // 4. Apply Cap on FINAL PLAYING HC if not already capped at index level
-    if (!rules.applyCapToIndex && rounded > rules.handicapCap) {
+    // 4. Apply Cap on FINAL result (Safety Gate)
+    if (rounded > rules.handicapCap) {
       rounded = rules.handicapCap;
     }
 

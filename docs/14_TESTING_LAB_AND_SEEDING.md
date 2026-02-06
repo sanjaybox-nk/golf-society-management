@@ -27,10 +27,12 @@ The lab is organized into phases to isolate specific technical challenges:
 
 ## Technical Details
 
-### `SeedingService`
-The core engine for generating believable data.
--   **Skill Bias Generator**: Scores are not purely random but follow a normal distribution biased by the member's handicap.
--   **Historical Context**: Ensures past events have timestamps and statuses that allow them to appear in the Archive and Member History correctly.
+### `MockDataSeeder` & `SeedingController`
+The core engine for generating believable competition data.
+-   **Stroke-First Approach**: Instead of seeding random points, the engine generates raw hole-by-hole strokes (3-8 per hole) biased by handicap. This allows the same result set to be viewed as Stableford or Medal.
+-   **Registration Awareness**: The seeder prioritizes actual event registrations if they exist, matching scores to real members.
+-   **Dynamic Scaling**: For empty events, the engine randomized the field size (typically 12-32 players) to simulate natural society attendance variety.
+-   **Bulk Action**: Admins can trigger "Seed All Results" from the main Events screen to rapidly populate all past events in the active season.
 
 ### Tie-Break Verification (Phase 4)
 Phase 4 generates players with identical raw scores (e.g., 36 points) and identical per-hole distributions to stress test the Tie Policy configuration (Countback vs. Shared).

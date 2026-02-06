@@ -11,8 +11,9 @@ import '../widgets/registration_card.dart';
 // ... (existing imports)
 
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../members/presentation/members_provider.dart';
 import '../../../../models/member.dart';
+import '../../../members/presentation/members_provider.dart';
+import '../../../members/presentation/profile_provider.dart';
 
 class EventRegistrationUserTab extends ConsumerWidget {
   final String eventId;
@@ -156,6 +157,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
     // 3. Stats Logic (Standardized)
     final stats = RegistrationLogic.getRegistrationStats(event);
+    final currentUser = ref.watch(currentUserProvider);
+    final isAdmin = currentUser.role == MemberRole.superAdmin || 
+                    currentUser.role == MemberRole.admin || 
+                    currentUser.role == MemberRole.restrictedAdmin;
     
     final playingValue = stats.confirmedGuests > 0 
         ? '${stats.confirmedGolfers} (${stats.confirmedGuests})' 
@@ -191,10 +196,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildMetricItem(context, 'Total', '${event.registrations.length}', Icons.group, iconColor: const Color(0xFF2C3E50)),
+                    _buildMetricItem(context, 'Total', '${stats.totalGolfers}', Icons.group, iconColor: const Color(0xFF2C3E50)),
                     _buildMetricItem(context, 'Playing', playingValue, Icons.check_circle, iconColor: const Color(0xFF27AE60)),
                     _buildMetricItem(context, 'Reserve', reserveValue, Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
-                    _buildMetricItem(context, 'Guests', '${stats.confirmedGuests + stats.reserveGuests}', Icons.person_add, iconColor: Colors.purple),
+                    _buildMetricItem(context, 'Guests', '${stats.totalGuests}', Icons.person_add, iconColor: Colors.purple),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -250,6 +255,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
             hasPaid: vm.item.registration.hasPaid,
             isGuest: false,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -270,6 +276,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             hasGuest: false,
             hasPaid: vm.item.registration.hasPaid,
             isGuest: true,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -290,6 +297,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
             hasPaid: vm.item.registration.hasPaid,
             isGuest: false,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -310,6 +318,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             hasGuest: false,
             hasPaid: vm.item.registration.hasPaid,
             isGuest: true,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -330,6 +339,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
             hasPaid: vm.item.registration.hasPaid,
             isGuest: false,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -350,6 +360,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             hasGuest: false,
             hasPaid: vm.item.registration.hasPaid,
             isGuest: true,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -368,6 +379,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             attendingDinner: true,
             hasPaid: vm.item.registration.hasPaid,
             isDinnerOnly: true,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],
@@ -385,6 +397,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
             attendingLunch: false,
             attendingDinner: false,
             hasPaid: vm.item.registration.hasPaid,
+            isAdmin: false,
             memberProfile: vm.memberProfile,
           )),
         ],

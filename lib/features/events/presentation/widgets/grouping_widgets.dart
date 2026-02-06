@@ -109,13 +109,13 @@ class GroupingPlayerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
 
-    // Recalculate PHC if rules and courseConfig are available
-    int displayPhc = player.playingHandicap.toInt();
-    if (rules != null && courseConfig != null) {
+    // Recalculate PHC if rules are available (to respect caps and allowances)
+    int displayPhc = player.playingHandicap.round();
+    if (rules != null) {
       displayPhc = HandicapCalculator.calculatePlayingHandicap(
         handicapIndex: player.handicapIndex,
         rules: rules!,
-        courseConfig: courseConfig!,
+        courseConfig: courseConfig ?? {}, 
         useWhs: useWhs,
       );
     }
@@ -177,71 +177,58 @@ class GroupingPlayerTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (player.isGuest)
-              SizedBox(
-                width: 36,
-                child: Tooltip(
-                  message: 'Guest',
-                  child: Center(
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: const BoxDecoration(
-                        color: Colors.orange,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'G', 
-                          style: TextStyle(
-                            fontSize: 12, 
-                            color: Colors.white, 
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+            // Guest Marker
+            SizedBox(
+              width: 28,
+              child: Tooltip(
+                message: player.isGuest ? 'Guest' : 'Member',
+                child: Center(
+                  child: player.isGuest 
+                    ? const Icon(
+                        Icons.person_outline,
+                        color: Colors.deepPurple,
+                        size: 18,
+                      )
+                    : const SizedBox.shrink(),
                 ),
               ),
+            ),
             
             // Buggy Marker/Toggle
-            if (isAdmin || player.needsBuggy)
-               SizedBox(
-                width: 36,
-                child: Tooltip(
-                  message: player.needsBuggy ? 'Buggy: ${player.buggyStatus.name.toUpperCase()}' : 'No Buggy',
-                  child: Center(
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: _buildBuggyIcon(player.needsBuggy ? player.buggyStatus : RegistrationStatus.none),
-                      onPressed: isAdmin ? () => onAction?.call('buggy', player, group) : null,
-                    ),
+            SizedBox(
+              width: 28,
+              child: Tooltip(
+                message: player.needsBuggy ? 'Buggy: ${player.buggyStatus.name.toUpperCase()}' : 'No Buggy',
+                child: Center(
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: _buildBuggyIcon(player.needsBuggy ? player.buggyStatus : RegistrationStatus.none, size: 18),
+                    onPressed: isAdmin ? () => onAction?.call('buggy', player, group) : null,
                   ),
                 ),
               ),
+            ),
 
             // Captain Marker/Toggle
-            if (isAdmin || player.isCaptain)
-              SizedBox(
-                width: 36,
-                child: Tooltip(
-                  message: 'Captain',
-                  child: Center(
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: Icon(
-                        player.isCaptain ? Icons.shield : Icons.shield_outlined, 
-                        color: player.isCaptain ? Colors.orange : Colors.grey.shade300, 
-                        size: 20
-                      ),
-                      onPressed: isAdmin ? () => onAction?.call('captain', player, group) : null,
+            SizedBox(
+              width: 28, 
+              child: Tooltip(
+                message: player.isCaptain ? 'Captain' : 'No Captain Role',
+                child: Center(
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(
+                      player.isCaptain ? Icons.shield : Icons.shield_outlined, 
+                      color: player.isCaptain ? Colors.orange : Colors.grey.shade200, 
+                      size: 18
                     ),
+                    onPressed: isAdmin ? () => onAction?.call('captain', player, group) : null,
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -307,18 +294,21 @@ class GroupingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Recalculate Total PHC dynamically to respect capping rules
     double displayTotalHandicap = 0;
-    if (rules != null && courseConfig != null) {
+    if (rules != null) {
       for (var p in group.players) {
         displayTotalHandicap += HandicapCalculator.calculatePlayingHandicap(
           handicapIndex: p.handicapIndex,
           rules: rules!,
-          courseConfig: courseConfig!,
+          courseConfig: courseConfig ?? {},
           useWhs: useWhs,
         );
       }
     } else {
-      displayTotalHandicap = group.totalHandicap;
+      displayTotalHandicap = group.totalHandicap.roundToDouble();
     }
+
+    final bool hasGuest = group.players.any((p) => p.isGuest);
+    final bool isWithdrawn = group.players.any((p) => p.status == RegistrationStatus.withdrawn);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -329,9 +319,21 @@ class GroupingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Group ${group.index + 1}',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey.shade600),
+                Row(
+                  children: [
+                    Text(
+                      'Group ${group.index + 1}',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(width: 8),
+                    hasGuest && !isWithdrawn 
+                      ? const Icon(
+                          Icons.person_add,
+                          color: Colors.deepPurple,
+                          size: 20,
+                        )
+                      : const SizedBox.shrink(),
+                  ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

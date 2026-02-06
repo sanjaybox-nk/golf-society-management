@@ -23,6 +23,7 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       currencyCode: json['currencyCode'] as String? ?? 'GBP',
       groupingStrategy: json['groupingStrategy'] as String? ?? 'balanced',
       useWhsHandicaps: json['useWhsHandicaps'] as bool? ?? true,
+      distanceUnit: json['distanceUnit'] as String? ?? 'yards',
     );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -38,4 +39,5 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'currencyCode': instance.currencyCode,
       'groupingStrategy': instance.groupingStrategy,
       'useWhsHandicaps': instance.useWhsHandicaps,
+      'distanceUnit': instance.distanceUnit,
     };

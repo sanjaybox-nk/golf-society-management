@@ -65,11 +65,16 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(adminEventsProvider);
     final membersAsync = ref.watch(allMembersProvider);
-    final societyConfig = ref.watch(themeControllerProvider); // Corrected
-    final competitionsAsync = ref.watch(competitionsListProvider(null)); // Added
+    final societyConfig = ref.watch(themeControllerProvider);
+    final competitionAsync = ref.watch(competitionDetailProvider(widget.eventId));
 
     return eventsAsync.when(
       data: (events) {
+        // Wait for competition rules to be loaded
+        if (competitionAsync.isLoading) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
         final members = membersAsync.value ?? [];
         final handicapMap = {for (var m in members) m.id: m.handicap};
         final memberMap = {for (var m in members) m.id: m};
@@ -79,8 +84,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         
         // Handicap & Rules Context
         final config = societyConfig;
-        final comps = competitionsAsync.value ?? [];
-        final comp = comps.where((c) => c.id == event.id).firstOrNull; // EventID = CompID
+        final comp = competitionAsync.value;
         
         // Initialize local groups if not already done
         if (_localGroups == null && event.grouping.containsKey('groups')) {
@@ -174,6 +178,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     if (unassignedSquad.isNotEmpty) _buildSquadPool(unassignedSquad, memberMap, history),
                     BoxyArtAppBar(
                       title: 'Grouping',
+                      subtitle: event.title,
                       centerTitle: true,
                       isLarge: true,
                       leadingWidth: 70,

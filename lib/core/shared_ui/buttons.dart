@@ -46,8 +46,8 @@ class BoxyArtButton extends StatelessWidget {
     ];
 
     if (isSecondary) {
-      bgColor = Theme.of(context).cardColor;
-      textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+      bgColor = Colors.grey.shade800;
+      textColor = Colors.white;
       shadows = AppShadows.inputSoft;
     } else if (isGhost) {
       bgColor = Colors.transparent;

@@ -58,6 +58,9 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(true) bool showRegistrationButton,
     @Default(10) int teeOffInterval,
     @Default(false) bool isGroupingPublished,
+    // Multi-day support
+    bool? isMultiDay,
+    @OptionalTimestampConverter() DateTime? endDate,
     // Grouping/Tee Sheet data
     @Default({}) Map<String, dynamic> grouping,
     // Results/Leaderboard data
@@ -67,6 +70,8 @@ abstract class GolfEvent with _$GolfEvent {
     @Default({}) Map<String, dynamic> courseConfig,
     String? selectedTeeName,
     @Default([]) List<String> flashUpdates,
+    @Default(false) bool scoringForceActive,
+    @Default(false) bool isScoringLocked,
     @Default(EventStatus.draft) EventStatus status,
   }) = _GolfEvent;
 

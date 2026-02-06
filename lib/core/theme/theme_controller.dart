@@ -108,4 +108,10 @@ class ThemeController extends Notifier<SocietyConfig> {
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
+
+  Future<void> setDistanceUnit(String unit) async {
+    final newConfig = state.copyWith(distanceUnit: unit);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
 }

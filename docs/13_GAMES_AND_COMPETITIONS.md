@@ -22,7 +22,7 @@ The primary driver of the scoring logic.
 | **Stableford** | None, Gross Stableford | Points based on score relative to par. |
 | **Stroke Play** | None | Traditional medal play (gross or net). |
 | **Max Score** | None | Stroke play with a cap per hole (e.g., Net Double Bogey). |
-| **Match Play** | None | Hole-by-hole competition (1UP, Half, etc.). |
+| **Match Play** | Knockout, League | Head-to-head competition (Independent or Event-Layered). |
 | **Scramble** | Texas, Florida | Team-based "best ball" scramble. |
 | **Pairs** | Fourball, Foursomes | Partner-based formats. |
 
@@ -90,7 +90,31 @@ The `EventFormScreen` uses a rich, badge-based visualization to summarize the ac
 - **Mode**: [SINGLES], [PAIRS], or [TEAMS].
 - **Specifics**: Only shown if non-default (e.g., [4 DRIVES], [CAP: 10], [SINGLE BEST]).
 
-## 6. Technical Architecture
+## 6. Matchplay Engine
+
+The Matchplay module is designed to be "Event-Aware" but not "Event-Dependent."
+
+### 6.1 Independent Mode (Knockouts)
+Matchplay competitions can run as separate entities with their own lifecycle.
+- **Visual Bracket**: Automated tree-view for knockout rounds.
+- **Deadline Management**: Rounds have fixed deadlines; results can be entered manually as a final score (e.g., "3 & 2").
+
+### 6.2 Event-Layered Mode
+A Matchplay match can be "layered" on top of a standard Stroke Play or Stableford event.
+- **Single Scorecard**: Players enter strokes once for the main event.
+- **Real-time Status**: The engine derives the match status (e.g., "1 UP") in the background using relative handicaps on the same scorecard.
+
+## 7. Scoring Status Lifecycle
+
+To ensure data integrity, Admin's have granular control over when scoring is available.
+
+| State | Variable | Effect |
+| :--- | :--- | :--- |
+| **Pending** | Default | Scoring is hidden until the event date. |
+| **Live (Manual)** | `scoringForceActive` | Scoring is enabled regardless of the current date. |
+| **Locked** | `isScoringLocked` | Scorecards are read-only; final positions are frozen. |
+
+## 8. Technical Architecture
 -   **Repository**: `CompetitionsRepository` manages persistence in Firestore.
 -   **Models**: `Competition` (main entity) and `CompetitionRules` (configuration).
 -   **Scaffolding**: The builder screens use a `BaseCompetitionControl` pattern to ensure a consistent UX across different game formats.

@@ -77,7 +77,7 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
             child: _buildScoreInput(_currentHole),
           ),
         ),
-        _buildStatsBar(comp),
+        _buildStatsBar(comp, event),
       ],
     );
   }
@@ -94,18 +94,33 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
         par = (holeData['par'] as num?)?.toInt();
         si = (holeData['si'] as num?)?.toInt();
       }
+    } else if (event.courseConfig['holePars'] is List) {
+      // Legacy format fallback
+      final pars = event.courseConfig['holePars'] as List;
+      final sis = event.courseConfig['holeSIs'] as List?;
+      if (pars.length >= _currentHole) {
+        par = (pars[_currentHole - 1] as num?)?.toInt();
+        si = sis != null && sis.length >= _currentHole ? (sis[_currentHole - 1] as num?)?.toInt() : null;
+      }
     }
 
-    if (par == null || si == null) return const SizedBox.shrink();
+    if (par == null) return const SizedBox.shrink();
+
+    // Set default score to par if not touched
+    if (!_holeScores.containsKey(_currentHole)) {
+      _holeScores[_currentHole] = par;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildInfoChip('PAR $par', Colors.white30),
-          const SizedBox(width: 8),
-          _buildInfoChip('SI $si', Colors.orange.withAlpha(50), textColor: Colors.orange),
+          _buildInfoChip('PAR $par', Colors.white.withValues(alpha: 0.1)),
+          if (si != null) ...[
+            const SizedBox(width: 8),
+            _buildInfoChip('SI $si', Colors.orange.withValues(alpha: 0.2), textColor: Colors.orange),
+          ],
         ],
       ),
     );
@@ -182,13 +197,13 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
   }
 
   Widget _buildScoreInput(int holeNum) {
-    final score = _holeScores[holeNum] ?? 4; // Default to par-ish
+    final score = _holeScores[holeNum] ?? 4;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'HOLE $holeNum',
-          style: const TextStyle(color: Colors.grey, fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2),
         ),
         const SizedBox(height: 32),
         Row(
@@ -197,12 +212,16 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
             _buildRoundButton(Icons.remove, () {
               if (score > 1) setState(() => _holeScores[holeNum] = score - 1);
             }),
-            const SizedBox(width: 48),
-            Text(
-              score.toString(),
-              style: const TextStyle(color: Colors.white, fontSize: 84, fontWeight: FontWeight.w900),
+            const SizedBox(width: 40),
+            Container(
+              constraints: const BoxConstraints(minWidth: 100),
+              alignment: Alignment.center,
+              child: Text(
+                score.toString(),
+                style: const TextStyle(color: Colors.white, fontSize: 100, fontWeight: FontWeight.w900),
+              ),
             ),
-            const SizedBox(width: 48),
+            const SizedBox(width: 40),
             _buildRoundButton(Icons.add, () {
               setState(() => _holeScores[holeNum] = score + 1);
             }),
@@ -227,19 +246,36 @@ class _ScorecardEntryScreenState extends ConsumerState<ScorecardEntryScreen> {
     );
   }
 
-  Widget _buildStatsBar(Competition comp) {
+  Widget _buildStatsBar(Competition comp, GolfEvent event) {
     final total = _holeScores.values.fold(0, (sum, score) => sum + score);
+    
+    // Calculate Par total for the holes score entered
+    int parTotal = 0;
+    final holes = event.courseConfig['holes'] as List? ?? [];
+    final legacyPars = event.courseConfig['holePars'] as List?;
+    
+    for (var holeNum in _holeScores.keys) {
+      if (holes.length >= holeNum) {
+        parTotal += (holes[holeNum - 1]['par'] as num?)?.toInt() ?? 4;
+      } else if (legacyPars != null && legacyPars.length >= holeNum) {
+        parTotal += (legacyPars[holeNum - 1] as num?)?.toInt() ?? 4;
+      }
+    }
+    
+    final relativeToPar = total - parTotal;
+    final relString = relativeToPar == 0 ? 'E' : (relativeToPar > 0 ? '+$relativeToPar' : '$relativeToPar');
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
       child: BoxyArtFloatingCard(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStat('GROSS', total.toString(), Colors.white),
+              _buildStat('TOTAL', total.toString(), Colors.white),
+              _buildStat('VS PAR', relString, relativeToPar > 0 ? Colors.red : (relativeToPar < 0 ? Colors.green : Colors.white70)),
               _buildStat('HOLES', '${_holeScores.length}/18', Theme.of(context).primaryColor),
-              _buildStat('FORMAT', comp.rules.format.name.toUpperCase(), Colors.white54),
             ],
           ),
         ),

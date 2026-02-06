@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../events/presentation/events_provider.dart';
+import '../../../../core/utils/seeding_controller.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/season.dart';
@@ -30,8 +31,8 @@ class AdminEventsScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.auto_fix_high, color: Colors.white, size: 24),
-            tooltip: 'Seed Test Event',
-            onPressed: () => _seedTestEvent(context, ref),
+            tooltip: 'Seed All Results',
+            onPressed: () => _seedAllPastResults(context, ref),
           ),
           const SizedBox(width: 8),
         ],
@@ -182,6 +183,23 @@ class AdminEventsScreen extends ConsumerWidget {
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
+  }
+
+  void _seedAllPastResults(BuildContext context, WidgetRef ref) async {
+     try {
+       await ref.read(seedingControllerProvider).seedPastEvents();
+       if (context.mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('✅ All past event results seeded!')),
+         );
+       }
+     } catch (e) {
+       if (context.mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('❌ Error seeding results: $e')),
+         );
+       }
+     }
   }
 
   void _seedTestEvent(BuildContext context, WidgetRef ref) async {

@@ -16,6 +16,7 @@ class RegistrationCard extends StatelessWidget {
   final Member? memberProfile;
   final bool isGuest;
   final bool isDinnerOnly;
+  final bool isAdmin;
   
   // Interaction Callbacks
   final Function(RegistrationStatus)? onStatusChanged;
@@ -39,6 +40,7 @@ class RegistrationCard extends StatelessWidget {
     this.memberProfile,
     this.isGuest = false,
     this.isDinnerOnly = false,
+    this.isAdmin = false,
     this.onStatusChanged,
     this.onBuggyToggle,
     this.onBreakfastToggle,
@@ -160,7 +162,7 @@ class RegistrationCard extends StatelessWidget {
                       width: 28,
                       height: 28, // Match height of grid row
                       alignment: Alignment.center,
-                      child: !isGuest && !isDinnerOnly 
+                       child: isAdmin && !isGuest && !isDinnerOnly 
                         ? Icon(
                             Icons.sports_golf, 
                             color: (status == RegistrationStatus.confirmed || status == RegistrationStatus.waitlist)
@@ -179,7 +181,11 @@ class RegistrationCard extends StatelessWidget {
                       height: 28, // Match height of grid row
                       alignment: Alignment.center,
                       child: hasGuest && !isWithdrawn 
-                        ? const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange))
+                        ? const Icon(
+                            Icons.person_add,
+                            color: Colors.deepPurple,
+                            size: 20,
+                          )
                         : const SizedBox.shrink(),
                     ),
                   ],

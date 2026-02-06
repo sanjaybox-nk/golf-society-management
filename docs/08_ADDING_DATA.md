@@ -22,9 +22,10 @@ You can now manage members via the **Member List**, including **Profile Pictures
 ## 3. Managing Events
 1.  Go to **Admin > Events**.
 2.  Tap **Create Event**.
-3.  Enter **Title**, **Course Name**, **Course Details**, **Date**, and **Description**.
-4.  **Hole Configuration**: Fill in the **Par** and **Stroke Index (SI)** for each of the 18 holes. This data is essential for "Birdie Tree" and "Par 3 Challenge" leaderboards.
-5. Tap **Save Event**.
+3.  Enter **Title**, **Course Name** (search existing), **Date**, and **Description**.
+4.  **Course Details**: The location and details are auto-filled when you select a course from the search.
+5.  **Timing**: Set **Registration** and **Tee-off** times, along with the **Interval** and **Deadline**.
+6. Tap **Save Event**.
 
 ## 4. Managing Registrations
 From the **Admin > Events** dashboard, tap **Registrations** on any event to manage participants:

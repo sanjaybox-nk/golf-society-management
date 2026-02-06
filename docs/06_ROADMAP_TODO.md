@@ -34,11 +34,13 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Template Gallery**: Reusable society-approved game formats.
     - [x] **Marker Counter (Birdie Tree)**: Track birdies/eagles across season.
     - [x] **Eclectic**: Best hole scores across multiple rounds.
-    - [x] **Digital Scorecard**: Input strokes hole-by-hole.
-    - [x] **Live Leaderboard**: Real-time ranking calculation.
+    - [x] **Digital Scorecard**: Input strokes hole-by-hole with real-time format extraction.
+    - [x] **Live Leaderboard**: Real-time ranking with dynamic support for Stableford/Medal.
     - [x] **Order of Merit (OoM) Points**: Industry standard point conversion (25, 18, 15, 12).
     - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
     - [x] **Team Attribution**: Individual credit for team/pairs events.
+    - [x] **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
+    - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Locker Room (Profile)**
     - [x] **Edit Profile**: Form to update handicap, phone, etc.

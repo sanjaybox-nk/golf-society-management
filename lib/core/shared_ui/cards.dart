@@ -61,7 +61,7 @@ class BoxyArtFloatingCard extends ConsumerWidget {
                 ],
               ) 
             : null,
-        borderRadius: BorderRadius.circular(24), // More dramatic rounding
+        borderRadius: BorderRadius.circular(12),
         boxShadow: isDark ? [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.4),
@@ -75,7 +75,7 @@ class BoxyArtFloatingCard extends ConsumerWidget {
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         child: Material(
           color: Colors.transparent,
           child: InkWell(

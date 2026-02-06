@@ -36,13 +36,14 @@ class BoxyArtFormField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 4),
+          padding: const EdgeInsets.only(left: 12, bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
@@ -81,7 +82,11 @@ class BoxyArtFormField extends StatelessWidget {
               fillColor: Colors.transparent,
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             ),
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            style: TextStyle(
+              fontSize: 14, 
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+            ),
           ),
         ),
       ],
@@ -110,13 +115,14 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 4),
+          padding: const EdgeInsets.only(left: 12, bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
@@ -150,7 +156,11 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
                 fillColor: Colors.transparent,
               ),
               icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: TextStyle(
+              fontSize: 14, 
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+            ),
               dropdownColor: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -180,13 +190,14 @@ class BoxyArtDatePickerField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 4),
+          padding: const EdgeInsets.only(left: 12, bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
@@ -216,7 +227,11 @@ class BoxyArtDatePickerField extends StatelessWidget {
                 Expanded(
                   child: Text(
                     value,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    style: TextStyle(
+              fontSize: 14, 
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+            ),
                   ),
                 ),
                 const Icon(Icons.calendar_today, color: Colors.black54, size: 18),
@@ -263,10 +278,11 @@ class BoxyArtSwitchField extends StatelessWidget {
         child: SwitchListTile(
           title: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
           value: value,
@@ -325,7 +341,11 @@ class BoxyArtSearchBar extends StatelessWidget {
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
-        style: const TextStyle(fontSize: 14, color: Colors.black87),
+        style: TextStyle(
+          fontSize: 14, 
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+          fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+        ),
       ),
     );
   }

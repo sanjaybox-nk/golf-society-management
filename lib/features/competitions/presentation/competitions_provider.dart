@@ -4,6 +4,9 @@ import '../data/competitions_repository.dart';
 import '../data/firestore_competitions_repository.dart';
 import '../data/scorecard_repository.dart';
 import '../data/firestore_scorecard_repository.dart';
+import '../../../models/scorecard.dart';
+import '../../members/presentation/members_provider.dart';
+import '../../members/presentation/profile_provider.dart';
 
 final competitionsRepositoryProvider = Provider<CompetitionsRepository>((ref) {
   return FirestoreCompetitionsRepository();
@@ -23,4 +26,19 @@ final templatesListProvider = StreamProvider<List<Competition>>((ref) {
 
 final competitionDetailProvider = FutureProvider.family<Competition?, String>((ref, id) {
   return ref.watch(competitionsRepositoryProvider).getCompetition(id);
+});
+
+final scorecardsListProvider = StreamProvider.family<List<Scorecard>, String>((ref, competitionId) {
+  return ref.watch(scorecardRepositoryProvider).watchScorecards(competitionId);
+});
+
+final userScorecardProvider = Provider.family<Scorecard?, String>((ref, competitionId) {
+  final scorecardsAsync = ref.watch(scorecardsListProvider(competitionId));
+  final currentMember = ref.watch(currentUserProvider);
+  
+  return scorecardsAsync.when(
+    data: (scorecards) => scorecards.where((s) => s.entryId == currentMember.id).firstOrNull,
+    loading: () => null,
+    error: (e, s) => null,
+  );
 });

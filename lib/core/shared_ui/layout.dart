@@ -39,7 +39,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.subtitle,
   });
 
-  static const double largeHeight = 100.0;
+  static const double largeHeight = 70.0;
 
   @override
   Widget build(BuildContext context) {

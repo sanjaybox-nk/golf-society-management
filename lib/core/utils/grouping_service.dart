@@ -35,6 +35,7 @@ class TeeGroupParticipant {
   bool needsBuggy;
   RegistrationStatus buggyStatus;
   bool isCaptain;
+  RegistrationStatus status;
   
   TeeGroupParticipant({
     required this.registrationMemberId,
@@ -45,6 +46,7 @@ class TeeGroupParticipant {
     required this.needsBuggy,
     this.buggyStatus = RegistrationStatus.none,
     this.isCaptain = false,
+    this.status = RegistrationStatus.confirmed,
   });
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +58,7 @@ class TeeGroupParticipant {
     'needsBuggy': needsBuggy,
     'buggyStatus': buggyStatus.name,
     'isCaptain': isCaptain,
+    'status': status.name,
   };
 
   static TeeGroupParticipant fromJson(Map<String, dynamic> json) => TeeGroupParticipant(
@@ -70,6 +73,10 @@ class TeeGroupParticipant {
       orElse: () => (json['needsBuggy'] ?? false) ? RegistrationStatus.confirmed : RegistrationStatus.none,
     ),
     isCaptain: json['isCaptain'] ?? false,
+    status: RegistrationStatus.values.firstWhere(
+      (e) => e.name == json['status'],
+      orElse: () => RegistrationStatus.confirmed,
+    ),
   );
 }
 
@@ -527,6 +534,9 @@ class GroupingService {
       playingHandicap: finalHandicap,
       needsBuggy: item.needsBuggy,
       buggyStatus: buggyStatus,
+      status: item.statusOverride != null && item.statusOverride == 'withdrawn' 
+          ? RegistrationStatus.withdrawn 
+          : RegistrationStatus.confirmed,
     );
   }
 }

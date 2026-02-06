@@ -69,6 +69,8 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   showRegistrationButton: json['showRegistrationButton'] as bool? ?? true,
   teeOffInterval: (json['teeOffInterval'] as num?)?.toInt() ?? 10,
   isGroupingPublished: json['isGroupingPublished'] as bool? ?? false,
+  isMultiDay: json['isMultiDay'] as bool?,
+  endDate: const OptionalTimestampConverter().fromJson(json['endDate']),
   grouping: json['grouping'] as Map<String, dynamic>? ?? const {},
   results:
       (json['results'] as List<dynamic>?)
@@ -83,6 +85,8 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  scoringForceActive: json['scoringForceActive'] as bool? ?? false,
+  isScoringLocked: json['isScoringLocked'] as bool? ?? false,
   status:
       $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
       EventStatus.draft,
@@ -124,12 +128,16 @@ Map<String, dynamic> _$GolfEventToJson(
   'showRegistrationButton': instance.showRegistrationButton,
   'teeOffInterval': instance.teeOffInterval,
   'isGroupingPublished': instance.isGroupingPublished,
+  'isMultiDay': instance.isMultiDay,
+  'endDate': const OptionalTimestampConverter().toJson(instance.endDate),
   'grouping': instance.grouping,
   'results': instance.results,
   'courseId': instance.courseId,
   'courseConfig': instance.courseConfig,
   'selectedTeeName': instance.selectedTeeName,
   'flashUpdates': instance.flashUpdates,
+  'scoringForceActive': instance.scoringForceActive,
+  'isScoringLocked': instance.isScoringLocked,
   'status': _$EventStatusEnumMap[instance.status]!,
 };
 

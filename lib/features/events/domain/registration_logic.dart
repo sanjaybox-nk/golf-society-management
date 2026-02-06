@@ -222,6 +222,9 @@ class RegistrationLogic {
 
     return RegistrationStats(
       totalRegistrations: totalRegistrations,
+      totalGolfers: sortedPool.length,
+      totalMembers: sortedPool.where((i) => !i.isGuest).length,
+      totalGuests: sortedPool.where((i) => i.isGuest).length,
       confirmedGolfers: confirmedGolfers,
       confirmedMembers: confirmedMembers,
       confirmedGuests: confirmedGuests,
@@ -375,6 +378,9 @@ class RegistrationLogic {
 
 class RegistrationStats {
   final int totalRegistrations;
+  final int totalGolfers;
+  final int totalMembers;
+  final int totalGuests;
   final int confirmedGolfers;
   final int confirmedMembers;
   final int confirmedGuests;
@@ -394,6 +400,9 @@ class RegistrationStats {
 
   RegistrationStats({
     required this.totalRegistrations,
+    required this.totalGolfers,
+    required this.totalMembers,
+    required this.totalGuests,
     required this.confirmedGolfers,
     required this.confirmedMembers,
     required this.confirmedGuests,

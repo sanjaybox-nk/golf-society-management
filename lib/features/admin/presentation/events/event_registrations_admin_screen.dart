@@ -29,6 +29,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
         return Scaffold(
           appBar: BoxyArtAppBar(
             title: 'Registrations',
+            subtitle: event.title,
             centerTitle: true,
             isLarge: true,
             leadingWidth: 70, 
@@ -176,11 +177,28 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
         ? '${stats.confirmedGolfers}/$capacity spaces'
         : 'Unlimited';
 
-    // Financial Metrics (Confirmed Only)
+    // Financial Metrics (Golf Fees Only)
     final double memberDinnerCost = event.dinnerCost ?? 0.0;
+    final double memberBreakfastCost = event.breakfastCost ?? 0.0;
+    final double memberLunchCost = event.lunchCost ?? 0.0;
+    
     final double totalPaidFees = event.registrations
-        .where((r) => r.hasPaid && r.isConfirmed)
-        .fold(0.0, (sum, r) => sum + r.cost);
+        .where((r) => r.hasPaid)
+        .fold(0.0, (sum, r) {
+          double golfCost = 0.0;
+          
+          // Member golf cost
+          if (r.isConfirmed && r.attendingGolf) {
+            golfCost += event.memberCost ?? 0.0;
+          }
+          
+          // Guest golf cost
+          if (r.guestIsConfirmed && r.guestName != null && r.guestName!.isNotEmpty) {
+            golfCost += event.guestCost ?? 0.0;
+          }
+          
+          return sum + golfCost;
+        });
 
     final double totalDinnerFees = event.registrations
         .where((r) => r.hasPaid)
@@ -227,7 +245,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                       _buildMetricItem(context, 'Total', '${event.registrations.length}', Icons.group, iconColor: const Color(0xFF2C3E50)),
                       _buildMetricItem(context, 'Playing', playingValue, Icons.check_circle, iconColor: const Color(0xFF27AE60)),
                       _buildMetricItem(context, 'Reserve', reserveValue, Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
-                      _buildMetricItem(context, 'Guests', '${stats.confirmedGuests + stats.reserveGuests}', Icons.person_add, iconColor: Colors.purple),
+                      _buildMetricItem(context, 'Guests', '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}', Icons.person_add, iconColor: Colors.purple),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -290,6 +308,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingDinner: vm.item.registration.attendingDinner,
               hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
@@ -314,6 +333,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingDinner: vm.item.registration.attendingDinner,
               hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
@@ -338,6 +358,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingDinner: vm.item.registration.attendingDinner,
               hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
@@ -361,6 +382,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingLunch: vm.item.registration.guestAttendingLunch,
               attendingDinner: vm.item.registration.guestAttendingDinner,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: null, 
               isGuest: true,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
@@ -385,6 +407,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingLunch: vm.item.registration.guestAttendingLunch,
               attendingDinner: vm.item.registration.guestAttendingDinner,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: null, 
               isGuest: true,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
@@ -409,6 +432,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingLunch: vm.item.registration.guestAttendingLunch,
               attendingDinner: vm.item.registration.guestAttendingDinner,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: null, 
               isGuest: true,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
@@ -433,6 +457,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingDinner: true,
               hasPaid: vm.item.registration.hasPaid,
               isDinnerOnly: true,
+              isAdmin: true,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: null,
@@ -455,6 +480,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               attendingLunch: vm.item.registration.attendingLunch,
               attendingDinner: false,
               hasPaid: vm.item.registration.hasPaid,
+              isAdmin: true,
               memberProfile: vm.memberProfile,
               onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
               onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
