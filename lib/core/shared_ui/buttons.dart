@@ -105,6 +105,10 @@ class BoxyArtCircularIconBtn extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? backgroundColor;
   final Color? iconColor;
+  final double iconSize;
+  final double padding;
+  final bool showShadow;
+  final List<BoxShadow>? shadowOverride;
 
   const BoxyArtCircularIconBtn({
     super.key, 
@@ -112,6 +116,10 @@ class BoxyArtCircularIconBtn extends StatelessWidget {
     this.onTap,
     this.backgroundColor,
     this.iconColor,
+    this.iconSize = 20,
+    this.padding = 0,
+    this.showShadow = true,
+    this.shadowOverride,
   });
 
   @override
@@ -120,13 +128,14 @@ class BoxyArtCircularIconBtn extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(100),
       child: Container(
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           color: backgroundColor ?? Theme.of(context).cardColor,
           shape: BoxShape.circle,
-          boxShadow: AppShadows.floatingAlt,
+          boxShadow: showShadow ? (shadowOverride ?? AppShadows.floatingAlt) : null,
         ),
         alignment: Alignment.center,
-        child: Icon(icon, color: iconColor ?? Colors.black, size: 20),
+        child: Icon(icon, color: iconColor ?? Colors.black, size: iconSize),
       ),
     );
   }

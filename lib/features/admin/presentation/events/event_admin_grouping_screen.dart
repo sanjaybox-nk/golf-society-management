@@ -12,6 +12,7 @@ import '../../../events/domain/registration_logic.dart';
 import '../../providers/admin_ui_providers.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
+import '../../../members/presentation/profile_provider.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../models/society_config.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
@@ -194,60 +195,83 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                           child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
+                      showAdminShortcut: false, // Ensure we manually control placement
                       actions: [
-                        IconButton(
-                          icon: Opacity(
-                            opacity: event.isRegistrationClosed ? 1.0 : 0.5,
-                            child: const Icon(Icons.autorenew, color: Colors.white),
+                        // Custom 2x2 Grid for Actions to save horizontal space
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Top Row: Admin + Regenerate
+                              SizedBox(
+                                height: 32,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (ref.watch(currentUserProvider).role == MemberRole.superAdmin || ref.watch(currentUserProvider).role == MemberRole.admin)
+                                      _buildCompactActionBtn(
+                                        icon: Icons.admin_panel_settings_outlined,
+                                        tooltip: 'Admin Console',
+                                        onTap: () => context.go('/admin'),
+                                      ),
+                                    _buildCompactActionBtn(
+                                      icon: Icons.autorenew,
+                                      tooltip: event.isRegistrationClosed ? 'Regenerate' : 'Registration still open',
+                                      opacity: event.isRegistrationClosed ? 1.0 : 0.5,
+                                      onTap: event.isRegistrationClosed
+                                          ? () {
+                                              if (_isLocked == true) {
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
+                                                return;
+                                              }
+                                              final members = membersAsync.value ?? [];
+                                              final handicapMap = {for (var m in members) m.id: m.handicap};
+                                              _showRegenerationOptions(event, events, handicapMap);
+                                            }
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Bottom Row: Lock + Save
+                              SizedBox(
+                                height: 32,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildCompactActionBtn(
+                                      icon: _isLocked == true ? Icons.lock : Icons.lock_open,
+                                      tooltip: event.isRegistrationClosed 
+                                          ? (_isLocked == true ? 'Unlock Grouping' : 'Lock Grouping')
+                                          : 'Registration still open',
+                                      opacity: event.isRegistrationClosed ? 1.0 : 0.5,
+                                      onTap: event.isRegistrationClosed
+                                          ? () {
+                                              if (_localGroups == null) {
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
+                                                return;
+                                              }
+                                              setState(() {
+                                                _isLocked = !(_isLocked ?? false);
+                                              });
+                                              _updateDirty(true);
+                                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_isLocked == true ? 'Grouping Locked (Save to persist)' : 'Grouping Unlocked')));
+                                            }
+                                          : null,
+                                    ),
+                                    _buildCompactActionBtn(
+                                      icon: Icons.save,
+                                      color: _isDirty ? Colors.amber : Colors.white,
+                                      tooltip: event.isRegistrationClosed ? 'Save Grouping' : 'Registration still open',
+                                      opacity: event.isRegistrationClosed ? 1.0 : 0.5,
+                                      onTap: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          tooltip: event.isRegistrationClosed ? 'Regenerate' : 'Registration still open',
-                          onPressed: event.isRegistrationClosed
-                              ? () {
-                                  if (_isLocked == true) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
-                                    return;
-                                  }
-                                  final members = membersAsync.value ?? [];
-                                  final handicapMap = {for (var m in members) m.id: m.handicap};
-                                  _showRegenerationOptions(event, events, handicapMap);
-                                }
-                              : null,
-                        ),
-                        IconButton(
-                          icon: Opacity(
-                            opacity: event.isRegistrationClosed ? 1.0 : 0.5,
-                            child: Icon(
-                              _isLocked == true ? Icons.lock : Icons.lock_open, 
-                              color: _isLocked == true ? Colors.white : Colors.white70
-                            ),
-                          ),
-                          tooltip: event.isRegistrationClosed 
-                              ? (_isLocked == true ? 'Unlock Grouping' : 'Lock Grouping')
-                              : 'Registration still open',
-                          onPressed: event.isRegistrationClosed
-                              ? () {
-                                  if (_localGroups == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
-                                    return;
-                                  }
-                                  setState(() {
-                                    _isLocked = !(_isLocked ?? false);
-                                  });
-                                  _updateDirty(true);
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_isLocked == true ? 'Grouping Locked (Save to persist)' : 'Grouping Unlocked')));
-                                }
-                              : null,
-                        ),
-                        IconButton(
-                          icon: Opacity(
-                            opacity: event.isRegistrationClosed ? 1.0 : 0.5,
-                            child: Icon(
-                              Icons.save, 
-                              color: _isDirty ? Colors.amber : Colors.white,
-                            ),
-                          ),
-                          tooltip: event.isRegistrationClosed ? 'Save Grouping' : 'Registration still open',
-                          onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
                         ),
                       ],
                     ),
@@ -792,6 +816,31 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       activeColor: Theme.of(context).primaryColor,
       dense: true,
+    );
+  }
+
+  Widget _buildCompactActionBtn({
+    required IconData icon,
+    required String? tooltip,
+    required VoidCallback? onTap,
+    Color color = Colors.white,
+    double opacity = 1.0,
+  }) {
+    return Opacity(
+      opacity: opacity,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: 36, // Compact width
+            height: 32, // Fits in half-height row
+            alignment: Alignment.center,
+            child: Icon(icon, color: color, size: 20),
+          ),
+        ),
+      ),
     );
   }
 

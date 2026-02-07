@@ -18,7 +18,7 @@ import '../../../../models/competition.dart'; // Added
 import '../../../competitions/presentation/competitions_provider.dart'; // Added
 import '../../../../models/course.dart';
 import '../../../courses/presentation/courses_provider.dart';
-import '../../../courses/presentation/add_course_dialog.dart';
+
 
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event; // Null = New Event

@@ -18,6 +18,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
   int _roundsCount = 1;
   AggregationMethod _aggregation = AggregationMethod.totalSum;
   bool _applyCapToIndex = true;
+  int _teamBestXCount = 2;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stroke;
@@ -31,6 +32,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       _roundsCount = widget.competition!.rules.roundsCount;
       _aggregation = widget.competition!.rules.aggregation;
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
+      _teamBestXCount = widget.competition!.rules.teamBestXCount;
     }
   }
 
@@ -140,6 +142,45 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
+        const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<int>(
+                label: 'Best X Scores per Flight',
+                value: _teamBestXCount,
+                items: [1, 2, 3, 4].map((i) => DropdownMenuItem(
+                  value: i,
+                  child: Text('Best $i Scores'),
+                )).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => _teamBestXCount = val);
+                },
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'Decides how the Group Total is calculated in the flight view.',
+                  style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -155,6 +196,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       roundsCount: _roundsCount,
       aggregation: _aggregation,
       applyCapToIndex: _applyCapToIndex,
+      teamBestXCount: _teamBestXCount,
     );
   }
 }

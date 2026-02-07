@@ -8,12 +8,18 @@ import '../../../../core/theme/theme_controller.dart';
 import '../../../models/golf_event.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
+import '../../members/presentation/profile_provider.dart';
+import '../../../models/member.dart';
 
 class MemberHomeScreen extends ConsumerWidget {
   const MemberHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+    final effectiveUser = ref.watch(effectiveUserProvider);
+    final isPeeking = ref.watch(impersonationProvider) != null;
+    
     // Top 2 unread notifications
     final notificationsAsync = ref.watch(homeNotificationsProvider);
     
@@ -23,120 +29,181 @@ class MemberHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Match provided aesthetic
-      body: notificationsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (allNotifications) {
-          final unreadNotifications = allNotifications
-              .where((n) => !n.isRead)
-              .toList()
-            ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          
-          final homeNotifications = unreadNotifications.take(2).toList();
-          
-          return CustomScrollView(
-            slivers: [
-              // App Bar
-              SliverAppBar(
-                floating: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                centerTitle: false,
-                title: Row(
+      body: Column(
+        children: [
+          if (isPeeking)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: Colors.amber.shade700,
+              child: SafeArea(
+                bottom: false,
+                child: Row(
                   children: [
-                    if (societyConfig.logoUrl != null) ...[
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          societyConfig.logoUrl!,
-                          height: 42,
-                          width: 42,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.golf_course, size: 42),
+                    const Icon(Icons.visibility, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'PEEKING AS ${effectiveUser.displayName.toUpperCase()}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 10,
+                          letterSpacing: 1.1,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                    ],
-                    Text(
-                      societyConfig.societyName.endsWith('Golf Society') 
-                          ? societyConfig.societyName 
-                          : '${societyConfig.societyName} Golf Society',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    GestureDetector(
+                      onTap: () => ref.read(impersonationProvider.notifier).clear(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'EXIT PEEK',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 9,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                actions: [
-                  IconButton(
-                    icon: Icon(Icons.admin_panel_settings_outlined, color: Theme.of(context).iconTheme.color),
-                    tooltip: 'Admin Console',
-                    onPressed: () => context.push('/admin'),
-                  ),
-                  IconButton(
-                    icon: Badge(
-                      label: Text('${unreadNotifications.length}'),
-                      isLabelVisible: unreadNotifications.isNotEmpty,
-                      child: Icon(Icons.notifications_outlined, color: Theme.of(context).iconTheme.color),
-                    ),
-                    onPressed: () => context.push('/home/notifications'),
-                  ),
-                  const SizedBox(width: 8),
-                ],
               ),
-    
-              // Content
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // Notifications Section (Dynamic)
-                    if (homeNotifications.isNotEmpty) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+          Expanded(
+            child: notificationsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (allNotifications) {
+                final unreadNotifications = allNotifications
+                    .where((n) => !n.isRead)
+                    .toList()
+                  ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+                
+                final homeNotifications = unreadNotifications.take(2).toList();
+                
+                return CustomScrollView(
+                  slivers: [
+                    // App Bar
+                    SliverAppBar(
+                      floating: true,
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 0,
+                      centerTitle: false,
+                      title: Row(
                         children: [
-                          const BoxyArtSectionTitle(title: 'Notifications'),
-                          TextButton(
-                            onPressed: () => context.push('/home/notifications'),
-                            child: const Text('View All', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                          if (societyConfig.logoUrl != null) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                societyConfig.logoUrl!,
+                                height: 42,
+                                width: 42,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.golf_course, size: 42),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          Text(
+                            societyConfig.societyName.endsWith('Golf Society') 
+                                ? societyConfig.societyName 
+                                : '${societyConfig.societyName} Golf Society',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      ...homeNotifications.map((n) => HomeNotificationCard(notification: n)),
-                      const SizedBox(height: 24),
-                    ],
-    
-                    // Next Match Hero Card
-                    const BoxyArtSectionTitle(title: 'Next Match'),
-                    const SizedBox(height: 12),
-                    nextMatch.when(
-                      data: (event) {
-                        if (event == null) {
-                          return const Card(
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Text('No upcoming matches scheduled.'),
+                      actions: [
+                        if (currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin)
+                          if (!isPeeking) // Hide admin console shortcut when in peek mode
+                            IconButton(
+                              icon: Icon(Icons.admin_panel_settings_outlined, color: Theme.of(context).iconTheme.color),
+                              tooltip: 'Admin Console',
+                              onPressed: () => context.push('/admin'),
                             ),
-                          );
-                        }
-                        return _NextMatchCard(event: event);
-                      },
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Text('Error: $err'),
+                        IconButton(
+                          icon: Badge(
+                            label: Text('${unreadNotifications.length}'),
+                            isLabelVisible: unreadNotifications.isNotEmpty,
+                            child: Icon(Icons.notifications_outlined, color: Theme.of(context).iconTheme.color),
+                          ),
+                          onPressed: () => context.push('/home/notifications'),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                     ),
-                const SizedBox(height: 24),
+          
+                    // Content
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          // Notifications Section (Dynamic)
+                          if (homeNotifications.isNotEmpty) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                BoxyArtSectionTitle(
+                                  title: 'Notifications',
+                                  isPeeking: isPeeking,
+                                ),
+                                TextButton(
+                                  onPressed: () => context.push('/home/notifications'),
+                                  child: const Text('View All', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ...homeNotifications.map((n) => HomeNotificationCard(notification: n)),
+                            const SizedBox(height: 24),
+                          ],
+          
+                          // Next Match Hero Card
+                          BoxyArtSectionTitle(
+                            title: 'Next Match',
+                            isPeeking: isPeeking,
+                          ),
+                          const SizedBox(height: 12),
+                          nextMatch.when(
+                            data: (event) {
+                              if (event == null) {
+                                return const Card(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Text('No upcoming matches scheduled.'),
+                                  ),
+                                );
+                              }
+                              return _NextMatchCard(event: event);
+                            },
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (err, stack) => Text('Error: $err'),
+                          ),
+                      const SizedBox(height: 24),
 
-                // Leaderboard Snippet
-                const BoxyArtSectionTitle(title: 'Order of Merit - Top 3'),
-                const SizedBox(height: 12),
-                _LeaderboardSnippet(topPlayers: topPlayers),
-                const SizedBox(height: 40),
-              ]),
+                      // Leaderboard Snippet
+                      BoxyArtSectionTitle(
+                        title: 'Order of Merit - Top 3',
+                        isPeeking: isPeeking,
+                      ),
+                      const SizedBox(height: 12),
+                      _LeaderboardSnippet(topPlayers: topPlayers),
+                      const SizedBox(height: 40),
+                    ]),
+                  ),
+                ),
+              ],
+                );
+              },
             ),
           ),
         ],
-          );
-        },
       ),
     );
   }

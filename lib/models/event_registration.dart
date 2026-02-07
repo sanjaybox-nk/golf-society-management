@@ -42,6 +42,9 @@ abstract class EventRegistration with _$EventRegistration {
   factory EventRegistration.fromJson(Map<String, dynamic> json) => _$EventRegistrationFromJson(json);
   @override
   Map<String, dynamic> toJson();
+
+  // Helper getters
+  String get displayName => isGuest && guestName != null ? guestName! : memberName;
 }
 
 @freezed

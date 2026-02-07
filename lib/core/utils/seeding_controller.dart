@@ -4,6 +4,7 @@ import '../../features/members/data/members_repository.dart';
 import '../../features/events/presentation/events_provider.dart';
 import '../../features/members/presentation/members_provider.dart';
 import '../utils/mock_data_seeder.dart';
+import '../../features/competitions/presentation/competitions_provider.dart';
 
 final seedingControllerProvider = Provider((ref) {
   return SeedingController(
@@ -42,10 +43,14 @@ class SeedingController {
           .where((id) => id != 'unknown_id')
           .toList();
 
+      // Fetch competition rules if available
+      final competition = await ref.read(competitionsRepositoryProvider).getCompetition(event.id);
+
       final results = seeder.generateFieldResults(
         members: members,
         courseConfig: event.courseConfig,
         specificMemberIds: registrationIds.isNotEmpty ? registrationIds : null,
+        rules: competition?.rules,
       );
 
       await eventsRepo.updateEvent(event.copyWith(

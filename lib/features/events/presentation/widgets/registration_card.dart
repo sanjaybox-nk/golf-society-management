@@ -156,23 +156,13 @@ class RegistrationCard extends StatelessWidget {
                 // Golf & Guest Column (Left of Grid)
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Top Row: Golf Ball (Payment Status)
+                   children: [
+                    // Top Row: Admin=Paid(Golf), Member=Guest(G)
                     Container(
                       width: 28,
                       height: 28, // Match height of grid row
                       alignment: Alignment.center,
-                       child: isAdmin && !isGuest && !isDinnerOnly 
-                        ? Icon(
-                            Icons.sports_golf, 
-                            color: (status == RegistrationStatus.confirmed || status == RegistrationStatus.waitlist)
-                                ? Colors.green
-                                : (hasPaid 
-                                    ? (isWithdrawn ? Colors.grey : Colors.amber) 
-                                    : Colors.grey[300]), 
-                            size: 18
-                          )
-                        : const SizedBox.shrink(),
+                       child: _buildRoleOrPaidIcon(context),
                     ),
                     
                     // Bottom Row: Guest Indicator
@@ -180,13 +170,13 @@ class RegistrationCard extends StatelessWidget {
                       width: 28, 
                       height: 28, // Match height of grid row
                       alignment: Alignment.center,
-                      child: hasGuest && !isWithdrawn 
-                        ? const Icon(
+                      child: Icon(
                             Icons.person_add,
-                            color: Colors.deepPurple,
+                            color: hasGuest && !isWithdrawn 
+                                ? Colors.deepPurple 
+                                : Colors.grey[300],
                             size: 20,
-                          )
-                        : const SizedBox.shrink(),
+                          ),
                     ),
                   ],
                 ),
@@ -386,6 +376,32 @@ class RegistrationCard extends StatelessWidget {
       default: color = Colors.grey;
     }
     return Icon(Icons.electric_rickshaw, color: color, size: size);
+  }
+
+  Widget _buildRoleOrPaidIcon(BuildContext context) {
+    if (isAdmin) {
+      // Admin: Golf Ball indicates Payment
+      return Icon(
+        Icons.sports_golf,
+        color: hasPaid ? Colors.green : Colors.grey[300],
+        size: 18,
+      );
+    } else {
+      // Member: 'G' indicates Guest
+      if (isGuest) {
+        return const Center(
+          child: Text(
+            'G', 
+            style: TextStyle(
+              fontSize: 16, 
+              fontWeight: FontWeight.w900, 
+              color: Colors.orange
+            )
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
   }
 
   Color _getStatusColor(RegistrationStatus status) {

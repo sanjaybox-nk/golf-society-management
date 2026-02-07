@@ -65,6 +65,8 @@ The optimization engine includes a weighted factor for **Buggy Efficiency**:
 After optimization, the system performs a final pass to:
 - **Assign Captains**: Each group is assigned a Captain (prioritizing members).
 - **Synchronize Buggy Status**: Every player's `buggyStatus` is recalculated based on the final group composition and the global available capacity.
+- **Team Scoring (Best X)**: In Scoring Mode, the grouping card automatically calculates the "Team Total" based on the `teamBestXCount` defined in the competition rules. The top X points/scores for the group are summed dynamically.
+- **Winner Indicators**: The top-performing group(s) in each flight (or overall) are highlighted with a **Trophy Icon** on the grouping card.
 
 ---
 

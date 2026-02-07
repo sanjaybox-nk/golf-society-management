@@ -52,7 +52,6 @@ import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/tabs/event_user_registration_tab.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/events/presentation/tabs/event_gallery_user_tab.dart';
-import '../features/competitions/presentation/scorecard_entry_screen.dart';
 import '../features/competitions/presentation/season_standings_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -530,14 +529,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               return EventScoresUserTab(eventId: id);
             },
             routes: [
-              GoRoute(
-                path: 'entry',
-                builder: (context, state) {
-                  final id = state.pathParameters['id']!;
-                  // We need the competitionId, but for now we'll assume it's linked to the event
-                  return ScorecardEntryScreen(competitionId: id); 
-                },
-              ),
             ],
           ),
           GoRoute(

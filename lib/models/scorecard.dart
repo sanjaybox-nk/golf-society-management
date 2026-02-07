@@ -34,6 +34,8 @@ abstract class Scorecard with _$Scorecard {
     @Default(ScorecardStatus.draft) ScorecardStatus status,
     @Default(ScoringStatus.ok) ScoringStatus scoringStatus,
     @Default([]) List<int?> holeScores,
+    @Default([]) List<int?> playerVerifierScores,
+    String? markerId,
     int? grossTotal,
     int? netTotal,
     int? points,

@@ -16,6 +16,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
   MaxScoreType _type = MaxScoreType.parPlusX;
   int _value = 3; // Default Par + 3 (Triple Bogey)
   double _allowance = 1.0; // Usually full handicap
+  int _teamBestXCount = 2;
 
   @override
   CompetitionFormat get format => CompetitionFormat.maxScore;
@@ -30,6 +31,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         _value = config.value;
       }
       _allowance = widget.competition!.rules.handicapAllowance;
+      _teamBestXCount = widget.competition!.rules.teamBestXCount;
     }
   }
 
@@ -84,6 +86,45 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
+        const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              BoxyArtDropdownField<int>(
+                label: 'Best X Scores per Flight',
+                value: _teamBestXCount,
+                items: [1, 2, 3, 4].map((i) => DropdownMenuItem(
+                  value: i,
+                  child: Text('Best $i Scores'),
+                )).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => _teamBestXCount = val);
+                },
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'Decides how the Group Total is calculated in the flight view.',
+                  style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -130,6 +171,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
       handicapAllowance: _allowance,
       maxScoreConfig: MaxScoreConfig(type: _type, value: _value),
       holeByHoleRequired: true,
+      teamBestXCount: _teamBestXCount,
     );
   }
 }

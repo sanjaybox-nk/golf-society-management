@@ -57,6 +57,7 @@ _CompetitionRules _$CompetitionRulesFromJson(
   minDrivesPerPlayer: (json['minDrivesPerPlayer'] as num?)?.toInt() ?? 0,
   useWHSScrambleAllowance: json['useWHSScrambleAllowance'] as bool? ?? false,
   applyCapToIndex: json['applyCapToIndex'] as bool? ?? true,
+  teamBestXCount: (json['teamBestXCount'] as num?)?.toInt() ?? 2,
 );
 
 Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
@@ -76,6 +77,7 @@ Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
       'minDrivesPerPlayer': instance.minDrivesPerPlayer,
       'useWHSScrambleAllowance': instance.useWHSScrambleAllowance,
       'applyCapToIndex': instance.applyCapToIndex,
+      'teamBestXCount': instance.teamBestXCount,
     };
 
 const _$CompetitionFormatEnumMap = {

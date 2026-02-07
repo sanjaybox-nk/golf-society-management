@@ -179,8 +179,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
     // Financial Metrics (Golf Fees Only)
     final double memberDinnerCost = event.dinnerCost ?? 0.0;
-    final double memberBreakfastCost = event.breakfastCost ?? 0.0;
-    final double memberLunchCost = event.lunchCost ?? 0.0;
+
     
     final double totalPaidFees = event.registrations
         .where((r) => r.hasPaid)

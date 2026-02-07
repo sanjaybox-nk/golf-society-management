@@ -4,6 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../../models/golf_event.dart';
+import '../../../../models/scorecard.dart';
+import '../../../../models/event_registration.dart';
+import '../../../competitions/presentation/competitions_provider.dart';
+import 'widgets/admin_scorecard_list.dart';
+import '../../../../models/competition.dart';
+import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -19,6 +25,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
   @override
   Widget build(BuildContext context) {
     final eventAsync = ref.watch(eventProvider(widget.eventId));
+    final scorecardsAsync = ref.watch(scorecardsListProvider(widget.eventId));
 
     return eventAsync.when(
       data: (event) => Scaffold(
@@ -50,11 +57,11 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: _buildTabContent(event),
+          child: _buildTabContent(event, scorecardsAsync),
         ),
       ),
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, _) => Scaffold(body: Center(child: Text('Error: $err'))),
+      error: (err, st) => Scaffold(body: Center(child: Text('Error: $err'))),
     );
   }
 
@@ -91,13 +98,13 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
   }
 
-  Widget _buildTabContent(GolfEvent event) {
+  Widget _buildTabContent(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
     switch (_selectedTab) {
       case 0: // Controls
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildStatusHeader(event),
+            _buildStatusHeader(event, scorecardsAsync),
             const SizedBox(height: 24),
             const BoxyArtSectionTitle(title: 'SCORING CONTROLS'),
             const SizedBox(height: 12),
@@ -129,6 +136,14 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                       );
                     },
                   ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 32),
+                  BoxyArtButton(
+                    title: 'RESET ALL SCORES',
+                    isSecondary: true,
+                    fullWidth: true,
+                    onTap: () => _confirmResetAllScores(event),
+                  ),
                 ],
               ),
             ),
@@ -139,43 +154,69 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           children: [
             const BoxyArtSectionTitle(title: 'LIVE STANDINGS'),
             const SizedBox(height: 16),
-            const BoxyArtFloatingCard(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Center(
-                  child: Text('Admin Leaderboard View Coming Soon'),
-                ),
-              ),
+            scorecardsAsync.when(
+              data: (scorecards) {
+                if (scorecards.isEmpty) {
+                   return const BoxyArtFloatingCard(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Center(child: Text('No scores submitted yet.')),
+                    ),
+                  );
+                }
+
+                // 1. Filter submitted scores
+                final submitted = scorecards.where((s) => 
+                  s.status == ScorecardStatus.submitted || s.status == ScorecardStatus.finalScore
+                ).toList();
+
+                // 2. Map to entries
+                final entries = submitted.map((s) {
+                  // Find player name from registrations
+                  final reg = event.registrations.firstWhere(
+                    (r) => (r.isGuest ? '${r.memberId}_guest' : r.memberId) == s.entryId,
+                    orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
+                  );
+                  
+                  final name = reg.isGuest ? (reg.guestName ?? 'Guest') : reg.memberName;
+                  
+                  // Estimate handicap (store in scorecard in future, but for now grab from reg or default)
+                  final hc = reg.isGuest 
+                      ? int.tryParse(reg.guestHandicap ?? '18') ?? 18
+                      : 18; // We don't have member handicap map here easily, default 18 for display or fetch
+
+                  return LeaderboardEntry(
+                    playerName: name,
+                    score: s.points ?? 0, // Default to Stableford points
+                    handicap: hc,
+                  );
+                }).toList();
+
+                // 3. Sort (Desc for points)
+                entries.sort((a, b) => b.score.compareTo(a.score));
+
+                return LeaderboardWidget(
+                  entries: entries,
+                  format: CompetitionFormat.stableford, // Hardcoded for now, should come from competition
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Center(child: Text('Error loading leaderboard: $e')),
             ),
           ],
         );
       case 2: // Scorecards
         return Column(
           children: [
-            const BoxyArtSectionTitle(title: 'PLAYER SCORECARDS'),
+            BoxyArtSectionTitle(title: 'PLAYER SCORECARDS (${event.registrations.where((r) => r.attendingGolf).length})'),
             const SizedBox(height: 12),
-            BoxyArtFloatingCard(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.people_outline, size: 48, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Scorecard Management',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Soon you will be able to override and review individual player scorecards here.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
+            scorecardsAsync.when(
+              data: (scorecards) => AdminScorecardList(
+                event: event,
+                scorecards: scorecards,
               ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Center(child: Text('Error: $e')),
             ),
           ],
         );
@@ -184,21 +225,81 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     }
   }
 
-  Widget _buildStatusHeader(GolfEvent event) {
+  Future<void> _confirmResetAllScores(GolfEvent event) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset All Scores?'),
+        content: const Text('This will permanently delete all scorecards and clear the leaderboard for this event. This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('RESET', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      
+      // 1. Delete all scorecard documents
+      await ref.read(scorecardRepositoryProvider).deleteAllScorecards(event.id);
+      
+      // 2. Clear event results (Leaderboard)
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        event.copyWith(results: []),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All scores and results have been reset.')),
+        );
+      }
+    }
+  }
+
+  Widget _buildStatusHeader(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
+    
+    // Calculate stats
+    int totalGolfers = 0;
+    for (final r in event.registrations) {
+      if (r.attendingGolf && r.isConfirmed) totalGolfers++;
+      if (r.attendingGolf && r.isGuest && r.guestIsConfirmed) totalGolfers++;
+    }
+    
+    final submittedCount = scorecardsAsync.when(
+      data: (scorecards) => scorecards.where((s) => 
+        s.status == ScorecardStatus.submitted || s.status == ScorecardStatus.finalScore
+      ).length,
+      loading: () => 0,
+      error: (err, st) => 0,
+    );
+
+    final now = DateTime.now();
+    final isSameDayOrFuture = now.year == event.date.year && 
+                             now.month == event.date.month && 
+                             now.day == event.date.day || 
+                             now.isAfter(event.date);
+    
+    final isLive = (event.scoringForceActive == true) || (isSameDayOrFuture && event.isScoringLocked != true);
+    final status = (event.isScoringLocked == true) ? 'LOCKED' : (isLive ? 'LIVE' : 'PENDING');
+    final statusColor = (event.isScoringLocked == true) ? Colors.red : (isLive ? Colors.green : Colors.orange);
+
     return Row(
       children: [
         Expanded(
-          child: _buildBadgeCard(
-            'STATUS', 
-            (event.isScoringLocked == true) ? 'LOCKED' : ((event.scoringForceActive == true) ? 'LIVE (MANUAL)' : 'PENDING'),
-            (event.isScoringLocked == true) ? Colors.red : ((event.scoringForceActive == true) ? Colors.green : Colors.orange),
-          ),
+          child: _buildBadgeCard('STATUS', status, statusColor),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildBadgeCard(
             'SUBMITTED', 
-            '12 / 24', // Mocking for now
+            '$submittedCount / $totalGolfers', 
             Colors.blue,
           ),
         ),
@@ -253,7 +354,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         Switch.adaptive(
           value: value, 
           onChanged: onChanged,
-          activeColor: Theme.of(context).primaryColor,
+          activeTrackColor: Theme.of(context).primaryColor,
         ),
       ],
     );

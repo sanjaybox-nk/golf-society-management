@@ -59,6 +59,11 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
   }
 
   @override
+  Stream<Competition?> watchCompetition(String id) {
+    return _compsRef().doc(id).snapshots().map((doc) => doc.data());
+  }
+
+  @override
   Future<String> addCompetition(Competition competition) async {
     // Validate that ID is not empty - competitions should always have an ID
     // (either from the event they're linked to, or auto-generated before calling this)

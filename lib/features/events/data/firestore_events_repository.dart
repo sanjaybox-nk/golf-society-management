@@ -89,6 +89,8 @@ class FirestoreEventsRepository implements EventsRepository {
     if (data['hasDinner'] == null) data['hasDinner'] = true;
     if (data['showRegistrationButton'] == null) data['showRegistrationButton'] = true;
     if (data['isGroupingPublished'] == null) data['isGroupingPublished'] = false;
+    if (data['scoringForceActive'] == null) data['scoringForceActive'] = false;
+    if (data['isScoringLocked'] == null) data['isScoringLocked'] = false;
 
     // 3. Deep sanitize registrations
     if (data['registrations'] != null && data['registrations'] is List) {
@@ -169,7 +171,7 @@ class FirestoreEventsRepository implements EventsRepository {
 
   @override
   Future<void> updateEvent(GolfEvent event) async {
-    await _eventsRef.doc(event.id).update(event.toJson());
+    await _eventsRef.doc(event.id).set(event.toJson(), SetOptions(merge: true));
   }
 
   @override

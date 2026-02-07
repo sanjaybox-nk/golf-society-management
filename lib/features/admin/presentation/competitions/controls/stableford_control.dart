@@ -20,6 +20,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   AggregationMethod _aggregation = AggregationMethod.stablefordSum; 
   bool _isGross = false;
   bool _applyCapToIndex = true;
+  int _teamBestXCount = 2;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stableford;
@@ -36,6 +37,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       _aggregation = widget.competition!.rules.aggregation;
       _isGross = widget.competition!.rules.subtype == CompetitionSubtype.grossStableford;
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
+      _teamBestXCount = widget.competition!.rules.teamBestXCount;
     }
   }
 
@@ -176,6 +178,42 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
                   },
                 ),
               ],
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   const Text(
+                    'TEAM / GROUP SCORING',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  BoxyArtDropdownField<int>(
+                    label: 'Best X Scores per Flight',
+                    value: _teamBestXCount,
+                    items: [1, 2, 3, 4].map((i) => DropdownMenuItem(
+                      value: i,
+                      child: Text('Best $i Scores'),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _teamBestXCount = val);
+                    },
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Decides how the Group Total is calculated in the flight view.',
+                      style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -236,6 +274,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       roundsCount: _roundsCount,
       aggregation: _aggregation,
       applyCapToIndex: _applyCapToIndex,
+      teamBestXCount: _teamBestXCount,
     );
   }
 }

@@ -9,20 +9,28 @@ class LeaderboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: entries.length,
-      itemBuilder: (context, index) {
-        final entry = entries[index];
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      children: entries.asMap().entries.map((item) {
+        final index = item.key;
+        final entry = item.value;
         final isTop3 = index < 3;
+        
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isTop3 ? Colors.white.withValues(alpha: 0.05) : Colors.transparent,
-            border: Border.all(color: isTop3 ? Theme.of(context).primaryColor.withValues(alpha: 0.3) : Colors.white10),
+            color: isTop3 
+                ? Theme.of(context).primaryColor.withValues(alpha: 0.05) 
+                : Theme.of(context).cardColor,
+            border: Border.all(
+              color: isTop3 
+                  ? Theme.of(context).primaryColor.withValues(alpha: 0.3) 
+                  : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -32,7 +40,7 @@ class LeaderboardWidget extends StatelessWidget {
                 child: Text(
                   '${index + 1}',
                   style: TextStyle(
-                    color: isTop3 ? Theme.of(context).primaryColor : Colors.grey,
+                    color: isTop3 ? Theme.of(context).primaryColor : (isDark ? Colors.white38 : Colors.grey),
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                   ),
@@ -43,26 +51,83 @@ class LeaderboardWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      entry.playerName.toUpperCase(),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            entry.playerName.toUpperCase(),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface, 
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (entry.isGuest) 
+                          const Padding(
+                            padding: EdgeInsets.only(left: 4.0),
+                            child: Text(
+                              'G',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    Text(
-                      'HC: ${entry.handicap}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 10),
+                    Row(
+                      children: [
+                        Text(
+                          'HC: ${entry.handicap}${entry.playingHandicap != null ? " (${entry.playingHandicap})" : ""}',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey, 
+                            fontSize: 10,
+                          ),
+                        ),
+                        if (entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'THRU ${entry.holesPlayed}',
+                              style: const TextStyle(color: Colors.blue, fontSize: 8, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
+                    if (entry.tieBreakDetails != null)
+                      Text(
+                        entry.tieBreakDetails!,
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
+                          fontSize: 9,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                   ],
                 ),
               ),
-              _buildScoreLabel(entry.score.toString(), isTop3 ? Theme.of(context).primaryColor : Colors.white),
+              _buildScoreLabel(
+                context,
+                entry.score.toString(), 
+                isTop3 ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ],
           ),
         );
-      },
+      }).toList(),
     );
   }
 
-  Widget _buildScoreLabel(String score, Color color) {
+  Widget _buildScoreLabel(BuildContext context, String score, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -81,6 +146,18 @@ class LeaderboardEntry {
   final String playerName;
   final int score;
   final int handicap;
+  final int? playingHandicap;
+  final int? holesPlayed;
+  final String? tieBreakDetails;
+  final bool isGuest;
 
-  LeaderboardEntry({required this.playerName, required this.score, required this.handicap});
+  LeaderboardEntry({
+    required this.playerName, 
+    required this.score, 
+    required this.handicap,
+    this.playingHandicap,
+    this.holesPlayed,
+    this.tieBreakDetails,
+    this.isGuest = false,
+  });
 }

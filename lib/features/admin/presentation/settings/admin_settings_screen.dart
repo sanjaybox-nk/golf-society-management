@@ -133,11 +133,11 @@ class AdminSettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 _SettingsTile(
-                  icon: Icons.foundation,
-                  title: 'Seed Stable Foundation',
-                  subtitle: '60 members + Lab Open event',
-                  iconColor: Colors.blue,
-                  onTap: () => _seedLabFoundation(context, ref),
+                  icon: Icons.auto_awesome_motion_outlined,
+                  title: 'Seed Full Demo Data',
+                  subtitle: 'Members, events, and historical scores',
+                  iconColor: Colors.pinkAccent,
+                  onTap: () => _seedFullDemo(context, ref),
                 ),
                 _SettingsTile(
                   icon: Icons.refresh,
@@ -187,7 +187,7 @@ class AdminSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _seedLabFoundation(BuildContext context, WidgetRef ref) async {
+  Future<void> _seedFullDemo(BuildContext context, WidgetRef ref) async {
     final confirm = await showBoxyArtDialog<bool>(
       context: context, 
       title: 'Initialize Lab?',

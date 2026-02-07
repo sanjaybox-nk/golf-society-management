@@ -88,6 +88,10 @@ class GroupingPlayerTile extends StatelessWidget {
   final Function(String action, TeeGroupParticipant p, TeeGroup g)? onAction;
   final VoidCallback? onTap;
   final bool isSelected;
+  final bool hasGuest;
+  final bool isScoreMode;
+  final String? scoreDisplay;
+  final bool isWinner;
 
   const GroupingPlayerTile({
     super.key,
@@ -103,6 +107,10 @@ class GroupingPlayerTile extends StatelessWidget {
     this.onAction,
     this.onTap,
     this.isSelected = false,
+    this.hasGuest = false,
+    this.isScoreMode = false,
+    this.scoreDisplay,
+    this.isWinner = false,
   });
 
   @override
@@ -129,41 +137,66 @@ class GroupingPlayerTile extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-        leading: !isAdmin 
-            ? GroupingPlayerAvatar(
-                player: player, 
-                member: member, 
-                groupIndex: group.index, 
-                totalGroups: totalGroups, 
-                history: history,
-              )
-            : PopupMenuButton<String>(
-                onSelected: (val) => onAction?.call(val, player, group),
-                color: Colors.white,
-                surfaceTintColor: Colors.white,
-                elevation: 4,
-                offset: const Offset(0, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'move', child: Row(children: [Icon(Icons.drive_file_move_outlined, size: 18), SizedBox(width: 12), Text('Move to Group...')])),
-                  const PopupMenuItem(value: 'remove', child: Row(children: [Icon(Icons.person_remove_outlined, size: 18), SizedBox(width: 12), Text('Remove from Group')])),
-                  const PopupMenuItem(
-                    value: 'withdraw', 
-                    child: Row(children: [Icon(Icons.exit_to_app, size: 18, color: Colors.red), SizedBox(width: 12), Text('Withdraw Member', style: TextStyle(color: Colors.red))]),
-                  ),
-                ],
-                child: GroupingPlayerAvatar(
-                  player: player, 
-                  member: member, 
-                  groupIndex: group.index, 
-                  totalGroups: totalGroups, 
-                  history: history,
-                ),
+        leading: isScoreMode 
+            ? null 
+            : (!isAdmin 
+                ? GroupingPlayerAvatar(
+                    player: player, 
+                    member: member, 
+                    groupIndex: group.index, 
+                    totalGroups: totalGroups, 
+                    history: history,
+                  )
+                : PopupMenuButton<String>(
+                    onSelected: (val) => onAction?.call(val, player, group),
+                    color: Colors.white,
+                    surfaceTintColor: Colors.white,
+                    elevation: 4,
+                    offset: const Offset(0, 48),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'move', child: Row(children: [Icon(Icons.drive_file_move_outlined, size: 18), SizedBox(width: 12), Text('Move to Group...')])),
+                      const PopupMenuItem(value: 'remove', child: Row(children: [Icon(Icons.person_remove_outlined, size: 18), SizedBox(width: 12), Text('Remove from Group')])),
+                      const PopupMenuItem(
+                        value: 'withdraw', 
+                        child: Row(children: [Icon(Icons.exit_to_app, size: 18, color: Colors.red), SizedBox(width: 12), Text('Withdraw Member', style: TextStyle(color: Colors.red))]),
+                      ),
+                    ],
+                    child: GroupingPlayerAvatar(
+                      player: player, 
+                      member: member, 
+                      groupIndex: group.index, 
+                      totalGroups: totalGroups, 
+                      history: history,
+                    ),
+                  )),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                player.name, 
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
               ),
-        title: Text(
-          player.name, 
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          overflow: TextOverflow.ellipsis,
+            ),
+            if (player.isGuest) 
+               const Padding(
+                 padding: EdgeInsets.only(left: 4.0),
+                 child: Text(
+                   'G',
+                   style: TextStyle(
+                     fontSize: 12,
+                     fontWeight: FontWeight.w900,
+                     color: Colors.orange,
+                   ),
+                 ),
+               ),
+            if (isWinner && isScoreMode)
+               const Padding(
+                 padding: EdgeInsets.only(left: 6.0),
+                 child: Icon(Icons.emoji_events, size: 16, color: Colors.orange),
+               ),
+          ],
         ),
         subtitle: Row(
           children: [
@@ -174,65 +207,96 @@ class GroupingPlayerTile extends StatelessWidget {
             Text('PHC: $displayPhc', style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.bold)),
           ],
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Guest Marker
-            SizedBox(
-              width: 28,
-              child: Tooltip(
-                message: player.isGuest ? 'Guest' : 'Member',
-                child: Center(
-                  child: player.isGuest 
-                    ? const Icon(
-                        Icons.person_outline,
-                        color: Colors.deepPurple,
-                        size: 18,
-                      )
-                    : const SizedBox.shrink(),
+        trailing: isScoreMode 
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ),
-            ),
-            
-            // Buggy Marker/Toggle
-            SizedBox(
-              width: 28,
-              child: Tooltip(
-                message: player.needsBuggy ? 'Buggy: ${player.buggyStatus.name.toUpperCase()}' : 'No Buggy',
-                child: Center(
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: _buildBuggyIcon(player.needsBuggy ? player.buggyStatus : RegistrationStatus.none, size: 18),
-                    onPressed: isAdmin ? () => onAction?.call('buggy', player, group) : null,
+                child: Text(
+                  scoreDisplay ?? '-',
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
                   ),
                 ),
-              ),
-            ),
-
-            // Captain Marker/Toggle
-            SizedBox(
-              width: 28, 
-              child: Tooltip(
-                message: player.isCaptain ? 'Captain' : 'No Captain Role',
-                child: Center(
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      player.isCaptain ? Icons.shield : Icons.shield_outlined, 
-                      color: player.isCaptain ? Colors.orange : Colors.grey.shade200, 
-                      size: 18
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Guest/Role Marker
+                  SizedBox(
+                    width: 28,
+                    child: Center(
+                      child: _buildRoleIcon(),
                     ),
-                    onPressed: isAdmin ? () => onAction?.call('captain', player, group) : null,
                   ),
-                ),
+                  
+                  // Buggy Marker/Toggle
+                  SizedBox(
+                    width: 28,
+                    child: Tooltip(
+                      message: player.needsBuggy ? 'Buggy: ${player.buggyStatus.name.toUpperCase()}' : 'No Buggy',
+                      child: Center(
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: _buildBuggyIcon(player.needsBuggy ? player.buggyStatus : RegistrationStatus.none, size: 18),
+                          onPressed: isAdmin ? () => onAction?.call('buggy', player, group) : null,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Captain Marker/Toggle
+                  SizedBox(
+                    width: 28, 
+                    child: Tooltip(
+                      message: player.isCaptain ? 'Captain' : 'No Captain Role',
+                      child: Center(
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            player.isCaptain ? Icons.shield : Icons.shield_outlined, 
+                            color: player.isCaptain ? Colors.orange : Colors.grey.shade200, 
+                            size: 18
+                          ),
+                          onPressed: isAdmin ? () => onAction?.call('captain', player, group) : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
+  }
+
+  Widget _buildRoleIcon() {
+    if (player.isGuest) {
+      return const Text(
+        'G',
+        style: TextStyle(
+          fontSize: 14, 
+          fontWeight: FontWeight.w900, 
+          color: Colors.orange
+        ),
+      );
+    }
+    
+    // If member has confirmed guest in this group (passed via hasGuest prop)
+    if (hasGuest) {
+      return const Icon(
+        Icons.person_add,
+        color: Colors.deepPurple,
+        size: 18,
+      );
+    }
+    
+    return const SizedBox.shrink();
   }
 
   Widget _buildBuggyIcon(RegistrationStatus status, {double size = 16}) {
@@ -270,6 +334,8 @@ class GroupingCard extends StatelessWidget {
   final Function(TeeGroupParticipant p, TeeGroup g)? onTapParticipant;
   final bool Function(TeeGroupParticipant p)? isSelected;
   final Widget Function(TeeGroup group)? emptySlotBuilder;
+  final bool isScoreMode;
+  final Map<String, String>? scoreMap;
 
   const GroupingCard({
     super.key,
@@ -288,6 +354,8 @@ class GroupingCard extends StatelessWidget {
     this.onTapParticipant,
     this.isSelected,
     this.emptySlotBuilder,
+    this.isScoreMode = false,
+    this.scoreMap,
   });
 
   @override
@@ -307,8 +375,46 @@ class GroupingCard extends StatelessWidget {
       displayTotalHandicap = group.totalHandicap.roundToDouble();
     }
 
-    final bool hasGuest = group.players.any((p) => p.isGuest);
-    final bool isWithdrawn = group.players.any((p) => p.status == RegistrationStatus.withdrawn);
+    // --- Scoring Mode Logic (Winners & Team Total) ---
+    final isStableford = rules?.format == CompetitionFormat.stableford;
+    final int bestX = rules?.teamBestXCount ?? 2;
+    int groupTotal = 0;
+    final Map<String, bool> winnerMap = {};
+
+    if (isScoreMode && scoreMap != null) {
+      final List<MapEntry<String, int>> playerScores = [];
+      
+      for (var p in group.players) {
+        final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final scoreText = scoreMap![id];
+        if (scoreText != null && scoreText != '-') {
+          final score = int.tryParse(scoreText) ?? (isStableford ? 0 : 999);
+          playerScores.add(MapEntry(id, score));
+        }
+      }
+
+      if (playerScores.isNotEmpty) {
+        // Find individual winners in group
+        if (isStableford) {
+          playerScores.sort((a, b) => b.value.compareTo(a.value));
+        } else {
+          playerScores.sort((a, b) => a.value.compareTo(b.value));
+        }
+        
+        final bestScore = playerScores.first.value;
+        for (var entry in playerScores) {
+          if (entry.value == bestScore) {
+            winnerMap[entry.key] = true;
+          }
+        }
+
+        // Calculate Team Total (Best X)
+        final count = playerScores.length < bestX ? playerScores.length : bestX;
+        for (int i = 0; i < count; i++) {
+          groupTotal += playerScores[i].value;
+        }
+      }
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -325,20 +431,12 @@ class GroupingCard extends StatelessWidget {
                       'Group ${group.index + 1}',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey.shade600),
                     ),
-                    const SizedBox(width: 8),
-                    hasGuest && !isWithdrawn 
-                      ? const Icon(
-                          Icons.person_add,
-                          color: Colors.deepPurple,
-                          size: 20,
-                        )
-                      : const SizedBox.shrink(),
                   ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -350,6 +448,10 @@ class GroupingCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ...group.players.map((p) {
+               // Check if this player is a member who HAS a guest in this group
+               final isMemberWithGuest = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
+
+              final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
               final tile = GroupingPlayerTile(
                 player: p,
                 group: group,
@@ -360,9 +462,13 @@ class GroupingCard extends StatelessWidget {
                 courseConfig: courseConfig,
                 useWhs: useWhs,
                 isAdmin: isAdmin,
+                hasGuest: isMemberWithGuest,
                 onAction: onAction,
                 onTap: onTapParticipant != null ? () => onTapParticipant!(p, group) : null,
                 isSelected: isSelected?.call(p) ?? false,
+                isScoreMode: isScoreMode,
+                scoreDisplay: scoreMap?[id],
+                isWinner: winnerMap[id] ?? false,
               );
 
               if (isAdmin && !isLocked) {
@@ -374,8 +480,19 @@ class GroupingCard extends StatelessWidget {
                emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
             const Divider(height: 24),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                if (isScoreMode)
+                  Text(
+                    'Group Total (Best $bestX): $groupTotal',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor, 
+                      fontSize: 12, 
+                      fontWeight: FontWeight.w900,
+                    ),
+                  )
+                else
+                  const SizedBox.shrink(),
                 Text(
                   'Total PHC: ${displayTotalHandicap.toInt()}',
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w600),

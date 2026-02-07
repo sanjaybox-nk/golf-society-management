@@ -42,12 +42,14 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     // Initialize defaults or from existing competition
     final c = widget.competition;
     if (c != null) {
-      name = c.name ?? '';
+      name = c.name ?? c.rules.gameName;
       startDate = c.startDate;
       endDate = c.endDate;
     } else {
       startDate = DateTime.now();
       endDate = DateTime.now().add(const Duration(days: 1));
+      // For new ones, we can use the format's default name
+      name = CompetitionRules(format: format).gameName;
     }
   }
 
@@ -69,7 +71,8 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             hintText: widget.isTemplate 
                 ? 'e.g. Standard Stableford, Winter Rules...'
                 : 'e.g. Memorial Trophy, Society Scramble...',
-            validator: (val) => (val == null || val.isEmpty) ? 'Please enter a name' : null,
+            // Only require a name for Templates. For events, it can use the dynamic default.
+            validator: (val) => (widget.isTemplate && (val == null || val.isEmpty)) ? 'Please enter a name' : null,
           ),
           const SizedBox(height: 16),
           
@@ -115,7 +118,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
        try {
         final repo = ref.read(competitionsRepositoryProvider);
         
-        debugPrint('🎮 Saving competition: ID=${newComp.id}, Name=${newComp.name}, Allowance=${newComp.rules.handicapAllowance}');
+        debugPrint('🎮 Saving competition: ID=${newComp.id}, Name=${newComp.name}, Ver=${newComp.computeVersion}, Allowance=${newComp.rules.handicapAllowance}');
         
         if (widget.competition == null) {
           debugPrint('  → Creating NEW competition');

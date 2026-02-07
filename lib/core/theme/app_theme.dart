@@ -11,6 +11,7 @@ class AppTheme {
   static const Color surfaceWhite = Color(0xFFFFFFFF);
   static const Color surfaceGrey = Color(0xFFF5F5F5);
   static const Color backgroundGrey = Color(0xFFF0F2F5);
+  static const double fieldRadius = 12.0;
 
   static ThemeData generateTheme({required Color seedColor, required Brightness brightness}) {
     final isDark = brightness == Brightness.dark;

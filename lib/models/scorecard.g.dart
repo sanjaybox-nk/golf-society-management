@@ -41,6 +41,12 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
           ?.map((e) => (e as num?)?.toInt())
           .toList() ??
       const [],
+  playerVerifierScores:
+      (json['playerVerifierScores'] as List<dynamic>?)
+          ?.map((e) => (e as num?)?.toInt())
+          .toList() ??
+      const [],
+  markerId: json['markerId'] as String?,
   grossTotal: (json['grossTotal'] as num?)?.toInt(),
   netTotal: (json['netTotal'] as num?)?.toInt(),
   points: (json['points'] as num?)?.toInt(),
@@ -62,6 +68,8 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'status': _$ScorecardStatusEnumMap[instance.status]!,
       'scoringStatus': _$ScoringStatusEnumMap[instance.scoringStatus]!,
       'holeScores': instance.holeScores,
+      'playerVerifierScores': instance.playerVerifierScores,
+      'markerId': instance.markerId,
       'grossTotal': instance.grossTotal,
       'netTotal': instance.netTotal,
       'points': instance.points,

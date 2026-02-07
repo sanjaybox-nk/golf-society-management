@@ -51,6 +51,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(0) int minDrivesPerPlayer,
     @Default(false) bool useWHSScrambleAllowance,
     @Default(true) bool applyCapToIndex,
+    @Default(2) int teamBestXCount,
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>

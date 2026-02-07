@@ -1,5 +1,5 @@
 import 'dart:math';
-import '../../models/golf_event.dart';
+import 'package:golf_society/models/competition.dart';
 import '../../models/member.dart';
 import '../../models/scorecard.dart';
 
@@ -12,6 +12,7 @@ class MockDataSeeder {
     required Map<String, dynamic> courseConfig,
     int? playerCount,
     List<String>? specificMemberIds,
+    CompetitionRules? rules,
   }) {
     final results = <Map<String, dynamic>>[];
     final holes = courseConfig['holes'] as List? ?? List.generate(18, (i) => {'par': 4, 'si': i + 1});
@@ -35,28 +36,46 @@ class MockDataSeeder {
     }
 
     for (var member in targetPlayers) {
+      // 1. Calculate Handicaps based on Rules
+      final double baseHandicap = member.handicap;
+      double cappedHandicap = baseHandicap;
+      
+      if (rules != null) {
+        // Apply Cap
+        if (baseHandicap > rules.handicapCap) {
+          cappedHandicap = rules.handicapCap.toDouble();
+        }
+        // Apply Allowance (e.g. 95%)
+        cappedHandicap = cappedHandicap * rules.handicapAllowance;
+      }
 
-      final playerHandicap = member.handicap.round();
+      final int playingHandicap = cappedHandicap.round();
       final holeScores = <int>[];
       int grossTotal = 0;
 
-      // Generate 18 holes of strokes
+      // 2. Generate 18 holes of strokes (Gross)
       for (var hole in holes) {
         final par = hole['par'] as int? ?? 4;
         // Generate a score: Par +/- 2 with a bias towards Par/Bogey
         final roll = _random.nextDouble();
         int score;
-        if (roll < 0.05) score = par - 1;      // Birdie
-        else if (roll < 0.45) score = par;     // Par
-        else if (roll < 0.80) score = par + 1; // Bogey
-        else if (roll < 0.95) score = par + 2; // Double
-        else score = par + 3;                  // Disaster
+        if (roll < 0.05) {
+          score = par - 1; // Birdie
+        } else if (roll < 0.45) {
+          score = par; // Par
+        } else if (roll < 0.80) {
+          score = par + 1; // Bogey
+        } else if (roll < 0.95) {
+          score = par + 2; // Double
+        } else {
+          score = par + 3; // Disaster
+        }
         
         holeScores.add(score);
         grossTotal += score;
       }
 
-      // Calculate Stableford Points
+      // 3. Calculate Stableford Points using Playing Handicap
       int totalPoints = 0;
       for (int h = 0; h < 18; h++) {
         final hole = holes[h];
@@ -65,21 +84,22 @@ class MockDataSeeder {
         final score = holeScores[h];
 
         // Shots received on this hole
-        int shots = (playerHandicap / 18).floor();
-        if (playerHandicap % 18 >= si) shots++;
+        int shots = (playingHandicap / 18).floor();
+        if (playingHandicap % 18 >= si) shots++;
 
         final netScore = score - shots;
-        final points = max(0, par - netScore + 2);
+        final points = max(0, par - netScore + 2).toInt();
         totalPoints += points;
       }
 
       results.add({
         'playerId': member.id,
         'playerName': member.displayName,
-        'handicap': playerHandicap,
+        'handicap': baseHandicap, // Keep original for reference
+        'playingHandicap': playingHandicap, // The one used for scoring
         'holeScores': holeScores,
         'grossTotal': grossTotal,
-        'netTotal': grossTotal - playerHandicap,
+        'netTotal': grossTotal - playingHandicap,
         'points': totalPoints,
         'status': ScorecardStatus.finalScore.name,
       });

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/models/member.dart';
 import '../theme/app_theme.dart';
 import '../theme/contrast_helper.dart';
 import 'buttons.dart';
 
 /// A standard clean app bar with circular action buttons.
-class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
+class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onMenuPressed;
   final VoidCallback? onProfilePressed;
@@ -20,6 +24,9 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double? leadingWidth;
   final Widget? topRow;
   final String? subtitle;
+  final bool isPeeking;
+
+  final bool showAdminShortcut;
 
   const BoxyArtAppBar({
     super.key,
@@ -37,14 +44,33 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leadingWidth,
     this.topRow,
     this.subtitle,
+    this.isPeeking = false,
+    this.showAdminShortcut = true,
   });
 
   static const double largeHeight = 70.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final primaryColor = Theme.of(context).primaryColor;
     final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+
+    // Watch providers for global admin access and peeking state
+    final currentUser = ref.watch(currentUserProvider);
+    final isPeekingState = ref.watch(impersonationProvider) != null;
+    final isAdmin = currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin;
+
+    // Build default actions if none provided
+    final List<Widget> finalActions = actions != null ? [...actions!] : [];
+    
+    // Add Admin Console shortcut if user is Admin and NOT peeking AND showAdminShortcut is true
+    if (showAdminShortcut && isAdmin && !isPeekingState && title != 'Admin Console') {
+      finalActions.insert(0, IconButton(
+        icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 28),
+        tooltip: 'Admin Console',
+        onPressed: () => context.go('/admin'),
+      ));
+    }
 
     if (isLarge) {
       return AppBar(
@@ -61,13 +87,22 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
               SizedBox(height: 32, child: topRow!),
               const SizedBox(height: 8),
             ],
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: onPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isPeeking) ...[
+                  Icon(Icons.visibility, color: onPrimary.withValues(alpha: 0.6), size: 18),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: onPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
             ),
             if (subtitle != null)
               Text(
@@ -103,7 +138,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
                 )
             )
           : null),
-        actions: actions ?? [],
+        actions: finalActions,
         bottom: bottom,
       );
     }
@@ -117,13 +152,23 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Column(
          mainAxisSize: MainAxisSize.min,
          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: onPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24, // Consistent size
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: centerTitle == true ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                if (isPeeking) ...[
+                  Icon(Icons.visibility, color: onPrimary.withValues(alpha: 0.6), size: 18),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: onPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24, // Consistent size
+                      ),
+                ),
+              ],
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 2),
@@ -162,7 +207,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           : null),
       automaticallyImplyLeading: showLeading,
-      actions: actions ?? const [],
+      actions: finalActions,
       bottom: bottom,
     );
   }
@@ -421,12 +466,14 @@ class BoxyArtSectionTitle extends StatelessWidget {
   final String title;
   final EdgeInsetsGeometry padding;
   final bool isLevel2;
+  final bool isPeeking;
 
   const BoxyArtSectionTitle({
     super.key,
     required this.title,
     this.padding = const EdgeInsets.only(left: 4, bottom: 8),
     this.isLevel2 = false,
+    this.isPeeking = false,
   });
 
   @override
@@ -437,15 +484,28 @@ class BoxyArtSectionTitle extends StatelessWidget {
       padding: padding,
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Text(
-          title.toUpperCase(),
-          style: TextStyle(
-            fontSize: isLevel2 ? 10 : 12,
-            fontWeight: FontWeight.w900, // Maximized Boldness
-            color: isDark ? Colors.white54 : Colors.grey,
-            letterSpacing: 1.5, // Increased spacing
-            fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isPeeking) ...[
+              Icon(
+                Icons.visibility,
+                size: isLevel2 ? 10 : 12,
+                color: isDark ? Colors.white54 : Colors.grey,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              title.toUpperCase(),
+              style: TextStyle(
+                fontSize: isLevel2 ? 10 : 12,
+                fontWeight: FontWeight.w900, // Maximized Boldness
+                color: isDark ? Colors.white54 : Colors.grey,
+                letterSpacing: 1.5, // Increased spacing
+                fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+              ),
+            ),
+          ],
         ),
       ),
     );

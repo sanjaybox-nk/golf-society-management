@@ -61,8 +61,11 @@ class MatchplayHandicapCalculator {
       int effectiveSB = sB;
       
       if (strokesReceivedIndices.contains(i)) {
-        if (playerBIsHigher) effectiveSB--;
-        else effectiveSA--;
+        if (playerBIsHigher) {
+          effectiveSB--;
+        } else {
+          effectiveSA--;
+        }
       }
 
       if (effectiveSA < effectiveSB) {
@@ -74,7 +77,6 @@ class MatchplayHandicapCalculator {
 
     if (upCount == 0) return "All Square";
     
-    final leader = upCount > 0 ? "Player A" : "Player B";
     final absUp = upCount.abs();
     
     // Check if the match is finished (Dormie)

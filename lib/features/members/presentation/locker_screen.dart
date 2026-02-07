@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
 
 
+import 'package:golf_society/models/member.dart';
 import 'profile_provider.dart';
 
 class LockerScreen extends ConsumerWidget {
@@ -11,8 +12,9 @@ class LockerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(effectiveUserProvider);
     final stats = ref.watch(userStatsProvider);
+    final isPeeking = ref.watch(impersonationProvider) != null;
 
     return Scaffold(
       body: CustomScrollView(
@@ -34,6 +36,13 @@ class LockerScreen extends ConsumerWidget {
               ),
             ),
             actions: [
+              if (user.role == MemberRole.superAdmin || user.role == MemberRole.admin)
+                if (!isPeeking)
+                  IconButton(
+                    icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 28),
+                    tooltip: 'Admin Console',
+                    onPressed: () => context.go('/admin'),
+                  ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined, color: Colors.white),
                 onPressed: () {
@@ -130,7 +139,10 @@ class LockerScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Stats Grid
-                  const BoxyArtSectionTitle(title: 'Season Stats'),
+                  BoxyArtSectionTitle(
+                    title: 'Season Stats',
+                    isPeeking: isPeeking,
+                  ),
                   const SizedBox(height: 16),
                   const SizedBox(height: 16),
                   Row(
@@ -178,7 +190,10 @@ class LockerScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Settings Menu
-                  const BoxyArtSectionTitle(title: 'Settings'),
+                  BoxyArtSectionTitle(
+                    title: 'Settings',
+                    isPeeking: isPeeking,
+                  ),
                   const SizedBox(height: 8),
                   Card(
                     elevation: 0,

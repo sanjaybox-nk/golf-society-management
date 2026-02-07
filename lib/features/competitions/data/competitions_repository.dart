@@ -6,6 +6,7 @@ abstract class CompetitionsRepository {
   Stream<List<Competition>> watchCompetitions({CompetitionStatus? status});
   Future<List<Competition>> getCompetitions();
   Future<Competition?> getCompetition(String id);
+  Stream<Competition?> watchCompetition(String id);
   Future<String> addCompetition(Competition competition);
   Future<void> updateCompetition(Competition competition);
   Future<void> deleteCompetition(String id);

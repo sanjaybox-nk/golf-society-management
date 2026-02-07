@@ -53,7 +53,24 @@ The standard approach for society tour standings.
 -   **Eclectic**: Constructs the "perfect round" by taking the best score on each individual hole across all qualifying events.
 -   **Best Of Series**: Tracks the best $N$ scores by raw metric (Net, Stableford) without point conversion.
 
-## 4. UI Flow
+## 4. Enhanced Event Leaderboard
+
+The event leaderboard provides a real-time view of the field with advanced presentation features:
+
+### 4.1 Live Tracking
+- **"THRU X" (Holes Played)**: While scoring is active, the leaderboard shows exactly how many holes each player has completed.
+- **Dynamic Updates**: Standings re-order in real-time as scores are entered via the swiper.
+- **Finalized State**: Progress indicators are automatically hidden once the event is marked as "Published" or "Locked" by the admin.
+
+### 4.2 Automated Tie-Breaking
+- **Filtered Display**: Tie-break details (e.g., "Back 9: 18 pts") only appear when two or more players are tied on the same score.
+- **Logic**: Follows standard R&A countback methods (Back 9, Back 6, etc.) using the player's specific Playing Handicap (PHC) for the course.
+
+### 4.3 Member/Guest Separation
+- **Split Sections**: Guests are automatically identified (via the `_guest` suffix) and moved to a dedicated "Guest Leaderboard" section below the main field.
+- **Consistency**: Guests retain their "G" badge for easy identification in mixed lists.
+
+## 5. UI Flow
 
 ### Selecting a Format
 Admins are presented with a simplified selector:

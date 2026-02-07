@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -9,10 +9,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 import '../widgets/event_sliver_app_bar.dart';
-import '../../../../core/theme/theme_controller.dart';
+import '../../../../../core/theme/theme_controller.dart';
 import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../models/competition.dart';
+import '../../../../../models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
@@ -504,7 +504,7 @@ class EventDetailsContent extends StatelessWidget {
             );
           },
           loading: () => const SizedBox.shrink(),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
         );
       },
     );

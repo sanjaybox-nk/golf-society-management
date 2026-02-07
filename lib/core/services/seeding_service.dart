@@ -475,6 +475,21 @@ class SeedingService {
     if (labEvent.id.isEmpty) {
       throw Exception('Lab event created with empty ID');
     }
+
+    // Create a default competition record for the Lab Event
+    final compRepo = ref.read(competitionsRepositoryProvider);
+    await compRepo.addCompetition(Competition(
+      id: labEvent.id,
+      type: CompetitionType.event,
+      status: CompetitionStatus.open,
+      rules: const CompetitionRules(
+        format: CompetitionFormat.stableford,
+        handicapAllowance: 0.95,
+      ),
+      startDate: teeOffTime,
+      endDate: teeOffTime,
+    ));
+
     await seedRegistrations(labEvent.id);
   }
 
@@ -490,6 +505,8 @@ class SeedingService {
     final courseRepo = ref.read(courseRepositoryProvider);
     final courses = await courseRepo.watchCourses().first;
     if (courses.isEmpty) return;
+
+    final compRepo = ref.read(competitionsRepositoryProvider);
 
     final historyConfigs = [
       {
@@ -552,6 +569,7 @@ class SeedingService {
     for (var config in historyConfigs) {
       final date = config['date'] as DateTime;
       final selectedCourse = courses[historyConfigs.indexOf(config) % courses.length];
+      final format = config['format'] as CompetitionFormat? ?? CompetitionFormat.stableford;
       
       final event = GolfEvent(
         id: config['id'] as String,
@@ -596,6 +614,20 @@ class SeedingService {
       );
 
       await eventRepo.addEvent(event);
+      
+      // Create associated competition record
+      await compRepo.addCompetition(Competition(
+        id: event.id,
+        type: CompetitionType.event,
+        status: CompetitionStatus.closed,
+        rules: CompetitionRules(
+          format: format,
+          handicapAllowance: 0.95,
+        ),
+        startDate: date,
+        endDate: date,
+      ));
+
       if (event.id.isEmpty) {
         throw Exception('Historical event created with empty ID: ${event.title}');
       }
@@ -812,27 +844,19 @@ class SeedingService {
       'isPublished': true,
     };
 
-    await eventRepo.updateEvent(event.copyWith(
-      maxParticipants: eventCapacity,
-      registrations: registrations,
-      grouping: groupingData,
-      isGroupingPublished: true,
-    ));
-
     // 5. SEED SCORES
-    // We determine if we seed per group (Team) or per individual (Singles)
-    // For now, based on the format provided in the event title or history config
     final bool isTexasScramble = event.title.toLowerCase().contains('scramble');
+    List<Map<String, dynamic>> results = [];
     
     if (isTexasScramble) {
-      await seedTeamScores(
+      results = await seedTeamScores(
         eventId, 
         groupingData, 
         event.courseConfig,
         status: isPast ? ScorecardStatus.finalScore : ScorecardStatus.submitted,
       );
     } else {
-      await seedScores(
+      results = await seedScores(
         eventId, 
         flattenedItems, 
         event.courseConfig,
@@ -840,11 +864,20 @@ class SeedingService {
         event.isRegistrationClosed,
         handicapMap,
         status: isPast ? ScorecardStatus.finalScore : ScorecardStatus.submitted,
+        skipScorecardDocuments: !isPast,
       );
     }
+
+    await eventRepo.updateEvent(event.copyWith(
+      maxParticipants: eventCapacity,
+      registrations: registrations,
+      grouping: groupingData,
+      isGroupingPublished: true,
+      results: isPast ? results : [], // Skip leaderboard results for future events
+    ));
   }
 
-  Future<void> seedTeamScores(
+  Future<List<Map<String, dynamic>>> seedTeamScores(
     String eventId,
     Map<String, dynamic> groupingData,
     Map<String, dynamic> courseConfig,
@@ -853,23 +886,26 @@ class SeedingService {
     final scorecardRepo = ref.read(scorecardRepositoryProvider);
     final random = Random();
     final holes = courseConfig['holes'] as List<dynamic>? ?? [];
-    if (holes.isEmpty) return;
+    if (holes.isEmpty) return [];
 
     final groupsList = groupingData['groups'] as List? ?? [];
+    final results = <Map<String, dynamic>>[];
     
-    for (var gData in groupsList) {
+    for (int i = 0; i < groupsList.length; i++) {
+      final gData = groupsList[i];
       final group = TeeGroup.fromJson(gData);
-      final teamId = 'team_${group.index}'; // Standard app entryId for teams
+      final teamId = 'team_${group.index}'; 
       final List<int?> holeScores = [];
+      int grossTotal = 0;
       
       for (var holeData in holes) {
         final par = holeData['par'] as int? ?? 4;
-        // Teams usually score better!
         final r = random.nextDouble();
         int score = par;
-        if (r < 0.3) score = par - 1; // Birdie
-        if (r < 0.05) score = par - 2; // Eagle
+        if (r < 0.3) score = par - 1; 
+        if (r < 0.05) score = par - 2; 
         holeScores.add(score);
+        grossTotal += score;
       }
 
       await scorecardRepo.addScorecard(Scorecard(
@@ -880,28 +916,41 @@ class SeedingService {
         submittedByUserId: 'system_seed',
         status: status,
         holeScores: holeScores,
+        grossTotal: grossTotal,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ));
+
+      results.add({
+        'playerId': teamId,
+        'playerName': 'Team ${group.index + 1}',
+        'holeScores': holeScores,
+        'grossTotal': grossTotal,
+        'status': status.name,
+        'rank': i + 1,
+      });
     }
+    return results;
   }
 
-  Future<void> seedScores(
+  Future<List<Map<String, dynamic>>> seedScores(
     String eventId, 
     List<RegistrationItem> items, 
     Map<String, dynamic> courseConfig,
     int capacity,
     bool isClosed,
     Map<String, double> memberHandicaps,
-    {ScorecardStatus status = ScorecardStatus.submitted}
+    {ScorecardStatus status = ScorecardStatus.submitted, bool skipScorecardDocuments = false}
   ) async {
     final scorecardRepo = ref.read(scorecardRepositoryProvider);
     final random = Random();
 
     final holes = courseConfig['holes'] as List<dynamic>? ?? [];
-    if (holes.isEmpty) return;
+    if (holes.isEmpty) return [];
 
+    final results = <Map<String, dynamic>>[];
     int confirmedCount = 0;
+    
     for (var item in items) {
       final regStatus = RegistrationLogic.calculateStatus(
         isGuest: item.isGuest, 
@@ -916,10 +965,9 @@ class SeedingService {
       if (regStatus != RegistrationStatus.confirmed) continue;
       confirmedCount++;
 
-      // Entry ID logic: memberId for players, memberId_guest for guests
       final String entryId = item.isGuest ? "${item.registration.memberId}_guest" : item.registration.memberId;
+      final String displayName = item.isGuest ? (item.registration.guestName ?? 'Guest') : item.registration.memberName;
 
-      // Determine skill level for randomization
       double handicap = 18.0;
       if (item.isGuest) {
         handicap = double.tryParse(item.registration.guestHandicap ?? '18') ?? 18.0;
@@ -927,45 +975,83 @@ class SeedingService {
         handicap = memberHandicaps[item.registration.memberId] ?? 18.0;
       }
 
-      // Skill modifier: higher handicap = higher random offset
       final skillBias = (handicap / 18.0).clamp(0.5, 3.0);
-
       final List<int?> holeScores = [];
+      int grossTotal = 0;
+      
       for (var holeData in holes) {
           final par = holeData['par'] as int? ?? 4;
-          
           final r = random.nextDouble() * 10;
           int score;
           
           if (r < 0.1 / skillBias) {
-            score = par - 2; // Eagle (very rare)
+            score = par - 2;
           } else if (r < 1.0 / skillBias) {
-            score = par - 1; // Birdie
+            score = par - 1;
           } else if (r < 5.5 / skillBias) {
-            score = par; // Par
+            score = par;
           } else if (r < 8.5) {
-            score = par + 1; // Bogey
+            score = par + 1;
           } else if (r < 9.5) {
-            score = par + 2; // Double
+            score = par + 2;
           } else {
-            score = par + 3; // Triple+
+            score = par + 3;
           }
 
           holeScores.add(score);
+          grossTotal += score;
       }
 
-      await scorecardRepo.addScorecard(Scorecard(
-        id: '',
-        competitionId: eventId,
-        roundId: 'round_1',
-        entryId: entryId,
-        submittedByUserId: 'system_seed',
-        status: status,
-        holeScores: holeScores,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ));
+      // Calculate Stableford points (Simplified for seeding)
+      int totalPoints = 0;
+      final pHandicap = handicap.round();
+      for (int i = 0; i < holeScores.length; i++) {
+        final par = holes[i]['par'] as int? ?? 4;
+        final si = holes[i]['si'] as int? ?? (i + 1);
+        final score = holeScores[i]!;
+        int shots = (pHandicap / 18).floor();
+        if (pHandicap % 18 >= si) shots++;
+        final netScore = score - shots;
+        totalPoints += max(0, par - netScore + 2).toInt();
+      }
+
+      if (!skipScorecardDocuments) {
+        await scorecardRepo.addScorecard(Scorecard(
+          id: '',
+          competitionId: eventId,
+          roundId: 'round_1',
+          entryId: entryId,
+          submittedByUserId: 'system_seed',
+          status: status,
+          holeScores: holeScores,
+          grossTotal: grossTotal,
+          netTotal: grossTotal - pHandicap,
+          points: totalPoints,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ));
+      }
+
+      results.add({
+        'playerId': entryId,
+        'playerName': displayName,
+        'handicap': handicap,
+        'playingHandicap': pHandicap,
+        'holeScores': holeScores,
+        'grossTotal': grossTotal,
+        'netTotal': grossTotal - pHandicap,
+        'points': totalPoints,
+        'status': status.name,
+      });
     }
+
+    // Sort by points descending for Stableford events
+    results.sort((a, b) => (b['points'] as int).compareTo(a['points'] as int));
+    for (int i = 0; i < results.length; i++) {
+      results[i]['rank'] = i + 1;
+    }
+
+    return results;
   }
 
   Future<void> swapLabEventFormat(String templateId) async {

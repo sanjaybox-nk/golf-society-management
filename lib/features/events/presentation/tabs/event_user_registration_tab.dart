@@ -13,7 +13,6 @@ import '../widgets/registration_card.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
-import '../../../members/presentation/profile_provider.dart';
 
 class EventRegistrationUserTab extends ConsumerWidget {
   final String eventId;
@@ -157,10 +156,6 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
     // 3. Stats Logic (Standardized)
     final stats = RegistrationLogic.getRegistrationStats(event);
-    final currentUser = ref.watch(currentUserProvider);
-    final isAdmin = currentUser.role == MemberRole.superAdmin || 
-                    currentUser.role == MemberRole.admin || 
-                    currentUser.role == MemberRole.restrictedAdmin;
     
     final playingValue = stats.confirmedGuests > 0 
         ? '${stats.confirmedGolfers} (${stats.confirmedGuests})' 

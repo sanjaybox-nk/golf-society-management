@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_shadows.dart';
+import '../theme/app_theme.dart';
 import '../theme/status_colors.dart';
 import '../theme/contrast_helper.dart'; // [NEW]
 import '../theme/theme_controller.dart';
@@ -61,7 +62,7 @@ class BoxyArtFloatingCard extends ConsumerWidget {
                 ],
               ) 
             : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.fieldRadius),
         boxShadow: isDark ? [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.4),
@@ -75,7 +76,7 @@ class BoxyArtFloatingCard extends ConsumerWidget {
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.fieldRadius),
         child: Material(
           color: Colors.transparent,
           child: InkWell(

@@ -4,10 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../events/presentation/events_provider.dart';
-import '../../../../core/utils/seeding_controller.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
-import '../../../../models/season.dart';
+
 
 class AdminEventsScreen extends ConsumerWidget {
   const AdminEventsScreen({super.key});
@@ -28,11 +27,6 @@ class AdminEventsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () => context.push('/admin/settings'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.auto_fix_high, color: Colors.white, size: 24),
-            tooltip: 'Seed All Results',
-            onPressed: () => _seedAllPastResults(context, ref),
           ),
           const SizedBox(width: 8),
         ],
@@ -185,83 +179,7 @@ class AdminEventsScreen extends ConsumerWidget {
     );
   }
 
-  void _seedAllPastResults(BuildContext context, WidgetRef ref) async {
-     try {
-       await ref.read(seedingControllerProvider).seedPastEvents();
-       if (context.mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('✅ All past event results seeded!')),
-         );
-       }
-     } catch (e) {
-       if (context.mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('❌ Error seeding results: $e')),
-         );
-       }
-     }
-  }
 
-  void _seedTestEvent(BuildContext context, WidgetRef ref) async {
-    final repo = ref.read(eventsRepositoryProvider);
-    final now = DateTime.now();
-
-    final seasonsAsync = ref.read(seasonsProvider);
-    final activeSeason = seasonsAsync.value?.firstWhere((s) => s.status == SeasonStatus.active);
-    
-    if (activeSeason == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('⚠️ No active season found to seed into! Create one first.')),
-        );
-      }
-      return;
-    }
-
-    final testEvent = GolfEvent(
-      id: '', // Will be generated
-      title: 'Demo Society Match',
-      seasonId: activeSeason.id,
-      date: now.add(const Duration(days: 7)),
-      description: 'A prestigious match at the historic Wentworth Club.',
-      courseName: 'West Course',
-      courseDetails: 'Championship layout with fast greens and tight fairways.',
-      dressCode: 'Smart golf attire, collared shirts required.',
-      availableBuggies: 10,
-      facilities: ['Driving Range', 'Pro Shop', 'Locker Rooms', 'Spike Bar'],
-      memberCost: 85.0,
-      guestCost: 110.0,
-      dinnerCost: 35.0,
-      dinnerLocation: 'The Burma Bar',
-      notes: [
-        const EventNote(
-          title: 'Morning arrival',
-          content: '{"insert":"Please arrive 45 mins before tee off.\\n"}',
-        ),
-        const EventNote(
-          title: 'Special Competition',
-          content: '{"insert":"Nearest the pin on the 14th.\\n"}',
-        ),
-      ],
-      showRegistrationButton: true,
-      status: EventStatus.draft,
-    );
-
-    try {
-      await repo.addEvent(testEvent);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Test event seeded successfully!')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('❌ Error seeding event: $e')));
-      }
-    }
-  }
 
   void _toggleEventStatus(BuildContext context, WidgetRef ref, GolfEvent event) async {
     final isDraft = event.status == EventStatus.draft;
