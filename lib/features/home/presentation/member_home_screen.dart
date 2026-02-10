@@ -111,11 +111,14 @@ class MemberHomeScreen extends ConsumerWidget {
                             ),
                             const SizedBox(width: 12),
                           ],
-                          Text(
-                            societyConfig.societyName.endsWith('Golf Society') 
-                                ? societyConfig.societyName 
-                                : '${societyConfig.societyName} Golf Society',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          Expanded(
+                            child: Text(
+                              societyConfig.societyName.endsWith('Golf Society') 
+                                  ? societyConfig.societyName 
+                                  : '${societyConfig.societyName} Golf Society',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),

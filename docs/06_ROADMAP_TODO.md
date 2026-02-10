@@ -40,13 +40,15 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
     - [x] **Team Attribution**: Individual credit for team/pairs events.
     - [x] **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
+        - [x] **Secondary Overlays**: Run matchplay alongside Stableford/Medal.
+        - [x] **Interactive Grouping**: Tap-to-Swap pairing logic on the tee sheet.
     - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Locker Room (Profile)**
     - [x] **Edit Profile**: Form to update handicap, phone, etc.
     - [x] **Profile Input Stability**: ListenableBuilder refactor to prevent cursor jumping.
     - [x] **Photo Upload**: Profile picture management (5MB limit).
-    - [ ] **Stats Engine**: Calculate real trends from Firestore data.
+    - [x] **Stats Engine**: Rich Stats Dashboard with Society & Personal comparative views (WHS Net Differential calculation).
 - [x] **Communications & Notifications**
     - [x] **Dynamic Home Notifications**: Real-time alerts on Member Home.
     - [x] **Notification Inbox**: History view for all society alerts.
@@ -83,6 +85,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Iterative Testing Lab**: Multi-phase sandbox for seeding and verification.
     - [x] **Phase 3 (Teams)**: Scramble/Pairs logic verification.
     - [x] **Phase 4 (Hardening)**: Stress-test for ties and countbacks.
+    - [x] **Advanced Lab Mode**: Multi-scenario cycling for Matchplay and Team grouping.
 
 ## 5. Deployment
 - [ ] **CI/CD**

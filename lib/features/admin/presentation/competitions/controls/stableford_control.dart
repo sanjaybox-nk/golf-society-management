@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../models/competition.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
 import 'base_competition_control.dart';
 
 class StablefordControl extends BaseCompetitionControl {
@@ -217,7 +218,55 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
+        _buildMemberPreview(),
       ],
+    );
+  }
+
+  Widget _buildMemberPreview() {
+    final rules = buildRules();
+    final description = CompetitionRuleTranslator.translate(rules);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.visibility_outlined, size: 16, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                'MEMBER PREVIEW',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            description,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              height: 1.5,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

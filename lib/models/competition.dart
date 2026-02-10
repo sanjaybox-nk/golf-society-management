@@ -10,7 +10,7 @@ enum CompetitionStatus { draft, open, scoring, review, published, closed }
 
 enum CompetitionFormat { stroke, stableford, maxScore, matchPlay, scramble }
 
-enum CompetitionSubtype { none, texas, florida, grossStableford, fourball, foursomes }
+enum CompetitionSubtype { none, texas, florida, grossStableford, fourball, foursomes, ryderCup, teamMatchPlay }
 
 enum CompetitionMode { singles, pairs, teams }
 
@@ -20,7 +20,7 @@ enum TieBreakMethod { back9, back6, back3, back1, playoff }
 
 enum AggregationMethod { singleBest, totalSum, stablefordSum }
 
-enum MaxScoreType { fixed, parPlusX }
+enum MaxScoreType { fixed, parPlusX, netDoubleBogey }
 
 @freezed
 abstract class MaxScoreConfig with _$MaxScoreConfig {
@@ -90,6 +90,8 @@ extension CompetitionRulesX on CompetitionRules {
       if (subtype == CompetitionSubtype.grossStableford) return 'GROSS STABLEFORD';
       if (subtype == CompetitionSubtype.texas) return 'TEXAS SCRAMBLE';
       if (subtype == CompetitionSubtype.florida) return 'FLORIDA SCRAMBLE';
+      if (subtype == CompetitionSubtype.ryderCup) return 'RYDER CUP';
+      if (subtype == CompetitionSubtype.teamMatchPlay) return 'TEAM MATCH PLAY';
       return subtype.name.toUpperCase();
     }
     

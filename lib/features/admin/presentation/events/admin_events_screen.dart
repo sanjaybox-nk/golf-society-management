@@ -40,137 +40,74 @@ class AdminEventsScreen extends ConsumerWidget {
           if (events.isEmpty) {
             return const Center(child: Text('No events found.'));
           }
-          // Sort by date descending (newest first) for admin
-          final sortedEvents = [...events]
+
+          final now = DateTime.now();
+          final upcoming = events.where((e) => e.date.isAfter(now)).toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+          final past = events.where((e) => e.date.isBefore(now)).toList()
             ..sort((a, b) => b.date.compareTo(a.date));
 
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            itemCount: sortedEvents.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final event = sortedEvents[index];
-              return Dismissible(
-                key: Key(event.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.error,
-                    borderRadius: BorderRadius.circular(12),
+          return CustomScrollView(
+            slivers: [
+              // Upcoming Section
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+                sliver: SliverToBoxAdapter(
+                  child: BoxyArtSectionTitle(title: 'Upcoming Events'),
+                ),
+              ),
+              if (upcoming.isEmpty)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('No upcoming events scheduled')),
                   ),
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 24),
-                  child: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.white,
-                    size: 28,
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildEventRow(context, ref, upcoming[index]),
+                      ),
+                      childCount: upcoming.length,
+                    ),
                   ),
                 ),
-                confirmDismiss: (direction) async {
-                  return await showBoxyArtDialog<bool>(
-                    context: context,
-                    title: 'Delete Event?',
-                    message:
-                        'Are you sure you want to delete "${event.title}"?',
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
-                        child: const Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                onDismissed: (direction) {
-                  ref.read(eventsRepositoryProvider).deleteEvent(event.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Deleted "${event.title}"')),
-                  );
-                },
-                child: BoxyArtFloatingCard(
-                  onTap: () => context.push(
-                    '/admin/events/manage/${event.id}/event',
-                    extra: event,
+
+              // Past Section
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(24, 32, 24, 8),
+                sliver: SliverToBoxAdapter(
+                  child: BoxyArtSectionTitle(title: 'Past Events'),
+                ),
+              ),
+              if (past.isEmpty)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('No past events this season')),
                   ),
-                  child: Row(
-                    children: [
-                      BoxyArtDateBadge(date: event.date),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                               onTap: () => _toggleEventStatus(context, ref, event),
-                               child: _StatusChip(status: event.status),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              event.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${DateFormat('MMM d').format(event.date)} @ ${event.courseName ?? 'TBA'}',
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.color,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildEventRow(context, ref, past[index]),
                       ),
-                      const SizedBox(width: 8),
-                      // Status and Publish Action
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-// Status chip moved to main column
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.people_outline, color: Colors.blue, size: 20),
-                                tooltip: 'Registrations',
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                  onPressed: () => context.push(
-                                    '/admin/events/manage/${event.id}/registrations',
-                                    extra: event,
-                                  ),
-                              ),
-// Publish button removed (moved to Status Chip)
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                    ],
+                      childCount: past.length,
+                    ),
                   ),
                 ),
-              );
-            },
+
+              // Bottom padding for FAB
+              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -179,7 +116,122 @@ class AdminEventsScreen extends ConsumerWidget {
     );
   }
 
-
+  Widget _buildEventRow(BuildContext context, WidgetRef ref, GolfEvent event) {
+    return Dismissible(
+      key: Key(event.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.error,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Icon(
+          Icons.delete_outline,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return await showBoxyArtDialog<bool>(
+          context: context,
+          title: 'Delete Event?',
+          message: 'Are you sure you want to delete "${event.title}"?',
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+      onDismissed: (direction) {
+        ref.read(eventsRepositoryProvider).deleteEvent(event.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Deleted "${event.title}"')),
+        );
+      },
+      child: BoxyArtFloatingCard(
+        onTap: () => context.push(
+          '/admin/events/manage/${event.id}/event',
+          extra: event,
+        ),
+        child: Row(
+          children: [
+            BoxyArtDateBadge(date: event.date),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => _toggleEventStatus(context, ref, event),
+                    child: _StatusChip(status: event.status),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    event.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${DateFormat('MMM d').format(event.date)} @ ${event.courseName ?? 'TBA'}',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Status and Publish Action
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.people_outline, color: Colors.blue, size: 20),
+                      tooltip: 'Registrations',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => context.push(
+                        '/admin/events/manage/${event.id}/registrations',
+                        extra: event,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _toggleEventStatus(BuildContext context, WidgetRef ref, GolfEvent event) async {
     final isDraft = event.status == EventStatus.draft;

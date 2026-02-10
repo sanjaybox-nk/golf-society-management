@@ -39,10 +39,20 @@ Matches track status using a standardized format:
 - **`Dormie`**: The leading player is ahead by the same number of holes remaining.
 - **`3 & 2`**: The match ended on the 16th hole with one player 3 up.
 
-## 5. Implementation Status
+## 6. Admin Workflow (Layered Matches)
+
+1. **Event Setup**: Select a Match Play template as a **Secondary Game** overlay in the `EventFormScreen`.
+2. **Customization**: Use the **CUSTOMIZE RULES** button on the secondary card to fine-tune handicap allowances or tie-break methods specifically for the match overlay.
+3. **Pairings**: On the **Grouping Screen**, toggle on **Match Play Mode**.
+4. **Interactive Setup**: Use the **Tap-to-Swap** feature on the tee group cards to quickly assign players to Side A and Side B of each match.
+5. **Sync**: Matches are automatically synced to the event's match definitions upon saving the tee sheet.
+
+## 7. Implementation Status
 
 - [x] Data Models (`MatchplayComp`, `MatchplayRound`, etc.)
 - [x] Handicap & Strokes Received Logic
 - [x] Leaderboard Format Awareness
+- [x] Secondary Game (Overlay) Toggle & Independent Customization
+- [x] Interactive Match Pairing (Tap-to-Swap) on Grouping Screen
 - [ ] Visual Bracket Tree UI
-- [ ] Layered Match Overlay in Scorecard Entry
+- [x] Layered Match Overlay in Scorecard Entry (via Derived Status)

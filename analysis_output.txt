@@ -1,0 +1,44 @@
+Analyzing Golf Society Management...                            
+
+warning • The value of the local variable 'holesWon' isn't used • lib/core/services/seeding_service.dart:1256:13 • unused_local_variable
+warning • Unused import: '../../../matchplay/domain/match_definition.dart' • lib/features/admin/presentation/events/event_admin_grouping_screen.dart:22:8 • unused_import
+warning • The operand can't be 'null', so the condition is always 'true' • lib/features/admin/presentation/events/event_admin_scores_screen.dart:186:61 • unnecessary_null_comparison
+warning • Dead code • lib/features/admin/presentation/events/event_admin_scores_screen.dart:186:81 • dead_code
+   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:159:22 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:160:10 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:232:22 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:233:10 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:298:22 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:299:10 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of multiple underscores • lib/features/debug/presentation/widgets/lab_control_panel.dart:81:41 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/debug/presentation/widgets/lab_control_panel.dart:102:26 • unnecessary_underscores
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/features/debug/presentation/widgets/lab_control_panel.dart:119:17 • deprecated_member_use
+warning • Unused import: '../../../members/presentation/members_provider.dart' • lib/features/events/presentation/tabs/event_stats_tab.dart:9:8 • unused_import
+warning • Unused import: '../events_provider.dart' • lib/features/events/presentation/tabs/event_stats_tab.dart:11:8 • unused_import
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:169:23 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:170:29 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:171:29 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:172:29 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:173:14 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:186:29 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:187:34 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:188:33 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:189:33 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:190:33 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:191:24 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:191:52 • curly_braces_in_flow_control_structures
+warning • Unused import: 'event_user_placeholders.dart' • lib/features/events/presentation/tabs/event_user_details_tab.dart:17:8 • unused_import
+warning • Unused import: 'dart:math' • lib/features/events/presentation/tabs/event_user_placeholders.dart:26:8 • unused_import
+warning • The '!' will have no effect because the receiver can't be null • lib/features/events/presentation/tabs/event_user_placeholders.dart:1117:27 • unnecessary_non_null_assertion
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1809:24 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1810:32 • curly_braces_in_flow_control_structures
+   info • The 'if' statement could be replaced by a null-aware assignment • lib/features/events/presentation/tabs/event_user_placeholders.dart:1820:16 • prefer_conditional_assignment
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1886:32 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1887:37 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1891:30 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1892:34 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1893:12 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1943:33 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1944:37 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1945:15 • curly_braces_in_flow_control_structures
+

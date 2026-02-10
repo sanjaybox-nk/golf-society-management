@@ -11,7 +11,7 @@ export interface ScoringParams {
 }
 
 export interface MaxScoreConfig {
-    type: 'fixed' | 'parPlusX';
+    type: 'fixed' | 'parPlusX' | 'netDoubleBogey';
     value: number;
 }
 
@@ -53,6 +53,7 @@ export function calculateStablefordPoints(
 export function normalizeMaxScore(
     grossScore: number | null,
     par: number,
+    strokesReceived: number,
     config: MaxScoreConfig
 ): number {
     if (grossScore === null) return 0;
@@ -60,8 +61,11 @@ export function normalizeMaxScore(
     let capValue: number;
     if (config.type === 'fixed') {
         capValue = config.value;
-    } else {
+    } else if (config.type === 'parPlusX') {
         capValue = par + config.value;
+    } else {
+        // Net Double Bogey = Par + 2 + Handicap Strokes
+        capValue = par + 2 + strokesReceived;
     }
 
     return Math.min(grossScore, capValue);

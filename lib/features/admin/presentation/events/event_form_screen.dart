@@ -101,6 +101,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   GolfEvent? _editingEvent;
   Competition? _eventCompetition;
   String? _selectedCourseId;
+  String? _secondaryTemplateId;
+  Competition? _secondaryCompetition;
+  bool _isSecondaryCustomized = false;
 
   // Hole Configuration
   late List<TextEditingController> _holeParsControllers;
@@ -197,9 +200,25 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           // Detection: if computeVersion > 0, it means it was edited in the builder
           _isCustomized = comp.computeVersion != null && comp.computeVersion! > 0;
         });
+        _fetchSecondaryCompetition(eventId);
       }
     } catch (e) {
       debugPrint('Error fetching competition: $e');
+    }
+  }
+
+  Future<void> _fetchSecondaryCompetition(String eventId) async {
+    try {
+      final compRepo = ref.read(competitionsRepositoryProvider);
+      final comp = await compRepo.getCompetition('${eventId}_secondary');
+      if (mounted && comp != null) {
+        setState(() {
+          _secondaryCompetition = comp;
+          _isSecondaryCustomized = comp.computeVersion != null && comp.computeVersion! > 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching secondary competition: $e');
     }
   }
 
@@ -265,6 +284,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _selectedCourseId = e.courseId;
     _isMultiDay = e.isMultiDay == true;
     _endDate = e.endDate;
+    _secondaryTemplateId = e.secondaryTemplateId;
+
+    // Fetch secondary competition if exists
+    if (e.id.isNotEmpty && _secondaryTemplateId != null) {
+      _fetchSecondaryCompetition(e.id);
+    }
 
     // Fetch tees if courseId exists
     if (_selectedCourseId != null) {
@@ -502,6 +527,38 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       } else if (!hasTemplate && _eventCompetition == null) {
           // NO GAME SELECTED - Clear remnant
           await compRepo.deleteCompetition(finalEventId);
+      }
+
+      // SECONDARY COMPETITION (MATCH PLAY OVERLAY)
+      if (_secondaryTemplateId != null) {
+         final secondaryId = '${finalEventId}_secondary';
+         if (_secondaryCompetition == null) {
+            final templates = ref.read(templatesListProvider).value;
+            final template = templates?.where((t) => t.id == _secondaryTemplateId).firstOrNull;
+            if (template != null) {
+               final newSecondary = Competition(
+                 id: secondaryId,
+                 templateId: _secondaryTemplateId,
+                 type: CompetitionType.event,
+                 status: CompetitionStatus.draft,
+                 rules: template.rules,
+                 startDate: newEvent.date,
+                 endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
+                 publishSettings: {},
+                 isDirty: true,
+               );
+               await compRepo.addCompetition(newSecondary);
+            }
+         } else {
+            final updatedSecondary = _secondaryCompetition!.copyWith(
+              startDate: newEvent.date,
+              endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
+            );
+            await compRepo.updateCompetition(updatedSecondary);
+         }
+      } else {
+         // Clear secondary if removed
+         await compRepo.deleteCompetition('${finalEventId}_secondary');
       }
 
       // Update _editingEvent after save so subsequent operations have access to the event ID
@@ -936,18 +993,20 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  BoxyArtButton(
-                                    title: 'ADD GAME FORMAT',
-                                    onTap: () async {
-                                      final result = await context.push<String>('/admin/events/competitions/new');
-                                      if (result != null) {
-                                        setState(() {
-                                          _selectedTemplateId = result;
-                                          _isCustomized = false;
-                                          _eventCompetition = null;
-                                        });
-                                      }
-                                    },
+                                  Center(
+                                    child: BoxyArtButton(
+                                      title: 'ADD GAME FORMAT',
+                                      onTap: () async {
+                                        final result = await context.push<String>('/admin/events/competitions/new');
+                                        if (result != null) {
+                                          setState(() {
+                                            _selectedTemplateId = result;
+                                            _isCustomized = false;
+                                            _eventCompetition = null;
+                                          });
+                                        }
+                                      },
+                                    ),
                                   ),
                                 ],
                               );
@@ -1139,6 +1198,200 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     },
                   ),
                 ),
+                
+                // SECONDARY GAME (MATCH PLAY OVERLAY)
+                Consumer(
+                  builder: (context, ref, child) {
+                    final templates = ref.watch(templatesListProvider).value ?? [];
+                    final displayComp = _eventCompetition ?? templates.where((t) => t.id == _selectedTemplateId).firstOrNull;
+                    
+                    if (displayComp == null) return const SizedBox.shrink();
+                    
+                    final format = displayComp.rules.format;
+                    final isStableford = format == CompetitionFormat.stableford;
+                    final isStroke = format == CompetitionFormat.stroke;
+                    
+                    if (!isStableford && !isStroke) return const SizedBox.shrink();
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        const BoxyArtSectionTitle(title: 'SECONDARY GAME (OVERLAY)'),
+                        const SizedBox(height: 12),
+                        BoxyArtFloatingCard(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_secondaryTemplateId == null)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'NO OVERLAY ACTIVE',
+                                      style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Center(
+                                      child: BoxyArtButton(
+                                        title: 'ADD MATCH PLAY OVERLAY',
+                                        onTap: () async {
+                                          final result = await context.push<String>('/admin/events/competitions/new?format=matchPlay');
+                                          if (result != null) {
+                                            setState(() => _secondaryTemplateId = result);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              else
+                                Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                                          child: const Icon(Icons.compare_arrows, color: Colors.orange),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Text('MATCH PLAY OVERLAY', style: TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.bold)),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                (_isSecondaryCustomized && _secondaryCompetition?.name != null && _secondaryCompetition!.name!.isNotEmpty)
+                                                    ? _secondaryCompetition!.name!.toUpperCase()
+                                                    : (_secondaryCompetition?.name ?? templates.where((t) => t.id == _secondaryTemplateId).firstOrNull?.name ?? 'Match Play'),
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                              ),
+                                              if (_secondaryCompetition != null || templates.any((t) => t.id == _secondaryTemplateId)) ...[
+                                                const SizedBox(height: 8),
+                                                Consumer(
+                                                  builder: (context, ref, child) {
+                                                    final rules = _secondaryCompetition?.rules ?? templates.firstWhere((t) => t.id == _secondaryTemplateId).rules;
+                                                    return Wrap(
+                                                      spacing: 8,
+                                                      runSpacing: 4,
+                                                      children: [
+                                                        BoxyArtStatusPill(
+                                                          text: rules.gameName,
+                                                          baseColor: Colors.black87,
+                                                        ),
+                                                        BoxyArtStatusPill(
+                                                          text: rules.scoringType.toUpperCase(),
+                                                          baseColor: Colors.orangeAccent,
+                                                        ),
+                                                        BoxyArtStatusPill(
+                                                          text: rules.defaultAllowanceLabel,
+                                                          baseColor: Theme.of(context).primaryColor,
+                                                        ),
+                                                        BoxyArtStatusPill(
+                                                          text: rules.mode.name.toUpperCase(),
+                                                          baseColor: Colors.blueGrey,
+                                                        ),
+                                                        if (rules.applyCapToIndex)
+                                                          BoxyArtStatusPill(
+                                                            text: 'CAP: ${rules.handicapCap}',
+                                                            baseColor: Colors.deepPurple,
+                                                          ),
+                                                        if (rules.tieBreak != TieBreakMethod.back9 && rules.tieBreak != TieBreakMethod.playoff)
+                                                          BoxyArtStatusPill(
+                                                            text: 'TB: ${rules.tieBreak.name.toUpperCase()}',
+                                                            baseColor: Colors.brown,
+                                                          ),
+                                                      ],
+                                                    );
+                                                  }
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => setState(() {
+                                            _secondaryTemplateId = null;
+                                            _secondaryCompetition = null;
+                                            _isSecondaryCustomized = false;
+                                          }),
+                                          icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                    const Divider(height: 1, indent: 56),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const SizedBox(width: 56),
+                                        TextButton.icon(
+                                          onPressed: () async {
+                                            String? eventId = _editingEvent?.id ?? widget.event?.id;
+                                            if (eventId == null) {
+                                              bool? proceed = await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  title: const Text("Save Event First?"),
+                                                  content: const Text("To customize rules, we need to save the basic event details first."),
+                                                  actions: [
+                                                    TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
+                                                    TextButton(onPressed: () => context.pop(true), child: const Text("Save & Customize")),
+                                                  ],
+                                                ),
+                                              );
+                                              if (proceed != true) return;
+                                              await _save(shouldPop: false);
+                                              if (!mounted) return;
+                                              eventId = _editingEvent?.id ?? widget.event?.id;
+                                            }
+                                            if (eventId == null) return;
+                                            
+                                            final secondaryId = '${eventId}_secondary';
+                                            if (_secondaryCompetition == null) {
+                                               final template = templates.where((t) => t.id == _secondaryTemplateId).firstOrNull;
+                                               if (template != null) {
+                                                   final newComp = Competition(
+                                                     id: secondaryId,
+                                                     templateId: _secondaryTemplateId,
+                                                     type: CompetitionType.event,
+                                                     status: CompetitionStatus.draft,
+                                                     rules: template.rules,
+                                                     startDate: _selectedDate,
+                                                     endDate: _isMultiDay && _endDate != null ? _endDate! : _selectedDate,
+                                                     publishSettings: {},
+                                                     isDirty: true,
+                                                   );
+                                                   await ref.read(competitionsRepositoryProvider).addCompetition(newComp);
+                                                   if (mounted) _fetchSecondaryCompetition(eventId);
+                                               }
+                                            }
+
+                                            if (!mounted) return;
+                                            await GoRouter.of(context).push('/admin/events/competitions/edit/$secondaryId');
+                                            if (mounted) _fetchSecondaryCompetition(eventId);
+                                          },
+                                          icon: Icon(_isSecondaryCustomized ? Icons.edit_note : Icons.tune, size: 18),
+                                          label: Text(_isSecondaryCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES'),
+                                          style: TextButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: const Size(0, 36),
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                ),
+
                 const SizedBox(height: 24),
                 const BoxyArtSectionTitle(title: 'Playing Costs'),
                 const SizedBox(height: 12),
@@ -1493,6 +1746,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       flashUpdates: _editingEvent?.flashUpdates ?? widget.event?.flashUpdates ?? [],
       courseId: _selectedCourseId,
       selectedTeeName: _selectedTeeName,
+      secondaryTemplateId: _secondaryTemplateId,
       courseConfig: {
         'holes': List.generate(18, (i) => {
           'hole': i + 1,

@@ -93,6 +93,31 @@ class MemberTile extends ConsumerWidget {
                       color: textColor,
                     ),
                   ),
+                  
+                  // Committee Badge (Below Name)
+                  if (member.societyRole?.isNotEmpty == true) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                           decoration: BoxDecoration(
+                             color: Theme.of(context).primaryColor,
+                             borderRadius: BorderRadius.circular(6),
+                           ),
+                           child: Text(
+                             member.societyRole!.toUpperCase(),
+                             style: const TextStyle(
+                               color: Colors.white,
+                               fontSize: 9,
+                               fontWeight: FontWeight.w900,
+                               letterSpacing: 0.5,
+                             ),
+                           ),
+                         ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   
                   // Stats
@@ -227,30 +252,7 @@ class MemberTile extends ConsumerWidget {
                         ),
                       ],
 
-                      // Committee Badge (Right Aligned)
-                      if (member.societyRole?.isNotEmpty == true) ...[
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () {}, // Consume tap to prevent detail navigation
-                          child: Container(
-                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                             decoration: BoxDecoration(
-                               color: Theme.of(context).primaryColor,
-                               borderRadius: BorderRadius.circular(20),
-                             ),
-                             child: Text(
-                               member.societyRole!.toUpperCase(),
-                               style: const TextStyle(
-                                 color: Colors.white,
-                                 fontSize: 10,
-                                 fontWeight: FontWeight.bold,
-                                 letterSpacing: 0.5,
-                               ),
-                             ),
-                           ),
-                        ),
-                      ],
-                    ], 
+                    ],
                   ),
                 ],
               ),

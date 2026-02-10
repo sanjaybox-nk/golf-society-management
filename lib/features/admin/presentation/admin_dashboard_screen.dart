@@ -4,84 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
-import 'package:golf_society/core/services/seeding_service.dart';
-import 'package:golf_society/features/members/presentation/profile_provider.dart'; // Added this import
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
-
-  void _showMemberPicker(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: BoxyArtSectionTitle(title: 'Select Member to Peek'),
-              ),
-              Expanded(
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final membersAsync = ref.watch(allMembersProvider);
-                    return membersAsync.when(
-                      data: (members) => ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: members.length,
-                        separatorBuilder: (context, index) => const Divider(),
-                        itemBuilder: (context, index) {
-                          final member = members[index];
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                              child: Text(
-                                member.firstName[0],
-                                style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            title: Text(member.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('HC: ${member.handicap}'),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              ref.read(impersonationProvider.notifier).set(member);
-                              Navigator.pop(context); // Close picker
-                              context.go('/home'); // High-level navigation
-                            },
-                          );
-                        },
-                      ),
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Center(child: Text('Error: $err')),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -184,62 +109,6 @@ class AdminDashboardScreen extends ConsumerWidget {
                          ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Global Reports is coming soon'))
                         );
-                      },
-                    ),
-                    const Divider(height: 32),
-                    _DashboardActionTile(
-                      icon: Icons.visibility_outlined,
-                      title: 'Peek as Member',
-                      subtitle: 'Experience the app as a regular member',
-                      color: Colors.amber,
-                      onTap: () => _showMemberPicker(context, ref),
-                    ),
-                    const Divider(height: 32),
-                    _DashboardActionTile(
-                      icon: Icons.auto_awesome_motion_outlined,
-                      title: 'Seed Full Demo Data',
-                      subtitle: 'Re-populate society with members, events, and scores',
-                      color: Colors.pinkAccent,
-                      onTap: () async {
-                        try {
-                          final seeding = ref.read(seedingServiceProvider);
-                          await seeding.seedStableFoundation();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Society seeded with full demo data!'))
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Seeding failed: $e'))
-                            );
-                          }
-                        }
-                      },
-                    ),
-                    const Divider(height: 32),
-                    _DashboardActionTile(
-                      icon: Icons.cloud_download_outlined,
-                      title: 'Initialize Core Data',
-                      subtitle: 'Seed courses and templates only',
-                      color: Colors.teal,
-                      onTap: () async {
-                        try {
-                          final seeding = ref.read(seedingServiceProvider);
-                          await seeding.seedInitialData();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Core data initialized successfully!'))
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Initialization failed: $e'))
-                            );
-                          }
-                        }
                       },
                     ),
                   ],

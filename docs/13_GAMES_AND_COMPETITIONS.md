@@ -116,10 +116,12 @@ Matchplay competitions can run as separate entities with their own lifecycle.
 - **Visual Bracket**: Automated tree-view for knockout rounds.
 - **Deadline Management**: Rounds have fixed deadlines; results can be entered manually as a final score (e.g., "3 & 2").
 
-### 6.2 Event-Layered Mode
-A Matchplay match can be "layered" on top of a standard Stroke Play or Stableford event.
-- **Single Scorecard**: Players enter strokes once for the main event.
-- **Real-time Status**: The engine derives the match status (e.g., "1 UP") in the background using relative handicaps on the same scorecard.
+### 6.3 Secondary Games (Overlays)
+Administrators can configure a **Secondary Game** (typically a Match Play overlay) to run alongside the primary competition.
+- **Support**: Available when the primary format is Stableford or Stroke Play.
+- **Independence**: The secondary game has its own `CompetitionRules` and can be customized independently of the main event rules.
+- **UI Card**: Displays as a secondary configuration card in the Event Form with its own badge-based summary.
+- **Player View**: Players see rules for both the primary and secondary games in their event details tab.
 
 ## 7. Scoring Status Lifecycle
 

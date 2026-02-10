@@ -87,6 +87,9 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
       const [],
   scoringForceActive: json['scoringForceActive'] as bool? ?? false,
   isScoringLocked: json['isScoringLocked'] as bool? ?? false,
+  isStatsReleased: json['isStatsReleased'] as bool? ?? false,
+  finalizedStats: json['finalizedStats'] as Map<String, dynamic>? ?? const {},
+  secondaryTemplateId: json['secondaryTemplateId'] as String?,
   status:
       $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
       EventStatus.draft,
@@ -138,12 +141,16 @@ Map<String, dynamic> _$GolfEventToJson(
   'flashUpdates': instance.flashUpdates,
   'scoringForceActive': instance.scoringForceActive,
   'isScoringLocked': instance.isScoringLocked,
+  'isStatsReleased': instance.isStatsReleased,
+  'finalizedStats': instance.finalizedStats,
+  'secondaryTemplateId': instance.secondaryTemplateId,
   'status': _$EventStatusEnumMap[instance.status]!,
 };
 
 const _$EventStatusEnumMap = {
   EventStatus.draft: 'draft',
   EventStatus.published: 'published',
+  EventStatus.inPlay: 'inPlay',
   EventStatus.completed: 'completed',
   EventStatus.cancelled: 'cancelled',
 };

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../events/presentation/events_provider.dart';
+import '../../../events/presentation/tabs/event_stats_tab.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/scorecard.dart';
 import '../../../../models/event_registration.dart';
@@ -10,6 +11,9 @@ import '../../../competitions/presentation/competitions_provider.dart';
 import 'widgets/admin_scorecard_list.dart';
 import '../../../../models/competition.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
+import '../../../events/logic/event_analysis_engine.dart';
+import '../../../../core/utils/grouping_service.dart';
+import '../../../debug/presentation/state/debug_providers.dart';
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -50,6 +54,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                   _buildTabButton('Controls', 0, Icons.settings_outlined),
                   _buildTabButton('Leaderboard', 1, Icons.emoji_events_outlined),
                   _buildTabButton('Scorecards', 2, Icons.people_outline),
+                  _buildTabButton('Stats', 3, Icons.analytics_outlined),
                 ],
               ),
             ),
@@ -147,6 +152,43 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                 ],
               ),
             ),
+            const SizedBox(height: 24),
+            const BoxyArtSectionTitle(title: 'ANALYTICS & STATS'),
+            const SizedBox(height: 12),
+            BoxyArtFloatingCard(
+              child: Column(
+                children: [
+                   _buildControlRow(
+                    context,
+                    icon: Icons.analytics_outlined,
+                    title: 'Release Final Stats',
+                    subtitle: 'Make the Stats tab visible to all players in their event view.',
+                    value: event.isStatsReleased == true,
+                    onChanged: (val) async {
+                      if (val) {
+                        // Recalculate before releasing to ensure accuracy
+                        await _recalculateStats(event, scorecardsAsync);
+                      }
+                      ref.read(eventsRepositoryProvider).updateEvent(
+                        event.copyWith(isStatsReleased: val),
+                      );
+                    },
+                  ),
+                  const Divider(height: 32),
+                  BoxyArtButton(
+                    title: 'RECALCULATE STATS',
+                    fullWidth: true,
+                    isSecondary: true,
+                    onTap: () => _recalculateStats(event, scorecardsAsync),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Last Finalized: ${event.finalizedStats != null ? "Ready" : "Never"}',
+                    style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
           ],
         );
       case 1: // Leaderboard
@@ -186,6 +228,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                       : 18; // We don't have member handicap map here easily, default 18 for display or fetch
 
                   return LeaderboardEntry(
+                    entryId: s.entryId,
                     playerName: name,
                     score: s.points ?? 0, // Default to Stableford points
                     handicap: hc,
@@ -219,6 +262,43 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               error: (e, s) => Center(child: Text('Error: $e')),
             ),
           ],
+        );
+      case 3: // Stats
+        // [Lab Mode Simulation]
+        final simulationHoles = ref.watch(simulationHoleCountOverrideProvider);
+        final statusOverride = ref.watch(eventStatusOverrideProvider);
+        final effectiveStatus = statusOverride ?? event.status;
+        final Map<String, int> playerHoleLimits = {};
+
+        if (simulationHoles != null && effectiveStatus == EventStatus.inPlay) {
+          final groupsData = event.grouping['groups'] as List?;
+          if (groupsData != null) {
+            final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
+            for (int i = 0; i < groups.length; i++) {
+              final groupLimit = (simulationHoles - i).clamp(0, 18);
+              for (var p in groups[i].players) {
+                playerHoleLimits[p.registrationMemberId] = groupLimit;
+                playerHoleLimits['${p.registrationMemberId}_guest'] = groupLimit;
+              }
+            }
+          }
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              EventStatsTab(
+                event: event,
+                comp: ref.watch(competitionDetailProvider(event.id)).value,
+                liveScorecards: scorecardsAsync.value ?? [],
+                isAdmin: true,
+                playerHoleLimits: playerHoleLimits,
+              ),
+              const SizedBox(height: 80),
+            ],
+          ),
         );
       default:
         return const SizedBox.shrink();
@@ -260,6 +340,41 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           const SnackBar(content: Text('All scores and results have been reset.')),
         );
       }
+    }
+  }
+
+  Future<void> _recalculateStats(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) async {
+    final scorecards = scorecardsAsync.value;
+    if (scorecards == null || scorecards.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No scores available to calculate stats.')),
+      );
+      return;
+    }
+
+    final compAsync = ref.read(competitionDetailProvider(event.id));
+    final competition = compAsync.value;
+    if (competition == null) return;
+
+    // Show loading
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Calculating stats...'), duration: Duration(seconds: 1)),
+    );
+
+    final stats = EventAnalysisEngine.calculateFinalStats(
+      event: event,
+      competition: competition,
+      scorecards: scorecards,
+    );
+
+    await ref.read(eventsRepositoryProvider).updateEvent(
+      event.copyWith(finalizedStats: stats),
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Stats recalculated and saved!')),
+      );
     }
   }
 

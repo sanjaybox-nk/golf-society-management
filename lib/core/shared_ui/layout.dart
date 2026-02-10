@@ -11,7 +11,6 @@ import 'buttons.dart';
 class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onMenuPressed;
-  final VoidCallback? onProfilePressed;
   final bool showBack;
   final bool showLeading;
   final VoidCallback? onBack;
@@ -32,7 +31,6 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.onMenuPressed,
-    this.onProfilePressed,
     this.showBack = false,
     this.showLeading = true,
     this.onBack,
@@ -48,7 +46,7 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
     this.showAdminShortcut = true,
   });
 
-  static const double largeHeight = 70.0;
+  static const double largeHeight = 84.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,12 +92,15 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   Icon(Icons.visibility, color: onPrimary.withValues(alpha: 0.6), size: 18),
                   const SizedBox(width: 8),
                 ],
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: onPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
+                Flexible(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: onPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -138,7 +139,36 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 )
             )
           : null),
-        actions: finalActions,
+        actions: (isLarge && finalActions.length >= 2)
+            ? [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      for (var action in finalActions)
+                        if (action is IconButton)
+                          SizedBox(
+                            width: 32, // Width instead of height for horizontal stack
+                            child: IconButton(
+                              icon: Icon(
+                                (action.icon as Icon).icon,
+                                color: (action.icon as Icon).color ?? Colors.white,
+                                size: 22,
+                              ),
+                              onPressed: action.onPressed,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: action.tooltip,
+                            ),
+                          )
+                        else if (action is! SizedBox)
+                          action,
+                    ],
+                  ),
+                )
+              ]
+            : finalActions,
         bottom: bottom,
       );
     }
@@ -160,13 +190,16 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   Icon(Icons.visibility, color: onPrimary.withValues(alpha: 0.6), size: 18),
                   const SizedBox(width: 8),
                 ],
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: onPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24, // Consistent size
-                      ),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: onPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24, // Consistent size
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

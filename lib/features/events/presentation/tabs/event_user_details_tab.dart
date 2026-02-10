@@ -14,6 +14,8 @@ import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
+import '../../../debug/presentation/state/debug_providers.dart';
+import '../../../../features/competitions/utils/competition_rule_translator.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
@@ -23,10 +25,17 @@ class EventUserDetailsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(eventsProvider);
+    final statusOverride = ref.watch(eventStatusOverrideProvider);
     
     return eventsAsync.when(
       data: (events) {
-        final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        var event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        
+        // [LAB MODE] Apply Status Override if set
+        if (statusOverride != null) {
+           event = event.copyWith(status: statusOverride);
+        }
+
         final config = ref.watch(themeControllerProvider);
         return EventDetailsContent(event: event, currencySymbol: config.currencySymbol);
       },
@@ -36,7 +45,7 @@ class EventUserDetailsTab extends ConsumerWidget {
   }
 }
 
-class EventDetailsContent extends StatelessWidget {
+class EventDetailsContent extends ConsumerWidget {
   final GolfEvent event;
   final String currencySymbol;
   final bool isPreview;
@@ -51,7 +60,7 @@ class EventDetailsContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Note: Registration and Gallery sections removed as they have their own tabs now
     return Scaffold(
       body: CustomScrollView(
@@ -65,13 +74,17 @@ class EventDetailsContent extends StatelessWidget {
                 children: [
                   _buildRegistrationCard(context),
                   const SizedBox(height: 24),
-                  _buildBasicInfoSection(context),
+                  _buildBasicInfoSection(context, ref),
                   const SizedBox(height: 24),
                   _buildDateTimeSection(context),
                   const SizedBox(height: 24),
                   _buildCourseSelectionSection(context),
                   const SizedBox(height: 24),
                   _buildCompetitionRulesSection(context),
+                  if (event.secondaryTemplateId != null) ...[
+                    const SizedBox(height: 24),
+                    _buildSecondaryRulesSection(context),
+                  ],
                   const SizedBox(height: 24),
                   _buildPlayingCostsSection(context),
                   const SizedBox(height: 24),
@@ -102,7 +115,7 @@ class EventDetailsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildBasicInfoSection(BuildContext context) {
+  Widget _buildBasicInfoSection(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -128,11 +141,14 @@ class EventDetailsContent extends StatelessWidget {
                 'Title',
                 _buildDetailValue(event.title),
               ),
-              if (event.status == EventStatus.completed || event.status == EventStatus.cancelled)
-                _buildDetailRow(
-                  'Status',
+              _buildDetailRow(
+                'Status',
+                Row(
+                  children: [
                   _buildDetailValue(event.status.name.toUpperCase()),
-                ),
+                ],
+              ),
+              ),
               if (event.description != null && event.description!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 const Divider(),
@@ -302,7 +318,7 @@ class EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildRegistrationCard(BuildContext context) {
-    if (isPreview || !event.showRegistrationButton) return const SizedBox.shrink();
+    if (isPreview || !event.showRegistrationButton || event.status == EventStatus.completed) return const SizedBox.shrink();
 
     // For now, we'll assume the user is a mock member
     const currentMemberId = 'current-user-id';
@@ -430,83 +446,20 @@ class EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildCompetitionRulesSection(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final compsAsync = ref.watch(competitionDetailProvider(event.id));
-        
-        return compsAsync.when(
-          data: (comp) {
-            if (comp == null) return const SizedBox.shrink();
-            
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const BoxyArtSectionTitle(title: 'Competition Rules'),
-                const SizedBox(height: 12),
-                BoxyArtFloatingCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                        child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              (comp.name != null && comp.name!.isNotEmpty)
-                                  ? comp.name!.toUpperCase()
-                                  : comp.rules.gameName.toUpperCase(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            if (comp.name != null && comp.name!.isNotEmpty)
-                              Text(
-                                comp.rules.gameName,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: [
-                                BoxyArtStatusPill(
-                                  text: comp.rules.scoringType.toUpperCase(),
-                                  baseColor: comp.rules.scoringType == 'GROSS' ? Colors.redAccent : Colors.teal,
-                                ),
-                                BoxyArtStatusPill(
-                                  text: comp.rules.defaultAllowanceLabel,
-                                  baseColor: Theme.of(context).primaryColor,
-                                ),
-                                BoxyArtStatusPill(
-                                  text: comp.rules.mode.name.toUpperCase(),
-                                  baseColor: Colors.blueGrey,
-                                ),
-                                BoxyArtStatusPill(
-                                  text: 'CAPPED @ ${comp.rules.handicapCap} HCP',
-                                  baseColor: Colors.orange.shade700,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
-        );
-      },
+    return _CompetitionRulesCard(
+      eventId: event.id,
+      title: 'Competition Rules',
+      icon: Icons.golf_course,
+      iconColor: Theme.of(context).primaryColor,
+    );
+  }
+
+  Widget _buildSecondaryRulesSection(BuildContext context) {
+    return _CompetitionRulesCard(
+      eventId: '${event.id}_secondary',
+      title: 'Secondary Game (Overlay)',
+      icon: Icons.compare_arrows,
+      iconColor: Colors.orange,
     );
   }
 
@@ -770,6 +723,118 @@ class EventDetailsContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CompetitionRulesCard extends ConsumerWidget {
+  final String eventId;
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+
+  const _CompetitionRulesCard({
+    required this.eventId,
+    required this.title,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final compsAsync = ref.watch(competitionDetailProvider(eventId));
+    
+    return compsAsync.when(
+      data: (comp) {
+        if (comp == null) return const SizedBox.shrink();
+        
+        final description = CompetitionRuleTranslator.translate(comp.rules);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BoxyArtSectionTitle(title: title),
+            const SizedBox(height: 12),
+            BoxyArtFloatingCard(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: iconColor.withValues(alpha: 0.1),
+                        child: Icon(icon, color: iconColor),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              (comp.name != null && comp.name!.isNotEmpty)
+                                  ? comp.name!.toUpperCase()
+                                  : comp.rules.gameName.toUpperCase(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            if (comp.name != null && comp.name!.isNotEmpty)
+                              Text(
+                                comp.rules.gameName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade700,
+                      fontStyle: FontStyle.italic,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      BoxyArtStatusPill(
+                        text: comp.rules.scoringType.toUpperCase(),
+                        baseColor: comp.rules.scoringType == 'GROSS' ? Colors.redAccent : (eventId.contains('_secondary') ? Colors.orangeAccent : Colors.teal),
+                      ),
+                      BoxyArtStatusPill(
+                        text: comp.rules.defaultAllowanceLabel,
+                        baseColor: iconColor,
+                      ),
+                      BoxyArtStatusPill(
+                        text: comp.rules.mode.name.toUpperCase(),
+                        baseColor: Colors.blueGrey,
+                      ),
+                      if (comp.rules.handicapCap < 54)
+                        BoxyArtStatusPill(
+                          text: 'CAPPED @ ${comp.rules.handicapCap.toInt()} HCP',
+                          baseColor: Colors.orange.shade700,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

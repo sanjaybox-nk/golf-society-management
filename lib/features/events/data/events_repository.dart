@@ -16,6 +16,9 @@ abstract class EventsRepository {
   /// Update existing event
   Future<void> updateEvent(GolfEvent event);
 
+  /// Update event status only
+  Future<void> updateStatus(String eventId, EventStatus status);
+
   /// Delete an event
   Future<void> deleteEvent(String eventId);
 }

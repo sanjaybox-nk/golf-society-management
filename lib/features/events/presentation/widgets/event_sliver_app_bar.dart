@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../members/presentation/profile_provider.dart';
+import '../../../../../models/member.dart';
 import '../../../../models/golf_event.dart';
+import '../../../debug/presentation/widgets/lab_control_panel.dart';
 
-class EventSliverAppBar extends StatelessWidget {
+class EventSliverAppBar extends ConsumerWidget {
   final GolfEvent event;
   final String title;
   final String? subtitle;
@@ -19,7 +23,19 @@ class EventSliverAppBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final isSuperAdmin = user.role == MemberRole.superAdmin;
+
+    // Helper to show Lab Panel
+    void showLabPanel() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => LabControlPanel(eventId: event.id),
+      );
+    }
+
     if (isPreview) {
       return SliverAppBar(
         backgroundColor: Theme.of(context).primaryColor,
@@ -49,7 +65,6 @@ class EventSliverAppBar extends StatelessWidget {
         ),
         actions: [
           if (event.isRegistrationClosed == false) ...[
-            // Show edit button if needed
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.white),
               onPressed: () => context.push('/admin/events/${event.id}/edit'),
@@ -59,7 +74,6 @@ class EventSliverAppBar extends StatelessWidget {
         ],
       );
     }
-
 
     return SliverAppBar(
       backgroundColor: Theme.of(context).primaryColor,
@@ -101,6 +115,14 @@ class EventSliverAppBar extends StatelessWidget {
           ],
         ],
       ),
+      actions: [
+        if (isSuperAdmin) 
+          IconButton(
+            icon: const Icon(Icons.science, color: Colors.amber), // Lab Icon
+            onPressed: showLabPanel,
+            tooltip: 'Lab Control Panel',
+          ),
+      ],
     );
   }
 }

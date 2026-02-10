@@ -77,3 +77,20 @@ The grouping system is dynamic. If the field changes after groupings are generat
 - **Manual Assignment (Drag & Drop)**: Admins can drag players from the Squad Pool into any group with an **Empty Slot**.
 - **Swapping**: Players can be swapped between groups, or moved from a group back to the pool (by clicking "Remove").
 - **Late Withdrawals**: Admins can "Withdraw" a player directly from their grouping tile. This removes them from the group AND updates their registration status to **Withdrawn** in Firestore.
+
+---
+
+## 8. Match Play Mode & Tap-to-Swap
+When an event includes a Match Play overlay, the Admin Grouping Screen provides specialized tools for match pairings.
+
+### Match Play Mode Toggle
+Administrators can toggle **Match Play Mode** on the grouping screen.
+- **Visual Feedback**: Grouping cards reflect the current pairing status (Side A vs Side B).
+- **Auto-Sync**: When enabled, the system automatically checks if players in a group satisfy the match requirements (e.g., 2 players for singles, 4 for pairs).
+
+### Tap-to-Swap (Interactive Pairing)
+While in Match Play Mode, the grouping tiles become interactive for pairing:
+- **Selection**: Tapping a player selects them as the "Swap Source".
+- **Swapping**: Tapping another player within the same group (or an empty slot) swaps their positions.
+- **Side Assignment**: Using the interactive grid, admins can quickly decide which players are on "Side A" vs "Side B" for the match without manually editing IDs in a text field.
+- **Persistence**: Match definitions (`event.grouping['matches']`) are updated and persisted automatically upon saving the grouping.

@@ -53,23 +53,30 @@ class MockDataSeeder {
       final holeScores = <int>[];
       int grossTotal = 0;
 
-      // 2. Generate 18 holes of strokes (Gross)
-      for (var hole in holes) {
+        // 2. Generate 18 holes of strokes (Gross)
+        // Realistic distribution based on handicap
+        // Low Hcp (0-9): Mostly Par/Bogey
+        // Mid Hcp (10-18): Mostly Bogey/Double
+      for (int h = 0; h < 18; h++) {
+        final hole = holes[h];
         final par = hole['par'] as int? ?? 4;
-        // Generate a score: Par +/- 2 with a bias towards Par/Bogey
-        final roll = _random.nextDouble();
-        int score;
-        if (roll < 0.05) {
-          score = par - 1; // Birdie
-        } else if (roll < 0.45) {
-          score = par; // Par
-        } else if (roll < 0.80) {
-          score = par + 1; // Bogey
-        } else if (roll < 0.95) {
-          score = par + 2; // Double
+        
+        double performanceFactor = _random.nextDouble(); // 0.0=Great Day, 1.0=Bad Day
+        
+        int baseStrokesOverPar;
+        if (playingHandicap < 10) {
+           // Low: 0..2 over par (rare birdie)
+           baseStrokesOverPar = (performanceFactor * 2).round(); 
+           if (_random.nextDouble() < 0.15) baseStrokesOverPar = -1; // 15% birdie chance
+        } else if (playingHandicap < 20) {
+           // Mid: 1..2 over par
+           baseStrokesOverPar = 1 + (performanceFactor * 1.5).round();
         } else {
-          score = par + 3; // Disaster
+           // High: 2..3 over par
+           baseStrokesOverPar = 2 + (performanceFactor * 1.5).round();
         }
+        
+        final score = par + baseStrokesOverPar;
         
         holeScores.add(score);
         grossTotal += score;
@@ -84,12 +91,25 @@ class MockDataSeeder {
         final score = holeScores[h];
 
         // Shots received on this hole
+        // Standard calculation: Base shots per hole + extra for remainder
         int shots = (playingHandicap / 18).floor();
-        if (playingHandicap % 18 >= si) shots++;
-
+        if ((playingHandicap % 18) >= si) {
+           shots++;
+        }
+        
         final netScore = score - shots;
-        final points = max(0, par - netScore + 2).toInt();
-        totalPoints += points;
+        // stableford: 2 points for net par. 
+        final holePoints = max(0, 2 + (par - netScore));
+        totalPoints += holePoints.toInt();
+      }
+      
+      // Calculate Gross Points (for Gross Stableford)
+      int grossPoints = 0;
+      for (int h = 0; h < 18; h++) {
+        final hole = holes[h];
+        final par = hole['par'] as int? ?? 4;
+        final score = holeScores[h];
+        grossPoints += max(0, 2 + (par - score)).toInt();
       }
 
       results.add({
@@ -99,9 +119,11 @@ class MockDataSeeder {
         'playingHandicap': playingHandicap, // The one used for scoring
         'holeScores': holeScores,
         'grossTotal': grossTotal,
+        'grossPoints': grossPoints,
         'netTotal': grossTotal - playingHandicap,
         'points': totalPoints,
         'status': ScorecardStatus.finalScore.name,
+        'rank': 0, // Assigned later
       });
     }
 

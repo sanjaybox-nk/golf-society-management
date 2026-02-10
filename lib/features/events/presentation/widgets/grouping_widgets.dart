@@ -5,7 +5,10 @@ import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/competition.dart';
+import '../../../../models/scorecard.dart';
+import '../../../../core/utils/tie_breaker_logic.dart';
 import '../../domain/registration_logic.dart';
+import '../../../matchplay/domain/match_definition.dart';
 
 class GroupingPlayerAvatar extends StatelessWidget {
   final TeeGroupParticipant player;
@@ -35,7 +38,7 @@ class GroupingPlayerAvatar extends StatelessWidget {
     if (groupIndex != null && totalGroups != null && history != null && !player.isGuest) {
       final matches = GroupingService.getTeeTimeVariety(player.registrationMemberId, groupIndex!, totalGroups!, history!);
       if (matches == 0) {
-        borderColor = Colors.grey.shade300;
+        borderColor = Colors.green;
         varietyTooltip = 'Good slot variety';
       } else if (matches == 1) {
         borderColor = Colors.amber;
@@ -111,7 +114,10 @@ class GroupingPlayerTile extends StatelessWidget {
     this.isScoreMode = false,
     this.scoreDisplay,
     this.isWinner = false,
+    this.matchSide, // 'A' or 'B'
   });
+
+  final String? matchSide;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +138,11 @@ class GroupingPlayerTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
         borderRadius: BorderRadius.circular(12),
-        border: isSelected ? Border.all(color: primaryColor, width: 2) : null,
+        border: isSelected 
+          ? Border.all(color: primaryColor, width: 2) 
+          : (matchSide != null 
+              ? Border.all(color: matchSide == 'A' ? Colors.orange.withValues(alpha: 0.5) : Colors.blue.withValues(alpha: 0.5), width: 1.5)
+              : null),
       ),
       child: ListTile(
         onTap: onTap,
@@ -179,18 +189,6 @@ class GroupingPlayerTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (player.isGuest) 
-               const Padding(
-                 padding: EdgeInsets.only(left: 4.0),
-                 child: Text(
-                   'G',
-                   style: TextStyle(
-                     fontSize: 12,
-                     fontWeight: FontWeight.w900,
-                     color: Colors.orange,
-                   ),
-                 ),
-               ),
             if (isWinner && isScoreMode)
                const Padding(
                  padding: EdgeInsets.only(left: 6.0),
@@ -205,6 +203,20 @@ class GroupingPlayerTile extends StatelessWidget {
             Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
             const SizedBox(width: 8),
             Text('PHC: $displayPhc', style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.bold)),
+            if (matchSide != null) ...[
+              const SizedBox(width: 8),
+              Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
+              const SizedBox(width: 8),
+              Text(
+                'SIDE $matchSide', 
+                style: TextStyle(
+                  fontSize: 10, 
+                  color: matchSide == 'A' ? Colors.orange : Colors.blue, 
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                )
+              ),
+            ],
           ],
         ),
         trailing: isScoreMode 
@@ -336,6 +348,9 @@ class GroupingCard extends StatelessWidget {
   final Widget Function(TeeGroup group)? emptySlotBuilder;
   final bool isScoreMode;
   final Map<String, String>? scoreMap;
+  final Map<String, Scorecard>? scorecardMap;
+  final bool matchPlayMode;
+  final List<MatchDefinition> matches;
 
   const GroupingCard({
     super.key,
@@ -356,6 +371,9 @@ class GroupingCard extends StatelessWidget {
     this.emptySlotBuilder,
     this.isScoreMode = false,
     this.scoreMap,
+    this.scorecardMap,
+    this.matchPlayMode = false,
+    this.matches = const [],
   });
 
   @override
@@ -384,31 +402,109 @@ class GroupingCard extends StatelessWidget {
     if (isScoreMode && scoreMap != null) {
       final List<MapEntry<String, int>> playerScores = [];
       
+      int parseScore(String text) {
+        if (text == 'E') return 0;
+        final clean = text.replaceAll('+', '').trim();
+        return int.tryParse(clean) ?? (isStableford ? 0 : 999);
+      }
+
       for (var p in group.players) {
         final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
         final scoreText = scoreMap![id];
         if (scoreText != null && scoreText != '-') {
-          final score = int.tryParse(scoreText) ?? (isStableford ? 0 : 999);
+          final score = parseScore(scoreText);
           playerScores.add(MapEntry(id, score));
         }
       }
 
       if (playerScores.isNotEmpty) {
         // Find individual winners in group
+        // If Stableford: Higher is better. If Strokeplay/MaxScore: Lower is better.
         if (isStableford) {
           playerScores.sort((a, b) => b.value.compareTo(a.value));
         } else {
+          // Strokeplay/MaxScore/etc: Lower is better
           playerScores.sort((a, b) => a.value.compareTo(b.value));
         }
         
         final bestScore = playerScores.first.value;
-        for (var entry in playerScores) {
-          if (entry.value == bestScore) {
-            winnerMap[entry.key] = true;
+        final tiedIds = playerScores.where((e) => e.value == bestScore).map((e) => e.key).toList();
+
+        if (tiedIds.length == 1) {
+          winnerMap[tiedIds.first] = true;
+        } else if (tiedIds.length > 1 && scorecardMap != null) {
+          // Formal Tie Break Logic
+          final holeData = courseConfig?['holes'] as List?;
+          if (holeData != null && holeData.length >= 18) {
+            final pars = holeData.map((h) => (h['par'] as num?)?.toInt() ?? 4).toList();
+            final sis = holeData.map((h) => (h['si'] as num?)?.toInt() ?? 18).toList();
+
+            String? currentWinnerId = tiedIds.first;
+            
+            for (int j = 1; j < tiedIds.length; j++) {
+              final nextId = tiedIds[j];
+              final cardA = scorecardMap![currentWinnerId!];
+              final cardB = scorecardMap![nextId];
+              
+              if (cardA != null && cardB != null) {
+                // Get PHC for countback (TieBreakerLogic uses roundedPHC)
+                final participantA = group.players.firstWhere((p) => (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) == currentWinnerId);
+                final participantB = group.players.firstWhere((p) => (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) == nextId);
+
+                // Re-calculate accurate PHC based on current rules
+                final phcA = HandicapCalculator.calculatePlayingHandicap(
+                  handicapIndex: participantA.handicapIndex, 
+                  rules: rules!, 
+                  courseConfig: courseConfig!,
+                  useWhs: useWhs,
+                ).toDouble();
+                
+                final phcB = HandicapCalculator.calculatePlayingHandicap(
+                  handicapIndex: participantB.handicapIndex, 
+                  rules: rules!, 
+                  courseConfig: courseConfig!,
+                  useWhs: useWhs,
+                ).toDouble();
+
+                final result = TieBreakerLogic.resolveTie(
+                  holeScoresA: cardA.holeScores.whereType<int>().toList(), 
+                  holeScoresB: cardB.holeScores.whereType<int>().toList(), 
+                  pars: pars, 
+                  sis: sis, 
+                  handicapA: phcA, 
+                  handicapB: phcB,
+                  isStableford: isStableford,
+                );
+
+                if (result == -1) {
+                  currentWinnerId = nextId; // B is better
+                } else if (result == 0) {
+                  // Still tied - multiple winners for now in this specific case
+                  currentWinnerId = null; // Mark as contested or multiple
+                  break;
+                }
+              }
+            }
+            
+            if (currentWinnerId != null) {
+               winnerMap[currentWinnerId] = true;
+            } else {
+               // Fallback: Show all tied participants if logic results in 0 (extreme rarity)
+               for (var tid in tiedIds) {
+                 winnerMap[tid] = true;
+               }
+            }
+          } else {
+            // Fallback: Simple tie display
+            for (var tid in tiedIds) {
+              winnerMap[tid] = true;
+            }
           }
         }
 
         // Calculate Team Total (Best X)
+        // Note: For Strokeplay, "Best" means lower. For Stableford, "Best" means higher.
+        // The sort above already puts the "Best" scores at the beginning.
         final count = playerScores.length < bestX ? playerScores.length : bestX;
         for (int i = 0; i < count; i++) {
           groupTotal += playerScores[i].value;
@@ -452,6 +548,21 @@ class GroupingCard extends StatelessWidget {
                final isMemberWithGuest = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);
 
               final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+              
+              String? matchSide;
+              if (matchPlayMode) {
+                // Find which match and which side this player belongs to
+                for (final match in matches) {
+                  if (match.team1Ids.contains(p.registrationMemberId)) {
+                    matchSide = 'A';
+                    break;
+                  } else if (match.team2Ids.contains(p.registrationMemberId)) {
+                    matchSide = 'B';
+                    break;
+                  }
+                }
+              }
+
               final tile = GroupingPlayerTile(
                 player: p,
                 group: group,
@@ -469,6 +580,7 @@ class GroupingCard extends StatelessWidget {
                 isScoreMode: isScoreMode,
                 scoreDisplay: scoreMap?[id],
                 isWinner: winnerMap[id] ?? false,
+                matchSide: matchSide,
               );
 
               if (isAdmin && !isLocked) {
@@ -483,8 +595,8 @@ class GroupingCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (isScoreMode)
-                  Text(
-                    'Group Total (Best $bestX): $groupTotal',
+                   Text(
+                    'Group Total (Best $bestX): ${!isStableford && groupTotal == 0 ? "E" : (!isStableford && groupTotal > 0 ? "+$groupTotal" : groupTotal)}',
                     style: TextStyle(
                       color: Theme.of(context).primaryColor, 
                       fontSize: 12, 

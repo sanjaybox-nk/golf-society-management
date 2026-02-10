@@ -158,3 +158,23 @@ import 'package:golf_society/core/shared_ui/shared_ui.dart';
 // OR compatible legacy import
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 ```
+
+---
+
+## Rich Stats Dashboard Widgets
+Used in the `RichStatsTab` to provide deep analysis of society and personal performance.
+
+- `ScoringTypeDistributionChart`: Bar chart showing Eagle/Birdie/Par/Bogey breakdown.
+- `StablefordDistributionChart`: Point range distribution across the field.
+- `SplitPerformanceCard`: Front 9 vs Back 9 comparison.
+- `ParTypeBreakdown`: Performance badges for Par 3, 4, and 5 holes.
+- `DifficultyHeatmap`: Grid view of hole difficulty relative to par.
+- `HoleDifficultyChart`: Progress-bar based view of the toughest holes.
+- `SocietyRecapSummaryCard`: Premium gradient card for event conclusion.
+- `PersonalBenchmarkingCard`: Me vs Field comparative stat rows.
+- `HoleComparisonHeatmap`: Star-based "Beat the Field" indicator grid.
+- `ConsistencyStatCard`: Round variance vs field average stability card.
+- `NetComparisonCard`: User net score vs societal average net.
+- `HoleNemesisComparison`: Personal Toughest vs Field Toughest side-by-side.
+- `BounceBackStatCard`: Comparative stat for recovery rate.
+- `HoleScoreCard`: Standalone card for a single hole's detail. Features +/- controls (Active Mode) or Read-Only display. Consistent across scoring and summaries.

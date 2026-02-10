@@ -33,6 +33,14 @@ export function evaluateRound(
 ): CompetitionResultRow {
     const playingHandicap = calculatePlayingHandicap(handicap, rules.handicapCap, rules.handicapAllowance);
     const holeCount = holes.length;
+    if (holeCount === 0) return {
+        entryId,
+        grossTotal: 0,
+        netTotal: 0,
+        points: 0,
+        status: 'ERROR: No Holes',
+        holeByHole: []
+    };
 
     let grossTotal = 0;
     let netTotal = 0;
@@ -42,17 +50,18 @@ export function evaluateRound(
         if (score === null || score === 0) return null;
 
         const hole = holes[index];
+        if (!hole) return null;
 
-        // 1. Normalize based on format (e.g., Max Score)
-        let processedScore = score;
-        if (rules.format === 'maxScore' && rules.maxScoreConfig) {
-            processedScore = normalizeMaxScore(score, hole.par, rules.maxScoreConfig);
-        }
-
-        // 2. Allocate strokes per hole based on SI
+        // 1. Allocate strokes per hole based on SI (needed for Net Double Bogey cap)
         const baseStrokes = Math.floor(playingHandicap / holeCount);
         const extraStrokeThreshold = playingHandicap % holeCount;
         const holeStrokes = baseStrokes + (hole.strokeIndex <= extraStrokeThreshold ? 1 : 0);
+
+        // 2. Normalize based on format (e.g., Max Score)
+        let processedScore = score;
+        if (rules.format === 'maxScore' && rules.maxScoreConfig) {
+            processedScore = normalizeMaxScore(score, hole.par, holeStrokes, rules.maxScoreConfig);
+        }
 
         grossTotal += processedScore;
         netTotal += (processedScore - holeStrokes);

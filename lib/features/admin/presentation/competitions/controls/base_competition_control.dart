@@ -35,6 +35,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   CompetitionFormat get format;
   Widget buildSpecificFields(BuildContext context);
   CompetitionRules buildRules();
+  Future<void> onBeforeSave() async {} // Optional hook for subclasses
 
   @override
   void initState() {
@@ -96,6 +97,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   Future<void> _save() async {
     if (formKey.currentState!.validate()) {
        setState(() => _isSaving = true);
+       await onBeforeSave();
        final rules = buildRules();
        
        final existingComp = widget.competition;

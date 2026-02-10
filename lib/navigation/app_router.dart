@@ -301,7 +301,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   // Competition Picker - Integrated into Events branch
                   GoRoute(
                     path: 'competitions/new',
-                    builder: (context, state) => const CompetitionTypeSelectionScreen(isPicker: true),
+                    builder: (context, state) {
+                      final format = state.uri.queryParameters['format'];
+                      return CompetitionTypeSelectionScreen(isPicker: true, formatFilter: format);
+                    },
                     routes: [
                       GoRoute(
                         path: 'gallery/:type',

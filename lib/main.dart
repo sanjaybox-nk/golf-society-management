@@ -9,6 +9,8 @@ import 'navigation/app_router.dart';
 import 'core/theme/theme_controller.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/services/persistence_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +27,15 @@ void main() async {
     debugPrint('Firebase init failed (expected if no config): $e');
   }
 
-  runApp(const ProviderScope(child: GolfSocietyApp()));
+  final prefs = await SharedPreferences.getInstance();
+  final persistenceService = PersistenceService(prefs);
+
+  runApp(ProviderScope(
+    overrides: [
+      persistenceServiceProvider.overrideWithValue(persistenceService),
+    ],
+    child: const GolfSocietyApp()
+  ));
 }
 
 class GolfSocietyApp extends ConsumerWidget {

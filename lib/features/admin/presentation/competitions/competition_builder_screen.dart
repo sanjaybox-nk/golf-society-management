@@ -117,7 +117,7 @@ class CompetitionBuilderScreen extends ConsumerWidget {
     final compToUse = competition ?? this.competition ?? template;
     final activeSubtype = subtype ?? compToUse?.rules.subtype;
 
-    if (activeSubtype == CompetitionSubtype.fourball || activeSubtype == CompetitionSubtype.foursomes) {
+    if ((activeSubtype == CompetitionSubtype.fourball || activeSubtype == CompetitionSubtype.foursomes) && format != CompetitionFormat.matchPlay) {
       return PairsControl(
         competition: compToUse,
         competitionId: competitionId,

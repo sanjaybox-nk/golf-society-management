@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../models/competition.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 
 class CourseInfoCard extends StatelessWidget {
@@ -9,6 +10,8 @@ class CourseInfoCard extends StatelessWidget {
   final int? playerHandicap; // For calculating shot allowances
   final List<int?>? scores; // Actual scores entered by user
   final Color? headerColor; // [NEW] Optional override for header row background
+  final CompetitionFormat? format; // [NEW] Current competition format
+  final MaxScoreConfig? maxScoreConfig; // [NEW] Configuration for Max Score capping
 
   const CourseInfoCard({
     super.key,
@@ -19,7 +22,12 @@ class CourseInfoCard extends StatelessWidget {
     this.playerHandicap,
     this.scores,
     this.headerColor,
+    this.format,
+    this.maxScoreConfig,
+    this.holeLimit, // [NEW] Optional limit for simulation
   });
+
+  final int? holeLimit;
 
   @override
   Widget build(BuildContext context) {
@@ -48,15 +56,37 @@ class CourseInfoCard extends StatelessWidget {
     
     // Calculate Running Stats
     int totalStrokes = 0;
+    int totalAdjustedStrokes = 0;
     int totalPoints = 0;
     int holesPlayed = 0;
+    final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
 
     if (scores != null) {
       for (int i = 0; i < scores!.length; i++) {
         final score = scores![i];
         if (score != null) {
+          if (holeLimit != null && i >= holeLimit!) continue; // Skip holes beyond simulation limit
+
           totalStrokes += score;
           holesPlayed++;
+
+          // Calculate Adjusted Score for Max Score
+          if (isMaxScore && playerHandicap != null && i < holePars.length && i < holeSIs.length) {
+             final par = holePars[i] as int;
+             final si = holeSIs[i] as int;
+             int shotsReceived = (playerHandicap! / 18).floor();
+             if (playerHandicap! % 18 >= si) shotsReceived++;
+
+             int cap;
+             switch (maxScoreConfig!.type) {
+               case MaxScoreType.fixed: cap = maxScoreConfig!.value; break;
+               case MaxScoreType.parPlusX: cap = par + maxScoreConfig!.value; break;
+               case MaxScoreType.netDoubleBogey: cap = par + 2 + shotsReceived; break;
+             }
+             totalAdjustedStrokes += score > cap ? cap : score;
+          } else {
+             totalAdjustedStrokes += score;
+          }
 
           // Calculate points
           if (isStableford && playerHandicap != null && i < holePars.length && i < holeSIs.length) {
@@ -108,7 +138,7 @@ class CourseInfoCard extends StatelessWidget {
               const SizedBox(height: 6),
               
               // Totals
-              _buildTotalsRow(context, totalPar, totalStrokes, totalPoints, holesPlayed),
+              _buildTotalsRow(context, totalPar, totalStrokes, totalAdjustedStrokes, totalPoints, holesPlayed, holePars, holeSIs),
             ],
           ),
         ),
@@ -126,7 +156,10 @@ class CourseInfoCard extends StatelessWidget {
   ) {
     // Get actual scores from user input and pad with nulls to ensure length 9
     final rawScores = scores?.skip(startHole - 1).take(9).toList() ?? [];
-    final nineScores = List<int?>.generate(9, (i) => i < rawScores.length ? rawScores[i] : null);
+    final nineScores = List<int?>.generate(9, (i) {
+       if (holeLimit != null && (startHole + i) > holeLimit!) return null;
+       return i < rawScores.length ? rawScores[i] : null;
+    });
     
     final totalScore = nineScores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int));
     
@@ -157,6 +190,44 @@ class CourseInfoCard extends StatelessWidget {
       }
     } else {
       stablefordPoints = List<int?>.filled(9, null);
+    }
+
+    // New: Calculate Adjusted Scores for Max Score format
+    List<int?> adjustedScores = [];
+    int totalAdjusted = 0;
+    final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
+
+    if (isMaxScore && playerHandicap != null) {
+      for (int i = 0; i < 9; i++) {
+        final score = nineScores[i];
+        if (score != null && i < pars.length && i < sis.length) {
+          final par = pars[i] as int;
+          final si = sis[i] as int;
+          
+          // Calculate shots received
+          int shotsReceived = (playerHandicap! / 18).floor();
+          if (playerHandicap! % 18 >= si) shotsReceived++;
+
+          int cap;
+          switch (maxScoreConfig!.type) {
+            case MaxScoreType.fixed:
+              cap = maxScoreConfig!.value;
+              break;
+            case MaxScoreType.parPlusX:
+              cap = par + maxScoreConfig!.value;
+              break;
+            case MaxScoreType.netDoubleBogey:
+              cap = par + 2 + shotsReceived;
+              break;
+          }
+          
+          final adjusted = score > cap ? cap : score;
+          adjustedScores.add(adjusted);
+          totalAdjusted += adjusted;
+        } else {
+          adjustedScores.add(null);
+        }
+      }
     }
     
     return Column(
@@ -226,6 +297,37 @@ class CourseInfoCard extends StatelessWidget {
             ],
           ),
           
+          // New: Adjusted Row
+          if (isMaxScore) ...[
+            const Divider(height: 1),
+            Row(
+              children: [
+                SizedBox(width: 50, child: _buildCellLabel('Adjusted', width: 50)),
+                for (int i = 0; i < 9; i++)
+                  (() {
+                    final score = adjustedScores[i];
+                    final rawScore = nineScores[i];
+                    final bool isCapped = score != null && rawScore != null && score < rawScore;
+                    
+                    return Expanded(
+                      child: _buildCell(
+                        context, 
+                        score?.toString() ?? '-', 
+                        width: double.infinity, 
+                        isScore: true,
+                        // Highlight if adjusted (capped)
+                        isBold: isCapped,
+                        overrideBgColor: isCapped ? Colors.deepPurple : Colors.grey.withValues(alpha: 0.1),
+                        overrideTextColor: isCapped ? Colors.white : Colors.grey[600],
+                        scoreDiff: null, // Don't use standard golf colors for Adjusted row
+                      ),
+                    );
+                  })(),
+                SizedBox(width: 40, child: _buildCell(context, totalAdjusted > 0 ? '$totalAdjusted' : '-', width: 40, isBold: true, isScore: true)),
+              ],
+            ),
+          ],
+          
           // Stableford Points row (only if Stableford competition)
           if (isStableford)
             const Divider(height: 1),
@@ -242,7 +344,39 @@ class CourseInfoCard extends StatelessWidget {
       );
   }
 
-  Widget _buildTotalsRow(BuildContext context, int totalPar, int totalStrokes, int totalPoints, int holesPlayed) {
+  Widget _buildTotalsRow(BuildContext context, int totalPar, int totalStrokes, int totalAdjusted, int totalPoints, int holesPlayed, List<dynamic> holePars, List<dynamic> holeSIs) {
+    // Determine labels and totals for Strokeplay vs Stableford
+    final String strokesLabel = isStableford ? 'Strokes' : 'Gross';
+    final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
+    
+    // Calculate Cumulative Net Strokes for Strokeplay
+    int? netDifferential;
+    int parForPlayed = 0;
+
+    if (scores != null && playerHandicap != null) {
+      int runningNetTotal = 0;
+      for (int i = 0; i < scores!.length; i++) {
+        final score = scores![i];
+        if (score != null && i < holePars.length && i < holeSIs.length) {
+            final par = holePars[i] as int;
+            final si = holeSIs[i] as int;
+            
+            parForPlayed += par;
+
+            // Calculate shots received on this hole
+            int shotsReceived = (playerHandicap! / 18).floor();
+            if (playerHandicap! % 18 >= si) shotsReceived++;
+            
+            runningNetTotal += (score - shotsReceived);
+        }
+      }
+      if (holesPlayed > 0) {
+        netDifferential = runningNetTotal - parForPlayed;
+      }
+    } else {
+      parForPlayed = totalPar;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
@@ -251,43 +385,78 @@ class CourseInfoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text(
-            'TOTAL',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'TOTAL',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              if (holesPlayed > 0 && holesPlayed < 18)
+                Text(
+                  'THRU $holesPlayed',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+            ],
           ),
           const Spacer(),
           if (holesPlayed > 0) ...[
-            _buildTotalStat(context, 'Strokes', totalStrokes),
-            if (isStableford) ...[
-              const SizedBox(width: 16),
-              _buildTotalStat(context, 'Points', totalPoints),
+            _buildTotalStat(context, strokesLabel, totalStrokes),
+            if (isMaxScore && totalAdjusted != totalStrokes) ...[
+               const SizedBox(width: 12),
+               _buildTotalStat(context, 'Adjusted', totalAdjusted, isHighlighted: true),
             ],
-            const SizedBox(width: 16),
+            if (isStableford) ...[
+              const SizedBox(width: 12),
+              _buildTotalStat(context, 'Points', totalPoints),
+            ] else if (netDifferential != null) ...[
+              const SizedBox(width: 12),
+              _buildTotalStat(context, 'Net', netDifferential, isToPar: true),
+            ],
+            const SizedBox(width: 12),
           ],
-            _buildTotalStat(context, 'Par', totalPar),
+            _buildTotalStat(context, 'Par', parForPlayed),
         ],
       ),
     );
   }
 
-  Widget _buildTotalStat(BuildContext context, String label, int value) {
+  Widget _buildTotalStat(BuildContext context, String label, int value, {bool isHighlighted = false, bool isToPar = false}) {
+    String displayValue = value.toString();
+    if (isToPar) {
+       if (value == 0) {
+         displayValue = 'E';
+       } else if (value > 0) {
+         displayValue = '+$value';
+       }
+    }
+
     return Row(
       children: [
         Text(
           '$label: ',
           style: TextStyle(
-            fontSize: 10, 
+            fontSize: 9, 
             fontWeight: FontWeight.normal, 
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            color: isHighlighted ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
         Text(
-          '$value',
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+          displayValue,
+          style: TextStyle(
+            fontSize: 12, 
+            fontWeight: FontWeight.w900,
+            color: isHighlighted ? Theme.of(context).primaryColor : null,
+          ),
         ),
       ],
     );
@@ -331,13 +500,13 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCell(BuildContext context, String text, {double width = 30, bool isBold = false, bool isPar = false, bool isSmall = false, bool isScore = false, bool isPoints = false, bool isOnTeeColor = false, int? scoreDiff}) {
-    Color? bgColor;
-    Color textColor = isOnTeeColor
+  Widget _buildCell(BuildContext context, String text, {double width = 30, bool isBold = false, bool isPar = false, bool isSmall = false, bool isScore = false, bool isPoints = false, bool isOnTeeColor = false, int? scoreDiff, Color? overrideBgColor, Color? overrideTextColor}) {
+    Color? bgColor = overrideBgColor;
+    Color textColor = overrideTextColor ?? (isOnTeeColor
         ? Colors.white
         : ((isPoints || isScore)
             ? Theme.of(context).primaryColor 
-            : (isPar ? Colors.black87 : Colors.grey[700]!));
+            : (isPar ? Colors.black87 : Colors.grey[700]!)));
 
     if (scoreDiff != null) {
       if (scoreDiff <= -2) { // Eagle or better

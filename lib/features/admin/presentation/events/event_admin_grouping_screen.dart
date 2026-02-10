@@ -9,14 +9,16 @@ import '../../../../models/golf_event.dart';
 import '../../../../models/event_registration.dart';
 import '../../../../models/member.dart';
 import '../../../events/domain/registration_logic.dart';
+import '../../../../models/scorecard.dart';
 import '../../providers/admin_ui_providers.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
-import '../../../members/presentation/profile_provider.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../models/society_config.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../events/presentation/widgets/grouping_widgets.dart';
+import '../../../matchplay/domain/match_definition.dart';
+import '../../../matchplay/domain/golf_event_match_extensions.dart'; 
 
 class EventAdminGroupingScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -39,6 +41,10 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   // Swap state
   TeeGroupParticipant? _selectedForSwap;
   TeeGroup? _selectedGroupForSwap;
+  
+  // Match sync state
+  List<MatchDefinition>? _localMatches;
+  bool _matchPlayMode = false;
 
   @override
   void dispose() {
@@ -68,6 +74,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     final membersAsync = ref.watch(allMembersProvider);
     final societyConfig = ref.watch(themeControllerProvider);
     final competitionAsync = ref.watch(competitionDetailProvider(widget.eventId));
+    final scorecardsAsync = ref.watch(scorecardsListProvider(widget.eventId));
 
     return eventsAsync.when(
       data: (events) {
@@ -95,6 +102,11 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         }
         
         _isLocked ??= event.grouping['locked'] ?? false;
+        
+        // Initialize local matches if not already done
+        if (_localMatches == null) {
+          _localMatches = event.matches;
+        }
         
         // Calculate Unassigned Players (Confirmed squad but not in groups)
         final unassignedSquad = <TeeGroupParticipant>[];
@@ -170,115 +182,96 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               Navigator.of(context).pop();
             }
           },
-          child: Material(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Stack(
+          child: Scaffold(
+            appBar: BoxyArtAppBar(
+              title: 'Grouping',
+              subtitle: event.title,
+              centerTitle: true,
+              isLarge: true,
+              leadingWidth: 70,
+              leading: Center(
+                child: TextButton(
+                  onPressed: () async {
+                    final nav = Navigator.of(context);
+                    final handled = await nav.maybePop();
+                    if (!handled && context.mounted) {
+                      context.go('/admin/events');
+                    }
+                  },
+                  child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  child: Row(
+                    children: [
+                      _buildActionTab(
+                        label: 'REGENERATE',
+                        icon: Icons.refresh,
+                        opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+                        onTap: event.isRegistrationClosed
+                            ? () {
+                                if (_isLocked == true) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
+                                  return;
+                                }
+                                _showRegenerationOptions(event, events, handicapMap);
+                              }
+                            : null,
+                      ),
+                      _buildActionTab(
+                        label: _isLocked == true ? 'UNLOCK' : 'LOCK',
+                        icon: _isLocked == true ? Icons.lock_outlined : Icons.lock_open_outlined,
+                        opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+                        color: _isLocked == true ? Colors.amber : Colors.white,
+                        onTap: event.isRegistrationClosed
+                            ? () {
+                                if (_localGroups == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
+                                  return;
+                                }
+                                setState(() => _isLocked = !(_isLocked ?? false));
+                                _updateDirty(true);
+                              }
+                            : null,
+                      ),
+                      _buildActionTab(
+                        label: 'SAVE',
+                        icon: Icons.save_outlined,
+                        opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+                        color: _isDirty ? Colors.amber : Colors.white,
+                        onTap: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
+                      ),
+                      if (event.secondaryTemplateId != null)
+                        _buildActionTab(
+                          label: 'MATCH MODE',
+                          icon: _matchPlayMode ? Icons.check_circle : Icons.circle_outlined,
+                          color: _matchPlayMode ? Colors.orange : Colors.white,
+                          onTap: () {
+                            setState(() => _matchPlayMode = !_matchPlayMode);
+                            if (_matchPlayMode && (_localMatches == null || _localMatches!.isEmpty)) {
+                              _autoLinkMatches(event);
+                            }
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            body: Stack(
               children: [
                 Column(
                   children: [
                     if (unassignedSquad.isNotEmpty) _buildSquadPool(unassignedSquad, memberMap, history),
-                    BoxyArtAppBar(
-                      title: 'Grouping',
-                      subtitle: event.title,
-                      centerTitle: true,
-                      isLarge: true,
-                      leadingWidth: 70,
-                      leading: Center(
-                        child: TextButton(
-                          onPressed: () async {
-                            final nav = Navigator.of(context);
-                            final handled = await nav.maybePop();
-                            if (!handled && context.mounted) {
-                              context.go('/admin/events');
-                            }
-                          },
-                          child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      showAdminShortcut: false, // Ensure we manually control placement
-                      actions: [
-                        // Custom 2x2 Grid for Actions to save horizontal space
-                        Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Top Row: Admin + Regenerate
-                              SizedBox(
-                                height: 32,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (ref.watch(currentUserProvider).role == MemberRole.superAdmin || ref.watch(currentUserProvider).role == MemberRole.admin)
-                                      _buildCompactActionBtn(
-                                        icon: Icons.admin_panel_settings_outlined,
-                                        tooltip: 'Admin Console',
-                                        onTap: () => context.go('/admin'),
-                                      ),
-                                    _buildCompactActionBtn(
-                                      icon: Icons.autorenew,
-                                      tooltip: event.isRegistrationClosed ? 'Regenerate' : 'Registration still open',
-                                      opacity: event.isRegistrationClosed ? 1.0 : 0.5,
-                                      onTap: event.isRegistrationClosed
-                                          ? () {
-                                              if (_isLocked == true) {
-                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
-                                                return;
-                                              }
-                                              final members = membersAsync.value ?? [];
-                                              final handicapMap = {for (var m in members) m.id: m.handicap};
-                                              _showRegenerationOptions(event, events, handicapMap);
-                                            }
-                                          : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Bottom Row: Lock + Save
-                              SizedBox(
-                                height: 32,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _buildCompactActionBtn(
-                                      icon: _isLocked == true ? Icons.lock : Icons.lock_open,
-                                      tooltip: event.isRegistrationClosed 
-                                          ? (_isLocked == true ? 'Unlock Grouping' : 'Lock Grouping')
-                                          : 'Registration still open',
-                                      opacity: event.isRegistrationClosed ? 1.0 : 0.5,
-                                      onTap: event.isRegistrationClosed
-                                          ? () {
-                                              if (_localGroups == null) {
-                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
-                                                return;
-                                              }
-                                              setState(() {
-                                                _isLocked = !(_isLocked ?? false);
-                                              });
-                                              _updateDirty(true);
-                                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_isLocked == true ? 'Grouping Locked (Save to persist)' : 'Grouping Unlocked')));
-                                            }
-                                          : null,
-                                    ),
-                                    _buildCompactActionBtn(
-                                      icon: Icons.save,
-                                      color: _isDirty ? Colors.amber : Colors.white,
-                                      tooltip: event.isRegistrationClosed ? 'Save Grouping' : 'Registration still open',
-                                      opacity: event.isRegistrationClosed ? 1.0 : 0.5,
-                                      onTap: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
                     Expanded(
                       child: _localGroups == null 
                         ? _buildEmptyState(event, events, handicapMap)
-                        : _buildGroupingList(event, memberMap, history, rules: comp?.rules, useWhs: config.useWhsHandicaps),
+                        : _buildGroupingList(event, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps),
                     ),
                   ],
                 ),
@@ -398,7 +391,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     );
   }
 
-  Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history, {CompetitionRules? rules, bool useWhs = true}) {
+  Widget _buildGroupingList(GolfEvent event, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true}) {
     return ReorderableListView.builder(
       onReorder: (oldIndex, newIndex) {
         setState(() {
@@ -431,6 +424,11 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           onAction: (action, p, g) => _handlePlayerAction(action, p, g),
           onTapParticipant: _handleParticipantTap,
           isSelected: (p) => p == _selectedForSwap,
+          matchPlayMode: _matchPlayMode,
+          matches: _localMatches ?? [],
+          scorecardMap: scorecardsAsync.asData?.value != null 
+              ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
+              : null,
           emptySlotBuilder: (g) => DragTarget<Map<String, dynamic>>(
             onWillAcceptWithDetails: (details) => _isLocked != true && (details.data['group'] != g || g.players.length < 4),
             onAcceptWithDetails: (details) {
@@ -543,7 +541,62 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       }
 
       _updateDirty(true);
+      
+      // Sync Matches if they exist
+      if (_localMatches != null && _localMatches!.isNotEmpty) {
+        _syncMatchesWithSwap(sourceP, targetP);
+      }
     });
+  }
+
+  void _syncMatchesWithSwap(TeeGroupParticipant p1, TeeGroupParticipant? p2) {
+    if (_localMatches == null) return;
+    
+    final id1 = p1.registrationMemberId;
+    final id2 = p2?.registrationMemberId;
+
+    final updatedMatches = _localMatches!.map((match) {
+      List<String> newT1 = List.from(match.team1Ids);
+      List<String> newT2 = List.from(match.team2Ids);
+      bool changed = false;
+
+      // Swap id1 with id2 in team lists
+      for (int i = 0; i < newT1.length; i++) {
+        if (newT1[i] == id1) {
+          if (id2 != null) {
+            newT1[i] = id2;
+          } else {
+            newT1.removeAt(i); // Remove if swapped to empty
+          }
+          changed = true;
+          break;
+        } else if (id2 != null && newT1[i] == id2) {
+          newT1[i] = id1;
+          changed = true;
+          break;
+        }
+      }
+
+      for (int i = 0; i < newT2.length; i++) {
+        if (newT2[i] == id1) {
+          if (id2 != null) {
+            newT2[i] = id2;
+          } else {
+            newT2.removeAt(i);
+          }
+          changed = true;
+          break;
+        } else if (id2 != null && newT2[i] == id2) {
+          newT2[i] = id1;
+          changed = true;
+          break;
+        }
+      }
+
+      return changed ? match.copyWith(team1Ids: newT1, team2Ids: newT2) : match;
+    }).toList();
+
+    _localMatches = updatedMatches;
   }
 
   void _handleParticipantTap(TeeGroupParticipant p, TeeGroup g) {
@@ -712,79 +765,81 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 return SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Generate Groups', 
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)
-                        ),
-                        const SizedBox(height: 8),
-                        const Text('Configure how players are sorted into groups.', style: TextStyle(color: Colors.grey)),
-                        
-                        const SizedBox(height: 24),
-                        const Text('STRATEGY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        
-                        BoxyArtFloatingCard(
-                          padding: EdgeInsets.zero,
-                          child: Column(
-                            children: [
-                              _buildRadioOption(context, 'balanced', 'Balanced Teams', 'Balances total handicap.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              const Divider(height: 1),
-                              _buildRadioOption(context, 'progressive', 'Progressive', 'Low handicap first.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              const Divider(height: 1),
-                              _buildRadioOption(context, 'similar', 'Similar Ability', 'Group by skill level.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              const Divider(height: 1),
-                              _buildRadioOption(context, 'random', 'Random', 'Mix everything up.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                            ],
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Generate Groups', 
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)
                           ),
-                        ),
-
-                        const SizedBox(height: 24),
-                        const Text('PREFERENCES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        
-                        SwitchListTile(
-                          title: const Text('Pair Buggy Users', style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: const Text('Prioritize putting buggy users together.'),
-                          contentPadding: EdgeInsets.zero,
-                          value: pairBuggies,
-                          onChanged: (val) => setOverlayState(() => pairBuggies = val),
-                        ),
-
-                        const SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BoxyArtButton(
-                                title: 'Cancel',
-                                isGhost: true,
-                                onTap: () => setState(() => _showGenerationOptions = false),
-                              ),
+                          const SizedBox(height: 8),
+                          const Text('Configure how players are sorted into groups.', style: TextStyle(color: Colors.grey)),
+                          
+                          const SizedBox(height: 24),
+                          const Text('STRATEGY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                          const SizedBox(height: 8),
+                          
+                          BoxyArtFloatingCard(
+                            padding: EdgeInsets.zero,
+                            child: Column(
+                              children: [
+                                _buildRadioOption(context, 'balanced', 'Balanced Teams', 'Balances total handicap.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                                const Divider(height: 1),
+                                _buildRadioOption(context, 'progressive', 'Progressive', 'Low handicap first.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                                const Divider(height: 1),
+                                _buildRadioOption(context, 'similar', 'Similar Ability', 'Group by skill level.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                                const Divider(height: 1),
+                                _buildRadioOption(context, 'random', 'Random', 'Mix everything up.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: BoxyArtButton(
-                                title: 'Generate',
-                                onTap: () {
-                                  setState(() => _showGenerationOptions = false);
-                                  _handleAutoGenerate(
-                                    event, 
-                                    allEvents, 
-                                    handicapMap, 
-                                    prioritizeBuggyPairing: pairBuggies,
-                                    strategyOverride: selectedStrategy,
-                                    config: config,
-                                    rules: rules,
-                                  );
-                                },
+                          ),
+    
+                          const SizedBox(height: 24),
+                          const Text('PREFERENCES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                          const SizedBox(height: 8),
+                          
+                          SwitchListTile(
+                            title: const Text('Pair Buggy Users', style: TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: const Text('Prioritize putting buggy users together.'),
+                            contentPadding: EdgeInsets.zero,
+                            value: pairBuggies,
+                            onChanged: (val) => setOverlayState(() => pairBuggies = val),
+                          ),
+    
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BoxyArtButton(
+                                  title: 'Cancel',
+                                  isGhost: true,
+                                  onTap: () => setState(() => _showGenerationOptions = false),
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BoxyArtButton(
+                                  title: 'Generate',
+                                  onTap: () {
+                                    setState(() => _showGenerationOptions = false);
+                                    _handleAutoGenerate(
+                                      event, 
+                                      allEvents, 
+                                      handicapMap, 
+                                      prioritizeBuggyPairing: pairBuggies,
+                                      strategyOverride: selectedStrategy,
+                                      config: config,
+                                      rules: rules,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -819,25 +874,36 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     );
   }
 
-  Widget _buildCompactActionBtn({
+  Widget _buildActionTab({
+    required String label,
     required IconData icon,
-    required String? tooltip,
     required VoidCallback? onTap,
-    Color color = Colors.white,
     double opacity = 1.0,
+    Color color = Colors.white,
   }) {
-    return Opacity(
-      opacity: opacity,
-      child: Tooltip(
-        message: tooltip ?? '',
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Opacity(
+          opacity: opacity,
           child: Container(
-            width: 36, // Compact width
-            height: 32, // Fits in half-height row
+            height: 48,
             alignment: Alignment.center,
-            child: Icon(icon, color: color, size: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 20),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 9,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -937,6 +1003,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           'groups': _localGroups!.map((g) => g.toJson()).toList(),
           'updatedAt': DateTime.now().toIso8601String(),
           'locked': _isLocked ?? false,
+          'matches': _localMatches?.map((m) => m.toJson()).toList() ?? [],
         },
       );
       await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
@@ -971,5 +1038,52 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
+
+
+  void _autoLinkMatches(GolfEvent event) {
+    if (_localGroups == null || _localGroups!.isEmpty) return;
+
+    setState(() {
+      final newMatches = <MatchDefinition>[];
+      for (final group in _localGroups!) {
+        if (group.players.isEmpty) continue;
+
+        // Standard 4-player grouping: 1&2 vs 3&4
+        if (group.players.length >= 2) {
+          final p1 = group.players[0];
+          final p2 = group.players.length >= 2 ? group.players[1] : null;
+          final p3 = group.players.length >= 3 ? group.players[2] : null;
+          final p4 = group.players.length >= 4 ? group.players[3] : null;
+
+          if (group.players.length == 2) {
+            // Singles Match
+            newMatches.add(MatchDefinition(
+              id: 'match_${group.index}_1',
+              team1Ids: [p1.registrationMemberId],
+              team2Ids: [p2!.registrationMemberId],
+              type: MatchType.singles,
+            ));
+          } else if (group.players.length >= 4) {
+            // Two Singles or one Fourball? 
+            // Default to two singles matches as requested for the overlay
+            newMatches.add(MatchDefinition(
+              id: 'match_${group.index}_1',
+              team1Ids: [p1.registrationMemberId],
+              team2Ids: [p3!.registrationMemberId],
+              type: MatchType.singles,
+            ));
+            newMatches.add(MatchDefinition(
+              id: 'match_${group.index}_2',
+              team1Ids: [p2!.registrationMemberId],
+              team2Ids: [p4!.registrationMemberId],
+              type: MatchType.singles,
+            ));
+          }
+        }
+      }
+      _localMatches = newMatches;
+      _updateDirty(true);
+    });
   }
 }

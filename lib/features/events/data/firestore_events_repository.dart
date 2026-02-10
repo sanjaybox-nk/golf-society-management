@@ -91,6 +91,14 @@ class FirestoreEventsRepository implements EventsRepository {
     if (data['isGroupingPublished'] == null) data['isGroupingPublished'] = false;
     if (data['scoringForceActive'] == null) data['scoringForceActive'] = false;
     if (data['isScoringLocked'] == null) data['isScoringLocked'] = false;
+    if (data['isStatsReleased'] == null) data['isStatsReleased'] = false;
+    if (data['finalizedStats'] == null) data['finalizedStats'] = {};
+    if (data['isMultiDay'] == null) data['isMultiDay'] = false;
+
+    // 3.5 Sanitize Maps (force Map<String, dynamic> to avoid _Map<dynamic, dynamic> errors)
+    data['grouping'] = Map<String, dynamic>.from(data['grouping'] ?? {});
+    data['courseConfig'] = Map<String, dynamic>.from(data['courseConfig'] ?? {});
+    data['finalizedStats'] = Map<String, dynamic>.from(data['finalizedStats'] ?? {});
 
     // 3. Deep sanitize registrations
     if (data['registrations'] != null && data['registrations'] is List) {
@@ -126,9 +134,17 @@ class FirestoreEventsRepository implements EventsRepository {
     // Explicitly force all list fields to be Lists, no matter what
     if (data['registrations'] is! List) data['registrations'] = [];
     if (data['facilities'] is! List) data['facilities'] = [];
-    if (data['notes'] is! List) data['notes'] = [];
+    if (data['notes'] is List) {
+      data['notes'] = (data['notes'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } else {
+      data['notes'] = [];
+    }
     if (data['galleryUrls'] is! List) data['galleryUrls'] = [];
-    if (data['results'] is! List) data['results'] = [];
+    if (data['results'] is List) {
+      data['results'] = (data['results'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } else {
+      data['results'] = [];
+    }
     if (data['flashUpdates'] is! List) data['flashUpdates'] = [];
 
     try {
@@ -172,6 +188,11 @@ class FirestoreEventsRepository implements EventsRepository {
   @override
   Future<void> updateEvent(GolfEvent event) async {
     await _eventsRef.doc(event.id).set(event.toJson(), SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> updateStatus(String eventId, EventStatus status) async {
+    await _eventsRef.doc(eventId).update({'status': status.name});
   }
 
   @override

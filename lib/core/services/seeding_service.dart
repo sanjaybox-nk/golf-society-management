@@ -490,7 +490,7 @@ class SeedingService {
       endDate: teeOffTime,
     ));
 
-    await seedRegistrations(labEvent.id);
+    await seedRegistrations(labEvent.id, forceResetStatus: true);
   }
 
   Future<void> seedHistoricalEvents() async {
@@ -635,7 +635,7 @@ class SeedingService {
     }
   }
 
-  Future<void> seedRegistrations(String eventId, {bool isPast = false}) async {
+  Future<void> seedRegistrations(String eventId, {bool isPast = false, bool forceResetStatus = false}) async {
     // Validate eventId before attempting Firestore access
     if (eventId.isEmpty) {
       throw Exception('Cannot seed registrations: Event ID is empty');
@@ -827,6 +827,7 @@ class SeedingService {
     final updatedEvent = event.copyWith(
       registrations: registrations,
       maxParticipants: eventCapacity,
+      status: (isPast && !forceResetStatus) ? event.status : EventStatus.published, // Reset status to published if not past OR if forced
     );
 
     final flattenedItems = RegistrationLogic.getSortedItems(updatedEvent);
@@ -868,9 +869,7 @@ class SeedingService {
       );
     }
 
-    await eventRepo.updateEvent(event.copyWith(
-      maxParticipants: eventCapacity,
-      registrations: registrations,
+    await eventRepo.updateEvent(updatedEvent.copyWith(
       grouping: groupingData,
       isGroupingPublished: true,
       results: isPast ? results : [], // Skip leaderboard results for future events
@@ -907,6 +906,20 @@ class SeedingService {
         holeScores.add(score);
         grossTotal += score;
       }
+      
+      // Calculate Team Points (Mock for seeding)
+      int totalPoints = 0;
+      int grossPoints = 0;
+      for (int h = 0; h < holeScores.length; h++) {
+         final hole = holes[h];
+         final par = hole['par'] as int? ?? 4;
+         final score = holeScores[h] ?? par;
+         
+         // Net Points (Mock handicap application?)
+         // For teams, maybe just assume some default?
+         totalPoints += max(0, par - (score - 1) + 2).toInt(); // Assume 1 shot per hole for team
+         grossPoints += max(0, par - score + 2).toInt();
+      }
 
       await scorecardRepo.addScorecard(Scorecard(
         id: '',
@@ -926,6 +939,8 @@ class SeedingService {
         'playerName': 'Team ${group.index + 1}',
         'holeScores': holeScores,
         'grossTotal': grossTotal,
+        'grossPoints': grossPoints,
+        'points': totalPoints,
         'status': status.name,
         'rank': i + 1,
       });
@@ -1004,6 +1019,7 @@ class SeedingService {
 
       // Calculate Stableford points (Simplified for seeding)
       int totalPoints = 0;
+      int grossPoints = 0;
       final pHandicap = handicap.round();
       for (int i = 0; i < holeScores.length; i++) {
         final par = holes[i]['par'] as int? ?? 4;
@@ -1013,6 +1029,7 @@ class SeedingService {
         if (pHandicap % 18 >= si) shots++;
         final netScore = score - shots;
         totalPoints += max(0, par - netScore + 2).toInt();
+        grossPoints += max(0, par - score + 2).toInt();
       }
 
       if (!skipScorecardDocuments) {
@@ -1041,6 +1058,7 @@ class SeedingService {
         'grossTotal': grossTotal,
         'netTotal': grossTotal - pHandicap,
         'points': totalPoints,
+        'grossPoints': grossPoints,
         'status': status.name,
       });
     }
@@ -1101,6 +1119,216 @@ class SeedingService {
       endDate: DateTime.now(),
       status: CompetitionStatus.open,
     );
+  }
+
+  Future<void> generateTestMatches(String eventId) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final event = await eventRepo.getEvent(eventId);
+    if (event == null) return;
+    
+    // Check if matches already exist
+    final grouping = Map<String, dynamic>.from(event.grouping);
+    if (grouping.containsKey('matches')) {
+       // Already has matches, maybe clear them or just return?
+       // For testing convenience, let's clear and regen if called.
+    }
+    
+    final groups = (grouping['groups'] as List?) ?? [];
+    if (groups.isEmpty) return;
+    
+    final List<Map<String, dynamic>> matches = [];
+    
+    for (var g in groups) {
+      final players = (g['players'] as List);
+      // Create Singles Matches: P1 vs P2, P3 vs P4
+      for (int i = 0; i < players.length - 1; i += 2) {
+        final p1 = players[i];
+        final p2 = players[i+1];
+        
+        // Simple Singles Match
+        final matchId = 'match_${eventId}_${g['index']}_$i';
+        
+        matches.add({
+          'id': matchId,
+          'type': 'singles', // MatchType.singles.name
+          'team1Ids': [p1['registrationMemberId'] ?? ''],
+          'team2Ids': [p2['registrationMemberId'] ?? ''],
+          'strokesReceived': {}, // Flat match for now, or random?
+          'team1Name': p1['name'],
+          'team2Name': p2['name'],
+          'groupId': g['index'].toString(), // Use index or ID
+        });
+      }
+    }
+    
+    grouping['matches'] = matches;
+    
+    // Update event
+    final updatedEvent = event.copyWith(grouping: grouping);
+    await eventRepo.updateEvent(updatedEvent);
+  }
+
+  Future<void> generateTestBracket(String eventId) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final event = await eventRepo.getEvent(eventId);
+    if (event == null) return;
+    
+    final grouping = Map<String, dynamic>.from(event.grouping);
+    final List<Map<String, dynamic>> matches = [];
+    final players = (event.grouping['groups'] as List?)?.expand((g) => g['players'] as List).toList() ?? [];
+    
+    if (players.length < 8) return; // Need at least 8 for a decent bracket
+
+    final bracketId = 'test_bracket_$eventId';
+    
+    // 1. Quarter Finals (8 players)
+    for (int i = 0; i < 4; i++) {
+       final p1 = players[i * 2];
+       final p2 = players[i * 2 + 1];
+       matches.add({
+         'id': 'qf_${eventId}_$i',
+         'type': 'singles',
+         'team1Ids': [p1['registrationMemberId']],
+         'team2Ids': [p2['registrationMemberId']],
+         'team1Name': p1['name'],
+         'team2Name': p2['name'],
+         'round': 'quarterFinal',
+         'bracketId': bracketId,
+         'bracketOrder': i,
+       });
+    }
+
+    // 2. Semi Finals (Placeholders)
+    for (int i = 0; i < 2; i++) {
+       matches.add({
+         'id': 'sf_${eventId}_$i',
+         'type': 'singles',
+         'team1Ids': [], // TBD
+         'team2Ids': [], // TBD
+         'team1Name': 'Winner QF ${i*2 + 1}',
+         'team2Name': 'Winner QF ${i*2 + 2}',
+         'round': 'semiFinal',
+         'bracketId': bracketId,
+         'bracketOrder': i,
+       });
+    }
+
+    // 3. Final
+    matches.add({
+       'id': 'f_$eventId',
+       'type': 'singles',
+       'team1Ids': [],
+       'team2Ids': [],
+       'team1Name': 'Winner SF 1',
+       'team2Name': 'Winner SF 2',
+       'round': 'finalRound',
+       'bracketId': bracketId,
+       'bracketOrder': 0,
+    });
+    
+    grouping['matches'] = matches;
+    final updatedEvent = event.copyWith(grouping: grouping);
+    await eventRepo.updateEvent(updatedEvent);
+  }
+
+  Future<void> simulateMatchScores(String eventId) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final scorecardRepo = ref.read(scorecardRepositoryProvider);
+    final event = await eventRepo.getEvent(eventId);
+    if (event == null) return;
+
+    final matchesList = event.grouping['matches'] as List?;
+    if (matchesList == null) return;
+
+    final random = Random();
+    
+    for (var mData in matchesList) {
+      final team1Ids = (mData['team1Ids'] as List).cast<String>();
+      final team2Ids = (mData['team2Ids'] as List).cast<String>();
+      if (team1Ids.isEmpty || team2Ids.isEmpty) continue;
+
+      // Seed scores for both teams
+      final allPlayerIds = [...team1Ids, ...team2Ids];
+      
+      // Determine a winner for the simulation
+      final winnerSide = random.nextBool() ? 1 : 2;
+      final holesWon = 2 + random.nextInt(4); // 2 to 5 up
+      
+      for (var pid in allPlayerIds) {
+        final isWinnerTeam = (winnerSide == 1 && team1Ids.contains(pid)) || (winnerSide == 2 && team2Ids.contains(pid));
+        
+        final holeScores = List.generate(18, (i) {
+          // Winner gets more pars/birdies, loser gets more bogeys
+          final rand = random.nextInt(100);
+          if (isWinnerTeam) {
+            if (rand < 20) return 3; // Birdie
+            if (rand < 80) return 4; // Par
+            return 5; // Bogey
+          } else {
+            if (rand < 5) return 3;
+            if (rand < 40) return 4;
+            if (rand < 90) return 5;
+            return 6; // Double
+          }
+        });
+
+        await scorecardRepo.addScorecard(Scorecard(
+          id: '',
+          competitionId: eventId,
+          roundId: mData['round'] ?? 'round_1',
+          entryId: pid,
+          submittedByUserId: 'system_simulation',
+          status: ScorecardStatus.finalScore,
+          holeScores: holeScores,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ));
+      }
+    }
+  }
+
+  Future<void> advanceBracket(String eventId) async {
+    // This would require MatchPlayCalculator to find winners
+    // For now, it's a placeholder for the logic that takes winners of Round 1
+    // and places them into the TBD slots of Round 2.
+  }
+
+  Future<void> generateGroupStageMatches(String eventId) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final event = await eventRepo.getEvent(eventId);
+    if (event == null) return;
+    
+    final grouping = Map<String, dynamic>.from(event.grouping);
+    final List<Map<String, dynamic>> matches = [];
+    final groups = (grouping['groups'] as List?) ?? [];
+    
+    for (var g in groups) {
+      final players = (g['players'] as List);
+      final gid = g['index'].toString();
+      
+      // Round Robin within the group
+      for (int i = 0; i < players.length; i++) {
+        for (int j = i + 1; j < players.length; j++) {
+          final p1 = players[i];
+          final p2 = players[j];
+          
+          matches.add({
+            'id': 'grp_${gid}_${i}_${j}_$eventId',
+            'type': 'singles',
+            'team1Ids': [p1['registrationMemberId']],
+            'team2Ids': [p2['registrationMemberId']],
+            'team1Name': p1['name'],
+            'team2Name': p2['name'],
+            'round': 'group',
+            'groupId': gid,
+          });
+        }
+      }
+    }
+    
+    grouping['matches'] = matches;
+    final updatedEvent = event.copyWith(grouping: grouping);
+    await eventRepo.updateEvent(updatedEvent);
   }
 }
 

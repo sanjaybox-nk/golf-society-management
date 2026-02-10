@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/competition.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 
 class CompetitionTemplateGalleryScreen extends ConsumerWidget {
@@ -185,6 +186,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
             ? template.name!.toUpperCase() 
             : template.rules.gameName,
         subtitle: '${template.rules.mode.name} • ${template.rules.roundsCount} ROUND',
+        description: CompetitionRuleTranslator.translate(template.rules),
         icon: _getFormatIcon(template.rules.format),
         onTap: () {
           if (isPicker) {
@@ -264,6 +266,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
     BuildContext context, {
     required String title,
     required String subtitle,
+    String? description, // [NEW] Plain-english summary
     required IconData icon,
     required VoidCallback onTap,
     VoidCallback? onChevronTap,
@@ -291,6 +294,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header: Icon + Title + Action
             Row(
               children: [
                 CircleAvatar(
@@ -332,9 +336,25 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                   const Icon(Icons.chevron_right, color: Colors.grey),
               ],
             ),
+
+            // Body: Humanized Description
+            if (description != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade700,
+                  fontStyle: FontStyle.italic,
+                  height: 1.4,
+                ),
+              ),
+            ],
+
+            // Footer: Tech Badges
             if (badges != null && badges.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Row(children: badges),
+              Wrap(spacing: 0, runSpacing: 8, children: badges),
             ],
           ],
         ),

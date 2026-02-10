@@ -18,6 +18,9 @@ abstract class EventRegistration with _$EventRegistration {
     @Default(false) bool attendingDinner,
     @Default(false) bool hasPaid,
     @Default(0.0) double cost,
+    // Handicaps
+    double? handicap,
+    int? playingHandicap,
     // New fields for registration form
     @Default(false) bool needsBuggy,
     String? dietaryRequirements,

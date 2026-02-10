@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import 'dart:math';
 import '../../../../models/golf_event.dart';
 import '../../../../models/event_registration.dart';
 import '../../../events/presentation/events_provider.dart';
@@ -11,7 +10,6 @@ import '../../../events/domain/registration_logic.dart';
 import '../../../../models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/utils/csv_export_service.dart';
 import '../../../../core/theme/theme_controller.dart';
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
@@ -39,32 +37,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.casino, color: Colors.white),
-                tooltip: 'Seed Random Registrations',
-                onPressed: () => _seedRandomRegistrations(context, ref, event),
-              ),
-              Builder(
-                builder: (buttonContext) => IconButton(
-                  icon: const Icon(Icons.download, color: Colors.white),
-                  tooltip: 'Export CSV',
-                  onPressed: () {
-                    final RenderBox? box = buttonContext.findRenderObject() as RenderBox?;
-                    final shareOrigin = box != null
-                        ? box.localToGlobal(Offset.zero) & box.size
-                        : null;
-
-                    CsvExportService.exportRegistrations(
-                      event: event,
-                      participants: RegistrationLogic.getSortedItems(event),
-                      dinnerOnly: RegistrationLogic.getDinnerOnlyItems(event),
-                      sharePositionOrigin: shareOrigin,
-                    );
-                  },
-                ),
-              ),
-            ],
+            actions: [],
           ),
           body: allMembersAsync.when(
             data: (members) => _buildContent(context, ref, event, members),
@@ -684,116 +657,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
         ),
       ],
     );
-  }
-  Future<void> _seedRandomRegistrations(BuildContext context, WidgetRef ref, GolfEvent event) async {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Seeding random registrations...')));
-
-    try {
-      // 1. Get all members
-      final members = await ref.read(membersRepositoryProvider).getMembers();
-      
-      // 2. Shuffle and take 53%
-      final random = Random();
-      final membersList = List.of(members)..shuffle(random);
-      final count = (membersList.length * 0.53).round();
-      final selectedMembers = membersList.take(count).toList();
-      
-      // Select 5 random indices for guests
-      final guestIndices = <int>{};
-      while (guestIndices.length < 5 && guestIndices.length < selectedMembers.length) {
-        guestIndices.add(random.nextInt(selectedMembers.length));
-      }
-
-      final mockGuestNames = [
-        'John Smith', 'Alice Johnson', 'Bob Williams', 'Charlie Brown', 'David Jones',
-        'Emma Davis', 'Frank Miller', 'Grace Wilson', 'Henry Moore', 'Ivy Taylor'
-      ];
-      
-      // 3. Create registrations
-      final newRegistrations = <EventRegistration>[];
-      
-      // We want varied registration times to test FCFS
-      DateTime baseTime = DateTime.now().subtract(const Duration(days: 5));
-      
-      for (int i = 0; i < selectedMembers.length; i++) {
-        final m = selectedMembers[i];
-        final hasGuest = guestIndices.contains(i);
-        
-        // Random time within the last 5 days
-        final regTime = baseTime.add(Duration(minutes: random.nextInt(7000)));
-        
-        final attendingBreakfast = random.nextBool();
-        final attendingLunch = random.nextBool();
-        final attendingDinner = random.nextBool();
-
-        String? guestName;
-        bool guestNeedsBuggy = false;
-        bool guestAttendingBreakfast = false;
-        bool guestAttendingLunch = false;
-        bool guestAttendingDinner = false;
-
-        if (hasGuest) {
-          guestName = mockGuestNames[random.nextInt(mockGuestNames.length)];
-          guestNeedsBuggy = random.nextBool();
-          guestAttendingBreakfast = random.nextBool();
-          guestAttendingLunch = random.nextBool();
-          guestAttendingDinner = random.nextBool();
-        }
-
-        // Calculate a more realistic cost based on event settings
-        double regCost = (event.memberCost ?? 0.0) +
-            (attendingBreakfast ? (event.breakfastCost ?? 0.0) : 0.0) +
-            (attendingLunch ? (event.lunchCost ?? 0.0) : 0.0) +
-            (attendingDinner ? (event.dinnerCost ?? 0.0) : 0.0);
-            
-        if (hasGuest) {
-          regCost += (event.guestCost ?? 0.0) +
-              (guestAttendingBreakfast ? (event.breakfastCost ?? 0.0) : 0.0) +
-              (guestAttendingLunch ? (event.lunchCost ?? 0.0) : 0.0) +
-              (guestAttendingDinner ? (event.dinnerCost ?? 0.0) : 0.0);
-        }
-
-        final isConfirmed = random.nextDouble() > 0.4; // 60% chance of being confirmed
-
-        newRegistrations.add(EventRegistration(
-          memberId: m.id,
-          memberName: '${m.firstName} ${m.lastName}',
-          attendingGolf: true,
-          attendingBreakfast: attendingBreakfast,
-          attendingLunch: attendingLunch,
-          attendingDinner: attendingDinner,
-          needsBuggy: random.nextBool(),
-          hasPaid: isConfirmed || random.nextBool(), // If confirmed, MUST be paid
-          isConfirmed: isConfirmed,
-          cost: regCost,
-          guestName: guestName,
-          guestHandicap: hasGuest ? '${random.nextInt(28)}' : null,
-          guestAttendingBreakfast: guestAttendingBreakfast,
-          guestAttendingLunch: guestAttendingLunch,
-          guestAttendingDinner: guestAttendingDinner,
-          guestNeedsBuggy: guestNeedsBuggy,
-          registeredAt: regTime,
-          history: [
-            RegistrationHistoryItem(
-              timestamp: regTime,
-              action: 'Registered',
-              description: 'Mock registration for simulation',
-              actor: '${m.firstName} ${m.lastName}',
-            ),
-          ],
-        ));
-      }
-      
-      // 4. Update event
-      final repo = ref.read(eventsRepositoryProvider);
-      final updatedEvent = event.copyWith(registrations: newRegistrations);
-      await repo.updateEvent(updatedEvent);
-      
-      messenger.showSnackBar(SnackBar(content: Text('Successfully seeded ${newRegistrations.length} registrations (40% of members, ~5 guests)!')));
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Error seeding: $e')));
-    }
   }
 }
 

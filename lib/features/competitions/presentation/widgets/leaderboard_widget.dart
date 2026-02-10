@@ -4,8 +4,14 @@ import '../../../../models/competition.dart';
 class LeaderboardWidget extends StatelessWidget {
   final List<LeaderboardEntry> entries;
   final CompetitionFormat format;
+  final Function(LeaderboardEntry)? onPlayerTap;
 
-  const LeaderboardWidget({super.key, required this.entries, required this.format});
+  const LeaderboardWidget({
+    super.key, 
+    required this.entries, 
+    required this.format,
+    this.onPlayerTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +25,12 @@ class LeaderboardWidget extends StatelessWidget {
         
         final isDark = Theme.of(context).brightness == Brightness.dark;
         
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
+        return GestureDetector(
+          onTap: () => onPlayerTap?.call(entry),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
             color: isTop3 
                 ? Theme.of(context).primaryColor.withValues(alpha: 0.05) 
                 : Theme.of(context).cardColor,
@@ -55,11 +63,11 @@ class LeaderboardWidget extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            entry.playerName.toUpperCase(),
+                            entry.playerName.toUpperCase() + (entry.secondaryPlayerName != null ? ' / ${entry.secondaryPlayerName!.toUpperCase()}' : ''),
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface, 
                               fontWeight: FontWeight.bold, 
-                              fontSize: 14,
+                              fontSize: 13,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -117,12 +125,12 @@ class LeaderboardWidget extends StatelessWidget {
               ),
               _buildScoreLabel(
                 context,
-                entry.score.toString(), 
+                entry.scoreLabel ?? entry.score.toString(), 
                 isTop3 ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ],
           ),
-        );
+        ),);
       }).toList(),
     );
   }
@@ -143,21 +151,27 @@ class LeaderboardWidget extends StatelessWidget {
 }
 
 class LeaderboardEntry {
+  final String entryId;
   final String playerName;
   final int score;
+  final String? scoreLabel; // [NEW] For Matchplay like "2 & 1"
   final int handicap;
   final int? playingHandicap;
   final int? holesPlayed;
   final String? tieBreakDetails;
   final bool isGuest;
+  final String? secondaryPlayerName; // [NEW] For Pairs/Teams
 
   LeaderboardEntry({
+    required this.entryId,
     required this.playerName, 
     required this.score, 
+    this.scoreLabel,
     required this.handicap,
     this.playingHandicap,
     this.holesPlayed,
     this.tieBreakDetails,
     this.isGuest = false,
+    this.secondaryPlayerName,
   });
 }

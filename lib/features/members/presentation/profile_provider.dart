@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/member.dart';
+import '../../../core/services/persistence_service.dart';
+import 'dart:convert';
 
 // Mock Provider for the current logged-in user
 final currentUserProvider = Provider<Member>((ref) {
@@ -18,11 +20,36 @@ final currentUserProvider = Provider<Member>((ref) {
 
 // Notifier to hold the member being impersonated (Peek Mode)
 class ImpersonationNotifier extends Notifier<Member?> {
+  static const _key = 'impersonated_member';
+
   @override
-  Member? build() => null;
+  Member? build() {
+    final prefs = ref.watch(persistenceServiceProvider);
+    final saved = prefs.getString(_key);
+    if (saved != null) {
+      try {
+        return Member.fromJson(jsonDecode(saved));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
   
-  void set(Member? member) => state = member;
-  void clear() => state = null;
+  void set(Member? member) {
+    state = member;
+    final prefs = ref.read(persistenceServiceProvider);
+    if (member != null) {
+      prefs.setString(_key, jsonEncode(member.toJson()));
+    } else {
+      prefs.remove(_key);
+    }
+  }
+  
+  void clear() {
+    state = null;
+    ref.read(persistenceServiceProvider).remove(_key);
+  }
 }
 
 final impersonationProvider = NotifierProvider<ImpersonationNotifier, Member?>(ImpersonationNotifier.new);

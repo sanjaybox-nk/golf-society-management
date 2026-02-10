@@ -296,7 +296,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
             ),
             if (badges != null && badges.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Row(children: badges),
+              Wrap(spacing: 0, runSpacing: 8, children: badges),
             ],
           ],
         ),

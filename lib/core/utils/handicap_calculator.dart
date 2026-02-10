@@ -50,6 +50,18 @@ class HandicapCalculator {
     return rounded;
   }
 
+  static double calculateDifferential({
+    required int grossScore,
+    required Map<String, dynamic> courseConfig,
+  }) {
+    final slope = _parseValue(courseConfig['slope'] ?? 113);
+    final rating = _parseValue(courseConfig['rating'] ?? 72);
+    
+    // Differential = (113 / Slope) * (Gross Score - Rating)
+    if (slope == 0) return 0.0;
+    return (113 / slope) * (grossScore - rating);
+  }
+
   static double _parseValue(dynamic val) {
     if (val is num) return val.toDouble();
     if (val is String) return double.tryParse(val) ?? 0.0;

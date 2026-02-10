@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../models/competition.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
 import 'base_competition_control.dart';
 
 class MaxScoreControl extends BaseCompetitionControl {
@@ -60,7 +61,8 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
                 label: 'Max Score Type',
                 value: _type,
                 items: const [
-                  DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Relative to Par (e.g. Par + 3)')),
+                  DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Relative to Par (e.g. Par + 2)')),
+                  DropdownMenuItem(value: MaxScoreType.netDoubleBogey, child: Text('Net Double Bogey (Par + 2 + HCP Strokes)')),
                   DropdownMenuItem(value: MaxScoreType.fixed, child: Text('Fixed Value (e.g. 10)')),
                 ],
                 onChanged: (val) {
@@ -69,18 +71,27 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
                        _type = val;
                        // Set sensible defaults when switching
                        if (_type == MaxScoreType.fixed) _value = 10;
-                       if (_type == MaxScoreType.parPlusX) _value = 3; 
+                       if (_type == MaxScoreType.parPlusX) _value = 2; // Default to Par + 2 for standard Max Score
                     });
                   }
                 },
               ),
-              const SizedBox(height: 24),
-              BoxyArtFormField(
-                label: _type == MaxScoreType.parPlusX ? 'Strokes Over Par (X)' : 'Max Score Value',
-                initialValue: _value.toString(),
-                keyboardType: TextInputType.number,
-                onChanged: (val) => setState(() => _value = int.tryParse(val) ?? (_type == MaxScoreType.parPlusX ? 3 : 10)),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  _getMaxScoreTypeDescription(_type),
+                  style: const TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
+                ),
               ),
+              if (_type != MaxScoreType.netDoubleBogey) ...[
+                const SizedBox(height: 24),
+                BoxyArtFormField(
+                  label: _type == MaxScoreType.parPlusX ? 'Strokes Over Par (X)' : 'Max Score Value',
+                  initialValue: _value.toString(),
+                  keyboardType: TextInputType.number,
+                  onChanged: (val) => setState(() => _value = int.tryParse(val) ?? (_type == MaxScoreType.parPlusX ? 2 : 10)),
+                ),
+              ],
                const SizedBox(height: 24),
                _buildAllowanceSlider(),
             ],
@@ -125,7 +136,55 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
+        _buildMemberPreview(),
       ],
+    );
+  }
+
+  Widget _buildMemberPreview() {
+    final rules = buildRules();
+    final description = CompetitionRuleTranslator.translate(rules);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.visibility_outlined, size: 16, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                'MEMBER PREVIEW',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            description,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              height: 1.5,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -161,6 +220,17 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         ),
       ],
     );
+  }
+
+  String _getMaxScoreTypeDescription(MaxScoreType type) {
+    switch (type) {
+      case MaxScoreType.parPlusX:
+        return 'Scores are capped at a specific number of strokes over par (e.g. Par + 2).';
+      case MaxScoreType.netDoubleBogey:
+        return 'The standard tournament cap. Your score is capped at Net Double Bogey (Par + 2 + Handicap Strokes).';
+      case MaxScoreType.fixed:
+        return 'Every hole is capped at a single fixed value (e.g. 10), regardless of par or handicap.';
+    }
   }
 
   @override

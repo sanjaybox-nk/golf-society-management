@@ -139,27 +139,6 @@ class AdminSettingsScreen extends ConsumerWidget {
                   iconColor: Colors.pinkAccent,
                   onTap: () => _seedFullDemo(context, ref),
                 ),
-                _SettingsTile(
-                  icon: Icons.refresh,
-                  title: 'Reset Lab Event',
-                  subtitle: 'Clear registrations/scores for Lab Open',
-                  iconColor: Colors.orange,
-                  onTap: () => _resetLabEvent(context, ref),
-                ),
-                _SettingsTile(
-                  icon: Icons.groups_outlined,
-                  title: 'Seed Team Logistics (Phase 3)',
-                  subtitle: 'Scramble/Pairs historical seeding',
-                  iconColor: Colors.purple,
-                  onTap: () => _seedPhase3(context, ref),
-                ),
-                _SettingsTile(
-                  icon: Icons.vibration_outlined,
-                  title: 'Hardening & Tie-Breaks (Phase 4)',
-                  subtitle: 'Verify shared positions/countback',
-                  iconColor: Colors.redAccent,
-                  onTap: () => _seedPhase4(context, ref),
-                ),
                 const Divider(),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -214,34 +193,6 @@ class AdminSettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _resetLabEvent(BuildContext context, WidgetRef ref) async {
-    final confirm = await showBoxyArtDialog<bool>(
-      context: context, 
-      title: 'Reset Lab Event?',
-      message: 'This will re-seed registrations for "The Lab Open". Scores will be reset. Continue?',
-      confirmText: 'Reset',
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
-      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-    );
-    
-    if (confirm != true) return;
-
-    if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    
-    try {
-      await ref.read(seedingServiceProvider).seedRegistrations('lab_open_001');
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Lab Event Reset!')));
-    } catch (e) {
-      final errorMsg = e.toString().contains('not found') 
-        ? 'Lab Event not found. Please run "Seed Stable Foundation" first.'
-        : 'Error: $e';
-      messenger.showSnackBar(SnackBar(
-        content: Text(errorMsg),
-        duration: const Duration(seconds: 5),
-      ));
-    }
-  }
 
   Future<void> _swapLabFormat(BuildContext context, WidgetRef ref, String templateId) async {
     if (!context.mounted) return;
@@ -256,29 +207,6 @@ class AdminSettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _seedPhase3(BuildContext context, WidgetRef ref) async {
-    if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Seeding Phase 3: Team Logistics...')));
-    try {
-      await ref.read(seedingServiceProvider).seedTeamsPhase();
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Phase 3 Ready!')));
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-  Future<void> _seedPhase4(BuildContext context, WidgetRef ref) async {
-    if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Seeding Phase 4: Hardening...')));
-    try {
-      await ref.read(seedingServiceProvider).seedHardeningPhase();
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Phase 4 Ready!')));
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
 
   Future<void> _clearDatabase(BuildContext context, WidgetRef ref) async {
     // High-risk confirmation

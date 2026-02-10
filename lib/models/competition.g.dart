@@ -23,6 +23,7 @@ Map<String, dynamic> _$MaxScoreConfigToJson(_MaxScoreConfig instance) =>
 const _$MaxScoreTypeEnumMap = {
   MaxScoreType.fixed: 'fixed',
   MaxScoreType.parPlusX: 'parPlusX',
+  MaxScoreType.netDoubleBogey: 'netDoubleBogey',
 };
 
 _CompetitionRules _$CompetitionRulesFromJson(
@@ -95,6 +96,8 @@ const _$CompetitionSubtypeEnumMap = {
   CompetitionSubtype.grossStableford: 'grossStableford',
   CompetitionSubtype.fourball: 'fourball',
   CompetitionSubtype.foursomes: 'foursomes',
+  CompetitionSubtype.ryderCup: 'ryderCup',
+  CompetitionSubtype.teamMatchPlay: 'teamMatchPlay',
 };
 
 const _$CompetitionModeEnumMap = {
