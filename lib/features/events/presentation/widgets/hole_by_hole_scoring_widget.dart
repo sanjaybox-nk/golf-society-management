@@ -23,6 +23,7 @@ class HoleByHoleScoringWidget extends ConsumerStatefulWidget {
   final Scorecard? verifierScorecard;
   final String? targetEntryId; // [NEW] Required for card creation
   final bool isSelfMarking;
+  final bool isAdmin; // [NEW] Allows bypassing global event locks
   final MarkerTab selectedTab;
   final ValueChanged<MarkerTab>? onTabChanged;
 
@@ -33,6 +34,7 @@ class HoleByHoleScoringWidget extends ConsumerStatefulWidget {
     this.verifierScorecard,
     this.targetEntryId,
     this.isSelfMarking = true,
+    this.isAdmin = false,
     this.selectedTab = MarkerTab.player,
     this.onTabChanged,
   });
@@ -268,40 +270,89 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     final bool isStatusLocked = currentScorecard?.status == ScorecardStatus.submitted || 
                                currentScorecard?.status == ScorecardStatus.finalScore;
     
-    // [MODIFIED] Lock if scoring is locked in model OR if the event is completed.
-    // Allow Lab Mode override to unlock if set to false.
+    // [MODIFIED] Lock logic
+    // 1. Individually locked if status is submitted/final
+    // 2. Globally locked if event is completed or scoring locked
     final lockOverride = ref.watch(isScoringLockedOverrideProvider);
     final bool isEventLocked = (widget.event.isScoringLocked == true || widget.event.status == EventStatus.completed) && lockOverride != false;
     
-    final bool isDisabled = isStatusLocked || isEventLocked;
+    // Admins bypass the global event lock to allow rectifications on unlocked cards
+    final bool effectivelyLocked = widget.isAdmin ? isStatusLocked : (isStatusLocked || isEventLocked);
+    
+    final bool isDisabled = effectivelyLocked;
 
     return Column(
       children: [
-        if (!widget.isSelfMarking)
-          Padding(
+        // Match TOTAL bar layout structure (Label + Controls)
+        Visibility(
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          visible: !widget.isSelfMarking,
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Container(
-              height: 36,
+              height: 48, // Slightly taller for more presence
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(18),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Row(
                 children: [
-                  _buildTab(context, 'PLAYER', widget.selectedTab == MarkerTab.player, () => widget.onTabChanged?.call(MarkerTab.player)),
-                  _buildTab(
-                    context, 
-                    'MY SCORE', 
-                    widget.selectedTab == MarkerTab.verifier, 
-                    () => widget.onTabChanged?.call(MarkerTab.verifier), 
-                    hasConflict: hasConflict,
-                    activeColor: Colors.orange,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'SCORES',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                      ),
+                      Text(
+                        'MARKER MODE',
+                        style: TextStyle(
+                          fontSize: 8, 
+                          fontWeight: FontWeight.w900, 
+                          color: Theme.of(context).primaryColor
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 220,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: Row(
+                      children: [
+                        _buildTab(
+                          context, 
+                          'PLAYER', 
+                          score,
+                          widget.selectedTab == MarkerTab.player, 
+                          () => widget.onTabChanged?.call(MarkerTab.player)
+                        ),
+                        _buildTab(
+                          context, 
+                          'MY SCORE', 
+                          myEntry,
+                          widget.selectedTab == MarkerTab.verifier, 
+                          () => widget.onTabChanged?.call(MarkerTab.verifier), 
+                          hasConflict: hasConflict,
+                          activeColor: Colors.orange,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+        ),
         
         Expanded(
           child: Builder(
@@ -376,15 +427,16 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     );
   }
 
-  Widget _buildTab(BuildContext context, String label, bool isActive, VoidCallback onTap, {bool hasConflict = false, Color? activeColor}) {
+  Widget _buildTab(BuildContext context, String label, int? score, bool isActive, VoidCallback onTap, {bool hasConflict = false, Color? activeColor}) {
     final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: isActive ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(6),
             boxShadow: isActive ? AppShadows.softScale : null,
           ),
           alignment: Alignment.center,
@@ -392,9 +444,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                label,
+                '$label${score != null ? ': $score' : ''}',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w900,
                   color: (hasConflict && isActive) 
                       ? Colors.red 

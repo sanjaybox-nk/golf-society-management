@@ -89,7 +89,7 @@ class FirestoreEventsRepository implements EventsRepository {
     if (data['hasDinner'] == null) data['hasDinner'] = true;
     if (data['showRegistrationButton'] == null) data['showRegistrationButton'] = true;
     if (data['isGroupingPublished'] == null) data['isGroupingPublished'] = false;
-    if (data['scoringForceActive'] == null) data['scoringForceActive'] = false;
+
     if (data['isScoringLocked'] == null) data['isScoringLocked'] = false;
     if (data['isStatsReleased'] == null) data['isStatsReleased'] = false;
     if (data['finalizedStats'] == null) data['finalizedStats'] = {};

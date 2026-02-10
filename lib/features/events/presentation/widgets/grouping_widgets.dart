@@ -196,28 +196,32 @@ class GroupingPlayerTile extends StatelessWidget {
                ),
           ],
         ),
-        subtitle: Row(
-          children: [
-            Text('HC: ${player.handicapIndex.toStringAsFixed(1)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
-            const SizedBox(width: 8),
-            Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
-            const SizedBox(width: 8),
-            Text('PHC: $displayPhc', style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.bold)),
-            if (matchSide != null) ...[
-              const SizedBox(width: 8),
+        subtitle: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              Text('HC: ${player.handicapIndex.toStringAsFixed(1)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 4),
               Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
-              const SizedBox(width: 8),
-              Text(
-                'SIDE $matchSide', 
-                style: TextStyle(
-                  fontSize: 10, 
-                  color: matchSide == 'A' ? Colors.orange : Colors.blue, 
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                )
-              ),
+              const SizedBox(width: 4),
+              Text('PHC: $displayPhc', style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.bold)),
+              if (matchSide != null) ...[
+                const SizedBox(width: 4),
+                Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
+                const SizedBox(width: 4),
+                Text(
+                  'SIDE $matchSide', 
+                  style: TextStyle(
+                    fontSize: 10, 
+                    color: matchSide == 'A' ? Colors.orange : Colors.blue, 
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  )
+                ),
+              ],
             ],
-          ],
+          ),
         ),
         trailing: isScoreMode 
             ? Container(

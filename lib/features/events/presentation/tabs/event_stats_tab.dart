@@ -11,6 +11,7 @@ import '../widgets/rich_stats_widgets.dart';
 import '../../../../core/utils/handicap_calculator.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../../core/theme/app_shadows.dart';
+import '../../logic/event_analysis_engine.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
 // Use richStatsModeProvider from debug_providers.dart
@@ -33,28 +34,7 @@ class EventStatsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Prepare Scorecards (Merging live + results if needed)
-    final List<Scorecard> scorecards = List.from(liveScorecards);
-    final existingIds = liveScorecards.map((s) => s.entryId).toSet();
-
-    for (var r in event.results) {
-      final id = (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString();
-      if (!existingIds.contains(id) && r['holeScores'] != null) {
-        scorecards.add(Scorecard(
-          id: 'temp_$id',
-          competitionId: event.id,
-          roundId: '1',
-          entryId: id,
-          submittedByUserId: 'system',
-          status: ScorecardStatus.finalScore,
-          holeScores: List<int?>.from(r['holeScores']),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          points: r['points'] is num ? (r['points'] as num).toInt() : null,
-          netTotal: r['netTotal'] is num ? (r['netTotal'] as num).toInt() : null,
-        ));
-      }
-    }
+    final List<Scorecard> scorecards = liveScorecards;
 
     final effectiveUser = ref.watch(effectiveUserProvider);
     final currentUserId = effectiveUser.id;
@@ -124,8 +104,16 @@ class EventStatsTab extends ConsumerWidget {
     int toughestIdx = 0;
     String toughestName = 'Hole 1';
 
-    if (hasFinalizedStats) {
-      final fs = event.finalizedStats;
+    final fs = hasFinalizedStats 
+        ? event.finalizedStats 
+        : EventAnalysisEngine.calculateFinalStats(
+            scorecards: scorecards,
+            event: event,
+            competition: comp,
+            isStableford: isStableford,
+          );
+
+    if (fs.isNotEmpty) {
       final dist = fs['scoringDistribution'] as Map?;
       fieldEagles = dist?['EAGLE'] ?? 0;
       fieldBirdies = dist?['BIRDIE'] ?? 0;
@@ -136,6 +124,17 @@ class EventStatsTab extends ConsumerWidget {
       final trends = fs['performanceTrends'] as Map?;
       front9AvgVal = (trends?['front9Avg'] as num?)?.toDouble() ?? 0;
       back9AvgVal = (trends?['back9Avg'] as num?)?.toDouble() ?? 0;
+      if (trends?['stablefordBuckets'] != null) {
+        stablefordBuckets = Map<String, int>.from(trends!['stablefordBuckets']);
+      }
+      if (trends?['parTypeAverages'] != null) {
+        parTypeAverages = Map<int, double>.from(
+          (trends!['parTypeAverages'] as Map).map((k, v) => MapEntry(int.parse(k.toString()), (v as num).toDouble()))
+        );
+      }
+      fieldAvgNetScore = (trends?['fieldAvgNetScore'] as num?)?.toDouble() ?? 0;
+      fieldAvgVar = (trends?['fieldAvgVar'] as num?)?.toDouble() ?? 0;
+      fieldAvgBB = (trends?['fieldAvgBB'] as num?)?.toDouble() ?? 0;
 
       final heatmap = fs['difficultyHeatmap'] as Map?;
       heatmap?.forEach((k, v) { holeAverages[int.parse(k)] = (v as num).toDouble(); });
@@ -158,150 +157,26 @@ class EventStatsTab extends ConsumerWidget {
       }
 
       final insights = fs['courseInsights'] as Map?;
-      toughestIdx = (insights?['toughestHole'] as num?)?.toInt() ?? 1;
+      toughestIdx = (insights?['toughestHole'] as num?)?.toInt() ?? 0;
       maxDiff = (insights?['toughestRel'] as num?)?.toDouble() ?? 0;
-    } else {
-      Map<int, int> holeCounts = {};
-      for (var s in scorecards) {
-        final pts = s.points ?? 0;
-        if (pts < 20) stablefordBuckets['<20'] = stablefordBuckets['<20']! + 1;
-        else if (pts <= 25) stablefordBuckets['20-25'] = stablefordBuckets['20-25']! + 1;
-        else if (pts <= 30) stablefordBuckets['26-30'] = stablefordBuckets['26-30']! + 1;
-        else if (pts <= 35) stablefordBuckets['31-35'] = stablefordBuckets['31-35']! + 1;
-        else stablefordBuckets['36+'] = stablefordBuckets['36+']! + 1;
-
-        final cleanId = s.entryId.replaceFirst('_guest', '');
-        final limit = playerHoleLimits[cleanId];
-
-        for (int i = 0; i < 18; i++) {
-          if (limit != null && i >= limit) break;
-          final score = s.holeScores.length > i ? s.holeScores[i] : null;
-          if (score != null) {
-            holeAverages[i] = (holeAverages[i] ?? 0) + score;
-            holeCounts[i] = (holeCounts[i] ?? 0) + 1;
-            final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
-            final diff = score - par;
-            if (diff <= -2) fieldEagles++;
-            else if (diff == -1) fieldBirdies++;
-            else if (diff == 0) fieldPars++;
-            else if (diff == 1) fieldBogeys++;
-            else if (diff >= 2) fieldBlobs++;
-            if (i < 9) front9AvgVal += score; else back9AvgVal += score;
-            if (eclecticRound[i] == null || score < (eclecticRound[i]!)) eclecticRound[i] = score;
-          }
-        }
-      }
-      holeAverages.forEach((key, value) {
-        if (holeCounts[key]! > 0) holeAverages[key] = value / holeCounts[key]!;
-      });
-      if (totalPlayers > 0) {
-        front9AvgVal = front9AvgVal / totalPlayers;
-        back9AvgVal = back9AvgVal / totalPlayers;
+      if (insights?['eclecticRound'] != null) {
+        eclecticRound = List<int?>.from(insights!['eclecticRound']);
       }
     }
     toughestName = 'Hole ${toughestIdx + 1}';
 
     // Standout Awards & Banter logic (Same as before)
     double totalVariance = 0;
-    double totalNet = 0;
-    int netCount = 0;
-    double totalBounceBackRate = 0;
-    int bounceBackCount = 0;
-
-    for (var s in scorecards) {
-      final reg = event.registrations.firstWhere(
-        (r) => r.memberId == s.entryId.replaceFirst('_guest', ''),
-        orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
-      );
-      final name = s.entryId.endsWith('_guest') ? (reg.guestName ?? 'Guest') : reg.memberName;
-
-      int currentStreak = 0;
-      int playerMaxStreak = 0;
-      List<double> diffs = [];
-      for (int i = 0; i < 18; i++) {
-        final score = s.holeScores.length > i ? s.holeScores[i] : null;
-        if (score != null) {
-          final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
-          final diff = (score - par).toDouble();
-          diffs.add(diff);
-          if (score <= par) {
-            currentStreak++;
-            playerMaxStreak = math.max(playerMaxStreak, currentStreak);
-          } else {
-            currentStreak = 0;
-          }
-        }
-      }
-      if (playerMaxStreak > maxStreak) { maxStreak = playerMaxStreak; hotStreakPlayer = name; }
-
-      int playerBounceBacks = 0;
-      int pOpportunities = 0;
-      int pBB = 0;
-      for (int i = 1; i < 18; i++) {
-        final score = s.holeScores.length > i ? s.holeScores[i] : null;
-        final prevScore = s.holeScores.length > (i - 1) ? s.holeScores[i - 1] : null;
-        if (score != null && prevScore != null) {
-           final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
-           final prevPar = holes.length > (i - 1) ? (holes[i - 1]['par'] as int? ?? 4) : 4;
-           if (prevScore > prevPar && score <= par) playerBounceBacks++;
-           if (prevScore > prevPar) { pOpportunities++; if (score <= par) pBB++; }
-        }
-      }
-      if (playerBounceBacks > maxBounceBacks) { maxBounceBacks = playerBounceBacks; bounceBackPlayer = name; }
-      if (pOpportunities > 0) { totalBounceBackRate += (pBB / pOpportunities); bounceBackCount++; }
-
-      if (s.holeScores.length >= 18 && s.holeScores[15] != null && s.holeScores[16] != null && s.holeScores[17] != null) {
-        int playerFinishScore = 0;
-        if (isStableford) {
-          final phc = reg.playingHandicap ?? 0;
-          for (int i = 15; i < 18; i++) {
-            final score = s.holeScores[i]!;
-            final par = holes[i]['par'] as int? ?? 4;
-            final si = holes[i]['si'] as int? ?? 18;
-            int shots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
-            final netScore = score - shots;
-            playerFinishScore += (2 + (par - netScore)).clamp(0, 10).toInt();
-          }
-          if (playerFinishScore > bestFinishScore) { bestFinishScore = playerFinishScore; finisherPlayer = name; }
-        } else {
-          playerFinishScore = s.holeScores[15]! + s.holeScores[16]! + s.holeScores[17]!;
-          if (playerFinishScore < bestFinishScore) { bestFinishScore = playerFinishScore; finisherPlayer = name; }
-        }
-      }
-
-      int playerBlobs = 0; int playerPars = 0; int playerBirds = 0;
-      for (int i = 0; i < s.holeScores.length; i++) {
-        final score = s.holeScores[i];
-        if (score != null) {
-          final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
-          final diff = score - par;
-          if (diff >= 3) playerBlobs++;
-          if (diff == 0) playerPars++;
-          if (diff < 0) playerBirds++;
-        }
-      }
-      if (playerBlobs > maxBlobs) { maxBlobs = playerBlobs; blobKingPlayer = name; }
-      if (playerPars > maxParsPlayer) { maxParsPlayer = playerPars; grinderPlayer = name; }
-      if (playerBirds > maxBirdsPlayer) { maxBirdsPlayer = playerBirds; sniperPlayer = name; }
-      
-      if (diffs.isNotEmpty && diffs.length > 5) {
-        double mean = diffs.fold<num>(0, (a, b) => a + b).toDouble() / diffs.length;
-        double variance = diffs.map((d) => math.pow(d - mean, 2)).fold<double>(0.0, (a, b) => a + b) / diffs.length;
-        if (variance > maxVariance) { maxVariance = variance; rollercoasterPlayer = name; }
-        totalVariance += variance;
-      }
-      if (s.netTotal != null) { totalNet += s.netTotal!; netCount++; }
-    }
-
-    fieldAvgVar = totalVariance / (totalPlayers > 0 ? totalPlayers : 1);
-    fieldAvgNetScore = totalNet / (netCount > 0 ? netCount : 1);
-    fieldAvgBB = totalBounceBackRate / (bounceBackCount > 0 ? bounceBackCount : 1);
-
     final Map<String, String> awardWinNames = {
-      'HOT STREAK': hotStreakPlayer, 'BOUNCE BACK': bounceBackPlayer, 'TOP FINISHER': finisherPlayer,
-      'THE BLOB KING': blobKingPlayer, 'THE GRINDER': grinderPlayer, 'THE SNIPER': sniperPlayer,
+      'HOT STREAK': hotStreakPlayer, 
+      'BOUNCE BACK': bounceBackPlayer, 
+      'TOP FINISHER': finisherPlayer,
+      'THE BLOB KING': blobKingPlayer, 
+      'THE GRINDER': grinderPlayer, 
+      'THE SNIPER': sniperPlayer,
       'THE ROLLERCOASTER': rollercoasterPlayer,
     };
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

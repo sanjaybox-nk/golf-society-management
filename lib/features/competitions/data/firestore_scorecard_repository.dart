@@ -38,14 +38,32 @@ class FirestoreScorecardRepository implements ScorecardRepository {
         .collection('scorecards')
         .where('competitionId', isEqualTo: competitionId)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Scorecard.fromJson(doc.data())).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => _mapScorecard(doc)).toList());
   }
-
   @override
   Future<Scorecard?> getScorecard(String id) async {
     final doc = await _firestore.collection('scorecards').doc(id).get();
     if (!doc.exists) return null;
-    return Scorecard.fromJson(doc.data()!);
+    return _mapScorecard(doc);
+  }
+
+  Scorecard _mapScorecard(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = Map<String, dynamic>.from(doc.data() ?? {});
+    data['id'] = doc.id;
+    
+    // Safety for mandatory dates to avoid "Null is not a subtype of Object" 
+    // This happens because generated code casts json['updatedAt'] as Object 
+    // before passing to the converter.
+    if (data['createdAt'] == null) data['createdAt'] = Timestamp.now();
+    if (data['updatedAt'] == null) data['updatedAt'] = Timestamp.now();
+    
+    // Safety for mandatory strings
+    if (data['competitionId'] == null) data['competitionId'] = 'unknown';
+    if (data['roundId'] == null) data['roundId'] = '1';
+    if (data['entryId'] == null) data['entryId'] = 'unknown';
+    if (data['submittedByUserId'] == null) data['submittedByUserId'] = 'unknown';
+    
+    return Scorecard.fromJson(data);
   }
 
   @override

@@ -74,7 +74,18 @@ The core widget for event participation management. Used in both Member and Admi
 - **Indicators**:
   - **Status Pill**: Shows Confirmed, Reserved, etc.
   - **Position Badge**: Shows FCFS list position.
-  - **Interaction Icons**: Golf Club (Golf), Electric Car (Buggy), Restaurant (Dinner).
+- **Interaction Icons**: Golf Club (Golf), Electric Car (Buggy), Restaurant (Dinner).
+
+### `ScorecardModal`
+A reusable modal for viewing detailed player scores. Used by both members (leaderboard) and admins (scoring list).
+- **Properties**:
+  - `entry`: The `LeaderboardEntry` data.
+  - `scorecards`: List of historical or active scorecards.
+  - `isAdmin`: When true, displays an **Edit (Pencil)** icon in the header.
+- **Features**:
+  - **Dynamic Calculation**: Reconstructs hole-by-hole points based on current competition rules and PHC.
+  - **Fallback Logic**: Gracefully handles missing live scorecards by showing seeded results.
+  - **Consistent Experience**: Unifies the tap action across all leaderboard-style lists.
 
 ### `MemberTile`
 The standard list item for member directories.

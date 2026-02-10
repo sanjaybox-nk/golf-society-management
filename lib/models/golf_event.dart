@@ -70,7 +70,6 @@ abstract class GolfEvent with _$GolfEvent {
     @Default({}) Map<String, dynamic> courseConfig,
     String? selectedTeeName,
     @Default([]) List<String> flashUpdates,
-    @Default(false) bool scoringForceActive,
     @Default(false) bool isScoringLocked,
     @Default(false) bool isStatsReleased,
     @Default({}) Map<String, dynamic> finalizedStats,

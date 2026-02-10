@@ -32,6 +32,7 @@ import '../features/admin/presentation/events/event_registrations_admin_screen.d
 import '../features/admin/presentation/events/event_admin_shell.dart';
 import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
+import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
 import '../features/admin/presentation/competitions/admin_competitions_screen.dart';
@@ -380,6 +381,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             child: EventAdminScoresScreen(eventId: id),
                           );
                         },
+                        routes: [
+                          GoRoute(
+                            path: ':playerId',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              final playerId = state.pathParameters['playerId']!;
+                              return NoTransitionPage(
+                                child: EventAdminScorecardEditorScreen(eventId: id, playerId: playerId),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                       GoRoute(
                         path: 'manage/:id/reports',

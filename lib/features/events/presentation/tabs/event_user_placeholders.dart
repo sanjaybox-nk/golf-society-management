@@ -12,6 +12,8 @@ import 'package:golf_society/features/competitions/presentation/widgets/leaderbo
 import 'package:golf_society/models/competition.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../widgets/grouping_widgets.dart';
+import '../widgets/event_leaderboard.dart';
+import '../widgets/scorecard_modal.dart';
 import '../events_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../../core/theme/theme_controller.dart';
@@ -233,9 +235,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         }
 
         final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
-        if (forceActiveOverride != null) {
-          event = event.copyWith(scoringForceActive: forceActiveOverride);
-        }
 
         final forceLockedOverride = ref.watch(isScoringLockedOverrideProvider);
         if (forceLockedOverride != null) {
@@ -476,8 +475,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     final bool isCompleted = effectiveStatus == EventStatus.completed;
     final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
     // [FIX] Allow Force Active override to bypass 'Completed' status for testing
-    final bool isScoringActive = (forceActiveOverride == true) || (!isCompleted && ((effectiveStatus == EventStatus.inPlay) || (event.scoringForceActive == true) || (isSameDayOrPast && !isLocked)));
-    final bool shouldShowCard = isSameDayOrPast || event.scoringForceActive == true || isCompleted || isLocked;
+    final bool isScoringActive = (forceActiveOverride == true) || (!isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked)));
+    final bool shouldShowCard = isSameDayOrPast || isCompleted || isLocked;
 
     final simulationHoles = ref.watch(simulationHoleCountOverrideProvider);
     final Map<String, int> playerHoleLimits = {};
@@ -878,167 +877,24 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       case 2: { // Leaderboard
         final scorecardsAsync = ref.watch(scorecardsListProvider(widget.eventId));
         final membersAsync = ref.watch(allMembersProvider);
-        // simulationHoles handled above
         
         return scorecardsAsync.when(
-          data: (scorecards) {
-            final membersList = membersAsync.value ?? [];
-            
-            // 1. Merge Live Scorecards with Seeded Results (if any missing from live)
-            // This ensures mixed state (some players live, some seeded) works correctly
-            final Map<String, dynamic> mergedData = {};
-            
-            // First, populate with seeded results
-            // If results are empty, use fallback mockEntries for testing
-            final sourceResults = event.results.isNotEmpty ? event.results : mockEntries.map((e) => {
-               'memberId': e.entryId,
-               'playerName': e.playerName,
-               'handicap': e.handicap,
-               'points': e.score, // Simple mapping for mock
-               'netTotal': e.score,
-            }).toList();
-
-            for (var r in sourceResults) {
-              final id = (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString();
-              mergedData[id] = {
-                'type': 'seeded',
-                'data': r,
-              };
-            }
-            
-            // Overlay with Live Scorecards
-            for (var s in scorecards) {
-               mergedData[s.entryId] = {
-                 'type': 'live',
-                 'data': s,
-               };
-            }
-            
-            List<LeaderboardEntry> finalEntries = [];
-            
-            // playerHoleLimits already calculated at top of _buildTabContent
-
-            for (var reg in event.registrations) {
-               // Process Member
-               if (mergedData.containsKey(reg.memberId)) {
-                 finalEntries.add(_buildEntry(
-                   id: reg.memberId, 
-                   reg: reg, 
-                   source: mergedData[reg.memberId]!, 
-                   event: event, 
-                   effectiveRules: effectiveRules,
-                   membersList: membersList,
-                   currentFormat: currentFormat,
-                   holeLimit: playerHoleLimits[reg.memberId] ?? simulationHoles, // [FIX] Fallback for ungrouped
-                 ));
-               }
-               
-               // Process Guest (if exists and has data)
-               final guestId = '${reg.memberId}_guest';
-               // 3. Remove incorrect "attendingDinner" check
-               if (reg.guestName != null && mergedData.containsKey(guestId)) {
-                  finalEntries.add(_buildEntry(
-                   id: guestId, 
-                   reg: reg, 
-                   source: mergedData[guestId]!, 
-                   event: event, 
-                   effectiveRules: effectiveRules,
-                   membersList: membersList,
-                   currentFormat: currentFormat,
-                   isGuest: true,
-                   holeLimit: playerHoleLimits[guestId] ?? simulationHoles, // [FIX] Fallback
-                 ));
-               }
-            }
-            
-            // Fallback: If no registrations matched but we have data (e.g. pure seeded/mock)
-            if (finalEntries.isEmpty && mergedData.isNotEmpty) {
-               mergedData.forEach((key, value) {
-                  finalEntries.add(_buildEntry(
-                     id: key,
-                     reg: EventRegistration(memberId: key, memberName: value['data']['playerName'] ?? 'Unknown', attendingGolf: true),
-                     source: value,
-                     event: event,
-                     effectiveRules: effectiveRules,
-                     membersList: membersList,
-                     currentFormat: currentFormat,
-                     holeLimit: playerHoleLimits[key] ?? simulationHoles, // [FIX] Fallback
-                  ));
-               });
-            }
-
-            // Count occurrences of each score to identify ties
-            final scoreCounts = <int, int>{};
-            for (var e in finalEntries) {
-              scoreCounts[e.score] = (scoreCounts[e.score] ?? 0) + 1;
-            }
- 
-            // Finalized entries with filtered tie-break details
-            final finalizedEntries = finalEntries.map((e) {
-              if ((scoreCounts[e.score] ?? 0) <= 1) {
-                return LeaderboardEntry(
-                  entryId: e.entryId,
-                  playerName: e.playerName,
-                  score: e.score,
-                  scoreLabel: e.scoreLabel,
-                  handicap: e.handicap,
-                  playingHandicap: e.playingHandicap,
-                  holesPlayed: e.holesPlayed,
-                  isGuest: e.isGuest,
-                  tieBreakDetails: null, // Hide if not a tie
-                );
-              }
-              return e;
-            }).toList();
- 
-            // Sort logic: Format-aware (Desc for points, Asc for strokes)
-            final isStableford = currentFormat == CompetitionFormat.stableford;
-            if (isStableford) {
-              finalizedEntries.sort((a, b) => b.score.compareTo(a.score));
-            } else {
-              finalizedEntries.sort((a, b) => a.score.compareTo(b.score));
-            }
- 
-            final members = finalizedEntries.where((e) => !e.isGuest).toList();
-            final guests = finalizedEntries.where((e) => e.isGuest).toList();
- 
-            if (finalizedEntries.isEmpty) {
-               return const Center(child: Padding(
-                 padding: EdgeInsets.all(32.0),
-                 child: Text('Standings will appear once scoring starts.', style: TextStyle(color: Colors.grey)),
-               ));
-            }
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    if (members.isNotEmpty) ...[
-                      const BoxyArtSectionTitle(title: 'MEMBERS LEADERBOARD'),
-                      LeaderboardWidget(
-                        entries: members, 
-                        format: currentFormat,
-                        onPlayerTap: (entry) => _showPlayerScorecard(context, entry, scorecards, event, comp, holeLimit: playerHoleLimits[entry.entryId] ?? simulationHoles),
-                      ),
-                    ],
-                    if (guests.isNotEmpty) ...[
-                      const SizedBox(height: 32),
-                      const BoxyArtSectionTitle(title: 'GUEST LEADERBOARD'),
-                      LeaderboardWidget(
-                        entries: guests, 
-                        format: currentFormat,
-                        onPlayerTap: (entry) => _showPlayerScorecard(context, entry, scorecards, event, comp, holeLimit: playerHoleLimits[entry.entryId] ?? simulationHoles),
-                      ),
-                    ],
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            );
-          },
+          data: (scorecards) => EventLeaderboard(
+            event: event,
+            comp: comp,
+            liveScorecards: scorecards,
+            membersList: membersAsync.value ?? [],
+            playerHoleLimits: playerHoleLimits,
+            onPlayerTap: (entry) => ScorecardModal.show(
+              context, 
+              ref,
+              entry: entry, 
+              scorecards: scorecards, 
+              event: event, 
+              comp: comp, 
+              holeLimit: playerHoleLimits[entry.entryId] ?? simulationHoles,
+            ),
+          ),
           loading: () => const Center(child: Padding(
             padding: EdgeInsets.all(32.0),
             child: CircularProgressIndicator(),
@@ -1081,59 +937,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     }
   }
 
-  String? _calculateTieBreakDetails(List<int?> holeScores, CompetitionRules? rules, Map<String, dynamic> courseConfig, int phc) {
-    if (holeScores.every((hole) => hole == null)) {
-      return null;
-    }
-    if (holeScores.where((hole) => hole != null).length < 18) {
-      return null; // Only for full scorecards
-    }
-
-    final holes = courseConfig['holes'] as List?;
-    if (holes == null || holes.length < 18) {
-      return null;
-    }
-
-    // Basic Back 9 logic
-    int back9Points = 0;
-    int back9Gross = 0;
-
-    for (int i = 9; i < 18; i++) {
-       final score = holeScores[i];
-       if (score == null) {
-         continue;
-       }
-
-       final hole = holes[i] as Map<String, dynamic>;
-       final par = hole['par'] as int? ?? 4;
-       final si = hole['si'] as int? ?? 9;
-
-       // Calculate Strokes Received
-       final strokesReceived = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
-       final netScore = (holeScores[i] ?? 0) - strokesReceived;
-       final points = (par - netScore + 2).clamp(0, 10);
-
-       back9Points += points;
-       back9Gross += score!;
-    }
-
-    // Respect Lab Mode override
-    final formatOverride = ref.read(gameFormatOverrideProvider);
-    final currentFormat = formatOverride ?? (rules?.format ?? CompetitionFormat.stableford);
-
-    if (currentFormat == CompetitionFormat.stableford) {
-      return "Back 9: $back9Points pts";
-    } else {
-      // For Strokeplay, show Net Back 9 relative to Par
-      int back9Par = 0;
-      for (int i = 9; i < 18; i++) {
-        back9Par += (holes[i]['par'] as int? ?? 4);
-      }
-      final diff = back9Gross - (phc ~/ 2) - back9Par; // Simplified net back 9
-      final label = diff == 0 ? "E" : (diff > 0 ? "+$diff" : "$diff");
-      return "Back 9: $label";
-    }
-  }
 
   Widget _buildGroupScoresTab(GolfEvent event, CompetitionRules rules, Map<String, int> playerHoleLimits) {
     final membersAsync = ref.watch(allMembersProvider);
@@ -1362,6 +1165,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
 
   Widget _buildInactiveBanner(GolfEvent event) {
+    final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
     return BoxyArtFloatingCard(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -1375,7 +1179,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             ),
             const SizedBox(height: 8),
             Text(
-              (event.scoringForceActive == true) 
+              (forceActiveOverride == true) 
                   ? 'Admin has forced scoring to be active for this event.'
                   : 'Scoring will open on ${DateFormat('EEEE, d MMMM').format(event.date)}.',
               textAlign: TextAlign.center,
@@ -1648,142 +1452,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
 
 
-  void _showPlayerScorecard(BuildContext context, LeaderboardEntry entry, List<Scorecard> scorecards, GolfEvent event, Competition? comp, {int? holeLimit}) {
-    // 1. Try to find a live scorecard
-    Scorecard? scorecard = scorecards.firstWhereOrNull((s) => s.entryId == entry.entryId);
-    
-    // 2. Fallback: Reconstruct from seeded results if live scorecard is missing
-    if (scorecard == null) {
-        final seededResult = event.results.firstWhere(
-          (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == entry.entryId,
-          orElse: () => {},
-        );
-        
-        if (seededResult.isNotEmpty && seededResult['holeScores'] != null) {
-            // Reconstruct temporary scorecard object
-            scorecard = Scorecard(
-              id: 'temp_${entry.entryId}',
-              competitionId: widget.eventId,
-              roundId: '1',
-              entryId: entry.entryId,
-              submittedByUserId: 'system',
-              status: ScorecardStatus.finalScore,
-              holeScores: List<int?>.from(seededResult['holeScores']),
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-              points: seededResult['points'] is num ? (seededResult['points'] as num).toInt() : null,
-              netTotal: seededResult['netTotal'] is num ? (seededResult['netTotal'] as num).toInt() : null,
-            );
-        }
-    }
-
-    // 3. Final Bail if truly missing
-    if (scorecard == null) return;
-
-    final actualScorecard = scorecard;
-    
-    // Respect Lab Mode override
-    final formatOverride = ref.read(gameFormatOverrideProvider);
-    final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
-    final isStableford = currentFormat == CompetitionFormat.stableford;
-    
-    final config = ref.read(themeControllerProvider);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.playerName.toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
-                        ),
-                        Text(
-                          'hc: ${_formatHcp(entry.handicap.toDouble())} | phc: ${entry.playingHandicap ?? "-"}',
-                          style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Builder(
-                    builder: (context) {
-                      // final holes = event.courseConfig['holes'] as List? ?? []; // Unused
-                      
-                      // Resolve effective rules/format for modal
-                      final maxTypeOverride = ref.watch(maxScoreTypeOverrideProvider);
-                      final maxValueOverride = ref.watch(maxScoreValueOverrideProvider);
-                      
-                      MaxScoreConfig? effectiveMaxScore = comp?.rules.maxScoreConfig;
-                      if (currentFormat == CompetitionFormat.maxScore) {
-                        if (maxTypeOverride != null) {
-                           effectiveMaxScore = MaxScoreConfig(
-                             type: maxTypeOverride,
-                             value: maxValueOverride ?? (effectiveMaxScore?.value ?? 2),
-                           );
-                        }
-                      }
-
-                      return CourseInfoCard(
-                        courseConfig: event.courseConfig,
-                        selectedTeeName: event.selectedTeeName,
-                        distanceUnit: config.distanceUnit,
-                        isStableford: isStableford,
-                        playerHandicap: entry.playingHandicap,
-                        scores: actualScorecard.holeScores,
-                        format: currentFormat,
-                        maxScoreConfig: effectiveMaxScore,
-                        holeLimit: holeLimit, // [FIX] Apply simulation limit
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // Define Format Helper
 
@@ -1798,169 +1466,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     int? holeLimit,
     bool isGuest = false,
   }) {
-    // final type = source['type'] as String; // Unused
-    final data = source['data'];
-    final holes = event.courseConfig['holes'] as List? ?? [];
-    
-    // 1. Resolve Handicap Index
-    double? handicapIndex;
-    if (data is Map && data.containsKey('handicap')) {
-       final raw = data['handicap'];
-       if (raw is num) handicapIndex = raw.toDouble();
-       else if (raw is String) handicapIndex = double.tryParse(raw);
-    } 
-
-    if (handicapIndex == null || (handicapIndex == 0.0 && !isGuest)) {
-      if (isGuest) {
-        handicapIndex = double.tryParse(reg.guestHandicap ?? '18') ?? 18.0;
-      } else {
-        final member = membersList.where((m) => m is Member && m.id == reg.memberId).firstOrNull as Member?;
-        if (member != null && member.handicap != 0.0) {
-           handicapIndex = member.handicap;
-        } else if (handicapIndex == null) {
-           handicapIndex = 18.0; 
-        }
-      }
-    }
-
-    // 2. Calculate Playing Handicap
-    final phc = HandicapCalculator.calculatePlayingHandicap(
-      handicapIndex: handicapIndex, 
-      rules: effectiveRules, 
-      courseConfig: event.courseConfig,
-    );
-
-    // 3. Extract Raw Hole Scores
-    List<int?> rawScores = [];
-    if (data is Scorecard) {
-      rawScores = data.holeScores;
-    } else if (data is Map) {
-      final r = data;
-      if (r['holeScores'] != null) {
-        rawScores = List<int?>.from(r['holeScores']);
-      }
-    }
-
-    // 4. Filter by Hole Limit (Simulation Mode)
-    final List<int?> scoresToCalculate = [];
-    for (int i = 0; i < rawScores.length; i++) {
-      if (holeLimit != null && i >= holeLimit) break;
-      scoresToCalculate.add(rawScores[i]);
-    }
-    
-    final int holesPlayed = scoresToCalculate.where((sc) => sc != null).length;
-
-    // 5. UNIFIED CALCULATION
-    int displayScore = 0;
-    String? scoreLabel;
-
-    if (currentFormat == CompetitionFormat.stableford) {
-      int totalPoints = 0;
-      for (int i = 0; i < scoresToCalculate.length; i++) {
-         final score = scoresToCalculate[i];
-         if (score != null && i < holes.length) {
-           final par = holes[i]['par'] as int? ?? 4;
-           final si = holes[i]['si'] as int? ?? 18;
-           
-           final strokes = phc.round();
-           final freeShots = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
-           final netScore = score - freeShots;
-           final points = (par - netScore + 2).clamp(0, 10);
-           totalPoints += points;
-         }
-      }
-      displayScore = totalPoints;
-      scoreLabel = displayScore.toString();
-    } else if (currentFormat == CompetitionFormat.matchPlay) {
-      // Net Matchplay vs Par (Bogey Competition)
-      int holesUp = 0;
-      for (int i = 0; i < scoresToCalculate.length; i++) {
-        final score = scoresToCalculate[i];
-        if (score != null && i < holes.length) {
-           final par = holes[i]['par'] as int? ?? 4;
-           final si = holes[i]['si'] as int? ?? 18;
-           final strokes = phc.round();
-           final freeShots = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
-           final netScore = score - freeShots;
-           
-           if (netScore < par) holesUp++;
-           else if (netScore > par) holesUp--;
-        }
-      }
-      displayScore = holesUp;
-      if (displayScore == 0) scoreLabel = 'AS';
-      else if (displayScore > 0) scoreLabel = '+$displayScore';
-      else scoreLabel = '$displayScore';
-    } else {
-      // Strokeplay / Max Score
-      final maxTypeOverride = ref.read(maxScoreTypeOverrideProvider);
-      final maxValueOverride = ref.read(maxScoreValueOverrideProvider);
-      MaxScoreConfig? effectiveMaxScore = effectiveRules.maxScoreConfig;
-      
-      if (currentFormat == CompetitionFormat.maxScore && maxTypeOverride != null) {
-         effectiveMaxScore = MaxScoreConfig(
-           type: maxTypeOverride,
-           value: maxValueOverride ?? (effectiveMaxScore?.value ?? 2),
-         );
-      }
-
-      int grossTotal = 0;
-      int parTotal = 0;
-
-      for (int i = 0; i < scoresToCalculate.length; i++) {
-         int? score = scoresToCalculate[i];
-         if (score != null && i < holes.length) {
-            final par = holes[i]['par'] as int? ?? 4;
-            final si = holes[i]['si'] as int? ?? 18;
-            
-            if (currentFormat == CompetitionFormat.maxScore && effectiveMaxScore != null) {
-               int cap;
-               if (effectiveMaxScore.type == MaxScoreType.fixed) {
-                 cap = effectiveMaxScore.value;
-               } else if (effectiveMaxScore.type == MaxScoreType.parPlusX) {
-                 cap = par + effectiveMaxScore.value;
-               } else {
-                 // Net Double Bogey
-                 final strokes = phc.round();
-                 final holeStrokes = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
-                 cap = par + 2 + holeStrokes;
-               }
-               if (score > cap) score = cap;
-            }
-
-            grossTotal += score;
-            parTotal += par;
-         }
-      }
-      
-      if (holesPlayed > 0) {
-         final partialPhc = (phc * (holesPlayed / 18));
-         final netScore = grossTotal - partialPhc;
-         final toPar = netScore - parTotal;
-         
-         displayScore = toPar.round();
-         
-         if (displayScore == 0) scoreLabel = 'E';
-         else if (displayScore > 0) scoreLabel = '+$displayScore';
-         else scoreLabel = '$displayScore';
-         
-      } else {
-        displayScore = 999;
-        scoreLabel = '-';
-      }
-    }
-
-    return LeaderboardEntry(
-      entryId: id,
-      playerName: isGuest ? (reg.guestName ?? 'Guest') : reg.memberName,
-      score: displayScore,
-      scoreLabel: scoreLabel,
-      handicap: handicapIndex.toInt(),
-      playingHandicap: phc,
-      holesPlayed: holesPlayed,
-      isGuest: isGuest,
-      tieBreakDetails: _calculateTieBreakDetails(scoresToCalculate, effectiveRules, event.courseConfig, phc),
-    );
+    // This method is now handled by the shared EventLeaderboard widget.
+    // Keeping a stub if needed for other parts, but ideally remove if unused.
+    throw UnimplementedError('Handled by EventLeaderboard');
   }
 
 }

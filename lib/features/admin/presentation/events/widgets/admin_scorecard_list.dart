@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../../models/golf_event.dart';
 import '../../../../../models/scorecard.dart';
 import '../../../../../models/event_registration.dart';
+import '../../../../competitions/presentation/competitions_provider.dart';
+import '../../../../../core/utils/handicap_calculator.dart';
+import '../../../../../models/competition.dart';
+import '../../../../competitions/presentation/widgets/leaderboard_widget.dart';
+import '../../../../events/presentation/widgets/scorecard_modal.dart';
 
 class AdminScorecardList extends ConsumerWidget {
   final GolfEvent event;
@@ -17,6 +23,8 @@ class AdminScorecardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final compAsync = ref.watch(competitionDetailProvider(event.id));
+    
     // Filter down to only those playing golf
     final golfers = event.registrations.where((r) => 
       r.attendingGolf && (r.isConfirmed || r.guestIsConfirmed)
@@ -42,74 +50,197 @@ class AdminScorecardList extends ConsumerWidget {
     }
 
     return Column(
-      children: golfers.map((reg) {
+      children: golfers.asMap().entries.map((entry) {
+        final index = entry.key + 1;
+        final reg = entry.value;
         final scorecard = _getScorecard(reg);
         final isSubmitted = scorecard?.status == ScorecardStatus.submitted || 
                             scorecard?.status == ScorecardStatus.finalScore;
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: 8),
           child: BoxyArtFloatingCard(
             onTap: () {
-               // TODO: Navigate to Score Entry or open modal
-               // For now, we'll just show a snackbar
-               ScaffoldMessenger.of(context).showSnackBar(
-                 SnackBar(content: Text('Editing score for ${reg.displayName} coming soon')),
-               );
+              final id = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+              final comp = compAsync.value;
+              final double baseHcp = reg.isGuest 
+                ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
+                : 18.0; 
+              
+              final phc = HandicapCalculator.calculatePlayingHandicap(
+                handicapIndex: baseHcp,
+                rules: comp?.rules ?? const CompetitionRules(),
+                courseConfig: event.courseConfig,
+              );
+
+              ScorecardModal.show(
+                context, 
+                ref, 
+                entry: LeaderboardEntry(
+                  entryId: id,
+                  playerName: reg.displayName,
+                  handicap: baseHcp.toInt(),
+                  playingHandicap: phc,
+                  score: scorecard?.points ?? 0,
+                  isGuest: reg.isGuest,
+                ), 
+                scorecards: scorecards, 
+                event: event, 
+                comp: comp,
+                isAdmin: true,
+              );
             },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    child: Text(
-                      reg.displayName.isNotEmpty ? reg.displayName[0] : '?',
-                      style: TextStyle(color: Theme.of(context).primaryColor),
-                    ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              children: [
+                // Position Index
+                Container(
+                  width: 22,
+                  height: 22,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
+                  child: Text('$index', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),
+                ),
+                const SizedBox(width: 8),
+
+                // Avatar
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  child: Text(
+                    reg.displayName.isNotEmpty ? reg.displayName[0] : '?',
+                    style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Name & Metadata
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        reg.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: -0.2),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        reg.isGuest ? 'Guest' : 'Member',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      ),
+                      const SizedBox(height: 4),
+                      _buildStatusPill(context, isSubmitted),
+                    ],
+                  ),
+                ),
+
+                // Scores
+                if (scorecard != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          reg.displayName,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        if (reg.isGuest)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('GUEST', style: TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.bold)),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (scorecard != null)
-                    Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '${scorecard.points} pts',
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          '${scorecard.points}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900, 
+                            fontSize: 18, 
+                            color: Theme.of(context).primaryColor,
+                            height: 1.0,
+                          ),
                         ),
-                        Text(
-                          scorecard.grossTotal != null ? '${scorecard.grossTotal} Gross' : '-',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                        const Text(
+                          'PTS',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 7, color: Colors.grey, letterSpacing: 0.5),
                         ),
                       ],
                     ),
-                  const SizedBox(width: 12),
-                  _buildStatusPill(context, isSubmitted),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right, color: Colors.grey),
-                ],
-              ),
+                  ),
+
+                // Handicap column
+                compAsync.when(
+                  data: (comp) {
+                    final double baseHcp = reg.isGuest 
+                      ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
+                      : 18.0; 
+                    
+                    final phc = HandicapCalculator.calculatePlayingHandicap(
+                      handicapIndex: baseHcp,
+                      rules: comp?.rules ?? const CompetitionRules(),
+                      courseConfig: event.courseConfig,
+                    );
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$phc',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                        ),
+                        Text(
+                          '(${baseHcp.toStringAsFixed(1)})',
+                          style: TextStyle(fontSize: 8, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Controls
+                if (scorecard != null)
+                  IconButton(
+                    icon: Icon(
+                      isSubmitted ? Icons.lock_rounded : Icons.lock_open_rounded, 
+                      color: isSubmitted ? Colors.red.withValues(alpha: 0.7) : Colors.green, 
+                      size: 20
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () async {
+                      try {
+                        final newStatus = isSubmitted ? ScorecardStatus.draft : ScorecardStatus.submitted;
+                        await ref.read(scorecardRepositoryProvider).updateScorecardStatus(
+                          scorecard.id,
+                          newStatus,
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Scorecard for ${reg.displayName} marked as ${newStatus == ScorecardStatus.draft ? "Open" : "Submitted"}.')),
+                          );
+                        }
+                      } catch (e) {
+                        debugPrint('❌ Scorecard Status Update Error: $e');
+                        if (context.mounted) {
+                          final errorMsg = 'Error updating status (ID: ${scorecard.id}): $e';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(errorMsg),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 10),
+                              action: SnackBarAction(
+                                label: 'COPY',
+                                textColor: Colors.white,
+                                onPressed: () {
+                                  // Simplified copy if needed, but usually just for reading
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                const Icon(Icons.chevron_right, color: Colors.grey, size: 16),
+              ],
             ),
           ),
         );
@@ -131,17 +262,21 @@ class AdminScorecardList extends ConsumerWidget {
   }
 
   Widget _buildStatusPill(BuildContext context, bool isSubmitted) {
+    Color color = isSubmitted ? Colors.green : Colors.orange;
+    String text = isSubmitted ? 'DONE' : 'PENDING';
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isSubmitted ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color, width: 0.5),
       ),
       child: Text(
-        isSubmitted ? 'DONE' : 'PENDING',
+        text,
         style: TextStyle(
-          color: isSubmitted ? Colors.green : Colors.orange,
-          fontSize: 10,
+          color: color,
+          fontSize: 9,
           fontWeight: FontWeight.bold,
         ),
       ),

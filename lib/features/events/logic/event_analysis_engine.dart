@@ -3,6 +3,7 @@ import '../../../models/golf_event.dart';
 import '../../../models/scorecard.dart';
 import '../../../models/competition.dart';
 import '../../../models/event_registration.dart';
+import 'package:collection/collection.dart';
 
 class EventAnalysisEngine {
   static Map<String, dynamic> calculateFinalStats({
@@ -12,13 +13,35 @@ class EventAnalysisEngine {
     bool isStableford = true,
   }) {
     final holes = event.courseConfig['holes'] as List? ?? [];
-    final totalPlayers = scorecards.length;
+    // 0. Merge live scorecards with archived results
+    final List<Scorecard> mergedScorecards = List.from(scorecards);
+    final existingIds = scorecards.map((s) => s.entryId).toSet();
 
+    for (var r in event.results) {
+      final id = (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString();
+      if (!existingIds.contains(id) && r['holeScores'] != null) {
+        mergedScorecards.add(Scorecard(
+          id: 'temp_$id',
+          competitionId: event.id,
+          roundId: '1',
+          entryId: id,
+          submittedByUserId: 'system',
+          status: ScorecardStatus.finalScore,
+          holeScores: List<int?>.from(r['holeScores']),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          points: r['points'] is num ? (r['points'] as num).toInt() : null,
+          netTotal: r['netTotal'] is num ? (r['netTotal'] as num).toInt() : null,
+        ));
+      }
+    }
+
+    final totalPlayers = mergedScorecards.length;
     if (totalPlayers == 0) return {};
 
     // 1. Field Distribution & Hole Averages
-    Map<int, double> holeAverages = {};
-    Map<int, int> holeCounts = {};
+    Map<String, double> holeAverages = {};
+    Map<String, int> holeCounts = {};
     int fieldEagles = 0;
     int fieldBirdies = 0;
     int fieldPars = 0;
@@ -28,11 +51,10 @@ class EventAnalysisEngine {
 
     Map<String, int> stablefordBuckets = {'<20': 0, '20-25': 0, '26-30': 0, '31-35': 0, '36+': 0};
     
-    
-    Map<int, double> parTypeSums = {3: 0, 4: 0, 5: 0};
-    Map<int, int> parTypeCounts = {3: 0, 4: 0, 5: 0};
+    Map<String, double> parTypeSums = {'3': 0, '4': 0, '5': 0};
+    Map<String, int> parTypeCounts = {'3': 0, '4': 0, '5': 0};
 
-    for (var s in scorecards) {
+    for (var s in mergedScorecards) {
       // Stableford Buckets
       final pts = s.points ?? 0;
       if (pts < 20) {
@@ -50,8 +72,9 @@ class EventAnalysisEngine {
       for (int i = 0; i < 18; i++) {
         final score = s.holeScores.length > i ? s.holeScores[i] : null;
         if (score != null) {
-          holeAverages[i] = (holeAverages[i] ?? 0) + score;
-          holeCounts[i] = (holeCounts[i] ?? 0) + 1;
+          final idxStr = i.toString();
+          holeAverages[idxStr] = (holeAverages[idxStr] ?? 0) + score;
+          holeCounts[idxStr] = (holeCounts[idxStr] ?? 0) + 1;
 
           final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
           final diff = score - par;
@@ -67,9 +90,10 @@ class EventAnalysisEngine {
             fieldBlobs++;
           }
 
-          if (parTypeSums.containsKey(par)) {
-            parTypeSums[par] = parTypeSums[par]! + diff;
-            parTypeCounts[par] = parTypeCounts[par]! + 1;
+          final parStr = par.toString();
+          if (parTypeSums.containsKey(parStr)) {
+            parTypeSums[parStr] = parTypeSums[parStr]! + diff;
+            parTypeCounts[parStr] = parTypeCounts[parStr]! + 1;
           }
 
           if (eclecticRound[i] == null || score < (eclecticRound[i]!)) {
@@ -85,7 +109,7 @@ class EventAnalysisEngine {
       }
     });
 
-    Map<int, double> parTypeAverages = {};
+    Map<String, double> parTypeAverages = {};
     parTypeSums.forEach((key, value) {
       if (parTypeCounts[key]! > 0) {
         parTypeAverages[key] = value / (parTypeCounts[key]! / totalPlayers);
@@ -94,7 +118,8 @@ class EventAnalysisEngine {
 
     int toughestIdx = 0;
     double maxDiff = -999;
-    holeAverages.forEach((idx, avg) {
+    holeAverages.forEach((idxStr, avg) {
+      final idx = int.parse(idxStr);
       final par = holes.length > idx ? (holes[idx]['par'] as int? ?? 4).toDouble() : 4.0;
       final diff = avg - par;
       if (diff > maxDiff) {
@@ -119,7 +144,7 @@ class EventAnalysisEngine {
     String rollercoasterPlayer = 'None';
     double maxVariance = 0;
 
-    for (var s in scorecards) {
+    for (var s in mergedScorecards) {
       final reg = event.registrations.firstWhere(
         (r) => r.memberId == s.entryId.replaceFirst('_guest', ''),
         orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
@@ -236,7 +261,7 @@ class EventAnalysisEngine {
     double totalBounceBackRate = 0;
     int bounceBackCount = 0;
 
-    for (var s in scorecards) {
+    for (var s in mergedScorecards) {
       List<double> diffs = [];
       for (int i = 0; i < 18; i++) {
         final score = s.holeScores.length > i ? s.holeScores[i] : null;
@@ -274,38 +299,97 @@ class EventAnalysisEngine {
       }
     }
 
-    return {
-      'fieldEagles': fieldEagles,
-      'fieldBirdies': fieldBirdies,
-      'fieldPars': fieldPars,
-      'fieldBogeys': fieldBogeys,
-      'fieldBlobs': fieldBlobs,
-      'stablefordBuckets': stablefordBuckets,
-      'holeAverages': holeAverages,
+    // --- Construct Nested Structure ---
+    
+    // 1. Scoring Distribution
+    final Map<String, int> scoringDistribution = {
+      'EAGLE': fieldEagles,
+      'BIRDIE': fieldBirdies,
+      'PAR': fieldPars,
+      'BOGEY': fieldBogeys,
+      'BLOB': fieldBlobs,
+    };
+
+    // 2. Performance Trends
+    double front9Avg = 0;
+    double back9Avg = 0;
+    int holesPlayed = 0;
+    for (int i = 0; i < 9; i++) {
+        final avg = holeAverages[i.toString()];
+        if (avg != null && avg > 0) {
+            front9Avg += avg;
+            holesPlayed++;
+        }
+    }
+    front9Avg = holesPlayed > 0 ? front9Avg / holesPlayed : 0;
+
+    holesPlayed = 0;
+    for (int i = 9; i < 18; i++) {
+        final avg = holeAverages[i.toString()];
+        if (avg != null && avg > 0) {
+            back9Avg += avg;
+            holesPlayed++;
+        }
+    }
+    back9Avg = holesPlayed > 0 ? back9Avg / holesPlayed : 0;
+
+    final Map<String, dynamic> performanceTrends = {
+      'front9Avg': front9Avg,
+      'back9Avg': back9Avg,
       'parTypeAverages': parTypeAverages,
-      'toughestIdx': toughestIdx,
-      'toughestName': 'Hole ${toughestIdx + 1}',
-      'maxDiff': maxDiff,
-      'hotStreakPlayer': hotStreakPlayer,
-      'maxStreak': maxStreak,
-      'bounceBackPlayer': bounceBackPlayer,
-      'maxBounceBacks': maxBounceBacks,
-      'finisherPlayer': finisherPlayer,
-      'bestFinishScore': bestFinishScore,
-      'blobKingPlayer': blobKingPlayer,
-      'maxBlobs': maxBlobs,
-      'grinderPlayer': grinderPlayer,
-      'maxParsPlayer': maxParsPlayer,
-      'sniperPlayer': sniperPlayer,
-      'maxBirdsPlayer': maxBirdsPlayer,
-      'rollercoasterPlayer': rollercoasterPlayer,
-      'maxVariance': maxVariance,
-      'fieldAvgVar': totalVariance / (totalPlayers > 0 ? totalPlayers : 1),
+      'stablefordBuckets': stablefordBuckets,
       'fieldAvgNetScore': totalNet / (netCount > 0 ? netCount : 1),
+      'fieldAvgVar': totalVariance / (totalPlayers > 0 ? totalPlayers : 1),
       'fieldAvgBB': totalBounceBackRate / (bounceBackCount > 0 ? bounceBackCount : 1),
-      'eclecticRound': eclecticRound,
+    };
+
+    // 3. Hall of Fame
+    final List<Map<String, dynamic>> hallOfFame = [];
+    void addAward(String type, String name, String? playerId) {
+      if (name != 'None') {
+        hallOfFame.add({
+          'type': type,
+          'playerName': name,
+          'playerId': playerId,
+        });
+      }
+    }
+
+    // Helper to find playerId for a name (though stats tab will use name if id missing)
+    // Actually, we should store playerId in the award.
+    String? getPlayerId(String name, GolfEvent event) {
+        final reg = event.registrations.firstWhereOrNull((r) => 
+            (r.isGuest ? (r.guestName ?? 'Guest') : r.memberName) == name
+        );
+        if (reg != null) return reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+        return null;
+    }
+
+    addAward('HOT_STREAK', hotStreakPlayer, getPlayerId(hotStreakPlayer, event));
+    addAward('BOUNCE_BACK', bounceBackPlayer, getPlayerId(bounceBackPlayer, event));
+    addAward('TOP_FINISHER', finisherPlayer, getPlayerId(finisherPlayer, event));
+    addAward('BLOB_KING', blobKingPlayer, getPlayerId(blobKingPlayer, event));
+    addAward('CONSISTENT', grinderPlayer, getPlayerId(grinderPlayer, event));
+    addAward('SNIPER', sniperPlayer, getPlayerId(sniperPlayer, event));
+    addAward('ROLLERCOASTER', rollercoasterPlayer, getPlayerId(rollercoasterPlayer, event));
+
+    // 4. Course Insights
+    final Map<String, dynamic> courseInsights = {
+      'toughestHole': toughestIdx,
+      'toughestName': 'Hole ${toughestIdx + 1}',
+      'toughestRel': maxDiff,
+      'eclecticRound': eclecticRound, // List of int?
       'totalPlayers': totalPlayers,
-      'totalHolesPlayed': totalPlayers * holes.length,
+      'totalHolesPlayed': totalPlayers * (holes.length),
+    };
+
+    return {
+      'scoringDistribution': scoringDistribution,
+      'performanceTrends': performanceTrends,
+      'difficultyHeatmap': holeAverages,
+      'hallOfFame': hallOfFame,
+      'courseInsights': courseInsights,
+      'timestamp': DateTime.now().toIso8601String(),
     };
   }
 }

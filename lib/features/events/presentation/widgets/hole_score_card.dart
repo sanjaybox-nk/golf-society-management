@@ -43,14 +43,9 @@ class HoleScoreCard extends StatelessWidget {
       child: AbsorbPointer(
         absorbing: isDisabled,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             children: [
-              const SizedBox(height: 12),
-              
-              if (!isReadOnly) ...[
-                 const Spacer(),
-              ],
     
               // Center Row: Singular Input
               Row(
@@ -62,12 +57,18 @@ class HoleScoreCard extends StatelessWidget {
                     const SizedBox(width: 24),
                   ],
                   
-                  // Score Display/Input
-                  _ScoreDisplay(
-                    score: score,
-                    hasConflict: hasConflict,
-                    isReadOnly: isReadOnly || isDisabled, // Treat as read-only if disabled
-                    onChanged: onScoreChanged,
+                  // Score Display/Input with Metadata
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ScoreDisplay(
+                        score: score,
+                        hasConflict: hasConflict,
+                        isReadOnly: isReadOnly || isDisabled, 
+                        onChanged: onScoreChanged,
+                      ),
+                      _buildScoreMetadata(score, par),
+                    ],
                   ),
     
                   if (!isReadOnly) ...[
@@ -80,8 +81,6 @@ class HoleScoreCard extends StatelessWidget {
               if (!isReadOnly) ...[
                 const Spacer(),
               ],
-              
-              const SizedBox(height: 12),
               
               // Bottom Row: Hole Info
               Row(
@@ -138,6 +137,43 @@ class HoleScoreCard extends StatelessWidget {
       iconSize: 24,
       padding: 12,
       shadowOverride: AppShadows.inputSoft, 
+    );
+  }
+
+  Widget _buildScoreMetadata(int score, int par) {
+    final diff = score - par;
+    String label = 'Par';
+    Color color = Colors.grey;
+
+    if (diff == -1) {
+      label = 'Birdie';
+      color = Colors.red;
+    } else if (diff <= -2) {
+      label = 'Eagle';
+      color = Colors.amber;
+    } else if (diff == 1) {
+      label = 'Bogey';
+      color = Colors.blue;
+    } else if (diff >= 2) {
+      label = 'Dbl Bogey';
+      color = Colors.black;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.w900,
+          color: color,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 }
@@ -203,16 +239,23 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
   Widget build(BuildContext context) {
     if (widget.isReadOnly) {
        return Container(
-        width: 80,
-        height: 80,
+        width: 82,
+        height: 82,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.1),
-            width: 1.5,
+            color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.05),
+            width: 2,
           ),
-          boxShadow: AppShadows.softScale,
+          boxShadow: [
+             BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+            ...AppShadows.softScale,
+          ],
         ),
         alignment: Alignment.center,
         child: Text(
@@ -221,22 +264,37 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
             fontSize: 42,
             fontWeight: FontWeight.w900,
             color: Colors.black,
+            letterSpacing: -1,
           ),
         ),
       );
     }
 
-    return Container(
-      width: 80,
-      height: 80,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: 82,
+      height: 82,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.1),
-          width: 1.5,
+          color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.05),
+          width: 2,
         ),
-        boxShadow: AppShadows.softScale,
+        boxShadow: widget.hasConflict ? [
+          BoxShadow(
+            color: Colors.red.withValues(alpha: 0.1),
+            blurRadius: 15,
+            spreadRadius: 2,
+          )
+        ] : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          ...AppShadows.softScale,
+        ],
       ),
       child: TextField(
         controller: _controller,
@@ -244,10 +302,12 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         onSubmitted: (_) => _handleCommit(),
+        textAlignVertical: TextAlignVertical.center,
         style: const TextStyle(
           fontSize: 42,
           fontWeight: FontWeight.w900,
           color: Colors.black,
+          letterSpacing: -1,
         ),
         decoration: const InputDecoration(
           border: InputBorder.none,

@@ -210,7 +210,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   child: Row(
                     children: [
                       _buildActionTab(
-                        label: 'REGENERATE',
+                        label: (_localGroups == null || _localGroups!.isEmpty) ? 'GENERATE' : 'REGENERATE',
                         icon: Icons.refresh,
                         opacity: event.isRegistrationClosed ? 1.0 : 0.4,
                         onTap: event.isRegistrationClosed
@@ -246,6 +246,12 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                         color: _isDirty ? Colors.amber : Colors.white,
                         onTap: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
                       ),
+                      _buildActionTab(
+                        label: event.isGroupingPublished ? 'UNPUBLISH' : 'PUBLISH',
+                        icon: event.isGroupingPublished ? Icons.visibility_off_outlined : Icons.send_outlined,
+                        color: event.isGroupingPublished ? Colors.orange : Colors.white,
+                        onTap: () => _togglePublish(event),
+                      ),
                       if (event.secondaryTemplateId != null)
                         _buildActionTab(
                           label: 'MATCH MODE',
@@ -275,13 +281,6 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     ),
                   ],
                 ),
-                if (_localGroups != null) 
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildPublishBar(event),
-                  ),
                 if (_showGenerationOptions)
                   _buildGenerationOverlay(context, event, events, handicapMap, config, comp?.rules),
               ],
@@ -715,19 +714,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     }
   }
 
-  Widget _buildPublishBar(GolfEvent event) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: BoxyArtButton(
-          title: event.isGroupingPublished ? 'Unpublish' : 'Publish to Members',
-          onTap: () => _togglePublish(event),
-          isSecondary: event.isGroupingPublished,
-          fullWidth: true,
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildGenerationOverlay(
     BuildContext context, 

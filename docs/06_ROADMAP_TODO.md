@@ -42,7 +42,9 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
         - [x] **Secondary Overlays**: Run matchplay alongside Stableford/Medal.
         - [x] **Interactive Grouping**: Tap-to-Swap pairing logic on the tee sheet.
+    - [x] **Unified Scorecard View**: Consistent `ScorecardModal` across member/admin leaderboards.
     - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
+    - [x] **Stability Hardening**: Resolved null safety errors in scorecard state syncing.
     - [ ] **Result Verification**: Admin approval workflow.
 - [ ] **Locker Room (Profile)**
     - [x] **Edit Profile**: Form to update handicap, phone, etc.

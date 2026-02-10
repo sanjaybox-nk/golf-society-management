@@ -14,6 +14,9 @@ import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../events/logic/event_analysis_engine.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
+import '../../../members/presentation/members_provider.dart';
+import '../../../events/presentation/widgets/event_leaderboard.dart';
+import '../../../events/presentation/widgets/scorecard_modal.dart';
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -25,6 +28,7 @@ class EventAdminScoresScreen extends ConsumerStatefulWidget {
 
 class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen> {
   int _selectedTab = 0;
+  final Map<String, bool> _optimisticToggles = {};
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,14 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     final scorecardsAsync = ref.watch(scorecardsListProvider(widget.eventId));
 
     return eventAsync.when(
-      data: (event) => Scaffold(
+      data: (event) {
+        // Clear optimistic toggles if they match the server state
+        _optimisticToggles.removeWhere((key, val) {
+          if (key == 'isStatsReleased') return val == event.isStatsReleased;
+          return false;
+        });
+
+        return Scaffold(
         appBar: BoxyArtAppBar(
           title: 'Event Scores',
           subtitle: event.title,
@@ -64,7 +75,8 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           padding: const EdgeInsets.all(16),
           child: _buildTabContent(event, scorecardsAsync),
         ),
-      ),
+        );
+      },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, st) => Scaffold(body: Center(child: Text('Error: $err'))),
     );
@@ -111,48 +123,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           children: [
             _buildStatusHeader(event, scorecardsAsync),
             const SizedBox(height: 24),
-            const BoxyArtSectionTitle(title: 'SCORING CONTROLS'),
-            const SizedBox(height: 12),
-            BoxyArtFloatingCard(
-              child: Column(
-                children: [
-                  _buildControlRow(
-                    context,
-                    icon: Icons.rocket_launch,
-                    title: 'Force Scoring Active',
-                    subtitle: 'Allow players to enter scores before the scheduled date.',
-                    value: event.scoringForceActive == true,
-                    onChanged: (val) {
-                      ref.read(eventsRepositoryProvider).updateEvent(
-                        event.copyWith(scoringForceActive: val),
-                      );
-                    },
-                  ),
-                  const Divider(height: 32),
-                  _buildControlRow(
-                    context,
-                    icon: Icons.lock_person,
-                    title: 'Lock Final Scores',
-                    subtitle: 'Prevent all players from making further edits to their scorecards.',
-                    value: event.isScoringLocked == true,
-                    onChanged: (val) {
-                       ref.read(eventsRepositoryProvider).updateEvent(
-                        event.copyWith(isScoringLocked: val),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(height: 32),
-                  BoxyArtButton(
-                    title: 'RESET ALL SCORES',
-                    isSecondary: true,
-                    fullWidth: true,
-                    onTap: () => _confirmResetAllScores(event),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
             const BoxyArtSectionTitle(title: 'ANALYTICS & STATS'),
             const SizedBox(height: 12),
             BoxyArtFloatingCard(
@@ -161,20 +131,33 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                    _buildControlRow(
                     context,
                     icon: Icons.analytics_outlined,
-                    title: 'Release Final Stats',
-                    subtitle: 'Make the Stats tab visible to all players in their event view.',
-                    value: event.isStatsReleased == true,
-                    onChanged: (val) async {
-                      if (val) {
-                        // Recalculate before releasing to ensure accuracy
-                        await _recalculateStats(event, scorecardsAsync);
-                      }
+                    title: 'Show Live Stats to Players',
+                    subtitle: 'Allow players to see live-calculated analytics during the event.',
+                    value: _optimisticToggles['isStatsReleased'] ?? (event.isStatsReleased == true),
+                    onChanged: (val) {
+                      setState(() => _optimisticToggles['isStatsReleased'] = val);
                       ref.read(eventsRepositoryProvider).updateEvent(
                         event.copyWith(isStatsReleased: val),
                       );
                     },
                   ),
                   const Divider(height: 32),
+                   _buildControlRow(
+                    context,
+                    icon: Icons.lock_outline,
+                    title: 'Close Event & Finalize',
+                    subtitle: 'Lock scorecards and calculate final society statistics.',
+                    value: event.status == EventStatus.completed,
+                    onChanged: (val) {
+                      if (val) {
+                        _closeEvent(event, scorecardsAsync);
+                      } else {
+                        _reopenEvent(event);
+                      }
+                    },
+                  ),
+                  const Divider(height: 32),
+                  const SizedBox(height: 12),
                   BoxyArtButton(
                     title: 'RECALCULATE STATS',
                     fullWidth: true,
@@ -183,7 +166,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Last Finalized: ${event.finalizedStats != null ? "Ready" : "Never"}',
+                    'Last Finalized: ${event.finalizedStats.isNotEmpty ? "Ready" : "Never"}',
                     style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -192,57 +175,31 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           ],
         );
       case 1: // Leaderboard
+        final membersAsync = ref.watch(allMembersProvider);
         return Column(
           children: [
             const BoxyArtSectionTitle(title: 'LIVE STANDINGS'),
             const SizedBox(height: 16),
             scorecardsAsync.when(
-              data: (scorecards) {
-                if (scorecards.isEmpty) {
-                   return const BoxyArtFloatingCard(
-                    child: Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: Center(child: Text('No scores submitted yet.')),
-                    ),
+              data: (scorecards) => EventLeaderboard(
+                event: event,
+                comp: ref.watch(competitionDetailProvider(event.id)).value,
+                liveScorecards: scorecards,
+                membersList: membersAsync.value ?? [],
+                showTitles: false, // We already have the title above
+                onPlayerTap: (entry) {
+                  // Admin navigation to scorecard modal first
+                  ScorecardModal.show(
+                    context, 
+                    ref, 
+                    entry: entry, 
+                    scorecards: scorecards, 
+                    event: event, 
+                    comp: ref.watch(competitionDetailProvider(event.id)).value,
+                    isAdmin: true,
                   );
-                }
-
-                // 1. Filter submitted scores
-                final submitted = scorecards.where((s) => 
-                  s.status == ScorecardStatus.submitted || s.status == ScorecardStatus.finalScore
-                ).toList();
-
-                // 2. Map to entries
-                final entries = submitted.map((s) {
-                  // Find player name from registrations
-                  final reg = event.registrations.firstWhere(
-                    (r) => (r.isGuest ? '${r.memberId}_guest' : r.memberId) == s.entryId,
-                    orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
-                  );
-                  
-                  final name = reg.isGuest ? (reg.guestName ?? 'Guest') : reg.memberName;
-                  
-                  // Estimate handicap (store in scorecard in future, but for now grab from reg or default)
-                  final hc = reg.isGuest 
-                      ? int.tryParse(reg.guestHandicap ?? '18') ?? 18
-                      : 18; // We don't have member handicap map here easily, default 18 for display or fetch
-
-                  return LeaderboardEntry(
-                    entryId: s.entryId,
-                    playerName: name,
-                    score: s.points ?? 0, // Default to Stableford points
-                    handicap: hc,
-                  );
-                }).toList();
-
-                // 3. Sort (Desc for points)
-                entries.sort((a, b) => b.score.compareTo(a.score));
-
-                return LeaderboardWidget(
-                  entries: entries,
-                  format: CompetitionFormat.stableford, // Hardcoded for now, should come from competition
-                );
-              },
+                },
+              ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Center(child: Text('Error loading leaderboard: $e')),
             ),
@@ -305,56 +262,19 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     }
   }
 
-  Future<void> _confirmResetAllScores(GolfEvent event) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset All Scores?'),
-        content: const Text('This will permanently delete all scorecards and clear the leaderboard for this event. This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('CANCEL'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('RESET', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
 
-    if (confirmed == true) {
-      if (!mounted) return;
-      
-      // 1. Delete all scorecard documents
-      await ref.read(scorecardRepositoryProvider).deleteAllScorecards(event.id);
-      
-      // 2. Clear event results (Leaderboard)
-      await ref.read(eventsRepositoryProvider).updateEvent(
-        event.copyWith(results: []),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('All scores and results have been reset.')),
-        );
-      }
-    }
-  }
-
-  Future<void> _recalculateStats(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) async {
+  Future<Map<String, dynamic>?> _recalculateStats(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) async {
     final scorecards = scorecardsAsync.value;
     if (scorecards == null || scorecards.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No scores available to calculate stats.')),
       );
-      return;
+      return null;
     }
 
     final compAsync = ref.read(competitionDetailProvider(event.id));
     final competition = compAsync.value;
-    if (competition == null) return;
+    if (competition == null) return null;
 
     // Show loading
     ScaffoldMessenger.of(context).showSnackBar(
@@ -374,6 +294,51 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Stats recalculated and saved!')),
+      );
+    }
+    return stats;
+  }
+
+  Future<void> _closeEvent(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Close Event?'),
+        content: const Text('This will lock all scorecards, finalize the results, and mark the event as completed.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('CLOSE', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final stats = await _recalculateStats(event, scorecardsAsync);
+      await ref.read(eventsRepositoryProvider).updateEvent(
+        event.copyWith(
+          status: EventStatus.completed,
+          isScoringLocked: true,
+          finalizedStats: stats ?? {},
+        ),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Event Closed & Stats Finalized')),
+        );
+      }
+    }
+  }
+
+  Future<void> _reopenEvent(GolfEvent event) async {
+    await ref.read(eventsRepositoryProvider).updateEvent(
+      event.copyWith(
+        status: EventStatus.inPlay,
+        isScoringLocked: false,
+      ),
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event Reopened')),
       );
     }
   }
@@ -401,9 +366,10 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                              now.day == event.date.day || 
                              now.isAfter(event.date);
     
-    final isLive = (event.scoringForceActive == true) || (isSameDayOrFuture && event.isScoringLocked != true);
-    final status = (event.isScoringLocked == true) ? 'LOCKED' : (isLive ? 'LIVE' : 'PENDING');
-    final statusColor = (event.isScoringLocked == true) ? Colors.red : (isLive ? Colors.green : Colors.orange);
+    final bool isLive = isSameDayOrFuture && event.isScoringLocked != true;
+    final bool isClosed = event.status == EventStatus.completed || event.isScoringLocked == true;
+    final status = isClosed ? 'CLOSED' : (isLive ? 'LIVE' : 'PENDING');
+    final statusColor = isClosed ? Colors.red : (isLive ? Colors.green : Colors.orange);
 
     return Row(
       children: [

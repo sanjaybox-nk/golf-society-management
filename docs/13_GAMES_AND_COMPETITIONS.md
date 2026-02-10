@@ -70,6 +70,12 @@ The event leaderboard provides a real-time view of the field with advanced prese
 - **Split Sections**: Guests are automatically identified (via the `_guest` suffix) and moved to a dedicated "Guest Leaderboard" section below the main field.
 - **Consistency**: Guests retain their "G" badge for easy identification in mixed lists.
 
+### 4.4 Unified Scorecard View
+All player entries on the leaderboard are interactive:
+- **Unified Action**: Tapping a player opens the `ScorecardModal`.
+- **Member View**: Read-only access to the hole-by-hole point breakdown.
+- **Admin View**: Access to the modal + a quick-action **Edit (Pencil)** icon in the header to navigate directly to the scorecard editor.
+
 ## 5. UI Flow
 
 ### Selecting a Format
