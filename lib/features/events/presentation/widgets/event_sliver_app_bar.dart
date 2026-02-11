@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../members/presentation/profile_provider.dart';
-import '../../../../../models/member.dart';
+import 'dart:ui';
+
+
 import '../../../../models/golf_event.dart';
-import '../../../debug/presentation/widgets/lab_control_panel.dart';
+
 
 class EventSliverAppBar extends ConsumerWidget {
   final GolfEvent event;
@@ -24,56 +25,9 @@ class EventSliverAppBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
-    final isSuperAdmin = user.role == MemberRole.superAdmin;
 
-    // Helper to show Lab Panel
-    void showLabPanel() {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => LabControlPanel(eventId: event.id),
-      );
-    }
 
-    if (isPreview) {
-      return SliverAppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        toolbarHeight: 100.0,
-        pinned: true,
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.canPop() ? context.pop() : context.go('/admin/events'),
-            child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-          ),
-        ),
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-            ),
-          ],
-        ),
-        actions: [
-          if (event.isRegistrationClosed == false) ...[
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white),
-              onPressed: () => context.push('/admin/events/${event.id}/edit'),
-            ),
-            const SizedBox(width: 8),
-          ]
-        ],
-      );
-    }
+
 
     return SliverAppBar(
       backgroundColor: Theme.of(context).primaryColor,
@@ -100,6 +54,7 @@ class EventSliverAppBar extends ConsumerWidget {
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 20,
+              letterSpacing: -0.5,
             ),
           ),
           if (subtitle != null) ...[
@@ -109,18 +64,41 @@ class EventSliverAppBar extends ConsumerWidget {
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 13,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ],
       ),
       actions: [
-        if (isSuperAdmin) 
-          IconButton(
-            icon: const Icon(Icons.science, color: Colors.amber), // Lab Icon
-            onPressed: showLabPanel,
-            tooltip: 'Lab Control Panel',
+        if (isPreview)
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: IconButton(
+                    icon: const Icon(Icons.edit),
+                    iconSize: 20,
+                    color: Colors.white,
+                    onPressed: () => context.push('/admin/events/manage/${event.id}/event'),
+                    padding: EdgeInsets.zero,
+                    tooltip: 'Edit Event',
+                  ),
+                ),
+              ),
+            ),
           ),
       ],
     );

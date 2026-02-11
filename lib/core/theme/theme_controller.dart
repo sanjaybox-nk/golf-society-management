@@ -114,4 +114,10 @@ class ThemeController extends Notifier<SocietyConfig> {
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
+
+  Future<void> setSelectedPaletteName(String? name) async {
+    final newConfig = state.copyWith(selectedPaletteName: name);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
 }

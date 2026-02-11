@@ -16,25 +16,7 @@ class AdminEventsScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(adminEventsProvider);
 
     return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: 'Manage Events',
-        isLarge: true,
-        leading: IconButton(
-          icon: const Icon(Icons.home, color: Colors.white, size: 28),
-          onPressed: () => context.go('/home'),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () => context.push('/admin/settings'),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/admin/events/new'),
-        child: const Icon(Icons.add),
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: eventsAsync.when(
         data: (events) {
           if (events.isEmpty) {
@@ -49,9 +31,31 @@ class AdminEventsScreen extends ConsumerWidget {
 
           return CustomScrollView(
             slivers: [
+              SliverAppBar(
+                floating: true,
+                pinned: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
+                surfaceTintColor: Colors.transparent,
+                title: const Text(
+                  'Manage Events',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                ),
+                leading: IconButton(
+                  icon: const Icon(Icons.home_rounded, size: 24),
+                  onPressed: () => context.go('/home'),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.settings_rounded, size: 22),
+                    onPressed: () => context.push('/admin/settings'),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+              
               // Upcoming Section
               const SliverPadding(
-                padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+                padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
                 sliver: SliverToBoxAdapter(
                   child: BoxyArtSectionTitle(title: 'Upcoming Events'),
                 ),
@@ -65,7 +69,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => Padding(
@@ -79,7 +83,7 @@ class AdminEventsScreen extends ConsumerWidget {
 
               // Past Section
               const SliverPadding(
-                padding: EdgeInsets.fromLTRB(24, 32, 24, 8),
+                padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
                 sliver: SliverToBoxAdapter(
                   child: BoxyArtSectionTitle(title: 'Past Events'),
                 ),
@@ -93,7 +97,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => Padding(
@@ -106,12 +110,19 @@ class AdminEventsScreen extends ConsumerWidget {
                 ),
 
               // Bottom padding for FAB
-              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/admin/events/new'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Create Event', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.black, // Assuming primary is bright/gold
       ),
     );
   }
@@ -168,119 +179,130 @@ class AdminEventsScreen extends ConsumerWidget {
           SnackBar(content: Text('Deleted "${event.title}"')),
         );
       },
-      child: BoxyArtFloatingCard(
-        onTap: () => context.push(
-          '/admin/events/manage/${event.id}/event',
-          extra: event,
-        ),
-        child: Row(
-          children: [
-            BoxyArtDateBadge(date: event.date),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () => _toggleEventStatus(context, ref, event),
-                    child: _StatusChip(status: event.status),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    event.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${DateFormat('MMM d').format(event.date)} @ ${event.courseName ?? 'TBA'}',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Status and Publish Action
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+      child: ModernCard(
+        padding: const EdgeInsets.all(16),
+        child: InkWell(
+          onTap: () => context.push('/events/${event.id}?preview=true'),
+          borderRadius: BorderRadius.circular(24),
+          child: Row(
+            children: [
+              _buildModernDateBadge(context, event.date),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.people_outline, color: Colors.blue, size: 20),
-                      tooltip: 'Registrations',
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => context.push(
-                        '/admin/events/manage/${event.id}/registrations',
-                        extra: event,
+                    Row(
+                      children: [
+                        _StatusChip(status: event.status),
+                        const SizedBox(width: 8),
+                        if (event.registrations.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.people_alt_rounded, size: 10, color: Colors.blue),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${event.registrations.length}',
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      event.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, letterSpacing: -0.3),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      event.courseName ?? 'TBA',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
-          ],
+              ),
+              const SizedBox(width: 8),
+              _buildActionIcon(
+                context,
+                Icons.people_outline_rounded,
+                () => context.push(
+                  '/admin/events/manage/${event.id}/registrations',
+                  extra: event,
+                ),
+                color: Colors.blue,
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: Theme.of(context).dividerColor),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _toggleEventStatus(BuildContext context, WidgetRef ref, GolfEvent event) async {
-    final isDraft = event.status == EventStatus.draft;
-    final action = isDraft ? 'Publish' : 'Unpublish';
-    final message = isDraft
-        ? 'This will make "${event.title}" visible to all members. Continue?'
-        : 'This will hide "${event.title}" from members. Continue?';
-        
-    final confirm = await showBoxyArtDialog<bool>(
-      context: context,
-      title: '$action Event?',
-      message: message,
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
-          child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
-          child: Text(
-            action, 
+
+  Widget _buildModernDateBadge(BuildContext context, DateTime date) {
+    final primary = Theme.of(context).primaryColor;
+    return Container(
+      width: 56,
+      height: 64,
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: primary.withValues(alpha: 0.2), width: 1.5),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            DateFormat('MMM').format(date).toUpperCase(),
             style: TextStyle(
-              color: isDraft ? Colors.green : Colors.orange, 
-              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: primary,
+              letterSpacing: 0.5,
             ),
           ),
-        ),
-      ],
+          Text(
+            DateFormat('d').format(date),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: primary,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
     );
+  }
 
-    if (confirm == true) {
-      try {
-        final newStatus = isDraft ? EventStatus.published : EventStatus.draft;
-        await ref.read(eventsRepositoryProvider).updateEvent(
-          event.copyWith(status: newStatus),
-        );
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Event ${newStatus.name} 🚀')),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error updating status: $e')),
-          );
-        }
-      }
-    }
+  Widget _buildActionIcon(BuildContext context, IconData icon, VoidCallback onTap, {Color? color}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: (color ?? Theme.of(context).primaryColor).withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 20, color: color ?? Theme.of(context).primaryColor),
+        onPressed: onTap,
+        padding: EdgeInsets.zero,
+      ),
+    );
   }
 }
 

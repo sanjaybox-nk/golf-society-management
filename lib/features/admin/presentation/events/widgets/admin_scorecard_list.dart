@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../../models/golf_event.dart';
@@ -190,7 +189,7 @@ class AdminScorecardList extends ConsumerWidget {
                     );
                   },
                   loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
+                  error: (e, s) => const SizedBox.shrink(),
                 ),
 
                 const SizedBox(width: 8),

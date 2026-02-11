@@ -1,6 +1,6 @@
 # Golf Society Management (BoxyArt)
 
-A premium Flutter application for managing golf societies, featuring a high-contrast design system, dynamic notifications, and administrative controls.
+A premium, hardened Flutter application for managing golf societies, featuring a high-contrast design system, dynamic notifications, and robust administrative controls.
 
 ## ✨ Key Features
 - **Dynamic Dashboard**: Real-time notifications and upcoming match tracking.

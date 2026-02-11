@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter/services.dart';
 import 'contrast_helper.dart';
+import 'app_palettes.dart';
 
 class AppTheme {
   // Brand Colors
@@ -13,32 +14,41 @@ class AppTheme {
   static const Color backgroundGrey = Color(0xFFF0F2F5);
   static const double fieldRadius = 12.0;
 
-  static ThemeData generateTheme({required Color seedColor, required Brightness brightness}) {
-    final isDark = brightness == Brightness.dark;
+  static ThemeData generateTheme({
+    required Color seedColor,
+    required Brightness brightness,
+    AppPalette? palette,
+  }) {
+    final isDark = brightness == Brightness.dark || (palette?.isDark ?? false);
     
+    // palette colors take precedence
+    final backgroundColor = palette?.background ?? (isDark ? const Color(0xFF121212) : backgroundGrey);
+    final cardColor = palette?.cardBg ?? (isDark ? const Color(0xFF1E1E1E) : surfaceWhite);
+    final textPrimary = palette?.textPrimary ?? (isDark ? Colors.white : primaryBlack);
+
     // Calculate contrasting text color for the primary color (buttons, etc)
     final onPrimaryColor = ContrastHelper.getContrastingText(seedColor);
 
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
-      brightness: brightness,
+      brightness: isDark ? Brightness.dark : Brightness.light,
       primary: seedColor,
       onPrimary: onPrimaryColor, // Dynamic contrast
-      surface: isDark ? const Color(0xFF1E1E1E) : surfaceWhite, // Dark Card Color
-      onSurface: isDark ? Colors.white : primaryBlack,
+      surface: cardColor,
+      onSurface: textPrimary,
     );
 
     // Dynamic Text Theme
     final textTheme = GoogleFonts.poppinsTextTheme().apply(
-      bodyColor: isDark ? Colors.white : primaryBlack,
-      displayColor: isDark ? Colors.white : primaryBlack,
+      bodyColor: textPrimary,
+      displayColor: textPrimary,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : backgroundGrey,
-      cardColor: isDark ? const Color(0xFF1E1E1E) : surfaceWhite,
+      scaffoldBackgroundColor: backgroundColor,
+      cardColor: cardColor,
       primaryColor: seedColor,
       tabBarTheme: TabBarThemeData(
         indicatorColor: seedColor,

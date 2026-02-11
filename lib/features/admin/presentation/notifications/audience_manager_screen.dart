@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/models/distribution_list.dart';
@@ -26,110 +27,182 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
   @override
   Widget build(BuildContext context) {
     final listsAsync = ref.watch(distributionListProvider);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: beigeBackground,
+      body: Stack(
         children: [
-          const BoxyArtSectionTitle(
-            title: 'Your Distribution Lists',
-            padding: EdgeInsets.fromLTRB(24, 24, 24, 12),
-          ),
-          Expanded(
-            child: listsAsync.when(
-              data: (lists) {
-                if (lists.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.list_alt_rounded, size: 64, color: Colors.grey.shade300),
-                        const SizedBox(height: 16),
-                        Text('No custom lists yet', style: TextStyle(color: Colors.grey.shade500)),
-                      ],
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'Audience Groups',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
+                      ),
                     ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  itemCount: lists.length,
-                  itemBuilder: (context, index) {
-                    final list = lists[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Dismissible(
-                        key: Key(list.id),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade400,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 24),
-                          child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
-                        ),
-                        confirmDismiss: (direction) async {
-                          return await showBoxyArtDialog<bool>(
-                            context: context,
-                            title: 'Delete List?',
-                            message: 'Delete list "${list.name}"?',
-                            onCancel: () => Navigator.of(context).pop(false),
-                            onConfirm: () => Navigator.of(context).pop(true),
-                            confirmText: 'Delete',
-                          );
-                        },
-                        onDismissed: (_) {
-                          ref.read(distributionListsRepositoryProvider).deleteList(list.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Deleted ${list.name}')),
-                          );
-                        },
-                        child: BoxyArtFloatingCard(
-                          onTap: () => _showCreateListDialog(listToEdit: list),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.group, color: Colors.black),
+                    Text(
+                      'Manage custom mailing lists',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    listsAsync.when(
+                      data: (lists) {
+                        if (lists.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(48.0),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.group_work_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No custom groups found',
+                                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: lists.map((list) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Dismissible(
+                              key: Key(list.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.8),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 24),
+                                child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
+                              ),
+                              confirmDismiss: (direction) async {
+                                return await showBoxyArtDialog<bool>(
+                                  context: context,
+                                  title: 'Delete Group?',
+                                  message: 'Are you sure you want to delete "${list.name}"?',
+                                  onCancel: () => Navigator.of(context).pop(false),
+                                  onConfirm: () => Navigator.of(context).pop(true),
+                                  confirmText: 'Delete',
+                                );
+                              },
+                              onDismissed: (_) {
+                                ref.read(distributionListsRepositoryProvider).deleteList(list.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Deleted ${list.name}')),
+                                );
+                              },
+                              child: ModernCard(
+                                onTap: () => _showCreateListDialog(listToEdit: list),
+                                child: Row(
                                   children: [
-                                    Text(list.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    Text('${list.memberIds.length} members', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: 24),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            list.name, 
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                                          ),
+                                          Text(
+                                            '${list.memberIds.length} members', 
+                                            style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13, fontWeight: FontWeight.w500)
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.chevron_right, color: Colors.grey),
-                            ],
+                            ),
+                          )).toList(),
+                        );
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(child: Text('Error: $err')),
+                    ),
+                    const SizedBox(height: 100),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
                           ),
-                        ),
+                        ],
                       ),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Floating Action Button sticky
+          Positioned(
+            bottom: 32,
+            right: 20,
+            child: FloatingActionButton.extended(
+              onPressed: _showCreateListDialog,
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('New Group', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateListDialog,
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        icon: const Icon(Icons.add),
-        label: const Text('Create List', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -218,154 +291,213 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final isEditing = widget.listToEdit != null;
+    final theme = Theme.of(context);
     
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 24, 12, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(isEditing ? 'Edit Distribution List' : 'Create Distribution List', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  isEditing ? 'Edit Audience' : 'New Audience', 
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)
+                ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.black),
+                  icon: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withValues(alpha: 0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close_rounded, color: Colors.black54, size: 20),
+                  ),
                 ),
               ],
             ),
           ),
           
-          // Form Fields
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                BoxyArtFormField(
-                  label: 'List Name',
-                  controller: _nameController,
-                  hintText: 'e.g. Committee 2026',
-                ),
-                const SizedBox(height: 20),
-                BoxyArtSearchBar(
-                  hintText: 'Search members to add...',
-                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Selected Members Chips
-          if (_selectedMemberIds.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-              child: membersAsync.when(
-                data: (members) {
-                  final selectedMembers = members.where((m) => _selectedMemberIds.contains(m.id)).toList();
-                  return Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: selectedMembers.map((m) {
-                      return Chip(
-                        label: Text('${m.firstName} ${m.lastName}'),
-                        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                        deleteIcon: const Icon(Icons.close, size: 18, color: Colors.black54),
-                        onDeleted: () => _toggleMember(m.id),
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          // Form Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ModernCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _nameController,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          decoration: InputDecoration(
+                            labelText: 'List Name',
+                            labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 14),
+                            hintText: 'e.g. Committee 2026',
+                            hintStyle: TextStyle(color: theme.dividerColor.withValues(alpha: 0.3)),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  const BoxyArtSectionTitle(title: 'Selected Members', padding: EdgeInsets.zero),
+                  const SizedBox(height: 12),
+                  if (_selectedMemberIds.isNotEmpty)
+                    membersAsync.when(
+                      data: (members) {
+                        final selectedMembers = members.where((m) => _selectedMemberIds.contains(m.id)).toList();
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: selectedMembers.map((m) {
+                            return Chip(
+                              label: Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                              backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
+                              deleteIcon: Icon(Icons.close_rounded, size: 16, color: theme.primaryColor),
+                              onDeleted: () => _toggleMember(m.id),
+                              side: BorderSide.none,
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            );
+                          }).toList(),
+                        );
+                      },
+                      loading: () => const SizedBox(),
+                      error: (error, stackTrace) => const SizedBox(),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+                      ),
+                      child: Text(
+                        'No members selected yet',
+                        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13, fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  
+                  const SizedBox(height: 24),
+                  const BoxyArtSectionTitle(title: 'Add Members', padding: EdgeInsets.zero),
+                  const SizedBox(height: 12),
+                  ModernCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: TextField(
+                      onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                      decoration: InputDecoration(
+                        hintText: 'Search by name or email...',
+                        hintStyle: TextStyle(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5), fontSize: 14),
+                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  membersAsync.when(
+                    data: (members) {
+                      final filtered = members.where((m) {
+                        final term = _searchQuery.trim();
+                        if (term.isEmpty) return false;
+
+                        final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
+                        final email = m.email.toLowerCase();
+                        final matches = name.contains(term) || email.contains(term);
+                        return matches && !_selectedMemberIds.contains(m.id);
+                      }).toList();
+
+                      if (filtered.isEmpty && _searchQuery.isNotEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Text('No matching members found', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13)),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: filtered.map((m) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ModernCard(
+                            onTap: () => _toggleMember(m.id),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.dividerColor.withValues(alpha: 0.05),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.person_add_rounded, size: 18, color: Colors.grey),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text(m.email, style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w500)),
+                                    ],
+                                  ),
+                                ),
+                                Icon(Icons.add_circle_outline_rounded, color: theme.primaryColor, size: 20),
+                              ],
+                            ),
+                          ),
+                        )).toList(),
                       );
-                    }).toList(),
-                  );
-                },
-                loading: () => const SizedBox(),
-                error: (error, stackTrace) => const SizedBox(),
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text('Error: $e')),
+                  ),
+                  const SizedBox(height: 40),
+                ],
               ),
             ),
-          
-          // Selection Stats
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-               '${_selectedMemberIds.length} members selected',
-               style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
-             ),
           ),
           
-          const Divider(),
-          
-          // Search Results
-          Expanded(
-            child: membersAsync.when(
-              data: (members) {
-                final filtered = members.where((m) {
-                  final term = _searchQuery.trim();
-                  if (term.isEmpty) return false;
-
-                  final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
-                  final email = m.email.toLowerCase();
-                  final matches = name.contains(term) || email.contains(term);
-                  
-                  // Only show if matching search AND NOT already selected (since they are in chips)
-                  return matches && !_selectedMemberIds.contains(m.id);
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  if (_searchQuery.isEmpty) {
-                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.search, size: 48, color: Colors.grey.shade300),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Type name or email to add members...',
-                            style: TextStyle(color: Colors.grey.shade500),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const Center(child: Text('No new members found matching criteria'));
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final m = filtered[index];
-                    return CheckboxListTile(
-                      value: false, // Always false because we filter out selected ones
-                      onChanged: (_) => _toggleMember(m.id),
-                      title: Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(m.email, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                      activeColor: Colors.black,
-                      checkColor: Theme.of(context).primaryColor,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-            ),
-          ),          
           // Footer Action
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: BoxyArtButton(
-              title: isEditing ? 'Save Changes' : 'Create Distribution List',
-              onTap: _save,
-              fullWidth: true,
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                BoxyArtButton(
+                  title: isEditing ? 'Save Changes' : 'Create Audience',
+                  onTap: _save,
+                  fullWidth: true,
+                ),
+              ],
             ),
           ),
         ],

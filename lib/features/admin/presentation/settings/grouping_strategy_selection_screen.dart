@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/theme/theme_controller.dart';
 
-import '../../../../core/theme/contrast_helper.dart';
+
 
 class GroupingStrategySelectionScreen extends ConsumerWidget {
   const GroupingStrategySelectionScreen({super.key});
@@ -14,120 +14,168 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
     final societyConfig = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
     final current = societyConfig.groupingStrategy;
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     final strategies = [
       _GroupingStrategyOption(
         id: 'balanced',
         label: 'Balanced Teams',
         description: 'Balances total handicap across all groups. Best for team events or fair competition.',
-        icon: Icons.balance,
+        icon: Icons.balance_rounded,
       ),
       _GroupingStrategyOption(
         id: 'progressive',
         label: 'Progressive (Low HC First)',
         description: 'Orders groups by ability (Leaders out first). Great for pace of play.',
-        icon: Icons.trending_up,
+        icon: Icons.trending_up_rounded,
       ),
       _GroupingStrategyOption(
         id: 'similar',
         label: 'Similar Ability',
         description: 'Groups players of similar skill levels together. Good for peer competition.',
-        icon: Icons.group_work,
+        icon: Icons.group_work_rounded,
       ),
       _GroupingStrategyOption(
         id: 'random',
         label: 'Random Draw',
         description: 'Randomly mixes players (respects pairings/buggies). Fun for social events.',
-        icon: Icons.shuffle,
+        icon: Icons.shuffle_rounded,
       ),
     ];
 
     return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: 'Grouping Strategy',
-        subtitle: 'Select default method',
-        isLarge: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(24),
-        itemCount: strategies.length,
-        itemBuilder: (context, index) {
-          final strategy = strategies[index];
-          final isSelected = strategy.id == current;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: BoxyArtFloatingCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              onTap: () {
-                controller.setGroupingStrategy(strategy.id);
-                // context.pop(); // Removed as per user request
-              },
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isSelected 
-                          ? Theme.of(context).primaryColor.withValues(alpha: 0.1) 
-                          : Colors.grey.shade100,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      strategy.icon,
-                      color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          strategy.label,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: isSelected ? Theme.of(context).primaryColor : Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          strategy.description,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isSelected)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8, top: 2),
-                      child: Icon(
-                        Icons.check_circle,
-                        color: Theme.of(context).primaryColor,
-                        size: 20,
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'Grouping',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
                       ),
                     ),
-                ],
+                    Text(
+                      'Select default grouping method',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ...strategies.map((strategy) {
+                      final isSelected = strategy.id == current;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ModernCard(
+                          onTap: () => controller.setGroupingStrategy(strategy.id),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: isSelected 
+                                        ? Theme.of(context).primaryColor.withValues(alpha: 0.1) 
+                                        : Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    strategy.icon,
+                                    color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        strategy.label,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: isSelected ? Theme.of(context).primaryColor : null,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        strategy.description,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8, top: 4),
+                                    child: Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Theme.of(context).primaryColor,
+                                      size: 20,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 100),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

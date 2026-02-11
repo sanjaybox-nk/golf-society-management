@@ -8,6 +8,7 @@ The design system, widely referred to as **BoxyArt**, is centralized in `lib/cor
 -   **`status_colors.dart`**: Semantic color palette for status indicators.
 -   **`contrast_helper.dart`**: Utility for calculating contrasting text colors.
 -   **`boxy_art_widgets.dart`**: Contains reusable UI components implementing the system.
+-   **`modern_card.dart`**: The core component of the "Headerless Modern" design system.
 
 ## Dynamic Theming
 
@@ -23,11 +24,26 @@ AppTheme.generateTheme(
 
 ### Society Branding
 Admins can customize the primary color via **Admin Console → Society Branding**. The theme automatically:
--   Generates a cohesive color scheme from the seed color
--   Calculates contrasting text colors for accessibility
--   Adapts to Light/Dark mode preferences
+-   Generates a cohesive color scheme from the seed color.
+-   Calculates contrasting text colors for accessibility.
+-   Adapts to Light/Dark mode preferences.
+-   Applies selected design palettes (e.g., "Deep Emerald", "Midnight Cobalt") across all modern UI components.
 
-## Design Rules
+## Modern Card Design System (The "Lab" Standard)
+
+Starting in early 2026, the application transitioned from the classic "Pill & Card" style to a more refined **Modern Card** aesthetic.
+
+### Core Principles
+- **Headerless Navigation**: Screens utilize a large, blurred `SliverAppBar` within a `NestedScrollView` rather than a standard flat AppBar.
+- **Glassmorphism Hints**: Background tints and subtle gradients create a layered, premium feel.
+- **Micro-Animations**: Uses rounded shapes and smooth transitions.
+- **Content Hierarchy**: Information is grouped into `ModernCard` containers with consistent `20px` horizontal padding.
+
+### Modern Components
+- **`ModernCard`**: Replaces `BoxyArtFloatingCard` with refined borders, better tinting, and optional glass effects.
+- **`ModernTextField`**: A cleaner, filled input style with integrated labeling and rounded corners (`16px`).
+- **`ModernDropdownField`**: Consistent with the modern text fields, providing a unified selection UI.
+- **`ModernSwitchRow`**: Replaces standard toggles with a full-width row design including descriptive labels and icons.
 
 ### 1. Colors
 
@@ -43,6 +59,11 @@ Use `StatusColors` for consistent status indicators:
 -   **Warning**: `#FF9800` (Orange) - Pending, Due
 -   **Negative**: `#F44336` (Red) - Error, Inactive
 -   **Neutral**: `#9E9E9E` (Grey) - Archived, Default
+
+### 2. Typography & Icons
+-   **Weight**: Titles should use `FontWeight.w900` or `FontWeight.bold` for strong hierarchy.
+-   **Spacing**: Modern designs use negative `letterSpacing: -0.5` for titles to feel more contemporary.
+-   **Icons**: Prefer `Icons.*_rounded` variants (e.g., `Icons.home_rounded` over `Icons.home`) for a friendlier look.
 
 ### 2. Text Contrast
 

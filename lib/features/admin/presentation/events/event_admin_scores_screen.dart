@@ -6,11 +6,10 @@ import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/tabs/event_stats_tab.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/scorecard.dart';
-import '../../../../models/event_registration.dart';
+
 import '../../../competitions/presentation/competitions_provider.dart';
 import 'widgets/admin_scorecard_list.dart';
-import '../../../../models/competition.dart';
-import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
+
 import '../../../events/logic/event_analysis_engine.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../debug/presentation/state/debug_providers.dart';

@@ -217,8 +217,11 @@ class EventLeaderboard extends ConsumerWidget {
     double? handicapIndex;
     if (data is Map && data.containsKey('handicap')) {
        final raw = data['handicap'];
-       if (raw is num) handicapIndex = raw.toDouble();
-       else if (raw is String) handicapIndex = double.tryParse(raw);
+       if (raw is num) {
+         handicapIndex = raw.toDouble();
+       } else if (raw is String) {
+         handicapIndex = double.tryParse(raw);
+       }
     } 
 
     if (handicapIndex == null || (handicapIndex == 0.0 && !isGuest)) {
@@ -287,14 +290,21 @@ class EventLeaderboard extends ConsumerWidget {
            final strokes = phc.round();
            final freeShots = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
            final netScore = score - freeShots;
-           if (netScore < par) holesUp++;
-           else if (netScore > par) holesUp--;
+           if (netScore < par) {
+             holesUp++;
+           } else if (netScore > par) {
+             holesUp--;
+           }
         }
       }
       displayScore = holesUp;
-      if (displayScore == 0) scoreLabel = 'AS';
-      else if (displayScore > 0) scoreLabel = '+$displayScore';
-      else scoreLabel = '$displayScore';
+      if (displayScore == 0) {
+        scoreLabel = 'AS';
+      } else if (displayScore > 0) {
+        scoreLabel = '+$displayScore';
+      } else {
+        scoreLabel = '$displayScore';
+      }
     } else {
       int grossTotal = 0;
       int parTotal = 0;
@@ -329,9 +339,13 @@ class EventLeaderboard extends ConsumerWidget {
          final netScore = grossTotal - partialPhc;
          final toPar = netScore - parTotal;
          displayScore = toPar.round();
-         if (displayScore == 0) scoreLabel = 'E';
-         else if (displayScore > 0) scoreLabel = '+$displayScore';
-         else scoreLabel = '$displayScore';
+         if (displayScore == 0) {
+           scoreLabel = 'E';
+         } else if (displayScore > 0) {
+           scoreLabel = '+$displayScore';
+         } else {
+           scoreLabel = '$displayScore';
+         }
       } else {
         displayScore = 999;
         scoreLabel = '-';
@@ -377,7 +391,9 @@ class EventLeaderboard extends ConsumerWidget {
       return "Back 9: $back9Points pts";
     } else {
       int back9Par = 0;
-      for (int i = 9; i < 18; i++) back9Par += (holes[i]['par'] as int? ?? 4);
+      for (int i = 9; i < 18; i++) {
+        back9Par += (holes[i]['par'] as int? ?? 4);
+      }
       final diff = back9Gross - (phc ~/ 2) - back9Par;
       final label = diff == 0 ? "E" : (diff > 0 ? "+$diff" : "$diff");
       return "Back 9: $label";

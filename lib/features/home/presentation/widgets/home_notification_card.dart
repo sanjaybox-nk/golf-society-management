@@ -16,39 +16,29 @@ class HomeNotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUrgent = notification.category == 'Urgent';
+    final primary = isUrgent ? const Color(0xFFE74C3C) : const Color(0xFFF39C12);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        onTap: onTap ?? () => _handleTap(context),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            // Subtle shadow as requested (or none)
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+      child: ModernCard(
+        padding: const EdgeInsets.all(16),
+        child: InkWell(
+          onTap: onTap ?? () => _handleTap(context),
+          borderRadius: BorderRadius.circular(20),
           child: Row(
             children: [
               // Left: Circular Icon
               Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: isUrgent ? Colors.red.shade50 : Colors.amber.shade50,
-                  shape: BoxShape.circle,
+                  color: primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
-                  isUrgent ? Icons.error_outline_rounded : Icons.info_outline_rounded,
-                  color: isUrgent ? Colors.red : Colors.amber.shade700,
-                  size: 22,
+                  isUrgent ? Icons.campaign_rounded : Icons.info_rounded,
+                  color: primary,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 16),
@@ -58,38 +48,41 @@ class HomeNotificationCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      notification.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Colors.black,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _formatTimestamp(notification.timestamp),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       notification.message,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
-                        height: 1.3,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        height: 1.4,
                       ),
                     ),
                   ],
-                ),
-              ),
-              
-              const SizedBox(width: 12),
-              
-              // Right: Timestamp
-              Text(
-                _formatTimestamp(notification.timestamp),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade400,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],

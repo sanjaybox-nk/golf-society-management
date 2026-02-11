@@ -82,6 +82,11 @@ abstract class GolfEvent with _$GolfEvent {
     return DateTime.now().isAfter(registrationDeadline!);
   }
 
+  int get playingCount => registrations.where((r) => r.attendingGolf).length;
+  int get guestCount => registrations.where((r) => r.guestName != null).length;
+  int get waitlistCount => registrations.where((r) => r.statusOverride == 'waitlist').length;
+  int? get capacity => maxParticipants;
+
   factory GolfEvent.fromJson(Map<String, dynamic> json) => _$GolfEventFromJson(json);
   @override
   Map<String, dynamic> toJson();

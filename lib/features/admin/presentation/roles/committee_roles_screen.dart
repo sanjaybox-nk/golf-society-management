@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../members/presentation/members_provider.dart';
 
-import '../../../../core/theme/contrast_helper.dart';
+
 
 class CommitteeRolesScreen extends ConsumerStatefulWidget {
   const CommitteeRolesScreen({super.key});
@@ -24,53 +24,99 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Combine standard roles with any custom roles found in the member database
     final membersAsync = ref.watch(allMembersProvider);
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: BoxyArtAppBar(
-        title: 'Committee Roles',
-        isLarge: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          membersAsync.when(
+            data: (members) {
+              final activeCustomRoles = members
+                  .map((m) => m.societyRole)
+                  .where((r) => r != null && r.isNotEmpty && !_standardRoles.contains(r))
+                  .cast<String>()
+                  .toSet()
+                  .toList();
+
+              activeCustomRoles.sort();
+              final allRoles = [..._standardRoles, ...activeCustomRoles];
+
+              return CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        const Text(
+                          'Committee',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Text(
+                          'Manage society specific titles',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        ...allRoles.map((role) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildRoleCard(context, role),
+                        )),
+                        const SizedBox(height: 16),
+                        _buildCreateButton(context),
+                        const SizedBox(height: 100),
+                      ]),
+                    ),
+                  ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
           ),
-        ),
-      ),
-      body: membersAsync.when(
-        data: (members) {
-          // Extract custom roles (roles embedded in members that aren't in the standard list)
-          final activeCustomRoles = members
-              .map((m) => m.societyRole)
-              .where((r) => r != null && r.isNotEmpty && !_standardRoles.contains(r))
-              .cast<String>()
-              .toSet()
-              .toList();
-
-          activeCustomRoles.sort(); // Alpha sort for custom
-
-          final allRoles = [..._standardRoles, ...activeCustomRoles];
-
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              // Role List
-              ...allRoles.map((role) => _buildRoleCard(context, role)),
-
-              const SizedBox(height: 16),
-
-              // Create New Role Button
-              _buildCreateButton(context),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -79,90 +125,65 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () {
-            context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(role)}');
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Role Icon
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Theme.of(context).primaryColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                
-                // Role Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        role,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      if (description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                
-                // Edit & Nav Actions
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.grey),
-                      onPressed: () => _showEditRoleDialog(role),
+    return ModernCard(
+      onTap: () {
+        context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(role)}');
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: Theme.of(context).primaryColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    role,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
+                  if (description.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        height: 1.4,
+                      ),
+                    ),
                   ],
+                ],
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.grey),
+                  onPressed: () => _showEditRoleDialog(role),
                 ),
+                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

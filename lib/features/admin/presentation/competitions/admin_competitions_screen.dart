@@ -30,76 +30,55 @@ class _AdminLeaderboardsScreenState extends ConsumerState<AdminLeaderboardsScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildTabs(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _CompetitionsList(status: CompetitionStatus.open), // LIVE
-                  _CompetitionsList(status: CompetitionStatus.draft), // UPCOMING
-                  _CompetitionsList(status: CompetitionStatus.published), // HISTORY (Closed)
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: DefaultTabController(
+        length: 3,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverAppBar(
+              floating: true,
+              pinned: true,
+              expandedHeight: 120,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
+              surfaceTintColor: Colors.transparent,
+              title: const Text(
+                'Leaderboards',
+                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.home_rounded, size: 24),
+                onPressed: () => context.go('/home'),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings_rounded, size: 22),
+                  onPressed: () => context.push('/admin/settings'),
+                ),
+                const SizedBox(width: 8),
+              ],
+              bottom: TabBar(
+                indicatorColor: Theme.of(context).primaryColor,
+                indicatorWeight: 3,
+                labelColor: Theme.of(context).textTheme.bodyLarge?.color,
+                unselectedLabelColor: Theme.of(context).textTheme.bodySmall?.color,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                tabs: const [
+                  Tab(text: 'LIVE'),
+                  Tab(text: 'UPCOMING'),
+                  Tab(text: 'HISTORY'),
                 ],
               ),
             ),
           ],
+          body: const TabBarView(
+            children: [
+              _CompetitionsList(status: CompetitionStatus.open),
+              _CompetitionsList(status: CompetitionStatus.draft),
+              _CompetitionsList(status: CompetitionStatus.published),
+            ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return BoxyArtFloatingCard(
-      padding: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'LEADERBOARDS',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                Text(
-                  'Live scoring and results',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings, color: Colors.white),
-              onPressed: () => context.push('/admin/settings'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabs() {
-    return TabBar(
-      controller: _tabController,
-      indicatorColor: Theme.of(context).primaryColor,
-      labelColor: Colors.white,
-      unselectedLabelColor: Colors.grey,
-      indicatorWeight: 3,
-      tabs: const [
-        Tab(text: 'LIVE'),
-        Tab(text: 'UPCOMING'),
-        Tab(text: 'HISTORY'),
-      ],
     );
   }
 }
@@ -129,19 +108,19 @@ class _CompetitionsList extends ConsumerWidget {
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           itemCount: comps.length,
           separatorBuilder: (context, index) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
             final comp = comps[index];
-            return BoxyArtFloatingCard(
-              onTap: () => context.push('/admin/competitions/manage/${comp.id}'),
-              border: Border.all(color: Colors.white10),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+            return ModernCard(
+              padding: const EdgeInsets.all(16),
+              child: InkWell(
+                onTap: () => context.push('/admin/competitions/manage/${comp.id}'),
+                borderRadius: BorderRadius.circular(24),
                 child: Row(
                   children: [
-                    _buildFormatBadge(comp.rules.format),
+                    _buildFormatBadge(context, comp.rules.format),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -156,18 +135,20 @@ class _CompetitionsList extends ConsumerWidget {
                               letterSpacing: 1,
                             ),
                           ),
+                          const SizedBox(height: 4),
                           Text(
-                            comp.rules.format.name.toUpperCase(),
+                            comp.name ?? comp.rules.format.name.toUpperCase(),
                             style: const TextStyle(
-                              color: Colors.white, 
                               fontSize: 18, 
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.white24),
+                    const SizedBox(width: 8),
+                    Icon(Icons.chevron_right_rounded, color: Theme.of(context).dividerColor),
                   ],
                 ),
               ),
@@ -180,22 +161,24 @@ class _CompetitionsList extends ConsumerWidget {
     );
   }
 
-  Widget _buildFormatBadge(CompetitionFormat format) {
+  Widget _buildFormatBadge(BuildContext context, CompetitionFormat format) {
+    final primary = Theme.of(context).primaryColor;
     IconData icon;
     switch (format) {
-      case CompetitionFormat.stroke: icon = Icons.golf_course; break;
-      case CompetitionFormat.stableford: icon = Icons.format_list_numbered; break;
-      case CompetitionFormat.maxScore: icon = Icons.vertical_align_top; break;
-      case CompetitionFormat.matchPlay: icon = Icons.compare_arrows; break;
-      case CompetitionFormat.scramble: icon = Icons.group_work; break;
+      case CompetitionFormat.stroke: icon = Icons.golf_course_rounded; break;
+      case CompetitionFormat.stableford: icon = Icons.format_list_numbered_rounded; break;
+      case CompetitionFormat.maxScore: icon = Icons.vertical_align_top_rounded; break;
+      case CompetitionFormat.matchPlay: icon = Icons.compare_arrows_rounded; break;
+      case CompetitionFormat.scramble: icon = Icons.group_work_rounded; break;
     }
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        color: primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(icon, color: Colors.white, size: 24),
+      child: Icon(icon, color: primary, size: 24),
     );
   }
 }

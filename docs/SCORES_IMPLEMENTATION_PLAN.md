@@ -143,11 +143,11 @@ This document outlines the implementation plan for the Event Scores feature, cov
 - [x] Running totals:
   - [x] Total score
   - [x] Total vs Par indicator
-- [ ] Validation:
-  - [ ] Flag scores below par (confirm birdie/eagle)
-  - [ ] Flag very high scores (confirm accuracy)
-  - [ ] Ensure all holes filled
-- [ ] Save draft / Submit final buttons
+- [x] Validation:
+  - [x] Flag scores below par (confirm birdie/eagle)
+  - [x] Flag very high scores (confirm accuracy)
+  - [x] Ensure all holes filled
+- [x] Save draft / Submit final buttons
 
 ---
 

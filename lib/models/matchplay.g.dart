@@ -82,7 +82,7 @@ _MatchplayRound _$MatchplayRoundFromJson(Map<String, dynamic> json) =>
               ?.map((e) => MatchplayMatch.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      deadline: const TimestampConverter().fromJson(json['deadline'] as Object),
+      deadline: const TimestampConverter().fromJson(json['deadline']),
     );
 
 Map<String, dynamic> _$MatchplayRoundToJson(_MatchplayRound instance) =>
@@ -104,9 +104,7 @@ _MatchplayComp _$MatchplayCompFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       handicapAllowance: (json['handicapAllowance'] as num?)?.toDouble() ?? 1.0,
-      createdAt: const TimestampConverter().fromJson(
-        json['createdAt'] as Object,
-      ),
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
     );
 
 Map<String, dynamic> _$MatchplayCompToJson(_MatchplayComp instance) =>

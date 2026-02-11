@@ -61,32 +61,45 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Common Header Inputs
-          // Dates removed per user request (handled by Event or defaults)
-          
-          // Specific Fields
-          BoxyArtFormField(
-            label: widget.isTemplate ? 'TEMPLATE NAME' : 'EVENT GAME NAME (Custom)',
-            initialValue: name,
-            onChanged: (val) => name = val,
-            hintText: widget.isTemplate 
-                ? 'e.g. Standard Stableford, Winter Rules...'
-                : 'e.g. Memorial Trophy, Society Scramble...',
-            // Only require a name for Templates. For events, it can use the dynamic default.
-            validator: (val) => (widget.isTemplate && (val == null || val.isEmpty)) ? 'Please enter a name' : null,
+          ModernCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ModernTextField(
+                  label: widget.isTemplate ? 'Template Name' : 'Game Name (Custom)',
+                  initialValue: name,
+                  onChanged: (val) => name = val,
+                  hintText: widget.isTemplate 
+                      ? 'e.g. Standard Stableford'
+                      : 'e.g. Memorial Trophy',
+                  validator: (val) => (widget.isTemplate && (val == null || val.isEmpty)) ? 'Please enter a name' : null,
+                  icon: Icons.edit_note_rounded,
+                ),
+                const SizedBox(height: 24),
+                buildSpecificFields(context),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          
-          buildSpecificFields(context),
-          
-          const SizedBox(height: 40),
-          // Save Button could also be common or driven by parent
-          Center(
-             child: BoxyArtButton(
-               title: widget.competition == null ? "CREATE COMPETITION" : "SAVE CHANGES",
-               isLoading: _isSaving,
-               onTap: _isSaving ? null : _save,
-             ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isSaving ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSaving 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                : Text(
+                    widget.competition == null ? "CREATE COMPETITION" : "SAVE CHANGES",
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5),
+                  ),
+            ),
           ),
         ],
       ),

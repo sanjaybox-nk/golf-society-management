@@ -11,9 +11,7 @@ _AdminEditAudit _$AdminEditAuditFromJson(Map<String, dynamic> json) =>
       overridden: json['overridden'] as bool,
       reason: json['reason'] as String,
       editorId: json['editorId'] as String,
-      timestamp: const TimestampConverter().fromJson(
-        json['timestamp'] as Object,
-      ),
+      timestamp: const TimestampConverter().fromJson(json['timestamp']),
     );
 
 Map<String, dynamic> _$AdminEditAuditToJson(_AdminEditAudit instance) =>
@@ -54,8 +52,8 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
       ? null
       : AdminEditAudit.fromJson(json['adminEditAudit'] as Map<String, dynamic>),
   adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
-  createdAt: const TimestampConverter().fromJson(json['createdAt'] as Object),
-  updatedAt: const TimestampConverter().fromJson(json['updatedAt'] as Object),
+  createdAt: const TimestampConverter().fromJson(json['createdAt']),
+  updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
 );
 
 Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>

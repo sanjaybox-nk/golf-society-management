@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/shared_ui.dart';
 import '../../../../core/theme/theme_controller.dart';
 
 import '../../../models/golf_event.dart';
@@ -92,49 +94,96 @@ class MemberHomeScreen extends ConsumerWidget {
                     // App Bar
                     SliverAppBar(
                       floating: true,
-                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      pinned: true, // Keep it pinned for a premium feel
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
                       surfaceTintColor: Colors.transparent,
                       elevation: 0,
                       centerTitle: false,
-                      title: Row(
-                        children: [
-                          if (societyConfig.logoUrl != null) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                societyConfig.logoUrl!,
-                                height: 42,
-                                width: 42,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.golf_course, size: 42),
+                      toolbarHeight: 80, // Taller app bar
+                      flexibleSpace: ClipRect(
+                        child:  BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(color: Colors.transparent),
+                        ),
+                      ),
+                      title: Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          children: [
+                            if (societyConfig.logoUrl != null) ...[
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    societyConfig.logoUrl!,
+                                    height: 48,
+                                    width: 48,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.golf_course, size: 42),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Welcome back,',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Theme.of(context).textTheme.bodySmall?.color,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    effectiveUser.displayName,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.5,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 12),
                           ],
-                          Expanded(
-                            child: Text(
-                              societyConfig.societyName.endsWith('Golf Society') 
-                                  ? societyConfig.societyName 
-                                  : '${societyConfig.societyName} Golf Society',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       actions: [
-                        if (currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin)
-                          if (!isPeeking) // Hide admin console shortcut when in peek mode
-                            IconButton(
-                              icon: Icon(Icons.admin_panel_settings_outlined, color: Theme.of(context).iconTheme.color),
-                              tooltip: 'Admin Console',
-                              onPressed: () => context.push('/admin'),
+                        if (currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin) ...[
+                          if (!isPeeking)
+                            _buildActionCircle(
+                              context,
+                              Icons.admin_panel_settings_rounded,
+                              () => context.push('/admin'),
                             ),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            context,
+                            Icons.palette_rounded,
+                            () => context.push('/home/design-lab'),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         IconButton(
                           icon: Badge(
                             label: Text('${unreadNotifications.length}'),
                             isLabelVisible: unreadNotifications.isNotEmpty,
-                            child: Icon(Icons.notifications_outlined, color: Theme.of(context).iconTheme.color),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: Icon(Icons.notifications_none_rounded, color: Theme.of(context).iconTheme.color),
                           ),
                           onPressed: () => context.push('/home/notifications'),
                         ),
@@ -211,6 +260,22 @@ class MemberHomeScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildActionCircle(BuildContext context, IconData icon, VoidCallback onTap) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 20, color: Theme.of(context).iconTheme.color),
+        onPressed: onTap,
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
 }
 
 class _NextMatchCard extends StatelessWidget {
@@ -220,102 +285,128 @@ class _NextMatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black, // Sleek black as seen in premium golf apps
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
+
+    
+    return ModernCard(
+      padding: EdgeInsets.zero,
+      onTap: () => context.push('/events/${event.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+          if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Image.network(
+                    event.imageUrl!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: const Icon(Icons.golf_course, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.4),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 12),
+                        const SizedBox(width: 6),
+                        Text(
+                          DateFormat('d MMM').format(event.date).toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      'UPCOMING MATCH',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                        letterSpacing: 1.2,
+                    Expanded(
+                      child: Text(
+                        event.title,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                     ),
-                    Text(
-                      event.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                    if (event.registrations.any((r) => r.memberId == 'current-user-id'))
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF27AE60).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'PLAYING',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF27AE60),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildInfoRow(context, Icons.location_on_outlined, event.courseName ?? 'TBA'),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            context,
-            Icons.calendar_today_outlined, 
-            DateFormat('EEEE, MMMM d, y').format(event.date),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              context.go('/events');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              minimumSize: const Size(double.infinity, 54),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
+                const SizedBox(height: 16),
+                ModernInfoRow(
+                  label: 'Course',
+                  value: event.courseName ?? 'TBA',
+                  icon: Icons.location_on_rounded,
+                ),
+                const SizedBox(height: 12),
+                ModernInfoRow(
+                  label: 'Tee Off',
+                  value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+                  icon: Icons.schedule_rounded,
+                ),
+                const SizedBox(height: 20),
+                BoxyArtButton(
+                  title: 'View Details',
+                  isPrimary: true,
+                  onTap: () => context.push('/events/${event.id}'),
+                ),
+              ],
             ),
-            child: const Text('View Details', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white.withValues(alpha: 0.4), size: 18),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -327,78 +418,78 @@ class _LeaderboardSnippet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return ModernCard(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          ...topPlayers.map((player) => _buildPlayerRow(context, player)),
+          ...topPlayers.map((player) {
+            final position = player['position'] as int;
+            final isFirst = position == 1;
+            final primary = Theme.of(context).primaryColor;
+            
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isFirst ? primary.withValues(alpha: 0.15) : Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$position',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      player['name'] as String,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: isFirst ? FontWeight.bold : FontWeight.w500,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${player['points']}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: isFirst ? primary : Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 12),
           const Divider(),
+          const SizedBox(height: 4),
           TextButton(
-            onPressed: () {
-              context.go('/archive'); 
-            },
-            child: const Text('Full Standings', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlayerRow(BuildContext context, Map<String, dynamic> player) {
-    final position = player['position'] as int;
-    final isFirst = position == 1;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: isFirst ? Theme.of(context).primaryColor : Theme.of(context).scaffoldBackgroundColor,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$position',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  color: isFirst ? Colors.black : Theme.of(context).textTheme.bodyLarge?.color,
+            onPressed: () => context.go('/archive'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Full Standings',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              player['name'] as String,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: isFirst ? FontWeight.bold : FontWeight.w500,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-          ),
-          Text(
-            '${player['points']}',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 16, color: Theme.of(context).primaryColor),
+              ],
             ),
           ),
         ],

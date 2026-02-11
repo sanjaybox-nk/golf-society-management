@@ -135,8 +135,8 @@ _Competition _$CompetitionFromJson(Map<String, dynamic> json) => _Competition(
       $enumDecodeNullable(_$CompetitionStatusEnumMap, json['status']) ??
       CompetitionStatus.draft,
   rules: CompetitionRules.fromJson(json['rules'] as Map<String, dynamic>),
-  startDate: const TimestampConverter().fromJson(json['startDate'] as Object),
-  endDate: const TimestampConverter().fromJson(json['endDate'] as Object),
+  startDate: const TimestampConverter().fromJson(json['startDate']),
+  endDate: const TimestampConverter().fromJson(json['endDate']),
   publishSettings: json['publishSettings'] as Map<String, dynamic>? ?? const {},
   isDirty: json['isDirty'] as bool? ?? false,
   computeVersion: (json['computeVersion'] as num?)?.toInt(),

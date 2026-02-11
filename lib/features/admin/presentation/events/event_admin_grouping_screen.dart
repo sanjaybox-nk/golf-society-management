@@ -104,9 +104,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         _isLocked ??= event.grouping['locked'] ?? false;
         
         // Initialize local matches if not already done
-        if (_localMatches == null) {
-          _localMatches = event.matches;
-        }
+        _localMatches ??= event.matches;
         
         // Calculate Unassigned Players (Confirmed squad but not in groups)
         final unassignedSquad = <TeeGroupParticipant>[];

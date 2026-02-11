@@ -111,26 +111,30 @@ class EventUserShell extends StatelessWidget {
       currentIndex = 4;
     }
 
+    // Preserve query parameters (e.g. preview=true)
+    final query = uri.query;
+    final suffix = query.isNotEmpty ? '?$query' : '';
+
     switch (index) {
       case 0:
         // If already on Event details tab, go back to events list
         if (currentIndex == 0) {
           context.go('/events');
         } else {
-          context.go('/events/$id');
+          context.go('/events/$id$suffix');
         }
         break;
       case 1:
-        context.go('/events/$id/register');
+        context.go('/events/$id/register$suffix');
         break;
       case 2:
-        context.go('/events/$id/grouping');
+        context.go('/events/$id/grouping$suffix');
         break;
       case 3:
-        context.go('/events/$id/scores');
+        context.go('/events/$id/scores$suffix');
         break;
       case 4:
-        context.go('/events/$id/gallery');
+        context.go('/events/$id/gallery$suffix');
         break;
     }
   }

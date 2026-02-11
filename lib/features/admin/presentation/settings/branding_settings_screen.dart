@@ -7,6 +7,7 @@ import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/core/theme/contrast_helper.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:golf_society/core/services/storage_service.dart';
+import 'package:golf_society/core/theme/app_palettes.dart';
 
 class BrandingSettingsScreen extends ConsumerWidget {
   const BrandingSettingsScreen({super.key});
@@ -15,191 +16,292 @@ class BrandingSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
-    
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
-    final currentColor = primaryColor;
+    final currentColor = Theme.of(context).primaryColor;
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: 'Society Branding',
-        isLarge: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 0. Identity
-            const BoxyArtSectionTitle(title: 'Society Identity'),
-            const SizedBox(height: 12),
-            BoxyArtFloatingCard(
-              child: Column(
-                children: [
-                  BoxyArtFormField(
-                    label: 'Society Name',
-                    initialValue: config.societyName,
-                    onChanged: (v) => controller.setSocietyName(v),
-                  ),
-                  const SizedBox(height: 16),
-                  _LogoPicker(
-                    currentUrl: config.logoUrl,
-                    onUrlChanged: (v) => controller.setLogoUrl(v),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // 1. Preview Card
-            const BoxyArtSectionTitle(title: 'Live Preview'),
-            const SizedBox(height: 12),
-            _buildPreviewCard(currentColor, config.themeMode),
-            const SizedBox(height: 32),
-
-            // 2. Color Palette
-            const BoxyArtSectionTitle(title: 'Primary Color'),
-            const SizedBox(height: 12),
-            _ColorPalette(
-              selectedColor: currentColor,
-              customColors: config.customColors,
-              onColorSelected: (c) => controller.setPrimaryColor(c),
-              onAddCustomColor: (c) => controller.addCustomColor(c),
-              onUpdateCustomColor: (index, c) => controller.updateCustomColor(index, c),
-            ),
-            const SizedBox(height: 32),
-
-            // 3. Card Appearance
-            const BoxyArtSectionTitle(title: 'Card Appearance'),
-            const SizedBox(height: 12),
-            BoxyArtFloatingCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Gradient Toggle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Use Gradient',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'Branding',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
                       ),
-                      Switch(
-                        value: config.useCardGradient,
-                        activeThumbColor: Theme.of(context).primaryColor,
-                        onChanged: (value) => controller.setUseCardGradient(value),
+                    ),
+                    Text(
+                      'Customize colors and identity',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Tint Intensity Slider
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Card Tint Intensity',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        '${(config.cardTintIntensity * 100).round()}%',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Slider(
-                    value: config.cardTintIntensity,
-                    min: 0.0,
-                    max: 1.0,
-                    divisions: 20,
-                    activeColor: Theme.of(context).primaryColor,
-                    onChanged: (value) => controller.setCardTintIntensity(value),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('0%', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                      Text('100%', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Color patch preview
-                  Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          currentColor.withValues(alpha: config.cardTintIntensity * 0.5),
-                          currentColor.withValues(alpha: config.cardTintIntensity),
+                    ),
+                    const SizedBox(height: 32),
+                    const BoxyArtSectionTitle(title: 'Society Identity', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          ModernTextField(
+                            label: 'Society Name',
+                            initialValue: config.societyName,
+                            onChanged: (v) => controller.setSocietyName(v),
+                            icon: Icons.business_rounded,
+                          ),
+                          const SizedBox(height: 24),
+                          _LogoPicker(
+                            currentUrl: config.logoUrl,
+                            onUrlChanged: (v) => controller.setLogoUrl(v),
+                          ),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: Center(
-                      child: Text(
-                        'Card Preview',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: ContrastHelper.getContrastingText(
-                            Color.alphaBlend(
-                              currentColor.withValues(alpha: config.cardTintIntensity * 0.75),
-                              Theme.of(context).cardColor,
-                            ),
+                    const SizedBox(height: 32),
+                    
+                    const BoxyArtSectionTitle(title: 'Design Palettes', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Select a preset design palette to instantly modernize your app.',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                           ),
-                        ),
+                          const SizedBox(height: 20),
+                          _PaletteSelector(
+                            selectedPaletteName: config.selectedPaletteName,
+                            onPaletteSelected: (name) => controller.setSelectedPaletteName(name),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-            // 4. Appearance Mode
-            const BoxyArtSectionTitle(title: 'App Appearance'),
-            const SizedBox(height: 12),
-            BoxyArtFloatingCard(
-              child: RadioGroup<String>(
-                groupValue: config.themeMode,
-                onChanged: (v) => controller.setThemeMode(v!),
-                child: Column(
+                    const BoxyArtSectionTitle(title: 'Live Preview', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    _buildPreviewCard(currentColor, config.themeMode),
+                    const SizedBox(height: 32),
+
+                    const BoxyArtSectionTitle(title: 'Primary Color', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: _ColorPalette(
+                        selectedColor: currentColor,
+                        customColors: config.customColors,
+                        onColorSelected: (c) => controller.setPrimaryColor(c),
+                        onAddCustomColor: (c) => controller.addCustomColor(c),
+                        onUpdateCustomColor: (index, c) => controller.updateCustomColor(index, c),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    const BoxyArtSectionTitle(title: 'Card Appearance', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ModernSwitchRow(
+                            label: 'Use Gradient',
+                            value: config.useCardGradient,
+                            icon: Icons.gradient_rounded,
+                            onChanged: (value) => controller.setUseCardGradient(value),
+                          ),
+                          const SizedBox(height: 12),
+                          const Divider(height: 1),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Card Tint Intensity',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '${(config.cardTintIntensity * 100).round()}%',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Slider(
+                            value: config.cardTintIntensity,
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: 20,
+                            activeColor: Theme.of(context).primaryColor,
+                            onChanged: (value) => controller.setCardTintIntensity(value),
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  currentColor.withValues(alpha: config.cardTintIntensity * 0.5),
+                                  currentColor.withValues(alpha: config.cardTintIntensity),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Card Preview',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                  color: ContrastHelper.getContrastingText(
+                                    Color.alphaBlend(
+                                      currentColor.withValues(alpha: config.cardTintIntensity * 0.75),
+                                      Theme.of(context).cardColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    const BoxyArtSectionTitle(title: 'App Appearance', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _ThemeModeTile(
+                            title: 'System Default',
+                            value: 'system',
+                            groupValue: config.themeMode,
+                            icon: Icons.brightness_auto_rounded,
+                            onChanged: (v) => controller.setThemeMode(v!),
+                          ),
+                          const Divider(height: 1),
+                          _ThemeModeTile(
+                            title: 'Always Light',
+                            value: 'light',
+                            groupValue: config.themeMode,
+                            icon: Icons.light_mode_rounded,
+                            onChanged: (v) => controller.setThemeMode(v!),
+                          ),
+                          const Divider(height: 1),
+                          _ThemeModeTile(
+                            title: 'Always Dark',
+                            value: 'dark',
+                            groupValue: config.themeMode,
+                            icon: Icons.dark_mode_rounded,
+                            onChanged: (v) => controller.setThemeMode(v!),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 60),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
                   children: [
-                    RadioListTile<String>(
-                      title: const Text('System Default'),
-                      value: 'system',
-                      activeColor: currentColor,
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Always Light'),
-                      value: 'light',
-                      activeColor: currentColor,
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Always Dark'),
-                      value: 'dark',
-                      activeColor: currentColor,
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreviewCard(Color primary, String themeMode) {
+    final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
+    return ModernCard(
+      padding: const EdgeInsets.all(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: textColor.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(backgroundColor: Colors.grey.shade300, radius: 24, child: const Icon(Icons.person, color: Colors.white)),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('John Doe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor, letterSpacing: -0.3)),
+                    Text('Handicap: 14.2', style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primary,
+                  foregroundColor: ContrastHelper.getContrastingText(primary),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text('View Profile', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
               ),
             ),
           ],
@@ -207,55 +309,60 @@ class BrandingSettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildPreviewCard(Color primary, String themeMode) {
-    // Determine brightness for preview based on setting
-    final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
-    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black;
+class _ThemeModeTile extends StatelessWidget {
+  final String title;
+  final String value;
+  final String groupValue;
+  final IconData icon;
+  final ValueChanged<String?> onChanged;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-           BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0,5)),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              CircleAvatar(backgroundColor: Colors.grey.shade300, radius: 24, child: const Icon(Icons.person, color: Colors.white)),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('John Doe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
-                  Text('Handicap: 14.2', style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13)),
-                ],
+  const _ThemeModeTile({
+    required this.title,
+    required this.value,
+    required this.groupValue,
+    required this.icon,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == groupValue;
+    return InkWell(
+      onTap: () => onChanged(value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primary,
-                foregroundColor: ContrastHelper.getContrastingText(primary),
-                elevation: 4,
-                shadowColor: primary.withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text('View Profile'),
+              child: Icon(icon, size: 20, color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodySmall?.color),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+            Radio<String>(
+              value: value,
+              groupValue: groupValue,
+              onChanged: onChanged,
+              activeColor: Theme.of(context).primaryColor,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -299,39 +406,37 @@ class _ColorPaletteState extends State<_ColorPalette> {
     // Convert custom color ints to Color objects
     final customColorsList = widget.customColors.map((hex) => Color(hex)).toList();
     
-    return BoxyArtFloatingCard(
-      child: Column(
-        children: [
-          // System Colors Row
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            alignment: WrapAlignment.center,
-            children: _ColorPalette._systemColors.map((c) => _buildColorCircle(c, isSystemColor: true)).toList(),
-          ),
-          
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-          
-          // Custom Colors Row
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            alignment: WrapAlignment.center,
-            children: [
-              // Existing custom colors
-              ...List.generate(customColorsList.length, (index) {
-                return _buildColorCircle(customColorsList[index], isSystemColor: false, customIndex: index);
-              }),
-              // Empty slots (up to 5 total)
-              ...List.generate(5 - customColorsList.length, (index) {
-                return _buildEmptySlot();
-              }),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        // System Colors Row
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          alignment: WrapAlignment.center,
+          children: _ColorPalette._systemColors.map((c) => _buildColorCircle(c, isSystemColor: true)).toList(),
+        ),
+        
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+        
+        // Custom Colors Row
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          alignment: WrapAlignment.center,
+          children: [
+            // Existing custom colors
+            ...List.generate(customColorsList.length, (index) {
+              return _buildColorCircle(customColorsList[index], isSystemColor: false, customIndex: index);
+            }),
+            // Empty slots (up to 5 total)
+            ...List.generate(5 - customColorsList.length, (index) {
+              return _buildEmptySlot();
+            }),
+          ],
+        ),
+      ],
     );
   }
 
@@ -453,6 +558,143 @@ class _ColorPaletteState extends State<_ColorPalette> {
   }
 }
 
+class _PaletteSelector extends StatelessWidget {
+  final String? selectedPaletteName;
+  final ValueChanged<String?> onPaletteSelected;
+
+  const _PaletteSelector({
+    required this.selectedPaletteName,
+    required this.onPaletteSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 120,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            scrollDirection: Axis.horizontal,
+            itemCount: AppPalette.presets.length + 1,
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                // Custom option
+                final isSelected = selectedPaletteName == null;
+                return _buildPaletteItem(
+                  context,
+                  name: 'Custom',
+                  isSelected: isSelected,
+                  onTap: () => onPaletteSelected(null),
+                  previewColors: [Theme.of(context).primaryColor, Colors.white],
+                );
+              }
+              
+              final palette = AppPalette.presets[index - 1];
+              final isSelected = selectedPaletteName == palette.name;
+              return _buildPaletteItem(
+                context,
+                name: palette.name,
+                isSelected: isSelected,
+                onTap: () => onPaletteSelected(palette.name),
+                previewColors: [palette.background, palette.cardBg, palette.textPrimary],
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaletteItem(
+    BuildContext context, {
+    required String name,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required List<Color> previewColors,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade300,
+                width: isSelected ? 3 : 1,
+              ),
+              color: previewColors[0],
+            ),
+            child: Stack(
+              children: [
+                if (previewColors.length > 1)
+                  Positioned(
+                    bottom: 10,
+                    right: 10,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: previewColors[1],
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: previewColors.length > 2
+                          ? Center(
+                              child: Container(
+                                width: 20,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: previewColors[2].withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                if (isSelected)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check, color: Colors.white, size: 12),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Theme.of(context).primaryColor : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LogoPicker extends ConsumerStatefulWidget {
   final String? currentUrl;
   final ValueChanged<String?> onUrlChanged;
@@ -505,22 +747,24 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 12, bottom: 8),
-          child: Text(
-            'Society Logo',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+        Text(
+          'Society Logo',
+          style: TextStyle(
+            fontSize: 13, 
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
+        const SizedBox(height: 12),
         Row(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade300),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                 image: widget.currentUrl != null
                     ? DecorationImage(
                         image: NetworkImage(widget.currentUrl!),
@@ -529,25 +773,40 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
                     : null,
               ),
               child: widget.currentUrl == null
-                  ? const Icon(Icons.golf_course, size: 32, color: Colors.grey)
+                  ? Icon(Icons.golf_course_rounded, size: 36, color: Theme.of(context).dividerColor.withValues(alpha: 0.2))
                   : null,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BoxyArtButton(
-                    title: 'Upload Logo',
-                    onTap: _pickAndUpload,
-                    isLoading: _isUploading,
-                    fullWidth: false,
+                  SizedBox(
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: _pickAndUpload,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: ContrastHelper.getContrastingText(Theme.of(context).primaryColor),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _isUploading 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Update Logo', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
                   ),
                   if (widget.currentUrl != null) ...[
                     const SizedBox(height: 8),
-                    TextButton(
+                    TextButton.icon(
                       onPressed: () => widget.onUrlChanged(null),
-                      child: const Text('Remove Logo', style: TextStyle(color: Colors.red)),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: const Text('Remove Logo'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ),
                   ],
                 ],

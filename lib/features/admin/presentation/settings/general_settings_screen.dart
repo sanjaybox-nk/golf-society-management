@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/theme/theme_controller.dart';
 
-import '../../../../core/theme/contrast_helper.dart';
+
 
 class GeneralSettingsScreen extends ConsumerWidget {
   const GeneralSettingsScreen({super.key});
@@ -12,85 +12,129 @@ class GeneralSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: 'General Settings',
-        subtitle: 'Manage app-wide defaults',
-        isLarge: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      backgroundColor: beigeBackground,
+      body: Stack(
         children: [
-          const BoxyArtSectionTitle(
-            title: 'Localisation',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.currency_exchange,
-                  title: 'Currency',
-                  subtitle: '${config.currencyCode} (${config.currencySymbol})',
-                  iconColor: Colors.green,
-                  onTap: () => context.push('/admin/settings/general/currency'),
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'General',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    Text(
+                      'Manage app-wide defaults',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    const BoxyArtSectionTitle(title: 'Localisation', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.currency_exchange_rounded,
+                            title: 'Currency',
+                            subtitle: '${config.currencyCode} (${config.currencySymbol})',
+                            iconColor: Colors.green,
+                            onTap: () => context.push('/admin/settings/general/currency'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    const BoxyArtSectionTitle(title: 'Competition Settings', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.groups_3_rounded,
+                            title: 'Grouping Strategy',
+                            subtitle: _getStrategyLabel(config.groupingStrategy),
+                            iconColor: Colors.indigo,
+                            onTap: () => context.push('/admin/settings/general/grouping-strategy'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    const BoxyArtSectionTitle(title: 'App Info', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.info_outline_rounded,
+                            title: 'Version',
+                            subtitle: '1.0.0 (Build 61)',
+                            iconColor: Colors.grey,
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.devices_rounded,
+                            title: 'Platform',
+                            subtitle: Theme.of(context).platform.name.toUpperCase(),
+                            iconColor: Colors.blueGrey,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 100),
+                  ]),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           
-          const SizedBox(height: 32),
-          
-          const BoxyArtSectionTitle(
-            title: 'Competition Settings',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.groups_3_outlined,
-                  title: 'Grouping Strategy',
-                  subtitle: _getStrategyLabel(config.groupingStrategy),
-                  iconColor: Colors.indigo,
-                  onTap: () => context.push('/admin/settings/general/grouping-strategy'),
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          const BoxyArtSectionTitle(
-            title: 'App Info',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.info_outline,
-                  title: 'Version',
-                  subtitle: '1.0.0 (Build 61)',
-                  iconColor: Colors.grey,
-                ),
-                _SettingsTile(
-                  icon: Icons.devices,
-                  title: 'Platform',
-                  subtitle: Theme.of(context).platform.name.toUpperCase(),
-                  iconColor: Colors.blueGrey,
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -130,25 +174,33 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: iconColor.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: iconColor, size: 20),
+        child: Icon(icon, color: iconColor, size: 22),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.3),
       ),
       subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(subtitle, style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade600)),
+        padding: const EdgeInsets.only(top: 2),
+        child: Text(
+          subtitle, 
+          style: TextStyle(
+            fontSize: 13, 
+            color: Theme.of(context).textTheme.bodySmall?.color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
-      trailing: onTap != null ? const Icon(Icons.chevron_right, color: Colors.grey, size: 20) : null,
+      trailing: onTap != null ? Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).dividerColor.withValues(alpha: 0.3), size: 14) : null,
     );
   }
 }

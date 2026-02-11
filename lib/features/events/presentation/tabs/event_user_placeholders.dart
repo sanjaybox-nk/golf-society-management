@@ -6,7 +6,7 @@ import '../../../../features/debug/presentation/widgets/lab_control_panel.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/scorecard.dart';
-import '../../../../models/member.dart';
+// REDACTED: unused member import
 import '../../../../core/theme/app_theme.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
 import 'package:golf_society/models/competition.dart';
@@ -22,7 +22,7 @@ import '../widgets/hole_by_hole_scoring_widget.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/event_registration.dart';
-import '../../../../core/utils/handicap_calculator.dart';
+// REDACTED: unused imports
 // REDACTED: unused imports
 import '../../../../core/services/persistence_service.dart';
 // REDACTED: unused math import
@@ -234,7 +234,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
           event = event.copyWith(status: statusOverride);
         }
 
-        final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
 
         final forceLockedOverride = ref.watch(isScoringLockedOverrideProvider);
         if (forceLockedOverride != null) {
@@ -1455,21 +1454,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
   // Define Format Helper
 
-  LeaderboardEntry _buildEntry({
-    required String id,
-    required EventRegistration reg,
-    required Map<String, dynamic> source,
-    required GolfEvent event,
-    required CompetitionRules effectiveRules,
-    required List<dynamic> membersList,
-    required CompetitionFormat currentFormat,
-    int? holeLimit,
-    bool isGuest = false,
-  }) {
-    // This method is now handled by the shared EventLeaderboard widget.
-    // Keeping a stub if needed for other parts, but ideally remove if unused.
-    throw UnimplementedError('Handled by EventLeaderboard');
-  }
 
 }
 

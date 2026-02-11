@@ -23,7 +23,7 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   id: json['id'] as String,
   title: json['title'] as String,
   seasonId: json['seasonId'] as String,
-  date: const TimestampConverter().fromJson(json['date'] as Object),
+  date: const TimestampConverter().fromJson(json['date']),
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
   regTime: const OptionalTimestampConverter().fromJson(json['regTime']),

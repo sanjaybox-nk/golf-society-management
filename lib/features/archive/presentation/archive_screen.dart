@@ -11,32 +11,87 @@ class ArchiveScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final seasonsAsync = ref.watch(archiveSeasonsProvider);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      appBar: const BoxyArtAppBar(title: 'Archive', showBack: true, isLarge: true),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: beigeBackground,
+      body: Stack(
         children: [
-          const BoxyArtSectionTitle(
-            title: 'Archived Seasons',
-            padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'Archive',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const BoxyArtSectionTitle(
+                      title: 'Archived Seasons',
+                      padding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(height: 12),
+                    seasonsAsync.when(
+                      data: (seasons) {
+                        if (seasons.isEmpty) {
+                          return const Center(child: Text('No archived seasons yet.'));
+                        }
+                        return Column(
+                          children: seasons.map((season) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _SeasonCard(season: season),
+                            );
+                          }).toList(),
+                        );
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(child: Text('Error: $err')),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: seasonsAsync.when(
-              data: (seasons) {
-                if (seasons.isEmpty) {
-                  return const Center(child: Text('No archived seasons yet.'));
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: seasons.length,
-                  itemBuilder: (context, index) {
-                    return _SeasonCard(season: seasons[index]);
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
+          
+          // Header Bar with Back Button
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 100,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -55,47 +110,59 @@ class _SeasonCard extends StatelessWidget {
     final captain = season.agmData['captain'] as String? ?? 'Unknown';
     final poty = season.agmData['playerOfTheYear'] as String? ?? 'Unknown';
     final majors = (season.agmData['majorWinners'] as List<dynamic>?)?.cast<String>() ?? [];
+    final primary = Theme.of(context).primaryColor;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        title: Text(
-          '${season.year} Season',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        subtitle: Text('Captain: $captain'),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            shape: BoxShape.circle,
+    return ModernCard(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          shape: const Border(),
+          title: Text(
+            '${season.year} Season',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: -0.5),
           ),
-          child: Icon(
-            Icons.history_edu,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
-        ),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        children: [
-          const Divider(),
-          _buildDetailRow(context, 'Player of the Year', poty, Icons.emoji_events),
-          const SizedBox(height: 12),
-          const BoxyArtSectionTitle(
-            title: 'Major Winners',
-            padding: EdgeInsets.zero,
-          ),
-          const SizedBox(height: 4),
-          ...majors.map((winner) => Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 4),
-            child: Row(
-              children: [
-                const Icon(Icons.star, size: 14, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text(winner),
-              ],
+          subtitle: Text('Captain: $captain', style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-          )),
-        ],
+            child: Icon(
+              Icons.history_edu_rounded,
+              color: primary,
+              size: 20,
+            ),
+          ),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          children: [
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            const SizedBox(height: 16),
+            _buildDetailRow(context, 'Player of the Year', poty, Icons.emoji_events_rounded),
+            const SizedBox(height: 16),
+            Text(
+              'MAJOR WINNERS',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.1,
+                color: Colors.grey.shade400,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...majors.map((winner) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.star_rounded, size: 14, color: primary.withValues(alpha: 0.6)),
+                  const SizedBox(width: 12),
+                  Text(winner, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                ],
+              ),
+            )),
+          ],
+        ),
       ),
     );
   }

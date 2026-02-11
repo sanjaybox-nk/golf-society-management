@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/campaign.dart';
 import 'package:intl/intl.dart';
@@ -19,82 +20,170 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
   @override
   Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(adminNotificationsProvider);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: beigeBackground,
+      body: Stack(
         children: [
-          const BoxyArtSectionTitle(
-            title: 'Sent Notifications',
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          ),
-          // Filter Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Theme.of(context).cardColor,
-            child: Column(
-              children: [
-                BoxyArtSearchBar(
-                  hintText: 'Search history...',
-                  onChanged: (v) => setState(() => _searchQuery = v),
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'Notifications',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    Text(
+                      'Communication history and reach',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Search & Filters
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          TextField(
+                            onChanged: (v) => setState(() => _searchQuery = v),
+                            decoration: InputDecoration(
+                              hintText: 'Search history...',
+                              hintStyle: TextStyle(
+                                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                                fontSize: 14,
+                              ),
+                              prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Group By:', 
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold, 
+                                    color: Theme.of(context).textTheme.bodyMedium?.color
+                                  )
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        _GroupChip(
+                                          label: 'Date',
+                                          isSelected: _groupBy == 'Date',
+                                          onTap: () => setState(() => _groupBy = 'Date'),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        _GroupChip(
+                                          label: 'Category',
+                                          isSelected: _groupBy == 'Category',
+                                          onTap: () => setState(() => _groupBy = 'Category'),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        _GroupChip(
+                                          label: 'None',
+                                          isSelected: _groupBy == 'None',
+                                          onTap: () => setState(() => _groupBy = 'None'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    notificationsAsync.when(
+                      data: (notifications) {
+                        final filtered = notifications.where((n) {
+                          final term = _searchQuery.toLowerCase();
+                          return n.title.toLowerCase().contains(term) || 
+                                 n.message.toLowerCase().contains(term);
+                        }).toList();
+
+                        if (filtered.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(48.0),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.history_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No notifications found',
+                                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        return _buildGroupedList(filtered);
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Center(child: Text('Error: $e')),
+                    ),
+                    const SizedBox(height: 100),
+                  ]),
                 ),
-                const SizedBox(height: 12),
-                Row(
+              ),
+            ],
+          ),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
                   children: [
-                    Text('Group By:', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color)),
-                    const SizedBox(width: 12),
-                    _GroupChip(
-                      label: 'Date',
-                      isSelected: _groupBy == 'Date',
-                      onTap: () => setState(() => _groupBy = 'Date'),
-                    ),
-                    const SizedBox(width: 8),
-                    _GroupChip(
-                      label: 'Category',
-                      isSelected: _groupBy == 'Category',
-                      onTap: () => setState(() => _groupBy = 'Category'),
-                    ),
-                    const SizedBox(width: 8),
-                    _GroupChip(
-                      label: 'None',
-                      isSelected: _groupBy == 'None',
-                      onTap: () => setState(() => _groupBy = 'None'),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          
-          Expanded(
-            child: notificationsAsync.when(
-              data: (notifications) {
-                // 1. Filter
-                final filtered = notifications.where((n) {
-                  final term = _searchQuery.toLowerCase();
-                  return n.title.toLowerCase().contains(term) || 
-                         n.message.toLowerCase().contains(term);
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.history, size: 48, color: Colors.grey.shade300),
-                        const SizedBox(height: 16),
-                        Text('No notifications found', style: TextStyle(color: Colors.grey.shade500)),
-                      ],
-                    ),
-                  );
-                }
-
-                // 2. Group & Build ListView
-                return _buildGroupedList(filtered);
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              ),
             ),
           ),
         ],
@@ -197,9 +286,10 @@ class _HistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: BoxyArtFloatingCard(
+      child: ModernCard(
         onTap: () => _showCampaignDetails(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,34 +297,47 @@ class _HistoryCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(parseDate(campaign.timestamp), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                Text(parseDate(campaign.timestamp), style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w500)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
+                    color: theme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    campaign.category,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                    campaign.category.toUpperCase(),
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: theme.primaryColor, letterSpacing: 0.5),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: Text(campaign.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+                Expanded(
+                  child: Text(
+                    campaign.title, 
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  )
+                ),
                 if (campaign.recipientCount > 0) ...[
                   const SizedBox(width: 8),
-                  Icon(Icons.people, size: 14, color: Colors.grey.shade400),
+                  Icon(Icons.people_alt_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
                   const SizedBox(width: 4),
-                  Text('${campaign.recipientCount}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                  Text(
+                    '${campaign.recipientCount}', 
+                    style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w600),
+                  ),
                 ],
               ],
             ),
-            const SizedBox(height: 4),
-            Text(campaign.message, style: TextStyle(color: Colors.grey.shade700, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 6),
+            Text(
+              campaign.message, 
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 14, height: 1.4), 
+              maxLines: 2, 
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),

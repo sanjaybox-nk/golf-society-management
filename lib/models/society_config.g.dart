@@ -24,6 +24,7 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
       groupingStrategy: json['groupingStrategy'] as String? ?? 'balanced',
       useWhsHandicaps: json['useWhsHandicaps'] as bool? ?? true,
       distanceUnit: json['distanceUnit'] as String? ?? 'yards',
+      selectedPaletteName: json['selectedPaletteName'] as String?,
     );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -40,4 +41,5 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'groupingStrategy': instance.groupingStrategy,
       'useWhsHandicaps': instance.useWhsHandicaps,
       'distanceUnit': instance.distanceUnit,
+      'selectedPaletteName': instance.selectedPaletteName,
     };

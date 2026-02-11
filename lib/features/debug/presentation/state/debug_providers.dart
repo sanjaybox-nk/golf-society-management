@@ -156,8 +156,11 @@ class HandicapCapOverride extends Notifier<int?> {
   }
   void set(int? val) {
     state = val;
-    if (val != null) ref.read(persistenceServiceProvider).setInt(_key, val);
-    else ref.read(persistenceServiceProvider).remove(_key);
+    if (val != null) {
+      ref.read(persistenceServiceProvider).setInt(_key, val);
+    } else {
+      ref.read(persistenceServiceProvider).remove(_key);
+    }
   }
 }
 final handicapCapOverrideProvider = NotifierProvider<HandicapCapOverride, int?>(HandicapCapOverride.new);
@@ -229,8 +232,11 @@ class TeamBestXCountOverride extends Notifier<int?> {
   }
   void set(int? val) {
     state = val;
-    if (val != null) ref.read(persistenceServiceProvider).setInt(_key, val);
-    else ref.read(persistenceServiceProvider).remove(_key);
+    if (val != null) {
+      ref.read(persistenceServiceProvider).setInt(_key, val);
+    } else {
+      ref.read(persistenceServiceProvider).remove(_key);
+    }
   }
 }
 final teamBestXCountOverrideProvider = NotifierProvider<TeamBestXCountOverride, int?>(TeamBestXCountOverride.new);
@@ -295,8 +301,11 @@ class MaxScoreValueOverride extends Notifier<int?> {
   }
   void set(int? val) {
     state = val;
-    if (val != null) ref.read(persistenceServiceProvider).setInt(_key, val);
-    else ref.read(persistenceServiceProvider).remove(_key);
+    if (val != null) {
+      ref.read(persistenceServiceProvider).setInt(_key, val);
+    } else {
+      ref.read(persistenceServiceProvider).remove(_key);
+    }
   }
 }
 final maxScoreValueOverrideProvider = NotifierProvider<MaxScoreValueOverride, int?>(MaxScoreValueOverride.new);

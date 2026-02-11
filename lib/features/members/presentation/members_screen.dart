@@ -38,190 +38,153 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final searchQuery = ref.watch(memberSearchQueryProvider).toLowerCase();
-    final currentFilter = ref.watch(userMemberFilterProvider); // Using user filter provider
-    final isFocused = _searchFocusNode.hasFocus;
+    final currentFilter = ref.watch(userMemberFilterProvider);
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return GestureDetector(
-      onTap: () => _searchFocusNode.unfocus(),
+      onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
-        appBar: const BoxyArtAppBar(
-          title: 'Members',
-          isLarge: true,
-          showLeading: false, // As per previous request to remove menu icon
-        ),
-        body: membersAsync.when(
-          data: (members) {
-            final filtered = members.where((m) {
-              final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
-              final matchesSearch = name.contains(searchQuery);
-              
-              if (!matchesSearch) return false;
-
-              // Filter logic adapted for User view
-              if (currentFilter == AdminMemberFilter.current) {
-                return m.status == MemberStatus.member || 
-                       m.status == MemberStatus.active;
-              } else if (currentFilter == AdminMemberFilter.committee) {
-                return m.societyRole != null && m.societyRole!.isNotEmpty;
-              } else {
-                // "Other" - everything not active/member
-                return m.status != MemberStatus.member && 
-                       m.status != MemberStatus.active;
-              }
-            }).toList();
-
-            final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
-
-            return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 40),
-              itemCount: sortedMembers.length + 2,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  String sectionTitle = 'Current Members';
-                  if (currentFilter == AdminMemberFilter.other) {
-                    sectionTitle = 'Other Members';
-                  } else if (currentFilter == AdminMemberFilter.committee) {
-                    sectionTitle = 'Committee Members';
-                  }
-                  
-                  return BoxyArtSectionTitle(
-                    title: sectionTitle,
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  );
-                }
-                if (index == 1) {
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: BoxyArtSearchBar(
-                            focusNode: _searchFocusNode,
-                            hintText: 'Search members...',
-                            onChanged: (value) {
-                              ref.read(memberSearchQueryProvider.notifier).update(value);
-                            },
-                          ),
+        backgroundColor: beigeBackground,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const Text(
+                        'Members',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
                         ),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          width: isFocused ? 0 : 12,
-                          child: const SizedBox(),
-                        ),
-                          // Compact Toggle Switch (Identical to Admin)
-                        ClipRect(
-                          child: AnimatedAlign(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                            alignment: Alignment.centerLeft,
-                            widthFactor: isFocused ? 0 : 1,
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 200),
-                              opacity: isFocused ? 0 : 1,
-                              child: Container(
-                                height: 36,
-                                padding: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(18),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Search Card
+                      ModernCard(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                focusNode: _searchFocusNode,
+                                decoration: const InputDecoration(
+                                  hintText: 'Search members...',
+                                  border: InputBorder.none,
+                                  isDense: true,
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _buildToggleOption(
-                                      context: context,
-                                      label: 'C',
-                                      isSelected: currentFilter == AdminMemberFilter.current,
-                                      onTap: () => ref.read(userMemberFilterProvider.notifier).update(AdminMemberFilter.current),
-                                    ),
-                                    _buildToggleOption(
-                                      context: context,
-                                      label: 'O',
-                                      isSelected: currentFilter == AdminMemberFilter.other,
-                                      onTap: () => ref.read(userMemberFilterProvider.notifier).update(AdminMemberFilter.other),
-                                    ),
-                                    _buildToggleOption(
-                                      context: context,
-                                      label: '★',
-                                      isSelected: currentFilter == AdminMemberFilter.committee,
-                                      onTap: () => ref.read(userMemberFilterProvider.notifier).update(AdminMemberFilter.committee),
-                                      isIcon: true,
-                                    ),
-                                  ],
-                                ),
+                                onChanged: (val) => ref.read(memberSearchQueryProvider.notifier).update(val),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        // No Add Button here for User view
-                      ],
-                    ),
-                  );
-                }
+                      ),
+                      const SizedBox(height: 16),
 
-                if (sortedMembers.isEmpty && index == 2) {
-                   return const _EmptyMembers();
-                }
-                
-                if (index - 2 < sortedMembers.length) {
-                  final m = sortedMembers[index - 2];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8), // Added vertical padding for spacing
-                    child: MemberTile(
-                      member: m,
-                      onTap: () => MemberDetailsModal.show(context, m),
-                      // No onLongPress or Dismissible for standard users
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
-        ),
-      ),
-    );
-  }
+                      // Filter Row
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterChip('Active', AdminMemberFilter.current),
+                            _buildFilterChip('Committee', AdminMemberFilter.committee),
+                            _buildFilterChip('Other', AdminMemberFilter.other),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-  Widget _buildToggleOption({
-    required BuildContext context,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-    bool isIcon = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: isIcon 
-            ? Icon(
-                Icons.star_rounded, 
-                size: 20, 
-                color: isSelected ? Colors.white : Colors.amber.shade600
-              )
-            : Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black54,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                      membersAsync.when(
+                        data: (members) {
+                          final filtered = members.where((m) {
+                            final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
+                            final matchesSearch = name.contains(searchQuery);
+                            if (!matchesSearch) return false;
+
+                            if (currentFilter == AdminMemberFilter.current) {
+                              return m.status == MemberStatus.member || m.status == MemberStatus.active;
+                            } else if (currentFilter == AdminMemberFilter.committee) {
+                              return m.societyRole != null && m.societyRole!.isNotEmpty;
+                            } else {
+                              return m.status != MemberStatus.member && m.status != MemberStatus.active;
+                            }
+                          }).toList();
+
+                          final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
+
+                          if (sortedMembers.isEmpty) {
+                            return const _EmptyMembers();
+                          }
+
+                          return Column(
+                            children: sortedMembers.map((m) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: MemberTile(
+                                  member: m,
+                                  onTap: () => MemberDetailsModal.show(context, m),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) => Center(child: Text('Error: $err')),
+                      ),
+                    ]),
+                  ),
                 ),
-              ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildFilterChip(String label, AdminMemberFilter filter) {
+    final currentFilter = ref.watch(userMemberFilterProvider);
+    final isSelected = currentFilter == filter;
+    final primary = Theme.of(context).primaryColor;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        onTap: () => ref.read(userMemberFilterProvider.notifier).update(filter),
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Colors.grey.shade600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 }
 
 class _EmptyMembers extends StatelessWidget {

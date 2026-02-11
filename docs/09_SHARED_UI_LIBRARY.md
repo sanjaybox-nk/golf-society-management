@@ -22,6 +22,11 @@ The primary button component.
 ### `BoxyArtCircularIconBtn`
 Small circular button (e.g., Back button, Menu button).
 
+### `ModernButton` (New)
+Refined `ElevatedButton` wrapper used in modernized screens.
+- Standard rounded shape (`12px` - `16px`).
+- Consistent shadow and padding.
+
 ## 2. Inputs (`inputs.dart`)
 
 ### `BoxyArtFormField`
@@ -45,6 +50,22 @@ Switch tile with styled track/thumb.
 ### `BoxyArtSearchBar`
 Standalone search bar with icon.
 
+## 2b. Modern Inputs (`inputs.dart`)
+*Recommended for administrative and modernized screens.*
+
+### `ModernTextField`
+A cleaner, filled input style with integrated labeling.
+- `label`: Bold upstairs label.
+- `icon`: Integrated icon on the label row.
+- `filled`: uses `0.05` opacity of text color for background.
+- `borderRadius`: `16px`.
+
+### `ModernDropdownField<T>`
+Consistent with modern text fields, providing a unified selection UI in a filled container.
+
+### `ModernSwitchRow`
+A full-width row design combining a descriptive label, icon, and a Switch. Preferred over `BoxyArtSwitchField` for complex forms.
+
 ## 3. Cards (`cards.dart`)
 
 ### `BoxyArtFloatingCard`
@@ -55,6 +76,17 @@ Generic container with "Soft Scale" shadow and rounded corners. Use for lists or
 
 ### `BoxyArtSettingsCard`
 Grouped settings container.
+
+## 3b. Modern Cards (`modern_card.dart`)
+
+### `ModernCard`
+The core building block of the Modern Card design system.
+- **Properties**:
+  - `child`: Content widget.
+  - `padding`: Default `16-20px`.
+  - `onTap`: Interactive callback.
+  - `showGlow`: Optional subtle primary-colored glow.
+- **Design**: Rounded corners (`24px`), extremely subtle borders, and background tint support.
 
 ### `BoxyArtMemberHeaderCard`
 A high-impact header component for the Member Detail screen.

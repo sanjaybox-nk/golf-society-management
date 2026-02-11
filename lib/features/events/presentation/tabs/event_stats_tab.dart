@@ -166,7 +166,6 @@ class EventStatsTab extends ConsumerWidget {
     toughestName = 'Hole ${toughestIdx + 1}';
 
     // Standout Awards & Banter logic (Same as before)
-    double totalVariance = 0;
     final Map<String, String> awardWinNames = {
       'HOT STREAK': hotStreakPlayer, 
       'BOUNCE BACK': bounceBackPlayer, 

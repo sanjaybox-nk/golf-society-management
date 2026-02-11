@@ -47,179 +47,93 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'SCORING RULES'),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              _buildAllowanceSlider(),
-              const SizedBox(height: 24),
-              BoxyArtFormField(
-                label: 'Handicap Cap',
-                initialValue: _handicapCap.toString(),
-                keyboardType: TextInputType.number,
-                onChanged: (val) => setState(() => _handicapCap = int.tryParse(val) ?? 28),
-              ),
-              const SizedBox(height: 24),
-              BoxyArtDropdownField<TieBreakMethod>(
-                label: 'Tie Break Method',
-                value: _tieBreak,
-                items: const [
-                  DropdownMenuItem(
-                    value: TieBreakMethod.back9, 
-                    child: Text('Standard (Back 9-6-3-1)'),
-                  ),
-                  DropdownMenuItem(
-                    value: TieBreakMethod.playoff, 
-                    child: Text('Playoff'),
-                  ),
-                ],
-                onChanged: (val) {
-                   if (val != null) setState(() => _tieBreak = val);
-                },
-              ),
-              if (_tieBreak == TieBreakMethod.back9)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8, left: 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Cascade: Last 9 → Last 6 → Last 3 → Last 1",
-                      style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                )
-              else if (_tieBreak == TieBreakMethod.playoff)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8, left: 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Sudden death or specified holes (Manual Result)",
-                      style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-              BoxyArtSwitchField(
-                label: 'Hard Cap Playing HC\n(Off = Cap Index + WHS)',
-                value: !_applyCapToIndex,
-                onChanged: (val) {
-                  setState(() {
-                    _applyCapToIndex = !val;
-                  });
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8, left: 4),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _applyCapToIndex 
-                        ? "Cap applies to baseline Index. WHS adjustments can exceed the cap."
-                        : "Cap applies to final Playing HC. Player will never exceed $_handicapCap.",
-                    style: const TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              BoxyArtSwitchField(
-                label: 'Gross Scoring\n(Points against Par)',
-                value: _isGross,
-                onChanged: (val) {
-                  setState(() {
-                    _isGross = val;
-                  });
-                },
-              ),
-              if (_isGross)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8, bottom: 8, left: 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Points awarded based on unadjusted gross score.",
-                      style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-              // Series / Multi-Round UI
-              BoxyArtFormField(
-                label: 'Rounds (Series)',
-                initialValue: _roundsCount.toString(),
-                keyboardType: TextInputType.number,
-                onChanged: (val) => setState(() => _roundsCount = int.tryParse(val) ?? 1),
-              ),
-              if (_roundsCount > 1) ...[
-                const SizedBox(height: 24),
-                BoxyArtDropdownField<AggregationMethod>(
-                  label: 'Series Scoring',
-                  value: _aggregation,
-                  items: const [
-                    DropdownMenuItem(value: AggregationMethod.stablefordSum, child: Text('Cumulative Points')),
-                    DropdownMenuItem(value: AggregationMethod.singleBest, child: Text('Best Round Counts')),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _aggregation = val);
-                  },
-                ),
-              ],
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   const Text(
-                    'TEAM / GROUP SCORING',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  BoxyArtDropdownField<int>(
-                    label: 'Best X Scores per Flight',
-                    value: _teamBestXCount,
-                    items: [1, 2, 3, 4].map((i) => DropdownMenuItem(
-                      value: i,
-                      child: Text('Best $i Scores'),
-                    )).toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _teamBestXCount = val);
-                    },
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      'Decides how the Group Total is calculated in the flight view.',
-                      style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
+        _buildAllowanceSlider(),
         const SizedBox(height: 24),
+        ModernTextField(
+          label: 'Handicap Cap',
+          initialValue: _handicapCap.toString(),
+          keyboardType: TextInputType.number,
+          icon: Icons.vertical_align_top_rounded,
+          onChanged: (val) => setState(() => _handicapCap = int.tryParse(val) ?? 28),
+        ),
+        const SizedBox(height: 24),
+        ModernDropdownField<TieBreakMethod>(
+          label: 'Tie Break Method',
+          value: _tieBreak,
+          icon: Icons.low_priority_rounded,
+          items: const [
+            DropdownMenuItem(
+              value: TieBreakMethod.back9, 
+              child: Text('Standard (Back 9-6-3-1)'),
+            ),
+            DropdownMenuItem(
+              value: TieBreakMethod.playoff, 
+              child: Text('Playoff (Manual Result)'),
+            ),
+          ],
+          onChanged: (val) {
+             if (val != null) setState(() => _tieBreak = val);
+          },
+        ),
+        const SizedBox(height: 24),
+        ModernSwitchRow(
+          label: 'Hard Cap Playing HC',
+          subtitle: _applyCapToIndex 
+              ? "Cap applies to baseline Index." 
+              : "Cap applies to final Playing HC.",
+          value: !_applyCapToIndex,
+          icon: Icons.lock_outline_rounded,
+          onChanged: (val) => setState(() => _applyCapToIndex = !val),
+        ),
+        const SizedBox(height: 12),
+        ModernSwitchRow(
+          label: 'Gross Scoring',
+          subtitle: 'Points awarded against Par',
+          value: _isGross,
+          icon: Icons.score_rounded,
+          onChanged: (val) => setState(() => _isGross = val),
+        ),
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+        ModernTextField(
+          label: 'Rounds (Series)',
+          initialValue: _roundsCount.toString(),
+          keyboardType: TextInputType.number,
+          icon: Icons.layers_rounded,
+          onChanged: (val) => setState(() => _roundsCount = int.tryParse(val) ?? 1),
+        ),
+        if (_roundsCount > 1) ...[
+          const SizedBox(height: 24),
+          ModernDropdownField<AggregationMethod>(
+            label: 'Series Scoring',
+            value: _aggregation,
+            icon: Icons.functions_rounded,
+            items: const [
+              DropdownMenuItem(value: AggregationMethod.stablefordSum, child: Text('Cumulative Points')),
+              DropdownMenuItem(value: AggregationMethod.singleBest, child: Text('Best Round Counts')),
+            ],
+            onChanged: (val) {
+              if (val != null) setState(() => _aggregation = val);
+            },
+          ),
+        ],
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+        ModernDropdownField<int>(
+          label: 'Best X Scores per Flight',
+          value: _teamBestXCount,
+          icon: Icons.groups_rounded,
+          items: [1, 2, 3, 4].map((i) => DropdownMenuItem(
+            value: i,
+            child: Text('Best $i Scores'),
+          )).toList(),
+          onChanged: (val) {
+            if (val != null) setState(() => _teamBestXCount = val);
+          },
+        ),
+        const SizedBox(height: 32),
         _buildMemberPreview(),
       ],
     );
@@ -231,10 +145,10 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.1)),
       ),
       child: Column(
@@ -242,13 +156,13 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         children: [
           Row(
             children: [
-              Icon(Icons.visibility_outlined, size: 16, color: Theme.of(context).primaryColor),
+              Icon(Icons.visibility_rounded, size: 16, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
               Text(
-                'MEMBER PREVIEW',
+                'Member Preview'.toUpperCase(),
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                   color: Theme.of(context).primaryColor,
                   letterSpacing: 1.2,
                 ),
@@ -258,10 +172,11 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           const SizedBox(height: 12),
           Text(
             description,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
               height: 1.5,
+              fontWeight: FontWeight.w500,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -271,17 +186,17 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   }
 
   Widget _buildAllowanceSlider() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('HANDICAP ALLOWANCE', style: TextStyle(
+            Text('Handicap Allowance'.toUpperCase(), style: TextStyle(
               fontSize: 12, 
-              fontWeight: FontWeight.bold, 
-              color: isDark ? Colors.white70 : Colors.black87
+              fontWeight: FontWeight.w900, 
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              letterSpacing: 0.5,
             )),
             Text('${(_allowance * 100).toInt()}%', style: TextStyle(
               fontSize: 14, 

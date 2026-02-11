@@ -10,157 +10,209 @@ class AdminSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: BoxyArtAppBar(
-        title: 'Settings',
-        subtitle: 'App-wide configuration',
-        isLarge: true,
-        leading: IconButton(
-          icon: const Icon(Icons.home, color: Colors.white, size: 28),
-          onPressed: () => context.go('/home'),
-        ),
-        actions: const [
-          SizedBox(width: 8),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        children: [
-          const BoxyArtSectionTitle(
-            title: 'Society Configurations',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.badge_outlined,
-                  title: 'Committee Roles',
-                  subtitle: 'Manage society specific titles',
-                  iconColor: const Color(0xFF1A237E), // Navy
-                  onTap: () => context.push('/admin/settings/committee-roles'),
-                ),
-                _SettingsTile(
-                  icon: Icons.rule_folder_outlined,
-                  title: 'Game Templates',
-                  subtitle: 'Manage competition formats & rules',
-                  iconColor: Colors.orange,
-                  onTap: () => context.push('/admin/settings/templates'),
-                ),
-                _SettingsTile(
-                  icon: Icons.emoji_events_outlined,
-                  title: 'Leaderboard Templates',
-                  subtitle: 'Manage season point systems',
-                  iconColor: Colors.amber,
-                  onTap: () => context.push('/admin/settings/leaderboards'),
-                ),
-                _SettingsTile(
-                  icon: Icons.tune,
-                  title: 'General',
-                  subtitle: 'App basics and display settings',
-                  iconColor: Colors.grey,
-                  onTap: () => context.push('/admin/settings/general'),
-                ),
-                _SettingsTile(
-                  icon: Icons.layers_outlined,
-                  title: 'Manage Seasons',
-                  subtitle: 'Archive and setup event seasons',
-                  iconColor: Colors.teal,
-                  onTap: () => context.push('/admin/settings/seasons'),
-                ),
-                _SettingsTile(
-                  icon: Icons.notifications_none,
-                  title: 'Notifications',
-                  subtitle: 'Push notification preferences',
-                  iconColor: Colors.grey,
-                ),
-                _SettingsTile(
-                  icon: Icons.palette_outlined,
-                  title: 'Society Branding',
-                  subtitle: 'Customize colors and theme',
-                  iconColor: Colors.pink,
-                  onTap: () => context.push('/admin/settings/branding'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          const BoxyArtSectionTitle(
-            title: 'Access & Permissions',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.shield_outlined,
-                  title: 'System Roles',
-                  subtitle: 'View available administrative roles',
-                  iconColor: Colors.purple,
-                  onTap: () => context.push('/admin/settings/roles'),
-                ),
-                _SettingsTile(
-                  icon: Icons.history_outlined,
-                  title: 'Audit Logs',
-                  subtitle: 'View recent administrative changes',
-                  iconColor: Colors.blueGrey,
-                  onTap: () {
-                    // Placeholder for now
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Audit Logs are coming soon!'))
-                    );
-                  },
-                ),
-                _SettingsTile(
-                  icon: Icons.delete_forever_outlined,
-                  title: 'Clear Database',
-                  subtitle: 'Remove all members and registrations',
-                  iconColor: Colors.red,
-                  onTap: () => _clearDatabase(context, ref),
-                ),
-              ],
-            ),
-          ),
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-          const SizedBox(height: 32),
-          
-          const BoxyArtSectionTitle(
-            title: 'Testing Lab',
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          ),
-          BoxyArtFloatingCard(
-            child: Column(
-              children: [
-                _SettingsTile(
-                  icon: Icons.auto_awesome_motion_outlined,
-                  title: 'Seed Full Demo Data',
-                  subtitle: 'Members, events, and historical scores',
-                  iconColor: Colors.pinkAccent,
-                  onTap: () => _seedFullDemo(context, ref),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: ref.watch(templatesListProvider).when(
-                    data: (templates) => BoxyArtDropdownField<String>(
-                      label: 'Swap Lab Format',
-                      items: templates.map((t) => DropdownMenuItem(
-                        value: t.id,
-                        child: Text(t.rules.format.name.toUpperCase()),
-                      )).toList(),
-                      onChanged: (val) {
-                        if (val != null) _swapLabFormat(context, ref, val);
-                      },
+    return Scaffold(
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const Text(
+                      'Settings',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
+                      ),
                     ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Text('Error: $e'),
-                  ),
+                    Text(
+                      'App-wide configuration',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const BoxyArtSectionTitle(title: 'Society Configurations', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.badge_rounded,
+                            title: 'Committee Roles',
+                            subtitle: 'Manage society specific titles',
+                            iconColor: const Color(0xFF1A237E),
+                            onTap: () => context.push('/admin/settings/committee-roles'),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.rule_folder_rounded,
+                            title: 'Game Templates',
+                            subtitle: 'Manage competition formats & rules',
+                            iconColor: Colors.orange,
+                            onTap: () => context.push('/admin/settings/templates'),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.emoji_events_rounded,
+                            title: 'Leaderboard Templates',
+                            subtitle: 'Manage season point systems',
+                            iconColor: Colors.amber,
+                            onTap: () => context.push('/admin/settings/leaderboards'),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.tune_rounded,
+                            title: 'General',
+                            subtitle: 'App basics and display settings',
+                            iconColor: Colors.blueGrey,
+                            onTap: () => context.push('/admin/settings/general'),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.layers_rounded,
+                            title: 'Manage Seasons',
+                            subtitle: 'Archive and setup event seasons',
+                            iconColor: Colors.teal,
+                            onTap: () => context.push('/admin/settings/seasons'),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.notifications_rounded,
+                            title: 'Notifications',
+                            subtitle: 'Push notification preferences',
+                            iconColor: Colors.indigo,
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.palette_rounded,
+                            title: 'Society Branding',
+                            subtitle: 'Customize colors and theme',
+                            iconColor: Colors.pink,
+                            onTap: () => context.push('/admin/settings/branding'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const BoxyArtSectionTitle(title: 'Access & Permissions', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.shield_rounded,
+                            title: 'System Roles',
+                            subtitle: 'View available administrative roles',
+                            iconColor: Colors.purple,
+                            onTap: () => context.push('/admin/settings/roles'),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.history_rounded,
+                            title: 'Audit Logs',
+                            subtitle: 'View recent administrative changes',
+                            iconColor: Colors.blueGrey,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Audit Logs are coming soon!'))
+                              );
+                            },
+                          ),
+                          const Divider(height: 1),
+                          _SettingsTile(
+                            icon: Icons.delete_forever_rounded,
+                            title: 'Clear Database',
+                            subtitle: 'Remove all members and registrations',
+                            iconColor: Colors.red,
+                            onTap: () => _clearDatabase(context, ref),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const BoxyArtSectionTitle(title: 'Testing Lab', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      child: Column(
+                        children: [
+                          _SettingsTile(
+                            icon: Icons.auto_awesome_motion_rounded,
+                            title: 'Seed Full Demo Data',
+                            subtitle: 'Members, events, and historical scores',
+                            iconColor: Colors.pinkAccent,
+                            onTap: () => _seedFullDemo(context, ref),
+                          ),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: ref.watch(templatesListProvider).when(
+                              data: (templates) => ModernDropdownField<String>(
+                                label: 'Swap Lab Format',
+                                icon: Icons.swap_horiz_rounded,
+                                value: null,
+                                items: templates.map((t) => DropdownMenuItem(
+                                  value: t.id,
+                                  child: Text(t.rules.format.name.toUpperCase(), style: const TextStyle(fontSize: 14)),
+                                )).toList(),
+                                onChanged: (val) {
+                                  if (val != null) _swapLabFormat(context, ref, val);
+                                },
+                              ),
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (e, _) => Text('Error: $e'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 100),
+                  ]),
                 ),
-              ],
+              ),
+            ],
+          ),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.home_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.go('/home'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 100),
         ],
       ),
     );
@@ -255,25 +307,33 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: iconColor.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: iconColor, size: 20),
+        child: Icon(icon, color: iconColor, size: 22),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.3),
       ),
       subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(subtitle, style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade600)),
+        padding: const EdgeInsets.only(top: 2),
+        child: Text(
+          subtitle, 
+          style: TextStyle(
+            fontSize: 13, 
+            color: Theme.of(context).textTheme.bodySmall?.color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+      trailing: Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).dividerColor.withValues(alpha: 0.3), size: 14),
     );
   }
 }

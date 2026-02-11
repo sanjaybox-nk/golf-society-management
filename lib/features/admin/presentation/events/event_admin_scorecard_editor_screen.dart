@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
-import '../../../../models/scorecard.dart';
+
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/widgets/course_info_card.dart';
 import '../../../events/presentation/widgets/hole_by_hole_scoring_widget.dart';

@@ -1369,7 +1369,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                             }
 
                                             if (!mounted) return;
-                                            await GoRouter.of(context).push('/admin/events/competitions/edit/$secondaryId');
+                                            if (mounted) {
+                                              context.push('/admin/events/competitions/edit/$secondaryId');
+                                            }
                                             if (mounted) _fetchSecondaryCompetition(eventId);
                                           },
                                           icon: Icon(_isSecondaryCustomized ? Icons.edit_note : Icons.tune, size: 18),

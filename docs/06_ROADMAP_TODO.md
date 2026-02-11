@@ -88,6 +88,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Phase 3 (Teams)**: Scramble/Pairs logic verification.
     - [x] **Phase 4 (Hardening)**: Stress-test for ties and countbacks.
     - [x] **Advanced Lab Mode**: Multi-scenario cycling for Matchplay and Team grouping.
+    - [x] **Code Quality Hardening**: Comprehensive lint cleanup and async-safety verification.
 
 ## 5. Deployment
 - [ ] **CI/CD**

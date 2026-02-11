@@ -10,8 +10,8 @@ _Season _$SeasonFromJson(Map<String, dynamic> json) => _Season(
   id: json['id'] as String,
   name: json['name'] as String,
   year: (json['year'] as num).toInt(),
-  startDate: const TimestampConverter().fromJson(json['startDate'] as Object),
-  endDate: const TimestampConverter().fromJson(json['endDate'] as Object),
+  startDate: const TimestampConverter().fromJson(json['startDate']),
+  endDate: const TimestampConverter().fromJson(json['endDate']),
   status:
       $enumDecodeNullable(_$SeasonStatusEnumMap, json['status']) ??
       SeasonStatus.active,

@@ -18,6 +18,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('balanced') String groupingStrategy, // 'balanced', 'progressive', 'similar', 'random'
     @Default(true) bool useWhsHandicaps, // Default: Use WHS (Slope/Rating)
     @Default('yards') String distanceUnit, // 'yards' or 'meters'
+    String? selectedPaletteName, // Selected Modern Card palette name
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>

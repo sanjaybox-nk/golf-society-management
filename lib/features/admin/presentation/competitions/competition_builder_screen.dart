@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/competition.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
 import 'controls/stableford_control.dart';
 import 'controls/stroke_control.dart';
 import 'controls/match_play_control.dart';
@@ -77,38 +76,63 @@ class CompetitionBuilderScreen extends ConsumerWidget {
   Widget _buildScaffold(BuildContext context, CompetitionFormat activeFormat, {Competition? competition, Competition? template}) {
     final compToUse = competition ?? template;
     final activeSubtype = subtype ?? compToUse?.rules.subtype;
+    final gameName = CompetitionRules(
+      format: activeFormat, 
+      subtype: activeSubtype ?? CompetitionSubtype.none,
+    ).gameName;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
-      appBar: BoxyArtAppBar(
-        title: CompetitionRules(
-          format: activeFormat, 
-          subtype: activeSubtype ?? CompetitionSubtype.none,
-        ).gameName,
-        subtitle: isTemplate ? 'edit saved game' : (compToUse != null ? 'event customization' : null),
-        centerTitle: true,
-        isLarge: true,
-        leadingWidth: 80,
-        leading: GestureDetector(
-          onTap: () => context.pop(),
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              Text(
-                'Back',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            expandedHeight: 140,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
+            surfaceTintColor: Colors.transparent,
+            title: Text(
+              gameName,
+              style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
+            ),
+            centerTitle: true,
+            leading: Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                margin: const EdgeInsets.only(left: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                  onPressed: () => context.pop(),
+                  padding: EdgeInsets.zero,
                 ),
               ),
-            ],
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                alignment: Alignment.bottomCenter,
+                padding: const EdgeInsets.only(bottom: 48),
+                child: Text(
+                  isTemplate ? 'edit saved game' : (compToUse != null ? 'event customization' : 'new competition'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           ),
+        ],
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: _buildControl(activeFormat, context, competition: competition, template: template),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: _buildControl(activeFormat, context, competition: competition, template: template),
       ),
     );
   }

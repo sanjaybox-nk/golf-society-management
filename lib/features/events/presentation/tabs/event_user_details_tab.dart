@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../../core/shared_ui/shared_ui.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -37,7 +38,14 @@ class EventUserDetailsTab extends ConsumerWidget {
         }
 
         final config = ref.watch(themeControllerProvider);
-        return EventDetailsContent(event: event, currencySymbol: config.currencySymbol);
+        // Check for preview mode
+        final isPreview = GoRouterState.of(context).uri.queryParameters['preview'] == 'true';
+        
+        return EventDetailsContent(
+          event: event, 
+          currencySymbol: config.currencySymbol,
+          isPreview: isPreview,
+        );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
@@ -61,21 +69,24 @@ class EventDetailsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Note: Registration and Gallery sections removed as they have their own tabs now
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: [
           _buildAppBar(context),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 16),
+                  _buildHeader(context),
+                  const SizedBox(height: 24),
                   _buildRegistrationCard(context),
-                  const SizedBox(height: 24),
-                  _buildBasicInfoSection(context, ref),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   _buildDateTimeSection(context),
                   const SizedBox(height: 24),
                   _buildCourseSelectionSection(context),
@@ -115,99 +126,181 @@ class EventDetailsContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildBasicInfoSection(BuildContext context, WidgetRef ref) {
+  Widget _buildHeader(BuildContext context) {
+    final textPrimary = Theme.of(context).textTheme.displaySmall?.color ?? Colors.black;
+    final primary = Theme.of(context).primaryColor;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Basic Info'),
-        const SizedBox(height: 12),
-        BoxyArtFloatingCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (event.imageUrl != null && event.imageUrl!.isNotEmpty) ...[
+        Text(
+          event.title,
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: textPrimary,
+            letterSpacing: -1,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: primary.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    event.status.name.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: primary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (event.imageUrl != null && event.imageUrl!.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          ModernCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(20),
                   child: Image.network(
                     event.imageUrl!,
                     width: double.infinity,
-                    height: 180,
+                    height: 200,
                     fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
-              _buildDetailRow(
-                'Title',
-                _buildDetailValue(event.title),
-              ),
-              _buildDetailRow(
-                'Status',
-                Row(
-                  children: [
-                  _buildDetailValue(event.status.name.toUpperCase()),
-                ],
-              ),
-              ),
-              if (event.description != null && event.description!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
-                Text(
-                  event.description!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                if (event.description != null && event.description!.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      event.description!,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                        height: 1.5,
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.left,
+                ],
+              ],
+            ),
+          ),
+        ] else if (event.description != null && event.description!.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          ModernCard(
+            child: Text(
+              event.description!,
+              style: TextStyle(
+                fontSize: 15,
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+
+  Widget _buildDateTimeSection(BuildContext context) {
+    final stats = RegistrationLogic.getRegistrationStats(event);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const BoxyArtSectionTitle(title: 'Date & Time'),
+        const SizedBox(height: 12),
+        ModernCard(
+          child: Column(
+            children: [
+              ModernInfoRow(
+                label: (event.isMultiDay ?? false) ? 'Start Date' : 'Event Date',
+                value: DateFormat('EEEE, d MMM yyyy').format(event.date),
+                icon: Icons.calendar_today_rounded,
+              ),
+              if ((event.isMultiDay ?? false) && event.endDate != null) ...[
+                const SizedBox(height: 16),
+                ModernInfoRow(
+                  label: 'End Date',
+                  value: DateFormat('EEEE, d MMM yyyy').format(event.endDate!),
+                  icon: Icons.calendar_today_rounded,
+                ),
+              ],
+              const SizedBox(height: 16),
+              ModernInfoRow(
+                label: 'Tee-off',
+                value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+                icon: Icons.schedule_rounded,
+              ),
+              const SizedBox(height: 16),
+              ModernInfoRow(
+                label: 'Registration',
+                value: event.regTime != null 
+                    ? DateFormat('h:mm a').format(event.regTime!)
+                    : 'TBA',
+                icon: Icons.app_registration_rounded,
+              ),
+              if (event.registrationDeadline != null) ...[
+                const SizedBox(height: 16),
+                ModernInfoRow(
+                  label: 'Deadline',
+                  value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+                  icon: Icons.timer_outlined,
+                  iconColor: Colors.redAccent,
                 ),
               ],
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildDateTimeSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'DateTime & Registration'),
+        const SizedBox(height: 24),
+        const BoxyArtSectionTitle(title: 'Registration Stats'),
         const SizedBox(height: 12),
-        BoxyArtFloatingCard(
-          child: Column(
+        ModernCard(
+          child: ModernMetricBar(
             children: [
-              if ((event.isMultiDay ?? false) && event.endDate != null) ...[
-                _buildDetailRow(
-                  'Start Date',
-                  _buildDetailValue(DateFormat('EEEE, d MMM yyyy').format(event.date)),
-                ),
-                _buildDetailRow(
-                  'End Date',
-                  _buildDetailValue(DateFormat('EEEE, d MMM yyyy').format(event.endDate!)),
-                ),
-              ] else
-                _buildDetailRow(
-                  'Event Date',
-                  _buildDetailValue(DateFormat('EEEE, d MMM yyyy').format(event.date)),
-                ),
-              _buildDetailRow(
-                'Tee-off',
-                _buildDetailValue(DateFormat('h:mm a').format(event.teeOffTime ?? event.date)),
+              ModernMetricCircle(
+                value: '${stats.confirmedGolfers}',
+                label: 'Confirmed',
+                color: const Color(0xFF27AE60),
               ),
-              _buildDetailRow(
-                'Registration',
-                _buildDetailValue(event.regTime != null 
-                  ? DateFormat('h:mm a').format(event.regTime!)
-                  : 'TBA'),
+              ModernMetricCircle(
+                value: '${stats.waitlistGolfers}',
+                label: 'Waitlist',
+                color: const Color(0xFFF39C12),
               ),
-              if (event.registrationDeadline != null)
-                _buildDetailRow(
-                  'Deadline',
-                  _buildDetailValue('${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}'),
-                ),
+              ModernMetricCircle(
+                value: event.maxParticipants == null 
+                    ? '∞' 
+                    : '${event.maxParticipants! - stats.confirmedGolfers}',
+                label: 'Remaining',
+                color: Theme.of(context).primaryColor,
+              ),
             ],
           ),
         ),
@@ -219,72 +312,67 @@ class EventDetailsContent extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Course Selection'),
+        const BoxyArtSectionTitle(title: 'Course'),
         const SizedBox(height: 12),
-        BoxyArtFloatingCard(
+        ModernCard(
           child: Column(
             children: [
-              _buildDetailRow(
-                'Course',
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDetailValue(event.courseName ?? 'TBA'),
-                          if (event.courseDetails != null && event.courseDetails!.isNotEmpty)
-                            Text(
-                              event.courseDetails!,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                        ],
-                      ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ModernInfoRow(
+                      label: 'Location',
+                      value: event.courseName ?? 'TBA',
+                      icon: Icons.location_on_rounded,
                     ),
-                    if (event.courseName != null)
-                      IconButton(
-                        icon: Icon(
-                          Icons.location_on_outlined, 
-                          color: Theme.of(context).primaryColor,
-                          size: 23,
-                        ),
-                        onPressed: () => _launchMap(event.courseName!, event.courseDetails),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                  ),
+                  if (event.courseName != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.map_outlined, 
+                        color: Theme.of(context).primaryColor,
+                        size: 20,
                       ),
-                  ],
-                ),
+                      onPressed: () => _launchMap(event.courseName!, event.courseDetails),
+                    ),
+                ],
               ),
-              if (event.selectedTeeName != null)
-                _buildDetailRow(
-                  'Tee Position',
-                  _buildDetailValue(event.selectedTeeName!),
+              if (event.courseDetails != null && event.courseDetails!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 52),
+                  child: Text(
+                    event.courseDetails!,
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
-              _buildDetailRow(
-                'Dress Code',
-                _buildDetailValue(event.dressCode ?? 'Standard Golf Attire'),
-              ),
-              if (event.availableBuggies != null)
-                _buildDetailRow(
-                  'Buggies',
-                  _buildDetailValue('${event.availableBuggies} available'),
+              ],
+              if (event.selectedTeeName != null) ...[
+                const SizedBox(height: 16),
+                ModernInfoRow(
+                  label: 'Tee Position',
+                  value: event.selectedTeeName!,
+                  icon: Icons.flag_rounded,
                 ),
-              _buildDetailRow(
-                'Availability',
-                _buildDetailValue(() {
-                  final stats = RegistrationLogic.getRegistrationStats(event);
-                  if (event.maxParticipants == null) return 'Unlimited';
-                  final remaining = event.maxParticipants! - stats.confirmedGolfers;
-                  if (remaining <= 0) return 'Event is full';
-                  return '${event.maxParticipants} spots, $remaining remaining';
-                }()),
+              ],
+              const SizedBox(height: 16),
+              ModernInfoRow(
+                label: 'Dress Code',
+                value: event.dressCode ?? 'Standard Golf Attire',
+                icon: Icons.checkroom_rounded,
               ),
+              if (event.availableBuggies != null) ...[
+                const SizedBox(height: 16),
+                ModernInfoRow(
+                  label: 'Buggies',
+                  value: '${event.availableBuggies} available',
+                  icon: Icons.electric_rickshaw_rounded,
+                ),
+              ],
             ],
           ),
         ),
@@ -331,15 +419,11 @@ class EventDetailsContent extends ConsumerWidget {
 
     final stats = RegistrationLogic.getRegistrationStats(event);
     final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
-
-    // Disabled if:
-    // 1. Deadline passed (always)
-    // 2. Button hidden by config (always)
     final isRegistrationDisabled = 
         isPastDeadline || 
         !event.showRegistrationButton;
 
-    return BoxyArtFloatingCard(
+    return ModernCard(
       child: Column(
         children: [
           if (!isRegistered) ...[
@@ -351,7 +435,7 @@ class EventDetailsContent extends ConsumerWidget {
                     : (isFull ? 'Event Full' : 'Secure your spot'),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -359,47 +443,54 @@ class EventDetailsContent extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ] else if (!isPastDeadline) ...[
                   const SizedBox(height: 4),
                   Text(
                     isFull ? 'Join the waitlist below' : 'Register below to join the event',
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ],
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
           ] else ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 10,
-                  height: 10,
+                  width: 12,
+                  height: 12,
                   decoration: BoxDecoration(
-                    color: myRegistration.hasPaid ? Colors.green : Colors.orange,
+                    color: myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12),
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: (myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12)).withValues(alpha: 0.3),
+                        blurRadius: 8,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Text(
                   myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 24),
           ],
           BoxyArtButton(
             title: isPastDeadline 
                 ? 'Registration closed' 
-                : (isRegistered ? 'Edit My Registration' : (isFull ? 'Register Now (Waitlist)' : 'Register Now')),
+                : (isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now')),
             onTap: isRegistrationDisabled 
                 ? null 
                 : () {
@@ -408,14 +499,33 @@ class EventDetailsContent extends ConsumerWidget {
           ),
           
           if (isRegistered) ...[
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            const SizedBox(height: 32),
+            ModernMetricBar(
               children: [
-                _buildSummaryIcon(Icons.attach_money, 'Paid', myRegistration.hasPaid),
-                _buildSummaryIcon(Icons.breakfast_dining, 'Breakfast', myRegistration.attendingBreakfast),
-                _buildSummaryIcon(Icons.lunch_dining, 'Lunch', myRegistration.attendingLunch),
-                _buildSummaryIcon(Icons.dinner_dining, 'Dinner', myRegistration.attendingDinner),
+                ModernMetricCircle(
+                  value: myRegistration.hasPaid ? 'YES' : 'NO',
+                  label: 'Value',
+                  icon: Icons.payments_rounded,
+                  color: myRegistration.hasPaid ? const Color(0xFF27AE60) : Colors.grey.shade400,
+                ),
+                ModernMetricCircle(
+                  value: myRegistration.attendingBreakfast ? 'YES' : 'NO',
+                  label: 'Breakfast',
+                  icon: Icons.breakfast_dining_rounded,
+                  color: myRegistration.attendingBreakfast ? const Color(0xFFF39C12) : Colors.grey.shade400,
+                ),
+                ModernMetricCircle(
+                  value: myRegistration.attendingLunch ? 'YES' : 'NO',
+                  label: 'Lunch',
+                  icon: Icons.lunch_dining_rounded,
+                  color: myRegistration.attendingLunch ? const Color(0xFF27AE60) : Colors.grey.shade400,
+                ),
+                ModernMetricCircle(
+                  value: myRegistration.attendingDinner ? 'YES' : 'NO',
+                  label: 'Dinner',
+                  icon: Icons.dinner_dining_rounded,
+                  color: myRegistration.attendingDinner ? Colors.purple : Colors.grey.shade400,
+                ),
               ],
             ),
           ],
@@ -424,26 +534,6 @@ class EventDetailsContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryIcon(IconData icon, String label, bool active) {
-    return Column(
-      children: [
-        Icon(
-          icon, 
-          size: 20, 
-          color: active ? Colors.green : Colors.grey.shade300,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: active ? Colors.black87 : Colors.grey.shade400,
-            fontWeight: active ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildCompetitionRulesSection(BuildContext context) {
     return _CompetitionRulesCard(
@@ -470,22 +560,61 @@ class EventDetailsContent extends ConsumerWidget {
       children: [
         const BoxyArtSectionTitle(title: 'Playing Costs'),
         const SizedBox(height: 12),
-        BoxyArtFloatingCard(
+        ModernCard(
           child: Column(
             children: [
-              _buildCostRow('Member Cost', event.memberCost),
-              _buildCostRow('Guest Cost', event.guestCost),
+              _buildModernCostRow(context, 'Member Cost', event.memberCost),
+              if (event.guestCost != null) ...[
+                const SizedBox(height: 12),
+                _buildModernCostRow(context, 'Guest Cost', event.guestCost),
+              ],
               if (event.buggyCost != null) ...[
-                const Divider(height: 24),
-                _buildCostRow('Buggy Cost', event.buggyCost),
-                const SizedBox(height: 4),
-                const Text(
-                  'Payable to Pro Shop',
-                  style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
-                ),
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 12),
+                _buildModernCostRow(context, 'Buggy Cost', event.buggyCost, subtitle: 'Payable to Pro Shop'),
               ],
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernCostRow(BuildContext context, String label, double? cost, {String? subtitle}) {
+    if (cost == null) return const SizedBox.shrink();
+    
+    final String costText = cost == 0 
+        ? 'FREE' 
+        : '$currencySymbol${cost.toStringAsFixed(2)}';
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label, 
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              )
+            ),
+            if (subtitle != null)
+              Text(
+                subtitle,
+                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 11),
+              ),
+          ],
+        ),
+        Text(
+          costText, 
+          style: TextStyle(
+            fontWeight: FontWeight.w800, 
+            fontSize: 16,
+            color: Theme.of(context).primaryColor,
+          )
         ),
       ],
     );
@@ -501,14 +630,20 @@ class EventDetailsContent extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
+        const BoxyArtSectionTitle(title: 'Meals'),
         const SizedBox(height: 12),
-        BoxyArtFloatingCard(
+        ModernCard(
           child: Column(
             children: [
-              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
-              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
-              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
+              if (hasBreakfast) ...[
+                _buildModernCostRow(context, 'Breakfast', event.breakfastCost),
+                if (hasLunch || hasDinner) const SizedBox(height: 12),
+              ],
+              if (hasLunch) ...[
+                _buildModernCostRow(context, 'Lunch', event.lunchCost),
+                if (hasDinner) const SizedBox(height: 12),
+              ],
+              if (hasDinner) _buildModernCostRow(context, 'Dinner', event.dinnerCost),
             ],
           ),
         ),
@@ -524,16 +659,21 @@ class EventDetailsContent extends ConsumerWidget {
       children: [
         const BoxyArtSectionTitle(title: 'Facilities'),
         const SizedBox(height: 12),
-        BoxyArtFloatingCard(
+        ModernCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: event.facilities.map((f) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildDetailValue(f)),
+                  const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF27AE60)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      f,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                  ),
                 ],
               ),
             )).toList(),
@@ -570,22 +710,23 @@ class EventDetailsContent extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: BoxyArtFloatingCard(
+      child: ModernCard(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (note.title != null && note.title!.isNotEmpty) ...[
               Text(
                 note.title!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               const Divider(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
             ],
             if (note.imageUrl != null) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Image.network(
                   note.imageUrl!,
                   width: double.infinity,
@@ -593,7 +734,7 @@ class EventDetailsContent extends ConsumerWidget {
                   errorBuilder: (_, _, _) => Container(
                     height: 150,
                     width: double.infinity,
-                    color: Colors.grey.shade100,
+                    color: Theme.of(context).cardColor,
                     child: const Icon(Icons.image, color: Colors.grey),
                   ),
                 ),
@@ -623,32 +764,25 @@ class EventDetailsContent extends ConsumerWidget {
       children: [
         const BoxyArtSectionTitle(title: 'Dinner Info'),
         const SizedBox(height: 12),
-        BoxyArtFloatingCard(
+        ModernCard(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.restaurant, color: Colors.grey, size: 20),
-              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  event.dinnerLocation!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
+                child: ModernInfoRow(
+                  label: 'Location',
+                  value: event.dinnerLocation!,
+                  icon: Icons.restaurant_rounded,
                 ),
               ),
               if (isPreview == false)
                 IconButton(
                   icon: Icon(
-                    Icons.location_on_outlined,
+                    Icons.map_outlined,
                     color: Theme.of(context).primaryColor,
-                    size: 23,
+                    size: 20,
                   ),
                   onPressed: () => _launchMap(event.dinnerLocation!, null),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                 ),
             ],
           ),
@@ -658,73 +792,6 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
 
-  Widget _buildDetailRow(String label, Widget valueWidget) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100, // Fixed width for consistent alignment across cards
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: valueWidget),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailValue(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-          height: 1.2,
-        ),
-      ),
-    );
-  }
-  Widget _buildCostRow(String label, double? cost, {bool isTotal = false}) {
-    if (cost == null) return const SizedBox.shrink();
-    
-    final String costText = cost == 0 
-        ? '(incl)' 
-        : '$currencySymbol${cost.toStringAsFixed(2)}';
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: isTotal ? 8.0 : 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label, 
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            )
-          ),
-          Text(
-            costText, 
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              fontSize: isTotal ? 16 : 14,
-            )
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _CompetitionRulesCard extends ConsumerWidget {
@@ -755,16 +822,21 @@ class _CompetitionRulesCard extends ConsumerWidget {
           children: [
             BoxyArtSectionTitle(title: title),
             const SizedBox(height: 12),
-            BoxyArtFloatingCard(
+            ModernCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        backgroundColor: iconColor.withValues(alpha: 0.1),
-                        child: Icon(icon, color: iconColor),
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: iconColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: iconColor, size: 24),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -775,14 +847,14 @@ class _CompetitionRulesCard extends ConsumerWidget {
                               (comp.name != null && comp.name!.isNotEmpty)
                                   ? comp.name!.toUpperCase()
                                   : comp.rules.gameName.toUpperCase(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                             ),
                             if (comp.name != null && comp.name!.isNotEmpty)
                               Text(
                                 comp.rules.gameName,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Theme.of(context).textTheme.bodySmall?.color,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
@@ -791,26 +863,25 @@ class _CompetitionRulesCard extends ConsumerWidget {
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 20),
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade700,
-                      fontStyle: FontStyle.italic,
-                      height: 1.4,
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                      height: 1.5,
                     ),
                   ),
-
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
                       BoxyArtStatusPill(
                         text: comp.rules.scoringType.toUpperCase(),
-                        baseColor: comp.rules.scoringType == 'GROSS' ? Colors.redAccent : (eventId.contains('_secondary') ? Colors.orangeAccent : Colors.teal),
+                        baseColor: comp.rules.scoringType == 'GROSS' ? const Color(0xFFE74C3C) : (eventId.contains('_secondary') ? const Color(0xFFF39C12) : const Color(0xFF16A085)),
                       ),
                       BoxyArtStatusPill(
                         text: comp.rules.defaultAllowanceLabel,
@@ -818,12 +889,12 @@ class _CompetitionRulesCard extends ConsumerWidget {
                       ),
                       BoxyArtStatusPill(
                         text: comp.rules.mode.name.toUpperCase(),
-                        baseColor: Colors.blueGrey,
+                        baseColor: const Color(0xFF34495E),
                       ),
                       if (comp.rules.handicapCap < 54)
                         BoxyArtStatusPill(
                           text: 'CAPPED @ ${comp.rules.handicapCap.toInt()} HCP',
-                          baseColor: Colors.orange.shade700,
+                          baseColor: const Color(0xFFD35400),
                         ),
                     ],
                   ),

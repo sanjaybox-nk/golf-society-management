@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:golf_society/features/members/presentation/profile_provider.dart';
-import 'package:golf_society/models/member.dart';
 import '../theme/app_theme.dart';
 import '../theme/contrast_helper.dart';
 import 'buttons.dart';
+import 'pro_max_app_bar.dart';
 
 /// A standard clean app bar with circular action buttons.
 class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -50,197 +48,19 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
-
-    // Watch providers for global admin access and peeking state
-    final currentUser = ref.watch(currentUserProvider);
-    final isPeekingState = ref.watch(impersonationProvider) != null;
-    final isAdmin = currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin;
-
-    // Build default actions if none provided
-    final List<Widget> finalActions = actions != null ? [...actions!] : [];
-    
-    // Add Admin Console shortcut if user is Admin and NOT peeking AND showAdminShortcut is true
-    if (showAdminShortcut && isAdmin && !isPeekingState && title != 'Admin Console') {
-      finalActions.insert(0, IconButton(
-        icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 28),
-        tooltip: 'Admin Console',
-        onPressed: () => context.go('/admin'),
-      ));
-    }
-
-    if (isLarge) {
-      return AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        toolbarHeight: largeHeight,
-        leadingWidth: leadingWidth ?? 80,
-        centerTitle: true,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (topRow != null) ...[
-              SizedBox(height: 32, child: topRow!),
-              const SizedBox(height: 8),
-            ],
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isPeeking) ...[
-                  Icon(Icons.visibility, color: onPrimary.withValues(alpha: 0.6), size: 18),
-                  const SizedBox(width: 8),
-                ],
-                Flexible(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: onPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            if (subtitle != null)
-              Text(
-                subtitle!,
-                style: TextStyle(
-                  color: onPrimary.withValues(alpha: 0.8),
-                  fontSize: 13,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-          ],
-        ),
-        leading: leading ?? (showLeading 
-          ? (showBack 
-              ? TextButton(
-                  onPressed: onBack ?? () => Navigator.maybePop(context),
-                  child: Text(
-                    'Back',
-                    style: TextStyle(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                )
-              : Center(
-                  child: BoxyArtCircularIconBtn(
-                    icon: Icons.menu,
-                    onTap: onMenuPressed,
-                    backgroundColor: Colors.white24,
-                    iconColor: onPrimary,
-                  ),
-                )
-            )
-          : null),
-        actions: (isLarge && finalActions.length >= 2)
-            ? [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      for (var action in finalActions)
-                        if (action is IconButton)
-                          SizedBox(
-                            width: 32, // Width instead of height for horizontal stack
-                            child: IconButton(
-                              icon: Icon(
-                                (action.icon as Icon).icon,
-                                color: (action.icon as Icon).color ?? Colors.white,
-                                size: 22,
-                              ),
-                              onPressed: action.onPressed,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: action.tooltip,
-                            ),
-                          )
-                        else if (action is! SizedBox)
-                          action,
-                    ],
-                  ),
-                )
-              ]
-            : finalActions,
-        bottom: bottom,
-      );
-    }
-    
-    // Standard size - ALSO Orange/Primary now
-    return AppBar(
-      backgroundColor: primaryColor,
-      elevation: 0,
-      centerTitle: centerTitle ?? false,
-      leadingWidth: leadingWidth ?? 80,
-      title: Column(
-         mainAxisSize: MainAxisSize.min,
-         children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: centerTitle == true ? MainAxisAlignment.center : MainAxisAlignment.start,
-              children: [
-                if (isPeeking) ...[
-                  Icon(Icons.visibility, color: onPrimary.withValues(alpha: 0.6), size: 18),
-                  const SizedBox(width: 8),
-                ],
-                Flexible(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: onPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24, // Consistent size
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                subtitle!,
-                style: TextStyle(
-                  color: onPrimary.withValues(alpha: 0.8),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-         ],
-      ),
-      leading: leading ?? (showLeading
-          ? (showBack 
-              ? TextButton(
-                  onPressed: onBack ?? () => Navigator.maybePop(context),
-                  child: Text(
-                    'Back',
-                    style: TextStyle(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: BoxyArtCircularIconBtn(
-                    icon: Icons.menu,
-                    onTap: onMenuPressed,
-                    backgroundColor: Colors.white24,
-                    iconColor: onPrimary,
-                  ),
-                )
-            )
-          : null),
-      automaticallyImplyLeading: showLeading,
-      actions: finalActions,
+    // Delegate to ProMaxAppBar for modern glassmorphic design
+    return ProMaxAppBar(
+      title: title,
+      subtitle: subtitle,
+      onMenuPressed: onMenuPressed,
+      showBack: showBack,
+      showLeading: showLeading,
+      onBack: onBack,
+      actions: actions,
+      centerTitle: centerTitle ?? (isLarge ? true : false),
+      leading: leading,
+      leadingWidth: leadingWidth,
+      showAdminShortcut: showAdminShortcut,
       bottom: bottom,
     );
   }

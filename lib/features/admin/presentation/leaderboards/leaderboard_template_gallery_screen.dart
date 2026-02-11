@@ -22,102 +22,144 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final typeName = _formatEnum(type.name).toUpperCase();
     final templatesAsync = ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplates();
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
-      appBar: BoxyArtAppBar(
-        title: typeName,
-        showBack: true,
-        isLarge: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Start Blank Card
-            _buildGalleryCard(
-              context,
-              title: 'Start Blank',
-              subtitle: 'Create a new $typeName setup from scratch.',
-              icon: Icons.add_circle_outline,
-              isPrimary: true,
-              onTap: () async {
-                if (isPicker) {
-                   // Navigate to builder in non-template mode (Season)
-                   // We return the config result from the builder back to the picker flow
-                   final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
-                   if (result != null && context.mounted) {
-                     context.pop(result);
-                   }
-                } else {
-                  // Template Mode: Create NEW Template
-                  context.push('/admin/settings/leaderboards/create/${type.name}/builder');
-                }
-              },
-            ),
-
-            const BoxyArtSectionTitle(
-              title: 'SAVED TEMPLATES',
-              padding: EdgeInsets.only(top: 32, bottom: 16),
-            ),
-            
-            StreamBuilder<List<LeaderboardConfig>>(
-              stream: templatesAsync,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) return Text('Error: ${snapshot.error}');
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-                final templates = snapshot.data!;
-                
-                // Filter templates by Type
-                final filtered = templates.where((t) {
-                   return _getTypeFromConfig(t) == type;
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        'No saved $typeName templates found.',
-                        style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Text(
+                      typeName,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
                       ),
                     ),
-                  );
-                }
+                    Text(
+                      'Choose a template or start blank',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Start Blank Card
+                    _buildGalleryCard(
+                      context,
+                      title: 'Start Blank',
+                      subtitle: 'Create a new $typeName from scratch',
+                      icon: Icons.add_circle_outline_rounded,
+                      isPrimary: true,
+                      onTap: () async {
+                        if (isPicker) {
+                           final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
+                           if (result != null && context.mounted) {
+                             context.pop(result);
+                           }
+                        } else {
+                          context.push('/admin/settings/leaderboards/create/${type.name}/builder');
+                        }
+                      },
+                    ),
 
-                return Column(
-                  children: filtered.map((t) => _buildTemplateCard(context, t, ref)).toList(),
-                );
-              },
-            ),
+                    StreamBuilder<List<LeaderboardConfig>>(
+                      stream: templatesAsync,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+                        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-            const BoxyArtSectionTitle(
-              title: 'SYSTEM PRESETS',
-              padding: EdgeInsets.only(top: 32, bottom: 16),
+                        final templates = snapshot.data!;
+                        final filtered = templates.where((t) {
+                           return _getTypeFromConfig(t) == type;
+                        }).toList();
+
+                        if (filtered.isEmpty) return const SizedBox.shrink();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 32),
+                            const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
+                            const SizedBox(height: 12),
+                            ...filtered.map((t) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildTemplateCard(context, t, ref),
+                            )),
+                          ],
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 32),
+                    const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
+                    const SizedBox(height: 12),
+                     _buildGalleryCard(
+                      context,
+                      title: 'Standard $typeName',
+                      subtitle: 'The traditional configuration',
+                      icon: Icons.auto_awesome_rounded,
+                      onTap: () async {
+                         if (isPicker) {
+                           final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
+                           if (result != null && context.mounted) context.pop(result);
+                         } else {
+                           context.push('/admin/settings/leaderboards/create/${type.name}/builder');
+                         }
+                      },
+                      badges: [
+                        const _RuleBadge(label: 'STANDARD'),
+                      ],
+                    ),
+                    const SizedBox(height: 100),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            
-            // Placeholder for System Presets
-             _buildGalleryCard(
-              context,
-              title: 'Standard $typeName',
-              subtitle: 'The traditional configuration.',
-              icon: Icons.auto_awesome,
-              onTap: () async {
-                 if (isPicker) {
-                   final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
-                   if (result != null && context.mounted) context.pop(result);
-                 } else {
-                   context.push('/admin/settings/leaderboards/create/${type.name}/builder');
-                 }
-              },
-              badges: [
-                const _RuleBadge(label: 'STANDARD'),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -233,73 +275,66 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     
-    return GestureDetector(
+    return ModernCard(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: isPrimary 
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isPrimary 
                       ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                      : Colors.grey.withValues(alpha: 0.1),
-                  child: Icon(icon, color: isPrimary ? theme.colorScheme.primary : Colors.grey),
+                      : theme.dividerColor.withValues(alpha: 0.05),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87
-                        ),
-                      ),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Icon(
+                  icon, 
+                  color: isPrimary ? theme.colorScheme.primary : Colors.grey,
+                  size: 24,
                 ),
-                if (onChevronTap != null)
-                  IconButton(
-                    onPressed: onChevronTap,
-                    icon: const Icon(Icons.chevron_right, color: Colors.grey),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  )
-                else
-                  const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
-            if (badges != null && badges.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Wrap(spacing: 0, runSpacing: 8, children: badges),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (onChevronTap != null)
+                IconButton(
+                  onPressed: onChevronTap,
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                )
+              else
+                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
             ],
+          ),
+          if (badges != null && badges.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Wrap(spacing: 0, runSpacing: 8, children: badges),
           ],
-        ),
+        ],
       ),
     );
   }

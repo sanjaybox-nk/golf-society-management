@@ -15,306 +15,290 @@ class LockerScreen extends ConsumerWidget {
     final user = ref.watch(effectiveUserProvider);
     final stats = ref.watch(userStatsProvider);
     final isPeeking = ref.watch(impersonationProvider) != null;
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+    final primary = Theme.of(context).primaryColor;
 
     return Scaffold(
+      backgroundColor: beigeBackground,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 88,
-            backgroundColor: Theme.of(context).primaryColor,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Text(
-                'Locker Room',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
-                    ),
-              ),
-            ),
-            actions: [
-              if (user.role == MemberRole.superAdmin || user.role == MemberRole.admin)
-                if (!isPeeking)
-                  IconButton(
-                    icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 28),
-                    tooltip: 'Admin Console',
-                    onPressed: () => context.go('/admin'),
-                  ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                onPressed: () {
-                  // TODO: Navigate to Edit Profile
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Edit Profile coming soon')),
-                  );
-                },
-              ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  // Profile Header
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        foregroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-                        child: user.avatarUrl == null
-                            ? Text(
-                                user.firstName[0] + user.lastName[0],
-                                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                    ),
-                              )
-                            : null,
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Row(
+                  children: [
+                    const Text(
+                      'Locker Room',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
                       ),
+                    ),
+                    const Spacer(),
+                    if (user.role == MemberRole.superAdmin || user.role == MemberRole.admin)
+                      if (!isPeeking)
+                        IconButton(
+                          icon: Icon(Icons.admin_panel_settings_rounded, color: primary, size: 24),
+                          onPressed: () => context.go('/admin'),
+                        ),
+                    IconButton(
+                      icon: Icon(Icons.edit_note_rounded, color: primary, size: 24),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Edit Profile coming soon')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                // Profile Section
+                Center(
+                  child: Column(
+                    children: [
                       Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
+                          border: Border.all(color: primary.withValues(alpha: 0.1), width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.primary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: user.avatarUrl != null 
+                              ? Image.network(user.avatarUrl!, fit: BoxFit.cover)
+                              : Container(
+                                  color: Colors.white,
+                                  child: Center(
+                                    child: Text(
+                                      '${user.firstName[0]}${user.lastName[0]}',
+                                      style: TextStyle(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        color: primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '${user.firstName} ${user.lastName}',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      const SizedBox(height: 16),
+                      Text(
+                        '${user.firstName} ${user.lastName}',
+                        style: const TextStyle(
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  Chip(
-                    label: Text('WHS: ${user.whsNumber ?? "N/A"}'),
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Handicap Card
-                  BoxyArtFloatingCard(
-                    onTap: () {
-                      // TODO: Navigate to Handicap details
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Handicap details coming soon')),
-                      );
-                    },
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Current Handicap',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user.handicap.toStringAsFixed(1),
+                        child: Text(
+                          'WHS: ${user.whsNumber ?? "N/A"}',
                           style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 48,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
+                            color: primary,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Stats Grid
-                  BoxyArtSectionTitle(
-                    title: 'Season Stats',
-                    isPeeking: isPeeking,
-                  ),
-                  const SizedBox(height: 16),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Rounds',
-                          value: stats['roundsPlayed'].toString(),
-                          icon: Icons.sports_golf,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Avg Score',
-                          value: stats['averageScore'].toString(),
-                          icon: Icons.show_chart,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Wins',
-                          value: stats['wins'].toString(),
-                          icon: Icons.emoji_events_outlined,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => GoRouter.of(context).push('/locker/standings'),
-                      icon: const Icon(Icons.leaderboard_outlined, size: 18),
-                      label: const Text('VIEW SEASON STANDINGS'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
-                        side: BorderSide(color: Theme.of(context).primaryColor),
-                        foregroundColor: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 32),
+
+                // Handicap Section
+                ModernCard(
+                  child: Column(
+                    children: [
+                      Text(
+                        'CURRENT HANDICAP',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        user.handicap.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w900,
+                          color: primary,
+                          letterSpacing: -2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Stats Section
+                const Text(
+                  'SEASON HIGHLIGHTS',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: stats['roundsPlayed'].toString(),
+                        label: 'ROUNDS',
+                        icon: Icons.golf_course_rounded,
+                        color: Colors.blue,
+                        isCompact: true,
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Settings Menu
-                  BoxyArtSectionTitle(
-                    title: 'Settings',
-                    isPeeking: isPeeking,
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: stats['averageScore'].toString(),
+                        label: 'AVG SCORE',
+                        icon: Icons.analytics_rounded,
+                        color: Colors.orange,
+                        isCompact: true,
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.person_outline,
-                          title: 'Personal Information',
-                          onTap: () {},
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _SettingsTile(
-                          icon: Icons.notifications_outlined,
-                          title: 'Notifications',
-                          onTap: () {},
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _SettingsTile(
-                          icon: Icons.security_outlined,
-                          title: 'Privacy & Security',
-                          onTap: () {},
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _SettingsTile(
-                          icon: Icons.help_outline,
-                          title: 'Help & Support',
-                          onTap: () {},
-                        ),
-                      ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: stats['wins'].toString(),
+                        label: 'WINS',
+                        icon: Icons.emoji_events_rounded,
+                        color: Colors.amber,
+                        isCompact: true,
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                BoxyArtButton(
+                  title: 'Season Standings',
+                  icon: Icons.leaderboard_rounded,
+                  onTap: () => GoRouter.of(context).push('/locker/standings'),
+                ),
+                const SizedBox(height: 40),
 
-                  const SizedBox(height: 24),
-                  
-                  TextButton(
+                // Settings Section
+                const Text(
+                  'ACCOUNT SETTINGS',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ModernCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      _buildModernSettingsTile(
+                        context,
+                        icon: Icons.person_outline_rounded,
+                        title: 'Personal Information',
+                        onTap: () {},
+                      ),
+                      const Divider(height: 1, indent: 60),
+                      _buildModernSettingsTile(
+                        context,
+                        icon: Icons.notifications_none_rounded,
+                        title: 'Notifications',
+                        onTap: () {},
+                      ),
+                      const Divider(height: 1, indent: 60),
+                      _buildModernSettingsTile(
+                        context,
+                        icon: Icons.shield_outlined,
+                        title: 'Privacy & Security',
+                        onTap: () {},
+                      ),
+                      const Divider(height: 1, indent: 60),
+                      _buildModernSettingsTile(
+                        context,
+                        icon: Icons.help_outline_rounded,
+                        title: 'Help & Support',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                Center(
+                  child: TextButton(
                     onPressed: () {
-                      // TODO: Implement Sign Out
+                      // Sign Out Logic
                     },
                     style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.error,
+                      foregroundColor: Colors.redAccent,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
-                    child: const Text('Sign Out'),
+                    child: const Text(
+                      'Sign Out',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-            textAlign: TextAlign.center,
+                const SizedBox(height: 60),
+              ]),
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildModernSettingsTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right, size: 16),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 20, color: Colors.grey.shade700),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey.shade400),
       onTap: onTap,
     );
   }
 }
+
+

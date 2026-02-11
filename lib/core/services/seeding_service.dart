@@ -1252,7 +1252,7 @@ class SeedingService {
       
       // Determine a winner for the simulation
       final winnerSide = random.nextBool() ? 1 : 2;
-      final holesWon = 2 + random.nextInt(4); // 2 to 5 up
+
       
       for (var pid in allPlayerIds) {
         final isWinnerTeam = (winnerSide == 1 && team1Ids.contains(pid)) || (winnerSide == 2 && team2Ids.contains(pid));

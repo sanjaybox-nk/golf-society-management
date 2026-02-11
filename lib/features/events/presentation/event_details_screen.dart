@@ -6,9 +6,9 @@ import '../../../models/golf_event.dart';
 import '../../../models/competition.dart';
 import '../../competitions/presentation/competitions_provider.dart';
 import 'events_provider.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+
 import 'package:go_router/go_router.dart';
-import 'dart:convert';
+
 import '../../../core/theme/theme_controller.dart';
 
 class EventDetailsScreen extends ConsumerWidget {
@@ -39,405 +39,371 @@ class _EventDetailsContent extends StatelessWidget {
   final String currencySymbol;
 
   const _EventDetailsContent({required this.event, required this.currencySymbol});
-
   @override
   Widget build(BuildContext context) {
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+    final primary = Theme.of(context).primaryColor;
+
     return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: event.title,
-        subtitle: '${event.courseName ?? 'TBA'} • ${DateFormat('d MMM y').format(event.date)}',
-        showBack: true,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildRegistrationSection(context),
-              const SizedBox(height: 24),
-              _buildDetailsSection(context),
-              const SizedBox(height: 24),
-              _buildCourseDetailsSection(context),
-              const SizedBox(height: 24),
-              _buildCostsSection(context),
-              const SizedBox(height: 24),
-              _buildDinnerLocationSection(context),
-              const SizedBox(height: 24),
-              _buildNotesSection(context),
-              const SizedBox(height: 24),
-              _buildGallerySection(context),
-              const SizedBox(height: 24),
-              _buildNotificationsSection(context),
-              const SizedBox(height: 100),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegistrationSection(BuildContext context) {
-    // For now, we'll assume the user is a mock member
-    const currentMemberId = 'current-user-id';
-    
-    final myRegistration = event.registrations.where((r) => r.memberId == currentMemberId).firstOrNull;
-    final isRegistered = myRegistration != null;
-    
-    final isPastDeadline = event.registrationDeadline != null && 
-                          DateTime.now().isAfter(event.registrationDeadline!);
-    final isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Registration'),
-        BoxyArtFloatingCard(
-          child: Column(
-            children: [
-              if (!isRegistered) ...[
-                Column(
-                  children: [
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    // Title section
                     Text(
-                      isPastDeadline 
-                        ? 'Registration Closed'
-                        : 'Secure your spot',
+                      event.title,
                       style: const TextStyle(
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    if (!isPastDeadline && event.registrationDeadline != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
-                        style: const TextStyle(color: Colors.grey, fontSize: 13),
-                        textAlign: TextAlign.center,
-                      ),
-                    ] else if (!isPastDeadline) ...[
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Register below to join the event',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ] else ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: myRegistration.hasPaid ? Colors.green : Colors.orange,
-                        shape: BoxShape.circle,
+                        letterSpacing: -1,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height: 32),
-                const Text(
-                  'YOUR SELECTION',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildSummaryIcon(Icons.golf_course, 'Golf', myRegistration.attendingGolf),
-                    _buildSummaryIcon(Icons.electric_rickshaw, 'Buggy', myRegistration.needsBuggy),
-                    _buildSummaryIcon(Icons.restaurant, 'Dinner', myRegistration.attendingDinner),
-                    _buildSummaryIcon(Icons.person_add, 'Guest', myRegistration.guestName != null),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
-              
-              BoxyArtButton(
-                title: isPastDeadline 
-                    ? 'Registration closed' 
-                    : (isRegistered ? 'Update Registration' : 'Register Now'),
-                onTap: isRegistrationDisabled 
-                    ? null 
-                    : () {
-                        context.push('/events/${event.id}/register');
-                      },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+                    const SizedBox(height: 8),
+                    _buildStatusBadge(context),
+                    const SizedBox(height: 24),
 
-  Widget _buildSummaryIcon(IconData icon, String label, bool active) {
-    return Column(
-      children: [
-        Icon(
-          icon, 
-          size: 20, 
-          color: active ? Colors.green : Colors.grey.shade300,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: active ? Colors.black87 : Colors.grey.shade400,
-            fontWeight: active ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDetailsSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Event Details'),
-        BoxyArtFloatingCard(
-          child: Column(
-            children: [
-              _buildDetailRow(
-                'Course',
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailValue(event.courseName ?? 'TBA'),
-                    if (event.courseDetails != null && event.courseDetails!.isNotEmpty)
-                      Text(
-                        event.courseDetails!,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
+                    // Event Hero Image
+                    if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+                      ModernCard(
+                        padding: EdgeInsets.zero,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            event.imageUrl!,
+                            height: 200,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    else
+                      ModernCard(
+                        padding: const EdgeInsets.symmetric(vertical: 60),
+                        child: Center(
+                          child: Icon(Icons.golf_course, size: 64, color: primary.withValues(alpha: 0.2)),
                         ),
                       ),
+                    const SizedBox(height: 20),
+
+                    // Registration Card
+                    _buildRegistrationCard(context),
+                    const SizedBox(height: 16),
+
+                    // When & Where Card
+                    _buildWhenWhereCard(context),
+                    const SizedBox(height: 16),
+
+                    // Course Details Card
+                    _buildCourseDetailsCard(context),
+                    const SizedBox(height: 16),
+
+                    // Competition Rules Card
+                    _buildCompetitionCard(context),
+                    const SizedBox(height: 16),
+
+                    // Costs Card
+                    _buildCostsCard(context),
+                    const SizedBox(height: 16),
+                    
+                    // Dinner Location Card
+                    if (event.dinnerLocation != null && event.dinnerLocation!.isNotEmpty)
+                      _buildDinnerLocationCard(context),
+                    const SizedBox(height: 16),
+
+                    // Notes Section
+                    if (event.notes.isNotEmpty) ...[
+                      const BoxyArtSectionTitle(title: 'Notes & Content'),
+                      ...event.notes.map((note) => _buildNoteCard(context, note)),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Updates Section
+                    if (event.flashUpdates.isNotEmpty) ...[
+                      const BoxyArtSectionTitle(title: 'Updates'),
+                      ...event.flashUpdates.map((update) => _buildUpdateCard(context, update)),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Gallery Section
+                    if (event.galleryUrls.isNotEmpty) ...[
+                      const BoxyArtSectionTitle(title: 'Gallery'),
+                      _buildGalleryCard(context),
+                      const SizedBox(height: 24),
+                    ],
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          
+          // Back button top bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 100,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    beigeBackground.withValues(alpha: 0.9),
+                    beigeBackground.withValues(alpha: 0.0),
                   ],
                 ),
               ),
-              _buildDetailRow(
-                'Tee-off',
-                _buildDetailValue(DateFormat('h:mm a').format(event.teeOffTime ?? event.date)),
-              ),
-              _buildDetailRow(
-              'Registration',
-              _buildDetailValue(event.regTime != null 
-                ? DateFormat('h:mm a').format(event.regTime!)
-                : 'TBA'),
-            ),
-              Consumer(
-                builder: (context, ref, _) {
-                  final compAsync = ref.watch(competitionDetailProvider(event.id));
-                  return compAsync.when(
-                    data: (comp) {
-                      if (comp == null) return const SizedBox.shrink();
-                      return Column(
-                        children: [
-                          _buildDetailRow(
-                            'Game Type',
-                            _buildDetailValue(comp.rules.gameName),
-                          ),
-                          _buildDetailRow(
-                            'Scoring',
-                            _buildDetailValue(comp.rules.scoringType),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
                           ),
                         ],
-                      );
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (err, stack) => const SizedBox.shrink(),
-                  );
-                },
-              ),
-              if (event.description != null && event.description!.isNotEmpty) ...[
-                const Divider(height: 32),
-                Center(
-                  child: Text(
-                    event.description!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.black87,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.pop(),
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                  ],
                 ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCourseDetailsSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Course Details'),
-        BoxyArtFloatingCard(
-          child: Column(
-            children: [
-              _buildDetailRow(
-                'Dress Code',
-                _buildDetailValue(event.dressCode ?? 'Standard Golf Attire'),
-              ),
-              if (event.facilities.isNotEmpty)
-                _buildDetailRow(
-                  'Facilities',
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: event.facilities.map((f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: _buildDetailValue(f),
-                    )).toList(),
-                  ),
-                ),
-              if (event.availableBuggies != null)
-                _buildDetailRow(
-                  'Buggies',
-                  _buildDetailValue('${event.availableBuggies} available'),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDetailRow(String label, Widget valueWidget) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100, // Fixed width for consistent alignment across cards
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(child: valueWidget),
         ],
       ),
     );
   }
 
+  Widget _buildStatusBadge(BuildContext context) {
+    final bool isOpen = event.registrationDeadline == null || 
+                        DateTime.now().isBefore(event.registrationDeadline!);
+    final color = isOpen ? const Color(0xFF27AE60) : Colors.red;
 
-  Widget _buildDetailValue(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0), // Reduced vertical padding for multi-line values
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-          height: 1.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNotesSection(BuildContext context) {
-    if (event.notes.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        _buildSectionTitle('Notes & Content'),
-        ...event.notes.map((note) => _buildNoteCard(context, note)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isOpen ? 'REGISTRATION OPEN' : 'REGISTRATION CLOSED',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildNoteCard(BuildContext context, EventNote note) {
-    QuillController? quillController;
-    try {
-      if (note.content.isNotEmpty) {
-        quillController = QuillController(
-          document: Document.fromJson(jsonDecode(note.content)),
-          selection: const TextSelection.collapsed(offset: 0),
-          readOnly: true,
-        );
-      }
-    } catch (_) {}
+  Widget _buildRegistrationCard(BuildContext context) {
+    const currentMemberId = 'current-user-id';
+    final myRegistration = event.registrations.where((r) => r.memberId == currentMemberId).firstOrNull;
+    final isRegistered = myRegistration != null;
+    final primary = Theme.of(context).primaryColor;
+    
+    final isPastDeadline = event.registrationDeadline != null && 
+                          DateTime.now().isAfter(event.registrationDeadline!);
+    final isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: BoxyArtFloatingCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (note.title != null && note.title!.isNotEmpty) ...[
-              Text(
-                note.title!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.groups_rounded, color: primary, size: 22),
               ),
-              const SizedBox(height: 8),
-              const Divider(),
-              const SizedBox(height: 8),
+              const SizedBox(width: 12),
+              const Text(
+                'Registration',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ],
-            if (note.imageUrl != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  note.imageUrl!,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    height: 150,
-                    width: double.infinity,
-                    color: Colors.grey.shade100,
-                    child: const Icon(Icons.image, color: Colors.grey),
-                  ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: ModernMetricStat(
+                  value: '${event.playingCount}/${event.capacity ?? 32}',
+                  label: 'Playing',
+                  color: const Color(0xFF27AE60),
+                  isCompact: true,
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-            if (quillController != null)
-              QuillEditor.basic(
-                controller: quillController,
-                config: QuillEditorConfig(
-                  padding: EdgeInsets.zero,
-                  autoFocus: false,
-                  expands: false,
+              const SizedBox(width: 12),
+              Expanded(
+                child: ModernMetricStat(
+                  value: '${event.guestCount}',
+                  label: 'Guests',
+                  color: Colors.purple,
+                  isCompact: true,
                 ),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ModernMetricStat(
+                  value: '${event.waitlistCount}',
+                  label: 'Reserve',
+                  color: const Color(0xFFF39C12),
+                  isCompact: true,
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 32),
+          if (isRegistered) ...[
+            const Text(
+              'YOUR STATUS',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildSummaryIcon(Icons.golf_course, 'Golf', myRegistration.attendingGolf)),
+                Expanded(child: _buildSummaryIcon(Icons.electric_rickshaw, 'Buggy', myRegistration.needsBuggy)),
+                Expanded(child: _buildSummaryIcon(Icons.free_breakfast_rounded, 'Breakfast', myRegistration.attendingBreakfast)),
+                Expanded(child: _buildSummaryIcon(Icons.restaurant, 'Dinner', myRegistration.attendingDinner)),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ] else if (event.registrationDeadline != null) ...[
+            ModernRuleItem(
+              label: 'Deadline',
+              value: '${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+            ),
+            const SizedBox(height: 12),
           ],
-        ),
+          BoxyArtButton(
+            title: isPastDeadline 
+                ? 'Registration closed' 
+                : (isRegistered ? 'Update Registration' : 'Register Now'),
+            onTap: isRegistrationDisabled 
+                ? null 
+                : () => context.push('/events/${event.id}/register'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCostsSection(BuildContext context) {
+  Widget _buildWhenWhereCard(BuildContext context) {
+    return ModernCard(
+      child: Column(
+        children: [
+          ModernInfoRow(
+            label: 'When',
+            value: DateFormat('EEEE, d MMM y').format(event.date),
+            icon: Icons.calendar_month_rounded,
+          ),
+          const SizedBox(height: 16),
+          ModernInfoRow(
+            label: 'Tee Times',
+            value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+            icon: Icons.schedule_rounded,
+          ),
+          const Divider(height: 32),
+          ModernInfoRow(
+            label: 'Course',
+            value: event.courseName ?? 'TBA',
+            icon: Icons.location_on_rounded,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCourseDetailsCard(BuildContext context) {
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'COURSE INFO',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          ModernRuleItem(label: 'Dress Code', value: event.dressCode ?? 'Standard Golf Attire'),
+          if (event.availableBuggies != null)
+            ModernRuleItem(label: 'Buggies', value: '${event.availableBuggies} available'),
+          if (event.facilities.isNotEmpty)
+            ModernRuleItem(label: 'Facilities', value: event.facilities.join(', ')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompetitionCard(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final compAsync = ref.watch(competitionDetailProvider(event.id));
+        return compAsync.when(
+          data: (comp) {
+            if (comp == null) return const SizedBox.shrink();
+            return ModernCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'COMPETITION',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 12),
+                  ModernRuleItem(label: 'Format', value: comp.rules.gameName),
+                  ModernRuleItem(label: 'Scoring', value: comp.rules.scoringType),
+                ],
+              ),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (err, stack) => const SizedBox.shrink(),
+        );
+      },
+    );
+  }
+
+  Widget _buildCostsCard(BuildContext context) {
     final bool hasBreakfast = event.hasBreakfast && event.breakfastCost != null;
     final bool hasLunch = event.hasLunch && event.lunchCost != null;
     final bool hasDinner = event.hasDinner && event.dinnerCost != null;
@@ -447,191 +413,106 @@ class _EventDetailsContent extends StatelessWidget {
         (hasLunch ? (event.lunchCost ?? 0) : 0) +
         (hasDinner ? (event.dinnerCost ?? 0) : 0);
 
-    final double guestSubtotal = (event.guestCost ?? 0) +
-        (hasBreakfast ? (event.breakfastCost ?? 0) : 0) +
-        (hasLunch ? (event.lunchCost ?? 0) : 0) +
-        (hasDinner ? (event.dinnerCost ?? 0) : 0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Costs'),
-        
-        // Member Card
-        const BoxyArtSectionTitle(title: 'Member Costs', isLevel2: true),
-        BoxyArtFloatingCard(
-          child: Column(
-            children: [
-              _buildCostRow('Member Golf', event.memberCost),
-              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
-              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
-              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
-              const Divider(height: 24),
-              _buildCostRow('Member Total', memberSubtotal, isTotal: true),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Guest Card
-        const BoxyArtSectionTitle(title: 'Guest Costs', isLevel2: true),
-        BoxyArtFloatingCard(
-          child: Column(
-            children: [
-              _buildCostRow('Guest Golf', event.guestCost),
-              if (hasBreakfast) _buildCostRow('Breakfast', event.breakfastCost),
-              if (hasLunch) _buildCostRow('Lunch', event.lunchCost),
-              if (hasDinner) _buildCostRow('Dinner', event.dinnerCost),
-              const Divider(height: 24),
-              _buildCostRow('Guest Total', guestSubtotal, isTotal: true),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Summary Card
-        BoxyArtFloatingCard(
-          child: _buildCostRow('Grand Total', memberSubtotal + guestSubtotal, isTotal: true),
-        ),
-
-        if (event.buggyCost != null) ...[
-          const SizedBox(height: 16),
-          _buildSectionTitle('Buggy Payment'),
-          BoxyArtFloatingCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildCostRow('Buggy Cost', event.buggyCost),
-                const SizedBox(height: 8),
-                const Text(
-                  'Cost of Buggy to be paid to Pro Shop and shared with your buggy partner',
-                  style: TextStyle(
-                    color: Colors.grey, 
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildDinnerLocationSection(BuildContext context) {
-    if (event.dinnerLocation == null || event.dinnerLocation!.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Dinner Location'),
-        BoxyArtFloatingCard(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start, // Top aligned, not middle aligned
-            children: [
-              const Icon(Icons.restaurant, color: Colors.grey, size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  event.dinnerLocation!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-
-  Widget _buildGallerySection(BuildContext context) {
-    if (event.galleryUrls.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Event Gallery'),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: event.galleryUrls.length,
-            itemBuilder: (context, index) {
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                child: Image.network(event.galleryUrls[index], width: 120, height: 120, fit: BoxFit.cover),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNotificationsSection(BuildContext context) {
-    if (event.flashUpdates.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Updates'),
-        ...event.flashUpdates.map((update) => Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: BoxyArtFloatingCard(
-            child: Row(
-              children: [
-                const Icon(Icons.campaign, color: Colors.orange),
-                const SizedBox(width: 12),
-                Expanded(child: Text(update)),
-              ],
-            ),
-          ),
-        )),
-      ],
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: Colors.grey),
-      ),
-    );
-  }
-
-  Widget _buildCostRow(String label, double? cost, {bool isTotal = false}) {
-    if (cost == null) return const SizedBox.shrink();
-    
-    final String costText = cost == 0 
-        ? '(incl)' 
-        : '$currencySymbol${cost.toStringAsFixed(2)}';
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: isTotal ? 8.0 : 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label, 
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            )
+          const Text(
+            'COSTS',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
           ),
-          Text(
-            costText, 
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              fontSize: isTotal ? 16 : 14,
-            )
+          const SizedBox(height: 12),
+          ModernCostRow(label: 'Member Golf', amount: _formatCost(event.memberCost)),
+          if (hasBreakfast) ModernCostRow(label: 'Breakfast', amount: _formatCost(event.breakfastCost)),
+          if (hasLunch) ModernCostRow(label: 'Lunch', amount: _formatCost(event.lunchCost)),
+          if (hasDinner) ModernCostRow(label: 'Dinner', amount: _formatCost(event.dinnerCost)),
+          const Divider(height: 24),
+          ModernCostRow(label: 'Member Total', amount: _formatCost(memberSubtotal), isTotal: true),
+          
+          if (event.buggyCost != null) ...[
+            const SizedBox(height: 12),
+            ModernRuleItem(label: 'Buggy Cost', value: _formatCost(event.buggyCost)),
+            Text(
+              'Shared cost paid to Pro Shop',
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatCost(double? cost) {
+    if (cost == null) return 'TBA';
+    if (cost == 0) return 'Free';
+    return '$currencySymbol${cost.toStringAsFixed(2)}';
+  }
+
+  Widget _buildDinnerLocationCard(BuildContext context) {
+    return ModernCard(
+      child: ModernInfoRow(
+        label: 'Dinner Venue',
+        value: event.dinnerLocation!,
+        icon: Icons.restaurant_rounded,
+      ),
+    );
+  }
+
+  Widget _buildUpdateCard(BuildContext context, String update) {
+    return ModernCard(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          const Icon(Icons.campaign_rounded, color: Colors.orange, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              update,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGalleryCard(BuildContext context) {
+    return SizedBox(
+      height: 140,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: event.galleryUrls.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.network(
+                event.galleryUrls[index],
+                width: 140,
+                height: 140,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNoteCard(BuildContext context, EventNote note) {
+    return ModernNoteCard(
+      title: note.title,
+      content: note.content,
+      imageUrl: note.imageUrl,
+    );
+  }
+
+  Widget _buildSummaryIcon(IconData icon, String label, bool active) {
+    return ModernSummaryIcon(
+      icon: icon,
+      label: label,
+      active: active,
     );
   }
 }

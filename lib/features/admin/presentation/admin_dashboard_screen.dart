@@ -12,170 +12,164 @@ class AdminDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(allMembersProvider);
     final eventsAsync = ref.watch(adminEventsProvider);
-    
-    // Check for errors or loading states if needed, but the UI handles it below
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+    final primary = Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: 'Admin Console',
-        isLarge: true,
-        leading: IconButton(
-          icon: const Icon(Icons.home, color: Colors.white, size: 28),
-          onPressed: () => context.go('/home'),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () => context.push('/admin/settings'),
+      backgroundColor: beigeBackground,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Row(
+                      children: [
+                        const Text(
+                          'Admin Console',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.settings_rounded, color: primary, size: 24),
+                          onPressed: () => context.push('/admin/settings'),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Command Center',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Stats Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ModernMetricStat(
+                            label: 'MEMBERS',
+                            value: membersAsync.when(
+                              data: (members) => members.length.toString(),
+                              loading: () => '...',
+                              error: (err, stack) => '!',
+                            ),
+                            icon: Icons.people_rounded,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            label: 'EVENTS',
+                            value: eventsAsync.when(
+                              data: (events) => events.length.toString(),
+                              loading: () => '...',
+                              error: (err, stack) => '!',
+                            ),
+                            icon: Icons.calendar_month_rounded,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 32),
+                    
+                    const BoxyArtSectionTitle(
+                      title: 'Quick Actions',
+                      padding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    ModernCard(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          _DashboardActionTile(
+                            icon: Icons.add_circle_outline_rounded,
+                            title: 'Create New Event',
+                            subtitle: 'Schedule a future society day',
+                            color: Colors.green,
+                            onTap: () => context.push('/admin/events/new'),
+                          ),
+                          const Divider(height: 24, indent: 56),
+                          _DashboardActionTile(
+                            icon: Icons.person_add_alt_1_rounded,
+                            title: 'Add New Member',
+                            subtitle: 'Onboard a new society member',
+                            color: Colors.blue,
+                            onTap: () => context.push('/admin/members/new'),
+                          ),
+                          const Divider(height: 24, indent: 56),
+                          _DashboardActionTile(
+                            icon: Icons.bar_chart_rounded,
+                            title: 'Global Reports',
+                            subtitle: 'Financials and participation overview',
+                            color: Colors.purple,
+                            onTap: () {
+                               ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Global Reports is coming soon'))
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const BoxyArtSectionTitle(
-              title: 'Command Center',
-              padding: EdgeInsets.only(bottom: 16),
-            ),
-            
-            // Stats Row
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    title: 'Members',
-                    value: membersAsync.when(
-                      data: (members) => members.length.toString(),
-                      loading: () => '...',
-                      error: (err, stack) => '!',
-                    ),
-                    icon: Icons.people,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _StatCard(
-                    title: 'Events',
-                    value: eventsAsync.when(
-                      data: (events) => events.length.toString(),
-                      loading: () => '...',
-                      error: (err, stack) => '!',
-                    ),
-                    icon: Icons.calendar_month,
-                    color: Colors.orange,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
-            const BoxyArtSectionTitle(
-              title: 'Quick Insights',
-              padding: EdgeInsets.only(bottom: 16),
-            ),
-            
-            BoxyArtFloatingCard(
+          
+          // Back Button sticky
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
                   children: [
-                    _DashboardActionTile(
-                      icon: Icons.add_circle_outline,
-                      title: 'Create New Event',
-                      subtitle: 'Schedule a future society day',
-                      color: Colors.green,
-                      onTap: () => context.push('/admin/events/new'),
-                    ),
-                    const Divider(height: 32),
-                    _DashboardActionTile(
-                      icon: Icons.person_add_alt_1_outlined,
-                      title: 'Add New Member',
-                      subtitle: 'Onboard a new society member',
-                      color: Colors.blue,
-                      onTap: () => context.push('/admin/members/new'),
-                    ),
-                    const Divider(height: 32),
-                    _DashboardActionTile(
-                      icon: Icons.bar_chart,
-                      title: 'Global Reports',
-                      subtitle: 'Coming Soon: Financials and participation overview',
-                      color: Colors.purple,
-                      onTap: () {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Global Reports is coming soon'))
-                        );
-                      },
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.home_rounded, size: 20, color: Colors.black87),
+                        onPressed: () => context.go('/home'),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            
-            const SizedBox(height: 100), // Space for bottom nav
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _DashboardActionTile extends StatelessWidget {
   final IconData icon;
@@ -202,7 +196,7 @@ class _DashboardActionTile extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 22),
           ),
@@ -223,13 +217,13 @@ class _DashboardActionTile extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: Colors.grey.shade500,
                   ),
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+          Icon(Icons.chevron_right_rounded, color: Colors.grey.shade300, size: 20),
         ],
       ),
     );

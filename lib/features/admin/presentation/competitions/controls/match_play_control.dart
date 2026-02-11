@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../models/competition.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
 import 'base_competition_control.dart';
-import '../../../../members/presentation/members_provider.dart';
-import '../../../../../models/golf_event.dart';
 
 class MatchPlayControl extends BaseCompetitionControl {
   const MatchPlayControl({super.key, super.competition, super.competitionId, super.isTemplate});
@@ -121,7 +119,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   }
 
   Widget _buildMemberPreview() {
-    final rules = buildRules();
     // Re-use a simple translation for now or just the summary
     return Container(
       width: double.infinity,

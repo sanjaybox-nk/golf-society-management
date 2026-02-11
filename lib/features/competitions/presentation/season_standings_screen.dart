@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+
 import '../../events/presentation/events_provider.dart';
 import 'standings/standings_providers.dart';
 import 'standings/leaderboard_table_view.dart';
@@ -13,9 +13,8 @@ class SeasonStandingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeSeasonAsync = ref.watch(activeSeasonProvider);
-    // Ideally fetch current user ID. 
-    // Since I can't easily find the provider, I'll use a placeholder or check 'context' if available via some global.
-    // Use an empty string for now if not found, highlighting won't work but app won't crash.
+    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+    final primary = Theme.of(context).primaryColor;
     const currentUserId = ''; 
 
     return activeSeasonAsync.when(
@@ -26,40 +25,117 @@ class SeasonStandingsScreen extends ConsumerWidget {
         
         if (season.leaderboards.isEmpty) {
            return Scaffold(
-            backgroundColor: Colors.black,
-            appBar: BoxyArtAppBar(title: '${season.year} STANDINGS'),
-            body: const Center(child: Text('No leaderboards configured', style: TextStyle(color: Colors.white))),
+            backgroundColor: beigeBackground,
+            body: Stack(
+              children: [
+                _buildHeader(context, season),
+                const Center(child: Text('No leaderboards configured')),
+              ],
+            ),
            );
         }
 
         return DefaultTabController(
           length: season.leaderboards.length,
           child: Scaffold(
-            backgroundColor: Colors.black,
-            appBar: BoxyArtAppBar(
-              title: '${season.year} STANDINGS',
-              subtitle: season.name.toUpperCase(),
-              centerTitle: true,
-              isLarge: true,
-              bottom: TabBar(
-                isScrollable: true,
-                indicatorColor: Theme.of(context).primaryColor,
-                labelColor: Theme.of(context).primaryColor,
-                unselectedLabelColor: Colors.white60,
-                tabAlignment: TabAlignment.center,
-                tabs: season.leaderboards.map((l) => Tab(text: l.name.toUpperCase())).toList(),
-              ),
-            ),
-            body: TabBarView(
-              children: season.leaderboards.map((config) {
-                 return _LeaderboardTab(seasonId: season.id, leaderboardId: config.id, currentUserId: currentUserId);
-              }).toList(),
+            backgroundColor: beigeBackground,
+            body: Stack(
+              children: [
+                Column(
+                  children: [
+                    const SizedBox(height: 80),
+                    _buildHeader(context, season),
+                    const SizedBox(height: 12),
+                    TabBar(
+                      isScrollable: true,
+                      indicatorColor: primary,
+                      labelColor: primary,
+                      unselectedLabelColor: Colors.grey.shade400,
+                      dividerColor: Colors.transparent,
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                      tabAlignment: TabAlignment.start,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      tabs: season.leaderboards.map((l) => Tab(text: l.name.toUpperCase())).toList(),
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: season.leaderboards.map((config) {
+                           return _LeaderboardTab(seasonId: season.id, leaderboardId: config.id, currentUserId: currentUserId);
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // Back Button sticky
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, s) => Scaffold(body: Center(child: Text('Error: $e'))),
+      loading: () => Scaffold(backgroundColor: beigeBackground, body: const Center(child: CircularProgressIndicator())),
+      error: (e, s) => Scaffold(backgroundColor: beigeBackground, body: Center(child: Text('Error: $e'))),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, dynamic season) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${season.year} Standings',
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -1,
+            ),
+          ),
+          Text(
+            season.name.toUpperCase(),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
