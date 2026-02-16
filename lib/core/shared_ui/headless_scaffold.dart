@@ -119,8 +119,6 @@ class HeadlessScaffold extends StatelessWidget {
                                 letterSpacing: -1.2,
                                 height: 1.1,
                               ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
                             );
                           },
                         ),

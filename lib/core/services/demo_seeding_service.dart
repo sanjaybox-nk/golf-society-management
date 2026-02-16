@@ -258,7 +258,7 @@ class DemoSeedingService {
       hasDinner: true,
       availableBuggies: 20,
       maxParticipants: 60,
-      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of $format followed by a group dinner and prize giving ceremony.',
+      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of ${format.name.toUpperCase()} followed by a group dinner and prize giving ceremony.',
       registrationDeadline: date.subtract(const Duration(days: 7)),
       memberCost: 45.0 + _random.nextInt(20),
       guestCost: 55.0 + _random.nextInt(20),

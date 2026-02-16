@@ -1,29 +1,13 @@
 Analyzing Golf Society Management...                            
 
-warning • Unused import: 'dart:convert' • lib/core/services/demo_seeding_service.dart:2:8 • unused_import
-warning • Unused import: 'package:cloud_firestore/cloud_firestore.dart' • lib/core/services/demo_seeding_service.dart:4:8 • unused_import
-warning • Unused import: 'package:intl/intl.dart' • lib/core/services/demo_seeding_service.dart:5:8 • unused_import
-warning • Unused import: '../../features/admin/data/seasons_repository.dart' • lib/core/services/demo_seeding_service.dart:16:8 • unused_import
-warning • Unused import: '../../features/events/data/events_repository.dart' • lib/core/services/demo_seeding_service.dart:17:8 • unused_import
-   info • Use 'isNotEmpty' instead of 'length' to test whether the collection is empty • lib/core/services/demo_seeding_service.dart:83:14 • prefer_is_empty
-   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:142:20 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:143:26 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:144:26 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:145:14 • curly_braces_in_flow_control_structures
-   info • Statements in a for should be enclosed in a block • lib/core/services/demo_seeding_service.dart:358:46 • curly_braces_in_flow_control_structures
-warning • Unused import: 'buttons.dart' • lib/core/shared_ui/headless_scaffold.dart:4:8 • unused_import
-   info • The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/core/shared_ui/pro_max_app_bar.dart:1:8 • unnecessary_import
-warning • Unused import: 'package:golf_society/models/member.dart' • lib/core/shared_ui/pro_max_app_bar.dart:5:8 • unused_import
-warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/competitions/competition_builder_screen.dart:3:8 • unused_import
+warning • Unused import: 'package:flutter_riverpod/flutter_riverpod.dart' • lib/core/shared_ui/headless_scaffold.dart:3:8 • unused_import
+  error • Undefined name 'impersonationProvider' • lib/core/shared_ui/pro_max_app_bar.dart:46:38 • undefined_identifier
 warning • The value of the local variable 'beigeBackground' isn't used • lib/features/admin/presentation/competitions/competition_template_gallery_screen.dart:32:11 • unused_local_variable
 warning • The declaration '_buildStatColumn' isn't referenced • lib/features/admin/presentation/events/event_admin_reports_screen.dart:276:10 • unused_element
 warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/events/event_admin_scaffold.dart:6:8 • unused_import
 warning • Unused import: '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/events/event_admin_scorecard_editor_screen.dart:7:8 • unused_import
    info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/admin/presentation/events/event_form_screen.dart:1393:47 • use_build_context_synchronously
-warning • The value of the local variable 'closingDateStr' isn't used • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:59:11 • unused_local_variable
-warning • The value of the local variable 'isRegistrationSoon' isn't used • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:63:11 • unused_local_variable
-warning • The value of the local variable 'primary' isn't used • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:144:11 • unused_local_variable
-   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:369:78 • deprecated_member_use
+warning • Unused import: 'package:intl/intl.dart' • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:13:8 • unused_import
    info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart:3:8 • unnecessary_import
 warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/members/admin_members_screen.dart:3:8 • unused_import
 warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/notifications/audience_manager_screen.dart:3:8 • unused_import
@@ -46,24 +30,14 @@ warning • Unused import: 'package:go_router/go_router.dart' • lib/features/a
    info • The import of '../../../../core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/society_cuts_settings_screen.dart:4:8 • unnecessary_import
 warning • The value of the local variable 'primary' isn't used • lib/features/admin/presentation/settings/society_cuts_settings_screen.dart:39:11 • unused_local_variable
 warning • Unused import: '../../../../models/golf_event.dart' • lib/features/competitions/services/leaderboard_invoker_service.dart:5:8 • unused_import
-  error • The named parameter 'description' isn't defined • lib/features/events/presentation/event_details_screen.dart:376:25 • undefined_named_parameter
    info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/events_screen.dart:7:8 • unnecessary_import
-warning • Unused import: '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:9:8 • unused_import
-   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:84:23 • unnecessary_const
-   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:86:23 • unnecessary_const
-warning • The value of the local variable 'backgroundColor' isn't used • lib/features/events/presentation/tabs/event_user_details_tab.dart:77:11 • unused_local_variable
-warning • The value of the local variable 'status' isn't used • lib/features/events/presentation/tabs/event_user_details_tab.dart:174:11 • unused_local_variable
-warning • Duplicate import • lib/features/events/presentation/tabs/event_user_placeholders.dart:38:8 • duplicate_import
-warning • The value of the local variable 'isPeeking' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:120:15 • unused_local_variable
-   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:157:25 • unnecessary_const
-   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:159:25 • unnecessary_const
-warning • The value of the local variable 'primary' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:227:11 • unused_local_variable
-warning • The value of the local variable 'formatOverride' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:334:11 • unused_local_variable
-warning • The value of the local variable 'isPeeking' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:442:19 • unused_local_variable
-warning • The declaration '_buildTabButton' isn't referenced • lib/features/events/presentation/tabs/event_user_placeholders.dart:476:10 • unused_element
-warning • The value of the local variable 'primary' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:1619:11 • unused_local_variable
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:83:23 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:84:52 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:85:23 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_gallery_user_tab.dart:86:62 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:155:67 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:157:83 • unnecessary_const
 warning • Unused import: 'package:golf_society/models/member.dart' • lib/features/members/presentation/locker_screen.dart:8:8 • unused_import
 warning • Unused import: 'package:freezed_annotation/freezed_annotation.dart' • lib/models/handicap_system.dart:1:8 • unused_import
-warning • Unused import: '../features/events/presentation/tabs/event_user_registration_tab.dart' • lib/navigation/app_router.dart:56:8 • unused_import
 
-65 issues found. (ran in 7.1s)
+39 issues found. (ran in 6.7s)
