@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 
 class EventGalleryUserTab extends ConsumerStatefulWidget {
   final String eventId;
@@ -65,57 +67,56 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
     return eventsAsync.when(
       data: (events) {
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
-        return Scaffold(
-          appBar: BoxyArtAppBar(
-            title: 'Event Gallery',
-            subtitle: event.title,
-            showBack: true,
-          ),
-          body: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: BoxyArtSectionTitle(title: 'Event Gallery'),
-              ),
-              Expanded(
-                child: event.galleryUrls.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.photo_library, size: 64, color: Colors.grey),
-                            const SizedBox(height: 16),
-                            const Text('No photos yet', style: TextStyle(color: Colors.grey, fontSize: 18)),
-                            const SizedBox(height: 8),
-                            const Text('Be the first to upload!', style: TextStyle(color: Colors.grey)),
-                          ],
+        return HeadlessScaffold(
+          title: event.title,
+          subtitle: 'Photos',
+          showBack: true,
+          onBack: () => context.go('/events'),
+          slivers: [
+            if (event.galleryUrls.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.photo_library, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text('No photos yet', style: TextStyle(color: Colors.grey, fontSize: 18)),
+                      const SizedBox(height: 8),
+                      Text('Be the first to upload!', style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          event.galleryUrls[index],
+                          fit: BoxFit.cover,
+                          loadingBuilder: (ctx, child, loading) {
+                            if (loading == null) return child;
+                            return Container(color: Colors.grey.shade200);
+                          },
                         ),
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: event.galleryUrls.length,
-                        itemBuilder: (context, index) {
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              event.galleryUrls[index],
-                              fit: BoxFit.cover,
-                              loadingBuilder: (ctx, child, loading) {
-                                if (loading == null) return child;
-                                return Container(color: Colors.grey.shade200);
-                              },
-                            ),
-                          );
-                        },
-                      ),
+                      );
+                    },
+                    childCount: event.galleryUrls.length,
+                  ),
+                ),
               ),
-            ],
-          ),
+          ],
           floatingActionButton: FloatingActionButton.extended(
             onPressed: _isUploading ? null : () => _pickAndUploadImage(event),
             icon: _isUploading 

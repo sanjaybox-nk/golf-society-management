@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/boxy_art_widgets.dart';
+import '../../../core/shared_ui/headless_scaffold.dart';
 import '../../../models/member.dart';
 import 'members_provider.dart';
 import 'member_details_modal.dart';
@@ -44,106 +45,95 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
-      child: Scaffold(
+      child: HeadlessScaffold(
+        title: 'Members',
         backgroundColor: beigeBackground,
-        body: Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      const Text(
-                        'Members',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -1,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Search & Filter Card
+                ModernCard(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          focusNode: _searchFocusNode,
+                          onChanged: (v) => ref.read(memberSearchQueryProvider.notifier).update(v),
+                          decoration: const InputDecoration(
+                            hintText: 'Search roster...',
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            isDense: true,
+                            filled: false,
+                            contentPadding: EdgeInsets.symmetric(vertical: 4),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      
-                      // Search Card
-                      ModernCard(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextField(
-                                focusNode: _searchFocusNode,
-                                decoration: const InputDecoration(
-                                  hintText: 'Search members...',
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                ),
-                                onChanged: (val) => ref.read(memberSearchQueryProvider.notifier).update(val),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Filter Row
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildFilterChip('Active', AdminMemberFilter.current),
-                            _buildFilterChip('Committee', AdminMemberFilter.committee),
-                            _buildFilterChip('Other', AdminMemberFilter.other),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      membersAsync.when(
-                        data: (members) {
-                          final filtered = members.where((m) {
-                            final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
-                            final matchesSearch = name.contains(searchQuery);
-                            if (!matchesSearch) return false;
-
-                            if (currentFilter == AdminMemberFilter.current) {
-                              return m.status == MemberStatus.member || m.status == MemberStatus.active;
-                            } else if (currentFilter == AdminMemberFilter.committee) {
-                              return m.societyRole != null && m.societyRole!.isNotEmpty;
-                            } else {
-                              return m.status != MemberStatus.member && m.status != MemberStatus.active;
-                            }
-                          }).toList();
-
-                          final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
-
-                          if (sortedMembers.isEmpty) {
-                            return const _EmptyMembers();
-                          }
-
-                          return Column(
-                            children: sortedMembers.map((m) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: MemberTile(
-                                  member: m,
-                                  onTap: () => MemberDetailsModal.show(context, m),
-                                ),
-                              );
-                            }).toList(),
-                          );
-                        },
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (err, stack) => Center(child: Text('Error: $err')),
-                      ),
-                    ]),
+                    ],
                   ),
                 ),
-              ],
+                const SizedBox(height: 16),
+
+                // Filter Row
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('Active', AdminMemberFilter.current),
+                      _buildFilterChip('Committee', AdminMemberFilter.committee),
+                      _buildFilterChip('Other', AdminMemberFilter.other),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Members List
+                membersAsync.when(
+                  data: (members) {
+                    final filtered = members.where((m) {
+                      final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
+                      final matchesSearch = name.contains(searchQuery);
+                      if (!matchesSearch) return false;
+
+                      if (currentFilter == AdminMemberFilter.current) {
+                        return m.status == MemberStatus.member || m.status == MemberStatus.active;
+                      } else if (currentFilter == AdminMemberFilter.committee) {
+                        return m.societyRole != null && m.societyRole!.isNotEmpty;
+                      } else {
+                        return m.status != MemberStatus.member && m.status != MemberStatus.active;
+                      }
+                    }).toList();
+
+                    if (filtered.isEmpty) {
+                      return const _EmptyMembers();
+                    }
+
+                    final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
+
+                    return Column(
+                      children: sortedMembers.map((m) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: MemberTile(
+                          member: m,
+                          onTap: () => MemberDetailsModal.show(context, m),
+                        ),
+                      )).toList(),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
+                ),
+                const SizedBox(height: 100),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

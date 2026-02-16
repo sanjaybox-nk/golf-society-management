@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/shared_ui/shared_ui.dart';
+import '../../../../core/shared_ui/admin_shortcut_action.dart';
 import '../../../../core/theme/theme_controller.dart';
 
 import '../../../models/golf_event.dart';
@@ -163,14 +164,8 @@ class MemberHomeScreen extends ConsumerWidget {
                         ),
                       ),
                       actions: [
+                        const AdminShortcutAction(),
                         if (currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin) ...[
-                          if (!isPeeking)
-                            _buildActionCircle(
-                              context,
-                              Icons.admin_panel_settings_rounded,
-                              () => context.push('/admin'),
-                            ),
-                          const SizedBox(width: 8),
                           _buildActionCircle(
                             context,
                             Icons.palette_rounded,
@@ -178,16 +173,6 @@ class MemberHomeScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                         ],
-                        IconButton(
-                          icon: Badge(
-                            label: Text('${unreadNotifications.length}'),
-                            isLabelVisible: unreadNotifications.isNotEmpty,
-                            backgroundColor: Theme.of(context).primaryColor,
-                            child: Icon(Icons.notifications_none_rounded, color: Theme.of(context).iconTheme.color),
-                          ),
-                          onPressed: () => context.push('/home/notifications'),
-                        ),
-                        const SizedBox(width: 8),
                       ],
                     ),
           

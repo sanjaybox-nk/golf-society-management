@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 
@@ -43,23 +44,13 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
     final primaryColor = Theme.of(context).primaryColor;
     final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
-    return Scaffold(
+    return HeadlessScaffold(
+      title: _getRoleDisplayName(widget.role),
+      showBack: true,
       backgroundColor: const Color(0xFFF0F2F5),
-      appBar: BoxyArtAppBar(
-        title: _getRoleDisplayName(widget.role),
-        isLarge: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Header / Search
-          Container(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -94,53 +85,55 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
               ],
             ),
           ),
+        ),
 
-          // Member List
-          Expanded(
-            child: membersAsync.when(
-              data: (members) {
-                // Separation of concerns:
-                // 1. Current Role Holders (Default List)
-                // 2. Search Candidates (Search List)
-                
-                List<Member> displayList;
-                final isSearching = _searchQuery.isNotEmpty;
+        // Member List
+        membersAsync.when(
+          data: (members) {
+            // Separation of concerns:
+            // 1. Current Role Holders (Default List)
+            // 2. Search Candidates (Search List)
+            
+            List<Member> displayList;
+            final isSearching = _searchQuery.isNotEmpty;
 
-                if (isSearching) {
-                  // Show matching members who DO NOT have the role (Candidates)
-                  // AND members who DO have the role (so you can see they are already added)
-                  displayList = members.where((m) {
-                    final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
-                    return name.contains(_searchQuery);
-                  }).toList();
-                } else {
-                  // Show only current holders
-                  displayList = members.where((m) => m.role == widget.role).toList();
-                }
+            if (isSearching) {
+              // Show matching members who DO NOT have the role (Candidates)
+              // AND members who DO have the role (so you can see they are already added)
+              displayList = members.where((m) {
+                final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
+                return name.contains(_searchQuery);
+              }).toList();
+            } else {
+              // Show only current holders
+              displayList = members.where((m) => m.role == widget.role).toList();
+            }
 
-                displayList.sort((a, b) {
-                  // Sort: Role holders first, then alpha
-                  final aHasRole = a.role == widget.role;
-                  final bHasRole = b.role == widget.role;
-                  if (aHasRole && !bHasRole) return -1;
-                  if (!aHasRole && bHasRole) return 1;
-                  return a.lastName.compareTo(b.lastName);
-                });
+            displayList.sort((a, b) {
+              // Sort: Role holders first, then alpha
+              final aHasRole = a.role == widget.role;
+              final bHasRole = b.role == widget.role;
+              if (aHasRole && !bHasRole) return -1;
+              if (!aHasRole && bHasRole) return 1;
+              return a.lastName.compareTo(b.lastName);
+            });
 
-                if (displayList.isEmpty) {
-                  return Center(
-                    child: Text(
-                      isSearching ? 'No members found.' : 'No members have this role.',
-                      style: TextStyle(color: Colors.grey.shade500),
-                    ),
-                  );
-                }
+            if (displayList.isEmpty) {
+              return SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    isSearching ? 'No members found.' : 'No members have this role.',
+                    style: TextStyle(color: Colors.grey.shade500),
+                  ),
+                ),
+              );
+            }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: displayList.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
+            return SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
                     final member = displayList[index];
                     final hasRole = member.role == widget.role;
 
@@ -148,19 +141,26 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
                     // If they have role, show Switch + Dismissible.
                     
                     if (!hasRole) {
-                      return _buildCandidateTile(member);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildCandidateTile(member),
+                      );
                     } else {
-                      return _buildActiveRoleTile(member);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildActiveRoleTile(member),
+                      );
                     }
                   },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
-          ),
-        ],
-      ),
+                  childCount: displayList.length,
+                ),
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+          error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+        ),
+      ],
     );
   }
 

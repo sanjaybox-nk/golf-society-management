@@ -64,14 +64,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   late TextEditingController _addressController;
   late TextEditingController _bioController;
   late TextEditingController _handicapController;
-  late TextEditingController _whsController;
+  late TextEditingController _handicapIdController;
   
   late FocusNode _firstFocusNode;
   late FocusNode _lastFocusNode;
   late FocusNode _nicknameFocusNode;
   late FocusNode _emailFocusNode;
   late FocusNode _phoneFocusNode;
-  late FocusNode _whsFocusNode;
+  late FocusNode _handicapIdFocusNode;
   late FocusNode _handicapFocusNode;
   late FocusNode _addressFocusNode;
   late FocusNode _bioFocusNode;
@@ -127,7 +127,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _addressController = TextEditingController(text: m?.address ?? '');
     _bioController = TextEditingController(text: m?.bio ?? '');
     _handicapController = TextEditingController(text: m?.handicap.toString() ?? '');
-    _whsController = TextEditingController(text: m?.whsNumber ?? '');
+    _handicapIdController = TextEditingController(text: m?.handicapId ?? '');
 
     _status = m?.status ?? MemberStatus.member;
     _hasPaid = m?.hasPaid ?? false;
@@ -154,7 +154,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _nicknameFocusNode = FocusNode();
     _emailFocusNode = FocusNode();
     _phoneFocusNode = FocusNode();
-    _whsFocusNode = FocusNode();
+    _handicapIdFocusNode = FocusNode();
     _handicapFocusNode = FocusNode();
     _addressFocusNode = FocusNode();
     _bioFocusNode = FocusNode();
@@ -171,13 +171,13 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _addressController.dispose();
     _bioController.dispose();
     _handicapController.dispose();
-    _whsController.dispose();
+    _handicapIdController.dispose();
     _firstFocusNode.dispose();
     _lastFocusNode.dispose();
     _nicknameFocusNode.dispose();
     _emailFocusNode.dispose();
     _phoneFocusNode.dispose();
-    _whsFocusNode.dispose();
+    _handicapIdFocusNode.dispose();
     _handicapFocusNode.dispose();
     _addressFocusNode.dispose();
     _bioFocusNode.dispose();
@@ -210,7 +210,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         nickname: _nicknameController.text.trim(),
         email: _emailController.text.trim(),
         handicap: hcp,
-        whsNumber: _whsController.text.trim(),
+        handicapId: _handicapIdController.text.trim(),
         phone: phone,
         address: _addressController.text.trim(),
         bio: _bioController.text.trim(),
@@ -520,9 +520,9 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         hasPaid: _hasPaid,
                         avatarUrl: _avatarUrl,
                         handicapController: _handicapController,
-                        whsController: _whsController,
+                        handicapIdController: _handicapIdController,
                         handicapFocusNode: _handicapFocusNode,
-                        whsFocusNode: _whsFocusNode,
+                        handicapIdFocusNode: _handicapIdFocusNode,
                         isEditing: _isEditing,
                         isAdmin: _isAdmin(),
                         onCameraTap: _isEditing ? _pickImage : null,
@@ -540,19 +540,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     const SizedBox(height: 16),
 
                     // Personal Details Card (Unified for Edit and View)
-                    Container(
+                    ModernCard(
                       padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -786,28 +775,28 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                ),
                             ],
                             
-                            ProfileInfoRow(
+                            ModernInfoRow(
                               icon: Icons.email_outlined,
                               label: 'EMAIL',
                               value: widget.member?.email ?? '',
                             ),
-                            const Divider(height: 32, thickness: 1, color: Color(0xFFEEEEEE)),
+                            const SizedBox(height: 16),
                             
-                            ProfileInfoRow(
+                            ModernInfoRow(
                               icon: Icons.phone_outlined,
                               label: 'PHONE',
                               value: widget.member?.phone ?? '',
                             ),
-                            const Divider(height: 32, thickness: 1, color: Color(0xFFEEEEEE)),
+                            const SizedBox(height: 16),
                             
-                            ProfileInfoRow(
+                            ModernInfoRow(
                               icon: Icons.location_on_outlined,
                               label: 'ADDRESS',
                               value: widget.member?.address ?? '',
                             ),
-                            const Divider(height: 32, thickness: 1, color: Color(0xFFEEEEEE)),
+                            const SizedBox(height: 16),
                             
-                            ProfileInfoRow(
+                            ModernInfoRow(
                               icon: Icons.calendar_today_outlined,
                               label: 'MEMBER SINCE',
                               value: widget.member?.joinedDate != null 
@@ -859,6 +848,9 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
   void _showSocietyRolePicker() {
     final defaultRoles = ['President', 'Captain', 'Vice Captain', 'Secretary', 'Treasurer'];
+    final theme = Theme.of(context);
+    final primarySize = 20.0;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -867,18 +859,25 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.85,
         ),
-        decoration: const BoxDecoration(
-          color: Color(0xFFF0F2F5),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Select Society Position', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
+              Text(
+                'Select Society Position',
+                style: TextStyle(
+                  fontSize: primarySize,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 24),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
@@ -886,19 +885,37 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     children: [
                       ...defaultRoles.map((r) => _buildSocietyRoleOption(r)),
                       const SizedBox(height: 8),
+                      
+                      // Custom Role Action Tile
                       GestureDetector(
                         onTap: () {
                           Navigator.pop(context);
                           _showCustomRoleDialog();
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade300),
+                        child: ModernCard(
+                          padding: const EdgeInsets.all(18),
+                          borderRadius: 16,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: theme.primaryColor.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.add_rounded, color: theme.primaryColor, size: 20),
+                              ),
+                              const SizedBox(width: 16),
+                              const Text(
+                                'Create Custom Role',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                            ],
                           ),
-                          child: const Row(children: [Icon(Icons.add), SizedBox(width: 12), Text('Create Custom Role', style: TextStyle(fontWeight: FontWeight.bold))]),
                         ),
                       ),
                     ],
@@ -915,24 +932,37 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
   Widget _buildSocietyRoleOption(String role) {
     final isSelected = _societyRole == role;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _societyRole = role);
-        Navigator.pop(context);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: isSelected ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
-        ),
-        child: Row(
-          children: [
-            Expanded(child: Text(role, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Theme.of(context).primaryColor : Colors.black))),
-            if (isSelected) Icon(Icons.check_circle, color: Theme.of(context).primaryColor),
-          ],
+    final theme = Theme.of(context);
+    final primary = theme.primaryColor;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _societyRole = role);
+          Navigator.pop(context);
+        },
+        child: ModernCard(
+          padding: const EdgeInsets.all(18),
+          borderRadius: 16,
+          border: isSelected ? BorderSide(color: primary, width: 2) : null,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  role,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    letterSpacing: -0.3,
+                    color: isSelected ? primary : null,
+                  ),
+                ),
+              ),
+              if (isSelected) 
+                Icon(Icons.check_circle_rounded, color: primary, size: 22),
+            ],
+          ),
         ),
       ),
     );

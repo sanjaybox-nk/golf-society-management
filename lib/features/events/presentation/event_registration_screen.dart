@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../core/widgets/boxy_art_widgets.dart';
-import '../../../models/golf_event.dart';
-import '../../../models/event_registration.dart';
-import 'events_provider.dart';
+
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/models/golf_event.dart';
+import 'package:golf_society/models/event_registration.dart';
 
 class EventRegistrationScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -176,229 +177,171 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           _isInitialized = true;
         }
 
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        Text(
-                          'Registration',
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        Text(
-                          event.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const BoxyArtSectionTitle(title: 'Your Attendance'),
-                              const SizedBox(height: 12),
-                              ModernCard(
-                                child: Column(
-                                  children: [
-                                    _buildModernSwitchRow(
-                                      context,
-                                      'Playing Golf',
-                                      _attendingGolf,
-                                      (val) => setState(() => _attendingGolf = val),
-                                      icon: Icons.golf_course_rounded,
-                                    ),
-                                    if (_attendingGolf) ...[
-                                      const Divider(height: 24),
-                                      _buildModernSwitchRow(
-                                        context,
-                                        'Buggy Needed',
-                                        _needsBuggy,
-                                        (val) => setState(() => _needsBuggy = val),
-                                        icon: Icons.electric_rickshaw_rounded,
-                                      ),
-                                    ],
-                                    if (event.hasBreakfast == true && event.breakfastCost != null) ...[
-                                      const Divider(height: 24),
-                                      _buildModernSwitchRow(
-                                        context,
-                                        'Attending Breakfast',
-                                        _attendingBreakfast,
-                                        (val) => setState(() => _attendingBreakfast = val),
-                                        subtitle: event.breakfastCost == 0 ? 'Included' : null,
-                                        icon: Icons.breakfast_dining_rounded,
-                                      ),
-                                    ],
-                                    if (event.hasLunch == true && event.lunchCost != null) ...[
-                                      const Divider(height: 24),
-                                      _buildModernSwitchRow(
-                                        context,
-                                        'Attending Lunch',
-                                        _attendingLunch,
-                                        (val) => setState(() => _attendingLunch = val),
-                                        subtitle: event.lunchCost == 0 ? 'Included' : null,
-                                        icon: Icons.lunch_dining_rounded,
-                                      ),
-                                    ],
-                                    if (event.hasDinner == true && event.dinnerCost != null) ...[
-                                      const Divider(height: 24),
-                                      _buildModernSwitchRow(
-                                        context,
-                                        'Attending Dinner',
-                                        _attendingDinner,
-                                        (val) => setState(() => _attendingDinner = val),
-                                        subtitle: event.dinnerCost == 0 ? 'Included' : null,
-                                        icon: Icons.restaurant_rounded,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-          
-                              const SizedBox(height: 32),
-                              const BoxyArtSectionTitle(title: 'Guest Registration'),
-                              const SizedBox(height: 12),
-                              ModernCard(
-                                child: Column(
-                                  children: [
-                                    _buildModernSwitchRow(
-                                      context,
-                                      'Add a Guest',
-                                      _registerGuest,
-                                      (val) => setState(() => _registerGuest = val),
-                                      icon: Icons.person_add_rounded,
-                                    ),
-                                    if (_registerGuest) ...[
-                                      const SizedBox(height: 24),
-                                      _buildModernTextField(
-                                        label: 'Guest Name',
-                                        controller: _guestNameController,
-                                        hintText: 'Full name',
-                                        icon: Icons.badge_outlined,
-                                        validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
-                                      ),
-                                      const SizedBox(height: 20),
-                                      _buildModernTextField(
-                                        label: 'Guest Handicap',
-                                        controller: _guestHandicapController,
-                                        hintText: 'e.g. 18',
-                                        icon: Icons.calculate_outlined,
-                                      ),
-                                      const Divider(height: 48),
-                                      _buildModernSwitchRow(
-                                        context,
-                                        'Guest Buggy',
-                                        _guestNeedsBuggy,
-                                        (val) => setState(() => _guestNeedsBuggy = val),
-                                        icon: Icons.electric_rickshaw_rounded,
-                                      ),
-                                      if (event.hasBreakfast == true && event.breakfastCost != null) ...[
-                                        const Divider(height: 24),
-                                        _buildModernSwitchRow(
-                                          context,
-                                          'Guest Breakfast',
-                                          _guestAttendingBreakfast,
-                                          (val) => setState(() => _guestAttendingBreakfast = val),
-                                          icon: Icons.breakfast_dining_rounded,
-                                        ),
-                                      ],
-                                    ],
-                                  ],
-                                ),
-                              ),
-          
-                              const SizedBox(height: 32),
-                              const BoxyArtSectionTitle(title: 'Notes & Requirements'),
-                              const SizedBox(height: 12),
-                              ModernCard(
-                                child: Column(
-                                  children: [
-                                    _buildModernTextField(
-                                      label: 'Dietary Requirements',
-                                      controller: _dietaryController,
-                                      hintText: 'Allergies, preferences...',
-                                      icon: Icons.set_meal_rounded,
-                                      maxLines: 2,
-                                    ),
-                                    const SizedBox(height: 20),
-                                    _buildModernTextField(
-                                      label: 'Other Requests',
-                                      controller: _specialNeedsController,
-                                      hintText: 'Transportation, pairing requests...',
-                                      icon: Icons.more_horiz_rounded,
-                                      maxLines: 2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-          
-                              const SizedBox(height: 40),
-                              if (_isSaving)
-                                const Center(child: CircularProgressIndicator())
-                              else
-                                BoxyArtButton(
-                                  title: 'Confirm Registration',
-                                  isPrimary: true,
-                                  onTap: () => _submit(event),
-                                ),
-                              const SizedBox(height: 40),
-                            ],
-                          ),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ],
-              ),
-              
-              // Back Button top bar
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 100,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SafeArea(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
+        return HeadlessScaffold(
+          title: 'Registration',
+          subtitle: event.title,
+          showBack: true,
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverToBoxAdapter(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const BoxyArtSectionTitle(title: 'Your Attendance'),
+                      const SizedBox(height: 12),
+                      ModernCard(
+                        child: Column(
+                          children: [
+                            _buildModernSwitchRow(
+                              context,
+                              'Playing Golf',
+                              _attendingGolf,
+                              (val) => setState(() => _attendingGolf = val),
+                              icon: Icons.golf_course_rounded,
+                            ),
+                            if (_attendingGolf) ...[
+                              const Divider(height: 24),
+                              _buildModernSwitchRow(
+                                context,
+                                'Buggy Needed',
+                                _needsBuggy,
+                                (val) => setState(() => _needsBuggy = val),
+                                icon: Icons.electric_rickshaw_rounded,
                               ),
                             ],
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                            onPressed: () => context.pop(),
-                          ),
+                            if (event.hasBreakfast == true && event.breakfastCost != null) ...[
+                              const Divider(height: 24),
+                              _buildModernSwitchRow(
+                                context,
+                                'Attending Breakfast',
+                                _attendingBreakfast,
+                                (val) => setState(() => _attendingBreakfast = val),
+                                subtitle: event.breakfastCost == 0 ? 'Included' : null,
+                                icon: Icons.breakfast_dining_rounded,
+                              ),
+                            ],
+                            if (event.hasLunch == true && event.lunchCost != null) ...[
+                              const Divider(height: 24),
+                              _buildModernSwitchRow(
+                                context,
+                                'Attending Lunch',
+                                _attendingLunch,
+                                (val) => setState(() => _attendingLunch = val),
+                                subtitle: event.lunchCost == 0 ? 'Included' : null,
+                                icon: Icons.lunch_dining_rounded,
+                              ),
+                            ],
+                            if (event.hasDinner == true && event.dinnerCost != null) ...[
+                              const Divider(height: 24),
+                              _buildModernSwitchRow(
+                                context,
+                                'Attending Dinner',
+                                _attendingDinner,
+                                (val) => setState(() => _attendingDinner = val),
+                                subtitle: event.dinnerCost == 0 ? 'Included' : null,
+                                icon: Icons.restaurant_rounded,
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+  
+                      const SizedBox(height: 32),
+                      const BoxyArtSectionTitle(title: 'Guest Registration'),
+                      const SizedBox(height: 12),
+                      ModernCard(
+                        child: Column(
+                          children: [
+                            _buildModernSwitchRow(
+                              context,
+                              'Add a Guest',
+                              _registerGuest,
+                              (val) => setState(() => _registerGuest = val),
+                              icon: Icons.person_add_rounded,
+                            ),
+                            if (_registerGuest) ...[
+                              const SizedBox(height: 24),
+                              _buildModernTextField(
+                                label: 'Guest Name',
+                                controller: _guestNameController,
+                                hintText: 'Full name',
+                                icon: Icons.badge_outlined,
+                                validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildModernTextField(
+                                label: 'Guest Handicap',
+                                controller: _guestHandicapController,
+                                hintText: 'e.g. 18',
+                                icon: Icons.calculate_outlined,
+                              ),
+                              const Divider(height: 48),
+                              _buildModernSwitchRow(
+                                context,
+                                'Guest Buggy',
+                                _guestNeedsBuggy,
+                                (val) => setState(() => _guestNeedsBuggy = val),
+                                icon: Icons.electric_rickshaw_rounded,
+                              ),
+                              if (event.hasBreakfast == true && event.breakfastCost != null) ...[
+                                const Divider(height: 24),
+                                _buildModernSwitchRow(
+                                  context,
+                                  'Guest Breakfast',
+                                  _guestAttendingBreakfast,
+                                  (val) => setState(() => _guestAttendingBreakfast = val),
+                                  icon: Icons.breakfast_dining_rounded,
+                                ),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
+  
+                      const SizedBox(height: 32),
+                      const BoxyArtSectionTitle(title: 'Notes & Requirements'),
+                      const SizedBox(height: 12),
+                      ModernCard(
+                        child: Column(
+                          children: [
+                            _buildModernTextField(
+                              label: 'Dietary Requirements',
+                              controller: _dietaryController,
+                              hintText: 'Allergies, preferences...',
+                              icon: Icons.set_meal_rounded,
+                              maxLines: 2,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildModernTextField(
+                              label: 'Other Requests',
+                              controller: _specialNeedsController,
+                              hintText: 'Transportation, pairing requests...',
+                              icon: Icons.more_horiz_rounded,
+                              maxLines: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+  
+                      const SizedBox(height: 40),
+                      if (_isSaving)
+                        const Center(child: CircularProgressIndicator())
+                      else
+                        BoxyArtButton(
+                          title: 'Confirm Registration',
+                          isPrimary: true,
+                          onTap: () => _submit(event),
+                        ),
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),

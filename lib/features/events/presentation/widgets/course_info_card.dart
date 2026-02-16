@@ -389,12 +389,12 @@ class CourseInfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'TOTAL',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
                 ),
               ),
               if (holesPlayed > 0 && holesPlayed < 18)
@@ -448,6 +448,7 @@ class CourseInfoCard extends StatelessWidget {
             fontSize: 9, 
             fontWeight: FontWeight.normal, 
             color: isHighlighted ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            letterSpacing: 0.5,
           ),
         ),
         Text(

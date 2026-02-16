@@ -6,7 +6,7 @@ import '../core/utils/json_converters.dart';
 part 'golf_event.freezed.dart';
 part 'golf_event.g.dart';
 
-enum EventStatus { draft, published, inPlay, completed, cancelled }
+enum EventStatus { draft, published, inPlay, completed, cancelled, suspended }
 
 @freezed
 abstract class EventNote with _$EventNote {
@@ -80,6 +80,23 @@ abstract class GolfEvent with _$GolfEvent {
   bool get isRegistrationClosed {
     if (registrationDeadline == null) return false;
     return DateTime.now().isAfter(registrationDeadline!);
+  }
+
+  /// Returns the display status, ensuring future events are never shown as completed
+  EventStatus get displayStatus {
+    final now = DateTime.now();
+    
+    // If event is in the future, it cannot be completed
+    if (date.isAfter(now) && status == EventStatus.completed) {
+      return EventStatus.published;
+    }
+    
+    // Explicit statuses take precedence
+    if (status == EventStatus.suspended) return EventStatus.suspended;
+    if (status == EventStatus.cancelled) return EventStatus.cancelled;
+    
+    // Otherwise return the stored status
+    return status;
   }
 
   int get playingCount => registrations.where((r) => r.attendingGolf).length;

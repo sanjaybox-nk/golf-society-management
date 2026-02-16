@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/contrast_helper.dart';
+import './boxy_art_nav_bar.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   const ScaffoldWithNavBar({
@@ -26,61 +27,38 @@ class ScaffoldWithNavBar extends StatelessWidget {
         statusBarIconBrightness: statusBarIconBrightness,
       ),
       child: Scaffold(
+        extendBody: true,
         body: navigationShell,
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Colors.black,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4.0, bottom: 0.0, left: 8.0, right: 8.0),
-              child: BottomNavigationBar(
-                currentIndex: navigationShell.currentIndex,
-                onTap: (index) => _onTap(context, index),
-                backgroundColor: Colors.black,
-                selectedItemColor: Colors.white,
-                unselectedItemColor: Colors.grey.shade600,
-                type: BottomNavigationBarType.fixed,
-                elevation: 0,
-                selectedFontSize: 10,
-                unselectedFontSize: 10,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_month_outlined),
-                    activeIcon: Icon(Icons.calendar_month),
-                    label: 'Events',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.people_outline),
-                    activeIcon: Icon(Icons.people),
-                    label: 'Members',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline),
-                    activeIcon: Icon(Icons.person),
-                    label: 'Locker',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.history_outlined),
-                    activeIcon: Icon(Icons.history),
-                    label: 'Archive',
-                  ),
-                ],
-              ),
+        bottomNavigationBar: BoxyArtBottomNavBar(
+          selectedIndex: navigationShell.currentIndex,
+          onItemSelected: (index) => _onTap(context, index),
+          items: const [
+            BoxyArtBottomNavItem(
+              icon: Icons.home_outlined,
+              activeIcon: Icons.home,
+              label: 'Home',
             ),
-          ),
+            BoxyArtBottomNavItem(
+              icon: Icons.calendar_month_outlined,
+              activeIcon: Icons.calendar_month,
+              label: 'Events',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.people_outline,
+              activeIcon: Icons.people,
+              label: 'Members',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.person_outline,
+              activeIcon: Icons.person,
+              label: 'Locker',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.history_outlined,
+              activeIcon: Icons.history,
+              label: 'Archive',
+            ),
+          ],
         ),
       ),
     );

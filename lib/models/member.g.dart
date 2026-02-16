@@ -17,7 +17,7 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
   bio: json['bio'] as String?,
   avatarUrl: json['avatarUrl'] as String?,
   handicap: (json['handicap'] as num?)?.toDouble() ?? 0.0,
-  whsNumber: json['whsNumber'] as String?,
+  handicapId: json['handicapId'] as String?,
   isHandicapLocked: json['isHandicapLocked'] as bool? ?? false,
   role:
       $enumDecodeNullable(_$MemberRoleEnumMap, json['role']) ??
@@ -42,7 +42,7 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'bio': instance.bio,
   'avatarUrl': instance.avatarUrl,
   'handicap': instance.handicap,
-  'whsNumber': instance.whsNumber,
+  'handicapId': instance.handicapId,
   'isHandicapLocked': instance.isHandicapLocked,
   'role': _$MemberRoleEnumMap[instance.role]!,
   'societyRole': instance.societyRole,

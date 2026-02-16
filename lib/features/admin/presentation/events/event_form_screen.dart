@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../events/presentation/tabs/event_user_details_tab.dart';
+
 
 import '../../../events/presentation/events_provider.dart';
 import '../../../../models/golf_event.dart';
@@ -615,57 +617,65 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       );
     }
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showPreview,
-        backgroundColor: Theme.of(context).primaryColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: const Icon(Icons.visibility, color: Colors.white),
-      ),
-      appBar: BoxyArtAppBar(
-        title: isEditing ? 'Edit Event' : 'New Event',
-        centerTitle: true,
-        isLarge: true,
-        leadingWidth: 100,
-        leading: TextButton(
-          onPressed: () => context.go('/admin/events'),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.only(left: 12),
-            alignment: Alignment.centerLeft,
-          ),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-          ),
+    return HeadlessScaffold(
+      title: isEditing ? 'Edit Event Settings' : 'Create Event',
+      subtitle: isEditing ? (widget.event?.title ?? 'Update Details') : 'Create a new society event',
+      leadingWidth: 70,
+      leading: Center(
+        child: BoxyArtGlassIconButton(
+          icon: isEditing ? Icons.arrow_back_rounded : Icons.close_rounded,
+          iconSize: 24,
+          onPressed: () {
+            if (isEditing) {
+              final id = widget.eventId ?? widget.event?.id;
+              context.go('/admin/events/manage/$id/event');
+            } else {
+              context.go('/admin/events');
+            }
+          },
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: TextButton(
-              onPressed: _isSaving ? null : _save,
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                alignment: Alignment.centerRight,
-              ),
-              child: _isSaving 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text(
-                    'Save',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-            ),
-          ),
-        ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: _isSaving 
+            ? const SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            : BoxyArtGlassIconButton(
+                icon: Icons.check_rounded,
+                iconSize: 22,
+                onPressed: _save,
+              ),
+        ),
+      ],
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80), // Lift above bottom menu
+        child: FloatingActionButton(
+          onPressed: _showPreview,
+          backgroundColor: Theme.of(context).primaryColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: const Icon(Icons.visibility, color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Seasonal context is handled automatically via listeners
 
                 const BoxyArtSectionTitle(title: 'Basic Info'),
@@ -1543,11 +1553,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ),
                   ],
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 

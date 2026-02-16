@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../models/season.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
+import '../../../core/shared_ui/headless_scaffold.dart';
 import 'archive_provider.dart';
 
 class ArchiveScreen extends ConsumerWidget {
@@ -13,89 +15,50 @@ class ArchiveScreen extends ConsumerWidget {
     final seasonsAsync = ref.watch(archiveSeasonsProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
+    return HeadlessScaffold(
+      title: 'Archive',
+      showBack: true,
+      onBack: () => context.go('/'),
       backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Archive',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const BoxyArtSectionTitle(
-                      title: 'Archived Seasons',
-                      padding: EdgeInsets.zero,
-                    ),
-                    const SizedBox(height: 12),
-                    seasonsAsync.when(
-                      data: (seasons) {
-                        if (seasons.isEmpty) {
-                          return const Center(child: Text('No archived seasons yet.'));
-                        }
-                        return Column(
-                          children: seasons.map((season) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _SeasonCard(season: season),
-                            );
-                          }).toList(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BoxyArtSectionTitle(
+                  title: 'Archived Seasons',
+                  padding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 12),
+                seasonsAsync.when(
+                  data: (seasons) {
+                    if (seasons.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 40),
+                          child: Text('No archived seasons yet.'),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: seasons.map((season) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _SeasonCard(season: season),
                         );
-                      },
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Center(child: Text('Error: $err')),
-                    ),
-                  ]),
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
                 ),
-              ),
-            ],
-          ),
-          
-          // Header Bar with Back Button
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

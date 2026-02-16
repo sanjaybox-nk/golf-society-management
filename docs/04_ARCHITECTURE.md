@@ -13,16 +13,14 @@ lib/
 │   ├── utils/              # Helper functions (dates, formatters)
 │   └── constants/          # Environment vars, static keys
 ├── features/               # distinct domains of the application
-├── home/               # Member Dashboard & Notifications
-├── events/             # Events listing & details
-│   ├── domain/         # Business logic (RegistrationLogic.dart)
-│   ├── presentation/   # UI Tabs and Registration Cards
-├── members/            # Directory & Locker Room
-├── admin/              # Management Console (Events, Members, Communications)
-└── auth/               # Login & Registration flows
+│   ├── home/               # Member Dashboard & Notifications
+│   ├── events/             # Events listing & details (Tabs: Details, Reg, Live, Stats, Photos)
+│   ├── members/            # Directory & Locker Room (Season Standings)
+│   ├── admin/              # Management Console (Events, Members, Comms, Leaderboards)
+│   └── auth/               # Login & Registration flows
 ├── models/                 # Shared Data Models (Freezed classes)
 ├── main.dart               # Entry point
-└── router.dart             # GoRouter configuration
+└── navigation/             # App Router configuration (app_router.dart)
 ```
 
 ## State Management (Riverpod)

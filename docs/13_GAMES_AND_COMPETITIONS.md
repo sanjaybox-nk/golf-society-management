@@ -70,11 +70,14 @@ The event leaderboard provides a real-time view of the field with advanced prese
 - **Split Sections**: Guests are automatically identified (via the `_guest` suffix) and moved to a dedicated "Guest Leaderboard" section below the main field.
 - **Consistency**: Guests retain their "G" badge for easy identification in mixed lists.
 
-### 4.4 Unified Scorecard View
-All player entries on the leaderboard are interactive:
-- **Unified Action**: Tapping a player opens the `ScorecardModal`.
-- **Member View**: Read-only access to the hole-by-hole point breakdown.
-- **Admin View**: Access to the modal + a quick-action **Edit (Pencil)** icon in the header to navigate directly to the scorecard editor.
+### 4.4 Unified Scorecard View (Universal Parity)
+All player entries on the leaderboard and admin scoring lists share a unified "Universal Parity" layout:
+- **Unified Action**: Tapping a player opens the `ScorecardModal` or the `EventAdminScorecardEditorScreen`.
+- **Mirror Layout**: The admin scorecard editor is visually identical to the member "Live" view, including:
+    - **Handicap Context**: Real-time display of the player's Index (HC) and Playing Handicap (PHC).
+    - **Header Sync**: Identical title and subtitle typography.
+    - **Course Context**: A `CourseInfoCard` showing the tee configuration and performance summaries.
+- **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`TOTAL`, `HOLE`, `SCORES`) to create a premium, authoritative feel.
 
 ## 5. UI Flow
 

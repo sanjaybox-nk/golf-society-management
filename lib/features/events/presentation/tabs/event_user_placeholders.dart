@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import '../../../../features/debug/presentation/widgets/lab_control_panel.dart';
 import '../../../../core/utils/grouping_service.dart';
@@ -34,6 +35,9 @@ import '../../../matchplay/domain/match_definition.dart';
 
 import '../../../debug/presentation/state/debug_providers.dart';
 import 'event_stats_tab.dart';
+import 'event_stats_tab.dart';
+import 'event_user_registration_tab.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 
 // [LAB MODE] Persistence for Marker Selection
 class MarkerSelection {
@@ -84,6 +88,7 @@ class SelectedTabNotifier extends Notifier<int> {
 }
 
 final eventDetailsTabProvider = NotifierProvider<SelectedTabNotifier, int>(() => SelectedTabNotifier('event_details_tab'));
+final eventFieldTabProvider = NotifierProvider<SelectedTabNotifier, int>(() => SelectedTabNotifier('event_field_tab'));
 
 class EventGroupingUserTab extends ConsumerWidget {
   final String eventId;
@@ -112,97 +117,201 @@ class EventGroupingUserTab extends ConsumerWidget {
             ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
             : [];
 
-        return Scaffold(
-          appBar: BoxyArtAppBar(
-            title: 'Grouping',
-            subtitle: event.title,
-            showBack: true,
-            isPeeking: ref.watch(impersonationProvider) != null,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.science, color: Colors.white),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context, 
-                    isScrollControlled: true,
-                    builder: (context) => LabControlPanel(eventId: event.id)
-                  );
-                },
+        final isPeeking = ref.watch(impersonationProvider) != null;
+
+        return HeadlessScaffold(
+          title: event.title,
+          subtitle: 'Field Hub',
+          showBack: true,
+          onBack: () => context.go('/events'),
+          actions: const [],
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+              sliver: SliverToBoxAdapter(
+                child: _FieldHubToggle(),
               ),
-            ],
-          ),
-          body: !isPublished
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.lock_clock_rounded, size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      const Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      const Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
+            ),
+            if (ref.watch(eventFieldTabProvider) == 0) ...[
+              // Registrations View
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverToBoxAdapter(
+                  child: membersAsync.when(
+                    data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) => const Text('Error loading member registrations'),
+                  ),
+                ),
+              ),
+            ] else ...[
+              // Pairings View
+              if (!isPublished)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock_clock_rounded, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
                   ),
                 )
-              : groups.every((g) => g.players.isEmpty)
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.people_outline, size: 64, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          const Text('No players confirmed yet', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 48),
-                            child: Text(
-                              'The field is currently being finalized. Check back once registration is closed.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
-                            ),
-                          ),
-                        ],
+              else 
+                SliverPadding(
+                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                   sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                         (context, index) {
+                            if (index == 0) {
+                              return const Padding(
+                                padding: EdgeInsets.only(top: 12),
+                                child: BoxyArtSectionTitle(title: 'Grouping'),
+                              );
+                            }
+                            final group = groups[index - 1]; // Adjust index
+                            // Prepare data for GroupingCard
+                            final members = membersAsync.value ?? [];
+                            final memberMap = {for (var m in members) m.id: m};
+                            // History for variety calculation (same season, previous events)
+                            final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
+                            final comp = compAsync.value;
+                            
+                            return Padding(
+                               padding: const EdgeInsets.only(bottom: 12),
+                               child: GroupingCard(
+                                  group: group,
+                                  memberMap: memberMap,
+                                  history: history,
+                                  totalGroups: groups.length,
+                                  rules: comp?.rules.copyWith(
+                                    format: ref.watch(gameFormatOverrideProvider) ?? comp.rules.format,
+                                    mode: ref.watch(gameModeOverrideProvider) ?? comp.rules.mode,
+                                    handicapAllowance: ref.watch(handicapAllowanceOverrideProvider) ?? comp.rules.handicapAllowance,
+                                    teamBestXCount: ref.watch(teamBestXCountOverrideProvider) ?? comp.rules.teamBestXCount,
+                                    aggregation: ref.watch(aggregationMethodOverrideProvider) == 'betterBall' 
+                                        ? AggregationMethod.singleBest 
+                                        : (ref.watch(aggregationMethodOverrideProvider) == 'combined' ? AggregationMethod.totalSum : comp.rules.aggregation),
+                                  ),
+                                  courseConfig: event.courseConfig,
+                                  isAdmin: false,
+                                  scorecardMap: scorecardsAsync.asData?.value != null 
+                                      ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
+                                      : null,
+                               ),
+                            );
+                         },
+                         childCount: groups.length + 1, // Add 1 for title
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: groups.length,
-                      itemBuilder: (context, index) {
-                        final group = groups[index];
-                        final members = membersAsync.value ?? [];
-                        final memberMap = {for (var m in members) m.id: m};
-                        final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
-                        final comp = compAsync.value;
-
-                        return GroupingCard(
-                          group: group,
-                          memberMap: memberMap,
-                          history: history,
-                          totalGroups: groups.length,
-                          rules: comp?.rules.copyWith(
-                            format: ref.watch(gameFormatOverrideProvider) ?? comp.rules.format,
-                            mode: ref.watch(gameModeOverrideProvider) ?? comp.rules.mode,
-                            handicapAllowance: ref.watch(handicapAllowanceOverrideProvider) ?? comp.rules.handicapAllowance,
-                            teamBestXCount: ref.watch(teamBestXCountOverrideProvider) ?? comp.rules.teamBestXCount,
-                            aggregation: ref.watch(aggregationMethodOverrideProvider) == 'betterBall' 
-                                ? AggregationMethod.singleBest 
-                                : (ref.watch(aggregationMethodOverrideProvider) == 'combined' ? AggregationMethod.totalSum : comp.rules.aggregation),
-                          ),
-                          courseConfig: event.courseConfig,
-                          isAdmin: false,
-                          scorecardMap: scorecardsAsync.asData?.value != null 
-                              ? {for (var s in scorecardsAsync.asData!.value) s.entryId: s}
-                              : null,
-                        );
-                      },
-                    ),
+                   ),
+                ),
+            ],
+          ],
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
     );
   }
+}
 
+class _FieldHubToggle extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedTab = ref.watch(eventFieldTabProvider);
+    final primary = Theme.of(context).primaryColor;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: _ToggleItem(
+                label: 'Entries',
+                icon: Icons.people_outline_rounded,
+                isSelected: selectedTab == 0,
+                onTap: () => ref.read(eventFieldTabProvider.notifier).set(0),
+              ),
+            ),
+            Expanded(
+              child: _ToggleItem(
+                label: 'Groupings',
+                icon: Icons.grid_view_rounded,
+                isSelected: selectedTab == 1,
+                onTap: () => ref.read(eventFieldTabProvider.notifier).set(1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ToggleItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ToggleItem({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? Colors.white : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 
@@ -330,56 +439,29 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             // If no results, show the original mock or empty?
             // For now, if results are empty, we keep the empty state or show a placeholder.
 
-            return Scaffold(
-              appBar: BoxyArtAppBar(
-                title: 'Scores',
-                subtitle: event.title,
-                isLarge: true,
-                showBack: true,
-                isPeeking: ref.watch(impersonationProvider) != null,
-                actions: [
-                  IconButton(
-                    icon: Icon(Icons.science, color: formatOverride != null ? Colors.orange : Colors.white),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context, 
-                        isScrollControlled: true,
-                        builder: (context) => LabControlPanel(eventId: widget.eventId),
-                      );
-                    },
-                  ),
-                ],
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(48),
-                  child: Container(
-                    color: Theme.of(context).primaryColor,
-                    child: Row(
-                      children: [
-                        _buildTabButton('My Score', 0),
-                        _buildTabButton('Groups', 1),
-                        _buildTabButton('Leaderboard', 2),
-                        if (event.matches.isNotEmpty) _buildTabButton('Matches', 4),
-                        if (event.matches.any((m) => m.bracketId != null)) _buildTabButton('Bracket', 5),
-                        _buildTabButton('Stats', 3),
-                      ],
-                    ),
+            final isPeeking = ref.watch(impersonationProvider) != null;
+
+            return HeadlessScaffold(
+              title: event.title,
+              subtitle: 'Live Hub',
+              showBack: true,
+              onBack: () => context.go('/events'),
+              actions: const [],
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                  sliver: SliverToBoxAdapter(
+                    child: _LiveHubToggle(event: event),
                   ),
                 ),
-              ),
-              body: RefreshIndicator(
-                onRefresh: () async {
-                   // Refresh both events and competition details
-                   ref.invalidate(eventsProvider);
-                   ref.invalidate(competitionDetailProvider(widget.eventId));
-                   // also refresh seeding controller if needed, but eventsProvider should cover it
-                   await Future.delayed(const Duration(milliseconds: 500));
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: _buildTabContent(event, comp, leaderboardEntries, effectiveRules),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverToBoxAdapter(
+                    child: _buildTabContent(event, comp, leaderboardEntries, effectiveRules),
+                  ),
                 ),
-              ),
+                const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+              ],
             );
           },
           loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -1131,28 +1213,37 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
            }
         }
 
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: groups.length,
-          itemBuilder: (context, index) {
-            final group = groups[index];
-            final members = membersAsync.value ?? [];
-            final memberMap = {for (var m in members) m.id: m};
+        return Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 4.0), // Consistent label spacing
+              child: BoxyArtSectionTitle(title: 'Group Scores'),
+            ),
+            ListView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: groups.length,
+              itemBuilder: (context, index) {
+                final group = groups[index];
+                final members = membersAsync.value ?? [];
+                final memberMap = {for (var m in members) m.id: m};
 
-            return GroupingCard(
-              group: group,
-              memberMap: memberMap,
-              history: const [], // Not needed for score mode
-              totalGroups: groups.length,
-              rules: rules,
-              courseConfig: event.courseConfig,
-              isAdmin: false,
-              isScoreMode: true,
-              scoreMap: scoreMap,
-              scorecardMap: {for (var s in scorecards) s.entryId: s},
-            );
-          },
+                return GroupingCard(
+                  group: group,
+                  memberMap: memberMap,
+                  history: const [], // Not needed for score mode
+                  totalGroups: groups.length,
+                  rules: rules,
+                  courseConfig: event.courseConfig,
+                  isAdmin: false,
+                  isScoreMode: true,
+                  scoreMap: scoreMap,
+                  scorecardMap: {for (var s in scorecards) s.entryId: s},
+                );
+              },
+            ),
+          ],
         );
       },
       loading: () => const Center(child: Padding(
@@ -1457,5 +1548,117 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
 }
 
-// [LAB MODE] Master Control Panel
-// [LAB MODE Master Control Panel] - Moved to lib/features/events/presentation/widgets/lab_control_panel.dart
+class EventStatsUserTab extends ConsumerWidget {
+  final String eventId;
+  const EventStatsUserTab({super.key, required this.eventId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventsAsync = ref.watch(eventsProvider);
+    final compAsync = ref.watch(competitionDetailProvider(eventId));
+    final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
+    final isPeeking = ref.watch(impersonationProvider) != null;
+
+    return eventsAsync.when(
+      data: (events) {
+        final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        return HeadlessScaffold(
+          title: event.title,
+          subtitle: 'Advanced Stats',
+          showBack: true,
+          onBack: () => context.go('/events'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.science, color: isPeeking ? Colors.orange : Colors.black),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context, 
+                  isScrollControlled: true,
+                  builder: (context) => LabControlPanel(eventId: event.id)
+                );
+              },
+            ),
+          ],
+          slivers: [
+            SliverToBoxAdapter(
+              child: compAsync.when(
+                data: (comp) => scorecardsAsync.when(
+                  data: (scorecards) => Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                    child: EventStatsTab(
+                      event: event,
+                      comp: comp,
+                      liveScorecards: scorecards,
+                    ),
+                  ),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, s) => Center(child: Text('Error: $e')),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, s) => Center(child: Text('Error: $e')),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+    );
+  }
+}
+
+// [HUB NAVIGATION] Modern Live Hub Toggle
+class _LiveHubToggle extends ConsumerWidget {
+  final GolfEvent event;
+
+  const _LiveHubToggle({required this.event});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedTab = ref.watch(eventDetailsTabProvider);
+    final primary = Theme.of(context).primaryColor;
+
+    final List<({String label, int index, IconData icon})> tabs = [
+      (label: 'My Score', index: 0, icon: Icons.assignment_outlined),
+      (label: 'Group', index: 1, icon: Icons.groups_outlined),
+      (label: 'Leaderboard', index: 2, icon: Icons.emoji_events_outlined),
+    ];
+
+    if (event.matches.isNotEmpty) {
+      tabs.add((label: 'Matches', index: 4, icon: Icons.grid_view_outlined));
+    }
+    if (event.matches.any((m) => m.bracketId != null)) {
+      tabs.add((label: 'Bracket', index: 5, icon: Icons.account_tree_outlined));
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Row(
+          children: tabs.map((tab) {
+            final isSelected = selectedTab == tab.index;
+            return Expanded(
+              child: _ToggleItem(
+                label: tab.label,
+                icon: tab.icon,
+                isSelected: isSelected,
+                onTap: () => ref.read(eventDetailsTabProvider.notifier).set(tab.index),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}

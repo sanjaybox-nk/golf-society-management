@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/theme/theme_controller.dart';
 
@@ -50,196 +51,141 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
     final popularCodes = ['GBP', 'USD', 'EUR', 'JPY', 'AUD', 'CAD'];
     final popularCurrencies = _allCurrencies.where((c) => popularCodes.contains(c.code)).toList();
 
-    return Scaffold(
+    return HeadlessScaffold(
+      title: 'Currency',
+      subtitle: 'App-wide display currency',
+      showBack: true,
       backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Currency',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              // Search Bar
+              ModernCard(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _filterCurrencies,
+                  decoration: InputDecoration(
+                    hintText: 'Search by name, code or symbol...',
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                      fontSize: 14,
                     ),
-                    Text(
-                      'App-wide display currency',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Search Bar
-                    ModernCard(
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: _filterCurrencies,
-                        decoration: InputDecoration(
-                          hintText: 'Search by name, code or symbol...',
-                          hintStyle: TextStyle(
-                            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                            fontSize: 14,
-                          ),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
+                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
 
-                    if (_searchController.text.isEmpty) ...[
-                      const BoxyArtSectionTitle(title: 'Popular Currencies', padding: EdgeInsets.zero),
-                      const SizedBox(height: 12),
-                      _buildPopularGrid(popularCurrencies, societyConfig.currencyCode, (c) {
-                        controller.setCurrency(c.symbol, c.code);
-                        context.pop();
-                      }),
-                      const SizedBox(height: 32),
-                      const BoxyArtSectionTitle(title: 'All Currencies', padding: EdgeInsets.zero),
-                      const SizedBox(height: 12),
-                    ],
-                    
-                    ..._filteredCurrencies.map((c) {
-                      final isSelected = c.code == societyConfig.currencyCode;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ModernCard(
-                          onTap: () {
-                            controller.setCurrency(c.symbol, c.code);
-                            context.pop();
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
+              if (_searchController.text.isEmpty) ...[
+                const BoxyArtSectionTitle(title: 'Popular Currencies', padding: EdgeInsets.zero),
+                const SizedBox(height: 12),
+                _buildPopularGrid(popularCurrencies, societyConfig.currencyCode, (c) {
+                  controller.setCurrency(c.symbol, c.code);
+                  context.pop();
+                }),
+                const SizedBox(height: 32),
+                const BoxyArtSectionTitle(title: 'All Currencies', padding: EdgeInsets.zero),
+                const SizedBox(height: 12),
+              ],
+              
+              ..._filteredCurrencies.map((c) {
+                final isSelected = c.code == societyConfig.currencyCode;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ModernCard(
+                    onTap: () {
+                      controller.setCurrency(c.symbol, c.code);
+                      context.pop();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _getEmoji(c),
+                              style: const TextStyle(fontSize: 22),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    _getEmoji(c),
-                                    style: const TextStyle(fontSize: 22),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        c.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      Text(
-                                        c.code,
-                                        style: TextStyle(
-                                          color: Theme.of(context).textTheme.bodySmall?.color,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
+                                Text(
+                                  c.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                   ),
                                 ),
                                 Text(
-                                  c.symbol,
+                                  c.code,
                                   style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: isSelected ? Theme.of(context).primaryColor : null,
+                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                if (isSelected)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: Icon(
-                                      Icons.check_circle_rounded,
-                                      color: Theme.of(context).primaryColor,
-                                      size: 20,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
-                        ),
-                      );
-                    }),
-                    
-                    if (_filteredCurrencies.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(48),
-                          child: Column(
-                            children: [
-                              Icon(Icons.search_off_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No currencies found',
-                                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                          Text(
+                            c.symbol,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Theme.of(context).primaryColor : null,
+                            ),
+                          ),
+                          if (isSelected)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 12),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: Theme.of(context).primaryColor,
+                                size: 20,
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 100),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
+                            ),
                         ],
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
                     ),
-                  ],
+                  ),
+                );
+              }),
+              
+              if (_filteredCurrencies.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(48),
+                    child: Column(
+                      children: [
+                        Icon(Icons.search_off_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No currencies found',
+                          style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              const SizedBox(height: 100),
+            ]),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

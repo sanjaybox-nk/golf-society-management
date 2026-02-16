@@ -1,10 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/models/member.dart';
+import 'admin_shortcut_action.dart';
 import '../theme/contrast_helper.dart';
+import 'buttons.dart';
 
 /// ProMax glassmorphic app bar with modern aesthetics
 class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -20,6 +21,7 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final double? leadingWidth;
   final bool showAdminShortcut;
   final PreferredSizeWidget? bottom;
+  final bool transparent;
 
   const ProMaxAppBar({
     super.key,
@@ -27,7 +29,7 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
     this.subtitle,
     this.onMenuPressed,
     this.showBack = false,
-    this.showLeading = true,
+    this.showLeading = false,
     this.onBack,
     this.actions,
     this.centerTitle = true,
@@ -35,6 +37,7 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
     this.leadingWidth,
     this.showAdminShortcut = true,
     this.bottom,
+    this.transparent = false,
   });
 
   @override
@@ -42,54 +45,45 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final primaryColor = Theme.of(context).primaryColor;
     final onPrimary = ContrastHelper.getContrastingText(primaryColor);
     
-    // Watch providers for admin access
-    final currentUser = ref.watch(currentUserProvider);
     final isPeekingState = ref.watch(impersonationProvider) != null;
-    final isAdmin = currentUser.role == MemberRole.superAdmin || 
-                    currentUser.role == MemberRole.admin;
-
-    // Build actions with admin shortcut
+    
+    // Build actions
     final List<Widget> finalActions = actions != null ? [...actions!] : [];
     
-    if (showAdminShortcut && isAdmin && !isPeekingState && title != 'Admin Console') {
-      finalActions.insert(
-        0,
-        _GlassIconButton(
-          icon: Icons.admin_panel_settings_outlined,
-          onPressed: () => context.go('/admin'),
-          tooltip: 'Admin Console',
-        ),
-      );
+    // Add Admin Shortcut if enabled
+    if (showAdminShortcut) {
+      finalActions.insert(0, const AdminShortcutAction());
     }
 
     return AppBar(
-      backgroundColor: primaryColor,
+      backgroundColor: transparent ? Colors.transparent : primaryColor,
       elevation: 0,
-      toolbarHeight: subtitle != null ? 80 : 64,
+      toolbarHeight: transparent ? 56 : (subtitle != null ? 72 : 56),
       automaticallyImplyLeading: false,
       centerTitle: centerTitle,
       leadingWidth: leadingWidth ?? 70,
-      leading: leading ?? (showLeading
-          ? (showBack
-              ? TextButton(
-                  onPressed: onBack ?? () => Navigator.maybePop(context),
-                  child: Text(
-                    'Back',
-                    style: TextStyle(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
+      leading: leading ?? (showBack
+          ? Center(
+              child: BoxyArtGlassIconButton(
+                icon: Icons.arrow_back_rounded,
+                onPressed: onBack ?? () => Navigator.of(context).pop(),
+                backgroundColor: primaryColor.withValues(alpha: 0.1),
+                iconColor: primaryColor,
+                tooltip: 'Back',
+              ),
+            )
+          : (showLeading
+              ? Center(
+                  child: BoxyArtGlassIconButton(
+                    icon: Icons.menu_rounded,
+                    onPressed: onMenuPressed,
+                    backgroundColor: primaryColor.withValues(alpha: 0.1),
+                    iconColor: primaryColor,
+                    tooltip: 'Menu',
                   ),
                 )
-              : Center(
-                  child: _GlassIconButton(
-                    icon: Icons.menu,
-                    onPressed: onMenuPressed,
-                  ),
-                ))
-          : null),
-      title: Column(
+              : const SizedBox.shrink())),
+      title: transparent ? null : Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isPeekingState) ...[
@@ -157,48 +151,7 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-        (subtitle != null ? 80.0 : 64.0) + (bottom?.preferredSize.height ?? 0),
+        (subtitle != null ? 72.0 : 56.0) + (bottom?.preferredSize.height ?? 0),
       );
 }
 
-/// Glassmorphic circular icon button with blur effect
-class _GlassIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final String? tooltip;
-
-  const _GlassIconButton({
-    required this.icon,
-    this.onPressed,
-    this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: IconButton(
-            icon: Icon(icon),
-            iconSize: 20,
-            color: Colors.white,
-            onPressed: onPressed,
-            padding: EdgeInsets.zero,
-            tooltip: tooltip,
-          ),
-        ),
-      ),
-    );
-  }
-}

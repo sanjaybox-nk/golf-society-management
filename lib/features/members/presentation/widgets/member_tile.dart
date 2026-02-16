@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/member.dart';
+import '../../../../models/handicap_system.dart';
 import '../../../../core/shared_ui/modern_cards.dart';
+import '../../../../core/theme/theme_controller.dart';
 import '../member_details_modal.dart';
 
 class MemberTile extends ConsumerWidget {
@@ -28,138 +30,178 @@ class MemberTile extends ConsumerWidget {
     
     return ModernCard(
       onTap: onTap ?? () => MemberDetailsModal.show(context, member),
-      padding: const EdgeInsets.all(16),
-      child: Row(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: primary.withValues(alpha: 0.1), width: 2),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: member.avatarUrl != null 
-                  ? Image.network(member.avatarUrl!, fit: BoxFit.cover)
-                  : Container(
-                      color: primary.withValues(alpha: 0.05),
-                      child: Center(
-                        child: Text(
-                          '${member.firstName[0]}${member.lastName[0]}',
-                          style: TextStyle(
-                            color: primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar Section
+              Column(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: primary.withValues(alpha: 0.1),
+                        width: 2,
                       ),
                     ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                         '${member.firstName} ${member.lastName}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          letterSpacing: -0.2,
-                        ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(32),
+                      child: member.avatarUrl != null 
+                          ? Image.network(member.avatarUrl!, fit: BoxFit.cover)
+                          : Container(
+                              color: primary.withValues(alpha: 0.05),
+                              child: Center(
+                                child: Text(
+                                  '${member.firstName[0]}${member.lastName[0]}',
+                                  style: TextStyle(
+                                    color: primary,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  if (member.joinedDate != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Since ${member.joinedDate!.year}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                       ),
                     ),
-                    if (member.societyRole?.isNotEmpty == true)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          member.societyRole!.toUpperCase(),
-                          style: TextStyle(
-                            color: primary,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
                   ],
-                ),
-                const SizedBox(height: 4),
-                Row(
+                ],
+              ),
+              const SizedBox(width: 20),
+              
+              // Info Section
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'HC: ${member.handicap.toStringAsFixed(1)}',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                      member.displayName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        letterSpacing: -0.6,
+                        height: 1.1,
                       ),
                     ),
-                    if (member.whsNumber != null) ...[
-                      Text(' • ', style: TextStyle(color: Colors.grey.shade300)),
-                      Text(
-                        member.whsNumber!,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
+                    const SizedBox(height: 16),
+                    
+                    // Metrics Grid
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final society = ref.watch(themeControllerProvider);
+                        final system = society.handicapSystem;
+                        
+                        return Row(
+                          children: [
+                            _buildMetricColumn(
+                              context,
+                              'HANDICAP',
+                              member.handicap.toStringAsFixed(1),
+                            ),
+                            const SizedBox(width: 24),
+                            _buildMetricColumn(
+                              context,
+                              system.idLabel,
+                              member.handicapId ?? '-',
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: member.status.color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        member.status.displayName.toUpperCase(),
-                        style: TextStyle(
-                          color: member.status.color,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    if (showFeeStatus && member.hasPaid) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF27AE60).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'PAID',
-                          style: TextStyle(
-                            color: Color(0xFF27AE60),
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Status Row
+          Row(
+            children: [
+              _buildStatusPill(
+                member.status.displayName,
+                member.status.color,
+              ),
+              if (member.societyRole?.isNotEmpty == true) ...[
+                const SizedBox(width: 8),
+                _buildStatusPill(
+                  member.societyRole!,
+                  primary,
+                  isOutline: true,
                 ),
               ],
-            ),
+              const Spacer(),
+              if (member.hasPaid)
+                _buildStatusPill(
+                  'Fee Paid',
+                  const Color(0xFF27AE60),
+                ),
+            ],
           ),
-          Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 20),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMetricColumn(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.8,
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusPill(String text, Color color, {bool isOutline = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isOutline ? null : color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: isOutline ? Border.all(color: color.withValues(alpha: 0.3), width: 1) : null,
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.4,
+        ),
       ),
     );
   }

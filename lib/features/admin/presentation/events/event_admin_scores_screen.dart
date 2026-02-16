@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/tabs/event_stats_tab.dart';
@@ -36,83 +37,67 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
     return eventAsync.when(
       data: (event) {
+        final primary = Theme.of(context).primaryColor;
+        
         // Clear optimistic toggles if they match the server state
         _optimisticToggles.removeWhere((key, val) {
           if (key == 'isStatsReleased') return val == event.isStatsReleased;
           return false;
         });
 
-        return Scaffold(
-        appBar: BoxyArtAppBar(
-          title: 'Event Scores',
+        return HeadlessScaffold(
+          title: 'Manage Scores',
           subtitle: event.title,
-          centerTitle: true,
-          isLarge: true,
-          leadingWidth: 70,
-          leading: Center(
-            child: TextButton(
-              onPressed: () => context.canPop() ? context.pop() : context.go('/admin/events'),
-              child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          showBack: true,
+          onBack: () => context.go('/admin/events'),
+          actions: [
+            BoxyArtGlassIconButton(
+              icon: Icons.settings_outlined,
+              tooltip: 'Controls',
+              iconColor: _selectedTab == 0 ? primary : primary.withValues(alpha: 0.4),
+              backgroundColor: _selectedTab == 0 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
+              onPressed: () => setState(() => _selectedTab = 0),
             ),
-          ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48),
-            child: Container(
-              color: Theme.of(context).primaryColor,
-              child: Row(
-                children: [
-                  _buildTabButton('Controls', 0, Icons.settings_outlined),
-                  _buildTabButton('Leaderboard', 1, Icons.emoji_events_outlined),
-                  _buildTabButton('Scorecards', 2, Icons.people_outline),
-                  _buildTabButton('Stats', 3, Icons.analytics_outlined),
-                ],
+            const SizedBox(width: 8),
+            BoxyArtGlassIconButton(
+              icon: Icons.emoji_events_outlined,
+              tooltip: 'Leaderboard',
+              iconColor: _selectedTab == 1 ? primary : primary.withValues(alpha: 0.4),
+              backgroundColor: _selectedTab == 1 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
+              onPressed: () => setState(() => _selectedTab = 1),
+            ),
+            const SizedBox(width: 8),
+            BoxyArtGlassIconButton(
+              icon: Icons.people_outline,
+              tooltip: 'Scorecards',
+              iconColor: _selectedTab == 2 ? primary : primary.withValues(alpha: 0.4),
+              backgroundColor: _selectedTab == 2 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
+              onPressed: () => setState(() => _selectedTab = 2),
+            ),
+            const SizedBox(width: 8),
+            BoxyArtGlassIconButton(
+              icon: Icons.analytics_outlined,
+              tooltip: 'Stats',
+              iconColor: _selectedTab == 3 ? primary : primary.withValues(alpha: 0.4),
+              backgroundColor: _selectedTab == 3 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
+              onPressed: () => setState(() => _selectedTab = 3),
+            ),
+          ],
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverToBoxAdapter(
+                child: _buildTabContent(event, scorecardsAsync),
               ),
             ),
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: _buildTabContent(event, scorecardsAsync),
-        ),
+          ],
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, st) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const HeadlessScaffold(title: 'Loading...', slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
+      error: (err, st) => HeadlessScaffold(title: 'Error', slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
     );
   }
 
-  Widget _buildTabButton(String label, int index, IconData icon) {
-    final isSelected = _selectedTab == index;
-    
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedTab = index),
-        child: Container(
-          height: 48,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.6),
-                size: 20,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.6),
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildTabContent(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
     switch (_selectedTab) {

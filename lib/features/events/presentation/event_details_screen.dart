@@ -1,3 +1,4 @@
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -39,170 +40,138 @@ class _EventDetailsContent extends StatelessWidget {
   final String currencySymbol;
 
   const _EventDetailsContent({required this.event, required this.currencySymbol});
+  
   @override
   Widget build(BuildContext context) {
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
     final primary = Theme.of(context).primaryColor;
 
-    return Scaffold(
-      backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // Title section
-                    Text(
-                      event.title,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
+    return HeadlessScaffold(
+      title: event.title,
+      showBack: true,
+      onBack: () => context.go('/events'),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildStatusBadge(context),
+              const SizedBox(height: 24),
+              
+              // Event Hero Image
+              if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+                ModernCard(
+                  padding: EdgeInsets.zero,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(
+                      event.imageUrl!,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 8),
-                    _buildStatusBadge(context),
-                    const SizedBox(height: 24),
-
-                    // Event Hero Image
-                    if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
-                      ModernCard(
-                        padding: EdgeInsets.zero,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            event.imageUrl!,
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      )
-                    else
-                      ModernCard(
-                        padding: const EdgeInsets.symmetric(vertical: 60),
-                        child: Center(
-                          child: Icon(Icons.golf_course, size: 64, color: primary.withValues(alpha: 0.2)),
-                        ),
-                      ),
-                    const SizedBox(height: 20),
-
-                    // Registration Card
-                    _buildRegistrationCard(context),
-                    const SizedBox(height: 16),
-
-                    // When & Where Card
-                    _buildWhenWhereCard(context),
-                    const SizedBox(height: 16),
-
-                    // Course Details Card
-                    _buildCourseDetailsCard(context),
-                    const SizedBox(height: 16),
-
-                    // Competition Rules Card
-                    _buildCompetitionCard(context),
-                    const SizedBox(height: 16),
-
-                    // Costs Card
-                    _buildCostsCard(context),
-                    const SizedBox(height: 16),
-                    
-                    // Dinner Location Card
-                    if (event.dinnerLocation != null && event.dinnerLocation!.isNotEmpty)
-                      _buildDinnerLocationCard(context),
-                    const SizedBox(height: 16),
-
-                    // Notes Section
-                    if (event.notes.isNotEmpty) ...[
-                      const BoxyArtSectionTitle(title: 'Notes & Content'),
-                      ...event.notes.map((note) => _buildNoteCard(context, note)),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Updates Section
-                    if (event.flashUpdates.isNotEmpty) ...[
-                      const BoxyArtSectionTitle(title: 'Updates'),
-                      ...event.flashUpdates.map((update) => _buildUpdateCard(context, update)),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Gallery Section
-                    if (event.galleryUrls.isNotEmpty) ...[
-                      const BoxyArtSectionTitle(title: 'Gallery'),
-                      _buildGalleryCard(context),
-                      const SizedBox(height: 24),
-                    ],
-                  ]),
+                  ),
+                )
+              else
+                ModernCard(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Center(
+                    child: Icon(Icons.golf_course, size: 64, color: primary.withValues(alpha: 0.2)),
+                  ),
                 ),
-              ),
-            ],
+              const SizedBox(height: 20),
+
+              // Registration Card
+              _buildRegistrationCard(context),
+              const SizedBox(height: 16),
+
+              // When & Where Card
+              _buildWhenWhereCard(context),
+              const SizedBox(height: 16),
+
+              // Course Details Card
+              _buildCourseDetailsCard(context),
+              const SizedBox(height: 16),
+
+              // Competition Rules Card
+              _buildCompetitionCard(context),
+              const SizedBox(height: 16),
+
+              // Costs Card
+              _buildCostsCard(context),
+              const SizedBox(height: 16),
+              
+              // Dinner Location Card
+              if (event.dinnerLocation != null && event.dinnerLocation!.isNotEmpty)
+                _buildDinnerLocationCard(context),
+              const SizedBox(height: 16),
+
+              // Notes Section
+              if (event.notes.isNotEmpty) ...[
+                const BoxyArtSectionTitle(title: 'Notes & Content'),
+                ...event.notes.map((note) => _buildNoteCard(context, note)),
+                const SizedBox(height: 16),
+              ],
+
+              // Updates Section
+              if (event.flashUpdates.isNotEmpty) ...[
+                const BoxyArtSectionTitle(title: 'Updates'),
+                ...event.flashUpdates.map((update) => _buildUpdateCard(context, update)),
+                const SizedBox(height: 16),
+              ],
+
+              // Gallery Section
+              if (event.galleryUrls.isNotEmpty) ...[
+                const BoxyArtSectionTitle(title: 'Gallery'),
+                _buildGalleryCard(context),
+              ],
+            ]),
           ),
-          
-          // Back button top bar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    beigeBackground.withValues(alpha: 0.9),
-                    beigeBackground.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildStatusBadge(BuildContext context) {
-    final bool isOpen = event.registrationDeadline == null || 
-                        DateTime.now().isBefore(event.registrationDeadline!);
-    final color = isOpen ? const Color(0xFF27AE60) : Colors.red;
+    final displayStatus = event.displayStatus;
+    
+    String statusText;
+    Color statusColor;
+    
+    switch (displayStatus) {
+      case EventStatus.draft:
+        statusText = 'DRAFT';
+        statusColor = Colors.orange;
+        break;
+      case EventStatus.published:
+        statusText = 'PUBLISHED';
+        statusColor = const Color(0xFF27AE60);
+        break;
+      case EventStatus.inPlay:
+        statusText = 'LIVE';
+        statusColor = Colors.blue;
+        break;
+      case EventStatus.suspended:
+        statusText = 'SUSPENDED';
+        statusColor = Colors.deepOrange;
+        break;
+      case EventStatus.completed:
+        statusText = 'COMPLETED';
+        statusColor = Colors.grey;
+        break;
+      case EventStatus.cancelled:
+        statusText = 'CANCELLED';
+        statusColor = Colors.red;
+        break;
+    }
 
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
+            border: Border.all(color: statusColor.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -210,15 +179,15 @@ class _EventDetailsContent extends StatelessWidget {
               Container(
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
               ),
               const SizedBox(width: 6),
               Text(
-                isOpen ? 'REGISTRATION OPEN' : 'REGISTRATION CLOSED',
+                statusText,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: color,
+                  color: statusColor,
                   letterSpacing: 0.5,
                 ),
               ),

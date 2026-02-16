@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 
@@ -44,23 +45,13 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
     final primaryColor = Theme.of(context).primaryColor;
     final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
-    return Scaffold(
+    return HeadlessScaffold(
+      title: widget.role,
+      showBack: true,
       backgroundColor: const Color(0xFFF0F2F5),
-      appBar: BoxyArtAppBar(
-        title: widget.role,
-        isLarge: true,
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Header / Search
-          Container(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
@@ -95,65 +86,74 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
               ],
             ),
           ),
+        ),
 
-          // Member List
-          Expanded(
-            child: membersAsync.when(
-              data: (members) {
-                List<Member> displayList;
-                final isSearching = _searchQuery.isNotEmpty;
+        // Member List
+        membersAsync.when(
+          data: (members) {
+            List<Member> displayList;
+            final isSearching = _searchQuery.isNotEmpty;
 
-                if (isSearching) {
-                  // Candidates + Holders matching search
-                  displayList = members.where((m) {
-                    final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
-                    return name.contains(_searchQuery);
-                  }).toList();
-                } else {
-                  // Holders Only
-                  displayList = members.where((m) => m.societyRole == widget.role).toList();
-                }
+            if (isSearching) {
+              // Candidates + Holders matching search
+              displayList = members.where((m) {
+                final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
+                return name.contains(_searchQuery);
+              }).toList();
+            } else {
+              // Holders Only
+              displayList = members.where((m) => m.societyRole == widget.role).toList();
+            }
 
-                // Sort: Role holders first, then alpha
-                displayList.sort((a, b) {
-                  final aHasRole = a.societyRole == widget.role;
-                  final bHasRole = b.societyRole == widget.role;
-                  if (aHasRole && !bHasRole) return -1;
-                  if (!aHasRole && bHasRole) return 1;
-                  return a.lastName.compareTo(b.lastName);
-                });
+            // Sort: Role holders first, then alpha
+            displayList.sort((a, b) {
+              final aHasRole = a.societyRole == widget.role;
+              final bHasRole = b.societyRole == widget.role;
+              if (aHasRole && !bHasRole) return -1;
+              if (!aHasRole && bHasRole) return 1;
+              return a.lastName.compareTo(b.lastName);
+            });
 
-                if (displayList.isEmpty) {
-                  return Center(
-                    child: Text(
-                      isSearching ? 'No members found.' : 'No members have this position.',
-                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-                    ),
-                  );
-                }
+            if (displayList.isEmpty) {
+              return SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    isSearching ? 'No members found.' : 'No members have this position.',
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                  ),
+                ),
+              );
+            }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: displayList.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
+            return SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
                     final member = displayList[index];
                     final hasRole = member.societyRole == widget.role;
 
                     if (!hasRole) {
-                      return _buildCandidateTile(member);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildCandidateTile(member),
+                      );
                     } else {
-                      return _buildActiveRoleTile(member);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildActiveRoleTile(member),
+                      );
                     }
                   },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
-          ),
-        ],
-      ),
+                  childCount: displayList.length,
+                ),
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+          error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+        ),
+      ],
     );
   }
 

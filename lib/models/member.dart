@@ -76,7 +76,7 @@ abstract class Member with _$Member {
     String? bio,
     String? avatarUrl,
     @Default(0.0) double handicap,
-    String? whsNumber,
+    String? handicapId,
     @Default(false) bool isHandicapLocked,
     @Default(MemberRole.member) MemberRole role,
     String? societyRole, // [NEW]

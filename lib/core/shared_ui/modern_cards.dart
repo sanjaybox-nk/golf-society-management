@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// A refined modern card with deep soft shadows and modular structure.
@@ -8,6 +9,7 @@ class ModernCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final Color? backgroundColor;
   final double borderRadius;
+  final BorderSide? border;
 
   const ModernCard({
     super.key,
@@ -17,6 +19,7 @@ class ModernCard extends StatelessWidget {
     this.margin,
     this.backgroundColor,
     this.borderRadius = 20,
+    this.border,
   });
 
   @override
@@ -30,16 +33,33 @@ class ModernCard extends StatelessWidget {
         color: bgColor,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
+          // Base Soft Shadow
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
+          // Sharp Close Shadow
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+          // Inner glow / subtle highlight (light mode only)
+          if (!isDark)
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.8),
+              blurRadius: 0,
+              offset: const Offset(0, 0),
+              spreadRadius: 0,
+            ),
         ],
-        border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-          width: 1,
-        ),
+        border: border != null 
+          ? Border.fromBorderSide(border!) 
+          : Border.all(
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.08 : 0.04),
+              width: 0.5,
+            ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -181,27 +201,29 @@ class ModernInfoRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
         ],
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: textSecondary,
-                fontWeight: FontWeight.w500,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: textPrimary,
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -353,12 +375,14 @@ class ModernRuleItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: textSecondary,
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           const Spacer(),
@@ -398,12 +422,14 @@ class ModernCostRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTotal ? 14 : 13,
-              color: isTotal ? textPrimary : textSecondary,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: isTotal ? 14 : 13,
+                color: isTotal ? textPrimary : textSecondary,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+              ),
             ),
           ),
           const Spacer(),
@@ -444,31 +470,43 @@ class ModernMetricStat extends StatelessWidget {
 
     if (isCompact) {
       return Container(
-        padding: const EdgeInsets.all(12),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
+          color: color.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
               Icon(icon, size: 20, color: color),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
             ],
             Text(
               value,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
                 color: color,
+                letterSpacing: -0.5,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
-                color: textSecondary,
+                fontSize: 11,
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -597,4 +635,141 @@ class ModernNoteCard extends StatelessWidget {
       ),
     );
   }
+}
+/// A high-fidelity tab bar for sub-navigation (e.g. within an event).
+class ModernSubTabBar extends StatelessWidget {
+  final int selectedIndex;
+  final List<ModernSubTabItem> items;
+  final ValueChanged<int> onSelected;
+  final Color? unselectedColor;
+  final Color? borderColor;
+
+  const ModernSubTabBar({
+    super.key,
+    required this.selectedIndex,
+    required this.items,
+    required this.onSelected,
+    this.unselectedColor,
+    this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // We want a floating pill at the bottom
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Support themed placeholders/unselected icons
+    final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.7) ?? 
+                    (isDark ? Colors.white60 : Colors.black45);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+      height: 64,
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.grey.shade900 : Colors.white).withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: borderColor ?? (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05), 
+          width: borderColor != null ? 1.0 : 0.5
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Stack(
+            children: [
+              // Travelling Indicator
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.elasticOut,
+                alignment: Alignment(
+                  (selectedIndex / (items.length - 1)) * 2 - 1,
+                  0,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Container(
+                    width: (MediaQuery.of(context).size.width - 60) / items.length,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Tab Items
+              Row(
+                children: items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isSelected = index == selectedIndex;
+                  
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => onSelected(index),
+                      behavior: HitTestBehavior.opaque,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isSelected ? item.activeIcon : item.icon,
+                            color: isSelected ? Colors.white : unselectedItemColor,
+                            size: 22,
+                          ),
+                          if (items.length <= 5) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              item.label,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                color: isSelected ? Colors.white : unselectedItemColor,
+                                letterSpacing: 0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ModernSubTabItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+
+  const ModernSubTabItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+  });
 }

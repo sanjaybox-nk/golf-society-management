@@ -22,6 +22,7 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final Widget? topRow;
   final String? subtitle;
   final bool isPeeking;
+  final bool transparent;
 
   final bool showAdminShortcut;
 
@@ -42,9 +43,10 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
     this.subtitle,
     this.isPeeking = false,
     this.showAdminShortcut = true,
+    this.transparent = false,
   });
 
-  static const double largeHeight = 84.0;
+  static const double largeHeight = 72.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,6 +64,7 @@ class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
       leadingWidth: leadingWidth,
       showAdminShortcut: showAdminShortcut,
       bottom: bottom,
+      transparent: transparent,
     );
   }
 

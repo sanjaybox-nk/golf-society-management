@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/competition.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'controls/stableford_control.dart';
 import 'controls/stroke_control.dart';
 import 'controls/match_play_control.dart';
@@ -81,59 +82,19 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       subtype: activeSubtype ?? CompetitionSubtype.none,
     ).gameName;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverAppBar(
-            floating: true,
-            pinned: true,
-            expandedHeight: 140,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
-            surfaceTintColor: Colors.transparent,
-            title: Text(
-              gameName,
-              style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
-            ),
-            centerTitle: true,
-            leading: Center(
-              child: Container(
-                width: 36,
-                height: 36,
-                margin: const EdgeInsets.only(left: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                  onPressed: () => context.pop(),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                alignment: Alignment.bottomCenter,
-                padding: const EdgeInsets.only(bottom: 48),
-                child: Text(
-                  isTemplate ? 'edit saved game' : (compToUse != null ? 'event customization' : 'new competition'),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-        body: SingleChildScrollView(
+    return HeadlessScaffold(
+      title: gameName,
+      subtitle: isTemplate 
+          ? 'edit saved game' 
+          : (compToUse != null ? 'event customization' : 'new competition'),
+      slivers: [
+        SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: _buildControl(activeFormat, context, competition: competition, template: template),
+          sliver: SliverToBoxAdapter(
+            child: _buildControl(activeFormat, context, competition: competition, template: template),
+          ),
         ),
-      ),
+      ],
     );
   }
 

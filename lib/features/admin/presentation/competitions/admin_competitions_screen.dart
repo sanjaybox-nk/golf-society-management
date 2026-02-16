@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/competition.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/models/competition.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 
 class AdminLeaderboardsScreen extends ConsumerStatefulWidget {
   const AdminLeaderboardsScreen({super.key});
@@ -29,64 +30,80 @@ class _AdminLeaderboardsScreenState extends ConsumerState<AdminLeaderboardsScree
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: DefaultTabController(
-        length: 3,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar(
-              floating: true,
-              pinned: true,
-              expandedHeight: 120,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
-              surfaceTintColor: Colors.transparent,
-              title: const Text(
-                'Leaderboards',
-                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
-              ),
-              leading: IconButton(
-                icon: const Icon(Icons.home_rounded, size: 24),
-                onPressed: () => context.go('/home'),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.settings_rounded, size: 22),
-                  onPressed: () => context.push('/admin/settings'),
+    final primary = Theme.of(context).primaryColor;
+    
+    return DefaultTabController(
+      length: 3,
+      child: HeadlessScaffold(
+        title: 'Leaderboards',
+        subtitle: 'Society Competitions',
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
+            surfaceTintColor: Colors.transparent,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(49),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 8),
-              ],
-              bottom: TabBar(
-                indicatorColor: Theme.of(context).primaryColor,
-                indicatorWeight: 3,
-                labelColor: Theme.of(context).textTheme.bodyLarge?.color,
-                unselectedLabelColor: Theme.of(context).textTheme.bodySmall?.color,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                tabs: const [
-                  Tab(text: 'LIVE'),
-                  Tab(text: 'UPCOMING'),
-                  Tab(text: 'HISTORY'),
-                ],
+                child: TabBar(
+                  indicatorColor: primary,
+                  indicatorWeight: 3,
+                  labelColor: Theme.of(context).textTheme.bodyLarge?.color,
+                  unselectedLabelColor: Theme.of(context).textTheme.bodySmall?.color,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  tabs: const [
+                    Tab(text: 'LIVE'),
+                    Tab(text: 'UPCOMING'),
+                    Tab(text: 'HISTORY'),
+                  ],
+                ),
               ),
             ),
-          ],
-          body: const TabBarView(
-            children: [
-              _CompetitionsList(status: CompetitionStatus.open),
-              _CompetitionsList(status: CompetitionStatus.draft),
-              _CompetitionsList(status: CompetitionStatus.published),
-            ],
           ),
-        ),
+          const _AdminLeaderboardsTabContent(),
+        ],
       ),
     );
   }
 }
 
-class _CompetitionsList extends ConsumerWidget {
-  final CompetitionStatus status;
+class _AdminLeaderboardsTabContent extends ConsumerWidget {
+  const _AdminLeaderboardsTabContent();
 
-  const _CompetitionsList({required this.status});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabController = DefaultTabController.of(context);
+    
+    return AnimatedBuilder(
+      animation: tabController,
+      builder: (context, _) {
+        final status = _getStatusForIndex(tabController.index);
+        return _CompetitionsSliverList(status: status);
+      },
+    );
+  }
+
+  CompetitionStatus _getStatusForIndex(int index) {
+    switch (index) {
+      case 0: return CompetitionStatus.open;
+      case 1: return CompetitionStatus.draft;
+      case 2: return CompetitionStatus.published;
+      default: return CompetitionStatus.open;
+    }
+  }
+}
+
+class _CompetitionsSliverList extends ConsumerWidget {
+  final CompetitionStatus status;
+  const _CompetitionsSliverList({required this.status});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,69 +112,82 @@ class _CompetitionsList extends ConsumerWidget {
     return compsAsync.when(
       data: (comps) {
         if (comps.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.emoji_events_outlined, size: 64, color: Colors.grey.withValues(alpha: 0.3)),
-                const SizedBox(height: 16),
-                Text('No ${status.name} competitions', style: const TextStyle(color: Colors.grey)),
-              ],
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.emoji_events_outlined, size: 64, color: Colors.grey.withValues(alpha: 0.3)),
+                  const SizedBox(height: 16),
+                  Text('No ${status.name} competitions', style: const TextStyle(color: Colors.grey)),
+                ],
+              ),
             ),
           );
         }
 
-        return ListView.separated(
+        return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          itemCount: comps.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final comp = comps[index];
-            return ModernCard(
-              padding: const EdgeInsets.all(16),
-              child: InkWell(
-                onTap: () => context.push('/admin/competitions/manage/${comp.id}'),
-                borderRadius: BorderRadius.circular(24),
-                child: Row(
-                  children: [
-                    _buildFormatBadge(context, comp.rules.format),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final comp = comps[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: ModernCard(
+                    padding: const EdgeInsets.all(16),
+                    child: InkWell(
+                      onTap: () => context.push('/admin/competitions/manage/${comp.id}'),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Row(
                         children: [
-                          Text(
-                            '${comp.startDate.year} • ${comp.rules.mode.name.toUpperCase()}',
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
+                          _buildFormatBadge(context, comp.rules.format),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${comp.startDate.year} • ${comp.rules.mode.name.toUpperCase()}',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  comp.name ?? comp.rules.format.name.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            comp.name ?? comp.rules.format.name.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.chevron_right_rounded, color: Theme.of(context).dividerColor),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.chevron_right_rounded, color: Theme.of(context).dividerColor),
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+                );
+              },
+              childCount: comps.length,
+            ),
+          ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
+      loading: () => const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, s) => SliverFillRemaining(
+        child: Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
+      ),
     );
   }
 

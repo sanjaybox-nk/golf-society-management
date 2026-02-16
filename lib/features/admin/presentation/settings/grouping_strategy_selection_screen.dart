@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../../core/theme/theme_controller.dart';
 
 
@@ -43,140 +44,86 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
       ),
     ];
 
-    return Scaffold(
+    return HeadlessScaffold(
+      title: 'Grouping',
+      subtitle: 'Select default grouping method',
+      showBack: true,
       backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Grouping',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    Text(
-                      'Select default grouping method',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    ...strategies.map((strategy) {
-                      final isSelected = strategy.id == current;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ModernCard(
-                          onTap: () => controller.setGroupingStrategy(strategy.id),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              ...strategies.map((strategy) {
+                final isSelected = strategy.id == current;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ModernCard(
+                    onTap: () => controller.setGroupingStrategy(strategy.id),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isSelected 
+                                  ? Theme.of(context).primaryColor.withValues(alpha: 0.1) 
+                                  : Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              strategy.icon,
+                              color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: isSelected 
-                                        ? Theme.of(context).primaryColor.withValues(alpha: 0.1) 
-                                        : Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    strategy.icon,
-                                    color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
-                                    size: 24,
+                                Text(
+                                  strategy.label,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: isSelected ? Theme.of(context).primaryColor : null,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        strategy.label,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: isSelected ? Theme.of(context).primaryColor : null,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        strategy.description,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Theme.of(context).textTheme.bodySmall?.color,
-                                          height: 1.3,
-                                        ),
-                                      ),
-                                    ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  strategy.description,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                                    height: 1.3,
                                   ),
                                 ),
-                                if (isSelected)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8, top: 4),
-                                    child: Icon(
-                                      Icons.check_circle_rounded,
-                                      color: Theme.of(context).primaryColor,
-                                      size: 20,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 100),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
+                          if (isSelected)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8, top: 4),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: Theme.of(context).primaryColor,
+                                size: 20,
+                              ),
+                            ),
                         ],
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 100),
+            ]),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

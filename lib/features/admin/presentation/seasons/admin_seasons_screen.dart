@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/season.dart';
 import '../../../events/presentation/events_provider.dart';
@@ -15,116 +16,54 @@ class AdminSeasonsScreen extends ConsumerWidget {
     final seasonsAsync = ref.watch(seasonsProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
-      backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Seasons',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    Text(
-                      'Manage society history and activity',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    const BoxyArtSectionTitle(title: 'Active & Archived Seasons', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    seasonsAsync.when(
-                      data: (seasons) {
-                        if (seasons.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(48.0),
-                              child: Text(
-                                'No seasons created yet',
-                                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
-                              ),
-                            ),
-                          );
-                        }
-                        return Column(
-                          children: seasons.map((season) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _SeasonCard(season: season),
-                          )).toList(),
-                        );
-                      },
-                      loading: () => const Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (err, stack) => Center(child: Text('Error: $err')),
-                    ),
-                    const SizedBox(height: 100),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Floating Action Button
-          Positioned(
-            bottom: 32,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: () => context.push('/admin/settings/seasons/new'),
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-              elevation: 4,
-              child: const Icon(Icons.add_rounded, size: 28),
-            ),
-          ),
-        ],
+    return HeadlessScaffold(
+      title: 'Seasons',
+      subtitle: 'Manage society history and activity',
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/admin/settings/seasons/new'),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        child: const Icon(Icons.add_rounded, size: 28),
       ),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const BoxyArtSectionTitle(title: 'Active & Archived Seasons', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              seasonsAsync.when(
+                data: (seasons) {
+                  if (seasons.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(48.0),
+                        child: Text(
+                          'No seasons created yet',
+                          style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                        ),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: seasons.map((season) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _SeasonCard(season: season),
+                    )).toList(),
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (err, stack) => Center(child: Text('Error: $err')),
+              ),
+              const SizedBox(height: 100),
+            ]),
+          ),
+        ),
+      ],
     );
   }
 }

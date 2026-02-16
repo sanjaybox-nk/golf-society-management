@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/shared_ui/modern_cards.dart';
+import '../../members/presentation/profile_provider.dart';
+import '../../../models/member.dart';
 
-class EventUserShell extends StatelessWidget {
+class EventUserShell extends ConsumerWidget {
   final Widget child;
 
   const EventUserShell({
@@ -10,77 +14,59 @@ class EventUserShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(effectiveUserProvider);
+    final isAdmin = user.role != MemberRole.member;
     final location = GoRouterState.of(context).uri.toString();
     int currentIndex = 0;
     
     // Determine index based on current route
-    if (location.endsWith('/register')) {
+    if (location.contains('/field')) {
       currentIndex = 1;
-    } else if (location.endsWith('/grouping')) {
+    } else if (location.contains('/live')) {
       currentIndex = 2;
-    } else if (location.endsWith('/scores')) {
+    } else if (location.contains('/stats')) {
       currentIndex = 3;
-    } else if (location.endsWith('/gallery')) {
+    } else if (location.contains('/photos')) {
       currentIndex = 4;
     }
 
     return Scaffold(
+      extendBody: true,
       body: child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 4.0, bottom: 0.0, left: 8.0, right: 8.0),
-            child: BottomNavigationBar(
-              currentIndex: currentIndex,
-              onTap: (index) => _onTap(context, index),
-              backgroundColor: Colors.black,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.grey.shade600,
-              type: BottomNavigationBarType.fixed,
-              elevation: 0,
-              selectedFontSize: 10,
-              unselectedFontSize: 10,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.event_note_outlined),
-                  activeIcon: Icon(Icons.event_note),
-                  label: 'Event',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.people_outline),
-                  activeIcon: Icon(Icons.people),
-                  label: 'Registration',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.grid_view_rounded),
-                  activeIcon: Icon(Icons.grid_view_sharp),
-                  label: 'Grouping',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.emoji_events_outlined),
-                  activeIcon: Icon(Icons.emoji_events),
-                  label: 'Scores',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.photo_library_outlined),
-                  activeIcon: Icon(Icons.photo_library),
-                  label: 'Gallery',
-                ),
-              ],
-            ),
+      bottomNavigationBar: ModernSubTabBar(
+        selectedIndex: currentIndex,
+        onSelected: (index) => _onTap(context, index),
+        unselectedColor: (isAdmin || location.contains('preview=true')) 
+          ? Theme.of(context).primaryColor 
+          : null,
+        items: const [
+          ModernSubTabItem(
+            icon: Icons.info_outline_rounded,
+            activeIcon: Icons.info_rounded,
+            label: 'Info',
           ),
-        ),
+          ModernSubTabItem(
+            icon: Icons.grid_view_rounded,
+            activeIcon: Icons.grid_view_rounded,
+            label: 'Field',
+          ),
+          ModernSubTabItem(
+            icon: Icons.emoji_events_outlined,
+            activeIcon: Icons.emoji_events_rounded,
+            label: 'Live',
+          ),
+          ModernSubTabItem(
+            icon: Icons.analytics_outlined,
+            activeIcon: Icons.analytics_rounded,
+            label: 'Stats',
+          ),
+          ModernSubTabItem(
+            icon: Icons.photo_library_outlined,
+            activeIcon: Icons.photo_library_rounded,
+            label: 'Photos',
+          ),
+        ],
       ),
     );
   }
@@ -101,13 +87,13 @@ class EventUserShell extends StatelessWidget {
     
     // Determine current index to detect if tapping same tab
     int currentIndex = 0;
-    if (location.endsWith('/register')) {
+    if (location.endsWith('/field')) {
       currentIndex = 1;
-    } else if (location.endsWith('/grouping')) {
+    } else if (location.endsWith('/live')) {
       currentIndex = 2;
-    } else if (location.endsWith('/scores')) {
+    } else if (location.endsWith('/stats')) {
       currentIndex = 3;
-    } else if (location.endsWith('/gallery')) {
+    } else if (location.endsWith('/photos')) {
       currentIndex = 4;
     }
 
@@ -125,16 +111,16 @@ class EventUserShell extends StatelessWidget {
         }
         break;
       case 1:
-        context.go('/events/$id/register$suffix');
+        context.go('/events/$id/field$suffix');
         break;
       case 2:
-        context.go('/events/$id/grouping$suffix');
+        context.go('/events/$id/live$suffix');
         break;
       case 3:
-        context.go('/events/$id/scores$suffix');
+        context.go('/events/$id/stats$suffix');
         break;
       case 4:
-        context.go('/events/$id/gallery$suffix');
+        context.go('/events/$id/photos$suffix');
         break;
     }
   }

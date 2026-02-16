@@ -30,61 +30,40 @@ class EventAdminShell extends ConsumerWidget {
     }
 
     return Scaffold(
+      extendBody: true,
       body: child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 4.0, bottom: 0.0, left: 8.0, right: 8.0),
-            child: BottomNavigationBar(
-              currentIndex: currentIndex,
-              onTap: (index) => _onTap(context, ref, index, currentIndex),
-              backgroundColor: Colors.black,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.grey.shade600,
-              type: BottomNavigationBarType.fixed,
-              elevation: 0,
-              selectedFontSize: 10,
-              unselectedFontSize: 10,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.event_note_outlined),
-                  activeIcon: Icon(Icons.event_note),
-                  label: 'Event',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.people_outline),
-                  activeIcon: Icon(Icons.people),
-                  label: 'Registration',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.grid_view_rounded),
-                  activeIcon: Icon(Icons.grid_view_sharp),
-                  label: 'Grouping',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.emoji_events_outlined),
-                  activeIcon: Icon(Icons.emoji_events),
-                  label: 'Scores',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.bar_chart_outlined),
-                  activeIcon: Icon(Icons.bar_chart),
-                  label: 'Reports',
-                ),
-              ],
-            ),
+      bottomNavigationBar: ModernSubTabBar(
+        selectedIndex: currentIndex,
+        onSelected: (index) => _onTap(context, ref, index, currentIndex),
+        unselectedColor: null,
+        borderColor: Theme.of(context).primaryColor,
+        items: const [
+          ModernSubTabItem(
+            icon: Icons.info_outline_rounded,
+            activeIcon: Icons.info_rounded,
+            label: 'Info',
           ),
-        ),
+          ModernSubTabItem(
+            icon: Icons.people_outline,
+            activeIcon: Icons.people,
+            label: 'Registration',
+          ),
+          ModernSubTabItem(
+            icon: Icons.grid_view_rounded,
+            activeIcon: Icons.grid_view_sharp,
+            label: 'Grouping',
+          ),
+          ModernSubTabItem(
+            icon: Icons.emoji_events_outlined,
+            activeIcon: Icons.emoji_events,
+            label: 'Scores',
+          ),
+          ModernSubTabItem(
+            icon: Icons.bar_chart_outlined,
+            activeIcon: Icons.bar_chart,
+            label: 'Reports',
+          ),
+        ],
       ),
     );
   }

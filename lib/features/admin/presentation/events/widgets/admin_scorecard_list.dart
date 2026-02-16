@@ -94,14 +94,14 @@ class AdminScorecardList extends ConsumerWidget {
               children: [
                 // Position Index
                 Container(
-                  width: 22,
-                  height: 22,
+                  width: 24,
+                  height: 24,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Text('$index', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  child: Text('$index', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
                 ),
                 const SizedBox(width: 8),
 
@@ -238,7 +238,7 @@ class AdminScorecardList extends ConsumerWidget {
                       }
                     },
                   ),
-                const Icon(Icons.chevron_right, color: Colors.grey, size: 16),
+                Icon(Icons.chevron_right_rounded, color: Theme.of(context).primaryColor.withValues(alpha: 0.5), size: 20),
               ],
             ),
           ),

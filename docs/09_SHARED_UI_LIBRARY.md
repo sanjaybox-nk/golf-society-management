@@ -167,15 +167,14 @@ Used for summarizing complex configurations (like Competition Rules) into a comp
 
 ## 6. Layout (`layout.dart`)
 
-### `BoxyArtAppBar`
-Standard screen header.
-- `title` (String): Display text.
-- `isLarge` (bool): If true, creates a 88dp colored header (Primary color).
-- `showBack` (bool): Optional back button.
-- `actions` (List<Widget>): Custom action buttons.
-
-### `BoxyArtSectionTitle`
-Grey, uppercase bold label (12pt) used to group content. Always visible even in empty states.
+### `HeadlessScaffold`
+The base layout for the "Pro Max" / Headerless Modern design.
+- **Properties**:
+  - `title`: Primary screen title (large, bold).
+  - `subtitle`: Optional secondary context.
+  - `showBack`: Controls back button visibility.
+  - `slivers`: List of widgets to display in the nested scroll view.
+- **Design**: Implements the signature blurred glass header and floating search bar integration.
 
 ### `FloatingBottomSearch`
 The signature "Floating Dock" for Search and Filter.
@@ -221,3 +220,11 @@ Used in the `RichStatsTab` to provide deep analysis of society and personal perf
 - `HoleNemesisComparison`: Personal Toughest vs Field Toughest side-by-side.
 - `BounceBackStatCard`: Comparative stat for recovery rate.
 - `HoleScoreCard`: Standalone card for a single hole's detail. Features +/- controls (Active Mode) or Read-Only display. Consistent across scoring and summaries.
+- `CourseInfoCard`: Provides a real-time summary of the course (Par, Slopes, Tees) and the player's performance vs. their PHC (Playing Handicap).
+- `HoleByHoleScoringWidget`: The core engine for scorecard entry. Features an interactive hole swiper and "Active Marker" mode. Fully standardized across Admin and User views for 1:1 visual parity.
+
+## 7. Universal Visual Parity
+Starting in Feb 2026, all scorecard components follow a unified "Universal Parity" standard:
+- **Typography**: Primary labels (`TOTAL`, `HOLE`, `SCORES`) use `FontWeight.w900` and `letterSpacing: 2.0`.
+- **Metadata**: Status labels (e.g., "BIRDIE", "PAR", "BOGEY") use `FontWeight.w900` and `letterSpacing: 0.5`.
+- **Layout Alignment**: Admin scorecard editors must include the exact same `HC / PHC` info row as member views to ensure admin-member alignment.

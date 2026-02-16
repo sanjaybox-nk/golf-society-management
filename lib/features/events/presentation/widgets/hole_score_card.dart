@@ -43,7 +43,7 @@ class HoleScoreCard extends StatelessWidget {
       child: AbsorbPointer(
         absorbing: isDisabled,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
     
@@ -89,9 +89,9 @@ class HoleScoreCard extends StatelessWidget {
                   Text(
                     'HOLE $holeNum',
                     style: textTheme.labelSmall?.copyWith(
-                      color: onSurface.withValues(alpha: 0.3),
+                      color: onSurface.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
+                      letterSpacing: 2.0,
                     ),
                   ),
                   Row(
@@ -135,7 +135,7 @@ class HoleScoreCard extends StatelessWidget {
       backgroundColor: onSurface.withValues(alpha: 0.05),
       iconColor: Theme.of(context).primaryColor,
       iconSize: 24,
-      padding: 12,
+      padding: 8,
       shadowOverride: AppShadows.inputSoft, 
     );
   }
@@ -143,7 +143,7 @@ class HoleScoreCard extends StatelessWidget {
   Widget _buildScoreMetadata(int score, int par) {
     final diff = score - par;
     String label = 'Par';
-    Color color = Colors.grey;
+    Color color = Colors.blueGrey.shade700;
 
     if (diff == -1) {
       label = 'Birdie';
@@ -168,7 +168,7 @@ class HoleScoreCard extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          fontSize: 8,
+          fontSize: 9,
           fontWeight: FontWeight.w900,
           color: color,
           letterSpacing: 0.5,
@@ -239,8 +239,8 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
   Widget build(BuildContext context) {
     if (widget.isReadOnly) {
        return Container(
-        width: 82,
-        height: 82,
+        width: 72,
+        height: 72,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -261,7 +261,7 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         child: Text(
           '${widget.score}',
           style: const TextStyle(
-            fontSize: 42,
+            fontSize: 36,
             fontWeight: FontWeight.w900,
             color: Colors.black,
             letterSpacing: -1,
@@ -272,8 +272,8 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: 82,
-      height: 82,
+      width: 72,
+      height: 72,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -304,7 +304,7 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         onSubmitted: (_) => _handleCommit(),
         textAlignVertical: TextAlignVertical.center,
         style: const TextStyle(
-          fontSize: 42,
+          fontSize: 36,
           fontWeight: FontWeight.w900,
           color: Colors.black,
           letterSpacing: -1,

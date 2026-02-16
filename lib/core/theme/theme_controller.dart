@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/settings/data/society_config_repository.dart';
 import '../../models/society_config.dart';
+import '../../models/handicap_system.dart';
 
 final themeControllerProvider = NotifierProvider<ThemeController, SocietyConfig>(ThemeController.new);
 
@@ -117,6 +118,12 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setSelectedPaletteName(String? name) async {
     final newConfig = state.copyWith(selectedPaletteName: name);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setHandicapSystem(HandicapSystem system) async {
+    final newConfig = state.copyWith(handicapSystem: system);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

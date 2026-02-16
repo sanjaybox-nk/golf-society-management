@@ -8,6 +8,8 @@ import 'package:golf_society/core/theme/contrast_helper.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:golf_society/core/services/storage_service.dart';
 import 'package:golf_society/core/theme/app_palettes.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:golf_society/core/shared_ui/modern_cards.dart';
 
 class BrandingSettingsScreen extends ConsumerWidget {
   const BrandingSettingsScreen({super.key});
@@ -17,246 +19,189 @@ class BrandingSettingsScreen extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
     final currentColor = Theme.of(context).primaryColor;
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
-      backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Branding',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
+    return HeadlessScaffold(
+      title: 'Branding',
+      subtitle: 'Customize colors and identity',
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const BoxyArtSectionTitle(title: 'Society Identity', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              ModernCard(
+                child: Column(
+                  children: [
+                    ModernTextField(
+                      label: 'Society Name',
+                      initialValue: config.societyName,
+                      onChanged: (v) => controller.setSocietyName(v),
+                      icon: Icons.business_rounded,
                     ),
-                    Text(
-                      'Customize colors and identity',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    const SizedBox(height: 24),
+                    _LogoPicker(
+                      currentUrl: config.logoUrl,
+                      onUrlChanged: (v) => controller.setLogoUrl(v),
                     ),
-                    const SizedBox(height: 32),
-                    const BoxyArtSectionTitle(title: 'Society Identity', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    ModernCard(
-                      child: Column(
-                        children: [
-                          ModernTextField(
-                            label: 'Society Name',
-                            initialValue: config.societyName,
-                            onChanged: (v) => controller.setSocietyName(v),
-                            icon: Icons.business_rounded,
-                          ),
-                          const SizedBox(height: 24),
-                          _LogoPicker(
-                            currentUrl: config.logoUrl,
-                            onUrlChanged: (v) => controller.setLogoUrl(v),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    const BoxyArtSectionTitle(title: 'Design Palettes', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    ModernCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Select a preset design palette to instantly modernize your app.',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 20),
-                          _PaletteSelector(
-                            selectedPaletteName: config.selectedPaletteName,
-                            onPaletteSelected: (name) => controller.setSelectedPaletteName(name),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    const BoxyArtSectionTitle(title: 'Live Preview', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    _buildPreviewCard(currentColor, config.themeMode),
-                    const SizedBox(height: 32),
-
-                    const BoxyArtSectionTitle(title: 'Primary Color', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    ModernCard(
-                      child: _ColorPalette(
-                        selectedColor: currentColor,
-                        customColors: config.customColors,
-                        onColorSelected: (c) => controller.setPrimaryColor(c),
-                        onAddCustomColor: (c) => controller.addCustomColor(c),
-                        onUpdateCustomColor: (index, c) => controller.updateCustomColor(index, c),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    const BoxyArtSectionTitle(title: 'Card Appearance', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    ModernCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ModernSwitchRow(
-                            label: 'Use Gradient',
-                            value: config.useCardGradient,
-                            icon: Icons.gradient_rounded,
-                            onChanged: (value) => controller.setUseCardGradient(value),
-                          ),
-                          const SizedBox(height: 12),
-                          const Divider(height: 1),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Card Tint Intensity',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                '${(config.cardTintIntensity * 100).round()}%',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w900,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Slider(
-                            value: config.cardTintIntensity,
-                            min: 0.0,
-                            max: 1.0,
-                            divisions: 20,
-                            activeColor: Theme.of(context).primaryColor,
-                            onChanged: (value) => controller.setCardTintIntensity(value),
-                          ),
-                          const SizedBox(height: 24),
-                          Container(
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  currentColor.withValues(alpha: config.cardTintIntensity * 0.5),
-                                  currentColor.withValues(alpha: config.cardTintIntensity),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Card Preview',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.5,
-                                  color: ContrastHelper.getContrastingText(
-                                    Color.alphaBlend(
-                                      currentColor.withValues(alpha: config.cardTintIntensity * 0.75),
-                                      Theme.of(context).cardColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    const BoxyArtSectionTitle(title: 'App Appearance', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    ModernCard(
-                      child: Column(
-                        children: [
-                          _ThemeModeTile(
-                            title: 'System Default',
-                            value: 'system',
-                            groupValue: config.themeMode,
-                            icon: Icons.brightness_auto_rounded,
-                            onChanged: (v) => controller.setThemeMode(v!),
-                          ),
-                          const Divider(height: 1),
-                          _ThemeModeTile(
-                            title: 'Always Light',
-                            value: 'light',
-                            groupValue: config.themeMode,
-                            icon: Icons.light_mode_rounded,
-                            onChanged: (v) => controller.setThemeMode(v!),
-                          ),
-                          const Divider(height: 1),
-                          _ThemeModeTile(
-                            title: 'Always Dark',
-                            value: 'dark',
-                            groupValue: config.themeMode,
-                            icon: Icons.dark_mode_rounded,
-                            onChanged: (v) => controller.setThemeMode(v!),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                  ]),
+                  ],
                 ),
               ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
+              const SizedBox(height: 32),
+              
+              const BoxyArtSectionTitle(title: 'Design Palettes', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              ModernCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
+                    const Text(
+                      'Select a preset design palette to instantly modernize your app.',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 20),
+                    _PaletteSelector(
+                      selectedPaletteName: config.selectedPaletteName,
+                      onPaletteSelected: (name) => controller.setSelectedPaletteName(name),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'Live Preview', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              _buildPreviewCard(currentColor, config.themeMode),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'Primary Color', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              ModernCard(
+                child: _ColorPalette(
+                  selectedColor: currentColor,
+                  customColors: config.customColors,
+                  onColorSelected: (c) => controller.setPrimaryColor(c),
+                  onAddCustomColor: (c) => controller.addCustomColor(c),
+                  onUpdateCustomColor: (index, c) => controller.updateCustomColor(index, c),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'Card Appearance', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              ModernCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ModernSwitchRow(
+                      label: 'Use Gradient',
+                      value: config.useCardGradient,
+                      icon: Icons.gradient_rounded,
+                      onChanged: (value) => controller.setUseCardGradient(value),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Card Tint Intensity',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '${(config.cardTintIntensity * 100).round()}%',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Theme.of(context).primaryColor,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Slider(
+                      value: config.cardTintIntensity,
+                      min: 0.0,
+                      max: 1.0,
+                      divisions: 20,
+                      activeColor: Theme.of(context).primaryColor,
+                      onChanged: (value) => controller.setCardTintIntensity(value),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            currentColor.withValues(alpha: config.cardTintIntensity * 0.5),
+                            currentColor.withValues(alpha: config.cardTintIntensity),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
+                      child: Center(
+                        child: Text(
+                          'Card Preview',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                            color: ContrastHelper.getContrastingText(
+                              Color.alphaBlend(
+                                currentColor.withValues(alpha: config.cardTintIntensity * 0.75),
+                                Theme.of(context).cardColor,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'App Appearance', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              ModernCard(
+                child: Column(
+                  children: [
+                    _ThemeModeTile(
+                      title: 'System Default',
+                      value: 'system',
+                      groupValue: config.themeMode,
+                      icon: Icons.brightness_auto_rounded,
+                      onChanged: (v) => controller.setThemeMode(v!),
+                    ),
+                    const Divider(height: 1),
+                    _ThemeModeTile(
+                      title: 'Always Light',
+                      value: 'light',
+                      groupValue: config.themeMode,
+                      icon: Icons.light_mode_rounded,
+                      onChanged: (v) => controller.setThemeMode(v!),
+                    ),
+                    const Divider(height: 1),
+                    _ThemeModeTile(
+                      title: 'Always Dark',
+                      value: 'dark',
+                      groupValue: config.themeMode,
+                      icon: Icons.dark_mode_rounded,
+                      onChanged: (v) => controller.setThemeMode(v!),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 60),
+            ]),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -355,9 +300,12 @@ class _ThemeModeTile extends StatelessWidget {
                 ),
               ),
             ),
+            // ignore: deprecated_member_use
             Radio<String>(
               value: value,
+              // ignore: deprecated_member_use
               groupValue: groupValue,
+              // ignore: deprecated_member_use
               onChanged: onChanged,
               activeColor: Theme.of(context).primaryColor,
             ),

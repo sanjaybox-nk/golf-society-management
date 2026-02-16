@@ -185,7 +185,8 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: beigeBackground,
+      backgroundColor: widget.isTabbed ? Colors.transparent : beigeBackground,
+      appBar: widget.isTabbed ? null : BoxyArtAppBar(title: 'Compose'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(

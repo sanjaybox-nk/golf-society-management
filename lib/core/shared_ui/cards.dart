@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_theme.dart';
 import '../theme/status_colors.dart';
-import '../theme/contrast_helper.dart'; // [NEW]
 import '../theme/theme_controller.dart';
 import '../../models/member.dart';
+import '../../models/handicap_system.dart';
 import 'badges.dart';
+import 'modern_cards.dart';
 
 /// A card with a soft diffused shadow and high rounded corners.
 class BoxyArtFloatingCard extends ConsumerWidget {
@@ -157,9 +158,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
   final bool hasPaid;
   final String? avatarUrl;
   final TextEditingController? handicapController;
-  final TextEditingController? whsController;
+  final TextEditingController? handicapIdController;
   final FocusNode? handicapFocusNode;
-  final FocusNode? whsFocusNode;
+  final FocusNode? handicapIdFocusNode;
   final VoidCallback? onCameraTap;
   final ValueChanged<bool>? onFeeToggle;
   final ValueChanged<MemberStatus>? onStatusChanged;
@@ -180,9 +181,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     required this.hasPaid,
     this.avatarUrl,
     this.handicapController,
-    this.whsController,
+    this.handicapIdController,
     this.handicapFocusNode,
-    this.whsFocusNode,
+    this.handicapIdFocusNode,
     this.onCameraTap,
     this.onFeeToggle,
     this.onStatusChanged,
@@ -208,24 +209,14 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     const textColor = Colors.black87;
     const subTextColor = Colors.black54;
 
-    return Stack(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    final society = ref.watch(themeControllerProvider);
+    final system = society.handicapSystem;
+
+    return ModernCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           // Section A: Identity (Top Half)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,35 +227,51 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.grey.shade100,
-                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                        child: avatarUrl == null
-                            ? Text(
-                                (firstName.isNotEmpty ? firstName[0] : '') +
-                                (lastName.isNotEmpty ? lastName[0] : ''),
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                              )
-                            : null,
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.grey.shade100,
+                          backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                          child: avatarUrl == null
+                              ? Text(
+                                  (firstName.isNotEmpty ? firstName[0] : '') +
+                                  (lastName.isNotEmpty ? lastName[0] : ''),
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black54,
+                                  ),
+                                )
+                              : null,
+                        ),
                       ),
                       if (onCameraTap != null) // Allow any member to upload their profile picture
                         GestureDetector(
                           onTap: onCameraTap,
                           child: Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                 color: Colors.black.withValues(alpha: 0.2),
+                                 blurRadius: 5,
+                                 offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.camera_alt,
                               size: 14,
-                              color: ContrastHelper.getContrastingText(Theme.of(context).primaryColor),
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -275,9 +282,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     Text(
                       'Since ${joinedDate!.year}',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                         color: Colors.black.withValues(alpha: 0.4),
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -294,9 +302,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       firstName.isEmpty && lastName.isEmpty ? 'New Member' : '$firstName $lastName',
                       style: TextStyle(
                         fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: textColor,
-                        letterSpacing: -0.5,
+                        letterSpacing: -0.7,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -304,65 +312,72 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     
                     const SizedBox(height: 12),
                     
-                    // HC / iGolf Stats Row (Under Name)
+                    // HC / Handicap ID Stats Row (Under Name)
                     if (isEditing)
                       Row(
                         children: [
-                          SizedBox(
-                            width: 80,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'HC', 
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subTextColor)
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  child: TextFormField(
-                                    controller: handicapController,
-                                    focusNode: handicapFocusNode,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    readOnly: !isAdmin,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    ),
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isAdmin ? Colors.black : Colors.black54),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'iGolf No', 
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subTextColor)
+                                  'HANDICAP', 
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8)
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Container(
+                                  height: 38,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(100),
+                                    color: const Color(0xFFF8F9FA),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
                                   ),
                                   child: TextFormField(
-                                    controller: whsController,
-                                    focusNode: whsFocusNode,
+                                    controller: handicapController,
+                                    focusNode: handicapFocusNode,
+                                    textAlign: TextAlign.center,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    readOnly: !isAdmin,
                                     decoration: const InputDecoration(
                                       isDense: true,
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      contentPadding: EdgeInsets.symmetric(vertical: 10),
                                     ),
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isAdmin ? Colors.black : Colors.black54),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  system.idLabel, 
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8)
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8F9FA),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                                  ),
+                                  child: TextFormField(
+                                    controller: handicapIdController,
+                                    focusNode: handicapIdFocusNode,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      border: InputBorder.none,
+                                      hintText: system.hintText,
+                                      hintStyle: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                                    ),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               ],
@@ -373,34 +388,38 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     else
                       Row(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'HC',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: subTextColor),
-                              ),
-                              Text(
-                                handicapController?.text ?? '-',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textColor),
-                              ),
-                            ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'HANDICAP',
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  handicapController?.text ?? '-',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 20),
-                          Container(width: 1, height: 20, color: Colors.black12),
-                          const SizedBox(width: 20),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'iGolf No',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: subTextColor),
-                              ),
-                              Text(
-                                whsController?.text ?? '-',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textColor),
-                              ),
-                            ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  system.idLabel,
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  handicapIdController?.text ?? '-',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -444,19 +463,44 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   child: BoxyArtStatusPill(
                     text: statusLabel,
                     baseColor: status.color,
-                    backgroundColorOverride: Colors.white.withValues(alpha: 0.6),
+                    backgroundColorOverride: Colors.grey.shade50,
                   ),
                 )
               else
                 BoxyArtStatusPill(
                   text: statusLabel,
                   baseColor: status.color,
-                  backgroundColorOverride: Colors.white.withValues(alpha: 0.6),
+                  backgroundColorOverride: Colors.grey.shade50,
                 ),
               
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
+              
+              // 2. Member Role Badge (System Role)
+              if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
+                GestureDetector(
+                  onTap: canEdit ? onRoleTap : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.2), width: 1),
+                    ),
+                    child: Text(
+                      _getRoleLabel(role ?? MemberRole.viewer).toUpperCase(),
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                ),
 
-              // 2. Fee Pill (Interactive for Admin)
+              const Spacer(),
+
+              // 3. Fee Pill (Interactive for Admin)
               if (isAdmin) 
                 IgnorePointer(
                   ignoring: !canEdit,
@@ -466,58 +510,47 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   ),
                 ),
 
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
 
-              // 3. Member Role Badge (System Role) - Moved here
-                  if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
-                     GestureDetector(
-                       onTap: canEdit ? onRoleTap : null,
-                       child: Container(
-                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                         decoration: BoxDecoration(
-                           color: Colors.transparent,
-                           borderRadius: BorderRadius.circular(20),
-                           border: Border.all(color: Theme.of(context).primaryColor, width: 1.5),
-                         ),
-                         child: Text(
-                           _getRoleLabel(role ?? MemberRole.viewer).toUpperCase(),
-                           style: TextStyle(
-                             color: Theme.of(context).primaryColor,
-                             fontSize: 10,
-                             fontWeight: FontWeight.bold,
-                             letterSpacing: 0.5,
-                           ),
-                         ),
-                       ),
-                     ),
-
-              const Spacer(),
-
-              // 4. Society Role (President etc) - Moved to Bottom Right
+              // 4. Society Role (President etc)
               if (onSocietyRoleTap != null && canEdit)
                 GestureDetector(
                   onTap: onSocietyRoleTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      (societyRole?.isNotEmpty == true ? societyRole! : 'No Title').toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          (societyRole?.isNotEmpty == true ? societyRole! : 'NO TITLE').toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.white),
+                      ],
                     ),
                   ),
                 )
               else if (societyRole?.isNotEmpty == true)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(20),
@@ -525,10 +558,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   child: Text(
                     societyRole!.toUpperCase(),
                     style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
                       color: Colors.white,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.8,
                     ),
                   ),
                 ),
@@ -536,10 +569,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
           ),
         ],
       ),
-    ),
-  ],
-);
-}
+    );
+  }
 
   String _getRoleLabel(MemberRole role) {
     switch (role) {

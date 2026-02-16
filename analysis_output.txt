@@ -1,44 +1,55 @@
 Analyzing Golf Society Management...                            
 
-warning • The value of the local variable 'holesWon' isn't used • lib/core/services/seeding_service.dart:1256:13 • unused_local_variable
-warning • Unused import: '../../../matchplay/domain/match_definition.dart' • lib/features/admin/presentation/events/event_admin_grouping_screen.dart:22:8 • unused_import
-warning • The operand can't be 'null', so the condition is always 'true' • lib/features/admin/presentation/events/event_admin_scores_screen.dart:186:61 • unnecessary_null_comparison
-warning • Dead code • lib/features/admin/presentation/events/event_admin_scores_screen.dart:186:81 • dead_code
-   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:159:22 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:160:10 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:232:22 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:233:10 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:298:22 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/debug/presentation/state/debug_providers.dart:299:10 • curly_braces_in_flow_control_structures
-   info • Unnecessary use of multiple underscores • lib/features/debug/presentation/widgets/lab_control_panel.dart:81:41 • unnecessary_underscores
-   info • Unnecessary use of multiple underscores • lib/features/debug/presentation/widgets/lab_control_panel.dart:102:26 • unnecessary_underscores
-   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/features/debug/presentation/widgets/lab_control_panel.dart:119:17 • deprecated_member_use
-warning • Unused import: '../../../members/presentation/members_provider.dart' • lib/features/events/presentation/tabs/event_stats_tab.dart:9:8 • unused_import
-warning • Unused import: '../events_provider.dart' • lib/features/events/presentation/tabs/event_stats_tab.dart:11:8 • unused_import
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:169:23 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:170:29 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:171:29 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:172:29 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:173:14 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:186:29 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:187:34 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:188:33 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:189:33 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:190:33 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:191:24 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_stats_tab.dart:191:52 • curly_braces_in_flow_control_structures
-warning • Unused import: 'event_user_placeholders.dart' • lib/features/events/presentation/tabs/event_user_details_tab.dart:17:8 • unused_import
-warning • Unused import: 'dart:math' • lib/features/events/presentation/tabs/event_user_placeholders.dart:26:8 • unused_import
-warning • The '!' will have no effect because the receiver can't be null • lib/features/events/presentation/tabs/event_user_placeholders.dart:1117:27 • unnecessary_non_null_assertion
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1809:24 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1810:32 • curly_braces_in_flow_control_structures
-   info • The 'if' statement could be replaced by a null-aware assignment • lib/features/events/presentation/tabs/event_user_placeholders.dart:1820:16 • prefer_conditional_assignment
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1886:32 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1887:37 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1891:30 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1892:34 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1893:12 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1943:33 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1944:37 • curly_braces_in_flow_control_structures
-   info • Statements in an if should be enclosed in a block • lib/features/events/presentation/tabs/event_user_placeholders.dart:1945:15 • curly_braces_in_flow_control_structures
+warning • Duplicate import • lib/core/shared_ui/pro_max_app_bar.dart:4:8 • duplicate_import
+warning • Unused import: 'package:golf_society/models/member.dart' • lib/core/shared_ui/pro_max_app_bar.dart:6:8 • unused_import
+warning • The value of the local variable 'currentUser' isn't used • lib/core/shared_ui/pro_max_app_bar.dart:48:11 • unused_local_variable
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:3:8 • unused_import
+  error • The method 'HeadlessScaffold' isn't defined for the type 'EventRegistrationsAdminScreen' • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:27:16 • undefined_method
+warning • Unused import: '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/leaderboards/leaderboard_builder_screen.dart:4:8 • unused_import
+  error • The method 'HeadlessScaffold' isn't defined for the type 'LeaderboardBuilderScreen' • lib/features/admin/presentation/leaderboards/leaderboard_builder_screen.dart:27:12 • undefined_method
+  error • The method 'HeadlessScaffold' isn't defined for the type 'LeaderboardTemplateGalleryScreen' • lib/features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart:26:12 • undefined_method
+  error • Undefined name 'fontSize' • lib/features/admin/presentation/members/admin_members_screen.dart:54:27 • undefined_identifier
+  error • Expected to find ')' • lib/features/admin/presentation/members/admin_members_screen.dart:54:35 • expected_token
+  error • Expected to find ']' • lib/features/admin/presentation/members/admin_members_screen.dart:54:35 • expected_token
+  error • Too many positional arguments: 0 expected, but 6 found • lib/features/admin/presentation/members/admin_members_screen.dart:59:23 • extra_positional_arguments_could_be_named
+  error • Expected to find ')' • lib/features/admin/presentation/members/admin_members_screen.dart:177:15 • expected_token
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:178:13 • expected_token
+warning • Dead code • lib/features/admin/presentation/members/admin_members_screen.dart:178:14 • dead_code
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:178:14 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:178:14 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:178:14 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:179:11 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:179:11 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:179:11 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:179:12 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:179:12 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:179:12 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:180:9 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:180:9 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:180:9 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:180:10 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:180:10 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:180:10 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:181:7 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:181:7 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:181:7 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:181:8 • missing_identifier
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:181:8 • expected_token
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:181:8 • unexpected_token
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:182:5 • missing_identifier
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:182:5 • unexpected_token
+   info • Unnecessary empty statement • lib/features/admin/presentation/members/admin_members_screen.dart:182:6 • empty_statements
+  error • The method 'HeadlessScaffold' isn't defined for the type 'RolesSettingsScreen' • lib/features/admin/presentation/roles/roles_settings_screen.dart:24:12 • undefined_method
+  error • The method 'HeadlessScaffold' isn't defined for the type 'AdminSettingsScreen' • lib/features/admin/presentation/settings/admin_settings_screen.dart:13:12 • undefined_method
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/settings/branding_settings_screen.dart:4:8 • unused_import
+  error • The method 'HeadlessScaffold' isn't defined for the type 'BrandingSettingsScreen' • lib/features/admin/presentation/settings/branding_settings_screen.dart:21:12 • undefined_method
+  error • The method 'HeadlessScaffold' isn't defined for the type 'GeneralSettingsScreen' • lib/features/admin/presentation/settings/general_settings_screen.dart:16:12 • undefined_method
+  error • Directives must appear before any declarations • lib/features/events/presentation/event_details_screen.dart:37:1 • directive_after_declaration
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/events/presentation/event_registration_screen.dart:3:8 • unused_import
+warning • Unused import: 'package:intl/intl.dart' • lib/features/events/presentation/event_registration_screen.dart:4:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/event_registration_screen.dart:7:8 • unnecessary_import
+warning • Unused import: 'package:golf_society/features/events/data/events_repository.dart' • lib/features/events/presentation/event_registration_screen.dart:12:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/events_screen.dart:7:8 • unnecessary_import
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/events/presentation/tabs/event_user_registration_tab.dart:6:8 • unused_import
 
+51 issues found. (ran in 7.7s)

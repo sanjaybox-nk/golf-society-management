@@ -240,14 +240,17 @@ class BoxyArtDateBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      width: 60,
-      height: 70,
+      width: 58,
+      height: 74,
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        color: primary.withValues(alpha: isDark ? 0.15 : 0.08),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).primaryColor,
+          color: primary.withValues(alpha: isDark ? 0.3 : 0.15),
           width: 1.5,
         ),
       ),
@@ -255,18 +258,31 @@ class BoxyArtDateBadge extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            DateFormat('MMM').format(date).toUpperCase(), // Month (e.g. MAY)
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            DateFormat('MMM').format(date).toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: primary,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            DateFormat('d').format(date),
+            style: TextStyle(
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1,
+              color: primary,
+              height: 1.1,
             ),
           ),
           Text(
-            DateFormat('d').format(date), // Day (e.g. 15)
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              height: 1,
-              color: Theme.of(context).colorScheme.primary,
+            DateFormat('yyyy').format(date),
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: primary.withValues(alpha: 0.6),
+              letterSpacing: 0.5,
             ),
           ),
         ],

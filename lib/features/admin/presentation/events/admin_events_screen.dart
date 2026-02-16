@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 
 import '../../../events/presentation/events_provider.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
+import '../../../events/presentation/tabs/event_user_details_tab.dart';
+import '../../../../core/theme/theme_controller.dart';
 
 
 class AdminEventsScreen extends ConsumerWidget {
@@ -15,115 +18,84 @@ class AdminEventsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(adminEventsProvider);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: eventsAsync.when(
-        data: (events) {
-          if (events.isEmpty) {
-            return const Center(child: Text('No events found.'));
-          }
-
-          final now = DateTime.now();
-          final upcoming = events.where((e) => e.date.isAfter(now)).toList()
-            ..sort((a, b) => a.date.compareTo(b.date));
-          final past = events.where((e) => e.date.isBefore(now)).toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
-
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                floating: true,
-                pinned: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
-                surfaceTintColor: Colors.transparent,
-                title: const Text(
-                  'Manage Events',
-                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
-                ),
-                leading: IconButton(
-                  icon: const Icon(Icons.home_rounded, size: 24),
-                  onPressed: () => context.go('/home'),
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.settings_rounded, size: 22),
-                    onPressed: () => context.push('/admin/settings'),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-              ),
-              
-              // Upcoming Section
-              const SliverPadding(
-                padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
-                sliver: SliverToBoxAdapter(
-                  child: BoxyArtSectionTitle(title: 'Upcoming Events'),
-                ),
-              ),
-              if (upcoming.isEmpty)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('No upcoming events scheduled')),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildEventRow(context, ref, upcoming[index]),
-                      ),
-                      childCount: upcoming.length,
-                    ),
-                  ),
-                ),
-
-              // Past Section
-              const SliverPadding(
-                padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
-                sliver: SliverToBoxAdapter(
-                  child: BoxyArtSectionTitle(title: 'Past Events'),
-                ),
-              ),
-              if (past.isEmpty)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('No past events this season')),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildEventRow(context, ref, past[index]),
-                      ),
-                      childCount: past.length,
-                    ),
-                  ),
-                ),
-
-              // Bottom padding for FAB
-              const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-      ),
+    return HeadlessScaffold(
+      title: 'Events',
+      showBack: false,
+      actions: [
+        BoxyArtGlassIconButton(
+          icon: Icons.add_rounded,
+          tooltip: 'Create Event',
+          onPressed: () => context.push('/admin/events/new'),
+        ),
+      ],
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/admin/events/new'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Create Event', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.black, // Assuming primary is bright/gold
+        foregroundColor: Colors.white,
       ),
+      slivers: [
+        eventsAsync.when(
+          data: (events) {
+            if (events.isEmpty) {
+              return const SliverFillRemaining(
+                child: Center(child: Text('No events found.')),
+              );
+            }
+
+            final now = DateTime.now();
+            final upcoming = events.where((e) => e.date.isAfter(now)).toList()
+              ..sort((a, b) => a.date.compareTo(b.date));
+            final past = events.where((e) => e.date.isBefore(now)).toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
+
+            return SliverList(
+              delegate: SliverChildListDelegate([
+                // Upcoming Section
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: BoxyArtSectionTitle(title: 'Upcoming Events', padding: EdgeInsets.zero),
+                ),
+                if (upcoming.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('No upcoming events scheduled')),
+                  )
+                else
+                  ...upcoming.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                    child: _buildEventRow(context, ref, e),
+                  )),
+
+                // Past Section
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
+                  child: BoxyArtSectionTitle(title: 'Past Events', padding: EdgeInsets.zero),
+                ),
+                if (past.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('No past events this season')),
+                  )
+                else
+                  ...past.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                    child: _buildEventRow(context, ref, e),
+                  )),
+
+                const SizedBox(height: 120),
+              ]),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (err, stack) => SliverFillRemaining(
+            child: Center(child: Text('Error: $err')),
+          ),
+        ),
+      ],
     );
   }
 
@@ -182,7 +154,56 @@ class AdminEventsScreen extends ConsumerWidget {
       child: ModernCard(
         padding: const EdgeInsets.all(16),
         child: InkWell(
-          onTap: () => context.push('/events/${event.id}?preview=true'),
+          onTap: () {
+            final config = ref.read(themeControllerProvider);
+            showGeneralDialog(
+              context: context,
+              barrierDismissible: false,
+              barrierColor: Colors.black54,
+              transitionDuration: const Duration(milliseconds: 300),
+              pageBuilder: (dialogContext, anim1, anim2) {
+                return EventDetailsContent(
+                  event: event,
+                  currencySymbol: config.currencySymbol,
+                  isPreview: true,
+                  onCancel: () => Navigator.pop(dialogContext),
+                  onEdit: () {
+                    Navigator.pop(dialogContext);
+                    context.push('/admin/events/manage/${event.id}/event/edit', extra: event);
+                  },
+                  onStatusChanged: (newStatus) {
+                    ref.read(eventsRepositoryProvider).updateEvent(
+                      event.copyWith(status: newStatus),
+                    );
+                  },
+                  bottomNavigationBar: ModernSubTabBar(
+                    selectedIndex: 0,
+                    borderColor: Color(config.primaryColor),
+                    onSelected: (index) {
+                      Navigator.pop(dialogContext);
+                      if (index == 0) return; // Already on Info
+                      
+                      final routes = [
+                        '/admin/events/manage/${event.id}/event',
+                        '/admin/events/manage/${event.id}/registrations',
+                        '/admin/events/manage/${event.id}/grouping',
+                        '/admin/events/manage/${event.id}/scores',
+                        '/admin/events/manage/${event.id}/reports',
+                      ];
+                      context.push(routes[index], extra: event);
+                    },
+                    items: const [
+                      ModernSubTabItem(icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded, label: 'Info'),
+                      ModernSubTabItem(icon: Icons.people_outline, activeIcon: Icons.people, label: 'Registration'),
+                      ModernSubTabItem(icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_sharp, label: 'Grouping'),
+                      ModernSubTabItem(icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events, label: 'Scores'),
+                      ModernSubTabItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, label: 'Reports'),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
           borderRadius: BorderRadius.circular(24),
           child: Row(
             children: [
@@ -194,7 +215,7 @@ class AdminEventsScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        _StatusChip(status: event.status),
+                        _StatusChip(status: event.displayStatus),
                         const SizedBox(width: 8),
                         if (event.registrations.isNotEmpty)
                           Container(
@@ -312,21 +333,46 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDraft = status == EventStatus.draft;
+    Color color;
+    String label = status.name.toUpperCase();
+
+    switch (status) {
+      case EventStatus.draft:
+        color = Colors.orange;
+        break;
+      case EventStatus.published:
+        color = const Color(0xFF27AE60);
+        label = 'PUBLISHED';
+        break;
+      case EventStatus.inPlay:
+        color = Colors.blue;
+        label = 'LIVE';
+        break;
+      case EventStatus.suspended:
+        color = Colors.deepOrange;
+        break;
+      case EventStatus.completed:
+        color = Colors.grey;
+        break;
+      case EventStatus.cancelled:
+        color = Colors.red;
+        break;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isDraft ? Colors.orange.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDraft ? Colors.orange : Colors.green,
+          color: color.withValues(alpha: 0.3),
           width: 0.5,
         ),
       ),
       child: Text(
-        status.name.toUpperCase(),
+        label,
         style: TextStyle(
-          color: isDraft ? Colors.orange : Colors.green,
+          color: color,
           fontSize: 8,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,

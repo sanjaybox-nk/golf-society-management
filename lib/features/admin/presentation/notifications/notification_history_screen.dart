@@ -23,167 +23,129 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Notifications',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    Text(
-                      'Communication history and reach',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Search & Filters
-                    ModernCard(
-                      child: Column(
-                        children: [
-                          TextField(
-                            onChanged: (v) => setState(() => _searchQuery = v),
-                            decoration: InputDecoration(
-                              hintText: 'Search history...',
-                              hintStyle: TextStyle(
-                                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                                fontSize: 14,
-                              ),
-                              prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
+      backgroundColor: Colors.transparent,
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const Text(
+                  'Notifications',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -1,
+                  ),
+                ),
+                Text(
+                  'Communication history and reach',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Search & Filters
+                ModernCard(
+                  child: Column(
+                    children: [
+                      TextField(
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                        decoration: InputDecoration(
+                          hintText: 'Search history...',
+                          hintStyle: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                            fontSize: 14,
                           ),
-                          const Divider(height: 1),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Group By:', 
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold, 
-                                    color: Theme.of(context).textTheme.bodyMedium?.color
-                                  )
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        _GroupChip(
-                                          label: 'Date',
-                                          isSelected: _groupBy == 'Date',
-                                          onTap: () => setState(() => _groupBy = 'Date'),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        _GroupChip(
-                                          label: 'Category',
-                                          isSelected: _groupBy == 'Category',
-                                          onTap: () => setState(() => _groupBy = 'Category'),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        _GroupChip(
-                                          label: 'None',
-                                          isSelected: _groupBy == 'None',
-                                          onTap: () => setState(() => _groupBy = 'None'),
-                                        ),
-                                      ],
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Group By:', 
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold, 
+                                color: Theme.of(context).textTheme.bodyMedium?.color
+                              )
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    _GroupChip(
+                                      label: 'Date',
+                                      isSelected: _groupBy == 'Date',
+                                      onTap: () => setState(() => _groupBy = 'Date'),
                                     ),
-                                  ),
+                                    const SizedBox(width: 8),
+                                    _GroupChip(
+                                      label: 'Category',
+                                      isSelected: _groupBy == 'Category',
+                                      onTap: () => setState(() => _groupBy = 'Category'),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _GroupChip(
+                                      label: 'None',
+                                      isSelected: _groupBy == 'None',
+                                      onTap: () => setState(() => _groupBy = 'None'),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    notificationsAsync.when(
-                      data: (notifications) {
-                        final filtered = notifications.where((n) {
-                          final term = _searchQuery.toLowerCase();
-                          return n.title.toLowerCase().contains(term) || 
-                                 n.message.toLowerCase().contains(term);
-                        }).toList();
-
-                        if (filtered.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(48.0),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.history_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No notifications found',
-                                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
-                                  ),
-                                ],
                               ),
                             ),
-                          );
-                        }
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-                        return _buildGroupedList(filtered);
-                      },
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => Center(child: Text('Error: $e')),
-                    ),
-                    const SizedBox(height: 100),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
+                notificationsAsync.when(
+                  data: (notifications) {
+                    final filtered = notifications.where((n) {
+                      final term = _searchQuery.toLowerCase();
+                      return n.title.toLowerCase().contains(term) || 
+                             n.message.toLowerCase().contains(term);
+                    }).toList();
+
+                    if (filtered.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(48.0),
+                          child: Column(
+                            children: [
+                              Icon(Icons.history_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No notifications found',
+                                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
+                        ),
+                      );
+                    }
+
+                    return _buildGroupedList(filtered);
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(child: Text('Error: $e')),
                 ),
-              ),
+                const SizedBox(height: 100),
+              ]),
             ),
           ),
         ],

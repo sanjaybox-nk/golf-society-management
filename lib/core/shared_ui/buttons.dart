@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_shadows.dart';
 import '../theme/contrast_helper.dart';
@@ -158,6 +159,89 @@ class BoxyArtThemedCircleIcon extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: iconColor, size: 14),
+    );
+  }
+}
+
+/// Glassmorphic circular icon button with blur effect and high-fidelity shadows.
+class BoxyArtGlassIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? tooltip;
+  final Color? backgroundColor;
+  final Color? iconColor;
+  final double iconSize;
+
+  const BoxyArtGlassIconButton({
+    super.key,
+    required this.icon,
+    this.onPressed,
+    this.tooltip,
+    this.backgroundColor,
+    this.iconColor,
+    this.iconSize = 20,
+  });
+
+  @override
+  State<BoxyArtGlassIconButton> createState() => _BoxyArtGlassIconButtonState();
+}
+
+class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+    final defaultIconColor = widget.iconColor ?? primaryColor;
+    final defaultBgColor = widget.backgroundColor ?? primaryColor.withValues(alpha: 0.1);
+    
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onPressed,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: defaultBgColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: defaultIconColor.withValues(alpha: 0.3),
+              width: 0.8,
+            ),
+            boxShadow: [
+              // Base Soft Shadow
+              BoxShadow(
+                color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.03),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+              // Sharp Close Shadow
+              BoxShadow(
+                color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Center(
+                child: Icon(
+                  widget.icon,
+                  size: widget.iconSize,
+                  color: defaultIconColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

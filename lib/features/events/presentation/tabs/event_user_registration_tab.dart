@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
-import '../widgets/event_sliver_app_bar.dart';
 
 import '../../domain/registration_logic.dart';
 import '../widgets/registration_card.dart';
@@ -14,6 +13,8 @@ import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+
 class EventRegistrationUserTab extends ConsumerWidget {
   final String eventId;
 
@@ -22,31 +23,28 @@ class EventRegistrationUserTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(eventsProvider);
-    final allMembersAsync = ref.watch(allMembersProvider); // Fetch members
+    final allMembersAsync = ref.watch(allMembersProvider);
 
     return eventsAsync.when(
       data: (events) {
         final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
-        return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              EventSliverAppBar(
-                event: event,
-                title: 'Registration',
-                subtitle: event.title,
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: allMembersAsync.when(
-                    data: (members) => _buildRegistrationContent(context, ref, event, members),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stackTrace) => const Text('Error loading members'),
-                  ),
+        return HeadlessScaffold(
+          title: 'Registration',
+          subtitle: event.title,
+          showBack: true,
+          onBack: () => context.go('/events'),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: allMembersAsync.when(
+                  data: (members) => buildStaticContent(context, ref, event, members),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => const Text('Error loading members'),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -54,7 +52,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildRegistrationContent(BuildContext context, WidgetRef ref, GolfEvent event, List<Member> members) {
+  static Widget buildStaticContent(BuildContext context, WidgetRef ref, GolfEvent event, List<Member> members) {
     if (event.registrations.isEmpty) {
       final String emptyText = event.showRegistrationButton 
           ? 'Registration Open' 
@@ -166,71 +164,159 @@ class EventRegistrationUserTab extends ConsumerWidget {
         : '${stats.reserveGolfers}';
 
     final int capacity = event.maxParticipants ?? 0;
-    final String availableSlotsStr = capacity > 0 
-        ? '${stats.confirmedGolfers}/$capacity spaces'
-        : 'Unlimited';
-
-    final closingDateStr = event.registrationDeadline != null 
-      ? DateFormat('EEE, d MMM @ HH:mm').format(event.registrationDeadline!)
-      : 'No Deadline';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // METRICS CARD
-        Card(
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+        const SizedBox(height: 12),
+        const BoxyArtSectionTitle(title: 'Registration Stats'),
+        ModernCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // REGISTRATION STATS
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildMetricItem(context, 'Total', '${stats.totalGolfers}', Icons.group, iconColor: const Color(0xFF2C3E50)),
-                    _buildMetricItem(context, 'Playing', playingValue, Icons.check_circle, iconColor: const Color(0xFF27AE60)),
-                    _buildMetricItem(context, 'Reserve', reserveValue, Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
-                    _buildMetricItem(context, 'Guests', '${stats.totalGuests}', Icons.person_add, iconColor: Colors.purple),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildMetricItem(context, 'Buggies', '${stats.buggyCount}/$buggyCapacity', Icons.electric_rickshaw, iconColor: const Color(0xFF2C3E50), suffix: 'spaces'),
-                    _buildMetricItem(context, 'Dinner', '${stats.dinnerCount}', Icons.restaurant, iconColor: Colors.purple),
-                    if (stats.waitlistGolfers > 0)
-                      _buildMetricItem(context, 'Waitlist', '${stats.waitlistGolfers}', Icons.priority_high, iconColor: const Color(0xFFC0392B)),
-                  ],
-                ),
-                
-                const Divider(height: 24),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (capacity > 0) ...[
-                      Text(
-                        availableSlotsStr,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey[800]),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: '${stats.totalGolfers}',
+                        label: 'Total',
+                        icon: Icons.groups_rounded,
+                        color: const Color(0xFF2C3E50),
+                        isCompact: true,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Text('|', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: playingValue,
+                        label: 'Playing',
+                        icon: Icons.check_circle_rounded,
+                        color: const Color(0xFF27AE60),
+                        isCompact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: reserveValue,
+                        label: 'Reserve',
+                        icon: Icons.hourglass_top_rounded,
+                        color: const Color(0xFFF39C12),
+                        isCompact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: '${stats.totalGuests}',
+                        label: 'Guests',
+                        icon: Icons.person_add_rounded,
+                        color: Colors.purple,
+                        isCompact: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // ATTENDANCE STATS
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: '${stats.buggyCount}/$buggyCapacity',
+                        label: 'Buggies',
+                        icon: Icons.electric_rickshaw_rounded,
+                        color: const Color(0xFF455A64),
+                        isCompact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: '${stats.dinnerCount}',
+                        label: 'Dinner',
+                        icon: Icons.restaurant_rounded,
+                        color: Colors.deepPurple,
+                        isCompact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: '${stats.waitlistGolfers}',
+                        label: 'Waitlist',
+                        icon: Icons.priority_high_rounded,
+                        color: const Color(0xFFC0392B),
+                        isCompact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernMetricStat(
+                        value: '${stats.breakfastCount}',
+                        label: 'Breakfast',
+                        icon: Icons.breakfast_dining_rounded,
+                        color: const Color(0xFF795548),
+                        isCompact: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 16),
+              // STATUS BAR
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '${stats.confirmedGolfers}/$capacity spaces',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2C3E50),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(width: 1, height: 16, color: Colors.grey.withValues(alpha: 0.3)),
+                      const SizedBox(width: 8),
+                      Icon(
+                        isClosed ? Icons.lock_outline_rounded : Icons.timer_outlined,
+                        size: 16,
+                        color: isClosed ? const Color(0xFFC0392B) : const Color(0xFF607D8B),
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          isClosed ? 'Registration Closed' : 'Closing Soon',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isClosed ? const Color(0xFFC0392B) : const Color(0xFF607D8B),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
-                    Icon(isClosed ? Icons.lock : Icons.timer, size: 14, color: isClosed ? Colors.red : Colors.grey),
-                    const SizedBox(width: 6),
-                    Text(isClosed ? 'Registration Closed' : 'Closes: $closingDateStr',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isClosed ? Colors.red : Colors.grey[800])),
-                  ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 24),
@@ -238,20 +324,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
         // PLAYING MEMBERS
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest)) ...[
           BoxyArtSectionTitle(title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Member',
-            position: vm.position,
-            status: vm.status,
-            buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.registration.attendingDinner,
-            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-            hasPaid: vm.item.registration.hasPaid,
-            isGuest: false,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Member',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.attendingBreakfast,
+              attendingLunch: vm.item.registration.attendingLunch,
+              attendingDinner: vm.item.registration.attendingDinner,
+              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+              hasPaid: vm.item.registration.hasPaid,
+              isGuest: false,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -259,20 +348,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest)) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Playing Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Guest of ${vm.item.registration.memberName}',
-            position: vm.position,
-            status: vm.status,
-            buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-            attendingLunch: vm.item.registration.guestAttendingLunch,
-            attendingDinner: vm.item.registration.guestAttendingDinner,
-            hasGuest: false,
-            hasPaid: vm.item.registration.hasPaid,
-            isGuest: true,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Guest of ${vm.item.registration.memberName}',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+              attendingLunch: vm.item.registration.guestAttendingLunch,
+              attendingDinner: vm.item.registration.guestAttendingDinner,
+              hasGuest: false,
+              hasPaid: vm.item.registration.hasPaid,
+              isGuest: true,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -280,20 +372,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest)) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Waitlist Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Member',
-            position: vm.position,
-            status: vm.status,
-            buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.registration.attendingDinner,
-            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-            hasPaid: vm.item.registration.hasPaid,
-            isGuest: false,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Member',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.attendingBreakfast,
+              attendingLunch: vm.item.registration.attendingLunch,
+              attendingDinner: vm.item.registration.attendingDinner,
+              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+              hasPaid: vm.item.registration.hasPaid,
+              isGuest: false,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -301,20 +396,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest)) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Waitlist Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Guest of ${vm.item.registration.memberName}',
-            position: vm.position,
-            status: vm.status,
-            buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-            attendingLunch: vm.item.registration.guestAttendingLunch,
-            attendingDinner: vm.item.registration.guestAttendingDinner,
-            hasGuest: false,
-            hasPaid: vm.item.registration.hasPaid,
-            isGuest: true,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Guest of ${vm.item.registration.memberName}',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+              attendingLunch: vm.item.registration.guestAttendingLunch,
+              attendingDinner: vm.item.registration.guestAttendingDinner,
+              hasGuest: false,
+              hasPaid: vm.item.registration.hasPaid,
+              isGuest: true,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -322,20 +420,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest)) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Reserved Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Member',
-            position: vm.position,
-            status: vm.status,
-            buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.attendingBreakfast,
-            attendingLunch: vm.item.registration.attendingLunch,
-            attendingDinner: vm.item.registration.attendingDinner,
-            hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-            hasPaid: vm.item.registration.hasPaid,
-            isGuest: false,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Member',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.attendingBreakfast,
+              attendingLunch: vm.item.registration.attendingLunch,
+              attendingDinner: vm.item.registration.attendingDinner,
+              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+              hasPaid: vm.item.registration.hasPaid,
+              isGuest: false,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -343,20 +444,23 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest)) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Reserved Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Guest of ${vm.item.registration.memberName}',
-            position: vm.position,
-            status: vm.status,
-            buggyStatus: vm.buggyStatus,
-            attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-            attendingLunch: vm.item.registration.guestAttendingLunch,
-            attendingDinner: vm.item.registration.guestAttendingDinner,
-            hasGuest: false,
-            hasPaid: vm.item.registration.hasPaid,
-            isGuest: true,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Guest of ${vm.item.registration.memberName}',
+              position: vm.position,
+              status: vm.status,
+              buggyStatus: vm.buggyStatus,
+              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+              attendingLunch: vm.item.registration.guestAttendingLunch,
+              attendingDinner: vm.item.registration.guestAttendingDinner,
+              hasGuest: false,
+              hasPaid: vm.item.registration.hasPaid,
+              isGuest: true,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -364,18 +468,21 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (dinnerModels.isNotEmpty) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
-          ...dinnerModels.map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Dinner Only',
-            status: vm.status,
-            buggyStatus: RegistrationStatus.none,
-            attendingBreakfast: false,
-            attendingLunch: false,
-            attendingDinner: true,
-            hasPaid: vm.item.registration.hasPaid,
-            isDinnerOnly: true,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...dinnerModels.map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Dinner Only',
+              status: vm.status,
+              buggyStatus: RegistrationStatus.none,
+              attendingBreakfast: false,
+              attendingLunch: false,
+              attendingDinner: true,
+              hasPaid: vm.item.registration.hasPaid,
+              isDinnerOnly: true,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
 
@@ -383,104 +490,25 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (withdrawnModels.isNotEmpty) ...[
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'Withdrawn (${withdrawnModels.length})'),
-          ...withdrawnModels.map((vm) => RegistrationCard(
-            name: vm.item.name,
-            label: 'Withdrawn',
-            status: vm.status,
-            buggyStatus: RegistrationStatus.none,
-            attendingBreakfast: false,
-            attendingLunch: false,
-            attendingDinner: false,
-            hasPaid: vm.item.registration.hasPaid,
-            isAdmin: false,
-            memberProfile: vm.memberProfile,
+          ...withdrawnModels.map((vm) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RegistrationCard(
+              name: vm.item.name,
+              label: 'Withdrawn',
+              status: vm.status,
+              buggyStatus: RegistrationStatus.none,
+              attendingBreakfast: false,
+              attendingLunch: false,
+              attendingDinner: false,
+              hasPaid: vm.item.registration.hasPaid,
+              isAdmin: false,
+              memberProfile: vm.memberProfile,
+            ),
           )),
         ],
       ],
     );
   }
-  
-  Widget _buildMetricItem(BuildContext context, String label, String value, IconData icon, {bool isHighlight = false, Color? iconColor, String? suffix}) {
-    final theme = Theme.of(context);
-    final color = iconColor ?? (isHighlight ? Colors.orange : theme.primaryColor);
-    
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (value.contains('(')) 
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: value.split(' ')[0],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const TextSpan(text: ' '),
-                      TextSpan(
-                        text: value.split(' ')[1],
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: value.length > 4 ? 14 : 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              if (suffix != null)
-                Text(
-                  suffix,
-                  style: const TextStyle(fontSize: 8, color: Colors.white70),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-
-
 }
 
 class _RegistrationViewModel {

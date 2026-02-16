@@ -21,6 +21,7 @@ import '../features/admin/presentation/settings/branding_settings_screen.dart';
 import '../features/admin/presentation/settings/general_settings_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
 import '../features/admin/presentation/settings/grouping_strategy_selection_screen.dart';
+import '../features/admin/presentation/settings/handicap_system_selection_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
@@ -190,6 +191,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'grouping-strategy',
                             builder: (context, state) => const GroupingStrategySelectionScreen(),
                           ),
+                          GoRoute(
+                            path: 'handicap-system',
+                            builder: (context, state) => const HandicapSystemSelectionScreen(),
+                          ),
                         ],
                       ),
                       GoRoute(
@@ -353,12 +358,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'manage/:id/event',
                         pageBuilder: (context, state) {
-                          final event = state.extra as GolfEvent?;
-                          final eventId = state.pathParameters['id'];
+                          final eventId = state.pathParameters['id']!;
                           return NoTransitionPage(
-                            child: EventFormScreen(event: event, eventId: eventId),
+                            child: EventUserDetailsTab(eventId: eventId),
                           );
                         },
+                        routes: [
+                          GoRoute(
+                            path: 'edit',
+                            pageBuilder: (context, state) {
+                              final event = state.extra as GolfEvent?;
+                              final eventId = state.pathParameters['id'];
+                              return NoTransitionPage(
+                                child: EventFormScreen(event: event, eventId: eventId),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                       GoRoute(
                         path: 'manage/:id/registrations',
@@ -501,16 +517,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-      path: '/events/:id',
-    redirect: (context, state) {
-      final id = state.pathParameters['id'];
-      if (state.uri.pathSegments.length == 2) {
-        final query = state.uri.query;
-        return '/events/$id/details${query.isNotEmpty ? '?$query' : ''}';
-      }
-      return null;
-    },
-    routes: [
+        path: '/events/:id',
+        redirect: (context, state) {
+          final id = state.pathParameters['id'];
+          if (state.uri.pathSegments.length == 2) {
+            final query = state.uri.query;
+            return '/events/$id/details${query.isNotEmpty ? '?$query' : ''}';
+          }
+          return null;
+        },
+        builder: (context, state) => const SizedBox.shrink(),
+        routes: [
       GoRoute(
         path: 'register-form', 
         builder: (context, state) {
@@ -519,46 +536,80 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       ShellRoute(
-        builder: (context, state, child) {
-          return EventUserShell(child: child);
-        },
+        pageBuilder: (context, state, child) => NoTransitionPage(
+          child: EventUserShell(child: child),
+        ),
         routes: [
           GoRoute(
             path: 'details',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return EventUserDetailsTab(eventId: id);
-            },
+            redirect: (context, state) => '/events/${state.pathParameters['id']}/info',
           ),
           GoRoute(
+            path: 'info',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: EventUserDetailsTab(eventId: state.pathParameters['id']!),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'field',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: EventGroupingUserTab(eventId: state.pathParameters['id']!),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'live',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: EventScoresUserTab(eventId: state.pathParameters['id']!),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'stats',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: EventStatsUserTab(eventId: state.pathParameters['id']!),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'photos',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: EventGalleryUserTab(eventId: state.pathParameters['id']!),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          // Old path redirects for backward compatibility
+          GoRoute(
             path: 'register',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return EventRegistrationUserTab(eventId: id);
-            },
+            redirect: (context, state) => '/events/${state.pathParameters['id']}/field',
           ),
           GoRoute(
             path: 'grouping',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return EventGroupingUserTab(eventId: id);
-            },
+            redirect: (context, state) => '/events/${state.pathParameters['id']}/field',
           ),
           GoRoute(
             path: 'scores',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return EventScoresUserTab(eventId: id);
-            },
-            routes: [
-            ],
+            redirect: (context, state) => '/events/${state.pathParameters['id']}/live',
           ),
           GoRoute(
             path: 'gallery',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return EventGalleryUserTab(eventId: id);
-            },
+            redirect: (context, state) => '/events/${state.pathParameters['id']}/photos',
           ),
         ],
       ),

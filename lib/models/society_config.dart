@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'handicap_system.dart';
 
 part 'society_config.freezed.dart';
 part 'society_config.g.dart';
@@ -18,6 +19,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('balanced') String groupingStrategy, // 'balanced', 'progressive', 'similar', 'random'
     @Default(true) bool useWhsHandicaps, // Default: Use WHS (Slope/Rating)
     @Default('yards') String distanceUnit, // 'yards' or 'meters'
+    @Default(HandicapSystem.igolf) HandicapSystem handicapSystem, // Global provider
     String? selectedPaletteName, // Selected Modern Card palette name
   }) = _SocietyConfig;
 

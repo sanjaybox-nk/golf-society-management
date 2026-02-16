@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/responsive_layout.dart';
+import '../../../core/widgets/boxy_art_nav_bar.dart';
 
 class AdminShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -25,34 +26,40 @@ class AdminShell extends StatelessWidget {
 
   Widget _buildMobile(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: BottomNavigationBar(
-              currentIndex: navigationShell.currentIndex,
-              onTap: (index) => navigationShell.goBranch(index),
-              backgroundColor: Colors.black,
-              selectedItemColor: Theme.of(context).primaryColor,
-              unselectedItemColor: Colors.grey.shade600,
-              type: BottomNavigationBarType.fixed,
-              selectedFontSize: 9,
-              unselectedFontSize: 9,
-              items: _navItems(),
-            ),
+      bottomNavigationBar: BoxyArtBottomNavBar(
+        selectedIndex: navigationShell.currentIndex,
+        onItemSelected: (index) => navigationShell.goBranch(index),
+        unselectedColor: Theme.of(context).primaryColor,
+        borderColor: Theme.of(context).primaryColor,
+        items: const [
+          BoxyArtBottomNavItem(
+            icon: Icons.dashboard_outlined,
+            activeIcon: Icons.dashboard,
+            label: 'Dashboard',
           ),
-        ),
+          BoxyArtBottomNavItem(
+            icon: Icons.calendar_month_outlined,
+            activeIcon: Icons.calendar_month,
+            label: 'Events',
+          ),
+          BoxyArtBottomNavItem(
+            icon: Icons.people_outline,
+            activeIcon: Icons.people,
+            label: 'Members',
+          ),
+          BoxyArtBottomNavItem(
+            icon: Icons.notification_add_outlined,
+            activeIcon: Icons.notification_add,
+            label: 'Comms',
+          ),
+          BoxyArtBottomNavItem(
+            icon: Icons.leaderboard_outlined,
+            activeIcon: Icons.leaderboard,
+            label: 'Results',
+          ),
+        ],
       ),
     );
   }
@@ -67,9 +74,9 @@ class AdminShell extends StatelessWidget {
             labelType: NavigationRailLabelType.all,
             backgroundColor: Colors.black,
             selectedIconTheme: IconThemeData(color: Theme.of(context).primaryColor),
-            unselectedIconTheme: const IconThemeData(color: Colors.grey),
+            unselectedIconTheme: IconThemeData(color: Theme.of(context).primaryColor.withValues(alpha: 0.4)),
             selectedLabelTextStyle: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12, fontWeight: FontWeight.bold),
-            unselectedLabelTextStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+            unselectedLabelTextStyle: TextStyle(color: Theme.of(context).primaryColor.withValues(alpha: 0.4), fontSize: 12),
             destinations: _navItems().map((item) => NavigationRailDestination(
               icon: item.icon,
               selectedIcon: item.activeIcon,

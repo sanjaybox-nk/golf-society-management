@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../widgets/admin_bottom_nav_bar.dart';
 import 'tabs/event_dashboard_tab.dart';
 
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/contrast_helper.dart';
 
 class EventAdminScaffold extends StatefulWidget {
   const EventAdminScaffold({super.key});
@@ -32,21 +31,9 @@ class _EventAdminScaffoldState extends State<EventAdminScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
-
-    return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: _titles[_currentIndex],
-        leadingWidth: 70,
-        leading: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Back', style: TextStyle(color: onPrimary, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ),
-      body: _tabs[_currentIndex],
+    return HeadlessScaffold(
+      title: _titles[_currentIndex],
+      showBack: true,
       bottomNavigationBar: AdminBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -73,6 +60,11 @@ class _EventAdminScaffoldState extends State<EventAdminScaffold> {
           ),
         ],
       ),
+      slivers: [
+        SliverFillRemaining(
+          child: _tabs[_currentIndex],
+        ),
+      ],
     );
   }
 }

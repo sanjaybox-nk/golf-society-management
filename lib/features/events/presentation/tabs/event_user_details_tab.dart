@@ -5,18 +5,19 @@ import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../../core/shared_ui/shared_ui.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
-import '../widgets/event_sliver_app_bar.dart';
 import '../../../../../core/theme/theme_controller.dart';
 import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../../features/competitions/utils/competition_rule_translator.dart';
+import '../../../members/presentation/profile_provider.dart';
+import '../../../../models/member.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
@@ -26,20 +27,18 @@ class EventUserDetailsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(eventsProvider);
-    final statusOverride = ref.watch(eventStatusOverrideProvider);
-    
     return eventsAsync.when(
       data: (events) {
-        var event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
         
-        // [LAB MODE] Apply Status Override if set
-        if (statusOverride != null) {
-           event = event.copyWith(status: statusOverride);
-        }
-
         final config = ref.watch(themeControllerProvider);
         // Check for preview mode
-        final isPreview = GoRouterState.of(context).uri.queryParameters['preview'] == 'true';
+        bool isPreview = false;
+        try {
+          isPreview = GoRouterState.of(context).uri.queryParameters['preview'] == 'true';
+        } catch (_) {
+          isPreview = false;
+        }
         
         return EventDetailsContent(
           event: event, 
@@ -58,6 +57,9 @@ class EventDetailsContent extends ConsumerWidget {
   final String currencySymbol;
   final bool isPreview;
   final VoidCallback? onCancel;
+  final VoidCallback? onEdit;
+  final ValueChanged<EventStatus>? onStatusChanged;
+  final Widget? bottomNavigationBar;
 
   const EventDetailsContent({
     super.key,
@@ -65,172 +67,308 @@ class EventDetailsContent extends ConsumerWidget {
     required this.currencySymbol,
     this.isPreview = false,
     this.onCancel,
+    this.onEdit,
+    this.onStatusChanged,
+    this.bottomNavigationBar,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final user = ref.watch(effectiveUserProvider);
+    final isAdmin = user.role != MemberRole.member;
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildHeader(context),
-                  const SizedBox(height: 24),
-                  _buildRegistrationCard(context),
-                  const SizedBox(height: 32),
-                  _buildDateTimeSection(context),
-                  const SizedBox(height: 24),
-                  _buildCourseSelectionSection(context),
-                  const SizedBox(height: 24),
-                  _buildCompetitionRulesSection(context),
-                  if (event.secondaryTemplateId != null) ...[
-                    const SizedBox(height: 24),
-                    _buildSecondaryRulesSection(context),
-                  ],
-                  const SizedBox(height: 24),
-                  _buildPlayingCostsSection(context),
-                  const SizedBox(height: 24),
-                  _buildMealCostsSection(context),
-                  const SizedBox(height: 24),
-                  _buildDinnerLocationSection(context),
-                  const SizedBox(height: 24),
-                  _buildFacilitiesSection(context),
-                  const SizedBox(height: 24),
-                  _buildNotesSection(context),
-                  const SizedBox(height: 100),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return EventSliverAppBar(
-      event: event,
+    return HeadlessScaffold(
       title: event.title,
-      subtitle: '${event.courseName ?? 'TBA'} • ${DateFormat('d MMM yyyy').format(event.date)}',
-      isPreview: isPreview,
-      onCancel: onCancel,
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final textPrimary = Theme.of(context).textTheme.displaySmall?.color ?? Colors.black;
-    final primary = Theme.of(context).primaryColor;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          event.title,
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: textPrimary,
-            letterSpacing: -1,
+      subtitle: 'Info Hub',
+      leading: isPreview ? Center(
+        child: BoxyArtGlassIconButton(
+          icon: Icons.close_rounded,
+          iconSize: 24,
+          onPressed: () {
+            if (onCancel != null) {
+              onCancel!();
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ) : null,
+      showBack: !isPreview,
+      onBack: () {
+        if (isPreview && onCancel != null) {
+          onCancel!();
+          return;
+        }
+        try {
+          context.go('/events');
+        } catch (_) {
+          Navigator.of(context).pop();
+        }
+      },
+      actions: [
+        if (onEdit != null)
+          BoxyArtGlassIconButton(
+            icon: Icons.edit_outlined,
+            iconSize: 24,
+            onPressed: onEdit,
+            tooltip: 'Edit Event Settings',
+          )
+        else if (isAdmin)
+          BoxyArtGlassIconButton(
+            icon: Icons.app_registration_rounded,
+            iconSize: 24,
+            onPressed: () {
+               final id = event.id;
+               context.push('/admin/events/manage/$id/event/edit', extra: event);
+            },
+            tooltip: 'Edit Event Settings',
+          ),
+      ],
+      bottomNavigationBar: bottomNavigationBar,
+      slivers: [
+        // Status Badge (Integrated into content)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildStatusBadge(context),
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: primary.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    event.status.name.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: primary,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        if (event.imageUrl != null && event.imageUrl!.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          ModernCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    event.imageUrl!,
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                if (event.description != null && event.description!.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      event.description!,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                ],
+        SliverPadding(
+          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const SizedBox(height: 24),
+              _buildHeroSection(context),
+              const SizedBox(height: 24),
+              _buildRegistrationCard(context),
+              const SizedBox(height: 32),
+              _buildDateTimeSection(context),
+              const SizedBox(height: 24),
+              _buildCourseSelectionSection(context),
+              const SizedBox(height: 24),
+              _buildCompetitionRulesSection(context),
+              if (event.secondaryTemplateId != null) ...[
+                const SizedBox(height: 24),
+                _buildSecondaryRulesSection(context),
               ],
-            ),
+              const SizedBox(height: 24),
+              _buildPlayingCostsSection(context),
+              const SizedBox(height: 24),
+              _buildMealCostsSection(context),
+              const SizedBox(height: 24),
+              _buildDinnerLocationSection(context),
+              const SizedBox(height: 24),
+              _buildFacilitiesSection(context),
+              const SizedBox(height: 24),
+              _buildNotesSection(context),
+            ]),
           ),
-        ] else if (event.description != null && event.description!.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          ModernCard(
-            child: Text(
-              event.description!,
-              style: TextStyle(
-                fontSize: 15,
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
+        ),
       ],
     );
   }
 
 
-  Widget _buildDateTimeSection(BuildContext context) {
-    final stats = RegistrationLogic.getRegistrationStats(event);
+  Widget _buildStatusBadge(BuildContext context) {
+    final status = event.status; // Use raw status for admin selector
+    final displayStatus = event.displayStatus;
     
+    // Member view uses user-friendly labels
+    // Admin view shows technical statuses (draft/published/inplay/completed)
+    String statusText;
+    Color statusColor;
+    
+    if (displayStatus == EventStatus.draft) {
+      statusText = 'DRAFT';
+      statusColor = Colors.orange;
+    } else if (displayStatus == EventStatus.completed) {
+      statusText = 'COMPLETED';
+      statusColor = Colors.grey;
+    } else if (displayStatus == EventStatus.inPlay) {
+      statusText = 'LIVE';
+      statusColor = Colors.blue;
+    } else if (displayStatus == EventStatus.suspended) {
+      statusText = 'SUSPENDED';
+      statusColor = Colors.deepOrange;
+    } else if (displayStatus == EventStatus.cancelled) {
+      statusText = 'CANCELLED';
+      statusColor = Colors.red;
+    } else {
+      statusText = 'PUBLISHED';
+      statusColor = const Color(0xFF27AE60);
+    }
+
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            statusText,
+            style: TextStyle(
+              color: statusColor,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          if (onStatusChanged != null) ...[
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: statusColor),
+          ],
+        ],
+      ),
+    );
+
+    if (onStatusChanged == null) return badge;
+
+    return GestureDetector(
+      onTap: () => _showStatusSelector(context),
+      child: badge,
+    );
+  }
+
+  void _showStatusSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BoxyArtFloatingCard(
+        margin: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Change Event Status',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+            const Divider(),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: EventStatus.values.map((s) {
+                    String label = s.name.toUpperCase();
+                    if (s == EventStatus.inPlay) label = 'LIVE';
+                    
+                    return ListTile(
+                      leading: Icon(
+                        _getStatusIcon(s),
+                        color: _getStatusColor(s),
+                      ),
+                      title: Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: event.status == s ? FontWeight.bold : FontWeight.normal,
+                          color: event.status == s ? _getStatusColor(s) : null,
+                        ),
+                      ),
+                      trailing: event.status == s ? Icon(Icons.check_rounded, color: _getStatusColor(s)) : null,
+                      onTap: () {
+                        Navigator.pop(context);
+                        if (onStatusChanged != null) {
+                          onStatusChanged!(s);
+                        }
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getStatusIcon(EventStatus status) {
+    switch (status) {
+      case EventStatus.draft: return Icons.edit_note_rounded;
+      case EventStatus.published: return Icons.public_rounded;
+      case EventStatus.inPlay: return Icons.play_circle_outline_rounded;
+      case EventStatus.suspended: return Icons.pause_circle_outline_rounded;
+      case EventStatus.completed: return Icons.check_circle_outline_rounded;
+      case EventStatus.cancelled: return Icons.cancel_outlined;
+    }
+  }
+
+  Color _getStatusColor(EventStatus status) {
+    switch (status) {
+      case EventStatus.draft: return Colors.orange;
+      case EventStatus.published: return const Color(0xFF27AE60);
+      case EventStatus.inPlay: return Colors.blue;
+      case EventStatus.suspended: return Colors.deepOrange;
+      case EventStatus.completed: return Colors.grey;
+      case EventStatus.cancelled: return Colors.red;
+    }
+  }
+
+  Widget _buildHeroSection(BuildContext context) {
+    if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
+      return ModernCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                event.imageUrl!,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ),
+            if (event.description != null && event.description!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  event.description!,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    } else if (event.description != null && event.description!.isNotEmpty) {
+      return ModernCard(
+        child: Text(
+          event.description!,
+          style: TextStyle(
+            fontSize: 15,
+            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+            height: 1.5,
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+
+  Widget _buildDateTimeSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -275,32 +413,6 @@ class EventDetailsContent extends ConsumerWidget {
                   iconColor: Colors.redAccent,
                 ),
               ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        const BoxyArtSectionTitle(title: 'Registration Stats'),
-        const SizedBox(height: 12),
-        ModernCard(
-          child: ModernMetricBar(
-            children: [
-              ModernMetricCircle(
-                value: '${stats.confirmedGolfers}',
-                label: 'Confirmed',
-                color: const Color(0xFF27AE60),
-              ),
-              ModernMetricCircle(
-                value: '${stats.waitlistGolfers}',
-                label: 'Waitlist',
-                color: const Color(0xFFF39C12),
-              ),
-              ModernMetricCircle(
-                value: event.maxParticipants == null 
-                    ? '∞' 
-                    : '${event.maxParticipants! - stats.confirmedGolfers}',
-                label: 'Remaining',
-                color: Theme.of(context).primaryColor,
-              ),
             ],
           ),
         ),
@@ -406,7 +518,12 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildRegistrationCard(BuildContext context) {
-    if (isPreview || !event.showRegistrationButton || event.status == EventStatus.completed) return const SizedBox.shrink();
+    // Hide only if registration button is disabled or event is draft/cancelled
+    if (!event.showRegistrationButton || 
+        event.displayStatus == EventStatus.draft || 
+        event.displayStatus == EventStatus.cancelled) {
+      return const SizedBox.shrink();
+    }
 
     // For now, we'll assume the user is a mock member
     const currentMemberId = 'current-user-id';
@@ -417,11 +534,30 @@ class EventDetailsContent extends ConsumerWidget {
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
 
+    // Show "Registration Closed" card if past deadline
+    if (isPastDeadline) {
+      return ModernCard(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Text(
+                'Registration Closed',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Registration deadline has passed',
+                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final stats = RegistrationLogic.getRegistrationStats(event);
     final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
-    final isRegistrationDisabled = 
-        isPastDeadline || 
-        !event.showRegistrationButton;
 
     return ModernCard(
       child: Column(
@@ -430,23 +566,21 @@ class EventDetailsContent extends ConsumerWidget {
             Column(
               children: [
                 Text(
-                  isPastDeadline 
-                    ? 'Registration Closed'
-                    : (isFull ? 'Event Full' : 'Secure your spot'),
+                  isFull ? 'Event Full' : 'Secure your spot',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (!isPastDeadline && event.registrationDeadline != null) ...[
+                if (event.registrationDeadline != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
                     style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
-                ] else if (!isPastDeadline) ...[
+                ] else ...[
                   const SizedBox(height: 4),
                   Text(
                     isFull ? 'Join the waitlist below' : 'Register below to join the event',
@@ -488,45 +622,63 @@ class EventDetailsContent extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
           BoxyArtButton(
-            title: isPastDeadline 
-                ? 'Registration closed' 
-                : (isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now')),
-            onTap: isRegistrationDisabled 
-                ? null 
-                : () {
-                    GoRouter.of(context).push('/events/${event.id}/register-form');
-                  },
+            title: isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now'),
+            onTap: isPreview ? null : () {
+              try {
+                GoRouter.of(context).push('/events/${event.id}/register-form');
+              } catch (_) {
+                // Silently fail or handled by isPreview being disabled
+              }
+            },
           ),
           
           if (isRegistered) ...[
             const SizedBox(height: 32),
-            ModernMetricBar(
-              children: [
-                ModernMetricCircle(
-                  value: myRegistration.hasPaid ? 'YES' : 'NO',
-                  label: 'Value',
-                  icon: Icons.payments_rounded,
-                  color: myRegistration.hasPaid ? const Color(0xFF27AE60) : Colors.grey.shade400,
-                ),
-                ModernMetricCircle(
-                  value: myRegistration.attendingBreakfast ? 'YES' : 'NO',
-                  label: 'Breakfast',
-                  icon: Icons.breakfast_dining_rounded,
-                  color: myRegistration.attendingBreakfast ? const Color(0xFFF39C12) : Colors.grey.shade400,
-                ),
-                ModernMetricCircle(
-                  value: myRegistration.attendingLunch ? 'YES' : 'NO',
-                  label: 'Lunch',
-                  icon: Icons.lunch_dining_rounded,
-                  color: myRegistration.attendingLunch ? const Color(0xFF27AE60) : Colors.grey.shade400,
-                ),
-                ModernMetricCircle(
-                  value: myRegistration.attendingDinner ? 'YES' : 'NO',
-                  label: 'Dinner',
-                  icon: Icons.dinner_dining_rounded,
-                  color: myRegistration.attendingDinner ? Colors.purple : Colors.grey.shade400,
-                ),
-              ],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: myRegistration.hasPaid ? 'YES' : 'NO',
+                      label: 'Paid',
+                      icon: Icons.payments_rounded,
+                      color: myRegistration.hasPaid ? const Color(0xFF27AE60) : Colors.grey.shade400,
+                      isCompact: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: myRegistration.attendingBreakfast ? 'YES' : 'NO',
+                      label: 'Breakfast',
+                      icon: Icons.breakfast_dining_rounded,
+                      color: myRegistration.attendingBreakfast ? const Color(0xFF795548) : Colors.grey.shade400,
+                      isCompact: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: myRegistration.attendingLunch ? 'YES' : 'NO',
+                      label: 'Lunch',
+                      icon: Icons.lunch_dining_rounded,
+                      color: myRegistration.attendingLunch ? const Color(0xFFD35400) : Colors.grey.shade400,
+                      isCompact: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: myRegistration.attendingDinner ? 'YES' : 'NO',
+                      label: 'Dinner',
+                      icon: Icons.dinner_dining_rounded,
+                      color: myRegistration.attendingDinner ? const Color(0xFF2980B9) : Colors.grey.shade400,
+                      isCompact: true,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ],

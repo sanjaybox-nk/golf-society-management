@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../widgets/admin_bottom_nav_bar.dart';
 import 'compose_notification_screen.dart';
@@ -24,23 +25,9 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: BoxyArtAppBar(
-        title: 'Communications',
-        isLarge: true,
-        leading: IconButton(
-          icon: const Icon(Icons.home, color: Colors.white, size: 28),
-          onPressed: () => context.go('/home'),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () => context.push('/admin/settings'),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: _tabs[_currentIndex],
+    return HeadlessScaffold(
+      title: 'Communications',
+      showBack: false,
       bottomNavigationBar: AdminBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -62,6 +49,11 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
           ),
         ],
       ),
+      slivers: [
+        SliverFillRemaining(
+          child: _tabs[_currentIndex],
+        ),
+      ],
     );
   }
 }

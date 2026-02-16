@@ -134,160 +134,183 @@ class GroupingPlayerTile extends StatelessWidget {
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
-        borderRadius: BorderRadius.circular(12),
-        border: isSelected 
-          ? Border.all(color: primaryColor, width: 2) 
-          : (matchSide != null 
-              ? Border.all(color: matchSide == 'A' ? Colors.orange.withValues(alpha: 0.5) : Colors.blue.withValues(alpha: 0.5), width: 1.5)
-              : null),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-        leading: isScoreMode 
-            ? null 
-            : (!isAdmin 
-                ? GroupingPlayerAvatar(
-                    player: player, 
-                    member: member, 
-                    groupIndex: group.index, 
-                    totalGroups: totalGroups, 
-                    history: history,
-                  )
-                : PopupMenuButton<String>(
-                    onSelected: (val) => onAction?.call(val, player, group),
-                    color: Colors.white,
-                    surfaceTintColor: Colors.white,
-                    elevation: 4,
-                    offset: const Offset(0, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'move', child: Row(children: [Icon(Icons.drive_file_move_outlined, size: 18), SizedBox(width: 12), Text('Move to Group...')])),
-                      const PopupMenuItem(value: 'remove', child: Row(children: [Icon(Icons.person_remove_outlined, size: 18), SizedBox(width: 12), Text('Remove from Group')])),
-                      const PopupMenuItem(
-                        value: 'withdraw', 
-                        child: Row(children: [Icon(Icons.exit_to_app, size: 18, color: Colors.red), SizedBox(width: 12), Text('Withdraw Member', style: TextStyle(color: Colors.red))]),
-                      ),
-                    ],
-                    child: GroupingPlayerAvatar(
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
+          borderRadius: BorderRadius.circular(16),
+          border: isSelected 
+            ? Border.all(color: primaryColor, width: 2) 
+            : (matchSide != null 
+                ? Border.all(color: matchSide == 'A' ? Colors.orange.withValues(alpha: 0.5) : Colors.blue.withValues(alpha: 0.5), width: 1.5)
+                : Border.all(color: Colors.black.withValues(alpha: 0.03), width: 1)),
+        ),
+        child: Row(
+          children: [
+            if (!isScoreMode)
+              (!isAdmin 
+                  ? GroupingPlayerAvatar(
                       player: player, 
                       member: member, 
                       groupIndex: group.index, 
                       totalGroups: totalGroups, 
                       history: history,
-                    ),
-                  )),
-        title: Row(
-          children: [
+                      size: 36,
+                    )
+                  : PopupMenuButton<String>(
+                      onSelected: (val) => onAction?.call(val, player, group),
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 8,
+                      offset: const Offset(0, 48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'move', child: Row(children: [Icon(Icons.drive_file_move_outlined, size: 18), SizedBox(width: 12), Text('Move to Group...')])),
+                        const PopupMenuItem(value: 'remove', child: Row(children: [Icon(Icons.person_remove_outlined, size: 18), SizedBox(width: 12), Text('Remove from Group')])),
+                        const PopupMenuItem(
+                          value: 'withdraw', 
+                          child: Row(children: [Icon(Icons.exit_to_app, size: 18, color: Colors.red), SizedBox(width: 12), Text('Withdraw Member', style: TextStyle(color: Colors.red))]),
+                        ),
+                      ],
+                      child: GroupingPlayerAvatar(
+                        player: player, 
+                        member: member, 
+                        groupIndex: group.index, 
+                        totalGroups: totalGroups, 
+                        history: history,
+                        size: 36,
+                      ),
+                    )),
+            const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                player.name, 
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (isWinner && isScoreMode)
-               const Padding(
-                 padding: EdgeInsets.only(left: 6.0),
-                 child: Icon(Icons.emoji_events, size: 16, color: Colors.orange),
-               ),
-          ],
-        ),
-        subtitle: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              Text('HC: ${player.handicapIndex.toStringAsFixed(1)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
-              const SizedBox(width: 4),
-              Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Text('PHC: $displayPhc', style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.bold)),
-              if (matchSide != null) ...[
-                const SizedBox(width: 4),
-                Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
-                const SizedBox(width: 4),
-                Text(
-                  'SIDE $matchSide', 
-                  style: TextStyle(
-                    fontSize: 10, 
-                    color: matchSide == 'A' ? Colors.orange : Colors.blue, 
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  )
-                ),
-              ],
-            ],
-          ),
-        ),
-        trailing: isScoreMode 
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  scoreDisplay ?? '-',
-                  style: TextStyle(
-                    color: primaryColor,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Guest/Role Marker
-                  SizedBox(
-                    width: 28,
-                    child: Center(
-                      child: _buildRoleIcon(),
-                    ),
-                  ),
-                  
-                  // Buggy Marker/Toggle
-                  SizedBox(
-                    width: 28,
-                    child: Tooltip(
-                      message: player.needsBuggy ? 'Buggy: ${player.buggyStatus.name.toUpperCase()}' : 'No Buggy',
-                      child: Center(
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: _buildBuggyIcon(player.needsBuggy ? player.buggyStatus : RegistrationStatus.none, size: 18),
-                          onPressed: isAdmin ? () => onAction?.call('buggy', player, group) : null,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          player.name, 
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: -0.4),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-
-                  // Captain Marker/Toggle
-                  SizedBox(
-                    width: 28, 
-                    child: Tooltip(
-                      message: player.isCaptain ? 'Captain' : 'No Captain Role',
-                      child: Center(
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: Icon(
-                            player.isCaptain ? Icons.shield : Icons.shield_outlined, 
-                            color: player.isCaptain ? Colors.orange : Colors.grey.shade200, 
-                            size: 18
-                          ),
-                          onPressed: isAdmin ? () => onAction?.call('captain', player, group) : null,
+                  Row(
+                    children: [
+                      Text('HC: ${player.handicapIndex.toStringAsFixed(1)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 6),
+                      Container(width: 3, height: 3, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), shape: BoxShape.circle)),
+                      const SizedBox(width: 6),
+                      Text('PHC: $displayPhc', style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.w900)),
+                      if (matchSide != null) ...[
+                        const SizedBox(width: 6),
+                        Container(width: 3, height: 3, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), shape: BoxShape.circle)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'SIDE $matchSide', 
+                          style: TextStyle(
+                            fontSize: 10, 
+                            color: matchSide == 'A' ? Colors.orange : Colors.blue, 
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          )
                         ),
-                      ),
-                    ),
+                      ],
+                    ],
                   ),
                 ],
               ),
+            ),
+            if (isScoreMode) 
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isWinner)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6.0),
+                        child: _buildIconContainer(
+                          child: const Icon(Icons.emoji_events, size: 16, color: Colors.orange),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        scoreDisplay ?? '-',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Guest/Role Marker
+                  if (player.isGuest || hasGuest)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: _buildIconContainer(child: _buildRoleIcon()),
+                    ),
+                  
+                  // Buggy Marker/Toggle
+                  if (player.needsBuggy || isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: _buildIconContainer(
+                        child: InkWell(
+                          onTap: isAdmin ? () => onAction?.call('buggy', player, group) : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: _buildBuggyIcon(player.needsBuggy ? player.buggyStatus : RegistrationStatus.none, size: 16),
+                        ),
+                      ),
+                    ),
+
+                  // Captain Marker/Toggle
+                  if (player.isCaptain || isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: _buildIconContainer(
+                        child: InkWell(
+                          onTap: isAdmin ? () => onAction?.call('captain', player, group) : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Icon(
+                            player.isCaptain ? Icons.shield : Icons.shield_outlined, 
+                            color: player.isCaptain ? Colors.orange : Colors.grey.shade300, 
+                            size: 16
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        ),
       ),
+    );
+  }
+
+
+  Widget _buildIconContainer({required Widget child}) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(child: child),
     );
   }
 
@@ -296,7 +319,7 @@ class GroupingPlayerTile extends StatelessWidget {
       return const Text(
         'G',
         style: TextStyle(
-          fontSize: 14, 
+          fontSize: 12, 
           fontWeight: FontWeight.w900, 
           color: Colors.orange
         ),
@@ -308,7 +331,7 @@ class GroupingPlayerTile extends StatelessWidget {
       return const Icon(
         Icons.person_add,
         color: Colors.deepPurple,
-        size: 18,
+        size: 16,
       );
     }
     
@@ -519,6 +542,7 @@ class GroupingCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: BoxyArtFloatingCard(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -527,26 +551,56 @@ class GroupingCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      'Group ${group.index + 1}',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey.shade600),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'Group ${group.index + 1}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900, 
+                          fontSize: 14, 
+                          color: Colors.grey.shade600,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    _formatTime(context, group.teeTime),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.access_time_filled_rounded, size: 12, color: Colors.white),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatTime(context, group.teeTime),
+                        style: const TextStyle(
+                          color: Colors.white, 
+                          fontWeight: FontWeight.w900, 
+                          fontSize: 13
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ...group.players.map((p) {
                // Check if this player is a member who HAS a guest in this group
                final isMemberWithGuest = !p.isGuest && group.players.any((other) => other.isGuest && other.registrationMemberId == p.registrationMemberId);

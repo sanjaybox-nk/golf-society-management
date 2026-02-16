@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/event_registration.dart';
@@ -24,26 +25,18 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
     return eventAsync.when(
       data: (event) {
-        return Scaffold(
-          appBar: BoxyArtAppBar(
-            title: 'Registrations',
-            subtitle: event.title,
-            centerTitle: true,
-            isLarge: true,
-            leadingWidth: 70, 
-            leading: Center(
-              child: TextButton(
-                onPressed: () => context.canPop() ? context.pop() : context.go('/admin/events'),
-                child: const Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-              ),
+        return HeadlessScaffold(
+          title: 'Manage Registrations',
+          subtitle: event.title,
+          showBack: true,
+          onBack: () => context.go('/admin/events'),
+          slivers: [
+            allMembersAsync.when(
+              data: (members) => _buildContent(context, ref, event, members),
+              loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+              error: (err, _) => SliverFillRemaining(child: Center(child: Text('Error loading members: $err'))),
             ),
-            actions: [],
-          ),
-          body: allMembersAsync.when(
-            data: (members) => _buildContent(context, ref, event, members),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Error loading members: $err')),
-          ),
+          ],
         );
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -66,6 +59,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final closingDateStr = event.registrationDeadline != null
       ? DateFormat('EEE, d MMM @ HH:mm').format(event.registrationDeadline!)
       : 'No Deadline';
+
+    final isRegistrationSoon = event.registrationDeadline != null && 
+                               DateTime.now().isBefore(event.registrationDeadline!) &&
+                               event.registrationDeadline!.difference(DateTime.now()).inDays < 3;
 
     // 1. Calculate confirmed items for participation display
     int rollingConfirmedCount = 0;
@@ -144,13 +141,8 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
     final config = ref.watch(themeControllerProvider);
     final currency = config.currencySymbol;
-
+    final primary = Theme.of(context).primaryColor;
     final int capacity = event.maxParticipants ?? 0;
-    final String availableSlotsStr = capacity > 0
-        ? '${stats.confirmedGolfers}/$capacity spaces'
-        : 'Unlimited';
-
-    // Financial Metrics (Golf Fees Only)
     final double memberDinnerCost = event.dinnerCost ?? 0.0;
 
     
@@ -197,96 +189,236 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final waitlistMembers = memberModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
     final waitlistGuests = guestModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
 
-    return ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // METRICS CARD
-          Card(
-            elevation: 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
+    return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        sliver: SliverList(
+          delegate: SliverChildListDelegate([
+            // METRICS CARD
+            const BoxyArtSectionTitle(title: 'Registration Stats'),
+            ModernCard(
+              padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMetricItem(context, 'Total', '${event.registrations.length}', Icons.group, iconColor: const Color(0xFF2C3E50)),
-                      _buildMetricItem(context, 'Playing', playingValue, Icons.check_circle, iconColor: const Color(0xFF27AE60)),
-                      _buildMetricItem(context, 'Reserve', reserveValue, Icons.hourglass_top, iconColor: const Color(0xFFF39C12)),
-                      _buildMetricItem(context, 'Guests', '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}', Icons.person_add, iconColor: Colors.purple),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMetricItem(context, 'Buggies', '${stats.buggyCount}/$buggyCapacity', Icons.electric_rickshaw, iconColor: const Color(0xFF2C3E50), suffix: 'spaces'),
-                      _buildMetricItem(context, 'Dinner', '${stats.dinnerCount}', Icons.restaurant, iconColor: Colors.purple),
-                      if (stats.waitlistGolfers > 0)
-                        _buildMetricItem(context, 'Waitlist', '${stats.waitlistGolfers}', Icons.priority_high, iconColor: const Color(0xFFC0392B)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMetricItem(context, 'Paid', '$currency${totalPaidFees.toStringAsFixed(0)}', Icons.attach_money, iconColor: const Color(0xFF16A085)),
-                      _buildMetricItem(context, 'Breakfast', '$currency${totalBreakfastFees.toStringAsFixed(0)}', Icons.breakfast_dining, iconColor: const Color(0xFF795548)),
-                      _buildMetricItem(context, 'Lunch', '$currency${totalLunchFees.toStringAsFixed(0)}', Icons.lunch_dining, iconColor: const Color(0xFFD35400)),
-                      _buildMetricItem(context, 'Dinner', '$currency${totalDinnerFees.toStringAsFixed(0)}', Icons.restaurant_menu, iconColor: const Color(0xFF2980B9)),
-                    ],
-                  ),
-                  const Divider(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (capacity > 0) ...[
-                        Text(
-                          availableSlotsStr,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey[800]),
+                  // REGISTRATION STATS
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '${event.registrations.length}',
+                            label: 'Total',
+                            icon: Icons.groups_rounded,
+                            color: const Color(0xFF2C3E50),
+                            isCompact: true,
+                          ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Text('|', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: playingValue,
+                            label: 'Playing',
+                            icon: Icons.check_circle_rounded,
+                            color: const Color(0xFF27AE60),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: reserveValue,
+                            label: 'Reserve',
+                            icon: Icons.hourglass_top_rounded,
+                            color: const Color(0xFFF39C12),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
+                            label: 'Guests',
+                            icon: Icons.person_add_rounded,
+                            color: Colors.purple,
+                            isCompact: true,
+                          ),
                         ),
                       ],
-                      Icon(isClosed ? Icons.lock : Icons.timer, size: 14, color: isClosed ? Colors.red : Colors.grey),
-                      const SizedBox(width: 6),
-                      Text(isClosed ? 'Registration Closed' : 'Closes: $closingDateStr',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isClosed ? Colors.red : Colors.grey[800])),
-                    ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // ATTENDANCE STATS
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '${stats.buggyCount}/$buggyCapacity',
+                            label: 'Buggies',
+                            icon: Icons.electric_rickshaw_rounded,
+                            color: const Color(0xFF455A64),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '${stats.dinnerCount}',
+                            label: 'Dinner',
+                            icon: Icons.restaurant_rounded,
+                            color: Colors.deepPurple,
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '${stats.waitlistGolfers}',
+                            label: 'Waitlist',
+                            icon: Icons.priority_high_rounded,
+                            color: const Color(0xFFC0392B),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '${stats.breakfastCount}',
+                            label: 'Breakfast',
+                            icon: Icons.breakfast_dining_rounded,
+                            color: const Color(0xFF795548),
+                            isCompact: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 20),
+                  // FINANCIAL STATS
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '$currency${totalPaidFees.toStringAsFixed(0)}',
+                            label: 'Paid',
+                            icon: Icons.payments_rounded,
+                            color: const Color(0xFF16A085),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
+                            label: 'Breakfast',
+                            icon: Icons.breakfast_dining_rounded,
+                            color: const Color(0xFF795548),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '$currency${totalLunchFees.toStringAsFixed(0)}',
+                            label: 'Lunch',
+                            icon: Icons.lunch_dining_rounded,
+                            color: const Color(0xFFD35400),
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ModernMetricStat(
+                            value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
+                            label: 'Dinner',
+                            icon: Icons.restaurant_menu_rounded,
+                            color: const Color(0xFF2980B9),
+                            isCompact: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  // STATUS BAR
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 16,
+                        runSpacing: 8,
+                        children: [
+                          Text(
+                            '${stats.confirmedGolfers}/$capacity spaces',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2C3E50),
+                            ),
+                          ),
+                          Container(width: 1, height: 16, color: Colors.grey.withOpacity(0.3)),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isClosed ? Icons.lock_outline_rounded : Icons.lock_open_rounded,
+                                size: 18,
+                                color: isClosed ? const Color(0xFFC0392B) : const Color(0xFF27AE60),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isClosed ? 'Registration Closed' : 'Registration Open',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: isClosed ? const Color(0xFFC0392B) : const Color(0xFF27AE60),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
 
           const SizedBox(height: 24),
           // MEMBERS - PLAYING
           if (playingMembers.isNotEmpty) ...[
             BoxyArtSectionTitle(title: 'Playing (${playingMembers.length})'),
-            ...playingMembers.map((vm) => RegistrationCard(
-              name: vm.item.name,
-              label: 'Member',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.attendingBreakfast,
-              attendingLunch: vm.item.registration.attendingLunch,
-              attendingDinner: vm.item.registration.attendingDinner,
-              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: vm.memberProfile,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+            ...playingMembers.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name,
+                label: 'Member',
+                position: vm.position,
+                status: vm.status,
+                buggyStatus: vm.buggyStatus,
+                attendingBreakfast: vm.item.registration.attendingBreakfast,
+                attendingLunch: vm.item.registration.attendingLunch,
+                attendingDinner: vm.item.registration.attendingDinner,
+                hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: vm.memberProfile,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+              ),
             )),
           ],
 
@@ -294,24 +426,27 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (waitlistMembers.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Waitlist (${waitlistMembers.length})'),
-            ...waitlistMembers.map((vm) => RegistrationCard(
-              name: vm.item.name,
-              label: 'Member',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.attendingBreakfast,
-              attendingLunch: vm.item.registration.attendingLunch,
-              attendingDinner: vm.item.registration.attendingDinner,
-              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: vm.memberProfile,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+            ...waitlistMembers.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name,
+                label: 'Member',
+                position: vm.position,
+                status: vm.status,
+                buggyStatus: vm.buggyStatus,
+                attendingBreakfast: vm.item.registration.attendingBreakfast,
+                attendingLunch: vm.item.registration.attendingLunch,
+                attendingDinner: vm.item.registration.attendingDinner,
+                hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: vm.memberProfile,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+              ),
             )),
           ],
 
@@ -319,24 +454,27 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (reservedMembers.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Reserved (${reservedMembers.length})'),
-            ...reservedMembers.map((vm) => RegistrationCard(
-              name: vm.item.name,
-              label: 'Member',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.attendingBreakfast,
-              attendingLunch: vm.item.registration.attendingLunch,
-              attendingDinner: vm.item.registration.attendingDinner,
-              hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: vm.memberProfile,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+            ...reservedMembers.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name,
+                label: 'Member',
+                position: vm.position,
+                status: vm.status,
+                buggyStatus: vm.buggyStatus,
+                attendingBreakfast: vm.item.registration.attendingBreakfast,
+                attendingLunch: vm.item.registration.attendingLunch,
+                attendingDinner: vm.item.registration.attendingDinner,
+                hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: vm.memberProfile,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+              ),
             )),
           ],
 
@@ -344,24 +482,27 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (playingGuests.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Playing Guests (${playingGuests.length})'),
-            ...playingGuests.map((vm) => RegistrationCard(
-              name: vm.item.name, 
-              label: 'Guest of ${vm.item.registration.memberName}',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-              attendingLunch: vm.item.registration.guestAttendingLunch,
-              attendingDinner: vm.item.registration.guestAttendingDinner,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: null, 
-              isGuest: true,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+            ...playingGuests.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name, 
+                label: 'Guest of ${vm.item.registration.memberName}',
+                position: vm.position,
+                status: vm.status,
+                buggyStatus: vm.buggyStatus,
+                attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+                attendingLunch: vm.item.registration.guestAttendingLunch,
+                attendingDinner: vm.item.registration.guestAttendingDinner,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: null, 
+                isGuest: true,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+              ),
             )),
           ],
 
@@ -369,24 +510,27 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (waitlistGuests.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Waitlist Guests (${waitlistGuests.length})'),
-            ...waitlistGuests.map((vm) => RegistrationCard(
-              name: vm.item.name, 
-              label: 'Guest of ${vm.item.registration.memberName}',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-              attendingLunch: vm.item.registration.guestAttendingLunch,
-              attendingDinner: vm.item.registration.guestAttendingDinner,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: null, 
-              isGuest: true,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+            ...waitlistGuests.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name, 
+                label: 'Guest of ${vm.item.registration.memberName}',
+                position: vm.position,
+                status: vm.status,
+                buggyStatus: vm.buggyStatus,
+                attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+                attendingLunch: vm.item.registration.guestAttendingLunch,
+                attendingDinner: vm.item.registration.guestAttendingDinner,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: null, 
+                isGuest: true,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+              ),
             )),
           ],
 
@@ -394,24 +538,27 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (reservedGuests.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Reserved Guests (${reservedGuests.length})'),
-            ...reservedGuests.map((vm) => RegistrationCard(
-              name: vm.item.name, 
-              label: 'Guest of ${vm.item.registration.memberName}',
-              position: vm.position,
-              status: vm.status,
-              buggyStatus: vm.buggyStatus,
-              attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-              attendingLunch: vm.item.registration.guestAttendingLunch,
-              attendingDinner: vm.item.registration.guestAttendingDinner,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: null, 
-              isGuest: true,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+            ...reservedGuests.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name, 
+                label: 'Guest of ${vm.item.registration.memberName}',
+                position: vm.position,
+                status: vm.status,
+                buggyStatus: vm.buggyStatus,
+                attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+                attendingLunch: vm.item.registration.guestAttendingLunch,
+                attendingDinner: vm.item.registration.guestAttendingDinner,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: null, 
+                isGuest: true,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+              ),
             )),
           ],
 
@@ -419,23 +566,26 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (dinnerModels.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
-            ...dinnerModels.map((vm) => RegistrationCard(
-              name: vm.item.name,
-              label: 'Dinner Only',
-              status: vm.status,
-              buggyStatus: RegistrationStatus.none,
-              attendingBreakfast: vm.item.registration.attendingBreakfast,
-              attendingLunch: vm.item.registration.attendingLunch,
-              attendingDinner: true,
-              hasPaid: vm.item.registration.hasPaid,
-              isDinnerOnly: true,
-              isAdmin: true,
-              memberProfile: vm.memberProfile,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: null,
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+            ...dinnerModels.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name,
+                label: 'Dinner Only',
+                status: vm.status,
+                buggyStatus: RegistrationStatus.none,
+                attendingBreakfast: vm.item.registration.attendingBreakfast,
+                attendingLunch: vm.item.registration.attendingLunch,
+                attendingDinner: true,
+                hasPaid: vm.item.registration.hasPaid,
+                isDinnerOnly: true,
+                isAdmin: true,
+                memberProfile: vm.memberProfile,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: null,
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+              ),
             )),
           ],
 
@@ -443,25 +593,30 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           if (withdrawnModels.isNotEmpty) ...[
             const SizedBox(height: 24),
             BoxyArtSectionTitle(title: 'Not Participating (${withdrawnModels.length})'),
-            ...withdrawnModels.map((vm) => RegistrationCard(
-              name: vm.item.name,
-              label: 'Withdrawn',
-              status: vm.status,
-              buggyStatus: RegistrationStatus.none,
-              attendingBreakfast: vm.item.registration.attendingBreakfast,
-              attendingLunch: vm.item.registration.attendingLunch,
-              attendingDinner: false,
-              hasPaid: vm.item.registration.hasPaid,
-              isAdmin: true,
-              memberProfile: vm.memberProfile,
-              onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-              onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-              onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-              onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-              onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+            ...withdrawnModels.map((vm) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RegistrationCard(
+                name: vm.item.name,
+                label: 'Withdrawn',
+                status: vm.status,
+                buggyStatus: RegistrationStatus.none,
+                attendingBreakfast: vm.item.registration.attendingBreakfast,
+                attendingLunch: vm.item.registration.attendingLunch,
+                attendingDinner: false,
+                hasPaid: vm.item.registration.hasPaid,
+                isAdmin: true,
+                memberProfile: vm.memberProfile,
+                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+              ),
             )),
           ],
-        ],
+            const SizedBox(height: 100),
+          ]),
+        ),
     );
   }
 
@@ -577,86 +732,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
       newList[idx] = updated;
       ref.read(eventsRepositoryProvider).updateEvent(event.copyWith(registrations: newList));
     }
-  }
-
-
-  Widget _buildMetricItem(BuildContext context, String label, String value, IconData icon, {bool isHighlight = false, Color? iconColor, String? suffix}) {
-    final theme = Theme.of(context);
-    final color = iconColor ?? (isHighlight ? Colors.orange : theme.primaryColor);
-    
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (value.contains('(')) 
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: value.split(' ')[0],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const TextSpan(text: ' '),
-                      TextSpan(
-                        text: value.split(' ')[1],
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: value.length > 4 ? 14 : 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              if (suffix != null)
-                Text(
-                  suffix,
-                  style: const TextStyle(fontSize: 8, color: Colors.white70),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
   }
 }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/leaderboard_config.dart';
 import '../../../../features/events/presentation/events_provider.dart';
 
@@ -24,18 +24,17 @@ class LeaderboardBuilderScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: BoxyArtAppBar(
-        title: _formatEnum(type.name).toUpperCase(),
-        centerTitle: true,
-        isLarge: true,
-        showBack: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: _buildControl(context, ref),
-      ),
+    return HeadlessScaffold(
+      title: _formatEnum(type.name),
+      subtitle: existingConfig != null ? 'Edit Configuration' : 'New Configuration',
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverToBoxAdapter(
+            child: _buildControl(context, ref),
+          ),
+        ),
+      ],
     );
   }
 

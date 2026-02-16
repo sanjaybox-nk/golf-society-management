@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../models/competition.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 
 class CompetitionTemplateGalleryScreen extends ConsumerWidget {
@@ -30,153 +31,96 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
     final templatesAsync = ref.watch(templatesListProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
-      backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    Text(
-                      gameName,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    Text(
-                      'Choose a template or start blank',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    // Start Blank Card
-                    _buildGalleryCard(
-                      context,
-                      title: 'Start Blank',
-                      subtitle: 'Create a new $gameName from scratch',
-                      icon: Icons.add_circle_outline_rounded,
-                      isPrimary: true,
-                      onTap: () async {
-                        if (isPicker) {
-                           final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
-                           if (result != null && context.mounted) {
-                             context.pop(result);
-                           }
-                        } else {
-                          context.push('/admin/settings/templates/create/$typeStr');
-                        }
-                      },
-                    ),
-
-                    templatesAsync.when(
-                      data: (templates) {
-                        final filtered = templates.where((t) {
-                           final rules = t.rules;
-                           if (subtype != null && subtype != CompetitionSubtype.none) {
-                             return rules.subtype == subtype;
-                           }
-                           return rules.format == format && rules.subtype == CompetitionSubtype.none;
-                        }).toList();
-
-                        if (filtered.isEmpty) return const SizedBox.shrink();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 32),
-                            const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
-                            const SizedBox(height: 12),
-                            ...filtered.map((t) => Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: _buildTemplateCard(context, t, ref),
-                            )),
-                          ],
-                        );
-                      },
-                      loading: () => const Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (e, s) => Text('Error loading templates: $e'),
-                    ),
-
-                    const SizedBox(height: 32),
-                    const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                    _buildGalleryCard(
-                      context,
-                      title: 'Standard $gameName',
-                      subtitle: 'The traditional configuration used by most societies',
-                      icon: Icons.auto_awesome_rounded,
-                      onTap: () async {
-                        if (isPicker) {
-                           final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
-                           if (result != null && context.mounted) {
-                             context.pop(result);
-                           }
-                        } else {
-                          context.push('/admin/settings/templates/create/$typeStr');
-                        }
-                      },
-                      badges: [
-                        _RuleBadge(label: CompetitionRules(
-                          format: format, 
-                          subtype: subtype ?? CompetitionSubtype.none,
-                        ).defaultAllowanceLabel),
-                        const _RuleBadge(label: '1 ROUND'),
-                      ],
-                    ),
-                    const SizedBox(height: 100),
-                  ]),
-                ),
+    return HeadlessScaffold(
+      title: gameName,
+      subtitle: 'Choose a template or start blank',
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              // Start Blank Card
+              _buildGalleryCard(
+                context,
+                title: 'Start Blank',
+                subtitle: 'Create a new $gameName from scratch',
+                icon: Icons.add_circle_outline_rounded,
+                isPrimary: true,
+                onTap: () async {
+                  if (isPicker) {
+                      final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
+                      if (result != null && context.mounted) {
+                        context.pop(result);
+                      }
+                  } else {
+                    context.push('/admin/settings/templates/create/$typeStr');
+                  }
+                },
               ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
+
+              templatesAsync.when(
+                data: (templates) {
+                  final filtered = templates.where((t) {
+                      final rules = t.rules;
+                      if (subtype != null && subtype != CompetitionSubtype.none) {
+                        return rules.subtype == subtype;
+                      }
+                      return rules.format == format && rules.subtype == CompetitionSubtype.none;
+                  }).toList();
+
+                  if (filtered.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 32),
+                      const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
+                      const SizedBox(height: 12),
+                      ...filtered.map((t) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildTemplateCard(context, t, ref),
+                      )),
+                    ],
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
+                error: (e, s) => Text('Error loading templates: $e'),
               ),
-            ),
+
+              const SizedBox(height: 32),
+              const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              _buildGalleryCard(
+                context,
+                title: 'Standard $gameName',
+                subtitle: 'The traditional configuration used by most societies',
+                icon: Icons.auto_awesome_rounded,
+                onTap: () async {
+                  if (isPicker) {
+                      final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
+                      if (result != null && context.mounted) {
+                        context.pop(result);
+                      }
+                  } else {
+                    context.push('/admin/settings/templates/create/$typeStr');
+                  }
+                },
+                badges: [
+                  _RuleBadge(label: CompetitionRules(
+                    format: format, 
+                    subtype: subtype ?? CompetitionSubtype.none,
+                  ).defaultAllowanceLabel),
+                  const _RuleBadge(label: '1 ROUND'),
+                ],
+              ),
+              const SizedBox(height: 100),
+            ]),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

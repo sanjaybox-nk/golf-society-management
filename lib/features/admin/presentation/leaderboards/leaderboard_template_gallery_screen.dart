@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:golf_society/core/shared_ui/modern_cards.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/leaderboard_config.dart';
@@ -20,147 +22,89 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final typeName = _formatEnum(type.name).toUpperCase();
+    final typeName = _formatEnum(type.name);
     final templatesAsync = ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplates();
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
-      backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    Text(
-                      typeName,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    Text(
-                      'Choose a template or start blank',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    // Start Blank Card
-                    _buildGalleryCard(
-                      context,
-                      title: 'Start Blank',
-                      subtitle: 'Create a new $typeName from scratch',
-                      icon: Icons.add_circle_outline_rounded,
-                      isPrimary: true,
-                      onTap: () async {
-                        if (isPicker) {
-                           final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
-                           if (result != null && context.mounted) {
-                             context.pop(result);
-                           }
-                        } else {
-                          context.push('/admin/settings/leaderboards/create/${type.name}/builder');
-                        }
-                      },
-                    ),
-
-                    StreamBuilder<List<LeaderboardConfig>>(
-                      stream: templatesAsync,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) return Text('Error: ${snapshot.error}');
-                        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-                        final templates = snapshot.data!;
-                        final filtered = templates.where((t) {
-                           return _getTypeFromConfig(t) == type;
-                        }).toList();
-
-                        if (filtered.isEmpty) return const SizedBox.shrink();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 32),
-                            const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
-                            const SizedBox(height: 12),
-                            ...filtered.map((t) => Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: _buildTemplateCard(context, t, ref),
-                            )),
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 32),
-                    const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
-                    const SizedBox(height: 12),
-                     _buildGalleryCard(
-                      context,
-                      title: 'Standard $typeName',
-                      subtitle: 'The traditional configuration',
-                      icon: Icons.auto_awesome_rounded,
-                      onTap: () async {
-                         if (isPicker) {
-                           final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
-                           if (result != null && context.mounted) context.pop(result);
-                         } else {
-                           context.push('/admin/settings/leaderboards/create/${type.name}/builder');
-                         }
-                      },
-                      badges: [
-                        const _RuleBadge(label: 'STANDARD'),
-                      ],
-                    ),
-                    const SizedBox(height: 100),
-                  ]),
-                ),
+    return HeadlessScaffold(
+      title: typeName,
+      subtitle: 'Choose a template or start blank',
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              // Start Blank Card
+              _buildGalleryCard(
+                context,
+                title: 'Start Blank',
+                subtitle: 'Create a new $typeName from scratch',
+                icon: Icons.add_circle_outline_rounded,
+                isPrimary: true,
+                onTap: () async {
+                  if (isPicker) {
+                    final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
+                    if (result != null && context.mounted) {
+                      context.pop(result);
+                    }
+                  } else {
+                    context.push('/admin/settings/leaderboards/create/${type.name}/builder');
+                  }
+                },
               ),
-            ],
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
-                ),
+
+              StreamBuilder<List<LeaderboardConfig>>(
+                stream: templatesAsync,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+
+                  final templates = snapshot.data!;
+                  final filtered = templates.where((t) {
+                    return _getTypeFromConfig(t) == type;
+                  }).toList();
+
+                  if (filtered.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 32),
+                      const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
+                      const SizedBox(height: 12),
+                      ...filtered.map((t) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildTemplateCard(context, t, ref),
+                      )),
+                    ],
+                  );
+                },
               ),
-            ),
+
+              const SizedBox(height: 32),
+              const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              _buildGalleryCard(
+                context,
+                title: 'Standard $typeName',
+                subtitle: 'The traditional configuration',
+                icon: Icons.auto_awesome_rounded,
+                onTap: () async {
+                  if (isPicker) {
+                    final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
+                    if (result != null && context.mounted) context.pop(result);
+                  } else {
+                    context.push('/admin/settings/leaderboards/create/${type.name}/builder');
+                  }
+                },
+                badges: [
+                  const _RuleBadge(label: 'STANDARD'),
+                ],
+              ),
+              const SizedBox(height: 100),
+            ]),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

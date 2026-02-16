@@ -381,7 +381,7 @@ class SeedingService {
           email: '${firstName.toLowerCase()}.${lastName.toLowerCase()}$i@example.com',
           phone: '07700 900${random.nextInt(999).toString().padLeft(3, '0')}',
           handicap: double.parse(handicap.toStringAsFixed(1)),
-          whsNumber: 'WHS${100000 + i}',
+          handicapId: 'WHS${100000 + i}',
           societyRole: societyRole,
           status: MemberStatus.active,
           joinedDate: DateTime.now().subtract(Duration(days: random.nextInt(365 * 5))),

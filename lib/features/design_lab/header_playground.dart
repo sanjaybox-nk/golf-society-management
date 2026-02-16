@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:golf_society/core/shared_ui/modern_cards.dart';
 
 
 // Color scheme definitions
@@ -173,8 +174,8 @@ class _ModernEventDetails extends StatelessWidget {
         children: [
           // Main scrollable content
           ListView(
-            padding: const EdgeInsets.only(
-              top: 60,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 40,
               left: 20,
               right: 20,
               bottom: 100,
@@ -481,36 +482,6 @@ class _ModernEventDetails extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _RegistrationStat('24/32', 'Playing', Icons.check_circle_rounded, const Color(0xFF27AE60), scheme),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _RegistrationStat('4', 'Guests', Icons.person_add_rounded, Colors.purple, scheme),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _RegistrationStat('3', 'Reserve', Icons.hourglass_bottom_rounded, const Color(0xFFF39C12), scheme),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      children: [
-                        Icon(Icons.timer_rounded, size: 16, color: orangePrimary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Closes: Fri, 9 Jan @ 18:00',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -634,8 +605,8 @@ class _ModernRegistration extends StatelessWidget {
         children: [
           // Main scrollable content
           ListView(
-            padding: const EdgeInsets.only(
-              top: 60,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 40,
               left: 20,
               right: 20,
               bottom: 100,
@@ -670,49 +641,66 @@ class _ModernRegistration extends StatelessWidget {
                 scheme: scheme,
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(child: _MetricCircle('24', 'Total', Icons.groups_rounded, const Color(0xFF2C3E50), scheme)),
-                        Expanded(child: _MetricCircle('20', 'Playing', Icons.check_circle_rounded, const Color(0xFF27AE60), scheme)),
-                        Expanded(child: _MetricCircle('3', 'Reserve', Icons.hourglass_bottom_rounded, const Color(0xFFF39C12), scheme)),
-                        Expanded(child: _MetricCircle('4', 'Guests', Icons.person_add_rounded, Colors.purple, scheme)),
-                      ],
+                    // Metrics Grid (Uniform 4 columns)
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: ModernMetricStat(value: '24', label: 'Total', icon: Icons.groups_rounded, color: const Color(0xFF2C3E50), isCompact: true)),
+                          const SizedBox(width: 12),
+                          Expanded(child: ModernMetricStat(value: '20', label: 'Playing', icon: Icons.check_circle_rounded, color: const Color(0xFF27AE60), isCompact: true)),
+                          const SizedBox(width: 12),
+                          Expanded(child: ModernMetricStat(value: '3', label: 'Reserve', icon: Icons.hourglass_top_rounded, color: const Color(0xFFF39C12), isCompact: true)),
+                          const SizedBox(width: 12),
+                          Expanded(child: ModernMetricStat(value: '4', label: 'Guests', icon: Icons.person_add_rounded, color: Colors.purple, isCompact: true)),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(child: _MetricCircle('6/12', 'Buggies', Icons.electric_rickshaw_rounded, const Color(0xFF2C3E50), scheme)),
-                        Expanded(child: _MetricCircle('18', 'Dinner', Icons.restaurant_rounded, Colors.purple, scheme)),
-                        Expanded(child: _MetricCircle('0', 'Waitlist', Icons.priority_high_rounded, const Color(0xFFC0392B), scheme)),
-                        const Expanded(child: SizedBox()),
-                      ],
+                    const SizedBox(height: 12),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: ModernMetricStat(value: '6/12', label: 'Buggies', icon: Icons.electric_rickshaw_rounded, color: const Color(0xFF455A64), isCompact: true)),
+                          const SizedBox(width: 12),
+                          Expanded(child: ModernMetricStat(value: '18', label: 'Dinner', icon: Icons.restaurant_rounded, color: Colors.deepPurple, isCompact: true)),
+                          const SizedBox(width: 12),
+                          Expanded(child: ModernMetricStat(value: '0', label: 'Waitlist', icon: Icons.priority_high_rounded, color: const Color(0xFFC0392B), isCompact: true)),
+                          const SizedBox(width: 12),
+                          const Expanded(child: SizedBox()),
+                        ],
+                      ),
                     ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '24/32 spaces',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: scheme.textPrimary,
+                    const Divider(height: 32),
+                    // STATUS BAR
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '24/32 spaces',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: scheme.textPrimary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text('|', style: TextStyle(color: scheme.textSecondary)),
-                        const SizedBox(width: 12),
-                        Icon(Icons.timer_rounded, size: 14, color: orangePrimary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Closes: Fri, 9 Jan @ 18:00',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.textPrimary,
+                          const SizedBox(width: 16),
+                          Container(width: 1, height: 16, color: scheme.textSecondary.withValues(alpha: 0.3)),
+                          const SizedBox(width: 16),
+                          Icon(Icons.lock_outline_rounded, size: 18, color: const Color(0xFFC0392B)),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Registration Closed',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFC0392B),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -874,47 +862,6 @@ class _CourseDetail extends StatelessWidget {
   }
 }
 
-class _RegistrationStat extends StatelessWidget {
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
-  final AppColorScheme scheme;
-
-  const _RegistrationStat(this.value, this.label, this.icon, this.color, this.scheme);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: scheme.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _RuleItem extends StatelessWidget {
   final String label;
@@ -999,57 +946,6 @@ class _CostRow extends StatelessWidget {
   }
 }
 
-class _MetricCircle extends StatelessWidget {
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
-  final AppColorScheme scheme;
-
-  const _MetricCircle(this.value, this.label, this.icon, this.color, this.scheme);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: value.length > 4 ? 12 : 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: scheme.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _MemberCard extends StatelessWidget {
   final String name;
@@ -1197,65 +1093,13 @@ class _MinimalTopBar extends StatelessWidget {
     required this.beigeBackground,
     required this.orangePrimary,
   });
-
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: beigeBackground.withValues(alpha: 0.95),
-          border: Border(
-            bottom: BorderSide(
-              color: Colors.black.withValues(alpha: 0.05),
-              width: 1,
-            ),
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _TopBarIcon(Icons.arrow_back_rounded, orangePrimary),
-              Row(
-                children: [
-                  _TopBarIcon(Icons.share_rounded, orangePrimary),
-                  const SizedBox(width: 12),
-                  _TopBarIcon(Icons.more_vert_rounded, orangePrimary),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
 
-class _TopBarIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _TopBarIcon(this.icon, this.color);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, size: 20, color: const Color(0xFF4A4A4A)),
-    );
-  }
-}
+// _TopBarIcon removed as it is no longer used
 
 class _ModernBottomNav extends StatelessWidget {
   final Color cardWhite;

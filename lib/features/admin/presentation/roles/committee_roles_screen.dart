@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
+import '../../../../core/shared_ui/modern_cards.dart';
 import '../../../members/presentation/members_provider.dart';
 
 
@@ -27,97 +29,43 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final membersAsync = ref.watch(allMembersProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
+    return HeadlessScaffold(
+      title: 'Committee',
+      subtitle: 'Manage society specific titles',
       backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          membersAsync.when(
-            data: (members) {
-              final activeCustomRoles = members
-                  .map((m) => m.societyRole)
-                  .where((r) => r != null && r.isNotEmpty && !_standardRoles.contains(r))
-                  .cast<String>()
-                  .toSet()
-                  .toList();
+      showBack: true,
+      slivers: [
+        membersAsync.when(
+          data: (members) {
+            final activeCustomRoles = members
+                .map((m) => m.societyRole)
+                .where((r) => r != null && r.isNotEmpty && !_standardRoles.contains(r))
+                .cast<String>()
+                .toSet()
+                .toList();
 
-              activeCustomRoles.sort();
-              final allRoles = [..._standardRoles, ...activeCustomRoles];
+            activeCustomRoles.sort();
+            final allRoles = [..._standardRoles, ...activeCustomRoles];
 
-              return CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        const Text(
-                          'Committee',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        Text(
-                          'Manage society specific titles',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        ...allRoles.map((role) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildRoleCard(context, role),
-                        )),
-                        const SizedBox(height: 16),
-                        _buildCreateButton(context),
-                        const SizedBox(height: 100),
-                      ]),
-                    ),
-                  ),
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Error: $err')),
-          ),
-          
-          // Back Button sticky
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
-                ),
+            return SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  ...allRoles.map((role) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _buildRoleCard(context, role),
+                  )),
+                  const SizedBox(height: 16),
+                  _buildCreateButton(context),
+                  const SizedBox(height: 100),
+                ]),
               ),
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+          loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+          error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+        ),
+      ],
     );
   }
 

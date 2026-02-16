@@ -1,0 +1,148 @@
+Analyzing Golf Society Management...                            
+
+warning • Duplicate import • lib/core/shared_ui/pro_max_app_bar.dart:4:8 • duplicate_import
+warning • Unused import: 'package:golf_society/models/member.dart' • lib/core/shared_ui/pro_max_app_bar.dart:6:8 • unused_import
+warning • The value of the local variable 'currentUser' isn't used • lib/core/shared_ui/pro_max_app_bar.dart:48:11 • unused_local_variable
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:3:8 • unnecessary_import
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/events/event_registrations_admin_screen.dart:5:8 • unused_import
+warning • Unused import: 'package:golf_society/core/shared_ui/modern_cards.dart' • lib/features/admin/presentation/leaderboards/leaderboard_builder_screen.dart:3:8 • unused_import
+warning • Unused import: '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/leaderboards/leaderboard_builder_screen.dart:6:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart:3:8 • unnecessary_import
+warning • The declaration '<unnamed>' isn't referenced • lib/features/admin/presentation/members/admin_members_screen.dart:18:7 • unused_element
+warning • The value of the local variable 'membersAsync' isn't used • lib/features/admin/presentation/members/admin_members_screen.dart:40:11 • unused_local_variable
+warning • The value of the local variable 'searchQuery' isn't used • lib/features/admin/presentation/members/admin_members_screen.dart:41:11 • unused_local_variable
+  error • The name 'SizedBox' isn't a class • lib/features/admin/presentation/members/admin_members_screen.dart:83:35 • creation_with_non_type
+  error • The name 'SizedBox' isn't a class • lib/features/admin/presentation/members/admin_members_screen.dart:89:35 • creation_with_non_type
+  error • There's no constant named 'all' in 'AdminMemberFilter' • lib/features/admin/presentation/members/admin_members_screen.dart:92:78 • undefined_enum_constant
+  error • There's no constant named 'all' in 'AdminMemberFilter' • lib/features/admin/presentation/members/admin_members_screen.dart:93:114 • undefined_enum_constant
+  error • Unexpected text 'return' • lib/features/admin/presentation/members/admin_members_screen.dart:98:31 • unexpected_token
+  error • Undefined name 'm' • lib/features/admin/presentation/members/admin_members_screen.dart:98:38 • undefined_identifier
+  error • Undefined name 'm' • lib/features/admin/presentation/members/admin_members_screen.dart:98:63 • undefined_identifier
+  error • Expected to find ')' • lib/features/admin/presentation/members/admin_members_screen.dart:98:88 • expected_token
+  error • Expected to find ']' • lib/features/admin/presentation/members/admin_members_screen.dart:98:88 • expected_token
+  error • Expected a class member • lib/features/admin/presentation/members/admin_members_screen.dart:99:31 • expected_class_member
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:99:36 • missing_identifier
+  error • Methods must have an explicit list of parameters • lib/features/admin/presentation/members/admin_members_screen.dart:99:36 • missing_method_parameters
+  error • Undefined name 'm' • lib/features/admin/presentation/members/admin_members_screen.dart:100:38 • undefined_identifier
+  error • Undefined name 'm' • lib/features/admin/presentation/members/admin_members_screen.dart:100:73 • undefined_identifier
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:102:28 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:102:29 • expected_executable
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:102:30 • strict_top_level_inference
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:102:38 • missing_function_body
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:104:27 • strict_top_level_inference
+  error • 'if' can't be used as an identifier because it's a keyword • lib/features/admin/presentation/members/admin_members_screen.dart:104:27 • expected_identifier_but_got_keyword
+  error • Undefined class 'isEmpty' • lib/features/admin/presentation/members/admin_members_screen.dart:104:31 • undefined_class
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:104:47 • missing_identifier
+  error • Undefined name 'context' • lib/features/admin/presentation/members/admin_members_screen.dart:110:94 • undefined_identifier
+  error • The name 'SizedBox' isn't a class • lib/features/admin/presentation/members/admin_members_screen.dart:111:43 • creation_with_non_type
+  error • Undefined name 'context' • lib/features/admin/presentation/members/admin_members_screen.dart:112:98 • undefined_identifier
+  error • Undefined name 'filtered' • lib/features/admin/presentation/members/admin_members_screen.dart:120:53 • undefined_identifier
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:121:27 • strict_top_level_inference
+  error • Functions must have an explicit list of parameters • lib/features/admin/presentation/members/admin_members_screen.dart:121:27 • missing_function_parameters
+  error • The name 'sortedMembers' is already defined • lib/features/admin/presentation/members/admin_members_screen.dart:121:27 • duplicate_definition
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:121:40 • missing_function_body
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:121:40 • expected_executable
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:121:41 • strict_top_level_inference
+   info • Use the generic function type syntax to declare the parameter '' • lib/features/admin/presentation/members/admin_members_screen.dart:121:46 • use_function_type_syntax_for_parameters
+  error • Expected an identifier • lib/features/admin/presentation/members/admin_members_screen.dart:121:46 • missing_identifier
+  error • Expected to find ')' • lib/features/admin/presentation/members/admin_members_screen.dart:121:53 • expected_token
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:121:89 • missing_function_body
+   info • An uninitialized variable should have an explicit type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:123:27 • prefer_typing_uninitialized_variables
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:123:27 • strict_top_level_inference
+  error • 'return' can't be used as an identifier because it's a keyword • lib/features/admin/presentation/members/admin_members_screen.dart:123:27 • expected_identifier_but_got_keyword
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:123:27 • expected_token
+  error • Variables must be declared using the keywords 'const', 'final', 'var' or a type name • lib/features/admin/presentation/members/admin_members_screen.dart:123:27 • missing_const_final_var_or_type
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:123:34 • strict_top_level_inference
+   info • The variable name 'Column' isn't a lowerCamelCase identifier • lib/features/admin/presentation/members/admin_members_screen.dart:123:34 • non_constant_identifier_names
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:124:29 • strict_top_level_inference
+  error • Named parameters must be enclosed in curly braces ('{' and '}') • lib/features/admin/presentation/members/admin_members_screen.dart:124:37 • named_parameter_outside_group
+  error • Using a colon as the separator before a default value is no longer supported • lib/features/admin/presentation/members/admin_members_screen.dart:124:37 • obsolete_colon_for_default_value
+  error • Methods can't be invoked in constant expressions • lib/features/admin/presentation/members/admin_members_screen.dart:124:39 • const_eval_method_invocation
+  error • Undefined name 'context' • lib/features/admin/presentation/members/admin_members_screen.dart:126:62 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/admin/presentation/members/admin_members_screen.dart:126:71 • undefined_identifier
+  error • The argument type 'Object?' can't be assigned to the parameter type 'Member'.  • lib/features/admin/presentation/members/admin_members_screen.dart:126:76 • argument_type_not_assignable
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:128:28 • missing_function_body
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:129:25 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:129:26 • expected_executable
+   info • An uninitialized variable should have an explicit type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:130:25 • prefer_typing_uninitialized_variables
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:130:25 • strict_top_level_inference
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:130:25 • expected_token
+  error • Variables must be declared using the keywords 'const', 'final', 'var' or a type name • lib/features/admin/presentation/members/admin_members_screen.dart:130:25 • missing_const_final_var_or_type
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:130:32 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:130:34 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:130:35 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:130:37 • expected_executable
+  error • Can't have modifier 'const' here • lib/features/admin/presentation/members/admin_members_screen.dart:130:40 • extraneous_modifier
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:130:46 • strict_top_level_inference
+   info • The variable name 'Center' isn't a lowerCamelCase identifier • lib/features/admin/presentation/members/admin_members_screen.dart:130:46 • non_constant_identifier_names
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:130:53 • strict_top_level_inference
+  error • Named parameters must be enclosed in curly braces ('{' and '}') • lib/features/admin/presentation/members/admin_members_screen.dart:130:58 • named_parameter_outside_group
+  error • Using a colon as the separator before a default value is no longer supported • lib/features/admin/presentation/members/admin_members_screen.dart:130:58 • obsolete_colon_for_default_value
+  error • The default value of an optional parameter must be constant • lib/features/admin/presentation/members/admin_members_screen.dart:130:60 • non_constant_default_value
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:130:88 • missing_function_body
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:130:88 • expected_executable
+   info • An uninitialized variable should have an explicit type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:25 • prefer_typing_uninitialized_variables
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:25 • strict_top_level_inference
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:131:25 • expected_token
+  error • Variables must be declared using the keywords 'const', 'final', 'var' or a type name • lib/features/admin/presentation/members/admin_members_screen.dart:131:25 • missing_const_final_var_or_type
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:131:30 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:131:32 • expected_executable
+   info • An uninitialized variable should have an explicit type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:33 • prefer_typing_uninitialized_variables
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:33 • strict_top_level_inference
+  error • Variables must be declared using the keywords 'const', 'final', 'var' or a type name • lib/features/admin/presentation/members/admin_members_screen.dart:131:33 • missing_const_final_var_or_type
+   info • An uninitialized variable should have an explicit type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:38 • prefer_typing_uninitialized_variables
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:38 • strict_top_level_inference
+  error • Expected to find ';' • lib/features/admin/presentation/members/admin_members_screen.dart:131:38 • expected_token
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:131:43 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:131:45 • expected_executable
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:48 • strict_top_level_inference
+   info • The variable name 'Center' isn't a lowerCamelCase identifier • lib/features/admin/presentation/members/admin_members_screen.dart:131:48 • non_constant_identifier_names
+  error • The name 'Center' is already defined • lib/features/admin/presentation/members/admin_members_screen.dart:131:48 • duplicate_definition
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:131:55 • strict_top_level_inference
+  error • Named parameters must be enclosed in curly braces ('{' and '}') • lib/features/admin/presentation/members/admin_members_screen.dart:131:60 • named_parameter_outside_group
+  error • Using a colon as the separator before a default value is no longer supported • lib/features/admin/presentation/members/admin_members_screen.dart:131:60 • obsolete_colon_for_default_value
+  error • The default value of an optional parameter must be constant • lib/features/admin/presentation/members/admin_members_screen.dart:131:62 • non_constant_default_value
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:131:82 • missing_function_body
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:131:82 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:132:23 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:132:24 • expected_executable
+  error • Can't have modifier 'const' here • lib/features/admin/presentation/members/admin_members_screen.dart:133:17 • extraneous_modifier
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:133:23 • strict_top_level_inference
+   info • The variable name 'SizedBox' isn't a lowerCamelCase identifier • lib/features/admin/presentation/members/admin_members_screen.dart:133:23 • non_constant_identifier_names
+   info • Missing type annotation • lib/features/admin/presentation/members/admin_members_screen.dart:133:32 • strict_top_level_inference
+  error • Named parameters must be enclosed in curly braces ('{' and '}') • lib/features/admin/presentation/members/admin_members_screen.dart:133:38 • named_parameter_outside_group
+  error • Using a colon as the separator before a default value is no longer supported • lib/features/admin/presentation/members/admin_members_screen.dart:133:38 • obsolete_colon_for_default_value
+  error • A function body must be provided • lib/features/admin/presentation/members/admin_members_screen.dart:133:44 • missing_function_body
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:133:44 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:134:15 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:134:16 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:134:17 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:135:13 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:135:14 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:136:11 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:136:12 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:137:9 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:137:10 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:138:7 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:138:8 • expected_executable
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:139:5 • expected_executable
+  error • Unexpected text ';' • lib/features/admin/presentation/members/admin_members_screen.dart:139:6 • unexpected_token
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:140:3 • expected_executable
+  error • Undefined name 'context' • lib/features/admin/presentation/members/admin_members_screen.dart:147:28 • undefined_identifier
+  error • Expected a method, getter, setter or operator declaration • lib/features/admin/presentation/members/admin_members_screen.dart:168:1 • expected_executable
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/admin_settings_screen.dart:5:8 • unnecessary_import
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/settings/branding_settings_screen.dart:4:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/branding_settings_screen.dart:12:8 • unnecessary_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/general_settings_screen.dart:5:8 • unnecessary_import
+  error • The named parameter 'error' is required, but there's no corresponding argument • lib/features/events/presentation/event_details_screen.dart:24:24 • missing_required_argument
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/events/presentation/event_registration_screen.dart:3:8 • unused_import
+warning • Unused import: 'package:intl/intl.dart' • lib/features/events/presentation/event_registration_screen.dart:4:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/event_registration_screen.dart:7:8 • unnecessary_import
+warning • Unused import: 'package:golf_society/features/events/data/events_repository.dart' • lib/features/events/presentation/event_registration_screen.dart:12:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/events_screen.dart:7:8 • unnecessary_import
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/events/presentation/tabs/event_user_registration_tab.dart:6:8 • unused_import
+  error • 'Center' isn't a function • lib/navigation/app_router.dart:451:71 • invocation_of_non_function
+  error • Invalid constant value • lib/navigation/app_router.dart:451:71 • invalid_constant
+  error • The name 'Center' is defined in the libraries 'package:flutter/src/widgets/basic.dart (via package:flutter/material.dart)' and 'package:golf_society/features/admin/presentation/members/admin_members_screen.dart' • lib/navigation/app_router.dart:451:71 • ambiguous_import
+
+144 issues found. (ran in 11.0s)

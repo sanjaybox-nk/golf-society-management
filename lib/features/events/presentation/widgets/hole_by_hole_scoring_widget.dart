@@ -159,7 +159,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   Widget build(BuildContext context) {
     final holes = widget.event.courseConfig['holes'] as List? ?? [];
     // Fixed height for tabbed view
-    const double cardHeight = 240; // Slightly taller for tabs
+    const double cardHeight = 190; // Compact height
     
     // Watch for active match status
     final matchResultAsync = ref.watch(currentMatchControllerProvider(widget.event.id));
@@ -285,34 +285,37 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       children: [
         // Match TOTAL bar layout structure (Label + Controls)
         Visibility(
-          maintainSize: true,
-          maintainAnimation: true,
-          maintainState: true,
           visible: !widget.isSelfMarking,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Container(
-              height: 48, // Slightly taller for more presence
+              height: 40, // Reduced height for compactness
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
               child: Row(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'SCORES',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                        style: TextStyle(
+                          fontSize: 9, 
+                          fontWeight: FontWeight.w900, 
+                          letterSpacing: 2.0, 
+                          color: Colors.blueGrey.shade800
+                        ),
                       ),
                       Text(
                         'MARKER MODE',
                         style: TextStyle(
-                          fontSize: 8, 
+                          fontSize: 7, 
                           fontWeight: FontWeight.w900, 
+                          letterSpacing: 0.5,
                           color: Theme.of(context).primaryColor
                         ),
                       ),
@@ -450,7 +453,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                   fontWeight: FontWeight.w900,
                   color: (hasConflict && isActive) 
                       ? Colors.red 
-                      : (isActive ? (activeColor ?? theme.primaryColor) : Colors.grey),
+                      : (isActive ? (activeColor ?? theme.primaryColor) : Colors.blueGrey.shade500),
                 ),
               ),
               if (hasConflict) ...[
