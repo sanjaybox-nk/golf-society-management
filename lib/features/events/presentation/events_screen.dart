@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
-import 'package:golf_society/core/shared_ui/modern_cards.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/models/golf_event.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/models/competition.dart';
 
 class EventsScreen extends ConsumerWidget {
   const EventsScreen({super.key});
@@ -109,14 +109,14 @@ class EventsScreen extends ConsumerWidget {
   }
 }
 
-class _EventCard extends StatelessWidget {
+class _EventCard extends ConsumerWidget {
   final GolfEvent event;
   final bool isHighlighted;
 
   const _EventCard({required this.event, this.isHighlighted = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final primary = theme.primaryColor;
     final isDark = theme.brightness == Brightness.dark;
@@ -131,7 +131,7 @@ class _EventCard extends StatelessWidget {
       child: Row(
         children: [
           // Date Badge
-          BoxyArtDateBadge(date: event.date),
+          BoxyArtDateBadge(date: event.date, endDate: event.endDate),
           const SizedBox(width: 14),
 
           // Event Info
@@ -139,9 +139,52 @@ class _EventCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Status Badge (for non-completed events)
-                // Status Badge
-                _buildStatusBadge(context),
+                // Status Row
+                Row(
+                  children: [
+                    _buildStatusBadge(context),
+                    if (event.isInvitational) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 0.5),
+                        ),
+                        child: const Text(
+                          'INVITATIONAL',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (event.isMultiDay == true) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.teal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.teal.withValues(alpha: 0.3), width: 0.5),
+                        ),
+                        child: const Text(
+                          'MULTI-DAY',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 6),
                 Text(
                   event.title,
@@ -211,6 +254,10 @@ class _EventCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                
+                // Game Type Pill
+                const SizedBox(height: 8),
+                _buildGameTypePill(context, ref),
               ],
             ),
           ),
@@ -292,6 +339,40 @@ class _EventCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGameTypePill(BuildContext context, WidgetRef ref) {
+    final compAsync = ref.watch(competitionDetailProvider(event.id));
+
+    return compAsync.when(
+      data: (comp) {
+        if (comp == null) return const SizedBox.shrink();
+
+        final gameName = comp.rules.gameName;
+        final theme = Theme.of(context);
+        final color = theme.colorScheme.primary;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
+          ),
+          child: Text(
+            gameName,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              color: color,
+              letterSpacing: 0.5,
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, stack) => const SizedBox.shrink(),
     );
   }
 }

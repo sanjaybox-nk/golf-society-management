@@ -27,7 +27,7 @@ class MemberHomeScreen extends ConsumerWidget {
     final notificationsAsync = ref.watch(homeNotificationsProvider);
     
     final nextMatch = ref.watch(homeNextMatchProvider);
-    final topPlayers = ref.watch(homeLeaderboardProvider);
+    final topPlayers = ref.watch(homeSeasonLeaderboardProvider);
     final societyConfig = ref.watch(themeControllerProvider);
 
     return Scaffold(
@@ -226,11 +226,15 @@ class MemberHomeScreen extends ConsumerWidget {
 
                       // Leaderboard Snippet
                       BoxyArtSectionTitle(
-                        title: 'Order of Merit - Top 3',
+                        title: 'Order of Merit',
                         isPeeking: isPeeking,
                       ),
                       const SizedBox(height: 12),
-                      _LeaderboardSnippet(topPlayers: topPlayers),
+                      topPlayers.when(
+                        data: (players) => _LeaderboardSnippet(topPlayers: players),
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) => Text('Error loading standings: $err'),
+                      ),
                       const SizedBox(height: 40),
                     ]),
                   ),

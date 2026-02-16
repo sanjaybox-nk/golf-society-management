@@ -5,6 +5,8 @@ import '../../notifications/data/notifications_repository.dart';
 import '../../notifications/data/firestore_notifications_repository.dart';
 
 // Mock data provider for Next Match
+import '../../../models/leaderboard_standing.dart';
+import '../../../models/leaderboard_config.dart';
 import '../../events/presentation/events_provider.dart';
 
 // Next Match derived from Upcoming Events
@@ -29,11 +31,39 @@ final homeNotificationsProvider = StreamProvider<List<AppNotification>>((ref) {
   return repository.watchNotifications(currentUserId);
 });
 
-// Mock data provider for Leaderboard
-final homeLeaderboardProvider = Provider<List<Map<String, dynamic>>>((ref) {
-  return [
-    {'name': 'John Smith', 'points': 245, 'position': 1},
-    {'name': 'Jane Doe', 'points': 238, 'position': 2},
-    {'name': 'Bob Wilson', 'points': 225, 'position': 3},
-  ];
+// Active Leaderboard Standings for Home (e.g., top 3 of the main OOM)
+final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynamic>>>>((ref) {
+  final activeSeasonAsync = ref.watch(activeSeasonProvider);
+  
+  // If still loading or error, propagate that state
+  if (activeSeasonAsync is AsyncLoading) return const AsyncValue.loading();
+  if (activeSeasonAsync is AsyncError) return AsyncValue.error(activeSeasonAsync.error!, activeSeasonAsync.stackTrace!);
+
+  final season = activeSeasonAsync.value;
+  if (season == null || season.leaderboards.isEmpty) {
+    return const AsyncValue.data(<Map<String, dynamic>>[]);
+  }
+    
+  // Find the main Order of Merit config
+  final oomConfig = season.leaderboards.firstWhere(
+    (l) => l is OrderOfMeritConfig,
+    orElse: () => season.leaderboards.first,
+  );
+    
+  final standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
+    
+  return standingsAsync.whenData((standings) {
+    return standings.take(3).map((s) => {
+      'name': s.memberName,
+      'points': s.points.round(),
+      'position': standings.indexOf(s) + 1,
+    }).toList();
+  });
+});
+
+final leaderboardStandingsProvider = StreamProvider.family<List<LeaderboardStanding>, String>((ref, leaderboardId) {
+  final activeSeason = ref.watch(activeSeasonProvider).asData?.value;
+  if (activeSeason == null) return Stream.value(<LeaderboardStanding>[]);
+  
+  return ref.watch(seasonsRepositoryProvider).watchLeaderboardStandings(activeSeason.id, leaderboardId);
 });

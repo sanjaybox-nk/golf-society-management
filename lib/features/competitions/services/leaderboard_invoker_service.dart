@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/leaderboard_config.dart';
 import '../../../../models/scorecard.dart';
+import '../../../../models/competition.dart';
+import '../../../../models/golf_event.dart';
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
 import 'calculators/leaderboard_calculator.dart';
@@ -25,16 +27,23 @@ class LeaderboardInvokerService {
     // 2. Fetch All Competitions in Date Range
     final compRepo = ref.read(competitionsRepositoryProvider);
     final allComps = await compRepo.getCompetitions(); 
-    final seasonComps = allComps.where((c) => 
+    final dateFilteredComps = allComps.where((c) => 
       c.startDate.isAfter(season.startDate.subtract(const Duration(days: 1))) && 
       c.endDate.isBefore(season.endDate.add(const Duration(days: 1)))
     ).toList();
 
-    // 2.5 Fetch All relevant Events for Grouping Context
+    // 2.5 Fetch All relevant Events for Grouping Context & Invitational Filtering
     final eventRepo = ref.read(eventsRepositoryProvider);
     final Map<String, Map<String, dynamic>> groupings = {};
-    for (var comp in seasonComps) {
+    final List<Competition> seasonComps = [];
+
+    for (var comp in dateFilteredComps) {
       final event = await eventRepo.getEvent(comp.id);
+      
+      // SKIP if event is marked as Invitational / Non-Scoring
+      if (event?.isInvitational == true) continue;
+
+      seasonComps.add(comp);
       if (event != null && event.grouping.isNotEmpty) {
         groupings[comp.id] = event.grouping;
       }

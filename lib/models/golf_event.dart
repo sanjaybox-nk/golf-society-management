@@ -59,7 +59,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(10) int teeOffInterval,
     @Default(false) bool isGroupingPublished,
     // Multi-day support
-    bool? isMultiDay,
+    @Default(false) bool isMultiDay,
     @OptionalTimestampConverter() DateTime? endDate,
     // Grouping/Tee Sheet data
     @Default({}) Map<String, dynamic> grouping,
@@ -74,6 +74,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(false) bool isStatsReleased,
     @Default({}) Map<String, dynamic> finalizedStats,
     String? secondaryTemplateId, // Reference for Match Play overlay
+    @Default(false) bool isInvitational,
     @Default(EventStatus.draft) EventStatus status,
   }) = _GolfEvent;
 

@@ -18,10 +18,11 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
     final primary = Theme.of(context).primaryColor;
 
     return HeadlessScaffold(
-      title: 'Handicap Provider',
-      subtitle: 'Choose the national handicap system for your society',
-      backgroundColor: beigeBackground,
+      title: 'Handicap System',
+      subtitle: 'Select calculation provider',
       showBack: true,
+      onBack: () => context.pop(),
+      backgroundColor: beigeBackground,
       slivers: [
         SliverToBoxAdapter(
           child: Column(

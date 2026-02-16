@@ -29,7 +29,6 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
         : format.name.toUpperCase();
 
     final templatesAsync = ref.watch(templatesListProvider);
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return HeadlessScaffold(
       title: gameName,

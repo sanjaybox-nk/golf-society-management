@@ -45,9 +45,10 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
     ];
 
     return HeadlessScaffold(
-      title: 'Grouping',
-      subtitle: 'Select default grouping method',
+      title: 'Grouping Strategy',
+      subtitle: 'Select automatic pairing logic',
       showBack: true,
+      onBack: () => context.pop(),
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(

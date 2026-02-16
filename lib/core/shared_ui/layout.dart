@@ -351,14 +351,18 @@ class BoxyArtSectionTitle extends StatelessWidget {
               ),
               const SizedBox(width: 6),
             ],
-            Text(
-              title.toUpperCase(),
-              style: TextStyle(
-                fontSize: isLevel2 ? 10 : 12,
-                fontWeight: FontWeight.w900, // Maximized Boldness
-                color: isDark ? Colors.white54 : Colors.grey,
-                letterSpacing: 1.5, // Increased spacing
-                fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+            Flexible(
+              child: Text(
+                title.toUpperCase(),
+                style: TextStyle(
+                  fontSize: isLevel2 ? 10 : 12,
+                  fontWeight: FontWeight.w900, // Maximized Boldness
+                  color: isDark ? Colors.white54 : Colors.grey,
+                  letterSpacing: 1.5, // Increased spacing
+                  fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
@@ -13,8 +14,6 @@ import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
-
 class EventRegistrationUserTab extends ConsumerWidget {
   final String eventId;
 
@@ -27,7 +26,14 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
     return eventsAsync.when(
       data: (events) {
-        final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        final event = events.firstWhereOrNull((e) => e.id == eventId);
+        if (event == null) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Registration data no longer available'),
+            ),
+          );
+        }
         return HeadlessScaffold(
           title: 'Registration',
           subtitle: event.title,

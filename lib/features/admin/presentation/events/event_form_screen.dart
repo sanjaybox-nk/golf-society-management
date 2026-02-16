@@ -106,6 +106,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   String? _secondaryTemplateId;
   Competition? _secondaryCompetition;
   bool _isSecondaryCustomized = false;
+  bool _isInvitational = false;
 
   // Hole Configuration
   late List<TextEditingController> _holeParsControllers;
@@ -287,6 +288,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _isMultiDay = e.isMultiDay == true;
     _endDate = e.endDate;
     _secondaryTemplateId = e.secondaryTemplateId;
+    _isInvitational = e.isInvitational;
 
     // Fetch secondary competition if exists
     if (e.id.isNotEmpty && _secondaryTemplateId != null) {
@@ -772,6 +774,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         label: 'Show Registration Button',
                         value: _showRegistrationButton,
                         onChanged: (v) => setState(() => _showRegistrationButton = v),
+                      ),
+                      const SizedBox(height: 16),
+                      ModernSwitchRow(
+                        label: 'Invitational / Non-Scoring',
+                        subtitle: "Exclude this event's scores from all season leaderboards.",
+                        icon: Icons.star_border_rounded,
+                        value: _isInvitational,
+                        onChanged: (v) => setState(() => _isInvitational = v),
                       ),
                     ],
                   ),
@@ -1749,6 +1759,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       notes: finalizeNotes,
       isMultiDay: _isMultiDay,
       endDate: _isMultiDay ? _endDate : null,
+      isInvitational: _isInvitational,
       facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
       status: _editingEvent?.status ?? widget.event?.status ?? EventStatus.draft,
       registrations: _editingEvent?.registrations ?? widget.event?.registrations ?? [], // Preserve existing registrations!

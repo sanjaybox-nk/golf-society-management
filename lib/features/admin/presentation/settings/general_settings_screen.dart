@@ -6,6 +6,7 @@ import 'package:golf_society/core/shared_ui/modern_cards.dart';
 import 'package:golf_society/core/theme/theme_controller.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/handicap_system.dart';
+import 'package:golf_society/core/services/demo_seeding_service.dart';
 
 class GeneralSettingsScreen extends ConsumerWidget {
   const GeneralSettingsScreen({super.key});
@@ -17,6 +18,8 @@ class GeneralSettingsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'General',
       subtitle: 'Manage app-wide defaults',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -41,6 +44,14 @@ class GeneralSettingsScreen extends ConsumerWidget {
                       subtitle: config.handicapSystem.shortName,
                       iconColor: Colors.blue,
                       onTap: () => context.push('/admin/settings/general/handicap-system'),
+                    ),
+                    const Divider(height: 1, indent: 68),
+                    _SettingsTile(
+                      icon: Icons.auto_graph_rounded,
+                      title: 'Society Cuts',
+                      subtitle: (config.enableSocietyCuts == true) ? 'Active' : 'Disabled',
+                      iconColor: Colors.orange,
+                      onTap: () => context.push('/admin/settings/general/society-cuts'),
                     ),
                   ],
                 ),
@@ -85,6 +96,23 @@ class GeneralSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'Developer Tools', padding: EdgeInsets.zero),
+              const SizedBox(height: 12),
+              ModernCard(
+                child: Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.data_usage_rounded,
+                      title: 'Initialize Demo Season',
+                      subtitle: 'Generate 60 members & 10 full events',
+                      iconColor: Colors.deepPurple,
+                      onTap: () => _showSeedingDialog(context, ref),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 100),
             ]),
           ),
@@ -104,6 +132,46 @@ class GeneralSettingsScreen extends ConsumerWidget {
 
   // _getStrategyDescription not needed here anymore as it's in the selection screen.
   // Picker methods removed.
+
+  void _showSeedingDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Initialize Demo Season?'),
+        content: const Text(
+          'This will create a new "Demo Season 2026" with 60 high-fidelity members, 11 unique courses, and 10 full events. \n\nThis may take 30-60 seconds to populate Firestore.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Trigger Seeding
+              try {
+                final seedingService = ref.read(demoSeedingServiceProvider);
+                await seedingService.seedDemoSeason();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Demo Season Initialized Successfully!')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('Initialize'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SettingsTile extends StatelessWidget {

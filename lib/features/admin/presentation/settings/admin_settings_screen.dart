@@ -18,6 +18,8 @@ class AdminSettingsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Settings',
       subtitle: 'App-wide configuration',
+      showBack: true,
+      onBack: () => context.go('/admin'),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

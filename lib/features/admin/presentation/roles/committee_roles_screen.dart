@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/shared_ui/headless_scaffold.dart';
-import '../../../../core/shared_ui/modern_cards.dart';
 import '../../../members/presentation/members_provider.dart';
 
 
@@ -30,10 +29,11 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return HeadlessScaffold(
-      title: 'Committee',
+      title: 'Committee Roles',
       subtitle: 'Manage society specific titles',
       backgroundColor: beigeBackground,
       showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         membersAsync.when(
           data: (members) {

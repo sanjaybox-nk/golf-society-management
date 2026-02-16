@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../../core/shared_ui/shared_ui.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -29,7 +29,15 @@ class EventUserDetailsTab extends ConsumerWidget {
     final eventsAsync = ref.watch(eventsProvider);
     return eventsAsync.when(
       data: (events) {
-        final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        final event = events.firstWhereOrNull((e) => e.id == eventId);
+        
+        if (event == null) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Event data no longer available'),
+            ),
+          );
+        }
         
         final config = ref.watch(themeControllerProvider);
         // Check for preview mode
@@ -74,7 +82,6 @@ class EventDetailsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
     final user = ref.watch(effectiveUserProvider);
     final isAdmin = user.role != MemberRole.member;
 
@@ -171,7 +178,6 @@ class EventDetailsContent extends ConsumerWidget {
 
 
   Widget _buildStatusBadge(BuildContext context) {
-    final status = event.status; // Use raw status for admin selector
     final displayStatus = event.displayStatus;
     
     // Member view uses user-friendly labels

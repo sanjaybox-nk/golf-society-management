@@ -23,7 +23,9 @@ class RolesSettingsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'System Roles',
-      subtitle: 'Manage administrative access',
+      subtitle: 'View available administrative roles',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

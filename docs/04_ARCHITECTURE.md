@@ -55,7 +55,7 @@ Models are immutable and generated using `freezed`.
 -   **Extension**: `.freezed.dart` and `.g.dart` (JsonSerializable).
 -   **Key Models**:
     -   `Member`: Core user profile.
-    -   `GolfEvent`: Tournament/Event data.
+    -   `GolfEvent`: Stores metadata for a specific competition date. Support for multi-day events via `isMultiDay` (defaults to false) and `endDate`.
     -   `Competition`: Scoring rules, formats, and configurations.
 ## Code Quality & Hardening
 The project maintains a strict standard for code quality and reliability:

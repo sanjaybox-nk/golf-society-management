@@ -23,6 +23,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Branding',
       subtitle: 'Customize colors and identity',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

@@ -13,6 +13,8 @@ class MemberTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final Widget? trailing;
   final bool showFeeStatus;
+  final String? secondaryMetricLabel; 
+  final String? secondaryMetricValue;
 
   const MemberTile({
     super.key,
@@ -21,6 +23,8 @@ class MemberTile extends ConsumerWidget {
     this.onLongPress,
     this.trailing,
     this.showFeeStatus = false,
+    this.secondaryMetricLabel,
+    this.secondaryMetricValue,
   });
 
   @override
@@ -64,6 +68,8 @@ class MemberTile extends ConsumerWidget {
                                     fontWeight: FontWeight.w900,
                                     fontSize: 20,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                             ),
@@ -97,6 +103,8 @@ class MemberTile extends ConsumerWidget {
                         letterSpacing: -0.6,
                         height: 1.1,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                     const SizedBox(height: 16),
                     
@@ -116,8 +124,8 @@ class MemberTile extends ConsumerWidget {
                             const SizedBox(width: 24),
                             _buildMetricColumn(
                               context,
-                              system.idLabel,
-                              member.handicapId ?? '-',
+                              secondaryMetricLabel ?? system.idLabel, // If provided use it, else default
+                              secondaryMetricValue ?? (member.handicapId ?? '-'),
                             ),
                           ],
                         );

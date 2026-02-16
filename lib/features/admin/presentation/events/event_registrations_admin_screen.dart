@@ -10,7 +10,6 @@ import '../../../members/presentation/members_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../../models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/theme_controller.dart';
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
@@ -56,13 +55,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
     // Map profile data
     final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
-    final closingDateStr = event.registrationDeadline != null
-      ? DateFormat('EEE, d MMM @ HH:mm').format(event.registrationDeadline!)
-      : 'No Deadline';
-
-    final isRegistrationSoon = event.registrationDeadline != null && 
-                               DateTime.now().isBefore(event.registrationDeadline!) &&
-                               event.registrationDeadline!.difference(DateTime.now()).inDays < 3;
 
     // 1. Calculate confirmed items for participation display
     int rollingConfirmedCount = 0;
@@ -141,7 +133,6 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
     final config = ref.watch(themeControllerProvider);
     final currency = config.currencySymbol;
-    final primary = Theme.of(context).primaryColor;
     final int capacity = event.maxParticipants ?? 0;
     final double memberDinnerCost = event.dinnerCost ?? 0.0;
 
@@ -366,7 +357,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                               color: Color(0xFF2C3E50),
                             ),
                           ),
-                          Container(width: 1, height: 16, color: Colors.grey.withOpacity(0.3)),
+                          Container(width: 1, height: 16, color: Colors.grey.withValues(alpha: 0.3)),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

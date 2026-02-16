@@ -31,6 +31,12 @@ _SocietyConfig _$SocietyConfigFromJson(Map<String, dynamic> json) =>
           ) ??
           HandicapSystem.igolf,
       selectedPaletteName: json['selectedPaletteName'] as String?,
+      enableSocietyCuts: json['enableSocietyCuts'] as bool? ?? false,
+      societyCutRules:
+          (json['societyCutRules'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toDouble()),
+          ) ??
+          const {'1st': 2.0, '2nd': 1.0, '3rd': 0.5},
     );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -49,6 +55,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'distanceUnit': instance.distanceUnit,
       'handicapSystem': _$HandicapSystemEnumMap[instance.handicapSystem]!,
       'selectedPaletteName': instance.selectedPaletteName,
+      'enableSocietyCuts': instance.enableSocietyCuts,
+      'societyCutRules': instance.societyCutRules,
     };
 
 const _$HandicapSystemEnumMap = {

@@ -21,6 +21,12 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('yards') String distanceUnit, // 'yards' or 'meters'
     @Default(HandicapSystem.igolf) HandicapSystem handicapSystem, // Global provider
     String? selectedPaletteName, // Selected Modern Card palette name
+    @Default(false) bool enableSocietyCuts,
+    @Default({
+      '1st': 2.0,
+      '2nd': 1.0,
+      '3rd': 0.5,
+    }) Map<String, double> societyCutRules,
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>

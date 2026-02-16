@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart'; // [NEW]
 import '../../../../core/services/storage_service.dart'; // [NEW]
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/shared_ui/headless_scaffold.dart';
+import 'widgets/member_stats_row.dart'; // [NEW]
 
 import '../../../../core/constants/country_codes.dart';
 import '../../../../models/member.dart';
@@ -433,79 +435,74 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
           _showExitConfirmation();
         }
       },
-      child: Scaffold(
-        appBar: BoxyArtAppBar(
-          title: title,
-          isLarge: true,
-          leadingWidth: 80,
-          leading: TextButton(
-            onPressed: () {
-              if (_isEditing) {
-                _showExitConfirmation();
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text(
-              _isEditing ? 'Cancel' : 'Back',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+      child: HeadlessScaffold(
+        title: title,
+        showBack: !_isEditing,
+        showAdminShortcut: false, // Modal context, no shortcut needed
+        
+        // Leading Action (Back / Cancel)
+        leading: _isEditing 
+          ? Center(
+              child: BoxyArtGlassIconButton(
+                icon: Icons.close_rounded,
+                onPressed: _showExitConfirmation,
+                tooltip: 'Cancel',
               ),
-            ),
-          ),
-          centerTitle: true,
-          actions: [
-            if (!_isEditing && _canEdit())
-              IconButton(
+            )
+          : null, // Default back button logic handles view mode
+
+        // Trailing Actions (Edit / Save)
+        actions: [
+          if (!_isEditing && _canEdit())
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: BoxyArtGlassIconButton(
                 onPressed: () => setState(() => _isEditing = true),
-                icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                icon: Icons.edit_outlined,
                 tooltip: 'Edit Member',
               ),
-            if (_isEditing)
-               Padding(
-                padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: TextButton(
-                    onPressed: _isSaving ? null : _save,
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Save',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+            ),
+          if (_isEditing)
+             Padding(
+              padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: TextButton(
+                  onPressed: _isSaving ? null : _save,
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
-                  ),
+                        )
+                      : const Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
-            const SizedBox(width: 8),
-          ],
-        ),
+            ),
+        ],
         bottomNavigationBar: _buildBottomMenu(),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(24).copyWith(bottom: 40),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(24).copyWith(bottom: 40),
+            sliver: SliverToBoxAdapter(
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  // Member Header Card
                     ListenableBuilder(
                       listenable: Listenable.merge([
                         _firstController,
@@ -538,6 +535,28 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
                     
                     const SizedBox(height: 16),
+                    
+                    // Stats Row
+                    if (!_isNewMember && widget.member != null)
+                      Consumer(
+                        builder: (context, ref, _) {
+                           final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
+                           return statsAsync.when(
+                             data: (stats) => MemberStatsRow(
+                               starts: stats.starts,
+                               wins: stats.wins,
+                               top5: stats.top5,
+                               avgPts: stats.avgPts,
+                               bestPts: stats.bestPts,
+                               rank: stats.rank,
+                             ),
+                             loading: () => const SizedBox.shrink(), // Or skeleton
+                             error: (_, __) => const SizedBox.shrink(),
+                           );
+                        },
+                      ),
+
+                    const SizedBox(height: 24),
 
                     // Personal Details Card (Unified for Edit and View)
                     ModernCard(
@@ -812,8 +831,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

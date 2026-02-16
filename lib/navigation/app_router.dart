@@ -22,6 +22,7 @@ import '../features/admin/presentation/settings/general_settings_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
 import '../features/admin/presentation/settings/grouping_strategy_selection_screen.dart';
 import '../features/admin/presentation/settings/handicap_system_selection_screen.dart';
+import '../features/admin/presentation/settings/society_cuts_settings_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
@@ -52,7 +53,6 @@ import '../models/leaderboard_config.dart'; // Ensure this is imported
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';
 import '../features/events/presentation/tabs/event_user_details_tab.dart';
-import '../features/events/presentation/tabs/event_user_registration_tab.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/events/presentation/tabs/event_gallery_user_tab.dart';
 import '../features/competitions/presentation/season_standings_screen.dart';
@@ -194,6 +194,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           GoRoute(
                             path: 'handicap-system',
                             builder: (context, state) => const HandicapSystemSelectionScreen(),
+                          ),
+                          GoRoute(
+                            path: 'society-cuts', // NEW
+                            builder: (context, state) => const SocietyCutsSettingsScreen(),
                           ),
                         ],
                       ),

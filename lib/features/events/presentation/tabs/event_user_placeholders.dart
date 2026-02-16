@@ -35,7 +35,6 @@ import '../../../matchplay/domain/match_definition.dart';
 
 import '../../../debug/presentation/state/debug_providers.dart';
 import 'event_stats_tab.dart';
-import 'event_stats_tab.dart';
 import 'event_user_registration_tab.dart';
 import '../../../../core/shared_ui/headless_scaffold.dart';
 
@@ -104,20 +103,22 @@ class EventGroupingUserTab extends ConsumerWidget {
 
     return eventsAsync.when(
       data: (events) {
-        var event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
-        
-        // [LAB MODE] Apply Status Override
-        if (statusOverride != null) {
-          event = event.copyWith(status: statusOverride);
+        final event = events.firstWhereOrNull((e) => e.id == eventId);
+        if (event == null) {
+          return const Scaffold(body: Center(child: Text('Event not found')));
         }
         
-        final bool isPublished = event.isGroupingPublished;
-        final groupsData = event.grouping['groups'] as List?;
+        var effectiveEvent = event;
+        // [LAB MODE] Apply Status Override
+        if (statusOverride != null) {
+          effectiveEvent = effectiveEvent.copyWith(status: statusOverride);
+        }
+        
+        final bool isPublished = effectiveEvent.isGroupingPublished;
+        final groupsData = effectiveEvent.grouping['groups'] as List?;
         final List<TeeGroup> groups = groupsData != null 
             ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
             : [];
-
-        final isPeeking = ref.watch(impersonationProvider) != null;
 
         return HeadlessScaffold(
           title: event.title,
@@ -153,11 +154,10 @@ class EventGroupingUserTab extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.lock_clock_rounded, size: 64, color: Colors.grey),
                         const SizedBox(height: 16),
-                        Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        const Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -224,7 +224,6 @@ class _FieldHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventFieldTabProvider);
-    final primary = Theme.of(context).primaryColor;
 
     return Container(
       decoration: BoxDecoration(
@@ -331,18 +330,19 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
     final compAsync = ref.watch(competitionDetailProvider(widget.eventId));
-    final formatOverride = ref.watch(gameFormatOverrideProvider);
-
     return eventsAsync.when(
       data: (events) {
         // [Lab Mode] Apply overrides
         final statusOverride = ref.watch(eventStatusOverrideProvider);
-        var event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
+        final baseEvent = events.firstWhereOrNull((e) => e.id == widget.eventId);
+        if (baseEvent == null) {
+          return const Scaffold(body: Center(child: Text('Event not found')));
+        }
         
+        var event = baseEvent;
         if (statusOverride != null) {
           event = event.copyWith(status: statusOverride);
         }
-
 
         final forceLockedOverride = ref.watch(isScoringLockedOverrideProvider);
         if (forceLockedOverride != null) {
@@ -439,7 +439,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             // If no results, show the original mock or empty?
             // For now, if results are empty, we keep the empty state or show a placeholder.
 
-            final isPeeking = ref.watch(impersonationProvider) != null;
 
             return HeadlessScaffold(
               title: event.title,
@@ -470,65 +469,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
-    );
-  }
-
-  Widget _buildTabButton(String label, int index) {
-    final selectedTab = ref.watch(eventDetailsTabProvider);
-    final isSelected = selectedTab == index;
-    
-    // Define icons for each tab
-    IconData icon;
-    switch (index) {
-      case 0:
-        icon = Icons.assignment_outlined;
-        break;
-      case 1:
-        icon = Icons.groups_outlined;
-        break;
-      case 2:
-        icon = Icons.emoji_events_outlined;
-        break;
-      case 3:
-        icon = Icons.bar_chart;
-        break;
-      case 4:
-        icon = Icons.grid_view_outlined; // Or something for matches
-        break;
-      case 5:
-        icon = Icons.account_tree_outlined; 
-        break;
-      default:
-        icon = Icons.help_outline;
-    }
-    
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => ref.read(eventDetailsTabProvider.notifier).set(index),
-        child: Container(
-          height: 48,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.6),
-                size: 20,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.6),
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -1561,7 +1501,10 @@ class EventStatsUserTab extends ConsumerWidget {
 
     return eventsAsync.when(
       data: (events) {
-        final event = events.firstWhere((e) => e.id == eventId, orElse: () => throw 'Event not found');
+        final event = events.firstWhereOrNull((e) => e.id == eventId);
+        if (event == null) {
+          return const Scaffold(body: Center(child: Text('Event not found')));
+        }
         return HeadlessScaffold(
           title: event.title,
           subtitle: 'Advanced Stats',
@@ -1616,7 +1559,6 @@ class _LiveHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventDetailsTabProvider);
-    final primary = Theme.of(context).primaryColor;
 
     final List<({String label, int index, IconData icon})> tabs = [
       (label: 'My Score', index: 0, icon: Icons.assignment_outlined),

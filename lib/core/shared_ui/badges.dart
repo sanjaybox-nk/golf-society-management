@@ -235,13 +235,23 @@ class BoxyArtChatBubble extends StatelessWidget {
 /// A stylized date badge for event lists.
 class BoxyArtDateBadge extends StatelessWidget {
   final DateTime date;
+  final DateTime? endDate;
 
-  const BoxyArtDateBadge({super.key, required this.date});
+  const BoxyArtDateBadge({
+    super.key, 
+    required this.date,
+    this.endDate,
+  });
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final hasRange = endDate != null && endDate!.day != date.day;
+    final dayText = hasRange 
+        ? '${date.day}-${endDate!.day}'
+        : DateFormat('d').format(date);
 
     return Container(
       width: 58,
@@ -267,13 +277,19 @@ class BoxyArtDateBadge extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            DateFormat('d').format(date),
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: primary,
-              height: 1.1,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                dayText,
+                style: TextStyle(
+                  fontSize: hasRange ? 16 : 22,
+                  fontWeight: FontWeight.bold,
+                  color: primary,
+                  height: 1.1,
+                ),
+              ),
             ),
           ),
           Text(

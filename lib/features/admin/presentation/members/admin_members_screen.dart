@@ -40,6 +40,20 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
     final membersAsync = ref.watch(allMembersProvider);
     final searchQuery = ref.watch(adminMemberSearchQueryProvider).toLowerCase();
     final currentFilter = ref.watch(adminMemberFilterProvider);
+    final memberStatsAsync = ref.watch(memberStatsProvider); // Watch stats
+    
+    // Calculate filter counts
+    int activeCount = 0;
+    int committeeCount = 0;
+    int otherCount = 0;
+    
+    if (membersAsync.hasValue) {
+      final members = membersAsync.value!;
+      activeCount = members.where((m) => m.status == MemberStatus.member || m.status == MemberStatus.active).length;
+      committeeCount = members.where((m) => m.societyRole != null && m.societyRole!.isNotEmpty).length;
+      otherCount = members.where((m) => m.status != MemberStatus.member && m.status != MemberStatus.active).length;
+    }
+
     return GestureDetector(
       onTap: () => _searchFocusNode.unfocus(),
       behavior: HitTestBehavior.opaque,
@@ -84,15 +98,15 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                   child: Row(
                     children: [
                       _buildFilterChip(
-                        label: 'Active',
+                        label: 'Active ($activeCount)',
                         filter: AdminMemberFilter.current,
                       ),
                       _buildFilterChip(
-                        label: 'Committee',
+                        label: 'Committee ($committeeCount)',
                         filter: AdminMemberFilter.committee,
                       ),
                       _buildFilterChip(
-                        label: 'Other',
+                        label: 'Other ($otherCount)',
                         filter: AdminMemberFilter.other,
                       ),
                     ],
@@ -131,10 +145,19 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     sortedMembers.sort((a, b) => a.lastName.compareTo(b.lastName));
 
                     return Column(
-                      children: sortedMembers.map((member) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildDismissibleMember(context, ref, member),
-                      )).toList(),
+                      children: sortedMembers.map((member) {
+                        final eventCount = memberStatsAsync.value?[member.id] ?? 0;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildDismissibleMember(
+                            context, 
+                            ref, 
+                            member,
+                            secondaryMetricLabel: 'EVENTS',
+                            secondaryMetricValue: '$eventCount',
+                          ),
+                        );
+                      }).toList(),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),
@@ -191,7 +214,13 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
 }
 
 
-Widget _buildDismissibleMember(BuildContext context, WidgetRef ref, Member member) {
+Widget _buildDismissibleMember(
+  BuildContext context, 
+  WidgetRef ref, 
+  Member member, {
+  String? secondaryMetricLabel,
+  String? secondaryMetricValue,
+}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: Dismissible(
@@ -227,6 +256,8 @@ Widget _buildDismissibleMember(BuildContext context, WidgetRef ref, Member membe
         onTap: () => MemberDetailsModal.show(context, member),
         onLongPress: () => MemberDetailsModal.show(context, member),
         showFeeStatus: true,
+        secondaryMetricLabel: secondaryMetricLabel,
+        secondaryMetricValue: secondaryMetricValue,
       ),
     ),
   );

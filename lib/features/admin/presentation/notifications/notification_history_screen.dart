@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/campaign.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +19,6 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
   @override
   Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(adminNotificationsProvider);
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
       backgroundColor: Colors.transparent,

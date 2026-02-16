@@ -140,6 +140,8 @@ Semantic status indicator with automatic light/dark mode adaptation.
   - **Waitlist**: Negative (Red)
   - **Dinner Only**: Info (Blue)
   - **Withdrawn/Off**: Neutral (Grey)
+  - **Game Type (Competition Format)**: Primary (Dynamic color, usually yellow/green) – Shown on event list cards for instant format recognition.
+  - **Multi-Day**: Teal – Indicates events spanning multiple days.
 - **Behavior**: 
   - Automatically adjusts text color using `ContrastHelper` for optimal readability.
   - Automatically adjusts background opacity based on theme brightness.
@@ -154,6 +156,15 @@ Interactive toggle for Fee Status (Paid/Due).
 
 ### `NotificationBadge`
 Red/Yellow dot wrapper for unread counts.
+
+### `BoxyArtDateBadge`
+A stylized date badge for event lists.
+- **Properties**:
+  - `date`: DateTime (Required)
+  - `endDate`: DateTime (Optional) – If provided, the badge displays a date range (e.g., "20-21").
+- **Visuals**:
+  - Automatically scales text (`FittedBox`) to accommodate date ranges.
+  - Uses the society's primary color with varying opacity for a premium, themed look.
 
 ## 5. Usage Patterns
 

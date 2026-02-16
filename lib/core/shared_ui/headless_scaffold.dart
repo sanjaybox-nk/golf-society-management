@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'pro_max_app_bar.dart';
-import 'buttons.dart';
 
 /// A modern "headless" scaffold that integrates the title into the scrolling content.
 /// This replaces the traditional fixed AppBar with a large, bold title that scrolls.
@@ -43,7 +42,10 @@ class HeadlessScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.showAdminShortcut = true,
+    this.autoPrefix = true,
   });
+
+  final bool autoPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +106,7 @@ class HeadlessScaffold extends StatelessWidget {
                             try {
                               final state = GoRouterState.of(context);
                               final isAdmin = state.matchedLocation.startsWith('/admin');
-                              if (isAdmin && !displayTitle.toLowerCase().contains('manage')) {
+                              if (autoPrefix && isAdmin && !displayTitle.toLowerCase().contains('manage')) {
                                 displayTitle = 'Manage $displayTitle';
                               }
                             } catch (_) {}
@@ -117,6 +119,8 @@ class HeadlessScaffold extends StatelessWidget {
                                 letterSpacing: -1.2,
                                 height: 1.1,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             );
                           },
                         ),

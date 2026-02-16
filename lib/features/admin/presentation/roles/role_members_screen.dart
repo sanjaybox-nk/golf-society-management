@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../../models/member.dart';
@@ -41,8 +40,6 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
 
     return HeadlessScaffold(
       title: _getRoleDisplayName(widget.role),

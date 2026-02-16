@@ -165,6 +165,8 @@ class _CompetitionsSliverList extends ConsumerWidget {
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.5,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ],
                             ),

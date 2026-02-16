@@ -53,8 +53,9 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
 
     return HeadlessScaffold(
       title: 'Currency',
-      subtitle: 'App-wide display currency',
+      subtitle: 'Select society default currency',
       showBack: true,
+      onBack: () => context.pop(),
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(

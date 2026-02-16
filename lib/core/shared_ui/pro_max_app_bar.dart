@@ -1,10 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
-import 'package:golf_society/models/member.dart';
-import 'admin_shortcut_action.dart';
 import '../theme/contrast_helper.dart';
+import 'admin_shortcut_action.dart';
 import 'buttons.dart';
 
 /// ProMax glassmorphic app bar with modern aesthetics

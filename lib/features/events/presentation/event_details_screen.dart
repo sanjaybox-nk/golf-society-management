@@ -163,6 +163,12 @@ class _EventDetailsContent extends StatelessWidget {
         statusColor = Colors.red;
         break;
     }
+    
+    // Override if invitational
+    if (event.isInvitational) {
+      statusText = 'INVITATIONAL';
+      statusColor = Colors.grey.shade600;
+    }
 
     return Row(
       children: [
@@ -361,6 +367,14 @@ class _EventDetailsContent extends StatelessWidget {
                   const SizedBox(height: 12),
                   ModernRuleItem(label: 'Format', value: comp.rules.gameName),
                   ModernRuleItem(label: 'Scoring', value: comp.rules.scoringType),
+                  if (event.isInvitational)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: ModernRuleItem(
+                        label: 'Status', 
+                        value: 'Non-Scoring / Invitational',
+                      ),
+                    ),
                 ],
               ),
             );

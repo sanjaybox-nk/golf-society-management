@@ -110,10 +110,11 @@ Admins can select a template and immediately click **CUSTOMIZE RULES**. If the e
 The `EventFormScreen` uses a rich, badge-based visualization to summarize the active game rules at a glance.
 
 ### Visual Components
-- **Identity Badge**: [STABLEFORD] or [TEXAS SCRAMBLE] – Always shown in bold to identify the base format.
+- **Identity Badge**: [STABLEFORD] or [TEXAS SCRAMBLE] – Always shown in bold to identify the base format on both the event card and rules summary.
 - **Scoring Type**: [GROSS] (Red) or [NET] (Teal).
 - **Allowance**: [XX% HCP] or [100% DIFF].
 - **Mode**: [SINGLES], [PAIRS], or [TEAMS].
+- **Duration**: [MULTI-DAY] (Teal) – Shown if the event spans multiple days.
 - **Specifics**: Only shown if non-default (e.g., [4 DRIVES], [CAP: 10], [SINGLE BEST]).
 
 ## 6. Matchplay Engine

@@ -14,11 +14,12 @@ class AdminSeasonsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final seasonsAsync = ref.watch(seasonsProvider);
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
     return HeadlessScaffold(
       title: 'Seasons',
-      subtitle: 'Manage society history and activity',
+      subtitle: 'Archive and setup event seasons',
+      showBack: true,
+      onBack: () => context.pop(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/admin/settings/seasons/new'),
         backgroundColor: Theme.of(context).primaryColor,
@@ -102,9 +103,12 @@ class _SeasonCard extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        season.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      Flexible(
+                        child: Text(
+                          season.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       if (season.isCurrent) ...[
                         const SizedBox(width: 8),
@@ -114,9 +118,9 @@ class _SeasonCard extends ConsumerWidget {
                             color: theme.primaryColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
+                          child: Text(
                             'CURRENT',
-                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 9, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],

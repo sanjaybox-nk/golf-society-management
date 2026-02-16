@@ -40,7 +40,20 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     final membersAsync = ref.watch(allMembersProvider);
     final searchQuery = ref.watch(memberSearchQueryProvider).toLowerCase();
     final currentFilter = ref.watch(userMemberFilterProvider);
+    final memberStatsAsync = ref.watch(memberStatsProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+
+    // Calculate filter counts
+    int activeCount = 0;
+    int committeeCount = 0;
+    int otherCount = 0;
+    
+    if (membersAsync.hasValue) {
+      final members = membersAsync.value!;
+      activeCount = members.where((m) => m.status == MemberStatus.member || m.status == MemberStatus.active).length;
+      committeeCount = members.where((m) => m.societyRole != null && m.societyRole!.isNotEmpty).length;
+      otherCount = members.where((m) => m.status != MemberStatus.member && m.status != MemberStatus.active).length;
+    }
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -85,9 +98,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildFilterChip('Active', AdminMemberFilter.current),
-                      _buildFilterChip('Committee', AdminMemberFilter.committee),
-                      _buildFilterChip('Other', AdminMemberFilter.other),
+                      _buildFilterChip('Active ($activeCount)', AdminMemberFilter.current),
+                      _buildFilterChip('Committee ($committeeCount)', AdminMemberFilter.committee),
+                      _buildFilterChip('Other ($otherCount)', AdminMemberFilter.other),
                     ],
                   ),
                 ),
@@ -117,13 +130,18 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
 
                     return Column(
-                      children: sortedMembers.map((m) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: MemberTile(
-                          member: m,
-                          onTap: () => MemberDetailsModal.show(context, m),
-                        ),
-                      )).toList(),
+                      children: sortedMembers.map((m) {
+                        final eventCount = memberStatsAsync.value?[m.id] ?? 0;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: MemberTile(
+                            member: m,
+                            onTap: () => MemberDetailsModal.show(context, m),
+                            secondaryMetricLabel: 'EVENTS',
+                            secondaryMetricValue: '$eventCount',
+                          ),
+                        );
+                      }).toList(),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),
