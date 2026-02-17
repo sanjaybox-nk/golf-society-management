@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/competition.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'controls/stableford_control.dart';
 import 'controls/stroke_control.dart';
@@ -86,6 +87,8 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       subtitle: isTemplate 
           ? 'edit saved game' 
           : (compToUse != null ? 'event customization' : 'new competition'),
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+
+
 import '../../../../models/season.dart';
 import '../../../../models/leaderboard_config.dart';
 import '../../../events/presentation/events_provider.dart';
@@ -275,7 +277,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<SeasonStatus>(
-              value: _status,
+              initialValue: _status,
               isExpanded: true,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),

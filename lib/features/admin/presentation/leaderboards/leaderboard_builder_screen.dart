@@ -27,6 +27,8 @@ class LeaderboardBuilderScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: _formatEnum(type.name),
       subtitle: existingConfig != null ? 'Edit Configuration' : 'New Configuration',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

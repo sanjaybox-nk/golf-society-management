@@ -7,7 +7,6 @@ import '../../../events/presentation/events_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../../core/theme/theme_controller.dart';
 import 'package:intl/intl.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 
 class EventAdminReportsScreen extends ConsumerWidget {
   final String eventId;
@@ -271,16 +270,6 @@ class EventAdminReportsScreen extends ConsumerWidget {
     if (registration.attendingLunch) total += event.lunchCost ?? 0.0;
     if (registration.attendingDinner) total += event.dinnerCost ?? 0.0;
     return total;
-  }
-
-  Widget _buildStatColumn(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: color)),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-      ],
-    );
   }
 
   Widget _buildReportRow(BuildContext context, IconData icon, String label, String value, {Color? color, bool isBold = false}) {

@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
-import '../../../core/shared_ui/headless_scaffold.dart';
-
-
-import 'package:golf_society/models/member.dart';
 import 'package:golf_society/models/handicap_system.dart';
 import '../../../core/theme/theme_controller.dart';
 import 'profile_provider.dart';

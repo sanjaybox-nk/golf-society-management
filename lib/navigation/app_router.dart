@@ -38,6 +38,7 @@ import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
+import '../features/admin/presentation/reports/admin_reports_screen.dart';
 import '../features/admin/presentation/competitions/admin_competitions_screen.dart';
 import '../features/admin/presentation/competitions/competition_builder_screen.dart';
 // import '../features/admin/presentation/competitions/scoring_review_queue_screen.dart'; // Removed
@@ -170,6 +171,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   child: AdminDashboardScreen(),
                 ),
                 routes: [
+                  GoRoute(
+                    path: 'reports',
+                    builder: (context, state) => const AdminReportsScreen(),
+                  ),
                   // Settings - Integrated into Dashboard branch for persistent menu
                   GoRoute(
                     path: 'settings',

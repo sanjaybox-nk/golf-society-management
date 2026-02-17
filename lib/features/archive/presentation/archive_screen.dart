@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../models/season.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
-import '../../../core/shared_ui/headless_scaffold.dart';
 import 'archive_provider.dart';
 
 class ArchiveScreen extends ConsumerWidget {

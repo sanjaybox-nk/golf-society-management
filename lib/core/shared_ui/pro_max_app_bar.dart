@@ -53,8 +53,17 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
       finalActions.insert(0, const AdminShortcutAction());
     }
 
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    
+    // Calculate colors based on transparency
+    final defaultBgColor = transparent 
+        ? onSurface.withValues(alpha: 0.1) // Slightly more visible background
+        : onPrimary.withValues(alpha: 0.15); // Contrasting background for solid mode
+    final defaultIconColor = transparent ? onSurface : onPrimary;
+
     return AppBar(
       backgroundColor: transparent ? Colors.transparent : primaryColor,
+      surfaceTintColor: Colors.transparent, // Disable M3 tint
       elevation: 0,
       toolbarHeight: transparent ? 56 : (subtitle != null ? 72 : 56),
       automaticallyImplyLeading: false,
@@ -63,11 +72,12 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
       leading: leading ?? (showBack
           ? Center(
               child: BoxyArtGlassIconButton(
-                icon: Icons.arrow_back_rounded,
+                icon: Icons.chevron_left_rounded, // Themed chevron
                 onPressed: onBack ?? () => Navigator.of(context).pop(),
-                backgroundColor: primaryColor.withValues(alpha: 0.1),
-                iconColor: primaryColor,
+                backgroundColor: defaultBgColor,
+                iconColor: defaultIconColor,
                 tooltip: 'Back',
+                iconSize: 28, // Slightly larger for better touch target and visibility
               ),
             )
           : (showLeading
@@ -75,8 +85,8 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   child: BoxyArtGlassIconButton(
                     icon: Icons.menu_rounded,
                     onPressed: onMenuPressed,
-                    backgroundColor: primaryColor.withValues(alpha: 0.1),
-                    iconColor: primaryColor,
+                    backgroundColor: defaultBgColor,
+                    iconColor: defaultIconColor,
                     tooltip: 'Menu',
                   ),
                 )

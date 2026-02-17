@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/leaderboard_config.dart';
 import '../../../../models/scorecard.dart';
 import '../../../../models/competition.dart';
-import '../../../../models/golf_event.dart';
+
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
 import 'calculators/leaderboard_calculator.dart';

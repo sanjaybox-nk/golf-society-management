@@ -138,8 +138,23 @@ An admin-level override that allows scoring to be enabled for an event before it
 **Scoring Lock**
 A security state where an admin freezes all scorecards for an event. Once locked, no further edits can be made by members, ensuring the finality and integrity of the results.
 
-**Matchplay Match**
-A head-to-head contest between two players where holes are won, lost, or halved based on individual hole scores and relative handicaps.
-
 **Matchplay Competition**
 A tournament structure (usually a Knockout Bracket or League) that tracks a series of matchplay matches over time, often independent of specific society events.
+
+**Seasonal Standings Hub**
+A centralized feature for long-term competition tracking. Supports multiple formats like OoM and Eclectic.
+
+**Order of Merit (OoM)**
+A season-long point race where player performance in individual events is converted into a point total based on ranking.
+
+**Eclectic**
+A competition format that rewards consistency across the season by constructing a "perfect round" from a player's best scores on each individual hole.
+
+**Birdie Tree**
+A specialized leaderboard tracking achievement-style metrics like total Birdies, Eagles, and Albatrosses over the course of a season.
+
+**Best of Series**
+A leaderboard format that calculates a player's total based on their best $N$ scores of the season (e.g., Best 8 of 11).
+
+**Podium View**
+A high-fidelity UI component featuring visual podiums (Gold, Silver, Bronze) for the top 3 players in any seasonal competition.

@@ -3,7 +3,7 @@ import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../widgets/admin_bottom_nav_bar.dart';
 import 'tabs/event_dashboard_tab.dart';
 
-import 'package:go_router/go_router.dart';
+
 
 class EventAdminScaffold extends StatefulWidget {
   const EventAdminScaffold({super.key});

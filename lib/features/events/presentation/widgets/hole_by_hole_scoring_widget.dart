@@ -159,7 +159,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   Widget build(BuildContext context) {
     final holes = widget.event.courseConfig['holes'] as List? ?? [];
     // Fixed height for tabbed view
-    const double cardHeight = 190; // Compact height
+    const double cardHeight = 220; // Increased from 190 to avoid overflow
     
     // Watch for active match status
     final matchResultAsync = ref.watch(currentMatchControllerProvider(widget.event.id));

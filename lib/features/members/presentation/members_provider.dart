@@ -99,7 +99,7 @@ final memberPerformanceProvider = Provider.family<AsyncValue<MemberPerformance>,
 
       // Check Results (if finalized)
       if (event.status == EventStatus.completed || event.isScoringLocked) {
-        final results = event.finalizedStats['hallOfFame']; 
+        // finalizedStats logic here...
         // Note: Hall of Fame logic is tricky for Wins/Top5. 
         // Better to use the 'results' field if available, or parse scorecards?
         // Actually, 'event.results' was empty in our search. 

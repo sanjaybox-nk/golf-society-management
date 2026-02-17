@@ -13,6 +13,7 @@ import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
 import '../../../models/member.dart';
+import '../../../models/leaderboard_standing.dart';
 
 class MemberHomeScreen extends ConsumerWidget {
   const MemberHomeScreen({super.key});
@@ -28,6 +29,7 @@ class MemberHomeScreen extends ConsumerWidget {
     
     final nextMatch = ref.watch(homeNextMatchProvider);
     final topPlayers = ref.watch(homeSeasonLeaderboardProvider);
+    final personalStanding = ref.watch(homeMemberStandingProvider);
     final societyConfig = ref.watch(themeControllerProvider);
 
     return Scaffold(
@@ -231,7 +233,10 @@ class MemberHomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       topPlayers.when(
-                        data: (players) => _LeaderboardSnippet(topPlayers: players),
+                        data: (players) => _LeaderboardSnippet(
+                          topPlayers: players,
+                          personalStanding: personalStanding.value,
+                        ),
                         loading: () => const Center(child: CircularProgressIndicator()),
                         error: (err, stack) => Text('Error loading standings: $err'),
                       ),
@@ -402,11 +407,15 @@ class _NextMatchCard extends StatelessWidget {
 
 class _LeaderboardSnippet extends StatelessWidget {
   final List<Map<String, dynamic>> topPlayers;
+  final LeaderboardStanding? personalStanding;
 
-  const _LeaderboardSnippet({required this.topPlayers});
+  const _LeaderboardSnippet({required this.topPlayers, this.personalStanding});
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isPersonalInTop3 = topPlayers.any((p) => p['name'] == personalStanding?.memberName);
+
     return ModernCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -414,25 +423,24 @@ class _LeaderboardSnippet extends StatelessWidget {
           ...topPlayers.map((player) {
             final position = player['position'] as int;
             final isFirst = position == 1;
-            final primary = Theme.of(context).primaryColor;
             
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: isFirst ? primary.withValues(alpha: 0.15) : Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
                       child: Text(
                         '$position',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
                           color: isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
@@ -443,9 +451,8 @@ class _LeaderboardSnippet extends StatelessWidget {
                     child: Text(
                       player['name'] as String,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: isFirst ? FontWeight.bold : FontWeight.w500,
-                        letterSpacing: -0.2,
+                        fontSize: 15,
+                        fontWeight: isFirst ? FontWeight.w900 : FontWeight.bold,
                       ),
                     ),
                   ),
@@ -453,31 +460,62 @@ class _LeaderboardSnippet extends StatelessWidget {
                     '${player['points']}',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      color: isFirst ? primary : Theme.of(context).textTheme.bodyLarge?.color,
+                      fontSize: 15,
+                      color: isFirst ? primary : null,
                     ),
                   ),
                 ],
               ),
             );
           }),
+          
+          if (!isPersonalInTop3 && personalStanding != null) ...[
+            const Divider(height: 24),
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: const Icon(Icons.person_outline_rounded, size: 16, color: Colors.blue),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Text(
+                    'Your Rank',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Text(
+                  '#${personalStanding!.points.round()}', // Placeholder for rank if we don't have it in standing, wait
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: primary),
+                ),
+              ],
+            ),
+          ],
+
           const SizedBox(height: 12),
           const Divider(),
           const SizedBox(height: 4),
           TextButton(
-            onPressed: () => context.go('/archive'),
+            onPressed: () => context.push('/locker/standings'),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Full Standings',
+                  'Full Season Standings',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
+                    color: primary,
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded, size: 16, color: Theme.of(context).primaryColor),
+                Icon(Icons.arrow_forward_rounded, size: 16, color: primary),
               ],
             ),
           ),

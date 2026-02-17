@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/leaderboard_config.dart';
@@ -27,6 +26,8 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: typeName,
       subtitle: 'Choose a template or start blank',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

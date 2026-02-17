@@ -185,7 +185,7 @@ The base layout for the "Pro Max" / Headerless Modern design.
   - `subtitle`: Optional secondary context.
   - `showBack`: Controls back button visibility.
   - `slivers`: List of widgets to display in the nested scroll view.
-- **Design**: Implements the signature blurred glass header and floating search bar integration.
+- **Design**: Implements the signature blurred glass header, floating search bar integration, and standardized back navigation (`showBack`). Automatically handles title wrapping for long society or event names.
 
 ### `FloatingBottomSearch`
 The signature "Floating Dock" for Search and Filter.
@@ -233,6 +233,15 @@ Used in the `RichStatsTab` to provide deep analysis of society and personal perf
 - `HoleScoreCard`: Standalone card for a single hole's detail. Features +/- controls (Active Mode) or Read-Only display. Consistent across scoring and summaries.
 - `CourseInfoCard`: Provides a real-time summary of the course (Par, Slopes, Tees) and the player's performance vs. their PHC (Playing Handicap).
 - `HoleByHoleScoringWidget`: The core engine for scorecard entry. Features an interactive hole swiper and "Active Marker" mode. Fully standardized across Admin and User views for 1:1 visual parity.
+
+## 8. Standings & Performance Widgets
+*Premium widgets for seasonal competition tracking.*
+
+- `MasterScorecardWidget`: A multi-event holistic scorecard showing the "Eclectic" best scores achieved on each hole throughout the season.
+- `BirdieGalleryWidget`: Achievement-style display for Birdie/Eagle/Albatross counts across the season.
+- `PointsBreakdownWidget`: Detailed list of round-by-round points, highlighting which scores are currently counting towards the "Best N" total.
+- `PodiumHeader`: A high-impact header featuring physical-style podiums (Gold/Silver/Bronze) for the top 3 players in any standing format.
+- `RankingTrajectory`: A micro-widget providing visual rank delta (↑/↓) for personalized member dashboards.
 
 ## 7. Universal Visual Parity
 Starting in Feb 2026, all scorecard components follow a unified "Universal Parity" standard:

@@ -256,8 +256,8 @@ class DemoSeedingService {
       hasBreakfast: true,
       hasLunch: _random.nextBool(),
       hasDinner: true,
-      availableBuggies: 20,
-      maxParticipants: 60,
+      availableBuggies: 6,
+      maxParticipants: 40,
       description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of ${format.name.toUpperCase()} followed by a group dinner and prize giving ceremony.',
       registrationDeadline: date.subtract(const Duration(days: 7)),
       memberCost: 45.0 + _random.nextInt(20),
@@ -271,31 +271,34 @@ class DemoSeedingService {
       dinnerLocation: 'The Clubhouse Restaurant',
     );
 
-    // 1. Build Registration Matrix (60 Players)
+    // 1. Build Registration Matrix (Vary between 25-45 Players)
     final List<EventRegistration> regs = [];
-    for (int i = 0; i < 55; i++) {
-        final m = members[i];
+    final targetRegCount = 25 + _random.nextInt(21); // 25 to 45
+    
+    for (int i = 0; i < targetRegCount; i++) {
+        final m = members[i % members.length];
         
-        // Distribution Logic:
-        // 0-35: Confirmed Members (Golf)
-        // 36-40: Confirmed Members + Confirmed Guests (Golf)
-        // 41-45: Waitlisted Members (Golf)
-        // 46-49: Withdrawn Members
-        // 50-54: Dinner Only Members
+        // Distribution Logic (Adjusted for randomized count):
+        // 0-80%: Confirmed/Playing
+        // 80-90%: Waitlist or Withdrawn (if count exceeds 40)
+        // 90-100%: Dinner Only
         
-        bool attendingGolf = i < 46;
+        bool isWithdrawn = _random.nextDouble() < 0.1; // 10% chance of withdrawal
+        bool attendingGolf = !isWithdrawn && i < 40;
         bool attendingDinner = true;
         String? status;
         
-        if (i >= 46 && i <= 49) {
+        if (isWithdrawn) {
           status = 'withdrawn';
-          attendingGolf = false; // Withdrawn people don't play
-        } else if (i >= 41 && i <= 45) {
+          attendingGolf = false;
+        } else if (i >= 40) {
           status = 'waitlist';
-        } else if (i >= 50) {
-          attendingGolf = false; // Dinner only
         } else {
           status = 'confirmed';
+        }
+
+        if (i > targetRegCount - 3) {
+          attendingGolf = false; // Last few are dinner only
         }
 
         var reg = EventRegistration(
@@ -305,7 +308,7 @@ class DemoSeedingService {
           attendingBreakfast: attendingGolf && _random.nextBool(),
           attendingLunch: attendingGolf && event.hasLunch && _random.nextBool(),
           attendingDinner: attendingDinner,
-          needsBuggy: attendingGolf && i < 15,
+          needsBuggy: attendingGolf && i < 18, // 12 confirmed, 6 on waitlist
           hasPaid: i < 45,
           isConfirmed: status == 'confirmed',
           handicap: m.handicap,
@@ -342,27 +345,76 @@ class DemoSeedingService {
     ));
 
     // 2. Generate Grouping
-    final items = RegistrationLogic.getSortedItems(updatedEvent);
-    final confirmed = items.where((p) => p.isConfirmed && p.registration.attendingGolf).toList();
+    final items = RegistrationLogic.getSortedItems(updatedEvent, includeWithdrawn: true);
+    
+    // Use exact same logic as RegistrationStats to identify the "Playing Field"
+    // (Only Confirmed golfers count towards the playing field stats)
+    final List<RegistrationItem> field = [];
+    int rollingPlayingCount = 0;
+    final statsCapacity = updatedEvent.maxParticipants ?? 40;
+    final bool isClosedStatus = updatedEvent.displayStatus == EventStatus.completed || 
+                              updatedEvent.displayStatus == EventStatus.inPlay;
+
+    for (var item in items) {
+      final status = RegistrationLogic.calculateStatus(
+        isGuest: item.isGuest,
+        isConfirmed: item.isConfirmed,
+        hasPaid: item.hasPaid,
+        confirmedCount: rollingPlayingCount,
+        capacity: statsCapacity,
+        isEventClosed: isClosedStatus,
+        statusOverride: item.statusOverride,
+      );
+
+      // Important: Field count must exactly match 'confirmedGolfers' in stats
+      if (status == RegistrationStatus.confirmed) {
+        field.add(item);
+        rollingPlayingCount++;
+      }
+    }
+
+    final totalPlayers = field.length;
+    int num4Balls = 0;
+    int num3Balls = 0;
+
+    // Distribute into 3s and 4s using the optimal mix rule
+    for (int y = 0; y <= totalPlayers / 3; y++) {
+      int remaining = totalPlayers - (3 * y);
+      if (remaining >= 0 && remaining % 4 == 0) {
+        num3Balls = y;
+        num4Balls = remaining ~/ 4;
+        break; 
+      }
+    }
+
     final List<TeeGroup> groups = [];
-    for (int i = 0; i < (confirmed.length / 4).ceil(); i++) {
-        groups.add(TeeGroup(
-          index: i,
-          teeTime: updatedEvent.teeOffTime!.add(Duration(minutes: i * 10)),
-          players: confirmed.skip(i * 4).take(4).map((p) {
-            final m = p.isGuest ? null : members.firstWhereOrNull((m) => m.id == p.registration.memberId);
-            final hc = p.isGuest ? 18.0 : (m?.handicap ?? 18.0);
-            return TeeGroupParticipant(
-              registrationMemberId: p.registration.memberId,
-              name: p.name,
-              isGuest: p.isGuest,
-              handicapIndex: hc,
-              playingHandicap: hc, 
-              needsBuggy: p.needsBuggy,
-              status: RegistrationStatus.confirmed,
-            );
-          }).toList(),
-        ));
+    DateTime currentTime = updatedEvent.teeOffTime ?? date.copyWith(hour: 9);
+    int interval = updatedEvent.teeOffInterval;
+
+    int playerIdx = 0;
+
+    // Create 3-ball groups first (prioritize at front per user request)
+    for (int i = 0; i < num3Balls; i++) {
+      final groupPlayers = field.skip(playerIdx).take(3).toList();
+      groups.add(TeeGroup(
+        index: i,
+        teeTime: currentTime,
+        players: groupPlayers.map((p) => _toTeeParticipant(p, members)).toList(),
+      ));
+      playerIdx += 3;
+      currentTime = currentTime.add(Duration(minutes: interval));
+    }
+
+    // Create 4-ball groups
+    for (int i = 0; i < num4Balls; i++) {
+      final groupPlayers = field.skip(playerIdx).take(4).toList();
+      groups.add(TeeGroup(
+        index: num3Balls + i,
+        teeTime: currentTime,
+        players: groupPlayers.map((p) => _toTeeParticipant(p, members)).toList(),
+      ));
+      playerIdx += 4;
+      currentTime = currentTime.add(Duration(minutes: interval));
     }
 
     // 3. Generate Scores with Cuts
@@ -427,7 +479,8 @@ class DemoSeedingService {
       results[i]['position'] = i + 1;
     }
 
-    await eventRepo.updateEvent(updatedEvent.copyWith(
+    // Consolidate updates to prevent lost updates
+    var finalEvent = updatedEvent.copyWith(
       grouping: {
         'groups': groups.map((g) => g.toJson()).toList(), 
         'locked': status == EventStatus.completed, 
@@ -435,28 +488,49 @@ class DemoSeedingService {
       },
       results: status == EventStatus.completed ? results : [],
       isGroupingPublished: true,
-    ));
-
+    );
+    
     if (status == EventStatus.completed) {
       final comp = await compRepo.getCompetition(updatedEvent.id);
       final cards = await ref.read(scorecardRepositoryProvider).watchScorecards(updatedEvent.id).first;
       
       final stats = EventAnalysisEngine.calculateFinalStats(
         scorecards: cards,
-        event: updatedEvent,
+        event: finalEvent, // Use the event that now has groupings/results
         competition: comp,
       );
       
-      await eventRepo.updateEvent(updatedEvent.copyWith(
+      finalEvent = finalEvent.copyWith(
         finalizedStats: stats,
         isStatsReleased: true,
         isScoringLocked: true,
-      ));
-      
+      );
+    }
+
+    await eventRepo.updateEvent(finalEvent);
+
+    if (status == EventStatus.completed) {
       await ref.read(leaderboardInvokerServiceProvider).recalculateAll(seasonId);
     }
 
     return results;
+  }
+
+  TeeGroupParticipant _toTeeParticipant(RegistrationItem item, List<Member> members) {
+    final m = item.isGuest ? null : members.firstWhereOrNull((m) => m.id == item.registration.memberId);
+    final hc = item.isGuest ? 18.0 : (m?.handicap ?? 18.0);
+    
+    return TeeGroupParticipant(
+      registrationMemberId: item.registration.memberId,
+      name: item.name,
+      isGuest: item.isGuest,
+      handicapIndex: hc,
+      playingHandicap: hc, 
+      needsBuggy: item.needsBuggy,
+      status: item.statusOverride == 'withdrawn' 
+          ? RegistrationStatus.withdrawn 
+          : RegistrationStatus.confirmed,
+    );
   }
 }
 

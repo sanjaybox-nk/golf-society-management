@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/competition.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/models/leaderboard_config.dart';
+import 'package:golf_society/features/events/presentation/events_provider.dart';
 
 class AdminLeaderboardsScreen extends ConsumerStatefulWidget {
   const AdminLeaderboardsScreen({super.key});
@@ -19,7 +20,7 @@ class _AdminLeaderboardsScreenState extends ConsumerState<AdminLeaderboardsScree
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -33,7 +34,7 @@ class _AdminLeaderboardsScreenState extends ConsumerState<AdminLeaderboardsScree
     final primary = Theme.of(context).primaryColor;
     
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: HeadlessScaffold(
         title: 'Leaderboards',
         subtitle: 'Society Competitions',
@@ -63,6 +64,7 @@ class _AdminLeaderboardsScreenState extends ConsumerState<AdminLeaderboardsScree
                     Tab(text: 'LIVE'),
                     Tab(text: 'UPCOMING'),
                     Tab(text: 'HISTORY'),
+                    Tab(text: 'SEASON'),
                   ],
                 ),
               ),
@@ -85,6 +87,9 @@ class _AdminLeaderboardsTabContent extends ConsumerWidget {
     return AnimatedBuilder(
       animation: tabController,
       builder: (context, _) {
+        if (tabController.index == 3) {
+          return const _AdminSeasonStandingsTab();
+        }
         final status = _getStatusForIndex(tabController.index);
         return _CompetitionsSliverList(status: status);
       },
@@ -203,6 +208,140 @@ class _CompetitionsSliverList extends ConsumerWidget {
       case CompetitionFormat.matchPlay: icon = Icons.compare_arrows_rounded; break;
       case CompetitionFormat.scramble: icon = Icons.group_work_rounded; break;
     }
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: primary, size: 24),
+    );
+  }
+}
+
+class _AdminSeasonStandingsTab extends ConsumerWidget {
+  const _AdminSeasonStandingsTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeSeasonAsync = ref.watch(activeSeasonProvider);
+    final primary = Theme.of(context).primaryColor;
+
+    return activeSeasonAsync.when(
+      data: (season) {
+        if (season == null) {
+          return const SliverFillRemaining(
+            child: Center(child: Text('No active season found')),
+          );
+        }
+
+        if (season.leaderboards.isEmpty) {
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.leaderboard_outlined, size: 64, color: Colors.grey.withValues(alpha: 0.3)),
+                  const SizedBox(height: 16),
+                  const Text('No seasonal leaderboards configured', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 24),
+                  BoxyArtButton(
+                    title: 'Setup Standings',
+                    onTap: () => context.push('/admin/seasons/leaderboards/select'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final config = season.leaderboards[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: ModernCard(
+                    padding: const EdgeInsets.all(16),
+                    child: InkWell(
+                      onTap: () => context.push('/admin/competitions/season/${config.id}', extra: config),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Row(
+                        children: [
+                          _buildConfigBadge(context, config),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  config.map(
+                                    orderOfMerit: (_) => 'POINTS RACE',
+                                    bestOfSeries: (_) => 'SERIES RACE',
+                                    eclectic: (_) => 'ECLECTIC',
+                                    markerCounter: (_) => 'MARKER COUNT',
+                                  ),
+                                  style: TextStyle(
+                                    color: primary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  config.name,
+                                  style: const TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -0.5,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.chevron_right_rounded, color: Theme.of(context).dividerColor),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+              childCount: season.leaderboards.length,
+            ),
+          ),
+        );
+      },
+      loading: () => const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, s) => SliverFillRemaining(
+        child: Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
+      ),
+    );
+  }
+
+  Widget _buildConfigBadge(BuildContext context, LeaderboardConfig config) {
+    final primary = Theme.of(context).primaryColor;
+    IconData icon;
+    
+    // Determine icon based on type
+    if (config is OrderOfMeritConfig) {
+      icon = Icons.emoji_events_rounded;
+    } else if (config is BestOfSeriesConfig) {
+      icon = Icons.list_alt_rounded;
+    } else if (config is EclecticConfig) {
+      icon = Icons.grid_on_rounded;
+    } else {
+      icon = Icons.park_rounded;
+    }
+
     return Container(
       width: 48,
       height: 48,

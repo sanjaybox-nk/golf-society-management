@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
-import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../events/presentation/tabs/event_user_details_tab.dart';
 
 
@@ -1159,7 +1158,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                           );
                                           if (proceed != true) return;
                                           await _save(shouldPop: false);
-                                          if (!mounted) return;
+                                          if (!context.mounted) return;
                                           eventId = _editingEvent?.id ?? widget.event?.id;
                                           if (eventId == null) return; // Still no ID, abort
                                         }
@@ -1195,7 +1194,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                           }
                                         }
                                         
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
 
                                         // Navigate to competition editor
                                         // ignore: use_build_context_synchronously
@@ -1363,7 +1362,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                               );
                                               if (proceed != true) return;
                                               await _save(shouldPop: false);
-                                              if (!mounted) return;
+                                              if (!context.mounted) return;
                                               eventId = _editingEvent?.id ?? widget.event?.id;
                                             }
                                             if (eventId == null) return;
@@ -1388,11 +1387,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                                }
                                             }
 
-                                            if (!mounted) return;
-                                            if (mounted) {
-                                              context.push('/admin/events/competitions/edit/$secondaryId');
-                                            }
-                                            if (mounted) _fetchSecondaryCompetition(eventId);
+                                             if (!context.mounted) return;
+                                             context.push('/admin/events/competitions/edit/$secondaryId');
+                                             if (context.mounted) _fetchSecondaryCompetition(eventId);
                                           },
                                           icon: Icon(_isSecondaryCustomized ? Icons.edit_note : Icons.tune, size: 18),
                                           label: Text(_isSecondaryCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES'),

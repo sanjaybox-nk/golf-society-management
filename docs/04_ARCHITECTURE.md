@@ -59,7 +59,7 @@ Models are immutable and generated using `freezed`.
     -   `Competition`: Scoring rules, formats, and configurations.
 ## Code Quality & Hardening
 The project maintains a strict standard for code quality and reliability:
-- **Strict Linting**: Powered by `analysis_options.yaml` (including `flutter_lints`).
-- **Async Safety**: Use of `mounted` guards and localized navigator state ensures `BuildContext` is never used invalidly across async gaps.
+- **Strict Linting**: Powered by `analysis_options.yaml`. The project maintains a "Zero Error" policy where `flutter analyze` must return no issues.
+- **Async Safety**: Use of `mounted` guards and localized navigator state ensures `BuildContext` is never used invalidly across async gaps (standardized in Feb 2026).
 - **Type Safety**: Heavy reliance on `freezed` for immutable models and `riverpod_generator` for type-safe state management.
-- **Dead Code Policing**: Regular audits to remove unused imports, variables, and private methods.
+- **Import Hygiene**: Strict policing of redundant imports and consolidated use of the `boxy_art_widgets.dart` library for UI components.

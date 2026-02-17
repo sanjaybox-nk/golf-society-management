@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart'; // [NEW]
 import '../../../../core/services/storage_service.dart'; // [NEW]
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
+
 import 'widgets/member_stats_row.dart'; // [NEW]
 
 import '../../../../core/constants/country_codes.dart';
@@ -551,7 +551,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                rank: stats.rank,
                              ),
                              loading: () => const SizedBox.shrink(), // Or skeleton
-                             error: (_, __) => const SizedBox.shrink(),
+                             error: (e, s) => const SizedBox.shrink(),
                            );
                         },
                       ),

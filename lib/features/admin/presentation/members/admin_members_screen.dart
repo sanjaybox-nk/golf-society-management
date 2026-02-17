@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/models/member.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
 import 'package:golf_society/features/members/presentation/member_details_modal.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 
 class AdminMembersScreen extends ConsumerStatefulWidget {
   const AdminMembersScreen({super.key});

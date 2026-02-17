@@ -8,8 +8,7 @@ import 'package:golf_society/core/theme/contrast_helper.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:golf_society/core/services/storage_service.dart';
 import 'package:golf_society/core/theme/app_palettes.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
-import 'package:golf_society/core/shared_ui/modern_cards.dart';
+
 
 class BrandingSettingsScreen extends ConsumerWidget {
   const BrandingSettingsScreen({super.key});

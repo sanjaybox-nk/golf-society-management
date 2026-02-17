@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/models/golf_event.dart';

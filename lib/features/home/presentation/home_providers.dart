@@ -3,6 +3,8 @@ import '../../../models/golf_event.dart';
 import '../../../models/notification.dart';
 import '../../notifications/data/notifications_repository.dart';
 import '../../notifications/data/firestore_notifications_repository.dart';
+import '../../members/presentation/profile_provider.dart';
+import 'package:collection/collection.dart';
 
 // Mock data provider for Next Match
 import '../../../models/leaderboard_standing.dart';
@@ -58,6 +60,29 @@ final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynam
       'points': s.points.round(),
       'position': standings.indexOf(s) + 1,
     }).toList();
+  });
+});
+
+// Member's personal standing for the primary seasonal competition
+final homeMemberStandingProvider = Provider<AsyncValue<LeaderboardStanding?>>((ref) {
+  final activeSeasonAsync = ref.watch(activeSeasonProvider);
+  
+  if (activeSeasonAsync is AsyncLoading) return const AsyncValue.loading();
+  if (activeSeasonAsync is AsyncError) return AsyncValue.error(activeSeasonAsync.error!, activeSeasonAsync.stackTrace!);
+
+  final season = activeSeasonAsync.value;
+  if (season == null || season.leaderboards.isEmpty) return const AsyncValue.data(null);
+    
+  final oomConfig = season.leaderboards.firstWhere(
+    (l) => l is OrderOfMeritConfig,
+    orElse: () => season.leaderboards.first,
+  );
+    
+  final standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
+  final currentMember = ref.watch(effectiveUserProvider);
+
+  return standingsAsync.whenData((standings) {
+    return standings.firstWhereOrNull((s) => s.memberId == currentMember.id);
   });
 });
 

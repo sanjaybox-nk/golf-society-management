@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import '../../../../core/utils/grouping_service.dart';
 import '../../../../core/shared_ui/shared_ui.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/utils/handicap_calculator.dart';
 import '../../../../models/competition.dart';
 import '../../../../models/golf_event.dart';

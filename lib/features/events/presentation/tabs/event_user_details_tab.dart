@@ -477,6 +477,21 @@ class EventDetailsContent extends ConsumerWidget {
                   icon: Icons.flag_rounded,
                 ),
               ],
+              if (event.maxParticipants != null) ...[
+                const SizedBox(height: 16),
+                Builder(
+                  builder: (context) {
+                    final stats = RegistrationLogic.getRegistrationStats(event);
+                    final available = (event.maxParticipants! - stats.confirmedGolfers).clamp(0, event.maxParticipants!);
+                    return ModernInfoRow(
+                      label: 'Field Capacity',
+                      value: '$available / ${event.maxParticipants} slots available',
+                      icon: Icons.groups_rounded,
+                      iconColor: available == 0 ? Colors.redAccent : null,
+                    );
+                  }
+                ),
+              ],
               const SizedBox(height: 16),
               ModernInfoRow(
                 label: 'Dress Code',

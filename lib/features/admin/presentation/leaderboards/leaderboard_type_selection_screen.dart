@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/leaderboard_config.dart';
 
@@ -19,6 +18,8 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
     return HeadlessScaffold(
       title: (isTemplate || isPicker) ? 'Select Type' : 'New Template',
       subtitle: 'Leaderboard Formats',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

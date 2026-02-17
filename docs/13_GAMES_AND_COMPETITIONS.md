@@ -53,6 +53,20 @@ The standard approach for society tour standings.
 -   **Eclectic**: Constructs the "perfect round" by taking the best score on each individual hole across all qualifying events.
 -   **Best Of Series**: Tracks the best $N$ scores by raw metric (Net, Stableford) without point conversion.
 
+## 4. Seasonal Standings Hub
+Introduced in Feb 2026, the Standings Hub provides a premium home for long-term competition.
+
+### 4.1 Admin Oversight
+Admins manage seasonal standings via a centralized **SEASON** tab in the Leaderboards section.
+- **Multiple Formats**: Admins can track OOM, Eclectic, and Birdie Tree standings simultaneously.
+- **Quick Setup**: Direct access to configuration builders for each seasonal format.
+
+### 4.2 Member Experience
+Members access the hub via `Locker -> Season Standings`, featuring:
+- **Podium View**: Visual highlights for the top 3 players (Gold/Silver/Bronze).
+- **Personal Context**: Immediate identification of the member's rank and trajectory on the home screen.
+- **Format-Specific Breakdowns**: Tapping a player row opens a deep-dive sheet (e.g., viewing an Eclectic Best Scorecard or Birdie count).
+
 ## 4. Enhanced Event Leaderboard
 
 The event leaderboard provides a real-time view of the field with advanced presentation features:

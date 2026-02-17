@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 
@@ -13,8 +12,9 @@ class SocietyCutsSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsScreen> {
-  late Map<String, double> _rules;
-  late bool _enabled;
+  Map<String, double> _rules = {};
+  Map<String, TextEditingController> _controllers = {};
+  bool _enabled = false;
 
   @override
   void initState() {
@@ -22,6 +22,18 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
     final config = ref.read(themeControllerProvider);
     _rules = Map<String, double>.from(config.societyCutRules);
     _enabled = config.enableSocietyCuts == true;
+    _controllers = _rules.map((key, value) => MapEntry(
+          key,
+          TextEditingController(text: value.toString()),
+        ));
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   void _updateRule(String key, String value) {
@@ -78,15 +90,19 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                             const SizedBox(width: 16),
                             SizedBox(
                               width: 80,
-                              child: TextField(
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(
-                                  suffixText: 'pt',
-                                  isDense: true,
-                                ),
-                                controller: TextEditingController(text: entry.value.toString()),
-                                onSubmitted: (v) => _updateRule(entry.key, v),
-                              ),
+                                  child: TextField(
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    textAlign: TextAlign.center,
+                                    decoration: const InputDecoration(
+                                      suffixText: ' pt',
+                                      isDense: true,
+                                    ),
+                                    controller: _controllers.putIfAbsent(
+                                      entry.key,
+                                      () => TextEditingController(text: entry.value.toString()),
+                                    ),
+                                    onChanged: (v) => _updateRule(entry.key, v),
+                                  ),
                             ),
                           ],
                         ),

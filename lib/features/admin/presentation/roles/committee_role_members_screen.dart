@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
 import '../../../../models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 

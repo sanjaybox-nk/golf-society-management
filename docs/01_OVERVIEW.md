@@ -12,12 +12,12 @@
 7. **Season Standings**: Advanced leaderboards (OoM, Birdie Tree, Eclectic) with industry-standard point systems.
 8. **Testing Lab (Admin)**: A sophisticated sandbox for seeding historical data and verifying scoring logic across development phases.
 
-## Technology Stack
--   **Framework**: Flutter (Dart)
--   **State Management**: Riverpod (riverpod_generator, annotations)
--   **Navigation**: go_router (StatefulShellRoute for persistent bottom nav)
--   **Backend**: Firebase (Firestore, Auth, Functions) - *Integration in progress*
 -   **Typography**: Google Fonts (Poppins)
+
+## Code Health & Standards
+-   **Zero Error State**: The project adheres to a strict "Zero Warning/Error" policy for `flutter analyze`. 
+-   **Async Safety**: Standardized use of `mounted` guards across all asynchronous operations.
+-   **Universal Parity**: 1:1 visual alignment between Admin and Member scoring components.
 
 ## Detailed Documentation
 For deep dives into specific system logic, see:

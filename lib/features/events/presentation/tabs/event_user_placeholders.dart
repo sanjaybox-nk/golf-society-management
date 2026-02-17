@@ -36,7 +36,7 @@ import '../../../matchplay/domain/match_definition.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
 import 'event_stats_tab.dart';
 import 'event_user_registration_tab.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
+
 
 // [LAB MODE] Persistence for Marker Selection
 class MarkerSelection {
@@ -153,12 +153,12 @@ class EventGroupingUserTab extends ConsumerWidget {
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 16),
-                        const Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        const Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
+                        children: [
+                          SizedBox(height: 16),
+                          Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8),
+                          Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
                     ),
                   ),
                 )

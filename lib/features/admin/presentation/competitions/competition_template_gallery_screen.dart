@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../models/competition.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 
 class CompetitionTemplateGalleryScreen extends ConsumerWidget {
@@ -33,6 +32,8 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: gameName,
       subtitle: 'Choose a template or start blank',
+      showBack: true,
+      onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),

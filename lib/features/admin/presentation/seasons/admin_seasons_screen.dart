@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/season.dart';
 import '../../../events/presentation/events_provider.dart';
@@ -20,19 +20,20 @@ class AdminSeasonsScreen extends ConsumerWidget {
       subtitle: 'Archive and setup event seasons',
       showBack: true,
       onBack: () => context.pop(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/admin/settings/seasons/new'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        child: const Icon(Icons.add_rounded, size: 28),
-      ),
+      actions: [
+        BoxyArtGlassIconButton(
+          icon: Icons.add_rounded,
+          iconSize: 24,
+          onPressed: () => context.push('/admin/settings/seasons/new'),
+          tooltip: 'Add New Season',
+        ),
+      ],
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'Active & Archived Seasons', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'All Seasons', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
               seasonsAsync.when(
                 data: (seasons) {
@@ -78,91 +79,114 @@ class _SeasonCard extends ConsumerWidget {
     final isActive = season.status == SeasonStatus.active;
     final theme = Theme.of(context);
 
-    return ModernCard(
-      onTap: () => context.push('/admin/settings/seasons/edit/${season.id}', extra: season),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isActive ? Colors.green.withValues(alpha: 0.1) : theme.dividerColor.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isActive ? Icons.play_arrow_rounded : Icons.archive_rounded,
-                color: isActive ? Colors.green : Colors.grey,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          season.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (season.isCurrent) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.primaryColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'CURRENT',
-                            style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 9, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Year: ${season.year} • ${season.status.name.toUpperCase()}',
-                    style: TextStyle(fontSize: 13, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            ),
-            if (isActive)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!season.isCurrent)
-                    TextButton(
-                      onPressed: () => ref.read(seasonsRepositoryProvider).setCurrentSeason(season.id),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Make Current',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.primaryColor),
-                      ),
+    return Dismissible(
+      key: Key(season.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        padding: const EdgeInsets.only(right: 24),
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+      ),
+      confirmDismiss: (direction) async {
+        return await showBoxyArtDialog(
+          context: context,
+          title: 'Delete Season?',
+          message: 'This will permanently delete "${season.name}" and ALL its events. This action cannot be undone.',
+          confirmText: 'Delete Permanently',
+          onConfirm: () {
+            ref.read(seasonsRepositoryProvider).deleteSeason(season.id);
+            Navigator.of(context, rootNavigator: true).pop(true);
+          },
+        );
+      },
+      child: ModernCard(
+        onTap: () => context.push('/admin/settings/seasons/edit/${season.id}', extra: season),
+        border: BorderSide(color: theme.primaryColor.withValues(alpha: 0.1)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      season.name,
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, letterSpacing: -0.4),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  IconButton(
-                    onPressed: () => _showCloseSeasonDialog(context, ref),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.archive_outlined, color: Colors.red, size: 20),
-                    tooltip: 'Close Season',
-                  ),
-                ],
-              )
-            else
-              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-          ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '${DateFormat('MMM yyyy').format(season.startDate)} - ${DateFormat('MMM yyyy').format(season.endDate)}',
+                      style: TextStyle(fontSize: 13, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    if (season.isCurrent)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: theme.primaryColor.withValues(alpha: 0.2)),
+                        ),
+                        child: Text(
+                          'CURRENT SEASON',
+                          style: TextStyle(
+                            color: theme.primaryColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      )
+                    else if (isActive)
+                      TextButton(
+                        onPressed: () => ref.read(seasonsRepositoryProvider).setCurrentSeason(season.id),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          splashFactory: NoSplash.splashFactory,
+                        ),
+                        child: Text(
+                          'MAKE CURRENT',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: theme.primaryColor.withValues(alpha: 0.7),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      )
+                    else
+                      Text(
+                        'ARCHIVED',
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (isActive)
+                IconButton(
+                  onPressed: () => _showCloseSeasonDialog(context, ref),
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(),
+                  icon: Icon(Icons.archive_outlined, color: theme.primaryColor, size: 22),
+                  tooltip: 'Close Season',
+                )
+              else
+                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
+            ],
+          ),
         ),
       ),
     );
