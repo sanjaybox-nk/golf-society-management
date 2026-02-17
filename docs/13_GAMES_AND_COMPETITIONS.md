@@ -157,8 +157,15 @@ To ensure data integrity, Admin's have granular control over when scoring is ava
 | **Live (Manual)** | `scoringForceActive` | Scoring is enabled regardless of the current date. |
 | **Locked** | `isScoringLocked` | Scorecards are read-only; final positions are frozen. |
 
-## 8. Technical Architecture
--   **Repository**: `CompetitionsRepository` manages persistence in Firestore.
--   **Models**: `Competition` (main entity) and `CompetitionRules` (configuration).
--   **Scaffolding**: The builder screens use a `BaseCompetitionControl` pattern to ensure a consistent UX across different game formats.
--   **Cache Handling**: Uses `ref.invalidate(competitionDetailProvider(id))` to force UI refreshes after deep-link edits.
+## 9. Scoring Accuracy & Verification
+The scoring engine is hardened against edge cases to ensure 100% accuracy in society results.
+
+### 9.1 Automated Unit Tests
+Core scoring logic is verified via a suite of unit tests (`test/handicap_calculation_test.dart` and `test/scoring_engine_test.dart`) covering:
+- **Texas Scramble**: WHS-compliant team weighting for 2, 3, and 4-man teams.
+- **Stableford**: Correct point allocation across extreme gross scores (Net Eagle to Net Double Bogey).
+- **Matchplay**: Early-victory detection (e.g., "5 & 4") and A/S (All Square) logic.
+- **4BBB**: Better-ball selection including penalty handling for unrecorded scores.
+
+### 9.2 Manual Validation
+The **Testing Lab** (Phase 1-6) provides the secondary layer of verification by seeding high-density randomized data to stress test leaderboard UI and tie-breaking presentation.

@@ -38,5 +38,8 @@ The core engine for generating believable competition data.
 -   **Dynamic Scaling**: For empty events, the engine randomized the field size (typically 12-32 players) to simulate natural society attendance variety.
 -   **Bulk Action**: Admins can trigger "Initialize Demo Season" from the General Settings to rapidly populate a multi-year history (Jan 2025 - Feb 2026) including multi-day events.
 
-### Tie-Break Verification (Phase 4)
-Phase 4 generates players with identical raw scores (e.g., 36 points) and identical per-hole distributions to stress test the Tie Policy configuration (Countback vs. Shared).
+### 4. Unit Test Complement
+While the Lab verifies the **UI and Integration**, raw **Logic Accuracy** is enforced via unit tests:
+- `test/scoring_engine_test.dart`: Core Texas Scramble and 4BBB math.
+- `test/handicap_calculation_test.dart`: Advanced edge cases (Expanded Feb 2026).
+- `test/match_play_calculator_test.dart`: Matchplay status and early termination logic.

@@ -332,7 +332,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       result = dialogResult;
 
     } else {
-      result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/picker');
+      result = await context.push<LeaderboardConfig>('/admin/settings/seasons/leaderboards/create/picker');
     }
 
     if (result != null) {

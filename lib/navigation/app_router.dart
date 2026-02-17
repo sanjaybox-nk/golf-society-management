@@ -298,6 +298,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                            return LeaderboardBuilderScreen(type: type, isTemplate: false); 
                         },
                       ),
+                      GoRoute(
+                        path: 'leaderboards/create/picker',
+                        builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
+                        routes: [
+                          GoRoute(
+                            path: 'gallery/:type',
+                            builder: (context, state) {
+                               final typeStr = state.pathParameters['type']!;
+                               final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                               return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
+                            },
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
@@ -473,7 +487,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'manage/:id',
-                    builder: (context, state) => const Scaffold(body: Center(child: Text('Management Screen'))),
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      final config = state.extra as LeaderboardConfig?;
+                      
+                      // If we have the config, use it. Otherwise, we might need a fetcher
+                      // For now, assume it's passed or handle the fallback
+                      if (config != null) {
+                        return LeaderboardBuilderScreen(
+                          type: _getTypeFromConfig(config),
+                          existingConfig: config,
+                          isTemplate: false,
+                        );
+                      }
+                      
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Admin Debug')),
+                        body: Center(
+                          child: Text('Leaderboard ID: $id\nNo Config Passed!'),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

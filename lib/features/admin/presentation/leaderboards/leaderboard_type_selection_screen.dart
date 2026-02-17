@@ -71,7 +71,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
   void _navigateToBuilder(BuildContext context, LeaderboardType type) async {
     final typeName = type.name;
     final path = isPicker 
-       ? '/admin/seasons/leaderboards/create/$typeName/gallery' 
+       ? '/admin/settings/seasons/leaderboards/create/picker/gallery/$typeName' 
        : '/admin/settings/leaderboards/gallery/$typeName';
 
     final result = await context.push<LeaderboardConfig>(path);

@@ -267,7 +267,7 @@ class _AdminSeasonStandingsTab extends ConsumerWidget {
                   child: ModernCard(
                     padding: const EdgeInsets.all(16),
                     child: InkWell(
-                      onTap: () => context.push('/admin/competitions/season/${config.id}', extra: config),
+                      onTap: () => context.push('/admin/leaderboards/manage/${config.id}', extra: config),
                       borderRadius: BorderRadius.circular(24),
                       child: Row(
                         children: [

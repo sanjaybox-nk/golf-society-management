@@ -16,6 +16,12 @@ All notable changes to the Golf Society Management (BoxyArt) project will be doc
 - **Async Robustness**: Consolidated `context.mounted` guards throughout the application, specifically in complex form and navigation flows.
 - **Project Structure**: Standardized the use of `HeadlessScaffold` as the primary layout for modernized screens.
 
+### Repository Cleanup & UI Modularization (2026-02-17)
+- **Data Layer Standardization**: Refactored core Firestore repositories (`Events`, `Competitions`, `Seasons`, `Course`, `Scorecard`) to use `withConverter` for type-safe data mapping and reduced boilerplate.
+- **UI Modularization**: Reduced `MemberDetailsModal` complexity by extracting logic into standalone widgets (`MemberRolePicker`, `SocietyRolePicker`, `PersonalDetailsForm`).
+- **Design System Consolidation**: Deprecated and removed legacy `cards.dart`, merging all components into the `modern_cards.dart` library for a unified design system.
+- **Enhanced Test Coverage**: Added comprehensive unit tests for business-critical scoring logic including Texas Scramble, Stableford, and 4BBB calculations.
+
 ### Core Features
 - **Matchplay Engine**: Implemented independent and event-layered matchplay scoring.
 - **Tee Sheet UI**: Added tap-to-swap grouping logic and interactive pairings management.

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart'; // [NEW]
-import '../../../../core/services/storage_service.dart'; // [NEW]
+import 'package:image_picker/image_picker.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
-
-import 'widgets/member_stats_row.dart'; // [NEW]
+import 'widgets/member_stats_row.dart';
 
 import '../../../../core/constants/country_codes.dart';
 import '../../../../models/member.dart';
 import 'members_provider.dart';
-import 'profile_provider.dart'; // [NEW]
-import '../../../../core/theme/app_shadows.dart';
+import 'profile_provider.dart';
+import 'widgets/member_role_picker.dart';
+import 'widgets/society_role_picker.dart';
+import 'widgets/personal_details_form.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
@@ -281,151 +282,17 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   void _showRolePicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFF0F2F5),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Assign Role',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ...MemberRole.values.map((role) => _buildRoleOption(role)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
+    MemberRolePicker.show(
+      context, 
+      _role, 
+      (newRole) => setState(() => _role = newRole),
     );
   }
 
-  Widget _buildRoleOption(MemberRole role) {
-    final isSelected = _role == role;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _role = role);
-        Navigator.pop(context);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: isSelected ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : Colors.grey.shade100,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _getRoleIcon(role),
-                color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getRoleDisplayName(role),
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Theme.of(context).primaryColor : Colors.black87,
-                    ),
-                  ),
-                  Text(
-                    _getRoleDescription(role),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected) Icon(Icons.check_circle, color: Theme.of(context).primaryColor),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  String _getRoleDisplayName(MemberRole role) {
-    switch (role) {
-      case MemberRole.superAdmin: return 'Super Admin';
-      case MemberRole.admin: return 'Admin';
-      case MemberRole.restrictedAdmin: return 'Restricted Admin';
-      case MemberRole.viewer: return 'Viewer';
-      case MemberRole.member: return 'Standard Member';
-    }
-  }
-
-  String _getRoleDescription(MemberRole role) {
-     switch (role) {
-      case MemberRole.superAdmin: return 'Full access to all system features.';
-      case MemberRole.admin: return 'Manage members, events, and results.';
-      case MemberRole.restrictedAdmin: return 'Limited management rights.';
-      case MemberRole.viewer: return 'Read-only access to all data.';
-      case MemberRole.member: return 'Standard app access.';
-    }
-  }
-
-  IconData _getRoleIcon(MemberRole role) {
-    switch (role) {
-      case MemberRole.superAdmin: return Icons.admin_panel_settings;
-      case MemberRole.admin: return Icons.security;
-      case MemberRole.restrictedAdmin: return Icons.build_circle_outlined;
-      case MemberRole.viewer: return Icons.visibility_outlined;
-      case MemberRole.member: return Icons.person_outline;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    String title = 'Member Details';
-    if (_isNewMember) {
-      title = 'New Member';
-    } else if (_isEditing) {
-      title = 'Edit Member';
-    }
+    String title = _isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : '${_firstController.text} ${_lastController.text}');
 
     return PopScope(
       canPop: !_isEditing,
@@ -558,273 +425,33 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
                     const SizedBox(height: 24),
 
-                    // Personal Details Card (Unified for Edit and View)
-                    ModernCard(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'PERSONAL DETAILS',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black45,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          
-                          if (_isEditing) ...[
-                            // EDIT MODE FORM
-                            BoxyArtFormField(
-                              key: const ValueKey('member_bio'),
-                              label: 'Bio',
-                              controller: _bioController,
-                              focusNode: _bioFocusNode,
-                              readOnly: false,
-                              maxLines: 2,
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: BoxyArtFormField(
-                                    key: const ValueKey('member_first'),
-                                    label: 'First Name *',
-                                    controller: _firstController,
-                                    focusNode: _firstFocusNode,
-                                    readOnly: false,
-                                    validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: BoxyArtFormField(
-                                    key: const ValueKey('member_last'),
-                                    label: 'Last Name *',
-                                    controller: _lastController,
-                                    focusNode: _lastFocusNode,
-                                    readOnly: false,
-                                    validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            BoxyArtFormField(
-                              key: const ValueKey('member_nickname'),
-                              label: 'Nickname',
-                              controller: _nicknameController,
-                              focusNode: _nicknameFocusNode,
-                              readOnly: false,
-                            ),
-                            const SizedBox(height: 16),
-                            BoxyArtFormField(
-                              key: const ValueKey('member_email'),
-                              label: 'Email *',
-                              controller: _emailController,
-                              focusNode: _emailFocusNode,
-                              readOnly: false,
-                              validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
-                            ),
-                            const SizedBox(height: 16),
-                             Row(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 SizedBox(
-                                   width: 120,
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       const Padding(
-                                         padding: EdgeInsets.only(left: 12, bottom: 4),
-                                         child: Text(
-                                           'Code',
-                                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
-                                         ),
-                                       ),
-                                        Container(
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFFF5F5F5),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-                                            shadows: AppShadows.inputSoft,
-                                          ),
-                                          child: Autocomplete<Map<String, String>>(
-                                            initialValue: TextEditingValue(text: _countryCodeController.text),
-                                            optionsBuilder: (textEditingValue) {
-                                              if (textEditingValue.text == '') return const Iterable<Map<String, String>>.empty();
-                                              return countryList.where((option) {
-                                                return option['name']!.toLowerCase().contains(textEditingValue.text.toLowerCase()) ||
-                                                       option['code']!.contains(textEditingValue.text);
-                                              });
-                                            },
-                                            displayStringForOption: (option) => option['code']!,
-                                            onSelected: (selection) => setState(() => _countryCodeController.text = selection['code']!),
-                                            optionsViewBuilder: (context, onSelected, options) {
-                                              return Align(
-                                                alignment: Alignment.topLeft,
-                                                child: OverflowBox(
-                                                  maxWidth: 195,
-                                                  minWidth: 195,
-                                                  alignment: Alignment.topLeft,
-                                                  child: Material(
-                                                    elevation: 8,
-                                                    color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(16),
-                                                    child: Container(
-                                                      width: 195,
-                                                      constraints: const BoxConstraints(maxHeight: 250),
-                                                      child: ListView.builder(
-                                                        padding: EdgeInsets.zero,
-                                                        shrinkWrap: true,
-                                                        itemCount: options.length,
-                                                        itemBuilder: (context, index) {
-                                                          final option = options.elementAt(index);
-                                                          return InkWell(
-                                                            onTap: () => onSelected(option),
-                                                            child: Padding(
-                                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                                              child: Row(
-                                                                children: [
-                                                                  Text(
-                                                                    option['flag'] ?? '',
-                                                                    style: const TextStyle(fontSize: 18),
-                                                                  ),
-                                                                  const SizedBox(width: 8),
-                                                                  Text(
-                                                                    option['code']!,
-                                                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                                                  ),
-                                                                  const SizedBox(width: 8),
-                                                                  Expanded(
-                                                                    child: Text(
-                                                                      option['name']!,
-                                                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black54),
-                                                                      overflow: TextOverflow.ellipsis,
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                               ),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            fieldViewBuilder: (context, controller, focus, onSubmitted) {
-                                              return TextFormField(
-                                                controller: controller,
-                                                focusNode: focus,
-                                                cursorColor: Theme.of(context).primaryColor,
-                                                decoration: const InputDecoration(
-                                                  border: InputBorder.none,
-                                                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                                                ),
-                                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                     ],
-                                   ),
-                                 ),
-                                 const SizedBox(width: 12),
-                                 Expanded(
-                                   child: BoxyArtFormField(
-                                     key: const ValueKey('member_phone'),
-                                     label: 'Phone *',
-                                     controller: _phoneController,
-                                     focusNode: _phoneFocusNode,
-                                     readOnly: false,
-                                     validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
-                                   ),
-                                 ),
-                               ],
-                             ),
-                             const SizedBox(height: 16),
-                             BoxyArtFormField(
-                               key: const ValueKey('member_address'),
-                               label: 'Address *',
-                               controller: _addressController,
-                               focusNode: _addressFocusNode,
-                               readOnly: false,
-                               maxLines: 2,
-                               validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
-                             ),
-                             const SizedBox(height: 16),
-                             BoxyArtDatePickerField(
-                               label: 'Member Since',
-                               value: _joinedDate != null 
-                                   ? '${_joinedDate!.day.toString().padLeft(2, '0')}/${_joinedDate!.month.toString().padLeft(2, '0')}/${_joinedDate!.year}' 
-                                   : 'Tap to select date',
-                               onTap: () async {
-                                 final date = await showDatePicker(
-                                   context: context,
-                                   initialDate: _joinedDate ?? DateTime.now(),
-                                   firstDate: DateTime(2000),
-                                   lastDate: DateTime.now(),
-                                 );
-                                 if (date != null) setState(() => _joinedDate = date);
-                               },
-                             ),
-                          ] else ...[
-                            // VIEW MODE DETAILS (Now inside the card)
-                            if (widget.member?.bio != null && widget.member!.bio!.isNotEmpty) ...[
-                               Container(
-                                 width: double.infinity,
-                                 margin: const EdgeInsets.only(bottom: 24),
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Text(
-                                       'BIO',
-                                       style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade400),
-                                     ),
-                                     const SizedBox(height: 4),
-                                     Text(
-                                       widget.member!.bio!,
-                                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black87),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                            ],
-                            
-                            ModernInfoRow(
-                              icon: Icons.email_outlined,
-                              label: 'EMAIL',
-                              value: widget.member?.email ?? '',
-                            ),
-                            const SizedBox(height: 16),
-                            
-                            ModernInfoRow(
-                              icon: Icons.phone_outlined,
-                              label: 'PHONE',
-                              value: widget.member?.phone ?? '',
-                            ),
-                            const SizedBox(height: 16),
-                            
-                            ModernInfoRow(
-                              icon: Icons.location_on_outlined,
-                              label: 'ADDRESS',
-                              value: widget.member?.address ?? '',
-                            ),
-                            const SizedBox(height: 16),
-                            
-                            ModernInfoRow(
-                              icon: Icons.calendar_today_outlined,
-                              label: 'MEMBER SINCE',
-                              value: widget.member?.joinedDate != null 
-                                ? '${widget.member!.joinedDate!.day.toString().padLeft(2, '0')}/${widget.member!.joinedDate!.month.toString().padLeft(2, '0')}/${widget.member!.joinedDate!.year}' 
-                                : '-'
-                            ),
-                          ],
-                        ],
-                      ),
+                    PersonalDetailsForm(
+                      isEditing: _isEditing,
+                      firstController: _firstController,
+                      lastController: _lastController,
+                      nicknameController: _nicknameController,
+                      emailController: _emailController,
+                      phoneController: _phoneController,
+                      countryCodeController: _countryCodeController,
+                      addressController: _addressController,
+                      bioController: _bioController,
+                      joinedDate: _joinedDate,
+                      onPickDate: () async {
+                         final date = await showDatePicker(
+                           context: context,
+                           initialDate: _joinedDate ?? DateTime.now(),
+                           firstDate: DateTime(2000),
+                           lastDate: DateTime.now(),
+                         );
+                         if (date != null) setState(() => _joinedDate = date);
+                      },
+                      bioFocusNode: _bioFocusNode,
+                      firstFocusNode: _firstFocusNode,
+                      lastFocusNode: _lastFocusNode,
+                      nicknameFocusNode: _nicknameFocusNode,
+                      emailFocusNode: _emailFocusNode,
+                      phoneFocusNode: _phoneFocusNode,
+                      addressFocusNode: _addressFocusNode,
                     ),
                     const SizedBox(height: 40),
                   ],
@@ -866,154 +493,13 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   void _showSocietyRolePicker() {
-    final defaultRoles = ['President', 'Captain', 'Vice Captain', 'Secretary', 'Treasurer'];
-    final theme = Theme.of(context);
-    final primarySize = 20.0;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select Society Position',
-                style: TextStyle(
-                  fontSize: primarySize,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ...defaultRoles.map((r) => _buildSocietyRoleOption(r)),
-                      const SizedBox(height: 8),
-                      
-                      // Custom Role Action Tile
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showCustomRoleDialog();
-                        },
-                        child: ModernCard(
-                          padding: const EdgeInsets.all(18),
-                          borderRadius: 16,
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: theme.primaryColor.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.add_rounded, color: theme.primaryColor, size: 20),
-                              ),
-                              const SizedBox(width: 16),
-                              const Text(
-                                'Create Custom Role',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
+    SocietyRolePicker.show(
+      context, 
+      _societyRole, 
+      (newRole) => setState(() => _societyRole = newRole),
     );
   }
 
-  Widget _buildSocietyRoleOption(String role) {
-    final isSelected = _societyRole == role;
-    final theme = Theme.of(context);
-    final primary = theme.primaryColor;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        onTap: () {
-          setState(() => _societyRole = role);
-          Navigator.pop(context);
-        },
-        child: ModernCard(
-          padding: const EdgeInsets.all(18),
-          borderRadius: 16,
-          border: isSelected ? BorderSide(color: primary, width: 2) : null,
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  role,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    letterSpacing: -0.3,
-                    color: isSelected ? primary : null,
-                  ),
-                ),
-              ),
-              if (isSelected) 
-                Icon(Icons.check_circle_rounded, color: primary, size: 22),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showCustomRoleDialog() {
-    final controller = TextEditingController();
-    showBoxyArtDialog(
-      context: context,
-      title: 'New Role',
-      content: BoxyArtFormField(
-        label: 'Role Title',
-        hintText: 'e.g. Tour Manager',
-        controller: controller,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-        ),
-        TextButton(
-          onPressed: () {
-            if (controller.text.trim().isNotEmpty) {
-              setState(() => _societyRole = controller.text.trim());
-              Navigator.pop(context);
-            }
-          },
-          child: Text('Save', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
-  }
 
 
 

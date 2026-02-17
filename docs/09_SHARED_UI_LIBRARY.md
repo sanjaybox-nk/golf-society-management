@@ -66,10 +66,11 @@ Consistent with modern text fields, providing a unified selection UI in a filled
 ### `ModernSwitchRow`
 A full-width row design combining a descriptive label, icon, and a Switch. Preferred over `BoxyArtSwitchField` for complex forms.
 
-## 3. Cards (`cards.dart`)
+## 3. Cards (Consolidated in `modern_cards.dart`)
+*Legacy `cards.dart` has been removed in favor of the modernized design system.*
 
 ### `BoxyArtFloatingCard`
-Generic container with "Soft Scale" shadow and rounded corners. Use for lists or content blocks.
+Generic container with "Soft Scale" shadow and rounded corners. Now part of the modern library.
 - **Properties**:
   - `padding`: Custom EdgeInsets for content spacing.
   - `onTap`: Makes the card interactive.

@@ -25,7 +25,11 @@ lib/
 
 ## State Management (Riverpod)
 We use `riverpod_generator` (`@riverpod` annotation) which auto-generates providers.
-- **Repositories**: `MembersRepository` (Firestore), `EventsRepository` (Firestore), `CompetitionsRepository` (Firestore)
+- **Repositories**: Standardized Firestore repositories using `withConverter` for type safety and automatic JSON mapping.
+    - `FirestoreEventsRepository`
+    - `FirestoreMembersRepository`
+    - `FirestoreCompetitionsRepository`
+    - `FirestoreSeasonsRepository`
 - **Services**: 
     - `AuthService` (Firebase Auth)
     - `StorageService` (Firebase Storage - Image Uploads)

@@ -1,0 +1,25 @@
+Analyzing Golf Society Management...                            
+
+warning • Unused import: 'package:golf_society/features/members/presentation/members_provider.dart' • lib/features/admin/presentation/admin_dashboard_screen.dart:6:8 • unused_import
+   info • Unnecessary use of multiple underscores • lib/features/admin/presentation/events/admin_events_screen.dart:351:18 • unnecessary_underscores
+   info • The import of '../../../../core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/events/event_admin_grouping_screen.dart:6:8 • unnecessary_import
+  error • The method 'go' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/events/event_admin_grouping_screen.dart:188:35 • undefined_method
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/events/event_admin_scaffold.dart:6:8 • unused_import
+warning • Unused import: 'package:go_router/go_router.dart' • lib/features/admin/presentation/notifications/notification_admin_scaffold.dart:2:8 • unused_import
+warning • Unused import: '../../../../core/theme/contrast_helper.dart' • lib/features/admin/presentation/roles/role_members_screen.dart:7:8 • unused_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/roles/roles_settings_screen.dart:4:8 • unnecessary_import
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/admin/presentation/seasons/season_form_screen.dart:278:15 • deprecated_member_use
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/admin_settings_screen.dart:5:8 • unnecessary_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/branding_settings_screen.dart:11:8 • unnecessary_import
+   info • The import of 'package:golf_society/core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/general_settings_screen.dart:4:8 • unnecessary_import
+   info • The import of '../../../../core/shared_ui/modern_cards.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/settings/handicap_system_selection_screen.dart:7:8 • unnecessary_import
+warning • Unused import: '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/widgets/dashboard_hero_card.dart:4:8 • unused_import
+warning • Unused import: '../../../../models/golf_event.dart' • lib/features/competitions/services/leaderboard_invoker_service.dart:5:8 • unused_import
+   info • The import of '../../../../core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/tabs/event_user_placeholders.dart:39:8 • unnecessary_import
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:157:25 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:158:25 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:159:25 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/events/presentation/tabs/event_user_placeholders.dart:160:25 • unnecessary_const
+warning • Duplicate import • lib/features/members/presentation/locker_screen.dart:5:8 • duplicate_import
+   info • The import of '../../../../core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/members/presentation/member_details_modal.dart:6:8 • unnecessary_import
+

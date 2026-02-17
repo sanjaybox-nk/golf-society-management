@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import '../../../../models/competition.dart';
 import '../../../../core/utils/handicap_calculator.dart';
 import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/shared_ui/cards.dart';
+import '../../../../core/shared_ui/modern_cards.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/scorecard.dart';
 import '../../../competitions/presentation/competitions_provider.dart';

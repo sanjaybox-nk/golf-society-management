@@ -1,0 +1,22 @@
+Analyzing Golf Society Management...                            
+
+  error • The method 'go' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:28:34 • undefined_method
+  error • The method 'push' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:34:36 • undefined_method
+  error • The method 'push' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:55:44 • undefined_method
+  error • The method 'push' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:82:46 • undefined_method
+  error • The method 'push' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:89:46 • undefined_method
+  error • The method 'push' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:96:46 • undefined_method
+  error • The method 'push' isn't defined for the type 'BuildContext' • lib/features/admin/presentation/admin_dashboard_screen.dart:103:46 • undefined_method
+  error • The method 'HeadlessScaffold' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:61:12 • undefined_method
+  error • The name 'BoxyArtSectionTitle' isn't a class • lib/features/admin/presentation/seasons/season_form_screen.dart:83:25 • creation_with_non_type
+  error • The method 'ModernCard' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:84:19 • undefined_method
+  error • The method 'BoxyArtFormField' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:88:25 • undefined_method
+  error • The method 'BoxyArtFormField' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:97:38 • undefined_method
+  error • The name 'BoxyArtSectionTitle' isn't a class • lib/features/admin/presentation/seasons/season_form_screen.dart:111:25 • creation_with_non_type
+  error • The method 'ModernCard' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:112:19 • undefined_method
+  error • The method 'BoxyArtDatePickerField' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:117:34 • undefined_method
+  error • The method 'BoxyArtDatePickerField' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:125:34 • undefined_method
+  error • The method 'BoxyArtSwitchField' isn't defined for the type '_SeasonFormScreenState' • lib/features/admin/presentation/seasons/season_form_screen.dart:231:19 • undefined_method
+  error • The method 'ModernCard' isn't defined for the type '_LeaderboardListTile' • lib/features/admin/presentation/seasons/season_form_screen.dart:423:12 • undefined_method
+warning • Duplicate import • lib/features/members/presentation/locker_screen.dart:5:8 • duplicate_import
+

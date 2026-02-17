@@ -1,6 +1,8 @@
 Analyzing Golf Society Management...                            
 
-warning • Unused import: 'package:golf_society/features/members/presentation/members_provider.dart' • lib/features/admin/presentation/admin_dashboard_screen.dart:6:8 • unused_import
+warning • Unused import: 'package:golf_society/models/golf_event.dart' • lib/features/admin/presentation/admin_dashboard_screen.dart:7:8 • unused_import
+warning • The value of the local variable 'membersAsync' isn't used • lib/features/admin/presentation/admin_dashboard_screen.dart:18:11 • unused_local_variable
+   info • The import of 'package:golf_society/core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/competitions/admin_competitions_screen.dart:4:8 • unnecessary_import
    info • The import of 'package:golf_society/core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/competitions/competition_template_gallery_screen.dart:7:8 • unnecessary_import
    info • The import of 'package:golf_society/core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/competitions/scoring_review_queue_screen.dart:4:8 • unnecessary_import
    info • The import of 'package:golf_society/core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/events/admin_events_screen.dart:5:8 • unnecessary_import
@@ -42,6 +44,9 @@ warning • Unused import: '../../../../core/theme/contrast_helper.dart' • lib
 warning • Unused import: '../../../../core/widgets/boxy_art_widgets.dart' • lib/features/admin/presentation/widgets/dashboard_hero_card.dart:4:8 • unused_import
 warning • The value of the local variable 'isDark' isn't used • lib/features/admin/presentation/widgets/dashboard_hero_card.dart:19:11 • unused_local_variable
    info • The import of '../../../core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../core/widgets/boxy_art_widgets.dart' • lib/features/archive/presentation/archive_screen.dart:7:8 • unnecessary_import
+warning • Unused import: 'standings/leaderboard_table_view.dart' • lib/features/competitions/presentation/season_standings_screen.dart:7:8 • unused_import
+   info • Unnecessary use of string interpolation • lib/features/competitions/presentation/season_standings_screen.dart:405:13 • unnecessary_string_interpolations
+   info • Unnecessary use of string interpolation • lib/features/competitions/presentation/season_standings_screen.dart:476:21 • unnecessary_string_interpolations
 warning • Unused import: '../../../../models/golf_event.dart' • lib/features/competitions/services/leaderboard_invoker_service.dart:5:8 • unused_import
    info • The import of 'package:golf_society/core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/event_details_screen.dart:1:8 • unnecessary_import
    info • The import of 'package:golf_society/core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/core/widgets/boxy_art_widgets.dart' • lib/features/events/presentation/event_registration_screen.dart:4:8 • unnecessary_import
@@ -58,4 +63,4 @@ warning • The value of the local variable 'results' isn't used • lib/feature
    info • The import of '../../../core/shared_ui/headless_scaffold.dart' is unnecessary because all of the used elements are also provided by the import of '../../../core/widgets/boxy_art_widgets.dart' • lib/features/members/presentation/members_screen.dart:5:8 • unnecessary_import
 warning • Unused import: 'package:freezed_annotation/freezed_annotation.dart' • lib/models/handicap_system.dart:1:8 • unused_import
 
-57 issues found. (ran in 11.3s)
+62 issues found. (ran in 5.4s)
