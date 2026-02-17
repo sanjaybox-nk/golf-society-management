@@ -384,11 +384,11 @@ class EventDetailsContent extends ConsumerWidget {
           child: Column(
             children: [
               ModernInfoRow(
-                label: (event.isMultiDay ?? false) ? 'Start Date' : 'Event Date',
+                label: event.isMultiDay ? 'Start Date' : 'Event Date',
                 value: DateFormat('EEEE, d MMM yyyy').format(event.date),
                 icon: Icons.calendar_today_rounded,
               ),
-              if ((event.isMultiDay ?? false) && event.endDate != null) ...[
+              if (event.isMultiDay && event.endDate != null) ...[
                 const SizedBox(height: 16),
                 ModernInfoRow(
                   label: 'End Date',

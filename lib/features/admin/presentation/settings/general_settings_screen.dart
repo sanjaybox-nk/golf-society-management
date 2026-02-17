@@ -109,6 +109,14 @@ class GeneralSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.deepPurple,
                       onTap: () => _showSeedingDialog(context, ref),
                     ),
+                    const Divider(height: 1, indent: 68),
+                    _SettingsTile(
+                      icon: Icons.delete_forever_rounded,
+                      title: 'Wipe & Re-Seed Season',
+                      subtitle: 'Clear ALL data and restart demo',
+                      iconColor: Colors.red,
+                      onTap: () => _showWipeConfirmDialog(context, ref),
+                    ),
                   ],
                 ),
               ),
@@ -166,6 +174,55 @@ class GeneralSettingsScreen extends ConsumerWidget {
               }
             },
             child: const Text('Initialize'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWipeConfirmDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('⚠️ Wipe Everything?'),
+        content: const Text(
+          'This will PERMANENTLY DELETE all members, events, scores, and settings.\n\nThe app will then re-seed the "Demo Season 2026" from scratch.\n\nAre you sure?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () async {
+              Navigator.pop(context);
+              // Trigger Wipe & Seed
+              try {
+                final seedingService = ref.read(demoSeedingServiceProvider);
+                
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Wiping data... This may take a moment.')),
+                  );
+                }
+                
+                await seedingService.wipeAndSeed();
+                
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Data Wiped & Re-Seeded Successfully!')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('WIPE & RE-SEED'),
           ),
         ],
       ),

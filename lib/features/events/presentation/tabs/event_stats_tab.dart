@@ -143,16 +143,36 @@ class EventStatsTab extends ConsumerWidget {
       if (hof != null) {
         for (var award in hof) {
           final type = award['type'];
-          final playerId = award['playerId'];
-          final reg = event.registrations.firstWhere((r) => (r.isGuest ? '${r.memberId}_guest' : r.memberId) == playerId, orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true));
-          final name = reg.isGuest ? (reg.guestName ?? 'Guest') : reg.memberName;
-          if (type == 'HOT_STREAK') { hotStreakPlayer = name; maxStreak = 1; }
-          else if (type == 'BOUNCE_BACK') { bounceBackPlayer = name; maxBounceBacks = 1; }
-          else if (type == 'TOP_FINISHER') { finisherPlayer = name; }
-          else if (type == 'BLOB_KING' || type == 'DISASTER_MASTER') { blobKingPlayer = name; maxBlobs = 1; }
-          else if (type == 'CONSISTENT') { grinderPlayer = name; maxParsPlayer = 1; }
-          else if (type == 'SNIPER') { sniperPlayer = name; maxBirdsPlayer = 1; }
-          else if (type == 'ROLLERCOASTER') { rollercoasterPlayer = name; maxVariance = 5.0; }
+          final displayVal = award['displayValue'];
+          final name = award['playerName'] ?? 'Unknown';
+          if (type == 'HOT_STREAK') { 
+            hotStreakPlayer = name; 
+            maxStreak = (displayVal as num?)?.toInt() ?? 1; 
+          }
+          else if (type == 'BOUNCE_BACK') { 
+            bounceBackPlayer = name; 
+            maxBounceBacks = (displayVal as num?)?.toInt() ?? 1; 
+          }
+          else if (type == 'TOP_FINISHER') { 
+            finisherPlayer = name; 
+            bestFinishScore = (displayVal as num?)?.toInt() ?? (isStableford ? 6 : 12); // Realistic fallback for old data
+          }
+          else if (type == 'BLOB_KING' || type == 'DISASTER_MASTER') { 
+            blobKingPlayer = name; 
+            maxBlobs = (displayVal as num?)?.toInt() ?? 1; 
+          }
+          else if (type == 'CONSISTENT') { 
+            grinderPlayer = name; 
+            maxParsPlayer = (displayVal as num?)?.toInt() ?? 1; 
+          }
+          else if (type == 'SNIPER') { 
+            sniperPlayer = name; 
+            maxBirdsPlayer = (displayVal as num?)?.toInt() ?? 1; 
+          }
+          else if (type == 'ROLLERCOASTER') { 
+            rollercoasterPlayer = name; 
+            maxVariance = (displayVal as num?)?.toDouble() ?? 5.0; 
+          }
         }
       }
 
@@ -442,7 +462,7 @@ class EventStatsTab extends ConsumerWidget {
             Icon(
               icon, 
               size: 16, 
-              color: isSelected ? Colors.black : Colors.grey,
+              color: isSelected ? Colors.white : Colors.grey,
             ),
             const SizedBox(width: 8),
             Text(
@@ -450,7 +470,7 @@ class EventStatsTab extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
-                color: isSelected ? Colors.black : Colors.grey,
+                color: isSelected ? Colors.white : Colors.grey,
                 letterSpacing: 1.1,
               ),
             ),

@@ -8,7 +8,8 @@ Admin Settings > Testing Lab
 ## Features
 
 ### 1. Seeding Base Foundation
--   **Function**: Seeds 60 randomized members with varying handicaps.
+-   **Function**: Seeds **75 members** (20 female, 55 male) with realistic handicap distributions.
+-   **Hero Account**: Includes "Sanjay Patel" as a consistent Admin/Hero user for personal stats verification.
 -   **Master Event**: Creates "The Lab Open", a permanent test event where admins can experiment with different game formats.
 
 ### 2. Iterative Testing Phases
@@ -16,12 +17,13 @@ The lab is organized into phases to isolate specific technical challenges:
 
 | Phase | Description | Key Verification |
 | :--- | :--- | :--- |
-| **Phase 1** | Foundation & Individual Play | 60 members, individual Stableford scoring, handicap calculations. |
-| **Phase 2** | Historical Seeding | 8 finalized past events across 2025-2026 to populate season-long charts and archive. |
+| **Phase 1** | Foundation & Individual Play | 75 members, individual Stableford scoring, gender-aware filtering. |
+| **Phase 2** | Historical Seeding | 13 finalized past events across 2025-2026 to populate season-long charts and archive. |
 | **Phase 3** | Team Logistics | Scramble and 4BBB Pairs events with team-to-individual point attribution. |
 | **Phase 4** | Hardening | High-density tie scenarios to verify countback and shared position logic. |
 | **Phase 5** | Matchplay & Team Grouping | Advanced grouping scenarios with Side A/B pairing and match overlay status verification. |
 | **Phase 6** | Multi-Day Logic | Seeding of events spanning multiple days (e.g., "The Masters Simulation") to verify date range display and scoring aggregation. |
+| **Phase 7** | Advanced Grouping | "Progressive" tee sheet generation (Low Handicaps first) for non-invitational events. |
 
 ### 3. Lab Event Management
 -   **Reset Event**: Clears all registrations and scores for "The Lab Open" to start a fresh test.

@@ -345,12 +345,13 @@ class EventAnalysisEngine {
 
     // 3. Hall of Fame
     final List<Map<String, dynamic>> hallOfFame = [];
-    void addAward(String type, String name, String? playerId) {
+    void addAward(String type, String name, String? playerId, dynamic displayValue) {
       if (name != 'None') {
         hallOfFame.add({
           'type': type,
           'playerName': name,
           'playerId': playerId,
+          'displayValue': displayValue,
         });
       }
     }
@@ -365,13 +366,13 @@ class EventAnalysisEngine {
         return null;
     }
 
-    addAward('HOT_STREAK', hotStreakPlayer, getPlayerId(hotStreakPlayer, event));
-    addAward('BOUNCE_BACK', bounceBackPlayer, getPlayerId(bounceBackPlayer, event));
-    addAward('TOP_FINISHER', finisherPlayer, getPlayerId(finisherPlayer, event));
-    addAward('BLOB_KING', blobKingPlayer, getPlayerId(blobKingPlayer, event));
-    addAward('CONSISTENT', grinderPlayer, getPlayerId(grinderPlayer, event));
-    addAward('SNIPER', sniperPlayer, getPlayerId(sniperPlayer, event));
-    addAward('ROLLERCOASTER', rollercoasterPlayer, getPlayerId(rollercoasterPlayer, event));
+    addAward('HOT_STREAK', hotStreakPlayer, getPlayerId(hotStreakPlayer, event), maxStreak);
+    addAward('BOUNCE_BACK', bounceBackPlayer, getPlayerId(bounceBackPlayer, event), maxBounceBacks);
+    addAward('TOP_FINISHER', finisherPlayer, getPlayerId(finisherPlayer, event), bestFinishScore);
+    addAward('BLOB_KING', blobKingPlayer, getPlayerId(blobKingPlayer, event), maxBlobs);
+    addAward('CONSISTENT', grinderPlayer, getPlayerId(grinderPlayer, event), maxParsPlayer);
+    addAward('SNIPER', sniperPlayer, getPlayerId(sniperPlayer, event), maxBirdsPlayer);
+    addAward('ROLLERCOASTER', rollercoasterPlayer, getPlayerId(rollercoasterPlayer, event), maxVariance);
 
     // 4. Course Insights
     final Map<String, dynamic> courseInsights = {

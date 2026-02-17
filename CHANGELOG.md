@@ -22,6 +22,12 @@ All notable changes to the Golf Society Management (BoxyArt) project will be doc
 - **Design System Consolidation**: Deprecated and removed legacy `cards.dart`, merging all components into the `modern_cards.dart` library for a unified design system.
 - **Enhanced Test Coverage**: Added comprehensive unit tests for business-critical scoring logic including Texas Scramble, Stableford, and 4BBB calculations.
 
+### Advanced Seeding & Data Fidelity (2026-02-17)
+- **Expanded Roster**: Increased demo seeding to 75 members, including a designated 20-women cohort and a "Hero" admin account (Sanjay Patel) for deep testing.
+- **Gender Integration**: Added `gender` field to `Member` model to support future mixed/gender-specific leaderboards.
+- **Pro-Level Grouping**: Implemented **Progressive Grouping** strategy (Low Handicaps first) for non-invitational demo events, simulating realistic competition committee pairings.
+- **Full Data Reset**: Added "Wipe & Re-Seed" functionality to Developer Tools for a complete environment reset.
+
 ### Core Features
 - **Matchplay Engine**: Implemented independent and event-layered matchplay scoring.
 - **Tee Sheet UI**: Added tap-to-swap grouping logic and interactive pairings management.

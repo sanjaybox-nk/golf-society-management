@@ -28,6 +28,7 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
       MemberStatus.member,
   hasPaid: json['hasPaid'] as bool? ?? false,
   isArchived: json['isArchived'] as bool? ?? false,
+  gender: json['gender'] as String?,
   joinedDate: const TimestampConverter().fromJson(json['joinedDate']),
 );
 
@@ -49,6 +50,7 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'status': _$MemberStatusEnumMap[instance.status]!,
   'hasPaid': instance.hasPaid,
   'isArchived': instance.isArchived,
+  'gender': instance.gender,
   'joinedDate': const TimestampConverter().toJson(instance.joinedDate),
 };
 

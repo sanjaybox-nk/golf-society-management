@@ -83,6 +83,7 @@ abstract class Member with _$Member {
     @Default(MemberStatus.member) MemberStatus status,
     @Default(false) bool hasPaid,
     @Default(false) bool isArchived,
+    String? gender, // [NEW] 'Male' or 'Female'
     @TimestampConverter() DateTime? joinedDate,
   }) = _Member;
 

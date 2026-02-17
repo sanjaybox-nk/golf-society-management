@@ -69,7 +69,7 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   showRegistrationButton: json['showRegistrationButton'] as bool? ?? true,
   teeOffInterval: (json['teeOffInterval'] as num?)?.toInt() ?? 10,
   isGroupingPublished: json['isGroupingPublished'] as bool? ?? false,
-  isMultiDay: json['isMultiDay'] as bool?,
+  isMultiDay: json['isMultiDay'] as bool? ?? false,
   endDate: const OptionalTimestampConverter().fromJson(json['endDate']),
   grouping: json['grouping'] as Map<String, dynamic>? ?? const {},
   results:

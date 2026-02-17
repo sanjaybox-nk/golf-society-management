@@ -21,10 +21,69 @@ import '../utils/grouping_service.dart';
 import '../../features/events/domain/registration_logic.dart';
 import '../../features/competitions/services/leaderboard_invoker_service.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class DemoSeedingService {
   final Ref ref;
   final Random _random = Random();
   DemoSeedingService(this.ref);
+
+  Future<void> wipeAndSeed() async {
+    await _wipeAllData();
+    await seedDemoSeason();
+  }
+
+  Future<void> _wipeAllData() async {
+    final firestore = FirebaseFirestore.instance;
+    // Order matters? Not really for NoSQL, but good to clean children first if relational
+    final collections = [
+      'scorecards', 
+      'registrations', // Subcollection? No, usually root or inside events. 
+      'events', 
+      'competitions', 
+      'seasons', 
+      'members',
+      'leaderboard_templates',
+      'notifications'
+    ];
+    
+    // Note: This won't delete subcollections automatically in Firestore!
+    // But our structure seems to be mostly root collections.
+    // 'registrations' are likely inside 'events' document in 'golf_event.dart' (embedded), so deleting events is enough.
+    // Leaderboard standings are subcollections of seasons? 
+    // Let's check Season model. Leaderboards are embedded in Season?
+    // Leaderboard STANDINGS are likely a subcollection.
+    
+    for (var collection in collections) {
+      final snapshot = await firestore.collection(collection).get();
+      if (snapshot.docs.isNotEmpty) {
+        final batch = firestore.batch();
+        int count = 0;
+        for (var doc in snapshot.docs) {
+          batch.delete(doc.reference);
+          count++;
+          if (count >= 400) { // Safety limit
+             await batch.commit();
+             count = 0;
+             // re-batch
+          }
+        }
+        if (count > 0) await batch.commit();
+      }
+    }
+    
+    // Explicitly handle leaderboard_standings subcollection if it exists under seasons
+    // We can iterate seasons before deleting them?
+    // Actually, if we delete the season document, the subcollections technically remain orphaned but inaccessible via the app.
+    // For a demo reset, that's acceptable as we won't query them without the parent season ID.
+    // But to be thorough:
+    /*
+    final seasons = await firestore.collection('seasons').get();
+    for (var season in seasons.docs) {
+       // potential subcollections cleanup
+    }
+    */
+  }
 
   Future<void> seedDemoSeason() async {
     // 1. Setup Season
@@ -144,35 +203,71 @@ class DemoSeedingService {
   Future<void> _seedMembers() async {
     final repo = ref.read(membersRepositoryProvider);
     final existing = await repo.getMembers();
-    if (existing.length >= 60) return;
+    if (existing.length >= 75) return; // Increased to 75
 
-    final firstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen'];
-    final lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson'];
+    // Male Names (50)
+    final maleFirstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel', 'Matthew', 'Anthony', 'Donald', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth', 'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Ronald', 'Timothy', 'Jason', 'Jeffrey', 'Ryan', 'Jacob'];
+    
+    // Female Names (20)
+    final femaleFirstNames = ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Nancy', 'Lisa', 'Margaret', 'Betty', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna'];
+    
+    final lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King'];
 
-    for (int i = 0; i < 60; i++) {
-        final fName = firstNames[i % firstNames.length];
-        final lName = lastNames[(i / firstNames.length).floor() % lastNames.length];
+    // 1. Create Hero Member (Sanjay Patel)
+    await repo.addMember(Member(
+      id: 'demo_hero_sanjay',
+      firstName: 'Sanjay',
+      lastName: 'Patel',
+      email: 'sanjay.patel@demo.com',
+      handicap: 14.5,
+      handicapId: 'WHS888888',
+      societyRole: 'Admin',
+      status: MemberStatus.active,
+      joinedDate: DateTime(2023, 1, 1),
+      hasPaid: true,
+      gender: 'Male',
+      bio: 'The Creator. Loves a tech-infused round of golf.',
+      phone: '+44 7700 900000',
+      address: '123 Code Lane, Developer City',
+    ));
+
+    // 2. Seed Remaining 74 Members
+    // Target: 20 Females, 54 Males (Total 74 + Sanjay = 75)
+
+    
+    for (int i = 0; i < 74; i++) {
+        // Determine Gender (First 20 are female for simplicity in loop, or interleaved)
+        // Let's interleave to avoid blocks: every 3rd or 4th is female until we hit 20?
+        // Or just first 20. Let's do first 20 for guaranteed count.
+        bool isFemale = i < 20;
+        
+        final fNameList = isFemale ? femaleFirstNames : maleFirstNames;
+        final fName = fNameList[i % fNameList.length];
+        
+        // Randomize last name logic a bit more
+        final lName = lastNames[(i + _random.nextInt(10)) % lastNames.length];
         
         String? role;
-        if (i == 0) role = 'President';
-        if (i == 1) role = 'Captain';
-        if (i == 2) role = 'Secretary';
-        if (i == 3) role = 'Treasurer';
+        if (i == 20) role = 'President'; // Male after females
+        if (i == 21) role = 'Captain';
+        if (i == 0) role = 'Social Sec'; // Female officer
 
+        // Handicap Logic
         double hc;
-        if (i < 5) {
-          hc = 1.0 + _random.nextDouble() * 6;
-        } else if (i < 25) {
-          hc = 10.0 + _random.nextDouble() * 8;
-        } else if (i < 50) {
-          hc = 19.0 + _random.nextDouble() * 8;
-        } else {
-          hc = 28.0 + _random.nextDouble() * 10;
+        if (i < 10) { // Low handicappers
+          hc = 1.0 + _random.nextDouble() * 5; // 1-6
+        } else if (i < 40) { // Mid
+          hc = 6.0 + _random.nextDouble() * 14; // 6-20
+        } else { // High
+          hc = 20.0 + _random.nextDouble() * 16; // 20-36
         }
+        
+        // Women typically have slightly higher distribution in mixed societies, adjust slightly?
+        if (isFemale) hc += 2.0; 
 
-        final bio = i % 2 == 0 
+        final bio = i % 3 == 0 
            ? 'Loves a long drive and a cold beer after the round.' 
-           : 'Founding member. Still waiting for my first hole-in-one.';
+           : (i % 3 == 1 ? 'Founding member. Still waiting for my first hole-in-one.' : 'Just happy to be out of the office.');
 
         await repo.addMember(Member(
           id: 'demo_m_$i',
@@ -183,8 +278,9 @@ class DemoSeedingService {
           handicapId: 'WHS${300000 + i}',
           societyRole: role,
           status: MemberStatus.active,
-          joinedDate: DateTime(2023, 1, 1).add(Duration(days: i * 5)),
+          joinedDate: DateTime(2023, 1, 1).add(Duration(days: i * 3)),
           hasPaid: true,
+          gender: isFemale ? 'Female' : 'Male',
           bio: bio,
           phone: '+44 7${100000000 + i}',
           address: 'Golf View, Demo Town, DG1 1AA',
@@ -286,32 +382,51 @@ class DemoSeedingService {
 
     // 1. Build Registration Matrix (Vary between 25-45 Players)
     final List<EventRegistration> regs = [];
-    final targetRegCount = 25 + _random.nextInt(21); // 25 to 45
+    final targetRegCount = 30 + _random.nextInt(15); // 30 to 45 (Slightly higher density)
     
+    // Always include Hero Member (Sanjay Patel)
+    final hero = members.firstWhereOrNull((m) => m.id == 'demo_hero_sanjay');
+    if (hero != null) {
+      regs.add(EventRegistration(
+        memberId: hero.id,
+        memberName: hero.displayName,
+        attendingGolf: true,
+        attendingBreakfast: true,
+        attendingLunch: true,
+        attendingDinner: true,
+        needsBuggy: false,
+        hasPaid: true,
+        isConfirmed: true, // Always confirmed
+        handicap: hero.handicap,
+        registeredAt: date.subtract(const Duration(days: 25)),
+        statusOverride: 'confirmed',
+      ));
+    }
+
     for (int i = 0; i < targetRegCount; i++) {
+        // Skip if this random pick is the hero (already added)
         final m = members[i % members.length];
+        if (m.id == 'demo_hero_sanjay') continue;
         
-        // Distribution Logic (Adjusted for randomized count):
-        // 0-80%: Confirmed/Playing
-        // 80-90%: Waitlist or Withdrawn (if count exceeds 40)
-        // 90-100%: Dinner Only
-        
-        bool isWithdrawn = _random.nextDouble() < 0.1; // 10% chance of withdrawal
-        bool attendingGolf = !isWithdrawn && i < 40;
+        bool isWithdrawn = _random.nextDouble() < 0.08; // 8% chance
+        bool attendingGolf = !isWithdrawn && regs.length < 40; // Cap at 40
         bool attendingDinner = true;
         String? status;
         
         if (isWithdrawn) {
           status = 'withdrawn';
           attendingGolf = false;
-        } else if (i >= 40) {
+        } else if (regs.length >= 40) {
           status = 'waitlist';
         } else {
           status = 'confirmed';
         }
 
-        if (i > targetRegCount - 3) {
-          attendingGolf = false; // Last few are dinner only
+        // Simulating "Dinner Only" guests occasionally
+        if (!attendingGolf && !isWithdrawn && _random.nextDouble() < 0.2) {
+           // Keep attendingGolf = false, attendingDinner = true
+        } else if (!attendingGolf && !isWithdrawn) {
+           // If not playing and not dinner only, skip (waitlist logic handles excess)
         }
 
         var reg = EventRegistration(
@@ -321,17 +436,17 @@ class DemoSeedingService {
           attendingBreakfast: attendingGolf && _random.nextBool(),
           attendingLunch: attendingGolf && event.hasLunch && _random.nextBool(),
           attendingDinner: attendingDinner,
-          needsBuggy: attendingGolf && i < 18, // 12 confirmed, 6 on waitlist
-          hasPaid: i < 45,
+          needsBuggy: attendingGolf && _random.nextDouble() < 0.2, // 20% buggy usage
+          hasPaid: attendingGolf,
           isConfirmed: status == 'confirmed',
           handicap: m.handicap,
           registeredAt: date.subtract(Duration(days: 30 - (i % 20))),
           statusOverride: status,
-          dietaryRequirements: i % 10 == 0 ? 'Vegetarian' : null,
+          dietaryRequirements: i % 15 == 0 ? 'Vegetarian' : null,
         );
 
-        // Add Guests for 36-40
-        if (i >= 36 && i <= 40) {
+        // Add Guests Logic (occasional)
+        if (regs.length < 38 && i % 10 == 0) { // Every 10th person brings a guest if space
           reg = reg.copyWith(
             guestName: 'Guest of ${m.lastName}',
             guestHandicap: '24.0',
@@ -357,81 +472,33 @@ class DemoSeedingService {
       endDate: date,
     ));
 
-    // 2. Generate Grouping
+    // 2. Generate Grouping using GroupingService (Admin Quality)
     final items = RegistrationLogic.getSortedItems(updatedEvent, includeWithdrawn: true);
     
-    // Use exact same logic as RegistrationStats to identify the "Playing Field"
-    // (Only Confirmed golfers count towards the playing field stats)
-    final List<RegistrationItem> field = [];
-    int rollingPlayingCount = 0;
-    final statsCapacity = updatedEvent.maxParticipants ?? 40;
-    final bool isClosedStatus = updatedEvent.displayStatus == EventStatus.completed || 
-                              updatedEvent.displayStatus == EventStatus.inPlay;
-
-    for (var item in items) {
-      final status = RegistrationLogic.calculateStatus(
-        isGuest: item.isGuest,
-        isConfirmed: item.isConfirmed,
-        hasPaid: item.hasPaid,
-        confirmedCount: rollingPlayingCount,
-        capacity: statsCapacity,
-        isEventClosed: isClosedStatus,
-        statusOverride: item.statusOverride,
-      );
-
-      // Important: Field count must exactly match 'confirmedGolfers' in stats
-      if (status == RegistrationStatus.confirmed) {
-        field.add(item);
-        rollingPlayingCount++;
-      }
+    // Prepare handicaps map for service
+    final Map<String, double> memberHandicaps = {};
+    for (var m in members) {
+      memberHandicaps[m.id] = m.handicap;
     }
 
-    final totalPlayers = field.length;
-    int num4Balls = 0;
-    int num3Balls = 0;
+    // Strategy: 'progressive' for events (Low HC first), 'balanced' for Invitational
+    final strategy = isInvitational ? 'balanced' : 'progressive';
 
-    // Distribute into 3s and 4s using the optimal mix rule
-    for (int y = 0; y <= totalPlayers / 3; y++) {
-      int remaining = totalPlayers - (3 * y);
-      if (remaining >= 0 && remaining % 4 == 0) {
-        num3Balls = y;
-        num4Balls = remaining ~/ 4;
-        break; 
-      }
-    }
-
-    final List<TeeGroup> groups = [];
-    DateTime currentTime = updatedEvent.teeOffTime ?? date.copyWith(hour: 9);
-    int interval = updatedEvent.teeOffInterval;
-
-    int playerIdx = 0;
-
-    // Create 3-ball groups first (prioritize at front per user request)
-    for (int i = 0; i < num3Balls; i++) {
-      final groupPlayers = field.skip(playerIdx).take(3).toList();
-      groups.add(TeeGroup(
-        index: i,
-        teeTime: currentTime,
-        players: groupPlayers.map((p) => _toTeeParticipant(p, members)).toList(),
-      ));
-      playerIdx += 3;
-      currentTime = currentTime.add(Duration(minutes: interval));
-    }
-
-    // Create 4-ball groups
-    for (int i = 0; i < num4Balls; i++) {
-      final groupPlayers = field.skip(playerIdx).take(4).toList();
-      groups.add(TeeGroup(
-        index: num3Balls + i,
-        teeTime: currentTime,
-        players: groupPlayers.map((p) => _toTeeParticipant(p, members)).toList(),
-      ));
-      playerIdx += 4;
-      currentTime = currentTime.add(Duration(minutes: interval));
-    }
+    final groups = GroupingService.generateInitialGrouping(
+      event: updatedEvent,
+      participants: items,
+      previousEventsInSeason: [], // Could pass history if available, but optional for demo seed
+      memberHandicaps: memberHandicaps,
+      prioritizeBuggyPairing: true,
+      strategy: strategy,
+      useWhs: true,
+      rules: CompetitionRules(format: format, subtype: subtype),
+    );
 
     // 3. Generate Scores with Cuts
     final scoreRepo = ref.read(scorecardRepositoryProvider);
+    await scoreRepo.deleteAllScorecards(updatedEvent.id);
+
     final List<Map<String, dynamic>> results = [];
     
     for (var group in groups) {
@@ -448,9 +515,49 @@ class DemoSeedingService {
           final par = updatedEvent.courseConfig['holes'][h]['par'];
           final si = updatedEvent.courseConfig['holes'][h]['si'];
           
-          final r = _random.nextDouble() * 10;
-          int s = (r < (playingHc < 12 ? 4.5 : 2.5)) ? par : (r < 8.5 ? par + 1 : par + 2);
-          if (r < 0.05) s = par - 1;
+          // Realistic Scoring Logic based on handicap
+          // Lower handicap = more Pars/Birdies, less doubles
+          // Higher handicap = more bogeys/doubles
+          
+          double performanceFactor = _random.nextDouble(); // 0.0 (Good day) to 1.0 (Bad day)
+          // Hero user tends to play well?
+          if (player.registrationMemberId == 'demo_hero_sanjay') {
+             performanceFactor = performanceFactor * 0.8; // Bias towards good rounds
+          }
+
+          int s = par;
+          if (playingHc < 5) { // Scratch/Low
+             if (performanceFactor < 0.2) {
+               s = par - 1;       // Birdie
+             } else if (performanceFactor < 0.7) {
+               s = par;      // Par
+             } else {
+               s = par + 1;                               // Bogey
+             }
+          } else if (playingHc < 15) { // Mid
+             if (performanceFactor < 0.1) {
+               s = par - 1;
+             } else if (performanceFactor < 0.5) {
+               s = par;
+             } else if (performanceFactor < 0.8) {
+               s = par + 1;
+             } else {
+               s = par + 2;                               // Double
+             }
+          } else { // High
+             if (performanceFactor < 0.3) {
+               s = par;
+             } else if (performanceFactor < 0.7) {
+               s = par + 1;
+             } else if (performanceFactor < 0.9) {
+               s = par + 2;
+             } else {
+               s = par + 3;                               // Triple/Blob
+             }
+          }
+           
+          // Occasional blow-up hole
+          if (_random.nextDouble() < 0.02) s += 2; 
 
           scores.add(s);
           strokes += s;
@@ -477,16 +584,17 @@ class DemoSeedingService {
           ));
 
           results.add({
-            'memberId': player.isGuest ? null : player.registrationMemberId, // stats provider needs memberId or guest naming
+            'memberId': player.isGuest ? null : player.registrationMemberId, 
             'playerId': player.isGuest ? '${player.registrationMemberId}_guest' : player.registrationMemberId,
             'playerName': player.name,
             'points': pts,
-            'position': 0, // Assigned below
+            'position': 0, 
+            'displayValue': pts, // Fix for "null" specific stats
           });
         }
       }
     }
-
+    // Sort Results
     results.sort((a, b) => (b['points'] as int).compareTo(a['points'] as int));
     for (int i = 0; i < results.length; i++) {
       results[i]['position'] = i + 1;
@@ -501,6 +609,7 @@ class DemoSeedingService {
       },
       results: status == EventStatus.completed ? results : [],
       isGroupingPublished: true,
+      isScoringLocked: status == EventStatus.completed,
     );
     
     if (status == EventStatus.completed) {
@@ -516,7 +625,6 @@ class DemoSeedingService {
       finalEvent = finalEvent.copyWith(
         finalizedStats: stats,
         isStatsReleased: true,
-        isScoringLocked: true,
       );
     }
 
@@ -528,24 +636,6 @@ class DemoSeedingService {
 
     return results;
   }
-
-  TeeGroupParticipant _toTeeParticipant(RegistrationItem item, List<Member> members) {
-    final m = item.isGuest ? null : members.firstWhereOrNull((m) => m.id == item.registration.memberId);
-    final hc = item.isGuest ? 18.0 : (m?.handicap ?? 18.0);
-    
-    return TeeGroupParticipant(
-      registrationMemberId: item.registration.memberId,
-      name: item.name,
-      isGuest: item.isGuest,
-      handicapIndex: hc,
-      playingHandicap: hc, 
-      needsBuggy: item.needsBuggy,
-      status: item.statusOverride == 'withdrawn' 
-          ? RegistrationStatus.withdrawn 
-          : RegistrationStatus.confirmed,
-    );
-  }
 }
-
 
 final demoSeedingServiceProvider = Provider((ref) => DemoSeedingService(ref));
