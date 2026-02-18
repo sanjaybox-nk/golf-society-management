@@ -25,9 +25,11 @@ class CourseInfoCard extends StatelessWidget {
     this.format,
     this.maxScoreConfig,
     this.holeLimit, // [NEW] Optional limit for simulation
+    this.additionalRows, // [NEW] For Match Play / Fourball (Multiple Rows)
   });
 
   final int? holeLimit;
+  final List<CourseScoreRow>? additionalRows;
 
   @override
   Widget build(BuildContext context) {
@@ -277,25 +279,32 @@ class CourseInfoCard extends StatelessWidget {
           ),
           const Divider(height: 1),
           
-          // Score row (user input - placeholder for now)
-          Row(
-            children: [
-              SizedBox(width: 50, child: _buildCellLabel('Strokes', width: 50)),
-              for (int i = 0; i < 9; i++)
-                Expanded(
-                  child: _buildCell(
-                    context, 
-                    nineScores[i]?.toString() ?? '-', 
-                    width: double.infinity, 
-                    isScore: true,
-                    scoreDiff: (nineScores[i] != null && i < pars.length) 
-                        ? nineScores[i]! - (pars[i] as int) 
-                        : null,
+    // Score row (user input - placeholder for now)
+          if (additionalRows != null && additionalRows!.isNotEmpty) ...[
+             // Render Additional Rows (e.g. Partner A, Partner B)
+             for (var row in additionalRows!)
+               _buildScoreRow(context, row.playerName, row.scores, startHole, pars, sis, row.handicap, color: row.color, countingHoles: row.countingHoles),
+          ] else ...[
+             // Default Single Player Row
+             Row(
+              children: [
+                SizedBox(width: 50, child: _buildCellLabel('Strokes', width: 50)),
+                for (int i = 0; i < 9; i++)
+                  Expanded(
+                    child: _buildCell(
+                      context, 
+                      nineScores[i]?.toString() ?? '-', 
+                      width: double.infinity, 
+                      isScore: true,
+                      scoreDiff: (nineScores[i] != null && i < pars.length) 
+                          ? nineScores[i]! - (pars[i] as int) 
+                          : null,
+                    ),
                   ),
-                ),
-              SizedBox(width: 40, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: 40, isBold: true, isScore: true)),
-            ],
-          ),
+                SizedBox(width: 40, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: 40, isBold: true, isScore: true)),
+              ],
+            ),
+          ],
           
           // New: Adjusted Row
           if (isMaxScore) ...[
@@ -410,7 +419,12 @@ class CourseInfoCard extends StatelessWidget {
           ),
           const Spacer(),
           if (holesPlayed > 0) ...[
-            _buildTotalStat(context, strokesLabel, totalStrokes),
+            _buildTotalStat(
+              context, 
+              strokesLabel, 
+              totalStrokes, 
+              diff: totalStrokes - parForPlayed,
+            ),
             if (isMaxScore && totalAdjusted != totalStrokes) ...[
                const SizedBox(width: 12),
                _buildTotalStat(context, 'Adjusted', totalAdjusted, isHighlighted: true),
@@ -420,7 +434,12 @@ class CourseInfoCard extends StatelessWidget {
               _buildTotalStat(context, 'Points', totalPoints),
             ] else if (netDifferential != null) ...[
               const SizedBox(width: 12),
-              _buildTotalStat(context, 'Net', netDifferential, isToPar: true),
+              _buildTotalStat(
+                context, 
+                'Net', 
+                totalStrokes - (playerHandicap ?? 0), 
+                diff: netDifferential,
+              ),
             ],
             const SizedBox(width: 12),
           ],
@@ -430,13 +449,17 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalStat(BuildContext context, String label, int value, {bool isHighlighted = false, bool isToPar = false}) {
+  Widget _buildTotalStat(BuildContext context, String label, int value, {bool isHighlighted = false, int? diff}) {
     String displayValue = value.toString();
-    if (isToPar) {
-       if (value == 0) {
-         displayValue = 'E';
-       } else if (value > 0) {
-         displayValue = '+$value';
+    String? diffLabel;
+
+    if (diff != null) {
+       if (diff == 0) {
+         diffLabel = 'E';
+       } else if (diff > 0) {
+         diffLabel = '+$diff';
+       } else {
+         diffLabel = diff.toString();
        }
     }
 
@@ -459,6 +482,18 @@ class CourseInfoCard extends StatelessWidget {
             color: isHighlighted ? Theme.of(context).primaryColor : null,
           ),
         ),
+        if (diffLabel != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              '($diffLabel)',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: diff! < 0 ? Colors.red : (diff > 0 ? Colors.blue : Colors.grey),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -480,20 +515,22 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCellLabel(String text, {double width = 50, bool isOnTeeColor = false}) {
+  Widget _buildCellLabel(String text, {double width = 50, bool isOnTeeColor = false, Color? color}) {
     return SizedBox(
       width: width,
       height: 28,
       child: Padding(
-        padding: const EdgeInsets.only(left: 8), // Increased padding
+        padding: const EdgeInsets.only(left: 8),
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(
             text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 9,
-              fontWeight: FontWeight.w900, // Extra bold
-              color: isOnTeeColor ? Colors.white : Colors.grey[700],
+              fontWeight: FontWeight.w900,
+              color: color ?? (isOnTeeColor ? Colors.white : Colors.grey[700]),
             ),
           ),
         ),
@@ -563,4 +600,67 @@ class CourseInfoCard extends StatelessWidget {
     if (name.contains('green')) return Colors.green;
     return Colors.grey;
   }
+
+  Widget _buildScoreRow(BuildContext context, String playerName, List<int?> allScores, int startHole, List<dynamic> pars, List<dynamic> sis, int? handicap, {Color? color, Set<int>? countingHoles}) {
+    // Slice scores for this 9
+    final startIdx = startHole - 1;
+    final rowScores = List<int?>.generate(9, (i) {
+       final idx = startIdx + i;
+       if (idx < allScores.length) return allScores[idx];
+       return null;
+    });
+
+    final totalScore = rowScores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int));
+
+    return Column(
+      children: [
+        Row(
+           children: [
+             SizedBox(width: 50, child: _buildCellLabel(playerName, width: 50, color: color)),
+             for (int i = 0; i < 9; i++)
+               (() {
+                 final idx = startIdx + i;
+                 final isCounting = countingHoles?.contains(idx) ?? false;
+                 
+                 return Expanded(
+                   child: _buildCell(
+                     context, 
+                     rowScores[i]?.toString() ?? '-', 
+                     width: double.infinity, 
+                     isScore: true,
+                     isBold: isCounting,
+                     scoreDiff: (rowScores[i] != null && i < pars.length) 
+                         ? rowScores[i]! - (pars[i] as int) 
+                         : null,
+                     overrideTextColor: isCounting ? (color ?? Colors.black) : color?.withValues(alpha: 0.5),
+                     // Add a subtle border or dot for counting holes?
+                     // For now, extra bold + full opacity is a good start.
+                   ),
+                 );
+               })(),
+             SizedBox(width: 40, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: 40, isBold: true, isScore: true, overrideTextColor: color)),
+           ],
+         ),
+         const Divider(height: 1), // Separator between rows
+      ],
+    );
+  }
+}
+
+class CourseScoreRow {
+  final String? id; // [NEW] Member ID to match counting attribution
+  final String playerName;
+  final List<int?> scores;
+  final int? handicap;
+  final Color? color;
+  final Set<int>? countingHoles; // [NEW] Hole indices (0-17) that are counting
+  
+  const CourseScoreRow({
+    this.id,
+    required this.playerName, 
+    required this.scores, 
+    this.handicap,
+    this.color,
+    this.countingHoles,
+  });
 }

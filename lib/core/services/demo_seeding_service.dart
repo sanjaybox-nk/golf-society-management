@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/golf_event.dart';
@@ -20,15 +21,34 @@ import '../../features/events/logic/event_analysis_engine.dart';
 import '../utils/grouping_service.dart';
 import '../../features/events/domain/registration_logic.dart';
 import '../../features/competitions/services/leaderboard_invoker_service.dart';
+import '../utils/handicap_calculator.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../features/debug/presentation/state/debug_providers.dart';
+import 'persistence_service.dart';
 
 class DemoSeedingService {
   final Ref ref;
   final Random _random = Random();
   DemoSeedingService(this.ref);
+  
+  // Male Names (50)
+  static const maleFirstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel', 'Matthew', 'Anthony', 'Donald', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth', 'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Ronald', 'Timothy', 'Jason', 'Jeffrey', 'Ryan', 'Jacob'];
+  
+  // Female Names (20)
+  static const femaleFirstNames = ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Nancy', 'Lisa', 'Margaret', 'Betty', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna'];
+  
+  static const lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King'];
 
   Future<void> wipeAndSeed() async {
+    // [FIX] Clear all local preferences AND explicitly reset providers
+    await ref.read(persistenceServiceProvider).clear();
+    
+    // Invalidate the master Lab Mode switch. 
+    // This will rebuild and read 'false' (null) from cleared persistence.
+    // All other overrides watch this provider, so they will also reset to null.
+    ref.invalidate(labModeEnabledProvider); 
+    
     await _wipeAllData();
     await seedDemoSeason();
   }
@@ -54,21 +74,48 @@ class DemoSeedingService {
     // Let's check Season model. Leaderboards are embedded in Season?
     // Leaderboard STANDINGS are likely a subcollection.
     
-    for (var collection in collections) {
-      final snapshot = await firestore.collection(collection).get();
-      if (snapshot.docs.isNotEmpty) {
-        final batch = firestore.batch();
+    // [FIX] Explicitly delete subcollections for events (registrants)
+    final eventsSnapshot = await firestore.collection('events').get();
+    for (var doc in eventsSnapshot.docs) {
+      final sub = await doc.reference.collection('registrations').get();
+      if (sub.docs.isNotEmpty) {
+        var batch = firestore.batch();
         int count = 0;
-        for (var doc in snapshot.docs) {
-          batch.delete(doc.reference);
+        for (var subDoc in sub.docs) {
+          batch.delete(subDoc.reference);
           count++;
-          if (count >= 400) { // Safety limit
-             await batch.commit();
-             count = 0;
-             // re-batch
+          if (count >= 400) {
+            await batch.commit();
+            count = 0;
+            batch = firestore.batch();
           }
         }
         if (count > 0) await batch.commit();
+      }
+    }
+
+    for (var collection in collections) {
+      debugPrint('Processing collection: $collection');
+      final snapshot = await firestore.collection(collection).get();
+      debugPrint('Found ${snapshot.docs.length} docs in $collection');
+      try {
+        if (snapshot.docs.isNotEmpty) {
+          var batch = firestore.batch();
+          int count = 0;
+          for (var doc in snapshot.docs) {
+            batch.delete(doc.reference);
+            count++;
+            if (count >= 400) { // Safety limit
+               await batch.commit();
+               count = 0;
+               batch = firestore.batch();
+            }
+          }
+          if (count > 0) await batch.commit();
+          debugPrint('Wiped $collection successfully');
+        }
+      } catch (e) {
+        debugPrint('Error wiping $collection: $e');
       }
     }
     
@@ -114,6 +161,7 @@ class DemoSeedingService {
       (title: 'New Year Bowl', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
       (title: 'Season Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
       (title: 'The Masters Simulation', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 10), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 11)),
+      (title: 'Foursomes Invitational', format: CompetitionFormat.stroke, isInvitational: true, subtype: CompetitionSubtype.foursomes, date: DateTime(2026, 2, 12), status: EventStatus.completed, isMultiDay: false, endDate: null),
       
       // READY/READY-TO-PLAY (2 Published)
       (title: 'The Penultimate Round', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 18), status: EventStatus.published, isMultiDay: false, endDate: null),
@@ -202,16 +250,9 @@ class DemoSeedingService {
 
   Future<void> _seedMembers() async {
     final repo = ref.read(membersRepositoryProvider);
-    final existing = await repo.getMembers();
-    if (existing.length >= 75) return; // Increased to 75
-
-    // Male Names (50)
-    final maleFirstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel', 'Matthew', 'Anthony', 'Donald', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth', 'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Ronald', 'Timothy', 'Jason', 'Jeffrey', 'Ryan', 'Jacob'];
-    
-    // Female Names (20)
-    final femaleFirstNames = ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Nancy', 'Lisa', 'Margaret', 'Betty', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna'];
-    
-    final lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King'];
+    // [FIX] Removed early return to ensure clean seeding after wipe
+    // final existing = await repo.getMembers();
+    // if (existing.length >= 75) return; 
 
     // 1. Create Hero Member (Sanjay Patel)
     await repo.addMember(Member(
@@ -447,8 +488,13 @@ class DemoSeedingService {
 
         // Add Guests Logic (occasional)
         if (regs.length < 38 && i % 10 == 0) { // Every 10th person brings a guest if space
+          final isFemaleGuest = _random.nextBool();
+          final gFNameList = isFemaleGuest ? femaleFirstNames : maleFirstNames;
+          final gFName = gFNameList[_random.nextInt(gFNameList.length)];
+          final gLName = lastNames[_random.nextInt(lastNames.length)];
+          
           reg = reg.copyWith(
-            guestName: 'Guest of ${m.lastName}',
+            guestName: '$gFName $gLName',
             guestHandicap: '24.0',
             guestIsConfirmed: true,
             guestAttendingDinner: true,
@@ -462,12 +508,24 @@ class DemoSeedingService {
     final updatedEvent = event.copyWith(registrations: regs);
     await eventRepo.addEvent(updatedEvent);
 
+    final rules = CompetitionRules(
+      format: format, 
+      subtype: subtype, 
+      handicapAllowance: subtype == CompetitionSubtype.fourball ? 0.85 : (subtype == CompetitionSubtype.foursomes ? 0.50 : 0.95),
+      mode: (format == CompetitionFormat.scramble || subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) ? CompetitionMode.teams : CompetitionMode.singles,
+      teamSize: format == CompetitionFormat.scramble ? (2 + _random.nextInt(3)) : 4,
+      underlyingFormat: format == CompetitionFormat.scramble 
+          ? (_random.nextBool() ? CompetitionFormat.stroke : CompetitionFormat.stableford)
+          : CompetitionFormat.stroke,
+      teamHandicapCap: format == CompetitionFormat.scramble && _random.nextBool() ? 18 : null,
+    );
+
     await compRepo.addCompetition(Competition(
       id: updatedEvent.id,
       name: title,
       type: CompetitionType.event,
       status: status == EventStatus.completed ? CompetitionStatus.closed : CompetitionStatus.published,
-      rules: CompetitionRules(format: format, subtype: subtype, handicapAllowance: 0.95),
+      rules: rules,
       startDate: date,
       endDate: date,
     ));
@@ -500,98 +558,211 @@ class DemoSeedingService {
     await scoreRepo.deleteAllScorecards(updatedEvent.id);
 
     final List<Map<String, dynamic>> results = [];
+    final isStableford = rules.format == CompetitionFormat.stableford;
+    final mode = rules.mode;
     
     for (var group in groups) {
-      for (var player in group.players) {
-        final baseHc = player.playingHandicap;
-        final cut = appliedCuts[player.registrationMemberId] ?? 0.0;
-        final playingHc = baseHc - cut;
+      // General Team/Pair Split logic
+      List<List<TeeGroupParticipant>> teams = [];
+      final teamSize = rules.teamSize;
+      
+      int effectiveTeamSize = 1;
+      if (mode == CompetitionMode.pairs) {
+        effectiveTeamSize = 2;
+      } else if (mode == CompetitionMode.teams) {
+        effectiveTeamSize = teamSize;
+      }
 
-        final List<int> scores = [];
-        int strokes = 0;
-        int pts = 0;
+      if (effectiveTeamSize <= 1) {
+        for (var p in group.players) { teams.add([p]); }
+      } else {
+        for (int i = 0; i < group.players.length; i += effectiveTeamSize) {
+           teams.add(group.players.skip(i).take(effectiveTeamSize).toList());
+        }
+      }
 
-        for (int h = 0; h < 18; h++) {
-          final par = updatedEvent.courseConfig['holes'][h]['par'];
-          final si = updatedEvent.courseConfig['holes'][h]['si'];
-          
-          // Realistic Scoring Logic based on handicap
-          // Lower handicap = more Pars/Birdies, less doubles
-          // Higher handicap = more bogeys/doubles
-          
-          double performanceFactor = _random.nextDouble(); // 0.0 (Good day) to 1.0 (Bad day)
-          // Hero user tends to play well?
-          if (player.registrationMemberId == 'demo_hero_sanjay') {
-             performanceFactor = performanceFactor * 0.8; // Bias towards good rounds
-          }
+      for (var team in teams) {
+         if (team.isEmpty) continue;
 
-          int s = par;
-          if (playingHc < 5) { // Scratch/Low
-             if (performanceFactor < 0.2) {
-               s = par - 1;       // Birdie
-             } else if (performanceFactor < 0.7) {
-               s = par;      // Par
-             } else {
-               s = par + 1;                               // Bogey
-             }
-          } else if (playingHc < 15) { // Mid
-             if (performanceFactor < 0.1) {
-               s = par - 1;
-             } else if (performanceFactor < 0.5) {
-               s = par;
-             } else if (performanceFactor < 0.8) {
-               s = par + 1;
-             } else {
-               s = par + 2;                               // Double
-             }
-          } else { // High
-             if (performanceFactor < 0.3) {
-               s = par;
-             } else if (performanceFactor < 0.7) {
-               s = par + 1;
-             } else if (performanceFactor < 0.9) {
-               s = par + 2;
-             } else {
-               s = par + 3;                               // Triple/Blob
-             }
-          }
+         // [NEW] Fourball Handling: Individual Cards
+         if (subtype == CompetitionSubtype.fourball) {
+            final isInternalStableford = format == CompetitionFormat.stableford;
+
+            for (var p in team) {
+               final memberId = p.registrationMemberId;
+               double index = 18.0;
+               if (p.isGuest) {
+                  final reg = regs.firstWhereOrNull((r) => r.memberId == memberId);
+                  index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+               } else {
+                  final member = members.firstWhereOrNull((m) => m.id == memberId);
+                  index = member?.handicap ?? 18.0;
+               }
+
+               // Calculate PHC (85% already in rules)
+               final phc = HandicapCalculator.calculatePlayingHandicap(
+                  handicapIndex: index,
+                  rules: rules, 
+                  courseConfig: updatedEvent.courseConfig,
+               );
+
+               final holeScores = <int?>[];
+               int grossTotal = 0;
+               int pointsTotal = 0;
+
+               // Iterate holes
+               final holes = updatedEvent.courseConfig['holes'] as List;
+               for (var hole in holes) {
+                  final par = (hole['par'] as num).toInt();
+                  final si = (hole['si'] as num).toInt();
+                  
+                  int shots = (phc / 18).floor();
+                  if (phc % 18 >= si) shots++;
+
+                  // Random score generation (Net Par average)
+                  final rand = _random.nextDouble();
+                  // [NEW] 10% chance of "Pick-up" (null score) for Hardening
+                  if (rand < 0.10) {
+                     holeScores.add(null);
+                     continue; 
+                  }
+
+                  int netScore;
+                  if (rand < 0.25) {
+                    netScore = par - 1; // Net Birdie
+                  } else if (rand < 0.80) {
+                    netScore = par; // Net Par
+                  } else if (rand < 0.95) {
+                    netScore = par + 1; // Net Bogey
+                  } else {
+                    netScore = par + 2; // Net Double
+                  }
+                  
+                  final gross = netScore + shots;
+                  holeScores.add(gross);
+                  grossTotal += gross;
+                  
+                  if (isInternalStableford) {
+                     pointsTotal += (par - (gross - shots) + 2).clamp(0, 10).toInt();
+                  }
+               }
+
+               await scoreRepo.addScorecard(Scorecard(
+                  id: 'seed_${updatedEvent.id}_$memberId',
+                  competitionId: updatedEvent.id,
+                  roundId: '1',
+                  entryId: memberId,
+                  submittedByUserId: 'system_seed',
+                  status: ScorecardStatus.finalScore,
+                  holeScores: holeScores,
+                  points: isInternalStableford ? pointsTotal : null,
+                  // gross: grossTotal, // Removed as not in constructor
+                  netTotal: grossTotal - phc.round(), // Ensure integer
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+               ));
+            }
+            continue; // Ensure we skip the Team Shared Card logic below
+         }
+
+         final List<int> teamHoleScores = [];
+         int teamGross = 0;
+         int teamPts = 0;
+         
+         // Team PHC: Use the standardized calculation logic
+         final teamPhc = HandicapCalculator.calculateTeamHandicap(
+           individualIndices: team.map((p) {
+              if (p.isGuest) {
+                final reg = regs.firstWhereOrNull((r) => r.memberId == p.registrationMemberId);
+                return double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+              } else {
+                final member = members.firstWhereOrNull((m) => m.id == p.registrationMemberId);
+                return member?.handicap ?? 18.0;
+              }
+           }).toList(), 
+           rules: rules, 
+           courseConfig: updatedEvent.courseConfig,
+         ).toDouble();
+
+         final cut = appliedCuts[team.first.registrationMemberId] ?? 0.0;
+         final playingHc = teamPhc - cut;
+
+         for (int h = 0; h < 18; h++) {
+           final par = (updatedEvent.courseConfig['holes'][h]['par'] as num? ?? 4).toInt();
+           final si = (updatedEvent.courseConfig['holes'][h]['si'] as num? ?? 18).toInt();
            
-          // Occasional blow-up hole
-          if (_random.nextDouble() < 0.02) s += 2; 
+           double performanceFactor = _random.nextDouble();
+           if (team.any((p) => p.registrationMemberId == 'demo_hero_sanjay')) {
+              performanceFactor *= 0.8; 
+           }
 
-          scores.add(s);
-          strokes += s;
-          
-          int shots = (playingHc / 18).floor();
-          if (playingHc % 18 >= si) shots++;
-          pts += max(0, par - (s - shots) + 2);
-        }
+           int s = par;
+            if (playingHc < 8) { // Good team/player
+               if (performanceFactor < 0.3) {
+                 s = par - 1;
+               } else if (performanceFactor < 0.8) {
+                 s = par;
+               } else {
+                 s = par + 1;
+               }
+            } else { // Average
+               if (performanceFactor < 0.2) {
+                 s = par - 1;
+               } else if (performanceFactor < 0.6) {
+                 s = par;
+               } else if (performanceFactor < 0.9) {
+                 s = par + 1;
+               } else {
+                 s = par + 2;
+               }
+            }
+           
+           teamHoleScores.add(s);
+           teamGross += s;
+           
+           int shots = (playingHc / 18).floor();
+            if (playingHc % 18 >= si) {
+              shots++;
+            }
+           teamPts += max(0, par - (s - shots) + 2);
+         }
 
-        if (status == EventStatus.completed) {
-          await scoreRepo.addScorecard(Scorecard(
-            id: '',
-            competitionId: updatedEvent.id,
-            roundId: 'round_1',
-            entryId: player.isGuest ? '${player.registrationMemberId}_guest' : player.registrationMemberId,
-            submittedByUserId: 'system_seeder',
-            status: ScorecardStatus.finalScore,
-            holeScores: scores,
-            points: pts,
-            grossTotal: strokes,
-            netTotal: (strokes - playingHc).round(),
-            createdAt: date,
-            updatedAt: date,
-          ));
+         final int teamNet = teamGross - playingHc.round();
 
-          results.add({
-            'memberId': player.isGuest ? null : player.registrationMemberId, 
-            'playerId': player.isGuest ? '${player.registrationMemberId}_guest' : player.registrationMemberId,
-            'playerName': player.name,
-            'points': pts,
-            'position': 0, 
-            'displayValue': pts, // Fix for "null" specific stats
-          });
-        }
+         // Apply this result to all players in the team
+         for (var player in team) {
+           if (status == EventStatus.completed) {
+             final entryId = player.isGuest ? '${player.registrationMemberId}_guest' : player.registrationMemberId;
+             
+             await scoreRepo.addScorecard(Scorecard(
+               id: '',
+               competitionId: updatedEvent.id,
+               roundId: 'round_1',
+               entryId: entryId,
+               submittedByUserId: 'system_seeder',
+               status: ScorecardStatus.finalScore,
+               holeScores: teamHoleScores,
+               shotAttributions: format == CompetitionFormat.scramble ? { for (var h in List.generate(18, (i) => i + 1)) h : team[_random.nextInt(team.length)].registrationMemberId } : {}, points: teamPts,
+               grossTotal: teamGross,
+               netTotal: teamNet,
+               createdAt: date,
+               updatedAt: date,
+             ));
+
+             results.add({
+               'memberId': player.isGuest ? null : player.registrationMemberId, 
+               'playerId': entryId,
+               'playerName': player.name,
+               'points': teamPts,
+               'position': 0, 
+               'netTotal': teamNet,
+               'grossTotal': teamGross,
+               'holeScores': teamHoleScores,
+               'phc': playingHc,
+               'displayValue': isStableford ? teamPts : teamNet,
+             });
+           }
+         }
       }
     }
     // Sort Results

@@ -22,6 +22,8 @@ enum AggregationMethod { singleBest, totalSum, stablefordSum }
 
 enum MaxScoreType { fixed, parPlusX, netDoubleBogey }
 
+enum TeamHandicapMethod { whs, average, sum }
+
 @freezed
 abstract class MaxScoreConfig with _$MaxScoreConfig {
   const factory MaxScoreConfig({
@@ -41,7 +43,9 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(CompetitionMode.singles) CompetitionMode mode,
     @Default(HandicapMode.whs) HandicapMode handicapMode,
     @Default(28) int handicapCap,
-    @Default(0.95) double handicapAllowance,
+    @Default(0.10) double handicapAllowance,
+    int? teamHandicapCap, // [NEW] For Scramble/Team capping
+    @Default(CompetitionFormat.stroke) CompetitionFormat underlyingFormat, // [NEW] For Scramble base logic
     @Default(true) bool useCourseAllowance,
     MaxScoreConfig? maxScoreConfig,
     @Default(1) int roundsCount,
@@ -49,9 +53,13 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(TieBreakMethod.back9) TieBreakMethod tieBreak,
     @Default(true) bool holeByHoleRequired,
     @Default(0) int minDrivesPerPlayer,
-    @Default(false) bool useWHSScrambleAllowance,
+    @Default(true) bool useWHSScrambleAllowance,
+    @Default(true) bool trackShotAttributions, 
     @Default(true) bool applyCapToIndex,
     @Default(2) int teamBestXCount,
+    @Default(4) int teamSize,
+    @Default(false) bool useMixedTeeAdjustment, // [NEW] C.R. - Par adjustment
+    @Default(TeamHandicapMethod.whs) TeamHandicapMethod teamHandicapMethod, // [NEW] Scramble method
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>
@@ -113,5 +121,25 @@ extension CompetitionRulesX on CompetitionRules {
     if (format == CompetitionFormat.matchPlay) return '$allowancePercent% DIFF';
     if (format == CompetitionFormat.scramble && useWHSScrambleAllowance) return 'WHS HCP';
     return '$allowancePercent% HCP';
+  }
+
+  CompetitionMode get effectiveMode {
+    if (format == CompetitionFormat.scramble || 
+        subtype == CompetitionSubtype.texas || 
+        subtype == CompetitionSubtype.florida ||
+        subtype == CompetitionSubtype.ryderCup ||
+        subtype == CompetitionSubtype.teamMatchPlay ||
+        subtype == CompetitionSubtype.fourball || 
+        subtype == CompetitionSubtype.foursomes) {
+      return CompetitionMode.teams;
+    }
+    return mode;
+  }
+
+  String get modeLabel {
+    if (format == CompetitionFormat.scramble) {
+      return '$teamSize-MAN TEAM';
+    }
+    return effectiveMode.name.toUpperCase();
   }
 }

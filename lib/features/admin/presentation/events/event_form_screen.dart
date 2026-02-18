@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import '../../../events/presentation/tabs/event_user_details_tab.dart';
 
 
@@ -117,6 +118,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late FocusNode _slopeFocusNode;
   late FocusNode _ratingFocusNode;
   String? _selectedTeeName;
+  String? _mensTeeName;
+  String? _ladiesTeeName;
   List<TeeConfig> _availableTees = [];
 
   @override
@@ -164,6 +167,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _slopeFocusNode = FocusNode();
     _ratingFocusNode = FocusNode();
     _selectedTeeName = null;
+    _mensTeeName = null;
+    _ladiesTeeName = null;
     _availableTees = [];
     
     // Set default selected season if available in provider (handled in build via listen)
@@ -271,6 +276,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       _slopeFocusNode = FocusNode();
       _ratingFocusNode = FocusNode();
       _selectedTeeName = e.selectedTeeName;
+      _mensTeeName = e.courseConfig['mensTeeName']?.toString();
+      _ladiesTeeName = e.courseConfig['ladiesTeeName']?.toString();
     if (_facilitiesControllers.isEmpty) _facilitiesControllers.add(TextEditingController());
 
     _selectedDate = e.date;
@@ -317,6 +324,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       _availableTees = course.tees;
       if (_availableTees.isNotEmpty) {
         _applyTeeConfig(_availableTees.first);
+        
+        // Auto-detect gender defaults
+        _mensTeeName = _availableTees.firstWhereOrNull((t) => 
+          t.name.toLowerCase().contains('white') || t.name.toLowerCase().contains('men'))?.name;
+        _ladiesTeeName = _availableTees.firstWhereOrNull((t) => 
+          t.name.toLowerCase().contains('red') || t.name.toLowerCase().contains('lady'))?.name;
       }
     });
   }
@@ -778,7 +791,6 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       ModernSwitchRow(
                         label: 'Invitational / Non-Scoring',
                         subtitle: "Exclude this event's scores from all season leaderboards.",
-                        icon: Icons.star_border_rounded,
                         value: _isInvitational,
                         onChanged: (v) => setState(() => _isInvitational = v),
                       ),
@@ -916,9 +928,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         maxLines: 2,
                       ),
                       const SizedBox(height: 16),
-                      if (_availableTees.isNotEmpty)
+                      if (_availableTees.isNotEmpty) ...[
                         BoxyArtDropdownField<String>(
-                          label: 'Tee Position',
+                          label: 'Baseline Tee (for Handicap Math)',
                           value: _selectedTeeName,
                           items: _availableTees.map((t) => DropdownMenuItem(
                             value: t.name,
@@ -930,8 +942,36 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                               _applyTeeConfig(tee);
                             }
                           },
-                        )
-                      else if (_selectedTeeName != null || _courseNameController.text.isNotEmpty)
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: BoxyArtDropdownField<String>(
+                                label: "Men's Default Tee",
+                                value: _mensTeeName,
+                                items: _availableTees.map((t) => DropdownMenuItem(
+                                  value: t.name,
+                                  child: Text(t.name),
+                                )).toList(),
+                                onChanged: (val) => setState(() => _mensTeeName = val),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: BoxyArtDropdownField<String>(
+                                label: "Ladies' Default Tee",
+                                value: _ladiesTeeName,
+                                items: _availableTees.map((t) => DropdownMenuItem(
+                                  value: t.name,
+                                  child: Text(t.name),
+                                )).toList(),
+                                onChanged: (val) => setState(() => _ladiesTeeName = val),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else if (_selectedTeeName != null || _courseNameController.text.isNotEmpty)
                         BoxyArtFormField(
                           label: 'Tee Position (Manual)',
                           controller: TextEditingController(text: _selectedTeeName),
@@ -1090,7 +1130,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                                           text: '${displayComp.rules.minDrivesPerPlayer} DRIVES',
                                                           baseColor: Colors.orange,
                                                         ),
-                                                      if (displayComp.rules.applyCapToIndex)
+                                                      if (displayComp.rules.applyCapToIndex && displayComp.rules.format != CompetitionFormat.scramble && displayComp.rules.subtype != CompetitionSubtype.foursomes && displayComp.rules.subtype != CompetitionSubtype.fourball)
                                                         BoxyArtStatusPill(
                                                           text: 'CAP: ${displayComp.rules.handicapCap}',
                                                           baseColor: Colors.deepPurple,
@@ -1312,7 +1352,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                                           text: rules.mode.name.toUpperCase(),
                                                           baseColor: Colors.blueGrey,
                                                         ),
-                                                        if (rules.applyCapToIndex)
+                                                        if (rules.applyCapToIndex && rules.format != CompetitionFormat.scramble && rules.subtype != CompetitionSubtype.foursomes && rules.subtype != CompetitionSubtype.fourball)
                                                           BoxyArtStatusPill(
                                                             text: 'CAP: ${rules.handicapCap}',
                                                             baseColor: Colors.deepPurple,
@@ -1778,6 +1818,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
         'par': _holeParsControllers.fold(0, (sum, c) => sum + (int.tryParse(c.text) ?? 4)),
         'slope': int.tryParse(_slopeController.text) ?? 113,
         'rating': double.tryParse(_ratingController.text) ?? 72.0,
+        'mensTeeName': _mensTeeName,
+        'ladiesTeeName': _ladiesTeeName,
+        'tees': _availableTees.map((t) => t.toMap()).toList(),
       },
     );
   }

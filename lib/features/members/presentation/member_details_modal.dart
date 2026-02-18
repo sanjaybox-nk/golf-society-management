@@ -102,6 +102,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     return isUserAdmin || isOwner || _isNewMember;
   }
 
+  String? _gender; // [NEW]
+
   @override
   void initState() {
     super.initState();
@@ -137,6 +139,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _role = m?.role ?? MemberRole.member;
     _societyRole = m?.societyRole;
     _joinedDate = m?.joinedDate;
+    _gender = m?.gender; // [NEW]
 
     String phone = m?.phone ?? '';
     String code = '+44';
@@ -223,6 +226,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         role: _role,
         societyRole: _societyRole,
         joinedDate: _joinedDate,
+        gender: _gender, // [NEW]
       );
 
       if (_isNewMember) {
@@ -436,6 +440,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       addressController: _addressController,
                       bioController: _bioController,
                       joinedDate: _joinedDate,
+                      gender: _gender, // [NEW]
+                      onGenderChanged: (val) => setState(() => _gender = val), // [NEW]
                       onPickDate: () async {
                          final date = await showDatePicker(
                            context: context,

@@ -23,6 +23,9 @@ class PersonalDetailsForm extends StatelessWidget {
   final FocusNode? phoneFocusNode;
   final FocusNode? addressFocusNode;
 
+  final String? gender; // [NEW]
+  final ValueChanged<String?>? onGenderChanged; // [NEW]
+
   const PersonalDetailsForm({
     super.key,
     required this.isEditing,
@@ -36,6 +39,8 @@ class PersonalDetailsForm extends StatelessWidget {
     required this.bioController,
     required this.joinedDate,
     required this.onPickDate,
+    this.gender, // [NEW]
+    this.onGenderChanged, // [NEW]
     this.bioFocusNode,
     this.firstFocusNode,
     this.lastFocusNode,
@@ -93,10 +98,52 @@ class PersonalDetailsForm extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            BoxyArtFormField(
-              label: 'Nickname',
-              controller: nicknameController,
-              focusNode: nicknameFocusNode,
+            Row(
+              children: [
+                Expanded(
+                  child: BoxyArtFormField(
+                    label: 'Nickname',
+                    controller: nicknameController,
+                    focusNode: nicknameFocusNode,
+                  ),
+                ),
+                // [NEW] Gender Dropdown
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(left: 12, bottom: 4),
+                        child: Text(
+                          'Gender',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                          shadows: AppShadows.inputSoft,
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: gender,
+                            isExpanded: true,
+                            hint: const Text('Select', style: TextStyle(color: Colors.grey)),
+                            items: const [
+                              DropdownMenuItem(value: 'Male', child: Text('Male')),
+                              DropdownMenuItem(value: 'Female', child: Text('Female')),
+                            ],
+                            onChanged: onGenderChanged,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             BoxyArtFormField(
@@ -139,6 +186,10 @@ class PersonalDetailsForm extends StatelessWidget {
              ),
           ] else ...[
             // View Mode
+            if (nicknameController.text.isNotEmpty) ...[
+               _buildInfoRow(Icons.short_text_rounded, 'NICKNAME', nicknameController.text),
+               const SizedBox(height: 16),
+            ],
             _buildInfoRow(Icons.email_outlined, 'EMAIL', emailController.text),
             const SizedBox(height: 16),
             _buildInfoRow(Icons.phone_outlined, 'PHONE', '${countryCodeController.text}${phoneController.text}'),
@@ -150,6 +201,10 @@ class PersonalDetailsForm extends StatelessWidget {
               'MEMBER SINCE', 
               joinedDate != null ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' : '-'
             ),
+            if (gender != null) ...[
+               const SizedBox(height: 16),
+               _buildInfoRow(Icons.wc_outlined, 'GENDER', gender!),
+            ],
           ],
         ],
       ),

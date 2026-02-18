@@ -18,6 +18,8 @@ class BoxyArtButton extends StatelessWidget {
   final IconData? icon;
   final bool isLoading;
   final bool fullWidth;
+  final Color? backgroundColor;
+  final Color? textColor;
 
   const BoxyArtButton({
     super.key,
@@ -29,39 +31,48 @@ class BoxyArtButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.fullWidth = false,
+    this.backgroundColor,
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Default Primary
-    Color bgColor = Theme.of(context).primaryColor;
-    Color textColor = Theme.of(context).colorScheme.onPrimary;
-    
-    // Shadows rely on context too if we want dynamic shadow colors
-    List<BoxShadow>? shadows = [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.15),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      )
-    ];
+    // Default Colors based on standard variants
+    Color derivedBgColor;
+    Color derivedTextColor;
+    List<BoxShadow>? shadows;
 
     if (isSecondary) {
-      bgColor = Colors.grey.shade800;
-      textColor = Colors.white;
+      derivedBgColor = Colors.grey.shade800;
+      derivedTextColor = Colors.white;
       shadows = AppShadows.inputSoft;
     } else if (isGhost) {
-      bgColor = Colors.transparent;
-      textColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey;
+      derivedBgColor = Colors.transparent;
+      derivedTextColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey;
       shadows = null;
+    } else {
+      // Primary (default)
+      derivedBgColor = Theme.of(context).primaryColor;
+      derivedTextColor = Theme.of(context).colorScheme.onPrimary;
+      shadows = [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.15),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        )
+      ];
     }
+
+    // Direct overrides take precedence
+    final finalBgColor = backgroundColor ?? derivedBgColor;
+    final finalTextColor = textColor ?? derivedTextColor;
 
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Container(
         width: fullWidth ? double.infinity : null,
         decoration: BoxDecoration(
-          color: bgColor,
+          color: finalBgColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: shadows,
         ),
@@ -76,12 +87,12 @@ class BoxyArtButton extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(finalTextColor),
                 ),
               ),
               const SizedBox(width: 12),
             ] else if (icon != null) ...[
-              Icon(icon, color: textColor, size: 20),
+              Icon(icon, color: finalTextColor, size: 20),
               const SizedBox(width: 8),
             ],
             Text(
@@ -89,7 +100,7 @@ class BoxyArtButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: textColor,
+                color: finalTextColor,
                 letterSpacing: 0.5,
               ),
             ),

@@ -49,7 +49,9 @@ class EventStatsTab extends ConsumerWidget {
     final myScorecard = scorecards.where((s) => s.entryId.replaceFirst('_guest', '') == currentUserId).firstOrNull;
 
     // Use finalized stats if available
+    // DEBUG: Force recalculation to test new logic if needed, or just log.
     final hasFinalizedStats = event.finalizedStats.isNotEmpty;
+    // print('DEBUG: EventStatsTab - hasFinalizedStats: $hasFinalizedStats');
 
     final showStatsOverride = ref.watch(isStatsReleasedOverrideProvider) == true;
     final statsReleased = event.isStatsReleased == true || showStatsOverride || isAdmin;
@@ -113,6 +115,33 @@ class EventStatsTab extends ConsumerWidget {
             isStableford: isStableford,
           );
 
+    // [NEW] Robust Team Name Resolution
+    final Map<String, String> participantNames = {};
+    final isTeamComp = comp?.rules.effectiveMode == CompetitionMode.teams ||
+                      comp?.rules.effectiveMode == CompetitionMode.pairs;
+
+    if (isTeamComp && event.grouping['groups'] != null) {
+        final groups = event.grouping['groups'] as List;
+        final teamSize = comp?.rules.teamSize ?? 2;
+        
+        for (var g in groups) {
+            final players = g['players'] as List;
+            for (int i = 0; i < players.length; i += teamSize) {
+                final chunk = players.skip(i).take(teamSize).toList();
+                if (chunk.isEmpty) continue;
+                
+                final names = chunk.map((p) => p['name'] as String).toList();
+                final teamName = names.join('\n& '); // Multiline for better UI
+                
+                for (var p in chunk) {
+                   final id = p['registrationMemberId'] as String;
+                   participantNames[id] = teamName;
+                   participantNames['${id}_guest'] = teamName; 
+                }
+            }
+        }
+    }
+
     if (fs.isNotEmpty) {
       final dist = fs['scoringDistribution'] as Map?;
       fieldEagles = dist?['EAGLE'] ?? 0;
@@ -144,7 +173,13 @@ class EventStatsTab extends ConsumerWidget {
         for (var award in hof) {
           final type = award['type'];
           final displayVal = award['displayValue'];
-          final name = award['playerName'] ?? 'Unknown';
+          final pId = award['playerId'];
+          
+          // [FIX] Resolve Team Name if applicable (overrides stored name)
+          String name = award['playerName'] ?? 'Unknown';
+          if (isTeamComp && pId != null && participantNames.containsKey(pId)) {
+             name = participantNames[pId]!;
+          }
           if (type == 'HOT_STREAK') { 
             hotStreakPlayer = name; 
             maxStreak = (displayVal as num?)?.toInt() ?? 1; 

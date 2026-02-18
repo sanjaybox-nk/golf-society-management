@@ -37,7 +37,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
     if (widget.competition != null) {
       _scoringFormat = widget.competition!.rules.format;
       _handicapCap = widget.competition!.rules.handicapCap;
-      _allowance = widget.competition!.rules.handicapAllowance;
+      _allowance = widget.competition!.rules.handicapAllowance.clamp(0.0, 1.0);
       _tieBreak = widget.competition!.rules.tieBreak;
       _roundsCount = widget.competition!.rules.roundsCount;
       
@@ -55,15 +55,10 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
   }
 
   double _getDefaultAllowance(CompetitionFormat format) {
-    // Foursomes typically 50% combined. Here we handle individual allowance prop.
-    // Standard rule of thumb for this app's calculator:
-    // Match Play Pairs (Fourball): 90%
-    // Stroke Play Pairs (Fourball): 85%
-    // Foursomes: Usually calculated differently (50% combined), but providing a default scalar:
     if (widget.subtype == CompetitionSubtype.foursomes) {
-      return 0.5; 
+      return 0.5; // Foursomes: 50% of combined handicap
     }
-    return format == CompetitionFormat.matchPlay ? 0.9 : 0.85;
+    return 1.0; // Fourball: 100% — society adjusts as needed
   }
 
   @override
@@ -85,22 +80,10 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BoxyArtSectionTitle(title: title.toUpperCase()),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        const SizedBox(height: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
               // Description
                Padding(
                 padding: const EdgeInsets.only(bottom: 24),
@@ -209,40 +192,80 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
               ],
             ],
           ),
-        ),
       ],
     );
   }
 
   Widget _buildAllowanceSlider() {
+    final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelText = widget.subtype == CompetitionSubtype.foursomes ? 'TEAM HCP ALLOWANCE' : 'HANDICAP ALLOWANCE';
+    final pct = (_allowance * 100).round();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('HANDICAP ALLOWANCE', style: TextStyle(
-              fontSize: 12, 
-              fontWeight: FontWeight.bold, 
-              color: isDark ? Colors.white70 : Colors.black87
-            )),
-            Text('${(_allowance * 100).toInt()}%', style: const TextStyle(
-              fontSize: 14, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.orange
-            )),
+            Text(
+              labelText,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$pct%',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: primary,
+                ),
+              ),
+            ),
           ],
         ),
-        Slider(
-          value: _allowance,
-          min: 0,
-          max: 1.0,
-          divisions: 20,
-          label: '${(_allowance * 100).toInt()}%',
-          onChanged: (val) => setState(() => _allowance = val),
-          activeColor: Colors.orange,
-          thumbColor: Colors.orange,
+        const SizedBox(height: 4),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: primary,
+            inactiveTrackColor: primary.withValues(alpha: 0.15),
+            thumbColor: primary,
+            overlayColor: primary.withValues(alpha: 0.12),
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+            valueIndicatorColor: primary,
+            valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          child: Slider(
+            value: _allowance.clamp(0.0, 1.0),
+            min: 0,
+            max: 1.0,
+            divisions: 20, // 5% steps
+            label: '$pct%',
+            onChanged: (val) => setState(() => _allowance = val),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+            Text(
+              'Applied to each player\'s course handicap',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+          ],
         ),
       ],
     );
@@ -293,7 +316,6 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       decoration: BoxDecoration(
         color: Colors.blueGrey.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blueGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

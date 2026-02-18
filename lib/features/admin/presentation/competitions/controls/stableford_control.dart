@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../models/competition.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
 import 'base_competition_control.dart';
 
 class StablefordControl extends BaseCompetitionControl {
@@ -22,6 +21,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   bool _isGross = false;
   bool _applyCapToIndex = true;
   int _teamBestXCount = 2;
+  bool _useMixedTeeAdjustment = false;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stableford;
@@ -39,6 +39,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       _isGross = widget.competition!.rules.subtype == CompetitionSubtype.grossStableford;
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
+      _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
     }
   }
 
@@ -84,6 +85,14 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           value: !_applyCapToIndex,
           icon: Icons.lock_outline_rounded,
           onChanged: (val) => setState(() => _applyCapToIndex = !val),
+        ),
+        const SizedBox(height: 12),
+        ModernSwitchRow(
+          label: 'Mixed Tee Adjustments',
+          subtitle: 'Apply (Rating - Par) to Playing Handicap',
+          value: _useMixedTeeAdjustment,
+          icon: Icons.tune_rounded,
+          onChanged: (val) => setState(() => _useMixedTeeAdjustment = val),
         ),
         const SizedBox(height: 12),
         ModernSwitchRow(
@@ -133,93 +142,79 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
             if (val != null) setState(() => _teamBestXCount = val);
           },
         ),
-        const SizedBox(height: 32),
-        _buildMemberPreview(),
       ],
     );
   }
 
-  Widget _buildMemberPreview() {
-    final rules = buildRules();
-    final description = CompetitionRuleTranslator.translate(rules);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.visibility_rounded, size: 16, color: Theme.of(context).primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                'Member Preview'.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: Theme.of(context).primaryColor,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-              height: 1.5,
-              fontWeight: FontWeight.w500,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAllowanceSlider() {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pct = (_allowance * 100).round();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Handicap Allowance'.toUpperCase(), style: TextStyle(
-              fontSize: 12, 
-              fontWeight: FontWeight.w900, 
-              color: Theme.of(context).textTheme.bodySmall?.color,
-              letterSpacing: 0.5,
-            )),
-            Text('${(_allowance * 100).toInt()}%', style: TextStyle(
-              fontSize: 14, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.orange
-            )),
+            Text(
+              'Handicap Allowance'.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$pct%',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primary),
+              ),
+            ),
           ],
         ),
+        const SizedBox(height: 4),
         AbsorbPointer(
           absorbing: _isGross,
           child: Opacity(
             opacity: _isGross ? 0.5 : 1.0,
-            child: Slider(
-              value: _allowance,
-              min: 0,
-              max: 1.0,
-              divisions: 20,
-              label: '${(_allowance * 100).toInt()}%',
-              onChanged: (val) => setState(() => _allowance = val),
-              activeColor: Colors.orange,
-              thumbColor: Colors.orange,
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: primary,
+                inactiveTrackColor: primary.withValues(alpha: 0.15),
+                thumbColor: primary,
+                overlayColor: primary.withValues(alpha: 0.12),
+                trackHeight: 4,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                valueIndicatorColor: primary,
+                valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              child: Slider(
+                value: _allowance,
+                min: 0,
+                max: 1.0,
+                divisions: 20,
+                label: '$pct%',
+                onChanged: (val) => setState(() => _allowance = val),
+              ),
             ),
           ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+            Text('Applied to each player\'s course handicap', style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+          ],
         ),
       ],
     );
@@ -239,6 +234,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       aggregation: _aggregation,
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
+      useMixedTeeAdjustment: _useMixedTeeAdjustment,
     );
   }
 }

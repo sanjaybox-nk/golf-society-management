@@ -99,6 +99,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
 
   Widget _buildTabContent(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
+    final membersAsync = ref.watch(allMembersProvider);
     switch (_selectedTab) {
       case 0: // Controls
         return Column(
@@ -158,7 +159,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           ],
         );
       case 1: // Leaderboard
-        final membersAsync = ref.watch(allMembersProvider);
         return Column(
           children: [
             const BoxyArtSectionTitle(title: 'LIVE STANDINGS'),
@@ -179,6 +179,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                     scorecards: scorecards, 
                     event: event, 
                     comp: ref.watch(competitionDetailProvider(event.id)).value,
+                    membersList: membersAsync.value ?? [],
                     isAdmin: true,
                   );
                 },
@@ -197,6 +198,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               data: (scorecards) => AdminScorecardList(
                 event: event,
                 scorecards: scorecards,
+                membersList: membersAsync.value ?? [],
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Center(child: Text('Error: $e')),

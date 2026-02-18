@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import '../../../../features/debug/presentation/widgets/lab_control_panel.dart';
 import '../../../../core/utils/grouping_service.dart';
+import '../../../../core/utils/handicap_calculator.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../models/scorecard.dart';
 // REDACTED: unused member import
@@ -22,7 +23,6 @@ import '../widgets/course_info_card.dart';
 import '../widgets/hole_by_hole_scoring_widget.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../../models/golf_event.dart';
-import '../../../../models/event_registration.dart';
 // REDACTED: unused imports
 // REDACTED: unused imports
 import '../../../../core/services/persistence_service.dart';
@@ -523,7 +523,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         final String? targetEntryId = markerSelection.targetEntryId;
         
         final String effectiveEntryId = isSelfMarking ? currentUser.id : (targetEntryId ?? currentUser.id);
-        var userScorecard = ref.watch(scorecardByEntryIdProvider((competitionId: widget.eventId, entryId: effectiveEntryId)));
+        
+        // [FIX] Use list lookup instead of single provider to ensure consistency with loaded data
+        // var userScorecard = ref.watch(scorecardByEntryIdProvider((competitionId: widget.eventId, entryId: effectiveEntryId)));
+        
+        final allScorecards = ref.watch(scorecardsListProvider(widget.eventId)).asData?.value ?? [];
+        final userScorecard = allScorecards.firstWhereOrNull((s) => s.entryId == effectiveEntryId);
+
         List<int>? fallbackScores;
         ScorecardStatus? fallbackStatus;
 
@@ -597,6 +603,70 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 baseHcp = targetMember.handicap;
               } catch (_) {
                 // Member not found in list, use default/current
+              }
+           }
+        }
+        
+        // [TEAM SCORER AWARENESS]
+        // If in a team game (Scramble/Pairs), check if a teammate is scoring
+        Scorecard? partnerCard;
+        String? partnerName;
+        bool hasScoreConflict = false;
+        
+        if (effectiveRules.effectiveMode != CompetitionMode.singles && isSelfMarking) { // Only relevant for self-marking their own team
+           final groupsData = event.grouping['groups'] as List?;
+           if (groupsData != null) {
+              // Find my group and team
+              for (var g in groupsData) {
+                 final players = (g['players'] as List).map((p) => TeeGroupParticipant.fromJson(p)).toList();
+                 final myIndex = players.indexWhere((p) => (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) == effectiveEntryId);
+                 
+                 if (myIndex != -1) {
+                    // Identify Team Members
+                    final teamSize = effectiveRules.teamSize; // Default 4 if null
+                    // If teamSize is 2 (Pairs), indices 0-1 are Team A, 2-3 are Team B
+                    // If teamSize is 3/4 (Scramble), whole group (upto teamSize) is one team usually
+                    
+                    int teamStartIndex = (myIndex ~/ teamSize) * teamSize;
+                    int teamEndIndex = teamStartIndex + teamSize;
+                    if (teamEndIndex > players.length) teamEndIndex = players.length;
+                    
+                    final teamMembers = players.sublist(teamStartIndex, teamEndIndex);
+                    
+                    // Check their scorecards
+                    for (var member in teamMembers) {
+                       final memberId = member.isGuest ? '${member.registrationMemberId}_guest' : member.registrationMemberId;
+                       if (memberId == effectiveEntryId) continue; // Skip myself
+                       
+                       final pCard = allScorecards.firstWhereOrNull((s) => s.entryId == memberId);
+                       if (pCard != null && pCard.holeScores.any((s) => s != null)) {
+                          // Found a teammate with scores
+                          // Conflict Check: Do I also have scores?
+                          if (userScorecard != null && userScorecard.holeScores.any((s) => s != null)) {
+                             // potential conflict or just parallel scoring
+                             // Check for specific hole mismatch
+                             for (int i=0; i<18; i++) {
+                                final myScore = userScorecard.holeScores.elementAtOrNull(i);
+                                final theirScore = pCard.holeScores.elementAtOrNull(i);
+                                if (myScore != null && theirScore != null && myScore != theirScore) {
+                                   hasScoreConflict = true;
+                                   partnerName = member.name; // Blame the first one found
+                                   partnerCard = pCard;
+                                   break;
+                                }
+                             }
+                          } else {
+                             // I have no scores (or empty), so they are the active scorer
+                             if (partnerCard == null || (pCard.holeScores.where((s) => s != null).length > partnerCard.holeScores.where((s) => s != null).length)) {
+                                partnerCard = pCard;
+                                partnerName = member.name;
+                             }
+                          }
+                       }
+                       if (hasScoreConflict) break;
+                    }
+                    break; // Found my group
+                 }
               }
            }
         }
@@ -731,6 +801,96 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 ],
               ),
             ),
+            
+            // [TEAM SCORER AWARENESS UI]
+            if (partnerCard != null && !hasScoreConflict)
+               Padding(
+                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                 child: Container(
+                   padding: const EdgeInsets.all(12),
+                   decoration: BoxDecoration(
+                     color: Colors.blue.withValues(alpha: 0.1),
+                     borderRadius: BorderRadius.circular(12),
+                     border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                   ),
+                   child: Row(
+                     children: [
+                       const Icon(Icons.info_outline, color: Colors.blue),
+                       const SizedBox(width: 12),
+                       Expanded(
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             Text(
+                               'Partner Scoring Active',
+                               style: TextStyle(
+                                 fontSize: 12,
+                                 fontWeight: FontWeight.bold,
+                                 color: Colors.blue.shade800,
+                               ),
+                             ),
+                             Text(
+                               '${partnerName ?? 'Teammate'} is keeping score.',
+                               style: TextStyle(fontSize: 12, color: Colors.blue.shade600),
+                             ),
+                           ],
+                         ),
+                       ),
+                       TextButton(
+                         onPressed: () {
+                           // "Take Over" / Copy Scores logic
+                           _copyScoresFromPartner(partnerCard!);
+                         },
+                         style: TextButton.styleFrom(
+                           visualDensity: VisualDensity.compact,
+                           foregroundColor: Colors.blue.shade800,
+                           textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                         ),
+                         child: const Text('SYNC TO ME'),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+
+            if (hasScoreConflict)
+               Padding(
+                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                 child: Container(
+                   padding: const EdgeInsets.all(12),
+                   decoration: BoxDecoration(
+                     color: Colors.orange.withValues(alpha: 0.1),
+                     borderRadius: BorderRadius.circular(12),
+                     border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                   ),
+                   child: Row(
+                     children: [
+                       const Icon(Icons.warning_amber_rounded, color: Colors.deepOrange),
+                       const SizedBox(width: 12),
+                       Expanded(
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             const Text(
+                               'Score Conflict Detected',
+                               style: TextStyle(
+                                 fontSize: 12,
+                                 fontWeight: FontWeight.bold,
+                                 color: Colors.deepOrange,
+                               ),
+                             ),
+                             Text(
+                               'You and ${partnerName ?? 'Partner'} have different scores.',
+                               style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
+                             ),
+                           ],
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+
             if (shouldShowCard) ...[
               // NEW Hole-by-Hole View (Stacked below)
               Consumer(
@@ -879,7 +1039,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             if (!shouldShowCard)
                _buildInactiveBanner(event),
             
-            if (fallbackScores != null) ...[
+            if (fallbackScores != null)
                 const Padding(
                   padding: EdgeInsets.only(top: 8.0),
                   child: Text(
@@ -887,7 +1047,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     style: TextStyle(color: Colors.grey, fontSize: 10, fontStyle: FontStyle.italic),
                   ),
                 ),
-              ],
           ],
         );
       }
@@ -912,7 +1071,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               entry: entry, 
               scorecards: scorecards, 
               event: event, 
-              comp: comp, 
+              comp: comp,
+              membersList: membersAsync.value ?? [],
               holeLimit: playerHoleLimits[entry.entryId] ?? simulationHoles,
             ),
           ),
@@ -986,170 +1146,143 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         }
 
         // Create a map of scores for quick lookup
-        final scoreMap = <String, String>{};
         final holes = event.courseConfig['holes'] as List? ?? [];
 
         // [LAB MODE]
-        final emptyData = ref.watch(simulateEmptyDataProvider);
+        final isTeamMode = rules.effectiveMode != CompetitionMode.singles;
+        final teamSize = rules.teamSize;
 
-        // Identify all players in groups to ensure we check everyone
-        final allGroupPlayers = groups.expand((g) => g.players).toList();
-
-        for (var p in allGroupPlayers) {
-           final playerId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-
-           if (emptyData) {
-              scoreMap[playerId] = '-';
-              continue;
-           }
-
-           // 1. Try to find live scorecard
-           final scorecard = scorecards.firstWhere(
-              (s) => s.entryId == playerId,
-              orElse: () => Scorecard(
-                 id: 'temp', 
-                 competitionId: event.id,  // Correct parameter
-                 roundId: 'round_1', // Required param
-                 submittedByUserId: 'system', // Required param
-                 createdAt: DateTime.now(), // Required param
-                 updatedAt: DateTime.now(), // Required param
-                 entryId: playerId, 
-                 holeScores: [],
-                 status: ScorecardStatus.draft // Dummy
-              ),
-           );
-
-            List<int?>? rawScores = scorecard.holeScores.isNotEmpty ? scorecard.holeScores : null;
-            List<int?>? scoresToUse;
-
-           // 2. Fallback to seeded results if no live scores
-           if (rawScores == null || rawScores.isEmpty) {
-              final seededResult = event.results.firstWhere(
-                 (r) => r['playerId'] == playerId || (p.isGuest && r['playerId'] == p.registrationMemberId),
-                 orElse: () => {},
-              );
-              if (seededResult.isNotEmpty && seededResult['holeScores'] != null) {
-                 rawScores = List<int?>.from(seededResult['holeScores']);
-                 // If format is Stableford, we might need pre-calculated points from result?
-                 // Or recalculate them here. Seeded results usually have 'points' total too.
-                 if (isStableford && seededResult['points'] != null) {
-                    // If a limit is present, we must recalculate, so don't skip.
-                    if (playerHoleLimits[playerId] == null) {
-                       scoreMap[playerId] = seededResult['points'].toString();
-                       continue; // Skip calculation
-                    }
-                 }
+        final Map<String, String> scoreMap = {};
+        final Map<String, int> teamPhcMap = {}; // [NEW] Track Team PHCs
+        final Map<String, bool> winnerMap = {};
+        
+        for (var group in groups) {
+           // Partition group into teams if necessary
+           final List<List<TeeGroupParticipant>> teams = [];
+           if (isTeamMode) {
+              for (int i = 0; i < group.players.length; i += teamSize) {
+                 teams.add(group.players.skip(i).take(teamSize).toList());
               }
-           }
-
-            if (rawScores == null || rawScores.isEmpty) {
-               scoreMap[playerId] = '-';
-               continue;
-            }
-
-            // APPLY SIMULATION LIMIT
-            final limit = playerHoleLimits[playerId];
-            if (limit != null) {
-               scoresToUse = [];
-               for (int i = 0; i < rawScores.length; i++) {
-                 if (i < limit) scoresToUse.add(rawScores[i]);
-               }
-            } else {
-               scoresToUse = List<int?>.from(rawScores);
-            }
-
-           // Calculate Display Value based on Format
-           if (isStableford) {
-              // If we have a live scorecard or re-calculated points
-              if (scorecard.points != null && scorecard.holeScores.isNotEmpty && !isGross && limit == null) {
-                  scoreMap[playerId] = scorecard.points.toString();
-              } else {
-                  // Recalculate points for fallback scores OR if Gross override is active
-                  // If Gross, PHC = 0.
-                  final phc = isGross ? 0 : p.playingHandicap.round();
-
-                 int totalPoints = 0;
-                 int holesPlayed = 0;
-                 
-                 for (int i = 0; i < scoresToUse.length; i++) {
-                    final score = scoresToUse[i];
-                    if (score != null && i < holes.length) {
-                       final par = holes[i]['par'] as int? ?? 4;
-                       final si = holes[i]['si'] as int? ?? 18;
-                       
-                       // Calculate shots received on this hole
-                       int shots = (phc ~/ 18);
-                       if (si <= (phc % 18)) {
-                         shots++;
-                       }
-                       
-                       final netScore = score - shots;
-                       // Stableford: 2 points for net par
-                       final points = (2 + (par - netScore)).clamp(0, 10).toInt(); 
-                       totalPoints += points;
-                       holesPlayed++;
-                    }
-                 }
-                 
-                 if (holesPlayed > 0) {
-                    scoreMap[playerId] = totalPoints.toString();
-                 } else {
-                    scoreMap[playerId] = '-';
-                 }
-             }
            } else {
-            // Strokeplay: Calculate Net/Gross Differential
-            int totalGross = 0;
-            int holesPlayed = 0;
+              for (var p in group.players) { teams.add([p]); }
+           }
 
-            for (int i = 0; i < scoresToUse.length; i++) {
-              final score = scoresToUse[i];
-              if (score != null) {
-                totalGross += score;
-                holesPlayed++;
-              }
-            }
-            
-            if (holesPlayed == 0) {
-               scoreMap[playerId] = '-';
-            } else {
-               // Get Player's PHC
-               final reg = event.registrations.firstWhere(
-                  (r) => r.memberId == (playerId.endsWith('_guest') ? playerId.replaceFirst('_guest', '') : playerId),
-                  orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
-               );
-               final phc = isGross ? 0 : (reg.playingHandicap ?? 0);
-               
-               // Get Par for holes played
-               int parForPlayed = 0;
-               for (int i = 0; i < holesPlayed && i < holes.length; i++) {
-                 parForPlayed += (holes[i]['par'] as int? ?? 4);
-               } 
-
-               // Calculate shots received for holes played (Standard SI match)
-               int shotsReceived = 0;
-               if (!isGross) {
-                 for (int i = 0; i < holesPlayed && i < holes.length; i++) {
-                    final si = holes[i]['si'] as int? ?? 18;
-                    int shots = (phc ~/ 18);
-                    if (si <= (phc % 18)) {
-                      shots++;
-                    }
-                    shotsReceived += shots;
+           for (var team in teams) {
+              if (team.isEmpty) continue;
+              
+              // 1. Calculate Team PHC
+              int teamPhc = 0;
+              if (isTeamMode) {
+                 final List<double> indices = [];
+                 for (var p in team) {
+                    final member = membersAsync.value?.firstWhereOrNull((m) => m.id == p.registrationMemberId);
+                    indices.add(member?.handicap ?? p.handicapIndex);
                  }
-               }
+                 teamPhc = HandicapCalculator.calculateTeamHandicap(
+                    individualIndices: indices, 
+                    rules: rules, 
+                    courseConfig: event.courseConfig,
+                 );
+              }
 
-               final netScore = totalGross - shotsReceived;
-               final differential = netScore - parForPlayed;
-               
-               if (differential == 0) {
-                  scoreMap[playerId] = 'E';
-               } else if (differential > 0) {
-                  scoreMap[playerId] = '+$differential';
-               } else {
-                  scoreMap[playerId] = '$differential';
-               }
-            }
+              // 2. Find Team Score (Try each member for a card)
+              Scorecard? teamCard;
+              for (var p in team) {
+                 final playerId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                 final card = scorecards.firstWhereOrNull((s) => s.entryId == playerId);
+                 if (card != null && card.holeScores.isNotEmpty) {
+                    teamCard = card;
+                    break;
+                 }
+              }
+
+              // 3. Fallback to seeded result
+              if (teamCard == null) {
+                 for (var p in team) {
+                    final playerId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                    final seeded = event.results.firstWhereOrNull((r) => r['playerId'] == playerId);
+                    if (seeded != null && seeded['holeScores'] != null) {
+                       teamCard = Scorecard(
+                          id: 'seeded', 
+                          competitionId: event.id, 
+                          roundId: '1', 
+                          entryId: playerId,
+                          submittedByUserId: 'system',
+                          holeScores: List<int?>.from(seeded['holeScores']),
+                          status: ScorecardStatus.finalScore,
+                          createdAt: DateTime.now(),
+                          updatedAt: DateTime.now(),
+                       );
+                       break;
+                    }
+                 }
+              }
+
+              // 4. Calculate Score using Team PHC
+              String displayScore = '-';
+              if (teamCard != null && teamCard.holeScores.isNotEmpty) {
+                 final limit = playerHoleLimits[teamCard.entryId];
+                 List<int?> scoresToUse = teamCard.holeScores;
+                 if (limit != null) {
+                    scoresToUse = teamCard.holeScores.take(limit).toList();
+                 }
+
+                 // Use Team PHC if in team mode, else individual
+                 int effectivePhc = isTeamMode ? teamPhc : HandicapCalculator.calculatePlayingHandicap(
+                    handicapIndex: membersAsync.value?.firstWhereOrNull((m) => m.id == team.first.registrationMemberId)?.handicap ?? team.first.handicapIndex,
+                    rules: rules,
+                    courseConfig: event.courseConfig,
+                 );
+
+                 if (isGross) {
+                   effectivePhc = 0;
+                 }
+
+                 if (isStableford) {
+                    int totalPoints = 0;
+                    for (int i = 0; i < scoresToUse.length; i++) {
+                       final score = scoresToUse[i];
+                       if (score != null && i < holes.length) {
+                          final par = holes[i]['par'] as int? ?? 4;
+                          final si = holes[i]['si'] as int? ?? 18;
+                          final shots = (effectivePhc ~/ 18) + (si <= (effectivePhc % 18) ? 1 : 0);
+                          final points = (2 + (par - (score - shots))).clamp(0, 10).toInt();
+                          totalPoints += points;
+                       }
+                    }
+                    displayScore = totalPoints.toString();
+                 } else {
+                    int totalGross = 0;
+                    int parTotal = 0;
+                    int holesPlayed = 0;
+                    for (int i = 0; i < scoresToUse.length; i++) {
+                       final score = scoresToUse[i];
+                       if (score != null && i < holes.length) {
+                          totalGross += score;
+                          parTotal += (holes[i]['par'] as int? ?? 4);
+                          holesPlayed++;
+                       }
+                    }
+                    if (holesPlayed > 0) {
+                       final netDiff = totalGross - (effectivePhc * (holesPlayed / 18)) - parTotal;
+                       final diff = netDiff.round();
+                       if (diff == 0) {
+                         displayScore = 'E';
+                       } else if (diff > 0) {
+                         displayScore = '+$diff';
+                       } else {
+                         displayScore = '$diff';
+                       }
+                    }
+                 }
+              }
+
+              // 5. Apply to all team members
+              for (var p in team) {
+                 final playerId = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                 scoreMap[playerId] = displayScore;
+                 if (isTeamMode) teamPhcMap[playerId] = teamPhc;
+              }
            }
         }
 
@@ -1180,6 +1313,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   isScoreMode: true,
                   scoreMap: scoreMap,
                   scorecardMap: {for (var s in scorecards) s.entryId: s},
+                  winnerMap: winnerMap,
+                  phcMap: teamPhcMap,
                 );
               },
             ),
@@ -1484,6 +1619,74 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
 
   // Define Format Helper
+  Future<void> _copyScoresFromPartner(Scorecard partnerCard) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sync Scores?'),
+        content: const Text(
+          'This will copy all scores from your partner to your scorecard. Any existing scores on your card will be overwritten.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sync'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final repo = ref.read(scorecardRepositoryProvider);
+        final currentUser = ref.read(effectiveUserProvider);
+        
+        // precise target depends on if self-marking or not, but usually this button appears on "My Score" tab implying my card
+        // We need to find MY card.
+        final myCard = ref.read(scorecardsListProvider(widget.eventId)).asData?.value
+            .firstWhereOrNull((s) => s.entryId == currentUser.id);
+
+        if (myCard == null) {
+           // Create new card with partner's scores
+           final newCard = Scorecard(
+              id: '', 
+              competitionId: widget.eventId,
+              roundId: 'round_1',
+              entryId: currentUser.id,
+              submittedByUserId: currentUser.id,
+              holeScores: List.from(partnerCard.holeScores),
+              status: ScorecardStatus.draft,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+           );
+           await repo.addScorecard(newCard);
+        } else {
+           // Update existing
+           final updated = myCard.copyWith(
+              holeScores: List.from(partnerCard.holeScores),
+              updatedAt: DateTime.now(),
+           );
+           await repo.updateScorecard(updated);
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Scores synced successfully!'), backgroundColor: Colors.green),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error syncing scores: $e')),
+          );
+        }
+      }
+    }
+  }
 
 
 }

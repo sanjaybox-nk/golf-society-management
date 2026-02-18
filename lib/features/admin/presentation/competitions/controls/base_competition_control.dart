@@ -82,24 +82,16 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             ),
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isSaving ? null : _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 0,
-              ),
-              child: _isSaving 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                : Text(
-                    widget.competition == null ? "CREATE COMPETITION" : "SAVE CHANGES",
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5),
-                  ),
-            ),
+          const SizedBox(height: 32),
+          BoxyArtButton(
+            title: widget.isTemplate
+              ? (widget.competition == null ? 'CREATE TEMPLATE' : 'SAVE TEMPLATE')
+              : (widget.competition == null ? 'CREATE COMPETITION' : 'SAVE CHANGES'),
+            onTap: _isSaving ? null : _save,
+            isLoading: _isSaving,
+            fullWidth: true,
+            backgroundColor: Theme.of(context).primaryColor,
+            textColor: Colors.white,
           ),
         ],
       ),

@@ -65,6 +65,11 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                       if (subtype != null && subtype != CompetitionSubtype.none) {
                         return rules.subtype == subtype;
                       }
+                      // Scramble always has a non-none subtype (texas/florida),
+                      // so match on format alone for formats that use subtypes internally.
+                      if (format == CompetitionFormat.scramble) {
+                        return rules.format == format;
+                      }
                       return rules.format == format && rules.subtype == CompetitionSubtype.none;
                   }).toList();
 
@@ -166,7 +171,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
         title: (template.name != null && template.name!.isNotEmpty) 
             ? template.name!.toUpperCase() 
             : template.rules.gameName,
-        subtitle: '${template.rules.mode.name} • ${template.rules.roundsCount} ROUND',
+        subtitle: '${template.rules.modeLabel} • ${template.rules.roundsCount} ROUND',
         description: CompetitionRuleTranslator.translate(template.rules),
         icon: _getFormatIcon(template.rules.format),
         onTap: () {
@@ -182,7 +187,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
         },
         badges: [
           // MODE BADGE (SINGLES/PAIRS/TEAMS)
-          _RuleBadge(label: template.rules.mode.name.toUpperCase()),
+          _RuleBadge(label: template.rules.modeLabel),
           
           // GROSS/NET
           if (template.rules.handicapAllowance == 0 || template.rules.subtype == CompetitionSubtype.grossStableford)

@@ -154,7 +154,7 @@ class _CompetitionsSliverList extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${comp.startDate.year} • ${comp.rules.mode.name.toUpperCase()}',
+                                  '${comp.startDate.year} • ${comp.rules.modeLabel}',
                                   style: TextStyle(
                                     color: Theme.of(context).primaryColor,
                                     fontSize: 10,

@@ -345,11 +345,56 @@ class EventAnalysisEngine {
 
     // 3. Hall of Fame
     final List<Map<String, dynamic>> hallOfFame = [];
+    
+    // [NEW] Resolve Team Names map
+    final Map<String, String> participantNames = {};
+    final isTeamComp = competition?.rules.effectiveMode == CompetitionMode.teams ||
+                      competition?.rules.effectiveMode == CompetitionMode.pairs;
+    
+    // DEBUG LOGS
+    // print('DEBUG: EventAnalysisEngine - isTeamComp: $isTeamComp');
+    if (competition != null) {
+      // print('DEBUG: Competition Mode: ${competition.rules.effectiveMode}');
+      // print('DEBUG: Team Size: ${competition.rules.teamSize}');
+    }
+
+    if (isTeamComp && event.grouping['groups'] != null) {
+        final groups = event.grouping['groups'] as List;
+        final teamSize = competition?.rules.teamSize ?? 2;
+        
+        for (var g in groups) {
+            final players = g['players'] as List;
+            // Split players into chunks of teamSize
+            for (int i = 0; i < players.length; i += teamSize) {
+                final chunk = players.skip(i).take(teamSize).toList();
+                if (chunk.isEmpty) continue;
+                
+                final names = chunk.map((p) => p['name'] as String).toList();
+                final teamName = names.join(' & ');
+                // print('DEBUG: Mapped Team: $teamName'); 
+                
+                for (var p in chunk) {
+                   final id = p['registrationMemberId'] as String;
+                   participantNames[id] = teamName;
+                   participantNames['${id}_guest'] = teamName; // Case where guest ID used
+                   // print('DEBUG: Key: $id -> $teamName');
+                }
+            }
+        }
+    }
+
     void addAward(String type, String name, String? playerId, dynamic displayValue) {
       if (name != 'None') {
+        // [NEW] Resolve name if team mode
+        String displayName = name;
+        if (isTeamComp && playerId != null) {
+           // playerId might be 'id' or 'id_guest'
+           displayName = participantNames[playerId] ?? name;
+        }
+
         hallOfFame.add({
           'type': type,
-          'playerName': name,
+          'playerName': displayName,
           'playerId': playerId,
           'displayValue': displayValue,
         });
@@ -357,7 +402,6 @@ class EventAnalysisEngine {
     }
 
     // Helper to find playerId for a name (though stats tab will use name if id missing)
-    // Actually, we should store playerId in the award.
     String? getPlayerId(String name, GolfEvent event) {
         final reg = event.registrations.firstWhereOrNull((r) => 
             (r.isGuest ? (r.guestName ?? 'Guest') : r.memberName) == name

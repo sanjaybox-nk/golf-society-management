@@ -181,103 +181,103 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               Navigator.of(context).pop();
             }
           },
-          child: HeadlessScaffold(
-            title: 'Manage Grouping',
-            subtitle: event.title,
-            showBack: true,
-            onBack: () => context.go('/admin/events'),
-            actions: [
-              Opacity(
-                opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-                child: BoxyArtGlassIconButton(
-                  icon: Icons.refresh_rounded,
-                  tooltip: (_localGroups == null || _localGroups!.isEmpty) ? 'Generate' : 'Regenerate',
-                  onPressed: event.isRegistrationClosed
-                      ? () {
-                          if (_isLocked == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
-                            return;
+          child: Stack(
+          children: [
+            HeadlessScaffold(
+              title: 'Manage Grouping',
+              subtitle: event.title,
+              showBack: true,
+              onBack: () => context.go('/admin/events'),
+              actions: [
+                Opacity(
+                  opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+                  child: BoxyArtGlassIconButton(
+                    icon: Icons.refresh_rounded,
+                    tooltip: (_localGroups == null || _localGroups!.isEmpty) ? 'Generate' : 'Regenerate',
+                    onPressed: event.isRegistrationClosed
+                        ? () {
+                            if (_isLocked == true) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
+                              return;
+                            }
+                            _showRegenerationOptions(event, events, handicapMap);
                           }
-                          _showRegenerationOptions(event, events, handicapMap);
-                        }
-                      : null,
+                        : null,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Opacity(
-                opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-                child: BoxyArtGlassIconButton(
-                  icon: _isLocked == true ? Icons.lock_rounded : Icons.lock_open_rounded,
-                  tooltip: _isLocked == true ? 'Unlock' : 'Lock',
-                  iconColor: _isLocked == true ? Colors.amber : null,
-                  onPressed: event.isRegistrationClosed
-                      ? () {
-                          if (_localGroups == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
-                            return;
+                const SizedBox(width: 8),
+                Opacity(
+                  opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+                  child: BoxyArtGlassIconButton(
+                    icon: _isLocked == true ? Icons.lock_rounded : Icons.lock_open_rounded,
+                    tooltip: _isLocked == true ? 'Unlock' : 'Lock',
+                    iconColor: _isLocked == true ? Colors.amber : null,
+                    onPressed: event.isRegistrationClosed
+                        ? () {
+                            if (_localGroups == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
+                              return;
+                            }
+                            setState(() => _isLocked = !(_isLocked ?? false));
+                            _updateDirty(true);
                           }
-                          setState(() => _isLocked = !(_isLocked ?? false));
-                          _updateDirty(true);
-                        }
-                      : null,
+                        : null,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Opacity(
-                opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-                child: BoxyArtGlassIconButton(
-                  icon: Icons.save_rounded,
-                  tooltip: 'Save',
-                  iconColor: _isDirty ? Colors.amber : null,
-                  onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
+                const SizedBox(width: 8),
+                Opacity(
+                  opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+                  child: BoxyArtGlassIconButton(
+                    icon: Icons.save_rounded,
+                    tooltip: 'Save',
+                    iconColor: _isDirty ? Colors.amber : null,
+                    onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              BoxyArtGlassIconButton(
-                icon: event.isGroupingPublished ? Icons.visibility_off_rounded : Icons.send_rounded,
-                tooltip: event.isGroupingPublished ? 'Unpublish' : 'Publish',
-                iconColor: event.isGroupingPublished ? Colors.orange : null,
-                onPressed: () => _togglePublish(event),
-              ),
-              if (event.secondaryTemplateId != null) ...[
                 const SizedBox(width: 8),
                 BoxyArtGlassIconButton(
-                  icon: _matchPlayMode ? Icons.check_circle_rounded : Icons.circle_outlined,
-                  tooltip: 'Match Mode',
-                  iconColor: _matchPlayMode ? Colors.orange : null,
-                  onPressed: () {
-                    setState(() => _matchPlayMode = !_matchPlayMode);
-                    if (_matchPlayMode && (_localMatches == null || _localMatches!.isEmpty)) {
-                      _autoLinkMatches(event);
-                    }
-                  },
+                  icon: event.isGroupingPublished ? Icons.visibility_off_rounded : Icons.send_rounded,
+                  tooltip: event.isGroupingPublished ? 'Unpublish' : 'Publish',
+                  iconColor: event.isGroupingPublished ? Colors.orange : null,
+                  onPressed: () => _togglePublish(event),
+                ),
+                if (event.secondaryTemplateId != null) ...[
+                  const SizedBox(width: 8),
+                  BoxyArtGlassIconButton(
+                    icon: _matchPlayMode ? Icons.check_circle_rounded : Icons.circle_outlined,
+                    tooltip: 'Match Mode',
+                    iconColor: _matchPlayMode ? Colors.orange : null,
+                    onPressed: () {
+                      setState(() => _matchPlayMode = !_matchPlayMode);
+                      if (_matchPlayMode && (_localMatches == null || _localMatches!.isEmpty)) {
+                        _autoLinkMatches(event);
+                      }
+                    },
+                  ),
+                ],
+              ],
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: Column(
+                    children: [
+                      if (unassignedSquad.isNotEmpty) _buildSquadPool(unassignedSquad, memberMap, history),
+                      Expanded(
+                        child: _localGroups == null 
+                          ? _buildEmptyState(event, events, handicapMap)
+                          : _buildGroupingList(event, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps),
+                      ),
+                    ],
+                  ),
                 ),
               ],
-            ],
-            slivers: [
-              SliverFillRemaining(
-                hasScrollBody: true,
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        if (unassignedSquad.isNotEmpty) _buildSquadPool(unassignedSquad, memberMap, history),
-                        Expanded(
-                          child: _localGroups == null 
-                            ? _buildEmptyState(event, events, handicapMap)
-                            : _buildGroupingList(event, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps),
-                        ),
-                      ],
-                    ),
-                    if (_showGenerationOptions)
-                      _buildGenerationOverlay(context, event, events, handicapMap, config, comp?.rules),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+            ),
+            if (_showGenerationOptions)
+              _buildGenerationOverlay(context, event, events, handicapMap, config, comp?.rules),
+          ],
+        ),
+      );
+    },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Error: $err')),
     );
@@ -313,23 +313,9 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
-            child: Row(
-              children: [
-                Icon(Icons.group_add_rounded, size: 16, color: Theme.of(context).primaryColor),
-                const SizedBox(width: 8),
-                Text(
-                  'SQUAD POOL (${squad.length})',
-                  style: TextStyle(
-                    fontSize: 12, 
-                    fontWeight: FontWeight.w800, 
-                    color: Theme.of(context).primaryColor,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
+          BoxyArtSectionTitle(
+            title: 'SQUAD POOL (${squad.length})',
+            padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
           ),
           SizedBox(
             height: 90,
@@ -661,19 +647,13 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   }
 
   Future<void> _confirmWithdraw(TeeGroupParticipant p, TeeGroup group) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showBoxyArtDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Withdraw Member?'),
-        content: Text('This will remove ${p.name} from the groupings and set their status to "Withdrawn" in the registrations list.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true), 
-            child: const Text('Withdraw', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      title: 'Withdraw Member?',
+      message: 'This will remove ${p.name} from the groupings and set their status to "Withdrawn" in the registrations list.',
+      confirmText: 'Withdraw',
+      onConfirm: () => Navigator.pop(context, true),
+      onCancel: () => Navigator.pop(context, false),
     );
 
     if (confirmed == true && mounted) {
@@ -724,7 +704,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         GestureDetector(
           onTap: () => setState(() => _showGenerationOptions = false),
           child: Container(
-            color: Colors.black54,
+            color: Colors.black.withValues(alpha: 0.5),
             width: double.infinity,
             height: double.infinity,
           ),
@@ -733,9 +713,16 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             child: StatefulBuilder(
               builder: (context, setOverlayState) {
@@ -747,40 +734,57 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              margin: const EdgeInsets.only(bottom: 24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
                           Text(
                             'Generate Groups', 
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1,
+                            ),
                           ),
                           const SizedBox(height: 8),
-                          const Text('Configure how players are sorted into groups.', style: TextStyle(color: Colors.grey)),
+                          Text(
+                            'Configure how players are sorted into groups.', 
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                          ),
                           
-                          const SizedBox(height: 24),
-                          const Text('STRATEGY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 32),
+                          const BoxyArtSectionTitle(
+                            title: 'STRATEGY',
+                            isLevel2: true,
+                            padding: EdgeInsets.only(left: 4, bottom: 12),
+                          ),
                           
-                          BoxyArtFloatingCard(
-                            padding: EdgeInsets.zero,
-                            child: Column(
-                              children: [
-                                _buildRadioOption(context, 'balanced', 'Balanced Teams', 'Balances total handicap.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                                const Divider(height: 1),
-                                _buildRadioOption(context, 'progressive', 'Progressive', 'Low handicap first.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                                const Divider(height: 1),
-                                _buildRadioOption(context, 'similar', 'Similar Ability', 'Group by skill level.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                                const Divider(height: 1),
-                                _buildRadioOption(context, 'random', 'Random', 'Mix everything up.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
-                              ],
-                            ),
+                          Column(
+                            children: [
+                              _buildRadioOption(context, 'balanced', 'Balanced Teams', 'Balances total handicap.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                              _buildRadioOption(context, 'progressive', 'Progressive', 'Low handicap first.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                              _buildRadioOption(context, 'similar', 'Similar Ability', 'Group by skill level.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                              _buildRadioOption(context, 'random', 'Random', 'Mix everything up.', selectedStrategy, (val) => setOverlayState(() => selectedStrategy = val)),
+                            ],
                           ),
     
                           const SizedBox(height: 24),
-                          const Text('PREFERENCES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                          const SizedBox(height: 8),
+                          const BoxyArtSectionTitle(
+                            title: 'PREFERENCES',
+                            isLevel2: true,
+                            padding: EdgeInsets.only(left: 4, bottom: 12),
+                          ),
                           
-                          SwitchListTile(
-                            title: const Text('Pair Buggy Users', style: TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: const Text('Prioritize putting buggy users together.'),
-                            contentPadding: EdgeInsets.zero,
+                          ModernSwitchRow(
+                            label: 'Pair Buggy Users',
+                            subtitle: 'Prioritize putting buggy users together.',
+                            icon: Icons.electric_rickshaw_rounded,
                             value: pairBuggies,
                             onChanged: (val) => setOverlayState(() => pairBuggies = val),
                           ),
@@ -835,19 +839,31 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   }
 
   Widget _buildRadioOption(BuildContext context, String value, String title, String subtitle, String groupValue, ValueChanged<String> onChanged) {
-    return RadioListTile<String>(
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      value: value,
-      // ignore: deprecated_member_use
-      groupValue: groupValue,
-      // ignore: deprecated_member_use
-      onChanged: (val) {
-        if (val != null) onChanged(val);
-      },
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      activeColor: Theme.of(context).primaryColor,
-      dense: true,
+    final isSelected = value == groupValue;
+    return ModernCard(
+      onTap: () => onChanged(value),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 8),
+      border: isSelected ? BorderSide(color: Theme.of(context).primaryColor, width: 2) : null,
+      backgroundColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : null,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              ],
+            ),
+          ),
+          if (isSelected) 
+            Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor)
+          else 
+            Icon(Icons.circle_outlined, color: Colors.grey.shade300),
+        ],
+      ),
     );
   }
 
@@ -881,27 +897,53 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   }
 
   void _showMoveDialog(TeeGroupParticipant p, TeeGroup currentGroup) {
-    showDialog(
+    showBoxyArtDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Move ${p.name} to Group'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _localGroups!.length,
-            itemBuilder: (context, index) {
-              final g = _localGroups![index];
-              if (g == currentGroup) return const SizedBox.shrink();
-              return ListTile(
-                title: Text('Group ${g.index + 1} (${g.players.length} players)'),
-                onTap: () {
-                  _handleMove(p, currentGroup, g, null);
-                  Navigator.pop(context);
+      title: 'Move ${p.name} to Group',
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const BoxyArtSectionTitle(title: 'SELECT TARGET GROUP', isLevel2: true),
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _localGroups!.length,
+                itemBuilder: (context, index) {
+                  final g = _localGroups![index];
+                  if (g == currentGroup) return const SizedBox.shrink();
+                  return ModernCard(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    onTap: () {
+                      _handleMove(p, currentGroup, g, null);
+                      Navigator.pop(context);
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: 20),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Group ${g.index + 1}', 
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${g.players.length} / 4',
+                          style: TextStyle(
+                            fontSize: 12, 
+                            color: g.players.length >= 4 ? Colors.red : Colors.green,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

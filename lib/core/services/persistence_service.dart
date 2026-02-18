@@ -45,4 +45,8 @@ class PersistenceService {
   Future<void> remove(String key) async {
     await _prefs.remove(key);
   }
+
+  Future<void> clear() async {
+    await _prefs.clear();
+  }
 }

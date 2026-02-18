@@ -4,6 +4,12 @@ All notable changes to the Golf Society Management (BoxyArt) project will be doc
 
 ## [Unreleased]
 
+### Scoring Precision & Gender Parity (2026-02-18)
+- **Mixed Tee Adjustments**: Added optional "C.R. - Par" adjustment toggle for Stroke Play and Stableford competitions, ensuring fair equity when mixed tees are in play.
+- **Scramble Customization**: Enhanced Scramble configurator with a "Team Handicap Method" dropdown, offering **WHS Recommended** (Weighted), **Average** (Total ÷ N), and **Sum** (Combined Total) calculations.
+- **Tie Break Logic**: Updated leaderboard engine so selecting "Playoff" (Manual) explicitly disables automatic back-9 countback sorting, respecting manual result entry.
+- **Smart Tees**: Implemented gender-aware tee defaulting in Event forms and per-player Course Rating/Slope resolution in the scorecard engine.
+
 ### Seasonal Standings Hub (2026-02-17)
 - **Multi-Format Hub**: Implemented a unified seasonal standings center for members, supporting Order of Merit, Eclectic, Birdie Tree, and Best of Series.
 - **Admin Oversight**: Added a dedicated "SEASON" tab to the Admin Leaderboards for centralized configuration and tracking of seasonal competitions.

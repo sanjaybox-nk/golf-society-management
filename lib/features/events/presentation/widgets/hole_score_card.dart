@@ -84,16 +84,23 @@ class HoleScoreCard extends StatelessWidget {
               
               // Bottom Row: Hole Info
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'HOLE $holeNum',
                     style: textTheme.labelSmall?.copyWith(
-                      color: onSurface.withValues(alpha: 0.6),
+                      color: onSurface.withValues(alpha: 0.4),
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2.0,
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 1, 
+                    height: 12, 
+                    color: onSurface.withValues(alpha: 0.1)
+                  ),
+                  const SizedBox(width: 12),
                   Row(
                     children: [
                       BoxyArtStatusPill(

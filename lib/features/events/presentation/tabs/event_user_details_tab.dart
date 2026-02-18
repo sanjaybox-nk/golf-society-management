@@ -146,9 +146,9 @@ class EventDetailsContent extends ConsumerWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: 24),
-              _buildHeroSection(context),
-              const SizedBox(height: 24),
               _buildRegistrationCard(context),
+              const SizedBox(height: 24),
+              _buildHeroSection(context),
               const SizedBox(height: 32),
               _buildDateTimeSection(context),
               const SizedBox(height: 24),
@@ -562,9 +562,22 @@ class EventDetailsContent extends ConsumerWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const Text(
-                'Registration Closed',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                ),
+                child: const Text(
+                  'REGISTRATION CLOSED',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: Colors.grey,
+                    letterSpacing: 1.0,
+                  ),
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -1061,10 +1074,14 @@ class _CompetitionRulesCard extends ConsumerWidget {
                         baseColor: iconColor,
                       ),
                       BoxyArtStatusPill(
-                        text: comp.rules.mode.name.toUpperCase(),
+                        text: comp.rules.modeLabel,
                         baseColor: const Color(0xFF34495E),
                       ),
-                      if (comp.rules.handicapCap < 54)
+                      if (comp.rules.applyCapToIndex && 
+                          comp.rules.handicapCap < 54 && 
+                          comp.rules.format != CompetitionFormat.scramble && 
+                          comp.rules.subtype != CompetitionSubtype.foursomes && 
+                          comp.rules.subtype != CompetitionSubtype.fourball)
                         BoxyArtStatusPill(
                           text: 'CAPPED @ ${comp.rules.handicapCap.toInt()} HCP',
                           baseColor: const Color(0xFFD35400),

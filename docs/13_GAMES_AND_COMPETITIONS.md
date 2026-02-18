@@ -23,7 +23,7 @@ The primary driver of the scoring logic.
 | **Stroke Play** | None | Traditional medal play (gross or net). |
 | **Max Score** | None | Stroke play with a cap per hole (e.g., Net Double Bogey). |
 | **Match Play** | Knockout, League | Head-to-head competition (Independent or Event-Layered). |
-| **Scramble** | Texas, Florida | Team-based "best ball" scramble. |
+| **Scramble** | Texas, Florida | Team-based "best ball" scramble. Supports Stroke Play or Stableford as an `underlyingFormat`. |
 | **Pairs** | Fourball, Foursomes | Partner-based formats. |
 
 ### Handicap & Allowances
@@ -31,6 +31,7 @@ The primary driver of the scoring logic.
 -   **Allowance**: Percentage of course handicap (e.g., 95% for Stableford).
 -   **Handicap Cap**: Maximum allowed handicap for the competition.
 -   **Course Allowance**: Whether to apply the Course Rating/Slope adjustment.
+-   **Mixed Tee Equity**: Optional C.R-Par adjustment for mixed tee competitions.
 
 ### Aggregation & Multi-Round
 -   **Rounds Count**: Support for multi-day tournaments (1-4 rounds).
@@ -129,7 +130,7 @@ The `EventFormScreen` uses a rich, badge-based visualization to summarize the ac
 - **Allowance**: [XX% HCP] or [100% DIFF].
 - **Mode**: [SINGLES], [PAIRS], or [TEAMS].
 - **Duration**: [MULTI-DAY] (Teal) – Shown if the event spans multiple days.
-- **Specifics**: Only shown if non-default (e.g., [4 DRIVES], [CAP: 10], [SINGLE BEST]).
+- **Specifics**: Only shown if non-default (e.g., [4 DRIVES], [CAP: 18], [SINGLE BEST], [STABLEFORD BASE]).
 
 ## 6. Matchplay Engine
 
@@ -162,10 +163,11 @@ The scoring engine is hardened against edge cases to ensure 100% accuracy in soc
 
 ### 9.1 Automated Unit Tests
 Core scoring logic is verified via a suite of unit tests (`test/handicap_calculation_test.dart` and `test/scoring_engine_test.dart`) covering:
-- **Texas Scramble**: WHS-compliant team weighting for 2, 3, and 4-man teams.
+- **Scramble**: WHS-compliant team weighting for 2, 3, and 4-man teams, including team handicap caps and elective underlying formats (Stroke/Stableford).
 - **Stableford**: Correct point allocation across extreme gross scores (Net Eagle to Net Double Bogey).
 - **Matchplay**: Early-victory detection (e.g., "5 & 4") and A/S (All Square) logic.
 - **4BBB**: Better-ball selection including penalty handling for unrecorded scores.
+- **Florida Scramble**: Validated shot attribution tracking and step-aside logic enforcement.
 
 ### 9.2 Manual Validation
 The **Testing Lab** (Phase 1-6) provides the secondary layer of verification by seeding high-density randomized data to stress test leaderboard UI and tie-breaking presentation.

@@ -15,9 +15,14 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
   // Specific Scramble State
   CompetitionSubtype _subtype = CompetitionSubtype.texas;
   int _teamSize = 4;
-  double _allowance = 0.1; // 10% combined is common for 4-man
+  double _allowance = 1.0; // Default: 100%
+  CompetitionFormat _underlyingFormat = CompetitionFormat.stroke;
+  int? _teamCap;
   int _minDrives = 4;
-  bool _useWHSWeighting = true;
+  TeamHandicapMethod _teamHandicapMethod = TeamHandicapMethod.whs;
+  bool _trackShotAttributions = true;
+
+  final TextEditingController _capController = TextEditingController();
 
   @override
   CompetitionFormat get format => CompetitionFormat.scramble;
@@ -26,48 +31,79 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
   void initState() {
     super.initState();
     if (widget.competition != null) {
-      _subtype = widget.competition!.rules.subtype;
-      _allowance = widget.competition!.rules.handicapAllowance;
+      final existingSubtype = widget.competition!.rules.subtype;
+      if (existingSubtype == CompetitionSubtype.texas || 
+          existingSubtype == CompetitionSubtype.florida) {
+        _subtype = existingSubtype;
+      }
+      
+      _teamSize = widget.competition!.rules.teamSize;
+      _allowance = widget.competition!.rules.handicapAllowance.clamp(0.0, 1.0);
       _minDrives = widget.competition!.rules.minDrivesPerPlayer;
-      _useWHSWeighting = widget.competition!.rules.useWHSScrambleAllowance;
-      // Team size isn't explicitly in rules, derived or stored in publishSettings? 
-      // For now we'll just track it locally or assume it's part of the event setup.
+      _teamHandicapMethod = widget.competition!.rules.teamHandicapMethod;
+      _underlyingFormat = widget.competition!.rules.underlyingFormat;
+      _teamCap = widget.competition!.rules.teamHandicapCap;
+      _trackShotAttributions = widget.competition!.rules.trackShotAttributions;
+      if (_teamCap != null) {
+        _capController.text = _teamCap.toString();
+      }
     }
   }
 
   @override
+  void dispose() {
+    _capController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget buildSpecificFields(BuildContext context) {
+    var effectiveSubtype = _subtype;
+    if (effectiveSubtype != CompetitionSubtype.texas && effectiveSubtype != CompetitionSubtype.florida) {
+      effectiveSubtype = CompetitionSubtype.texas;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _subtype != CompetitionSubtype.texas) {
+           setState(() => _subtype = CompetitionSubtype.texas);
+        }
+      });
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'TEAM CONFIGURATION'),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
+        const BoxyArtSectionTitle(title: 'SCRAMBLE CONFIGURATION'),
+        const SizedBox(height: 16),
+        Column(
+          children: [
+              // 1. Scramble Type
               BoxyArtDropdownField<CompetitionSubtype>(
-                label: 'Scramble Type',
-                value: _subtype,
+                label: 'Scramble Mode',
+                value: effectiveSubtype,
                 items: const [
                   DropdownMenuItem(value: CompetitionSubtype.texas, child: Text('Texas Scramble (Standard)')),
-                  DropdownMenuItem(value: CompetitionSubtype.florida, child: Text('Florida Scramble (Drive Out)')),
+                  DropdownMenuItem(value: CompetitionSubtype.florida, child: Text('Florida Scramble (Step-aside)')),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _subtype = val);
                 },
               ),
               const SizedBox(height: 24),
+
+              // 2. Base Form of Play
+              BoxyArtDropdownField<CompetitionFormat>(
+                label: 'Base Scoring Format',
+                value: _underlyingFormat,
+                items: const [
+                  DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Regular Stroke Play (Medal)')),
+                  DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford (Points)')),
+                ],
+                onChanged: (val) {
+                  if (val != null) setState(() => _underlyingFormat = val);
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // 3. Team Size
               BoxyArtDropdownField<int>(
                 label: 'Team Size',
                 value: _teamSize,
@@ -80,7 +116,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
                   if (val != null) {
                     setState(() {
                       _teamSize = val;
-                      // Auto-adjust typical allowance
+                      // Reset to WHS-recommended defaults when team size changes
                       if (_teamSize == 4) _allowance = 0.10;
                       if (_teamSize == 3) _allowance = 0.15;
                       if (_teamSize == 2) _allowance = 0.25; 
@@ -89,28 +125,72 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
                 },
               ),
               const SizedBox(height: 24),
-              _buildInfoCard(),
-              const SizedBox(height: 24),
-              BoxyArtFormField(
-                label: 'Minimum Drives per Player',
-                initialValue: _minDrives.toString(),
+
+              // 4. Team Handicap Cap
+               BoxyArtFormField(
+                label: 'Maximum Team Allowance (Cap)',
+                controller: _capController,
                 keyboardType: TextInputType.number,
+                hintText: 'Optional (e.g. 18)',
                 onChanged: (val) {
-                  setState(() => _minDrives = int.tryParse(val) ?? 4);
+                  setState(() {
+                    _teamCap = int.tryParse(val);
+                  });
                 },
               ),
+              const SizedBox(height: 32),
+
+              _buildInfoCard(),
+              const SizedBox(height: 32),
+              _buildShotAttributionToggle(),
               const SizedBox(height: 24),
-              _buildWHSWeightingToggle(),
+              _buildTeamHandicapMethodDropdown(),
               const SizedBox(height: 24),
-              if (!_useWHSWeighting) _buildAllowanceSlider(),
+              _buildAllowanceSlider(),
             ],
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildWHSWeightingToggle() {
+  Widget _buildTeamHandicapMethodDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtDropdownField<TeamHandicapMethod>(
+          label: 'Team Handicap Method',
+          value: _teamHandicapMethod,
+          items: const [
+            DropdownMenuItem(
+              value: TeamHandicapMethod.whs, 
+              child: Text('WHS Recommended (Weighted)'),
+            ),
+            DropdownMenuItem(
+              value: TeamHandicapMethod.average, 
+              child: Text('Average (Total ÷ Team Size)'),
+            ),
+            DropdownMenuItem(
+              value: TeamHandicapMethod.sum, 
+              child: Text('Combined Total (Sum)'),
+            ),
+          ],
+          onChanged: (val) {
+            if (val != null) setState(() => _teamHandicapMethod = val);
+          },
+        ),
+        if (_teamHandicapMethod == TeamHandicapMethod.whs)
+          const Padding(
+            padding: EdgeInsets.only(top: 8, left: 4),
+            child: Text(
+              '4-man: 25/20/15/10%  •  3-man: 30/20/10%  •  2-man: 35/15%',
+              style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildShotAttributionToggle() {
     return Row(
       children: [
         Expanded(
@@ -118,19 +198,17 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Use WHS Recommended Weighting',
+                'Track Shot Attributions',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
-              Text(
-                '4-man: 25/20/15/10% | 3-man: 30/20/10%',
-                style: TextStyle(color: Colors.grey[600], fontSize: 11),
-              ),
+              const SizedBox(height: 4),
+              Text('Enables Step-aside rules & Minimum Drive tracking', style: TextStyle(color: Colors.grey[600], fontSize: 11)),
             ],
           ),
         ),
         Switch(
-          value: _useWHSWeighting,
-          onChanged: (val) => setState(() => _useWHSWeighting = val),
+          value: _trackShotAttributions,
+          onChanged: (val) => setState(() => _trackShotAttributions = val),
           activeThumbColor: Colors.orange,
         ),
       ],
@@ -144,9 +222,8 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.03),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +231,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
           ? [
               _buildInfoRow("Tee Off", "Everyone drives; team chooses the best ball."),
               const SizedBox(height: 12),
-              _buildInfoRow("Drives", "Must use a minimum number of drives per player."),
+              _buildInfoRow("Drives", "Must use a minimum number of drives per player (e.g. 3-4 drives each)."),
               const SizedBox(height: 12),
               _buildInfoRow("Fairway", "Place within 6-12\" of the chosen spot."),
               const SizedBox(height: 12),
@@ -183,7 +260,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 110, // Widened from 80 for consistency
+          width: 90, // Reduced from 110 for tighter layout
           child: Text(
             "$label:", 
             style: TextStyle(
@@ -208,38 +285,74 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
   }
 
   Widget _buildAllowanceSlider() {
-     final isDark = Theme.of(context).brightness == Brightness.dark;
-     return Column(
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pct = (_allowance * 100).round();
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-             Text('TEAM HANDICAP ALLOWANCE', style: TextStyle(
-              fontSize: 12, 
-              fontWeight: FontWeight.bold, 
-              color: isDark ? Colors.white70 : Colors.black87
-            )),
-            Text('${(_allowance * 100).toInt()}%', style: TextStyle(
-              fontSize: 14, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.orange
-            )),
+            Text(
+              'TEAM HANDICAP ALLOWANCE',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$pct%',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: primary,
+                ),
+              ),
+            ),
           ],
         ),
-        Slider(
-          value: _allowance,
-          min: 0,
-          max: 1.0,
-          divisions: 20,
-          label: '${(_allowance * 100).toInt()}%',
-          onChanged: (val) => setState(() => _allowance = val),
-          activeColor: Colors.orange,
-          thumbColor: Colors.orange,
+        const SizedBox(height: 4),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: primary,
+            inactiveTrackColor: primary.withValues(alpha: 0.15),
+            thumbColor: primary,
+            overlayColor: primary.withValues(alpha: 0.12),
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+            valueIndicatorColor: primary,
+            valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          child: Slider(
+            value: _allowance.clamp(0.0, 1.0),
+            min: 0,
+            max: 1.0,
+            divisions: 20, // 5% steps
+            label: '$pct%',
+            onChanged: (val) => setState(() => _allowance = val),
+          ),
         ),
-         const Text(
-          "Percentage of combined team handicap", 
-          style: TextStyle(color: Colors.grey, fontSize: 11),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+            Text(
+              'Applied to combined team course handicap',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+          ],
         ),
       ],
     );
@@ -251,11 +364,16 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       format: CompetitionFormat.scramble,
       subtype: _subtype,
       mode: CompetitionMode.teams,
+      teamSize: _teamSize,
       handicapAllowance: _allowance,
       holeByHoleRequired: true,
-      aggregation: AggregationMethod.totalSum, // Scramble is total strokes (net)
+      aggregation: AggregationMethod.totalSum, 
       minDrivesPerPlayer: _minDrives,
-      useWHSScrambleAllowance: _useWHSWeighting,
+      useWHSScrambleAllowance: _teamHandicapMethod == TeamHandicapMethod.whs,
+      teamHandicapMethod: _teamHandicapMethod,
+      underlyingFormat: _underlyingFormat,
+      teamHandicapCap: _teamCap,
+      trackShotAttributions: _trackShotAttributions,
     );
   }
 }

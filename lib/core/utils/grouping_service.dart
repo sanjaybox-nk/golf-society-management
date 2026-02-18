@@ -182,21 +182,64 @@ class GroupingService {
         }
       }
     }
+    
+    // [NEW] Foursomes Balanced Pairing
+    // If Foursomes and strategy is balanced, we pair up the "singles" (High + Low)
+    final isFoursomes = rules?.subtype == CompetitionSubtype.foursomes;
+    if (isFoursomes && strategy == 'balanced') {
+      final singles = slots.where((s) => s.players.length == 1).toList();
+      if (singles.length >= 2) {
+        // Remove individual singles from Main Slots
+        slots.removeWhere((s) => s.players.length == 1);
+        
+        // Sort singles by handicap (Low to High)
+        singles.sort((a, b) => a.averageHandicap.compareTo(b.averageHandicap));
+        
+        // Pair them (1st + Last, 2nd + Second Last)
+        final int half = (singles.length / 2).floor();
+        for (int i = 0; i < half; i++) {
+          final low = singles[i];
+          final high = singles[singles.length - 1 - i];
+          slots.add(_TeeSlot(players: [...low.players, ...high.players]));
+        }
+        
+        // Handle odd one out if necessary (though Foursomes implies even numbers)
+        if (singles.length % 2 != 0) {
+          slots.add(singles[half]); // The middle one stays single (to be grouped later)
+        }
+      }
+    }
 
     // 3. Determine Group Sizes (x 4-balls, y 3-balls)
     final totalPlayers = golfers.length;
     int num4Balls = 0;
     int num3Balls = 0;
-
-    // Logic to distribute N into groups of 3 and 4
-    // We want to maximize 4-balls, but must use only 3 or 4.
-    // N = 4x + 3y
-    for (int y = 0; y <= totalPlayers / 3; y++) {
-      int remaining = totalPlayers - (3 * y);
-      if (remaining >= 0 && remaining % 4 == 0) {
-        num3Balls = y;
-        num4Balls = remaining ~/ 4;
-        break; 
+    
+    // [FIX] Scramble 3-Man Override
+    // If Scramble & TeamSize=3, we force ALL groups to be max 3 players (3-balls)
+    final is3ManScramble = rules?.format == CompetitionFormat.scramble && rules?.teamSize == 3;
+    
+    if (is3ManScramble) {
+       // Force 3-balls
+       // e.g. 10 players -> 3, 3, 3, 1 (Wait... 1 is not valid)
+       // Standard logic: N = 3 groups.
+       num3Balls = (totalPlayers / 3).ceil(); 
+       num4Balls = 0;
+       // Note: This might leave the last group with 1 or 2 players if not divisible by 3.
+       // Refinement: If 10 players, we want 3 groups: 4, 3, 3? NO, strict 3-man means we can't have 4.
+       // So 3, 3, 3, 1 is the only math way. 
+       // Admin will have to deal with the remainder manually.
+    } else {
+      // Standard Logic to distribute N into groups of 3 and 4
+      // We want to maximize 4-balls, but must use only 3 or 4.
+      // N = 4x + 3y
+      for (int y = 0; y <= totalPlayers / 3; y++) {
+        int remaining = totalPlayers - (3 * y);
+        if (remaining >= 0 && remaining % 4 == 0) {
+          num3Balls = y;
+          num4Balls = remaining ~/ 4;
+          break; 
+        }
       }
     }
 

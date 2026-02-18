@@ -6,15 +6,16 @@ import 'dart:convert';
 // Mock Provider for the current logged-in user
 final currentUserProvider = Provider<Member>((ref) {
   return const Member(
-    id: 'user_123',
+    id: 'demo_hero_sanjay',
     firstName: 'Sanjay',
     lastName: 'Patel',
-    email: 'sanjay.patel@example.com',
-    handicap: 14.2,
-    handicapId: '1234567890',
+    email: 'sanjay.patel@demo.com',
+    handicap: 14.5,
+    handicapId: 'WHS888888',
     role: MemberRole.superAdmin,
     hasPaid: true,
-    bio: 'Golf enthusiast looking to break 80 this season.',
+    bio: 'The Creator. Loves a tech-infused round of golf.',
+    gender: 'Male', // [NEW] Ensure gender matches seeding
   );
 });
 

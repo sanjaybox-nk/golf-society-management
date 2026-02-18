@@ -36,6 +36,7 @@ abstract class Scorecard with _$Scorecard {
     @Default([]) List<int?> holeScores,
     @Default([]) List<int?> playerVerifierScores,
     String? markerId,
+    @Default({}) Map<int, String?> shotAttributions, // [NEW] Hole index -> Member ID of chosen shot (for Florida)
     int? grossTotal,
     int? netTotal,
     int? points,

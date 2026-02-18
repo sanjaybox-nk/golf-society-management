@@ -5,7 +5,7 @@ class CompetitionRuleTranslator {
     final List<String> parts = [];
 
     // 1. Core Format & Mode
-    final String modeStr = rules.mode == CompetitionMode.singles ? 'individual' : 'team';
+    final String modeStr = rules.effectiveMode == CompetitionMode.singles ? 'individual' : 'team';
     
     switch (rules.format) {
       case CompetitionFormat.stableford:

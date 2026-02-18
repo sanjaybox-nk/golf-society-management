@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../../models/golf_event.dart';
+import '../../../../../models/member.dart';
 import '../../../../../models/scorecard.dart';
 import '../../../../../models/event_registration.dart';
 import '../../../../competitions/presentation/competitions_provider.dart';
@@ -13,11 +14,13 @@ import '../../../../events/presentation/widgets/scorecard_modal.dart';
 class AdminScorecardList extends ConsumerWidget {
   final GolfEvent event;
   final List<Scorecard> scorecards;
+  final List<Member> membersList;
 
   const AdminScorecardList({
     super.key,
     required this.event,
     required this.scorecards,
+    this.membersList = const [],
   });
 
   @override
@@ -86,6 +89,7 @@ class AdminScorecardList extends ConsumerWidget {
                 scorecards: scorecards, 
                 event: event, 
                 comp: comp,
+                membersList: membersList,
                 isAdmin: true,
               );
             },

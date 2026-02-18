@@ -1,0 +1,16 @@
+Analyzing Golf Society Management...                            
+
+   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:620:36 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:621:41 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:622:41 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/core/services/demo_seeding_service.dart:623:24 • curly_braces_in_flow_control_structures
+   info • Unnecessary 'this.' qualifier • lib/features/competitions/presentation/widgets/leaderboard_widget.dart:309:39 • unnecessary_this
+   info • Don't invoke 'print' in production code • lib/features/events/logic/event_analysis_engine.dart:355:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/events/logic/event_analysis_engine.dart:357:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/events/logic/event_analysis_engine.dart:358:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/events/logic/event_analysis_engine.dart:374:17 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/events/logic/event_analysis_engine.dart:380:20 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/events/presentation/tabs/event_stats_tab.dart:54:5 • avoid_print
+warning • The '!' will have no effect because the receiver can't be null • lib/features/events/presentation/tabs/event_user_placeholders.dart:660:119 • unnecessary_non_null_assertion
+warning • Unused import: '../../../../core/utils/tie_breaker_logic.dart' • lib/features/events/presentation/widgets/grouping_widgets.dart:9:8 • unused_import
+

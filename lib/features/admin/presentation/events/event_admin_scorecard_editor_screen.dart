@@ -120,6 +120,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         targetEntryId: playerId,
                         isSelfMarking: true, 
                         isAdmin: true, // Master Key for Admins
+                        onTabChanged: (_) {}, // Admins don't switch tabs in this view usually
                       ),
                     ],
                   );
