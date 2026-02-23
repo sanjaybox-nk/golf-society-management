@@ -29,12 +29,10 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     
     // Adaptive parameters
-    final isCompact = screenWidth < 420;
-    final horizontalMargin = screenWidth < 400 ? 8.0 : 16.0;
-    final itemPadding = items.length > 4 ? (isCompact ? 6.0 : 10.0) : 16.0;
 
     return Container(
-      margin: EdgeInsets.fromLTRB(horizontalMargin, 0, horizontalMargin, 20),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      height: 72, // Slightly tighter height
       decoration: BoxDecoration(
         color: backgroundColor ?? (isDark 
             ? Colors.black.withValues(alpha: 0.7) 
@@ -56,61 +54,82 @@ class BoxyArtBottomNavBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: items.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final isSelected = selectedIndex == index;
-
-                // Calculate foreground color for contrast
-                final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.7) ?? 
-                    (isDark ? Colors.white60 : Colors.black45);
-
-                return Flexible(
-                  child: GestureDetector(
-                    onTap: () => onItemSelected(index),
-                    behavior: HitTestBehavior.opaque,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutCubic,
-                      padding: EdgeInsets.symmetric(horizontal: itemPadding, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? primaryColor : Colors.transparent,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isSelected ? item.activeIcon : item.icon,
-                            color: isSelected ? Colors.white : unselectedItemColor,
-                            size: 24,
-                          ),
-                          if (!isSelected && !isCompact) ...[
-                            const SizedBox(height: 2),
+          child: Stack(
+            children: [
+              // Sliding Indicator (Circle behind icon)
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment(
+                  (items.length > 1) ? (selectedIndex / (items.length - 1)) * 2 - 1 : 0,
+                  -0.5,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (screenWidth - 32) / (items.length * 2) - 21,
+                  ),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+                
+                // Tab Items
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: items.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    final isSelected = selectedIndex == index;
+                    final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.7) ?? 
+                        (isDark ? Colors.white60 : Colors.black45);
+  
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => onItemSelected(index),
+                        behavior: HitTestBehavior.opaque,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 6),
+                            Icon(
+                              isSelected ? item.activeIcon : item.icon,
+                              color: isSelected ? Colors.white : unselectedItemColor,
+                              size: 22,
+                            ),
+                            const SizedBox(height: 6),
                             Text(
                               item.label,
                               style: TextStyle(
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: unselectedItemColor,
+                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                color: isSelected ? primaryColor : unselectedItemColor,
+                                letterSpacing: 0.1,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
-        ),
       ),
     );
   }

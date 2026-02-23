@@ -30,9 +30,9 @@ class HandicapCalculator {
 
     if (useWhs) {
        // WHS Formula: Index * (Slope / 113) + (Rating - Par)
-       final slope = _parseValue(courseConfig['slope'] ?? 113);
-       final rating = _parseValue(courseConfig['rating'] ?? 72);
-       final par = _parseValue(courseConfig['par'] ?? 72);
+       final slope = parseValue(courseConfig['slope'] ?? 113);
+       final rating = parseValue(courseConfig['rating'] ?? 72);
+       final par = parseValue(courseConfig['par'] ?? 72);
 
        courseHandicap = baseHandicap * (slope / 113) + (rating - par);
     }
@@ -47,7 +47,7 @@ class HandicapCalculator {
     // This is primarily for Medal play to normalize everyone to a single rating/par benchmark.
     // [UPDATED] Now gated by rule setting (default OFF).
     if (useWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {
-      final rating = _parseValue(courseConfig['rating'] ?? 72);
+      final rating = parseValue(courseConfig['rating'] ?? 72);
       final adjustment = (rating - baseRating).round();
       rounded += adjustment;
     }
@@ -147,15 +147,15 @@ class HandicapCalculator {
     required int grossScore,
     required Map<String, dynamic> courseConfig,
   }) {
-    final slope = _parseValue(courseConfig['slope'] ?? 113);
-    final rating = _parseValue(courseConfig['rating'] ?? 72);
+    final slope = parseValue(courseConfig['slope'] ?? 113);
+    final rating = parseValue(courseConfig['rating'] ?? 72);
     
     // Differential = (113 / Slope) * (Gross Score - Rating)
     if (slope == 0) return 0.0;
     return (113 / slope) * (grossScore - rating);
   }
 
-  static double _parseValue(dynamic val) {
+  static double parseValue(dynamic val) {
     if (val is num) return val.toDouble();
     if (val is String) return double.tryParse(val) ?? 0.0;
     return 0.0;

@@ -132,6 +132,12 @@ A variation of Stableford scoring where points are awarded based on the raw scor
 **Max Score**
 A stroke-play format with a scoring cap per hole (e.g., Par + 5 or a fixed value like 10). This prevents a single "blow-up" hole from ruining a player's entire round and speeds up play.
 
+**Female Tee Position**
+An explicit configuration at the event level that defines which set of tees (e.g., "Red") female players should use. This ensures gender parity in scoring and handicap calculations.
+
+**Explicit Tee Mapping**
+The system logic that prioritizes individual player gender and assigned tee positions (Men's Default vs. Female Tee) to resolve the correct Par, SI, and Course Rating data for every scorecard and leaderboard calculation.
+
 **Scoring Force Active**
 An admin-level override that allows scoring to be enabled for an event before its official scheduled date. Useful for early starts or testing.
 

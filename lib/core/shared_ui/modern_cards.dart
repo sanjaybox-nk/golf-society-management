@@ -1236,11 +1236,11 @@ class ModernSubTabBar extends StatelessWidget {
                     (isDark ? Colors.white60 : Colors.black45);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
-      height: 64,
+      margin: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+      height: 72, // Increased height for outside labels
       decoration: BoxDecoration(
         color: (isDark ? Colors.grey.shade900 : Colors.white).withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(36),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
@@ -1254,27 +1254,29 @@ class ModernSubTabBar extends StatelessWidget {
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(36),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Stack(
             children: [
-              // Travelling Indicator
+              // Travelling Indicator (Now a small circle)
               AnimatedAlign(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.elasticOut,
                 alignment: Alignment(
-                  (selectedIndex / (items.length - 1)) * 2 - 1,
-                  0,
+                  (items.length > 1) ? (selectedIndex / (items.length - 1)) * 2 - 1 : 0,
+                  -0.5, // Shift up slightly more
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (MediaQuery.of(context).size.width - 48) / (items.length * 2) - 20,
+                  ),
                   child: Container(
-                    width: (MediaQuery.of(context).size.width - 60) / items.length,
-                    height: 52,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: primary,
-                      borderRadius: BorderRadius.circular(26),
+                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: primary.withValues(alpha: 0.3),
@@ -1301,19 +1303,20 @@ class ModernSubTabBar extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          const SizedBox(height: 6), // Tighten top
                           Icon(
                             isSelected ? item.activeIcon : item.icon,
                             color: isSelected ? Colors.white : unselectedItemColor,
-                            size: 22,
+                            size: 20,
                           ),
                           if (items.length <= 5) ...[
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 6),
                             Text(
                               item.label,
                               style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                color: isSelected ? Colors.white : unselectedItemColor,
+                                fontSize: 10,
+                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                color: isSelected ? primary : unselectedItemColor,
                                 letterSpacing: 0.1,
                               ),
                               maxLines: 1,

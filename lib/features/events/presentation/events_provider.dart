@@ -88,7 +88,13 @@ final upcomingEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
   final eventsAsync = ref.watch(eventsProvider);
   return eventsAsync.whenData((events) {
     final now = DateTime.now();
-    final upcoming = events.where((e) => e.date.isAfter(now)).toList();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    final upcoming = events.where((e) {
+      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
+      return eventDate.isAtSameMomentAs(today) || eventDate.isAfter(today);
+    }).toList();
+    
     upcoming.sort((a, b) => a.date.compareTo(b.date));
     return upcoming;
   });
@@ -99,11 +105,18 @@ final pastEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
   final eventsAsync = ref.watch(eventsProvider);
   return eventsAsync.whenData((events) {
     final now = DateTime.now();
-    final past = events.where((e) => e.date.isBefore(now)).toList();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    final past = events.where((e) {
+      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
+      return eventDate.isBefore(today);
+    }).toList();
+    
     past.sort((a, b) => b.date.compareTo(a.date));
     return past;
   });
 });
+
 // Single Event Provider
 final eventProvider = StreamProvider.family<GolfEvent, String>((ref, id) {
   final repository = ref.watch(eventsRepositoryProvider);

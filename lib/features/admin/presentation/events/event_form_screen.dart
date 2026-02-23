@@ -16,9 +16,10 @@ import '../../../../core/services/storage_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/theme_controller.dart';
-import '../../../../models/competition.dart'; // Added
-import '../../../competitions/presentation/competitions_provider.dart'; // Added
+import '../../../competitions/presentation/competitions_provider.dart';
+import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 import '../../../../models/course.dart';
+import '../../../../models/competition.dart';
 import '../../../courses/presentation/courses_provider.dart';
 
 
@@ -118,6 +119,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late FocusNode _slopeFocusNode;
   late FocusNode _ratingFocusNode;
   String? _selectedTeeName;
+  String? _selectedFemaleTeeName;
   String? _mensTeeName;
   String? _ladiesTeeName;
   List<TeeConfig> _availableTees = [];
@@ -167,6 +169,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _slopeFocusNode = FocusNode();
     _ratingFocusNode = FocusNode();
     _selectedTeeName = null;
+    _selectedFemaleTeeName = null;
     _mensTeeName = null;
     _ladiesTeeName = null;
     _availableTees = [];
@@ -276,6 +279,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       _slopeFocusNode = FocusNode();
       _ratingFocusNode = FocusNode();
       _selectedTeeName = e.selectedTeeName;
+      _selectedFemaleTeeName = e.selectedFemaleTeeName;
       _mensTeeName = e.courseConfig['mensTeeName']?.toString();
       _ladiesTeeName = e.courseConfig['ladiesTeeName']?.toString();
     if (_facilitiesControllers.isEmpty) _facilitiesControllers.add(TextEditingController());
@@ -944,6 +948,16 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
+                        BoxyArtDropdownField<String>(
+                          label: 'Female Tee Position',
+                          value: _selectedFemaleTeeName,
+                          items: _availableTees.map((t) => DropdownMenuItem(
+                            value: t.name,
+                            child: Text(t.name),
+                          )).toList(),
+                          onChanged: (val) => setState(() => _selectedFemaleTeeName = val),
+                        ),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
@@ -976,6 +990,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           label: 'Tee Position (Manual)',
                           controller: TextEditingController(text: _selectedTeeName),
                           onChanged: (val) => _selectedTeeName = val,
+                        ),
+                        const SizedBox(height: 16),
+                        BoxyArtFormField(
+                          label: 'Female Tee Position (Manual)',
+                          controller: TextEditingController(text: _selectedFemaleTeeName),
+                          onChanged: (val) => _selectedFemaleTeeName = val,
                         ),
                       const SizedBox(height: 16),
                       BoxyArtFormField(
@@ -1078,103 +1098,76 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                     Expanded(
                                       child: InkWell(
                                         onTap: () async {
-                                          final result = await context.push<String>('/admin/events/competitions/new');
-                                          if (result != null) {
-                                            setState(() {
-                                              _selectedTemplateId = result;
-                                              _isCustomized = false;
-                                              _eventCompetition = null;
-                                            });
-                                          }
+                                           String? eventId = _editingEvent?.id ?? widget.event?.id;
+                                           if (eventId != null) {
+                                               context.push('/admin/events/competitions/edit/$eventId');
+                                           }
                                         },
-                                        child: Row(
+                                        child: Column(
                                           children: [
-                                            CircleAvatar(
-                                              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                              child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    (_isCustomized && _eventCompetition?.name != null && _eventCompetition!.name!.isNotEmpty)
-                                                        ? _eventCompetition!.name!.toUpperCase()
-                                                        : (displayComp.name?.toUpperCase() ?? displayComp.rules.gameName),
-                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Wrap(
-                                                    spacing: 8,
-                                                    runSpacing: 4,
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                                  child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
+                                                ),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      BoxyArtStatusPill(
-                                                        text: displayComp.rules.gameName,
-                                                        baseColor: Colors.black87,
+                                                      Text(
+                                                        (_isCustomized && _eventCompetition?.name != null && _eventCompetition!.name!.isNotEmpty)
+                                                            ? _eventCompetition!.name!.toUpperCase()
+                                                            : (displayComp.name?.toUpperCase() ?? displayComp.rules.gameName.toUpperCase()),
+                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                                       ),
-                                                      BoxyArtStatusPill(
-                                                        text: displayComp.rules.scoringType.toUpperCase(),
-                                                        baseColor: displayComp.rules.scoringType == 'GROSS' ? Colors.redAccent : Colors.teal,
-                                                      ),
-                                                      BoxyArtStatusPill(
-                                                        text: displayComp.rules.defaultAllowanceLabel,
-                                                        baseColor: Theme.of(context).primaryColor,
-                                                      ),
-                                                      BoxyArtStatusPill(
-                                                        text: displayComp.rules.mode.name.toUpperCase(),
-                                                        baseColor: Colors.blueGrey,
-                                                      ),
-                                                      if (displayComp.rules.minDrivesPerPlayer > 0)
-                                                        BoxyArtStatusPill(
-                                                          text: '${displayComp.rules.minDrivesPerPlayer} DRIVES',
-                                                          baseColor: Colors.orange,
-                                                        ),
-                                                      if (displayComp.rules.applyCapToIndex && displayComp.rules.format != CompetitionFormat.scramble && displayComp.rules.subtype != CompetitionSubtype.foursomes && displayComp.rules.subtype != CompetitionSubtype.fourball)
-                                                        BoxyArtStatusPill(
-                                                          text: 'CAP: ${displayComp.rules.handicapCap}',
-                                                          baseColor: Colors.deepPurple,
-                                                        ),
-                                                      if (displayComp.rules.roundsCount > 1 && displayComp.rules.aggregation != AggregationMethod.totalSum)
-                                                        BoxyArtStatusPill(
-                                                          text: displayComp.rules.aggregation.name.replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[1]}').toUpperCase(),
-                                                          baseColor: Colors.blue,
-                                                        ),
-                                                      if (displayComp.rules.tieBreak != TieBreakMethod.back9 && displayComp.rules.tieBreak != TieBreakMethod.playoff)
-                                                        BoxyArtStatusPill(
-                                                          text: 'TB: ${displayComp.rules.tieBreak.name.toUpperCase()}',
-                                                          baseColor: Colors.brown,
-                                                        ),
-                                                      if (displayComp.rules.format == CompetitionFormat.maxScore && displayComp.rules.maxScoreConfig != null)
-                                                        BoxyArtStatusPill(
-                                                          text: displayComp.rules.maxScoreConfig!.type == MaxScoreType.parPlusX 
-                                                              ? 'CAP: PAR + ${displayComp.rules.maxScoreConfig!.value}' 
-                                                              : 'CAP: ${displayComp.rules.maxScoreConfig!.value}',
-                                                          baseColor: Colors.deepOrange,
+                                                      if (_isCustomized || (displayComp.name != null && displayComp.name!.isNotEmpty))
+                                                        Text(
+                                                          displayComp.rules.gameName,
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Theme.of(context).textTheme.bodySmall?.color,
+                                                          ),
                                                         ),
                                                     ],
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () => setState(() {
+                                                    _selectedTemplateId = null;
+                                                    _isCustomized = false;
+                                                    _eventCompetition = null;
+                                                  }),
+                                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 16),
+                                            const Divider(),
+                                            const SizedBox(height: 16),
+                                            CompetitionRuleDescription(
+                                              rules: displayComp.rules,
+                                              style: const TextStyle(fontSize: 13, height: 1.4),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            CompetitionBadgeRow(
+                                              rules: displayComp.rules,
+                                              eventId: widget.event?.id ?? widget.eventId,
+                                              baseColor: Theme.of(context).primaryColor,
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    IconButton(
-                                      onPressed: () => setState(() {
-                                        _selectedTemplateId = null;
-                                        _isCustomized = false;
-                                        _eventCompetition = null;
-                                      }),
-                                      icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
-                                    ),
                                   ],
                                 ),
-                                const Divider(height: 1, indent: 56),
+                                const SizedBox(height: 16),
+                                const Divider(height: 1),
+                                const SizedBox(height: 8),
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const SizedBox(width: 56),
                                     TextButton.icon(
                                       onPressed: () async {
                                         // Ensure we have an event ID (save if needed)
@@ -1245,7 +1238,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                       icon: Icon(_isCustomized ? Icons.edit_note : Icons.tune, size: 18),
                                       label: Text(_isCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES'),
                                       style: TextButton.styleFrom(
-                                        padding: EdgeInsets.zero,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        side: BorderSide(color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                         minimumSize: const Size(0, 36),
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
@@ -1308,83 +1303,71 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                               else
                                 Column(
                                   children: [
-                                    Row(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.orange.withValues(alpha: 0.1),
-                                          child: const Icon(Icons.compare_arrows, color: Colors.orange),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text('MATCH PLAY OVERLAY', style: TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.bold)),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                (_isSecondaryCustomized && _secondaryCompetition?.name != null && _secondaryCompetition!.name!.isNotEmpty)
-                                                    ? _secondaryCompetition!.name!.toUpperCase()
-                                                    : (_secondaryCompetition?.name ?? templates.where((t) => t.id == _secondaryTemplateId).firstOrNull?.name ?? 'Match Play'),
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                              ),
-                                              if (_secondaryCompetition != null || templates.any((t) => t.id == _secondaryTemplateId)) ...[
-                                                const SizedBox(height: 8),
-                                                Consumer(
-                                                  builder: (context, ref, child) {
-                                                    final rules = _secondaryCompetition?.rules ?? templates.firstWhere((t) => t.id == _secondaryTemplateId).rules;
-                                                    return Wrap(
-                                                      spacing: 8,
-                                                      runSpacing: 4,
-                                                      children: [
-                                                        BoxyArtStatusPill(
-                                                          text: rules.gameName,
-                                                          baseColor: Colors.black87,
-                                                        ),
-                                                        BoxyArtStatusPill(
-                                                          text: rules.scoringType.toUpperCase(),
-                                                          baseColor: Colors.orangeAccent,
-                                                        ),
-                                                        BoxyArtStatusPill(
-                                                          text: rules.defaultAllowanceLabel,
-                                                          baseColor: Theme.of(context).primaryColor,
-                                                        ),
-                                                        BoxyArtStatusPill(
-                                                          text: rules.mode.name.toUpperCase(),
-                                                          baseColor: Colors.blueGrey,
-                                                        ),
-                                                        if (rules.applyCapToIndex && rules.format != CompetitionFormat.scramble && rules.subtype != CompetitionSubtype.foursomes && rules.subtype != CompetitionSubtype.fourball)
-                                                          BoxyArtStatusPill(
-                                                            text: 'CAP: ${rules.handicapCap}',
-                                                            baseColor: Colors.deepPurple,
-                                                          ),
-                                                        if (rules.tieBreak != TieBreakMethod.back9 && rules.tieBreak != TieBreakMethod.playoff)
-                                                          BoxyArtStatusPill(
-                                                            text: 'TB: ${rules.tieBreak.name.toUpperCase()}',
-                                                            baseColor: Colors.brown,
-                                                          ),
-                                                      ],
-                                                    );
-                                                  }
+                                        Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                                                  child: const Icon(Icons.compare_arrows, color: Colors.orange),
+                                                ),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Text('MATCH PLAY OVERLAY', style: TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.bold)),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        (_isSecondaryCustomized && _secondaryCompetition?.name != null && _secondaryCompetition!.name!.isNotEmpty)
+                                                            ? _secondaryCompetition!.name!.toUpperCase()
+                                                            : (_secondaryCompetition?.name?.toUpperCase() ?? templates.where((t) => t.id == _secondaryTemplateId).firstOrNull?.name?.toUpperCase() ?? 'MATCH PLAY'),
+                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () => setState(() {
+                                                    _secondaryTemplateId = null;
+                                                    _secondaryCompetition = null;
+                                                    _isSecondaryCustomized = false;
+                                                  }),
+                                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
                                                 ),
                                               ],
-                                            ],
-                                          ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            const Divider(),
+                                            const SizedBox(height: 16),
+                                            Consumer(
+                                              builder: (context, ref, child) {
+                                                final rules = _secondaryCompetition?.rules ?? templates.firstWhere((t) => t.id == _secondaryTemplateId).rules;
+                                                return Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    CompetitionRuleDescription(
+                                                      rules: rules,
+                                                      style: const TextStyle(fontSize: 13, height: 1.4),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    CompetitionBadgeRow(
+                                                      rules: rules,
+                                                      eventId: '${widget.event?.id ?? widget.eventId}_secondary',
+                                                      baseColor: Colors.orange,
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+                                            ),
+                                          ],
                                         ),
-                                        IconButton(
-                                          onPressed: () => setState(() {
-                                            _secondaryTemplateId = null;
-                                            _secondaryCompetition = null;
-                                            _isSecondaryCustomized = false;
-                                          }),
-                                          icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                    const Divider(height: 1, indent: 56),
+                                    const SizedBox(height: 16),
+                                    const Divider(height: 1),
                                     const SizedBox(height: 8),
                                     Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        const SizedBox(width: 56),
                                         TextButton.icon(
                                           onPressed: () async {
                                             String? eventId = _editingEvent?.id ?? widget.event?.id;
@@ -1434,7 +1417,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                           icon: Icon(_isSecondaryCustomized ? Icons.edit_note : Icons.tune, size: 18),
                                           label: Text(_isSecondaryCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES'),
                                           style: TextButton.styleFrom(
-                                            padding: EdgeInsets.zero,
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            side: BorderSide(color: Colors.orange.withValues(alpha: 0.2)),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                             minimumSize: const Size(0, 36),
                                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                           ),
@@ -1807,6 +1792,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       flashUpdates: _editingEvent?.flashUpdates ?? widget.event?.flashUpdates ?? [],
       courseId: _selectedCourseId,
       selectedTeeName: _selectedTeeName,
+      selectedFemaleTeeName: _selectedFemaleTeeName,
       secondaryTemplateId: _secondaryTemplateId,
       courseConfig: {
         'holes': List.generate(18, (i) => {

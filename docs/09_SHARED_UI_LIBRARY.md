@@ -30,10 +30,11 @@ Refined `ElevatedButton` wrapper used in modernized screens.
 ## 2. Inputs (`inputs.dart`)
 
 ### `BoxyArtFormField`
-Standard text input with pill shape and soft shadow.
-- `label`: Field label.
+Standard text input with modernized branding.
+- `label`: Primary-themed, capitalized label for a premium look.
 - `controller`: TextEditingController.
 - `validator`: Form validation.
+- `decoration`: Subtle primary-colored background tint for high-end aesthetic.
 - `maxLines`: (Default 1) Supports multi-line input.
 - `focusNode`: Optional FocusNode for external control (e.g. Autocomplete).
 
@@ -104,6 +105,9 @@ The core widget for event participation management. Used in both Member and Admi
 - **Modes**:
   - **Display Only**: Regular list view for members.
   - **Interactive (Admin)**: Allows toggling of Paid/Golf/Buggy/Dinner statuses via direct icon clicks.
+- **Lifecycle Visibility**:
+  - **Member View**: Automatically hides for non-registrants after the deadline.
+  - **Global**: Automatically hides for everyone once the event status is `InPlay` or `Completed` to prioritize scoring.
 - **Indicators**:
   - **Status Pill**: Shows Confirmed, Reserved, etc.
   - **Position Badge**: Shows FCFS list position.
@@ -205,6 +209,12 @@ A premium floating bar for Save/Cancel actions.
   - `isLoading`: Shows spinner on save button.
   - `isVisible`: For animated entry/exit.
 
+## 7. Administrative Visual Harmony
+All administrative configuration forms follow a refined layout rhythm:
+- **Vertical Spacing**: Reduced excessive 64px gaps to 24-32px to keep primary actions within context.
+- **Button Styling**: Primary configuration actions (e.g., "CUSTOMIZE RULES") are centered, bordered, and padded for a professional, tool-like feel.
+- **Consistent Tints**: Section-specific cards (like Match Play overlays) use secondary brand colors (Orange) for clear visual separation.
+
 ## Usage
 Import everything via:
 ```dart
@@ -233,7 +243,9 @@ Used in the `RichStatsTab` to provide deep analysis of society and personal perf
 - `BounceBackStatCard`: Comparative stat for recovery rate.
 - `HoleScoreCard`: Standalone card for a single hole's detail. Features +/- controls (Active Mode) or Read-Only display. Consistent across scoring and summaries.
 - `CourseInfoCard`: Provides a real-time summary of the course (Par, Slopes, Tees) and the player's performance vs. their PHC (Playing Handicap).
-- `HoleByHoleScoringWidget`: The core engine for scorecard entry. Features an interactive hole swiper and "Active Marker" mode. Fully standardized across Admin and User views for 1:1 visual parity.
+- `HoleByHoleScoringWidget`: The core engine for scorecard entry on the grid. Features an interactive "Tactical Handle" with a persistent marker toggle and swipe-up gesture to launch the Hero scoring view. Fully standardized across Admin and User views.
+- `HeroScoringScreen`: A premium, full-screen interactive "Drawer" for intuitive one-handed hole-by-hole scoring. Features gesture-based navigation (swipe down to dismiss, swipe left/right for holes) and dynamic styling based on the active marker mode.
+- `ModernScoringView`: The core UI utilized by the `HeroScoringScreen`. Features a horizontal Hole Ribbon, a glassmorphic Hero Card with a tactical background map, and a large tactile numeric keypad designed for rapid entry.
 
 ## 8. Standings & Performance Widgets
 *Premium widgets for seasonal competition tracking.*

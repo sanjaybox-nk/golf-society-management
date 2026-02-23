@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
 import '../../../../../models/golf_event.dart';
 import '../../../../../models/member.dart';
@@ -65,14 +66,19 @@ class AdminScorecardList extends ConsumerWidget {
             onTap: () {
               final id = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
               final comp = compAsync.value;
+              final member = membersList.firstWhereOrNull((m) => m.id == reg.memberId);
               final double baseHcp = reg.isGuest 
                 ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
-                : 18.0; 
+                : (member?.handicap ?? 18.0); 
               
+              final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
+              final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+
               final phc = HandicapCalculator.calculatePlayingHandicap(
                 handicapIndex: baseHcp,
                 rules: comp?.rules ?? const CompetitionRules(),
-                courseConfig: event.courseConfig,
+                courseConfig: playerTeeConfig,
+                baseRating: baseRating,
               );
 
               ScorecardModal.show(
@@ -168,14 +174,20 @@ class AdminScorecardList extends ConsumerWidget {
                 // Handicap column
                 compAsync.when(
                   data: (comp) {
+                    final member = membersList.firstWhereOrNull((m) => m.id == reg.memberId);
                     final double baseHcp = reg.isGuest 
                       ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
-                      : 18.0; 
+                      : (member?.handicap ?? 18.0); 
                     
+                    final id = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+                    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
+                    final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+
                     final phc = HandicapCalculator.calculatePlayingHandicap(
                       handicapIndex: baseHcp,
                       rules: comp?.rules ?? const CompetitionRules(),
-                      courseConfig: event.courseConfig,
+                      courseConfig: playerTeeConfig,
+                      baseRating: baseRating,
                     );
                     
                     return Column(
@@ -262,6 +274,46 @@ class AdminScorecardList extends ConsumerWidget {
     } catch (_) {
       return null;
     }
+  }
+
+  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
+    final tees = event.courseConfig['tees'] as List?;
+    if (tees == null || tees.isEmpty) return event.courseConfig;
+
+    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
+    final gender = member?.gender?.toLowerCase() ?? 'male';
+    
+    Map<String, dynamic>? selectedTee;
+    if (gender == 'female') {
+       if (event.selectedFemaleTeeName != null) {
+         selectedTee = (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+         ) as Map<String, dynamic>?);
+       }
+       selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+         (t['name'] ?? '').toString().toLowerCase().contains('female')
+       ) as Map<String, dynamic>?);
+    }
+    
+    selectedTee ??= (tees.firstWhereOrNull((t) => 
+       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
+    ) as Map<String, dynamic>?);
+
+    selectedTee ??= (tees.first as Map<String, dynamic>);
+
+    return {
+       ...event.courseConfig,
+       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
+       'rating': selectedTee['rating'] ?? 72.0,
+       'slope': selectedTee['slope'] ?? 113,
+       'holes': List.generate(18, (i) => {
+          'hole': i + 1,
+          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
+          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
+       }),
+    };
   }
 
   Widget _buildStatusPill(BuildContext context, bool isSubmitted) {

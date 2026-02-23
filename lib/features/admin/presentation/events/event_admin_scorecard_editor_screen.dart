@@ -11,9 +11,11 @@ import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/widgets/course_info_card.dart';
 import '../../../events/presentation/widgets/hole_by_hole_scoring_widget.dart';
 import '../../../../core/theme/theme_controller.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../../models/competition.dart';
 import '../../../../core/utils/handicap_calculator.dart';
+import '../../../members/presentation/members_provider.dart';
+import '../../../../models/member.dart';
+import '../../../../models/competition.dart';
+import '../../../competitions/presentation/competitions_provider.dart';
 
 class EventAdminScorecardEditorScreen extends ConsumerWidget {
   final String eventId;
@@ -31,6 +33,8 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     final scorecardAsync = ref.watch(scorecardByEntryIdProvider((competitionId: eventId, entryId: playerId)));
     final config = ref.watch(themeControllerProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
+    final membersAsync = ref.watch(allMembersProvider);
+    final members = membersAsync.value ?? [];
 
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
@@ -56,10 +60,15 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                     ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
                     : (reg.handicap ?? 18.0); 
                     
+                  final playerTeeConfig = _resolvePlayerCourseConfig(reg.memberId, event, members);
+                  final playerTeeName = (members.firstWhereOrNull((m) => m.id == reg.memberId)?.gender?.toLowerCase() == 'female')
+                      ? (event.selectedFemaleTeeName ?? 'Red')
+                      : (event.selectedTeeName ?? 'Yellow');
+
                   final int phc = HandicapCalculator.calculatePlayingHandicap(
                     handicapIndex: baseHcp,
-                    rules: comp?.rules ?? const CompetitionRules(),
-                    courseConfig: event.courseConfig,
+                    rules: comp?.rules ?? CompetitionRules(),
+                    courseConfig: playerTeeConfig,
                   );
 
                   return Column(
@@ -104,8 +113,8 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         ),
                       ),
                       CourseInfoCard(
-                        courseConfig: event.courseConfig,
-                        selectedTeeName: event.selectedTeeName,
+                        courseConfig: playerTeeConfig,
+                        selectedTeeName: playerTeeName,
                         distanceUnit: config.distanceUnit,
                         isStableford: isStableford,
                         playerHandicap: phc,
@@ -120,6 +129,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         targetEntryId: playerId,
                         isSelfMarking: true, 
                         isAdmin: true, // Master Key for Admins
+                        selectedTab: MarkerTab.player,
                         onTabChanged: (_) {}, // Admins don't switch tabs in this view usually
                       ),
                     ],
@@ -150,5 +160,45 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
 
   String _formatHcp(double hcp) {
     return hcp.truncateToDouble() == hcp ? hcp.toInt().toString() : hcp.toStringAsFixed(1);
+  }
+
+  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
+    final tees = event.courseConfig['tees'] as List?;
+    if (tees == null || tees.isEmpty) return event.courseConfig;
+
+    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
+    final gender = member?.gender?.toLowerCase() ?? 'male';
+    
+    Map<String, dynamic>? selectedTee;
+    if (gender == 'female') {
+       if (event.selectedFemaleTeeName != null) {
+         selectedTee = (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+         ) as Map<String, dynamic>?);
+       }
+       selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+         (t['name'] ?? '').toString().toLowerCase().contains('female')
+       ) as Map<String, dynamic>?);
+    }
+    
+    selectedTee ??= (tees.firstWhereOrNull((t) => 
+       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
+    ) as Map<String, dynamic>?);
+
+    selectedTee ??= (tees.first as Map<String, dynamic>);
+
+    return {
+       ...event.courseConfig,
+       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
+       'rating': selectedTee['rating'] ?? 72.0,
+       'slope': selectedTee['slope'] ?? 113,
+       'holes': List.generate(18, (i) => {
+          'hole': i + 1,
+          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
+          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
+       }),
+    };
   }
 }

@@ -16,9 +16,9 @@ class CompetitionRuleTranslator {
         break;
       case CompetitionFormat.matchPlay:
         if (rules.subtype == CompetitionSubtype.fourball) {
-          parts.add('A fourball match play competition where teams of two play their own ball and the best score counts for the side.');
+          parts.add('A fourball match play competition where pairs of partners play their own ball and the best score counts for the side.');
         } else if (rules.subtype == CompetitionSubtype.foursomes) {
-          parts.add('A foursomes match play competition where teams of two play alternate shots.');
+          parts.add('A foursomes match play competition where pairs of partners play alternate shots.');
         } else if (rules.subtype == CompetitionSubtype.ryderCup) {
           parts.add('A Ryder Cup style team competition where matches between sides contribute to an overall team points total.');
         } else if (rules.subtype == CompetitionSubtype.teamMatchPlay) {

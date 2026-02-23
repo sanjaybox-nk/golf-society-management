@@ -255,9 +255,9 @@ class _EventCard extends ConsumerWidget {
                   ],
                 ),
                 
-                // Game Type Pill
+                // Game Type Badge
                 const SizedBox(height: 8),
-                _buildGameTypePill(context, ref),
+                _buildGameTypeBadge(context, ref),
               ],
             ),
           ),
@@ -342,17 +342,15 @@ class _EventCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildGameTypePill(BuildContext context, WidgetRef ref) {
+  Widget _buildGameTypeBadge(BuildContext context, WidgetRef ref) {
     final compAsync = ref.watch(competitionDetailProvider(event.id));
 
     return compAsync.when(
       data: (comp) {
         if (comp == null) return const SizedBox.shrink();
 
-        final gameName = comp.rules.gameName;
-        final theme = Theme.of(context);
-        final color = theme.colorScheme.primary;
-
+        final color = Theme.of(context).primaryColor;
+        
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
@@ -361,7 +359,7 @@ class _EventCard extends ConsumerWidget {
             border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
           ),
           child: Text(
-            gameName,
+            comp.rules.gameName.toUpperCase(),
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.bold,
@@ -372,8 +370,9 @@ class _EventCard extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, stack) => const SizedBox.shrink(),
+      error: (err, stack) => const SizedBox.shrink(),
     );
   }
 }
+
 

@@ -8,11 +8,16 @@ import '../../../../models/member.dart';
 import '../../../../models/event_registration.dart';
 import '../../../../core/utils/handicap_calculator.dart';
 import '../../../../core/utils/grouping_service.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
+import '../../../../core/utils/scoring_calculator.dart';
+// removed unused society_config
 
-class EventLeaderboard extends ConsumerWidget {
+import '../../../matchplay/domain/match_definition.dart';
+import '../../../matchplay/domain/match_play_calculator.dart';
+
+class EventLeaderboard extends ConsumerStatefulWidget {
   final GolfEvent event;
   final Competition? comp;
   final List<Scorecard> liveScorecards;
@@ -33,16 +38,21 @@ class EventLeaderboard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EventLeaderboard> createState() => _EventLeaderboardState();
+}
+
+class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
+  @override
+  Widget build(BuildContext context) {
     // 1. Resolve effective rules/format
     final formatOverride = ref.watch(gameFormatOverrideProvider);
     final maxTypeOverride = ref.watch(maxScoreTypeOverrideProvider);
     final maxValueOverride = ref.watch(maxScoreValueOverrideProvider);
     final simulationHoles = ref.watch(simulationHoleCountOverrideProvider);
 
-    final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
+    final currentFormat = formatOverride ?? (widget.comp?.rules.format ?? CompetitionFormat.stableford);
     
-    CompetitionRules effectiveRules = comp?.rules ?? const CompetitionRules();
+    CompetitionRules effectiveRules = widget.comp?.rules ?? const CompetitionRules();
     if (formatOverride != null) {
       effectiveRules = effectiveRules.copyWith(format: formatOverride);
     }
@@ -65,9 +75,9 @@ class EventLeaderboard extends ConsumerWidget {
        LeaderboardEntry(entryId: 'm2', playerName: 'PLAYER TWO', score: 34, handicap: 15),
     ];
 
-    final sourceResults = event.results.isNotEmpty 
-        ? event.results 
-        : (liveScorecards.isEmpty ? mockEntries.map((e) => {
+    final sourceResults = widget.event.results.isNotEmpty 
+        ? widget.event.results 
+        : (widget.liveScorecards.isEmpty ? mockEntries.map((e) => {
             'memberId': e.entryId,
             'playerName': e.playerName,
             'handicap': e.handicap,
@@ -80,7 +90,7 @@ class EventLeaderboard extends ConsumerWidget {
       mergedData[id] = {'type': 'seeded', 'data': r};
     }
     
-    for (var s in liveScorecards) {
+    for (var s in widget.liveScorecards) {
       mergedData[s.entryId] = {'type': 'live', 'data': s};
     }
 
@@ -88,11 +98,24 @@ class EventLeaderboard extends ConsumerWidget {
     final List<LeaderboardEntry> finalEntries = [];
     
     // [FIX] Scramble/Team Leaderboard Logic
+    int getGroupIndex(String regId) {
+       final groupsData = widget.event.grouping['groups'] as List?;
+       if (groupsData != null) {
+          for (var g in groupsData) {
+          final group = TeeGroup.fromJson(g as Map<String, dynamic>);
+          if (group.players.any((p) => (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) == regId)) {
+             return group.index;
+          }
+       }
+       }
+       return 999;
+    }
+
     final isTeamCompetition = effectiveRules.effectiveMode == CompetitionMode.teams || 
                              effectiveRules.effectiveMode == CompetitionMode.pairs;
     
     if (isTeamCompetition) {
-       final groupsData = event.grouping['groups'] as List?;
+       final groupsData = widget.event.grouping['groups'] as List?;
        if (groupsData != null) {
           final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
           
@@ -104,10 +127,11 @@ class EventLeaderboard extends ConsumerWidget {
                 if (pairA.isNotEmpty && pairA.any((p) => mergedData.containsKey(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId))) {
                   finalEntries.add(_buildTeamEntry(
                     teamPlayers: pairA,
-                    event: event,
+                    teamIndex: group.index, // [NEW] Pass group index
+                    event: widget.event,
                     mergedData: mergedData,
                     effectiveRules: effectiveRules,
-                    membersList: membersList,
+                    membersList: widget.membersList,
                     currentFormat: currentFormat,
                     holeLimit: simulationHoles,
                   ));
@@ -118,10 +142,11 @@ class EventLeaderboard extends ConsumerWidget {
                 if (pairB.isNotEmpty && pairB.any((p) => mergedData.containsKey(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId))) {
                    finalEntries.add(_buildTeamEntry(
                     teamPlayers: pairB,
-                    event: event,
+                    teamIndex: group.index, // [NEW] Pass group index
+                    event: widget.event,
                     mergedData: mergedData,
                     effectiveRules: effectiveRules,
-                    membersList: membersList,
+                    membersList: widget.membersList,
                     currentFormat: currentFormat,
                     holeLimit: simulationHoles,
                   ));
@@ -132,20 +157,21 @@ class EventLeaderboard extends ConsumerWidget {
                if (team.isNotEmpty) {
                   finalEntries.add(_buildTeamEntry(
                     teamPlayers: team,
-                    event: event,
+                    teamIndex: group.index, // [NEW] Pass group index
+                    event: widget.event,
                     mergedData: mergedData,
                     effectiveRules: effectiveRules,
-                    membersList: membersList,
+                    membersList: widget.membersList,
                     currentFormat: currentFormat,
                     holeLimit: simulationHoles,
                   ));
                }
-             }
+              }
           }
        }
     } else {
       // Individual Leaderboard
-      for (var reg in event.registrations) {
+      for (var reg in widget.event.registrations) {
         if (!reg.attendingGolf) continue;
         
         final id = reg.memberId;
@@ -157,11 +183,12 @@ class EventLeaderboard extends ConsumerWidget {
             id: regId,
             reg: reg,
             source: mergedData[regId]!,
-            event: event,
+            event: widget.event,
             effectiveRules: effectiveRules,
-            membersList: membersList,
+            membersList: widget.membersList,
             currentFormat: currentFormat,
-            holeLimit: playerHoleLimits[regId] ?? simulationHoles,
+            holeLimit: widget.playerHoleLimits[regId] ?? simulationHoles,
+            teamIndex: getGroupIndex(regId),
           ));
         }
       }
@@ -173,11 +200,12 @@ class EventLeaderboard extends ConsumerWidget {
             id: key,
             reg: EventRegistration(memberId: key, memberName: value['data']['playerName'] ?? 'Unknown', attendingGolf: true),
             source: value,
-            event: event,
+            event: widget.event,
             effectiveRules: effectiveRules,
-            membersList: membersList,
+            membersList: widget.membersList,
             currentFormat: currentFormat,
-            holeLimit: playerHoleLimits[key] ?? simulationHoles,
+            holeLimit: widget.playerHoleLimits[key] ?? simulationHoles,
+            teamIndex: getGroupIndex(key),
           ));
         });
       }
@@ -205,7 +233,15 @@ class EventLeaderboard extends ConsumerWidget {
 
     final isStableford = currentFormat == CompetitionFormat.stableford;
 
-    if (isStableford) {
+    if (currentFormat == CompetitionFormat.matchPlay) {
+      finalizedEntries.sort((a, b) {
+        int res = (a.teamIndex ?? 999).compareTo(b.teamIndex ?? 999);
+        if (res == 0) {
+          res = b.score.compareTo(a.score); // Match Play score: larger is better
+        }
+        return res;
+      });
+    } else if (isStableford) {
       finalizedEntries.sort((a, b) {
         int res = b.score.compareTo(a.score);
         if (res == 0 && effectiveRules.tieBreak != TieBreakMethod.playoff && a.tieBreakMetrics != null && b.tieBreakMetrics != null) {
@@ -235,21 +271,17 @@ class EventLeaderboard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (members.isNotEmpty) ...[
-          if (showTitles) const BoxyArtSectionTitle(title: 'MEMBERS LEADERBOARD'),
-          LeaderboardWidget(
-            entries: members, 
-            format: currentFormat,
-            onPlayerTap: onPlayerTap,
-          ),
-        ],
+        LeaderboardWidget(
+          entries: members,
+          format: currentFormat,
+          onPlayerTap: widget.onPlayerTap,
+        ),
         if (guests.isNotEmpty) ...[
-          const SizedBox(height: 32),
-          if (showTitles) const BoxyArtSectionTitle(title: 'GUEST LEADERBOARD'),
+          const SizedBox(height: 24),
           LeaderboardWidget(
-            entries: guests, 
+            entries: guests,
             format: currentFormat,
-            onPlayerTap: onPlayerTap,
+            onPlayerTap: widget.onPlayerTap,
           ),
         ],
       ],
@@ -257,25 +289,12 @@ class EventLeaderboard extends ConsumerWidget {
   }
 
   LeaderboardEntry _copyWithNoTieBreak(LeaderboardEntry e) {
-    return LeaderboardEntry(
-      entryId: e.entryId,
-      playerName: e.playerName,
-      score: e.score,
-      scoreLabel: e.scoreLabel,
-      handicap: e.handicap,
-      playingHandicap: e.playingHandicap,
-      holesPlayed: e.holesPlayed,
-      isGuest: e.isGuest,
-      secondaryPlayerName: e.secondaryPlayerName,
-      teamMemberNames: e.teamMemberNames,
-      tieBreakDetails: null,
-      adjustedGrossScore: e.adjustedGrossScore,
-      tieBreakMetrics: e.tieBreakMetrics,
-    );
+    return e.copyWith(tieBreakDetails: null);
   }
 
   LeaderboardEntry _buildTeamEntry({
     required List<TeeGroupParticipant> teamPlayers,
+    required int teamIndex, // [NEW] Accept group index
     required GolfEvent event,
     required Map<String, dynamic> mergedData,
     required CompetitionRules effectiveRules,
@@ -326,8 +345,9 @@ class EventLeaderboard extends ConsumerWidget {
         // 2. Calculate Team Best Ball Score
         int teamScore = 0;
         int maxHolesPlayed = 0;
+        int teamPar = 0; // [NEW] Track Par for holes played
         final isStableford = currentFormat == CompetitionFormat.stableford;
-        final holes = event.courseConfig['holes'] as List;
+        // Removed unused holes
   
         // Prepare individual scorecards
         final Map<String, List<int?>> pScores = {};
@@ -341,73 +361,143 @@ class EventLeaderboard extends ConsumerWidget {
                  scores = data.holeScores;
                } else if (data is Map && data['holeScores'] != null) {
                  scores = List<int?>.from(data['holeScores']);
-               } else if (data is Map && data['data'] != null && data['data']['holeScores'] != null) {
-                 scores = List<int?>.from(data['data']['holeScores']);
+               } else if (data is Map && data['data'] != null) {
+                 final inner = data['data'];
+                 if (inner is Scorecard) {
+                   scores = inner.holeScores;
+                 } else if (inner is Map && inner['holeScores'] != null) {
+                   scores = List<int?>.from(inner['holeScores']);
+                 }
                }
                pScores[id] = scores;
            }
         }
+          // 3. Compare partners hole by hole or use Best Team Card
+         // Resolve holes list for calculator
+         final rawHoles = event.courseConfig['holes'] as List? ?? [];
+         final List<Map<String, dynamic>> holesData = rawHoles.map((h) => Map<String, dynamic>.from(h)).toList();
+
+         for (int i = 0; i < 18; i++) {
+            if (holeLimit != null && i >= holeLimit) break;
+   
+            int? holeBestScore;
+            bool someValid = false;
+   
+            for (var pid in pScores.keys) {
+               final scores = pScores[pid]!;
+               if (i < scores.length && scores[i] != null) {
+                  final rawVal = scores[i]!;
+                  final phc = playerPhcs[pid] ?? 0;
+                  final si = holesData[i]['si'] as int? ?? 18;
+                  final par = holesData[i]['par'] as int? ?? 4;
+   
+                  // Calculate hole net/points
+                  final int freeShots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
+                  final net = rawVal - freeShots;
+                  final points = (par - net + 2).clamp(0, 10);
+   
+                  if (isStableford) {
+                     if (holeBestScore == null || points > holeBestScore) holeBestScore = points;
+                  } else {
+                     if (holeBestScore == null || net < holeBestScore) holeBestScore = net;
+                  }
+                  someValid = true;
+               }
+            }
+            if (someValid) {
+               teamScore += (holeBestScore ?? 0);
+               teamPar += (holesData[i]['par'] as int? ?? 4); // [NEW] Track total par
+               maxHolesPlayed = i + 1;
+            }
+         } // closing for i loop
   
-        // 3. Compare partners hole by hole
-        for (int i = 0; i < 18; i++) {
-           if (holeLimit != null && i >= holeLimit) break;
-  
-           int? holeBestScore;
-           bool someValid = false;
-  
-           for (var pid in pScores.keys) {
-              final scores = pScores[pid]!;
-              if (i < scores.length && scores[i] != null) {
-                 final rawVal = scores[i]!;
-                 final phc = playerPhcs[pid] ?? 0;
-                 final si = holes[i]['si'] as int? ?? 18;
-                 final par = holes[i]['par'] as int? ?? 4;
-  
-                 // Calculate hole net/points
-                 final strokes = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
-                 final net = rawVal - strokes;
-                 final points = (par - net + 2).clamp(0, 10);
-  
-                 if (isStableford) {
-                    if (holeBestScore == null || points > holeBestScore) holeBestScore = points;
-                 } else {
-                    if (holeBestScore == null || net < holeBestScore) holeBestScore = net;
-                 }
-                 someValid = true;
-              }
-           }
-           if (someValid) {
-              teamScore += (holeBestScore ?? 0);
-              maxHolesPlayed = i + 1;
-           }
-        }
-  
+         // [NEW] Resolve correct score and scoreLabel based on format
+         int finalScore = teamScore;
+         String? scoreLabel;
+         if (currentFormat == CompetitionFormat.matchPlay) {
+            final matchSummary = _calculateMatchPlaySummary(
+              event: event,
+              myIds: ids,
+              mergedData: mergedData,
+              membersList: membersList,
+              rules: effectiveRules,
+            );
+            finalScore = matchSummary['score'] as int;
+            scoreLabel = matchSummary['label'] as String;
+         } else if (!isStableford) {
+            final int netToPar = teamScore - teamPar;
+            finalScore = netToPar; // Stroke play leaderboard sorts by net relation to par
+            scoreLabel = netToPar == 0 ? 'E' : (netToPar > 0 ? '+$netToPar' : '$netToPar');
+         } else {
+            scoreLabel = finalScore.toString();
+         }
         return LeaderboardEntry(
            entryId: ids.join('_'),
-           playerName: names.first,
+           playerName: names.join(' / '),
            secondaryPlayerName: names.length > 1 ? names[1] : null,
-           score: teamScore,
+           teamMemberIds: ids,
+           teamMemberNames: names,
+           score: finalScore,
+           scoreLabel: scoreLabel,
            handicap: 0,
            playingHandicap: 0,
+           individualHandicaps: teamPlayers.map((p) {
+              if (p.isGuest) {
+                 final reg = event.registrations.firstWhereOrNull((r) => r.memberId == p.registrationMemberId);
+                 return double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+              }
+              final m = membersList.firstWhereOrNull((mem) => mem.id == p.registrationMemberId);
+              return m?.handicap ?? 18.0;
+           }).toList(),
+           individualPlayingHandicaps: ids.map((id) => playerPhcs[id] ?? 0).toList(),
            holesPlayed: maxHolesPlayed,
            mode: CompetitionMode.pairs,
-        );
+           // holeScores for pairs is complex (best ball), let the modal reconstruct from individual cards
+         );
      }
   
-     // SCRAMBLE LOGIC: Single Scorecard with Team Handicap
-     final teamId = ids.join('_');
-     final List<int?> teamScores = [];
-     if (mergedData.containsKey(teamId)) {
-        final data = mergedData[teamId]!;
-        if (data is Scorecard) {
-          teamScores.addAll(data.holeScores);
-        } else if (data is Map && data['data'] != null && data['data']['holeScores'] != null) {
-          teamScores.addAll(List<int?>.from(data['data']['holeScores']));
+     // SCRAMBLE LOGIC: Usually scored on one team member's card
+      final teamId = ids.join('_');
+      final seededTeamId = 'team_$teamIndex'; // [NEW] Match SeedingService pattern
+      List<int?> teamScores = [];
+      
+      // 1. Try team ID first (Scramble card)
+      // Check both Joined ID and Seeded ID
+      final entrySource = mergedData[teamId] ?? mergedData[seededTeamId];
+      if (entrySource != null) {
+         final actualData = entrySource['data'];
+         if (actualData is Scorecard) {
+           teamScores = actualData.holeScores;
+         } else if (actualData is Map && actualData['holeScores'] != null) {
+           teamScores = List<int?>.from(actualData['holeScores']);
+         }
+      }
+
+     // 2. Fallback: Try each team member (common in Scramble/Fourball)
+     if (teamScores.where((s) => s != null).isEmpty) {
+        for (var p in teamPlayers) {
+           final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+           if (mergedData.containsKey(pid)) {
+              final entryData = mergedData[pid]!;
+              final actualData = entryData['data'];
+              List<int?> scores = [];
+              
+              if (actualData is Scorecard) {
+                scores = actualData.holeScores;
+              } else if (actualData is Map && actualData['holeScores'] != null) {
+                scores = List<int?>.from(actualData['holeScores']);
+              }
+
+              if (scores.where((s) => s != null).isNotEmpty) {
+                 teamScores = scores;
+                 break;
+              }
+           }
         }
      }
   
      // Team Handicap
-     final teamIndex = teamPlayers.map((p) {
+     final teamHaps = teamPlayers.map((p) {
         if (p.isGuest) {
           final reg = event.registrations.firstWhereOrNull((r) => r.memberId == p.registrationMemberId);
           return double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
@@ -417,39 +507,45 @@ class EventLeaderboard extends ConsumerWidget {
      }).toList();
   
      final teamPHC = HandicapCalculator.calculateTeamHandicap(
-       individualIndices: teamIndex, 
+       individualIndices: teamHaps, 
        rules: effectiveRules, 
        courseConfig: event.courseConfig
      );
-  
-     int totalScore = 0;
-     int holesPlayed = 0;
-     final holes = event.courseConfig['holes'] as List;
-  
-     for (int i = 0; i < teamScores.length; i++) {
-        if (holeLimit != null && i >= holeLimit) break;
-        final score = teamScores[i];
-        if (score != null && i < holes.length) {
-           totalScore += score;
-           holesPlayed = i + 1;
-        }
-     }
-  
-     // Final Net
-     final netTotal = totalScore - teamPHC;
-     final coursePar = holes.fold<int>(0, (a, b) => a + (b['par'] as int? ?? 4));
-     final scoreToPar = netTotal - coursePar;
-  
+
+     // [NEW] Calculate 100% baseline Team Course Handicap for display (so it's not 0)
+     final teamCH = HandicapCalculator.calculateTeamHandicap(
+       individualIndices: teamHaps, 
+       rules: effectiveRules.copyWith(handicapAllowance: 1.0), 
+       courseConfig: event.courseConfig
+     );
+
+     // Use ScoringCalculator for Scramble
+     final rawHoles = event.courseConfig['holes'] as List? ?? [];
+     final List<Map<String, dynamic>> holesData = rawHoles.map((h) => Map<String, dynamic>.from(h)).toList();
+
+     final result = ScoringCalculator.calculate(
+       holeScores: teamScores, 
+       holes: holesData, 
+       playingHandicap: teamPHC.toDouble(), 
+       format: effectiveRules.format,
+       maxScoreConfig: effectiveRules.maxScoreConfig,
+     );
+   
      return LeaderboardEntry(
         entryId: teamId,
-        playerName: names.first,
+        playerName: names.join(' / '),
         teamMemberNames: names,
-        score: scoreToPar,
-        scoreLabel: scoreToPar == 0 ? 'E' : (scoreToPar > 0 ? '+$scoreToPar' : '$scoreToPar'),
-        handicap: 0,
+        teamMemberIds: ids,
+        score: result.score,
+        scoreLabel: result.label,
+        handicap: teamCH, // Show 100% Team CH instead of 0
         playingHandicap: teamPHC,
-        holesPlayed: holesPlayed,
+        individualHandicaps: teamHaps,
+        holesPlayed: result.holesPlayed,
         mode: CompetitionMode.teams,
+        adjustedGrossScore: result.adjustedGrossScore,
+        holeScores: teamScores,
+        teamIndex: teamIndex, // [NEW] Pass for group card lookup
      );
   }
 
@@ -462,6 +558,7 @@ class EventLeaderboard extends ConsumerWidget {
     required List<Member> membersList,
     required CompetitionFormat currentFormat,
     int? holeLimit,
+    int? teamIndex,
   }) {
     final data = source['data'];
     final isGuest = reg.memberId.contains('_guest') || reg.isGuest;
@@ -501,141 +598,36 @@ class EventLeaderboard extends ConsumerWidget {
       scoresToCalculate.add(rawScores[i]);
     }
     
-    final int holesPlayed = scoresToCalculate.where((sc) => sc != null).length;
-    final holes = playerTeeConfig['holes'] as List? ?? [];
+    // Removed unused holesPlayed and holes
 
-    int displayScore = 0;
-    int adjustedGrossTotal = 0;
-    String? scoreLabel;
+    // Use ScoringCalculator for individual entries
+    final rawHoles = playerTeeConfig['holes'] as List? ?? [];
+    final List<Map<String, dynamic>> holesData = rawHoles.map((h) => Map<String, dynamic>.from(h)).toList();
 
-    if (currentFormat == CompetitionFormat.stableford) {
-      int totalPoints = 0;
-      for (int i = 0; i < 18; i++) {
-         final score = i < scoresToCalculate.length ? scoresToCalculate[i] : null;
-         if (i < holes.length) {
-            final par = holes[i]['par'] as int? ?? 4;
-            final si = holes[i]['si'] as int? ?? 18;
-            final strokes = phc.round();
-            final freeShots = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
-            
-            if (score != null) {
-              final netScore = score - freeShots;
-              final points = (par - netScore + 2).clamp(0, 10);
-              totalPoints += points;
-              
-              final ndbCap = par + 2 + freeShots;
-              adjustedGrossTotal += score > ndbCap ? ndbCap : score;
-            } else {
-              // WHS Pick-up: Treat as Net Double Bogey for Adjusted Gross
-              final ndbCap = par + 2 + freeShots;
-              adjustedGrossTotal += ndbCap;
-            }
-         }
-      }
-      displayScore = totalPoints;
-      scoreLabel = displayScore.toString();
-    } else if (currentFormat == CompetitionFormat.matchPlay) {
-       int holesUp = 0;
-       for (int i = 0; i < scoresToCalculate.length; i++) {
-         final score = scoresToCalculate[i];
-         if (score != null && i < holes.length) {
-            final par = holes[i]['par'] as int? ?? 4;
-            final si = holes[i]['si'] as int? ?? 18;
-            final strokes = phc.round();
-            final freeShots = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
-            final netScore = score - freeShots;
-            if (netScore < par) {
-              holesUp++;
-            } else if (netScore > par) {
-              holesUp--;
-            }
-            
-            final ndbCap = par + 2 + freeShots;
-            adjustedGrossTotal += score > ndbCap ? ndbCap : score;
-         }
-       }
-       displayScore = holesUp;
-       if (displayScore == 0) {
-         scoreLabel = 'AS';
-       } else if (displayScore > 0) {
-         scoreLabel = '+$displayScore';
-       } else {
-         scoreLabel = '$displayScore';
-       }
-    } else {
-      int grossTotal = 0;
-      int parTotal = 0;
-      final maxScoreConfig = effectiveRules.maxScoreConfig;
-      final isStrokePlay = currentFormat == CompetitionFormat.stroke;
-
-      for (int i = 0; i < scoresToCalculate.length; i++) {
-         int? score = scoresToCalculate[i];
-         if (score != null && i < holes.length) {
-            final par = holes[i]['par'] as int? ?? 4;
-            final si = holes[i]['si'] as int? ?? 18;
-            
-            int whsScore = score;
-            
-            // WHS Cap is ALWAYS Net Double Bogey
-            final strokes = phc.round();
-            final holeStrokes = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
-            final ndbCap = par + 2 + holeStrokes;
-            if (whsScore > ndbCap) whsScore = ndbCap;
-
-            if (currentFormat == CompetitionFormat.maxScore && maxScoreConfig != null) {
-               int compCap;
-               if (maxScoreConfig.type == MaxScoreType.fixed) {
-                 compCap = maxScoreConfig.value;
-               } else if (maxScoreConfig.type == MaxScoreType.parPlusX) {
-                 compCap = par + maxScoreConfig.value;
-               } else {
-                 compCap = ndbCap;
-               }
-               if (score > compCap) score = compCap;
-            }
-            grossTotal += score;
-            adjustedGrossTotal += whsScore;
-            parTotal += par;
-         }
-      }
-      
-      if (holesPlayed > 0) {
-         if (isStrokePlay && holesPlayed < 18) {
-           displayScore = 999;
-           scoreLabel = 'NR';
-         } else {
-           final partialPhc = (phc * (holesPlayed / 18));
-           final netScore = grossTotal - partialPhc;
-           final toPar = netScore - parTotal;
-           displayScore = toPar.round();
-           if (displayScore == 0) {
-             scoreLabel = 'E';
-           } else if (displayScore > 0) {
-             scoreLabel = '+$displayScore';
-           } else {
-             scoreLabel = '$displayScore';
-           }
-         }
-      } else {
-        displayScore = 999;
-        scoreLabel = '-';
-      }
-    }
+    final result = ScoringCalculator.calculate(
+      holeScores: scoresToCalculate, 
+      holes: holesData, 
+      playingHandicap: phc.toDouble(), 
+      format: currentFormat,
+      maxScoreConfig: effectiveRules.maxScoreConfig,
+    );
 
     return LeaderboardEntry(
       entryId: id,
       playerName: isGuest ? (reg.guestName ?? 'Guest') : reg.memberName,
       secondaryPlayerName: !isGuest && reg.guestName != null ? reg.guestName : null,
-      score: displayScore,
-      scoreLabel: scoreLabel,
+      score: result.score,
+      scoreLabel: result.label,
       handicap: handicapIndex.toInt(),
       playingHandicap: phc,
-      holesPlayed: holesPlayed,
+      holesPlayed: result.holesPlayed,
       isGuest: isGuest,
       mode: CompetitionMode.singles,
-      tieBreakDetails: _calculateTieBreakDetails(scoresToCalculate, effectiveRules, event.courseConfig, phc),
-      adjustedGrossScore: adjustedGrossTotal,
-      tieBreakMetrics: _calculateTieBreakMetrics(scoresToCalculate, effectiveRules, event.courseConfig, phc),
+      tieBreakDetails: _calculateTieBreakDetails(scoresToCalculate, effectiveRules, playerTeeConfig, phc),
+      adjustedGrossScore: result.adjustedGrossScore,
+      tieBreakMetrics: _calculateTieBreakMetrics(scoresToCalculate, effectiveRules, playerTeeConfig, phc),
+      holeScores: scoresToCalculate,
+      teamIndex: teamIndex,
     );
   }
 
@@ -708,6 +700,123 @@ class EventLeaderboard extends ConsumerWidget {
     return metrics;
   }
 
+  Map<String, dynamic> _calculateMatchPlaySummary({
+    required GolfEvent event,
+    required List<String> myIds,
+    required Map<String, dynamic> mergedData,
+    required List<Member> membersList,
+    required CompetitionRules rules,
+  }) {
+      List<String>? myGroupIds;
+      final groupsData = event.grouping['groups'] as List? ?? [];
+      for (var g in groupsData) {
+          final players = g['players'] as List? ?? [];
+          final playerIds = players.map((p) {
+              final pid = p['registrationMemberId']?.toString();
+              return p['isGuest'] == true ? '${pid}_guest' : pid;
+          }).whereType<String>().toList();
+          
+          if (playerIds.any((id) => myIds.contains(id))) {
+              myGroupIds = playerIds;
+              break;
+          }
+      }
+
+      if (myGroupIds == null) return {'score': 0, 'label': 'AS'};
+      
+      final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
+      if (oppIds.isEmpty) return {'score': 0, 'label': 'AS'}; // No opponent
+
+      // 1. Build Virtual Match Definition
+      // 1. Resolve relative strokes for the match (Centralized)
+      final Map<String, double> playerIndices = {};
+      final Map<String, Map<String, dynamic>> courseConfigs = {};
+      
+      for (final pid in myGroupIds) {
+          courseConfigs[pid] = _resolvePlayerCourseConfig(pid, event, membersList);
+          final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
+          if (pid.contains('_guest')) {
+              final baseId = pid.replaceAll('_guest', '');
+              final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+              playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+          } else {
+              playerIndices[pid] = member?.handicap ?? 18.0;
+          }
+      }
+
+      final baseRating = _parseValue(event.courseConfig['rating'] ?? 72.0);
+      final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
+        playerIds: myGroupIds,
+        playerIndices: playerIndices,
+        courseConfigs: courseConfigs,
+        rules: rules,
+        baseRating: baseRating,
+      );
+
+      final virtualMatch = MatchDefinition(
+        id: 'virtual_leaderboard',
+        type: rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
+        team1Ids: myIds,
+        team2Ids: oppIds,
+        strokesReceived: strokesReceived,
+      );
+
+      // 2. Build Scorecards
+      final List<Scorecard> sourceCards = [];
+      for (var pid in myGroupIds) {
+          if (mergedData.containsKey(pid)) {
+              final data = mergedData[pid]!;
+              if (data['type'] == 'live') {
+                  sourceCards.add(data['data'] as Scorecard);
+              } else if (data['type'] == 'seeded') {
+                  sourceCards.add(Scorecard(
+                    id: 'temp_$pid',
+                    competitionId: event.id,
+                    roundId: '1',
+                    entryId: pid,
+                    submittedByUserId: 'system',
+                    status: ScorecardStatus.finalScore,
+                    holeScores: List<int?>.from(data['data']['holeScores'] ?? []),
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  ));
+              }
+          }
+      }
+
+      // 3. Calculate via Authoritative Engine
+      final result = MatchPlayCalculator.calculate(
+        match: virtualMatch,
+        scorecards: sourceCards,
+        courseConfig: event.courseConfig,
+        holesToPlay: event.courseConfig['holes']?.length ?? 18,
+      );
+
+      // 4. Map back to Leaderboard Expectation
+      String label = result.status;
+      
+      // The MatchPlayCalculator sets status like "4 & 3", but if Team 2 won, 
+      // the status implies the winner. Leaderboard needs to be relative to "myIds".
+      // If result.winningTeamIndex == 0 (myIds), they won.
+      // If result.winningTeamIndex == 1 (oppIds), they lost.
+      // If score > 0, T1 is UP. If score < 0, T1 is DN.
+
+      if (result.score == 0) {
+        label = 'AS';
+      } else if (result.score > 0) {
+        // T1 (My team) is UP
+        label = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
+      } else {
+        // T1 is DN (Opp is UP)
+        label = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
+      }
+
+      // Special case: `result.status` might just say "1 UP" etc.
+      // E.g., if +1, it says "1 UP". Wait, if it's "4 & 3", the string `label` becomes "WIN 4 & 3".
+
+      return {'score': result.score, 'label': label};
+  }
+
   Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
     // 1. If courseConfig has no tees list, just return it as is (legacy/flat)
     final tees = event.courseConfig['tees'] as List?;
@@ -722,7 +831,15 @@ class EventLeaderboard extends ConsumerWidget {
     Map<String, dynamic>? selectedTee;
     
     if (gender == 'female') {
-       selectedTee = (tees.firstWhereOrNull((t) => 
+       // A) Explicit selection priority
+       if (event.selectedFemaleTeeName != null) {
+         selectedTee = (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+         ) as Map<String, dynamic>?);
+       }
+       
+       // B) Heuristic fallback
+       selectedTee ??= (tees.firstWhereOrNull((t) => 
          (t['name'] ?? '').toString().toLowerCase().contains('red') || 
          (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
          (t['name'] ?? '').toString().toLowerCase().contains('female')

@@ -1,9 +1,38 @@
-
 import '../../../../models/scorecard.dart';
+import '../../../../models/competition.dart';
+import '../../../../core/utils/handicap_calculator.dart';
 import 'match_definition.dart';
 
 class MatchPlayCalculator {
   
+  /// Helper to calculate relative strokes (Net Match Play) for a group of players.
+  /// Standard Match Play logic: Lowest PHC plays from 0, others get the difference.
+  static Map<String, int> calculateRelativeStrokes({
+    required List<String> playerIds,
+    required Map<String, double> playerIndices,
+    required Map<String, Map<String, dynamic>> courseConfigs,
+    required CompetitionRules rules,
+    double? baseRating,
+  }) {
+    final Map<String, int> phcs = {};
+    int minPhc = 999;
+
+    for (final id in playerIds) {
+      final phc = HandicapCalculator.calculatePlayingHandicap(
+        handicapIndex: playerIndices[id] ?? 18.0,
+        rules: rules,
+        courseConfig: courseConfigs[id] ?? {},
+        baseRating: baseRating,
+      );
+      phcs[id] = phc;
+      if (phc < minPhc) minPhc = phc;
+    }
+
+    if (minPhc == 999) return phcs.map((id, phc) => MapEntry(id, 0));
+
+    return phcs.map((id, phc) => MapEntry(id, phc - minPhc));
+  }
+
   static MatchResult calculate({
     required MatchDefinition match,
     required List<Scorecard> scorecards, // Must contain cards for all participants

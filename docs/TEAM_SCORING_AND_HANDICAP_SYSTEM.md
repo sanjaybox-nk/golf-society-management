@@ -80,7 +80,9 @@ The system prioritizes "To-Par" scoring for clarity. A team's net score is calcu
 -   **Absolute Stats**: The summary row (`CourseInfoCard`) displays both the raw strokes and the relative-to-par value for maximum clarity.
 
 ### 3.3 Group Hub (`GroupingCard`)
--   **Shared Scores**: All members of a team in the group hub show the identical "Live" net score.
+-   **Scramble/Team Scores**: All members of a team in the group hub show the identical "Live" net score.
+-   **Fourball Individual Scores**: In Fourball (Pairs), each player shows their **own individual** Stableford/Stroke score, not the shared team score.
+-   **Better-Ball Footer**: The footer displays pre-computed better-ball (BB) aggregate scores per pair as colored pills — **orange** pill for Side A, **blue** pill for Side B — matching the individual score badge shape.
 -   **PHC Overrides**: Individual player tiles in a team game display the **Team PHC** rather than their personal index, reflecting the collective nature of the format.
 
 ### 3.4 Florida Scramble & Shot Attributions
@@ -99,7 +101,35 @@ The `DemoSeedingService` is hardcoded to use the same logic as the production UI
 -   This ensures that "Testing Lab" events provide 100% accurate visual representation of the scoring system.
 
 ---
-*Last Updated: February 18, 2026*
+---
+
+## 7. Fourball (Pairs) Scoring & PHC Conventions
+
+Fourball (4BBB) differs from Scramble in that each player maintains an individual scorecard, but only the "Better Ball" (best score) of the pair counts towards the team total on each hole.
+
+### 7.1 Better-Ball Aggregation
+In the **Group Scores** tab and **Leaderboard**, the system dynamically aggregates the team's score:
+- **Stableford**: Sum of the higher point value between the two partners on each hole.
+- **Stroke Play**: Sum of the lower net score (relative to par) between the two partners on each hole.
+
+### 7.2 PHC Display Conventions
+To minimize confusion between Match Play and Stableford variants:
+
+#### A. Stableford (4BBB)
+- **Individual PHCs**: Each player displays their **Full PHC** (calculated with mandated 90% allowance).
+- **Reasoning**: Stableford points are absolute. Zeroing a player would produce incorrect point totals.
+
+#### B. Match Play
+- **Relative PHCs**: Players display PHCs **relative to the lowest player** in the group (who is zeroed).
+- **Themed Display**: Handicaps are shown below names using the standard format: `HC: 14.5 • PHC: 12`, where PHC is highlighted in the primary theme color.
+- **Reasoning**: In Match Play, only the *difference* in strokes matters. This simplifies on-course tracking.
+
+### 7.3 Score Propagation (Marker vs. Player)
+To prevent "missing score" confusion:
+- The **Marker's Card** (`playerVerifierScores`) automatically falls back to displaying the **Official Card** (`holeScores`) if the marker has not yet entered their own record. This ensures a consistent "Live" view for everyone in the group.
+
+---
+*Last Updated: February 19, 2026*
 
 ---
 
@@ -111,19 +141,20 @@ Mixed-gender events require that each player's scorecard and handicap calculatio
 ### 5.2 Event Form: Persisting Tee Data
 When an admin creates or edits an event and selects a course, the system now saves:
 - `courseConfig.tees`: The full list of all available tees from the course (e.g., White, Yellow, Red).
-- `courseConfig.mensTeeName`: The admin-selected default tee for male players.
-- `courseConfig.ladiesTeeName`: The admin-selected default tee for female players.
+- `courseConfig.mensTeeName`: The default tee for male players (now defaults to **Yellow**).
+- `selectedFemaleTeeName`: The explicit mapped tee for female players (e.g., **Red**).
 
 The Event Form provides two new dropdowns ("Men's Default Tee" and "Ladies' Default Tee") that auto-populate based on common tee name conventions (e.g., "Red" → Ladies, "White" → Men's).
 
 ### 5.3 Smart Tee Resolution
-Both `EventLeaderboard` and `ScorecardModal` use the same resolution priority:
-1. **Admin-set gender default** (`mensTeeName` / `ladiesTeeName` from `courseConfig`)
-2. **Auto-detection** by tee name (Red/Lady → Ladies, White/Men → Men's)
-3. **Event baseline tee** (`event.selectedTeeName`)
-4. **First available tee** (final fallback)
+The system ensures that the scorecard and handicap math are perfectly matched to each individual's gender:
+1. **Explicit Female Tee**: Uses `selectedFemaleTeeName` for female players if set.
+2. **Admin-set gender default**: Fallback to `mensTeeName` / `ladiesTeeName` from `courseConfig`.
+3. **Auto-detection**: Heuristic search by tee name (Red/Lady → Ladies, Yellow/Men → Men's).
+4. **Event baseline tee**: `event.selectedTeeName`.
+5. **First available tee**: Final fallback.
 
-This ensures that a female member's scorecard shows Red tee Pars and SIs, and her handicap is calculated against the Red tee's Course Rating.
+This ensures that the `HoleByHoleScoringWidget` dynamically switches Par and SI values based on the player being marked.
 
 ### 5.4 Guest Indicator
 The `ScorecardModal` now displays a gold **"GUEST"** pill next to the player name for any guest participant. This is determined by the `isGuest` flag on the `LeaderboardEntry` or by the `_guest` suffix on the entry ID.

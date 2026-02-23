@@ -7,6 +7,7 @@ import 'pro_max_app_bar.dart';
 class HeadlessScaffold extends StatelessWidget {
   final String title;
   final String? subtitle;
+  final Widget? subtitleWidget;
   final Widget? titleSuffix;
   final List<Widget> slivers;
   final Widget? bottomNavigationBar;
@@ -27,6 +28,7 @@ class HeadlessScaffold extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.subtitleWidget,
     this.titleSuffix,
     required this.slivers,
     this.bottomNavigationBar,
@@ -129,7 +131,10 @@ class HeadlessScaffold extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  if (subtitleWidget != null) ...[
+                    const SizedBox(height: 6),
+                    subtitleWidget!
+                  ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
                       subtitle!,

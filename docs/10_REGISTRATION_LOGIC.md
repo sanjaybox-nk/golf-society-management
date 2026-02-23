@@ -52,7 +52,14 @@ The Registration Card dynamically adjusts to the event's state and the user's st
 | **New Member / Space Available** | "Secure your spot" | "Register Now" | Active |
 | **New Member / Event Full** | "Registration Closed" | "Event Full" | Disabled |
 | **Already Registered** | *Shows Registration Status* | "Edit My Registration" | Active |
-| **Past Deadline** | "Registration Closed" | "Registration closed" | Disabled |
+| **Past Deadline (Registered)** | "Registration Closed" | "Edit Registration" (Disabled) | Read-Only |
+| **Past Deadline (Not Reg)** | **HIDDEN** | - | Hidden |
+| **InPlay / Completed** | **HIDDEN** | - | Hidden |
+
+### Dynamic Lifecycle Visibility
+To prioritize active competition once play begins:
+- **Automatic Auto-Hide (Non-registrants)**: The registration card is entirely hidden from members who haven't registered once the registration deadline passes.
+- **Global Suppression (Live/Completed)**: Once an event is marked as `InPlay` or `Completed`, the registration card is hidden for all users (including registrants) to reclaim screen space for the interactive Leaderboard and Scorecards.
 
 ### Data Resilience
 - **Event Edits**: The system is designed to preserve all participant registrations even if an admin modifies the event's date, time, cost, or description.

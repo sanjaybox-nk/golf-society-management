@@ -17,11 +17,10 @@ Matches are played independently of society events.
 - **Manual Entry**: Players or admins enter the final result (e.g., "Won 4 & 3").
 - **Bracket Management**: The system automatically advances winners to the next `MatchplayRound`.
 
-### Layered Matches
-Matches are played *during* a regular society event.
-- **Unified Scorecard**: Players enter strokes for the society event.
-- **Derived Status**: The match status is calculated in real-time by comparing net scores hole-by-hole.
-- **Relative Handicap**: Strokes are received by the higher-handicap player based on the difference between the two opponents (usually 90% or 100% of the difference).
+### Derived Status
+The match status is calculated in real-time by comparing net scores hole-by-hole using the authoritative **`MatchPlayCalculator`** engine. This ensures absolute parity across the Hero Scoring View, Grouping Card, Leaderboard, and Scorecard Modal—preventing scoring discrepancies between different parts of the application.
+- **Universal Result Standard**: All views display the same derivation (e.g., "WIN 4 & 3", "2 UP", "DORMIE", or "A/S").
+- **Authoritative Relative Strokes**: Receiving strokes relative to the lowest player is centrally computed in `MatchPlayCalculator.calculateRelativeStrokes`.
 
 ## 3. Handicap Logic (`MatchplayHandicapCalculator`)
 

@@ -12,6 +12,7 @@ class CourseInfoCard extends StatelessWidget {
   final Color? headerColor; // [NEW] Optional override for header row background
   final CompetitionFormat? format; // [NEW] Current competition format
   final MaxScoreConfig? maxScoreConfig; // [NEW] Configuration for Max Score capping
+  final bool isNet; // [NEW] Whether to show Net scores/totals
 
   const CourseInfoCard({
     super.key,
@@ -24,12 +25,21 @@ class CourseInfoCard extends StatelessWidget {
     this.headerColor,
     this.format,
     this.maxScoreConfig,
-    this.holeLimit, // [NEW] Optional limit for simulation
-    this.additionalRows, // [NEW] For Match Play / Fourball (Multiple Rows)
+    this.holeLimit, 
+    this.additionalRows, 
+    this.mainRowLabel, 
+    this.isNet = true, 
+    this.overridePoints,
+    this.overrideTotalPoints,
+    this.matchPlayResults,
   });
 
   final int? holeLimit;
   final List<CourseScoreRow>? additionalRows;
+  final String? mainRowLabel; 
+  final List<int?>? overridePoints;
+  final int? overrideTotalPoints;
+  final List<String>? matchPlayResults; // [NEW] Optional Match Play outcome row (W, L, H)
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +64,7 @@ class CourseInfoCard extends StatelessWidget {
     // Calculate totals
     final front9Pars = holePars.take(9).fold<int>(0, (sum, par) => sum + (par as int));
     final back9Pars = holePars.skip(9).take(9).fold<int>(0, (sum, par) => sum + (par as int));
-    final totalPar = front9Pars + back9Pars;
+    final int totalPar = (front9Pars + back9Pars) > 0 ? (front9Pars + back9Pars) : 72; 
     
     // Calculate Running Stats
     int totalStrokes = 0;
@@ -105,6 +115,13 @@ class CourseInfoCard extends StatelessWidget {
             final points = (par - netScore + 2).clamp(0, 8);
             totalPoints += points;
           }
+        }
+      }
+    } else if (additionalRows != null && additionalRows!.isNotEmpty) {
+      // For team events where mainScores is null, calculate holesPlayed from individual rows
+      for (int i = 0; i < 18; i++) {
+        if (additionalRows!.any((r) => r.scores.length > i && r.scores[i] != null)) {
+          holesPlayed++;
         }
       }
     }
@@ -185,7 +202,6 @@ class CourseInfoCard extends StatelessWidget {
           // Calculate Stableford points (2 points for net par)
           final points = par - netScore + 2;
           stablefordPoints.add(points.clamp(0, 8)); // Support Higher points (Albatross etc)
-          totalPoints += stablefordPoints[i]!;
         } else {
           stablefordPoints.add(null);
         }
@@ -193,6 +209,16 @@ class CourseInfoCard extends StatelessWidget {
     } else {
       stablefordPoints = List<int?>.filled(9, null);
     }
+    
+    // Apply overrides if provided
+    if (overridePoints != null) {
+      final overrideSlice = overridePoints!.skip(startHole - 1).take(9).toList();
+      for (int i = 0; i < 9; i++) {
+        if (i < overrideSlice.length) stablefordPoints[i] = overrideSlice[i];
+      }
+    }
+
+    totalPoints = stablefordPoints.where((p) => p != null).fold<int>(0, (sum, p) => sum + (p as int));
 
     // New: Calculate Adjusted Scores for Max Score format
     List<int?> adjustedScores = [];
@@ -279,16 +305,11 @@ class CourseInfoCard extends StatelessWidget {
           ),
           const Divider(height: 1),
           
-    // Score row (user input - placeholder for now)
-          if (additionalRows != null && additionalRows!.isNotEmpty) ...[
-             // Render Additional Rows (e.g. Partner A, Partner B)
-             for (var row in additionalRows!)
-               _buildScoreRow(context, row.playerName, row.scores, startHole, pars, sis, row.handicap, color: row.color, countingHoles: row.countingHoles),
-          ] else ...[
-             // Default Single Player Row
+    // Score row (individual or team summary)
+          if (scores != null) ...[
              Row(
               children: [
-                SizedBox(width: 50, child: _buildCellLabel('Strokes', width: 50)),
+                SizedBox(width: 50, child: _buildCellLabel(mainRowLabel ?? 'Strokes', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(
                     child: _buildCell(
@@ -301,9 +322,16 @@ class CourseInfoCard extends StatelessWidget {
                           : null,
                     ),
                   ),
-                SizedBox(width: 40, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: 40, isBold: true, isScore: true)),
+                SizedBox(width: 40, child: _buildCell(context, totalScore > 0 || nineScores.any((s) => s != null) ? '$totalScore' : '-', width: 40, isBold: true, isScore: true)),
               ],
             ),
+            const Divider(height: 1),
+          ],
+
+          if (additionalRows != null && additionalRows!.isNotEmpty) ...[
+             // Render Additional Rows (e.g. Partner A, Partner B)
+             for (var row in additionalRows!)
+               _buildScoreRow(context, row.playerName, row.scores, startHole, pars, sis, row.handicap, color: row.color, countingHoles: row.countingHoles),
           ],
           
           // New: Adjusted Row
@@ -332,7 +360,43 @@ class CourseInfoCard extends StatelessWidget {
                       ),
                     );
                   })(),
-                SizedBox(width: 40, child: _buildCell(context, totalAdjusted > 0 ? '$totalAdjusted' : '-', width: 40, isBold: true, isScore: true)),
+                SizedBox(width: 40, child: _buildCell(context, totalAdjusted > 0 || adjustedScores.any((s) => s != null) ? '$totalAdjusted' : '-', width: 40, isBold: true, isScore: true)),
+              ],
+            ),
+          ],
+          
+          if (matchPlayResults != null && matchPlayResults!.isNotEmpty) ...[
+            const Divider(height: 1),
+            Row(
+              children: [
+                SizedBox(width: 50, child: _buildCellLabel('Match', width: 50)),
+                for (int i = 0; i < 9; i++)
+                  (() {
+                    final idx = startHole - 1 + i;
+                    final result = idx < matchPlayResults!.length ? matchPlayResults![idx] : '';
+                    Color? bgColor;
+                    if (result == 'W') {
+                      bgColor = Colors.green;
+                    } else if (result == 'L') {
+                      bgColor = Colors.red;
+                    } else if (result == 'H') {
+                      bgColor = Colors.grey.shade400;
+                    }
+
+                    return Expanded(
+                      child: _buildCell(
+                        context, 
+                        result.isNotEmpty ? result : '-', 
+                        width: double.infinity, 
+                        isScore: true,
+                        isBold: true,
+                        overrideBgColor: bgColor,
+                        overrideTextColor: bgColor != null ? Colors.white : Colors.grey.shade400,
+                        scoreDiff: null, 
+                      ),
+                    );
+                  })(),
+                SizedBox(width: 40, child: _buildCell(context, '', width: 40)), // No 9-hole total for Match Play text
               ],
             ),
           ],
@@ -346,7 +410,7 @@ class CourseInfoCard extends StatelessWidget {
                 SizedBox(width: 50, child: _buildCellLabel('Points', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(child: _buildCell(context, (i < stablefordPoints.length) ? (stablefordPoints[i]?.toString() ?? '-') : '-', width: double.infinity, isPoints: true)),
-                SizedBox(width: 40, child: _buildCell(context, totalPoints > 0 ? '$totalPoints' : '-', width: 40, isBold: true, isPoints: true)),
+                SizedBox(width: 40, child: _buildCell(context, totalPoints > 0 || stablefordPoints.any((p) => p != null) ? '$totalPoints' : '-', width: 40, isBold: true, isPoints: true)),
               ],
             ),
         ],
@@ -355,12 +419,13 @@ class CourseInfoCard extends StatelessWidget {
 
   Widget _buildTotalsRow(BuildContext context, int totalPar, int totalStrokes, int totalAdjusted, int totalPoints, int holesPlayed, List<dynamic> holePars, List<dynamic> holeSIs) {
     // Determine labels and totals for Strokeplay vs Stableford
-    final String strokesLabel = isStableford ? 'Strokes' : 'Gross';
+    final String strokesLabel = isStableford ? 'Strokes' : (isNet ? 'Gross' : 'Total');
     final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
     
     // Calculate Cumulative Net Strokes for Strokeplay
     int? netDifferential;
-    int parForPlayed = 0;
+    int parForPlayed = totalPar; // Default to full course par
+    int parOfHolesPlayed = 0;
 
     if (scores != null && playerHandicap != null) {
       int runningNetTotal = 0;
@@ -370,7 +435,7 @@ class CourseInfoCard extends StatelessWidget {
             final par = holePars[i] as int;
             final si = holeSIs[i] as int;
             
-            parForPlayed += par;
+            parOfHolesPlayed += par;
 
             // Calculate shots received on this hole
             int shotsReceived = (playerHandicap! / 18).floor();
@@ -380,10 +445,12 @@ class CourseInfoCard extends StatelessWidget {
         }
       }
       if (holesPlayed > 0) {
-        netDifferential = runningNetTotal - parForPlayed;
+        netDifferential = runningNetTotal - parOfHolesPlayed;
+        if (holesPlayed < 18) parForPlayed = parOfHolesPlayed;
       }
+      if (parForPlayed <= 0 && totalPar > 0) parForPlayed = totalPar;
     } else {
-      parForPlayed = totalPar;
+      parForPlayed = totalPar > 0 ? totalPar : 72;
     }
 
     return Container(
@@ -419,20 +486,21 @@ class CourseInfoCard extends StatelessWidget {
           ),
           const Spacer(),
           if (holesPlayed > 0) ...[
-            _buildTotalStat(
-              context, 
-              strokesLabel, 
-              totalStrokes, 
-              diff: totalStrokes - parForPlayed,
-            ),
+            if (totalStrokes > 0)
+              _buildTotalStat(
+                context, 
+                strokesLabel, 
+                totalStrokes, 
+                diff: totalStrokes - parForPlayed,
+              ),
             if (isMaxScore && totalAdjusted != totalStrokes) ...[
                const SizedBox(width: 12),
                _buildTotalStat(context, 'Adjusted', totalAdjusted, isHighlighted: true),
             ],
             if (isStableford) ...[
               const SizedBox(width: 12),
-              _buildTotalStat(context, 'Points', totalPoints),
-            ] else if (netDifferential != null) ...[
+              _buildTotalStat(context, 'Points', overrideTotalPoints ?? totalPoints),
+            ] else if (isNet && netDifferential != null) ...[
               const SizedBox(width: 12),
               _buildTotalStat(
                 context, 
@@ -616,7 +684,7 @@ class CourseInfoCard extends StatelessWidget {
       children: [
         Row(
            children: [
-             SizedBox(width: 50, child: _buildCellLabel(playerName, width: 50, color: color)),
+             SizedBox(width: 50, child: _buildCellLabel(handicap != null ? '$playerName ($handicap)' : playerName, width: 50, color: color)),
              for (int i = 0; i < 9; i++)
                (() {
                  final idx = startIdx + i;

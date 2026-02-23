@@ -41,16 +41,22 @@ class DemoSeedingService {
   static const lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King'];
 
   Future<void> wipeAndSeed() async {
-    // [FIX] Clear all local preferences AND explicitly reset providers
-    await ref.read(persistenceServiceProvider).clear();
-    
-    // Invalidate the master Lab Mode switch. 
-    // This will rebuild and read 'false' (null) from cleared persistence.
-    // All other overrides watch this provider, so they will also reset to null.
-    ref.invalidate(labModeEnabledProvider); 
-    
-    await _wipeAllData();
-    await seedDemoSeason();
+    try {
+      debugPrint('--- STARTING WIPE AND SEED ---');
+      await ref.read(persistenceServiceProvider).clear();
+      ref.invalidate(labModeEnabledProvider); 
+      
+      debugPrint('Wiping existing Firestore data...');
+      await _wipeAllData();
+      debugPrint('Wipe completed.');
+
+      debugPrint('Seeding new demo season...');
+      await seedDemoSeason();
+      debugPrint('--- WIPE AND SEED COMPLETED ---');
+    } catch (e, stack) {
+      debugPrint('CRITICAL SEEDER FAILURE: $e');
+      debugPrint(stack.toString());
+    }
   }
 
   Future<void> _wipeAllData() async {
@@ -133,15 +139,20 @@ class DemoSeedingService {
   }
 
   Future<void> seedDemoSeason() async {
+    debugPrint('--- STARTING SEED DEMO SEASON ---');
     // 1. Setup Season
     final seasonId = await _seedSeason();
+    debugPrint('Season Seeded: $seasonId');
 
     // 2. Seed 60 Members
+    debugPrint('Seeding 60 members...');
     await _seedMembers();
     final members = await ref.read(membersRepositoryProvider).getMembers();
+    debugPrint('Members Seeded and fetched: ${members.length}');
 
     // 3. Seed 11 Unique Courses
     final courses = await _seedCourses();
+    debugPrint('Courses Seeded: ${courses.length}');
 
     // 4. Track Society Cuts (Member ID -> Cumulative Cut)
     final Map<String, double> cumulativeCuts = {};
@@ -172,36 +183,45 @@ class DemoSeedingService {
       final config = eventPlan[i];
       final course = courses[i % courses.length];
 
-      final results = await _createFullEvent(
-        seasonId: seasonId,
-        course: course,
-        title: config.title,
-        date: config.date,
-        format: config.format,
-        isInvitational: config.isInvitational,
-        subtype: config.subtype,
-        members: members,
-        appliedCuts: Map<String, double>.from(cumulativeCuts),
-        status: config.status,
-        isMultiDay: config.isMultiDay,
-        endDate: config.endDate,
-      );
+      debugPrint('--- [${i + 1}/${eventPlan.length}] Seeding Event: ${config.title} ---');
+      
+      try {
+        final results = await _createFullEvent(
+          seasonId: seasonId,
+          course: course,
+          title: config.title,
+          date: config.date,
+          format: config.format,
+          isInvitational: config.isInvitational,
+          subtype: config.subtype,
+          members: members,
+          appliedCuts: Map<String, double>.from(cumulativeCuts),
+          status: config.status,
+          isMultiDay: config.isMultiDay,
+          endDate: config.endDate,
+        );
 
-      // Apply logic for "Winner's Cut" if not invitational
-      if (!config.isInvitational && results.isNotEmpty) {
-         // Apply cuts for next round (1st: -2.0, 2nd: -1.0, 3rd: -0.5)
-         final winners = results.take(3).toList();
-         if (winners.isNotEmpty) {
-           cumulativeCuts[winners[0]['playerId']] = (cumulativeCuts[winners[0]['playerId']] ?? 0) + 2.0;
-         }
-         if (winners.length >= 2) {
-           cumulativeCuts[winners[1]['playerId']] = (cumulativeCuts[winners[1]['playerId']] ?? 0) + 1.0;
-         }
-         if (winners.length >= 3) {
-           cumulativeCuts[winners[2]['playerId']] = (cumulativeCuts[winners[2]['playerId']] ?? 0) + 0.5;
-         }
+        if (!config.isInvitational && results.isNotEmpty) {
+           final winners = results.take(3).toList();
+           if (winners.isNotEmpty) {
+             cumulativeCuts[winners[0]['playerId']] = (cumulativeCuts[winners[0]['playerId']] ?? 0) + 2.0;
+           }
+           if (winners.length >= 2) {
+             cumulativeCuts[winners[1]['playerId']] = (cumulativeCuts[winners[1]['playerId']] ?? 0) + 1.0;
+           }
+           if (winners.length >= 3) {
+             cumulativeCuts[winners[2]['playerId']] = (cumulativeCuts[winners[2]['playerId']] ?? 0) + 0.5;
+           }
+        }
+        debugPrint('--- Finished: ${config.title} ---');
+      } catch (e, stack) {
+        debugPrint('❌ FAILED EVENT: ${config.title}');
+        debugPrint('Error: $e');
+        debugPrint('Stack: $stack');
       }
     }
+    
+    debugPrint('=== SEEDING COMPLETED SUCCESSFULLY ===');
   }
 
   Future<String> _seedSeason() async {
@@ -327,6 +347,7 @@ class DemoSeedingService {
           address: 'Golf View, Demo Town, DG1 1AA',
         ));
     }
+    debugPrint('=== WIPE COMPLETED ===');
   }
 
   Future<List<Course>> _seedCourses() async {
@@ -341,13 +362,25 @@ class DemoSeedingService {
         address: 'Golf Coast, Demo Land',
         isGlobal: false,
         tees: [
+          // Yellow Tee (Men's Standard) - Longer, Harder
           TeeConfig(
-            name: 'White',
-            rating: 70.0 + i % 5,
-            slope: 120 + (i * 3) % 40,
-            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]),
+            name: 'Yellow',
+            rating: 70.0 + i % 5, // 70.0 - 74.0
+            slope: 125 + (i * 3) % 30, // 125 - 152
+            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]), // Par 72
             holeSIs: _generateSI(),
-            yardages: List.generate(18, (h) => 150 + _random.nextInt(350)),
+            yardages: List.generate(18, (h) => 350 + _random.nextInt(200)), // Long yardages
+          ),
+          // Red Tee (Ladies' Standard) - Shorter, but relative rating might be higher against its own Par/Standard
+          // To test mixed tee adjustments: Make Red Tee have a HIGHER rating relative to Par than White?
+          // Or make Par different? Let's keep Par same but Rating different.
+          TeeConfig(
+            name: 'Red',
+            rating: 72.0 + i % 4, // 72.0 - 75.0 (Often higher relative difficulty for women on their tee vs men on theirs)
+            slope: 120 + (i * 2) % 30,
+            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]), // Same Par
+            holeSIs: _generateSI(), // Different SIs possibly?
+            yardages: List.generate(18, (h) => 280 + _random.nextInt(150)), // Shorter
           ),
         ],
       );
@@ -392,8 +425,14 @@ class DemoSeedingService {
       isInvitational: isInvitational,
       courseId: course.id,
       courseName: course.name,
-      selectedTeeName: 'White',
+      selectedTeeName: 'Yellow',
+      selectedFemaleTeeName: 'Red',
       courseConfig: {
+        'tees': course.tees.map((t) => t.toMap()).toList(), // Save full tee list
+        'mensTeeName': 'Yellow',
+        'ladiesTeeName': 'Red',
+        
+        // Legacy flat structure (fallback) - using Yellow Data
         'holes': List.generate(18, (i) => {
           'hole': i + 1,
           'par': course.tees.first.holePars[i],
@@ -423,7 +462,12 @@ class DemoSeedingService {
 
     // 1. Build Registration Matrix (Vary between 25-45 Players)
     final List<EventRegistration> regs = [];
-    final targetRegCount = 30 + _random.nextInt(15); // 30 to 45 (Slightly higher density)
+    final targetRegCount = 30 + _random.nextInt(15);
+    
+    // Determine card status for seeding
+    final cardStatus = status == EventStatus.completed 
+        ? ScorecardStatus.finalScore 
+        : ScorecardStatus.draft;
     
     // Always include Hero Member (Sanjay Patel)
     final hero = members.firstWhereOrNull((m) => m.id == 'demo_hero_sanjay');
@@ -512,12 +556,23 @@ class DemoSeedingService {
       format: format, 
       subtype: subtype, 
       handicapAllowance: subtype == CompetitionSubtype.fourball ? 0.85 : (subtype == CompetitionSubtype.foursomes ? 0.50 : 0.95),
-      mode: (format == CompetitionFormat.scramble || subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) ? CompetitionMode.teams : CompetitionMode.singles,
+      mode: (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) ? CompetitionMode.pairs : (format == CompetitionFormat.scramble ? CompetitionMode.teams : CompetitionMode.singles),
       teamSize: format == CompetitionFormat.scramble ? (2 + _random.nextInt(3)) : 4,
       underlyingFormat: format == CompetitionFormat.scramble 
           ? (_random.nextBool() ? CompetitionFormat.stroke : CompetitionFormat.stableford)
           : CompetitionFormat.stroke,
       teamHandicapCap: format == CompetitionFormat.scramble && _random.nextBool() ? 18 : null,
+      
+      // [NEW] Randomize Mixed Tee Adjustment (50% chance for singles)
+      useMixedTeeAdjustment: (format == CompetitionFormat.stroke || format == CompetitionFormat.stableford) && _random.nextBool(),
+      
+      // [NEW] Randomize Scramble Method (60% WHS, 20% Avg, 20% Sum)
+      teamHandicapMethod: format == CompetitionFormat.scramble 
+          ? (_random.nextDouble() < 0.6 ? TeamHandicapMethod.whs : (_random.nextBool() ? TeamHandicapMethod.average : TeamHandicapMethod.sum))
+          : TeamHandicapMethod.whs,
+          
+      // [NEW] Randomize Tie Break (10% Playoff)
+      tieBreak: _random.nextDouble() < 0.10 ? TieBreakMethod.playoff : TieBreakMethod.back9,
     );
 
     await compRepo.addCompetition(Competition(
@@ -590,6 +645,8 @@ class DemoSeedingService {
 
             for (var p in team) {
                final memberId = p.registrationMemberId;
+               final entryId = p.isGuest ? '${memberId}_guest' : memberId;
+                
                double index = 18.0;
                if (p.isGuest) {
                   final reg = regs.firstWhereOrNull((r) => r.memberId == memberId);
@@ -599,11 +656,30 @@ class DemoSeedingService {
                   index = member?.handicap ?? 18.0;
                }
 
+               // [NEW] Smart Tee Resolution
+               final isLadies = !p.isGuest 
+                   ? (members.firstWhereOrNull((m) => m.id == memberId)?.gender == 'Female') 
+                   : (p.name.contains('Mary') || p.name.contains('Patricia') || p.name.contains('Sarah')); // Guess gender from name or default
+                   
+               final teeName = isLadies ? 'Red' : 'Yellow';
+               final tee = course.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
+               
+               final playerConfig = {
+                 'rating': tee.rating,
+                 'slope': tee.slope,
+                 'par': tee.holePars.fold(0, (a, b) => a + b),
+                 'holes': List.generate(18, (i) => {
+                    'hole': i + 1,
+                    'par': tee.holePars[i],
+                    'si': tee.holeSIs[i],
+                 }),
+               };
+
                // Calculate PHC (85% already in rules)
                final phc = HandicapCalculator.calculatePlayingHandicap(
                   handicapIndex: index,
                   rules: rules, 
-                  courseConfig: updatedEvent.courseConfig,
+                  courseConfig: playerConfig,
                );
 
                final holeScores = <int?>[];
@@ -621,11 +697,6 @@ class DemoSeedingService {
 
                   // Random score generation (Net Par average)
                   final rand = _random.nextDouble();
-                  // [NEW] 10% chance of "Pick-up" (null score) for Hardening
-                  if (rand < 0.10) {
-                     holeScores.add(null);
-                     continue; 
-                  }
 
                   int netScore;
                   if (rand < 0.25) {
@@ -648,12 +719,12 @@ class DemoSeedingService {
                }
 
                await scoreRepo.addScorecard(Scorecard(
-                  id: 'seed_${updatedEvent.id}_$memberId',
+                  id: 'seed_${updatedEvent.id}_$entryId',
                   competitionId: updatedEvent.id,
                   roundId: '1',
-                  entryId: memberId,
+                  entryId: entryId,
                   submittedByUserId: 'system_seed',
-                  status: ScorecardStatus.finalScore,
+                  status: cardStatus,
                   holeScores: holeScores,
                   points: isInternalStableford ? pointsTotal : null,
                   // gross: grossTotal, // Removed as not in constructor
@@ -661,14 +732,111 @@ class DemoSeedingService {
                   createdAt: DateTime.now(),
                   updatedAt: DateTime.now(),
                ));
-            }
-            continue; // Ensure we skip the Team Shared Card logic below
-         }
+                results.add({
+                   'memberId': p.isGuest ? null : p.registrationMemberId, 
+                   'playerId': entryId,
+                   'playerName': p.name,
+                   'points': isInternalStableford ? pointsTotal : (grossTotal - phc.round()),
+                   'position': 0, 
+                   'netTotal': grossTotal - phc.round(),
+                   'grossTotal': grossTotal,
+                   'holeScores': holeScores,
+                   'phc': phc,
+                   'displayValue': isInternalStableford ? pointsTotal : (grossTotal - phc.round()),
+                });
+             }
+
+             // [NEW] Add a Team-level result for the combined ID (used by Leaderboard)
+             if (team.length >= 2) {
+                final teamEntryIds = team.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
+                final teamEntryId = teamEntryIds.join('_');
+                
+                // Calculate BB Points (Stableford) or BB Net (Stroke)
+                int teamBbPoints = 0;
+                int teamBbNet = 0;
+                
+                final List<Map<String, dynamic>> teamResults = results.where((r) => teamEntryIds.contains(r['playerId'])).toList();
+
+                if (teamResults.length >= 2) {
+                   final s1 = teamResults[0]['holeScores'] as List<int?>;
+                   final s2 = teamResults[1]['holeScores'] as List<int?>;
+                   final phc1 = (teamResults[0]['phc'] as num).toDouble();
+                   final phc2 = (teamResults[1]['phc'] as num).toDouble();
+                   
+                   final holes = updatedEvent.courseConfig['holes'] as List;
+                   for (int i = 0; i < holes.length; i++) {
+                      final par = (holes[i]['par'] as num).toInt();
+                      final si = (holes[i]['si'] as num).toInt();
+                      
+                      // Best Ball logic
+                      int shots1 = (phc1 / 18).floor(); if (phc1 % 18 >= si) shots1++;
+                      int shots2 = (phc2 / 18).floor(); if (phc2 % 18 >= si) shots2++;
+                      
+                      final net1 = (s1[i] ?? 10) - shots1;
+                      final net2 = (s2[i] ?? 10) - shots2;
+                      
+                      final pts1 = max(0, par - net1 + 2);
+                      final pts2 = max(0, par - net2 + 2);
+                      
+                      teamBbPoints += max(pts1, pts2);
+                      teamBbNet += min(net1, net2);
+                   }
+                   final int totalPar = holes.fold<int>(0, (total, item) => total + ((item['par'] as num).toInt()));
+                   final int netToPar = teamBbNet - totalPar;
+
+                   results.add({
+                      'memberId': 'team_${team.first.registrationMemberId}',
+                      'playerId': teamEntryId,
+                      'playerName': '${team[0].name} & ${team[1].name}',
+                      'points': teamBbPoints,
+                      'position': 0, 
+                      'netTotal': teamBbNet,
+                      'grossTotal': 0, // Not applicable for BB
+                      'holeScores': [], // Complex
+                      'phc': 0,
+                      'displayValue': isInternalStableford 
+                          ? teamBbPoints 
+                          : (netToPar == 0 ? 'E' : (netToPar > 0 ? '+$netToPar' : '$netToPar')),
+                   });
+                }
+             }
+
+             continue; // Ensure we skip the Team Shared Card logic below
+          }
 
          final List<int> teamHoleScores = [];
          int teamGross = 0;
          int teamPts = 0;
          
+         // [NEW] Resolve Team Config (Smart Tee for Singles, Default for Scramble)
+         Map<String, dynamic> activeConfig = updatedEvent.courseConfig;
+         
+         if (team.length == 1) {
+             final p = team.first;
+             final isLadies = !p.isGuest 
+                 ? (members.firstWhereOrNull((m) => m.id == p.registrationMemberId)?.gender == 'Female') 
+                 : (p.name.contains('Mary') || p.name.contains('Patricia'));
+             
+             final teeName = isLadies 
+                 ? (updatedEvent.selectedFemaleTeeName ?? 'Red') 
+                 : (updatedEvent.selectedTeeName ?? 'Yellow');
+             final tee = course.tees.firstWhere(
+               (t) => t.name.toLowerCase() == teeName.toLowerCase(), 
+               orElse: () => course.tees.first
+             );
+             
+             activeConfig = {
+               'rating': tee.rating,
+               'slope': tee.slope,
+               'par': tee.holePars.fold(0, (a, b) => a + b),
+               'holes': List.generate(18, (i) => {
+                  'hole': i + 1,
+                  'par': tee.holePars[i],
+                  'si': tee.holeSIs[i],
+               }),
+             };
+         }
+
          // Team PHC: Use the standardized calculation logic
          final teamPhc = HandicapCalculator.calculateTeamHandicap(
            individualIndices: team.map((p) {
@@ -681,7 +849,7 @@ class DemoSeedingService {
               }
            }).toList(), 
            rules: rules, 
-           courseConfig: updatedEvent.courseConfig,
+           courseConfig: activeConfig,
          ).toDouble();
 
          final cut = appliedCuts[team.first.registrationMemberId] ?? 0.0;
@@ -731,7 +899,7 @@ class DemoSeedingService {
 
          // Apply this result to all players in the team
          for (var player in team) {
-           if (status == EventStatus.completed) {
+           if (status == EventStatus.completed || status == EventStatus.inPlay || status == EventStatus.published) {
              final entryId = player.isGuest ? '${player.registrationMemberId}_guest' : player.registrationMemberId;
              
              await scoreRepo.addScorecard(Scorecard(
@@ -740,7 +908,7 @@ class DemoSeedingService {
                roundId: 'round_1',
                entryId: entryId,
                submittedByUserId: 'system_seeder',
-               status: ScorecardStatus.finalScore,
+               status: cardStatus,
                holeScores: teamHoleScores,
                shotAttributions: format == CompetitionFormat.scramble ? { for (var h in List.generate(18, (i) => i + 1)) h : team[_random.nextInt(team.length)].registrationMemberId } : {}, points: teamPts,
                grossTotal: teamGross,
@@ -748,6 +916,9 @@ class DemoSeedingService {
                createdAt: date,
                updatedAt: date,
              ));
+
+             final int totalPar = (updatedEvent.courseConfig['holes'] as List).fold<int>(0, (total, item) => total + ((item['par'] as num).toInt()));
+             final int netToPar = teamNet - totalPar;
 
              results.add({
                'memberId': player.isGuest ? null : player.registrationMemberId, 
@@ -759,9 +930,33 @@ class DemoSeedingService {
                'grossTotal': teamGross,
                'holeScores': teamHoleScores,
                'phc': playingHc,
-               'displayValue': isStableford ? teamPts : teamNet,
+               'displayValue': isStableford 
+                   ? teamPts 
+                   : (netToPar == 0 ? 'E' : (netToPar > 0 ? '+$netToPar' : '$netToPar')),
              });
            }
+         }
+
+         // [NEW] Add a Team-level result for the combined ID (used by Leaderboard)
+         if (team.length >  teamSize / 2 || mode == CompetitionMode.pairs) {
+            final teamEntryId = team.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).join('_');
+            final int totalPar = (updatedEvent.courseConfig['holes'] as List).fold<int>(0, (total, item) => total + ((item['par'] as num).toInt()));
+            final int netToPar = teamNet - totalPar;
+            
+            results.add({
+               'memberId': 'team_${team.first.registrationMemberId}', // Composite member ID fallback
+               'playerId': teamEntryId,
+               'playerName': team.length == 2 ? '${team[0].name} & ${team[1].name}' : 'Team ${team[0].name}',
+               'points': teamPts,
+               'position': 0, 
+               'netTotal': teamNet,
+               'grossTotal': teamGross,
+               'holeScores': teamHoleScores,
+               'phc': playingHc,
+               'displayValue': isStableford 
+                   ? teamPts 
+                   : (netToPar == 0 ? 'E' : (netToPar > 0 ? '+$netToPar' : '$netToPar')),
+            });
          }
       }
     }
@@ -771,14 +966,52 @@ class DemoSeedingService {
       results[i]['position'] = i + 1;
     }
 
+    final List<Map<String, dynamic>> matchDefinitions = [];
+    if (format == CompetitionFormat.matchPlay) {
+      for (var group in groups) {
+        if (group.players.length >= 2) {
+          int step = subtype == CompetitionSubtype.fourball ? 4 : 2;
+          for (int i = 0; i < group.players.length - (step - 1); i += step) {
+             if (step == 2) {
+                final p1 = group.players[i];
+                final p2 = group.players[i + 1];
+                final mId = '${updatedEvent.id}_match_${matchDefinitions.length + 1}';
+                final id1 = p1.isGuest ? '${p1.registrationMemberId}_guest' : p1.registrationMemberId;
+                final id2 = p2.isGuest ? '${p2.registrationMemberId}_guest' : p2.registrationMemberId;
+                
+                final hc1 = memberHandicaps[p1.registrationMemberId] ?? 18.0;
+                final hc2 = memberHandicaps[p2.registrationMemberId] ?? 18.0;
+                final diff = (hc1 - hc2).abs().round();
+                Map<String, int> strokes = {};
+                if (hc1 > hc2) {
+                  strokes[id1] = diff;
+                } else if (hc2 > hc1) {
+                  strokes[id2] = diff;
+                }
+                
+                matchDefinitions.add({
+                  'id': mId,
+                  'type': 'singles',
+                  'team1Ids': [id1],
+                  'team2Ids': [id2],
+                  'strokesReceived': strokes,
+                  'round': 'group',
+                });
+             }
+          }
+        }
+      }
+    }
+
     // Consolidate updates to prevent lost updates
     var finalEvent = updatedEvent.copyWith(
       grouping: {
         'groups': groups.map((g) => g.toJson()).toList(), 
         'locked': status == EventStatus.completed, 
-        'isPublished': true
+        'isPublished': true,
+        if (matchDefinitions.isNotEmpty) 'matches': matchDefinitions,
       },
-      results: status == EventStatus.completed ? results : [],
+      results: (status == EventStatus.completed || status == EventStatus.inPlay || status == EventStatus.published) ? results : [],
       isGroupingPublished: true,
       isScoringLocked: status == EventStatus.completed,
     );

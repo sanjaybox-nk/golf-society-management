@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/competition.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/features/competitions/presentation/widgets/competition_shared_widgets.dart';
 import 'package:golf_society/models/leaderboard_config.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 
@@ -153,15 +154,11 @@ class _CompetitionsSliverList extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${comp.startDate.year} • ${comp.rules.modeLabel}',
-                                  style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
+                                  CompetitionBadgeRow(
+                                    rules: comp.rules,
+                                    eventId: comp.id,
+                                    baseColor: Theme.of(context).primaryColor,
                                   ),
-                                ),
                                 const SizedBox(height: 4),
                                 Text(
                                   comp.name ?? comp.rules.format.name.toUpperCase(),

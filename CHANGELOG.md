@@ -1,8 +1,29 @@
-# Changelog
+### Design System Hardening & UI Refinement (2026-02-23)
+- **Branded Input Library**: Upgraded the `BoxyArt` input library (`lib/core/shared_ui/inputs.dart`) to use primary-themed labels and subtle branded backgrounds.
+- **Registration Lifecycle UI**: Implemented intelligent visibility rules for the registration card. It now hides automatically for non-registrants after the deadline and for everyone once the event is Live (InPlay) or Completed.
+- **Administrative Spacing Refinement**: Optimized the vertical rhythm in administrative views, including centered and bordered "CUSTOMIZE" buttons in `EventFormScreen` and reduced gaps in `BaseCompetitionControl`.
+- **Matchplay Result Consistency**: Synchronized the Hero view, Grouping Card, and Leaderboard to use the authoritative `MatchPlayCalculator`, ensuring 100% parity across all match status displays.
 
-All notable changes to the Golf Society Management (BoxyArt) project will be documented in this file.
+### Scoring Centralization & Authoritative Engines (2026-02-22)
+- **Centralized Match Play Engine**: Implemented `MatchPlayCalculator.calculateRelativeStrokes` to provide a single source of truth for Net Match Play calculations.
+- **Unified Match Parity**: Synchronized `ScorecardModal`, `GroupingCard`, and `EventLeaderboard` to use the same Match Play engine, resolving discrepancies in "holes up" statuses.
+- **Authoritative Max Score Capping**: Centralized hole-level capping logic in `ScoringCalculator.applyMaxScoreCap`, ensuring consistency across real-time entry and final reporting.
+- **Architecture Standard**: Established the **"Calculate Once, Display Everywhere"** pattern for all complex scoring domains.
+- **Static Analysis Perfected**: Achieved and maintained zero warnings across all refactored modules.
 
-## [Unreleased]
+### Explicit Female Tees & Leaderboard Refinements (2026-02-20)
+- **Explicit Female Tee Selection**: Added `selectedFemaleTeeName` to the `GolfEvent` model and Admin Form, allowing precise mapping of female tees (e.g. Red) for mixed-gender play.
+- **Dynamic Scorecard UI**: Updated `HoleByHoleScoringWidget` to dynamically resolve Par and SI values based on the gender of the player currently being marked.
+- **Themed Handicap Display**: Redesigned the Leaderboard UI to display individual handicaps below player names using a themed separator (`HC: 14.5 • PHC: 12`).
+- **Decimal HC Index Support**: Switched to `double` for individual handicaps in the leaderboard model to support WHS-standard decimal indices.
+- **Seeder Society Defaults**: Updated `DemoSeedingService` to use **Yellow** as the default men's tee and **Red** as the explicit female tee for all seeded data.
+- **Static Analysis Hardened**: Resolved all compilation errors and Freezed model synchronization issues.
+
+### Fourball Better-Ball Group Display (2026-02-19)
+- **Individual Scores**: Fourball group cards now show each player's own Stableford/Stroke score instead of a duplicated team score.
+- **Better-Ball Footer**: Footer displays pre-computed hole-by-hole better-ball aggregate per pair as colored pills (orange = Side A, blue = Side B).
+- **Pair-Level Calculation**: BB aggregates split correctly by pair (first 2 / last 2 players) using `ScoringCalculator` with individual PHCs.
+- **Seeding Fix**: Removed 10% random null "pick-up" injection from `DemoSeedingService` to ensure complete 18-hole scorecards.
 
 ### Scoring Precision & Gender Parity (2026-02-18)
 - **Mixed Tee Adjustments**: Added optional "C.R. - Par" adjustment toggle for Stroke Play and Stableford competitions, ensuring fair equity when mixed tees are in play.

@@ -42,10 +42,12 @@ We use `riverpod_generator` (`@riverpod` annotation) which auto-generates provid
     - `ref.invalidate(provider(id))` is called after a successful save to ensure subsequent loads retrieve the latest document from the repository.
 
 ## Domain Logic
-Complex business rules are encapsulated in standalone logic classes within the `domain/` folder of each feature.
-- **RegistrationLogic**: Centralized helper for calculating FCFS positions, status pills, and buggy allocations. Ensures consistency between Member and Admin apps.
-- **Scoring Calculators**: Domain-specific engines for calculating standings (OOM, Stableford, Eclectic, etc.).
-- **RegistrationItem**: A "View Model" bridge that flattens complex nested registration data for simple rendering in UI components.
+Complex business rules are encapsulated in standalone logic classes within the `domain/` folder of each feature or in `core/utils`.
+- **Centralized Scoring Engine**: The system uses authoritative calculators to ensure consistency across Scorecard, Grouping, and Leaderboard views.
+    - `MatchPlayCalculator`: Authoritative engine for Match Play (Net Match Play, Relative PHC, Fourball/Foursomes status).
+    - `ScoringCalculator`: Authoritative engine for Stroke, Stableford, and Max Score capping logic.
+    - Pattern: **Calculate Once, Display Everywhere**. Views must NOT implement their own scoring logic.
+- **RegistrationLogic**: Centralized helper for calculating FCFS positions, status pills, and buggy allocations.
 
 ## Navigation (GoRouter)
 The app uses `StatefulShellRoute` to implement the persistent bottom navigation bar.
@@ -59,7 +61,7 @@ Models are immutable and generated using `freezed`.
 -   **Extension**: `.freezed.dart` and `.g.dart` (JsonSerializable).
 -   **Key Models**:
     -   `Member`: Core user profile.
-    -   `GolfEvent`: Stores metadata for a specific competition date. Support for multi-day events via `isMultiDay` (defaults to false) and `endDate`.
+    -   `GolfEvent`: Stores metadata for a specific competition date. Support for multi-day events via `isMultiDay` (defaults to false) and `endDate`. Includes `selectedFemaleTeeName` for explicit gender-based tee mapping.
     -   `Competition`: Scoring rules, formats, and configurations.
 ## Code Quality & Hardening
 The project maintains a strict standard for code quality and reliability:

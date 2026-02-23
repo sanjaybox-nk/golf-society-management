@@ -21,10 +21,10 @@ The primary driver of the scoring logic.
 | :--- | :--- | :--- |
 | **Stableford** | None, Gross Stableford | Points based on score relative to par. |
 | **Stroke Play** | None | Traditional medal play (gross or net). |
-| **Max Score** | None | Stroke play with a cap per hole (e.g., Net Double Bogey). |
-| **Match Play** | Knockout, League | Head-to-head competition (Independent or Event-Layered). |
+| **Max Score** | None | Stroke play with a cap per hole (e.g., Net Double Bogey). The UI enforces this cap during entry. |
+| **Match Play** | Knockout, League | Head-to-head competition. Uses a consolidated calculation engine for total parity. |
 | **Scramble** | Texas, Florida | Team-based "best ball" scramble. Supports Stroke Play or Stableford as an `underlyingFormat`. |
-| **Pairs** | Fourball, Foursomes | Partner-based formats. |
+| **Pairs** | Fourball, Foursomes | Partner-based formats. Fourball shows individual scores per player with better-ball aggregate per pair in the footer. |
 
 ### Handicap & Allowances
 -   **Handicap Mode**: `WHS` (World Handicap System), `Local`, or `None`.
@@ -89,7 +89,9 @@ The event leaderboard provides a real-time view of the field with advanced prese
 All player entries on the leaderboard and admin scoring lists share a unified "Universal Parity" layout:
 - **Unified Action**: Tapping a player opens the `ScorecardModal` or the `EventAdminScorecardEditorScreen`.
 - **Mirror Layout**: The admin scorecard editor is visually identical to the member "Live" view, including:
-    - **Handicap Context**: Real-time display of the player's Index (HC) and Playing Handicap (PHC).
+    - **Handicap Context**: Real-time display of the player's Index (HC) and Playing Handicap (PHC). Handicaps use **decimal precision** (e.g., 14.5) for transparency.
+    - **Themed Layout**: Player rows on the leaderboard now feature handicaps directly below the name (e.g., `HC: 14.5 • PHC: 12`) with the PHC highlighted in the primary theme color.
+    - **Explicit Tee Support**: The UI dynamically resolves Par/SI values based on the player's gender and the event's explicit tee configuration (`selectedFemaleTeeName`).
     - **Header Sync**: Identical title and subtitle typography.
     - **Course Context**: A `CourseInfoCard` showing the tee configuration and performance summaries.
 - **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`TOTAL`, `HOLE`, `SCORES`) to create a premium, authoritative feel.
@@ -159,15 +161,30 @@ To ensure data integrity, Admin's have granular control over when scoring is ava
 | **Locked** | `isScoringLocked` | Scorecards are read-only; final positions are frozen. |
 
 ## 9. Scoring Accuracy & Verification
-The scoring engine is hardened against edge cases to ensure 100% accuracy in society results.
 
-### 9.1 Automated Unit Tests
-Core scoring logic is verified via a suite of unit tests (`test/handicap_calculation_test.dart` and `test/scoring_engine_test.dart`) covering:
-- **Scramble**: WHS-compliant team weighting for 2, 3, and 4-man teams, including team handicap caps and elective underlying formats (Stroke/Stableford).
-- **Stableford**: Correct point allocation across extreme gross scores (Net Eagle to Net Double Bogey).
-- **Matchplay**: Early-victory detection (e.g., "5 & 4") and A/S (All Square) logic.
-- **4BBB**: Better-ball selection including penalty handling for unrecorded scores.
-- **Florida Scramble**: Validated shot attribution tracking and step-aside logic enforcement.
+The scoring engine is hardened against edge cases to ensure 100% accuracy and absolute parity across all user and admin views. All competitive logic follows a **"Calculate Once, Display Everywhere"** architecture.
+
+### 9.1 Authoritative Calculators
+
+-   **`MatchPlayCalculator`**: Centralized logic for Net Match Play relative strokes and result derivation. Guaranteed status parity (e.g., "3 & 2") across the **Hero View**, **Grouping Card**, **Leaderboard**, and **Scorecard Modal**.
+-   **`ScoringCalculator`**: Centralized logic for Stableford, Stroke Play, and Max Score.
+    -   **Max Score Capping**: Authoritative capping for entry and reporting. Supported modes include `Fixed`, `Par + X`, and `WHS Net Double Bogey`.
+
+### 9.2 Universal Visual Parity
+
+Starting in Feb 2026, all competitive UI components follow a unified "Pro Max" standard:
+-   **Typography**: Functional labels (`TOTAL`, `HOLE`, `SCORES`) use `FontWeight.w900` and `letterSpacing: 2.0`.
+-   **Administrative Alignment**: Admin scorecard editors and competition configuration cards are visually synchronized with member views to ensure a cohesive mental model between players and committees.
+-   **Actionable Cards**: Competition config cards include centered, bordered customize buttons and refined vertical spacing for better visual hierarchy.
+
+### 9.3 Automated Unit Tests
+
+Core scoring logic is verified via a comprehensive test suite covering:
+-   **Scramble**: WHS team weighting for 2/3/4-man teams with optional team-level caps.
+-   **Stableford**: Point allocation across the spectrum and multi-round accumulation.
+-   **Matchplay**: Early-victory detection and relative stroke-index assignment.
+-   **4BBB**: Partner-based better-ball selection logic.
+-   **Tee Mapping**: Gender-aware tee resolution (e.g., Red for Women) for mixed field equity.
 
 ### 9.2 Manual Validation
 The **Testing Lab** (Phase 1-6) provides the secondary layer of verification by seeding high-density randomized data to stress test leaderboard UI and tie-breaking presentation.

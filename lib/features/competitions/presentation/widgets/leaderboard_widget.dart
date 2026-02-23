@@ -24,7 +24,7 @@ class LeaderboardWidget extends StatelessWidget {
         final index = item.key;
         final entry = item.value;
         final isTop3 = index < 3;
-        final isTeam = entry.mode == CompetitionMode.teams;
+        final isTeam = entry.mode == CompetitionMode.teams || entry.mode == CompetitionMode.pairs;
         
         final Color avatarColor = entry.isGuest ? Colors.orange.withValues(alpha: 0.1) : theme.primaryColor.withValues(alpha: 0.1);
         final Color textColor = entry.isGuest ? Colors.orange : theme.primaryColor;
@@ -86,38 +86,97 @@ class LeaderboardWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name(s) Rows
+                      // [REDESIGNED] Name and Handicap Rows
                       if (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty)
-                        ...entry.teamMemberNames!.map((name) => Text(
-                              name,
+                        ...Iterable.generate(entry.teamMemberNames!.length).map((i) {
+                          final name = entry.teamMemberNames![i];
+                          final bh = entry.individualHandicaps != null && i < entry.individualHandicaps!.length ? entry.individualHandicaps![i] : null;
+                          final ph = entry.individualPlayingHandicaps != null && i < entry.individualPlayingHandicaps!.length ? entry.individualPlayingHandicaps![i] : null;
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900, 
+                                    fontSize: 15,
+                                    height: 1.1,
+                                    letterSpacing: -0.4,
+                                  ),
+                                ),
+                                if (bh != null)
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'HC: ${bh.toStringAsFixed(bh % 1 == 0 ? 0 : 1)}',
+                                        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 10, fontWeight: FontWeight.w600),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text('•', style: TextStyle(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5), fontSize: 10)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'PHC: $ph',
+                                        style: TextStyle(color: theme.primaryColor, fontSize: 10, fontWeight: FontWeight.w900),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          );
+                        })
+                      else
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.playerName,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900, 
-                                fontSize: 15,
-                                height: 1.2,
+                                fontSize: 15, 
+                                height: 1.1,
                                 letterSpacing: -0.4,
                               ),
-                            ))
-                      else
-                        Text(
-                          entry.playerName + (entry.secondaryPlayerName != null ? '\n${entry.secondaryPlayerName!}' : ''),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w900, 
-                            fontSize: 15, 
-                            height: 1.2,
-                            letterSpacing: -0.4,
-                          ),
+                            ),
+                            if (entry.playingHandicap != null)
+                              Row(
+                                children: [
+                                  Text(
+                                    'HC: ${entry.handicap.toStringAsFixed(entry.handicap % 1 == 0 ? 0 : 1)}',
+                                    style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 10, fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text('•', style: TextStyle(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5), fontSize: 10)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'PHC: ${entry.playingHandicap}',
+                                    style: TextStyle(color: theme.primaryColor, fontSize: 10, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
+                          ],
                         ),
 
                       // GUEST Badge
                       if (entry.isGuest) 
-                        const Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: Text(
-                            'GUEST',
-                            style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.orange,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 2),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.orange.withValues(alpha: 0.5), width: 0.5),
+                            ),
+                            child: const Text(
+                              'G',
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.orange,
+                              ),
                             ),
                           ),
                         ),
@@ -141,42 +200,22 @@ class LeaderboardWidget extends StatelessWidget {
                           ),
                         ),
 
-                      // Metadata Row (HC, THRU)
-                      Row(
-                        children: [
-                          Text(
-                            () {
-                              final baseHc = entry.handicap;
-                              final phc = entry.playingHandicap;
-                              final label = isTeam ? "Team HC" : "HC";
-                              
-                              if (baseHc == 0 && phc != null) {
-                                return '$label: $phc';
-                              }
-                              return '$label: $baseHc${phc != null ? " ($phc)" : ""}';
-                            }(),
-                            style: TextStyle(
-                              color: theme.textTheme.bodySmall?.color, 
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                      // [REDESIGNED] Metadata Row (THRU only)
+                      if (entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'THRU ${entry.holesPlayed}',
+                              style: const TextStyle(color: Colors.blue, fontSize: 8, fontWeight: FontWeight.bold),
                             ),
                           ),
-                          if (entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                'THRU ${entry.holesPlayed}',
-                                style: const TextStyle(color: Colors.blue, fontSize: 8, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                        ),
                       if (entry.tieBreakDetails != null)
                         Text(
                           entry.tieBreakDetails!,
@@ -266,6 +305,10 @@ class LeaderboardEntry {
   final Map<int, String>? countingMemberIds; // [NEW] Hole Index -> Member ID of counting score
   final int? adjustedGrossScore; // [NEW] Capped at Net Double Bogey for WHS
   final List<int>? tieBreakMetrics; // [NEW] Pre-calculated values for sorting ties (Back 9, 6, 3, 1)
+  final List<int?>? holeScores; // [NEW] Raw scores for direct modal display
+  final int? teamIndex; // [NEW] For resolving team scorecards
+  final List<double>? individualHandicaps; // [UPDATED] Support decimals for Index
+  final List<int>? individualPlayingHandicaps;
 
   LeaderboardEntry({
     required this.entryId,
@@ -284,6 +327,10 @@ class LeaderboardEntry {
     this.countingMemberIds,
     this.adjustedGrossScore,
     this.tieBreakMetrics,
+    this.holeScores,
+    this.teamIndex,
+    this.individualHandicaps,
+    this.individualPlayingHandicaps,
   });
 
   LeaderboardEntry copyWith({
@@ -303,6 +350,10 @@ class LeaderboardEntry {
     Map<int, String>? countingMemberIds,
     int? adjustedGrossScore,
     List<int>? tieBreakMetrics,
+    List<int?>? holeScores,
+    int? teamIndex,
+    List<double>? individualHandicaps,
+    List<int>? individualPlayingHandicaps,
   }) {
     return LeaderboardEntry(
       entryId: entryId ?? this.entryId,
@@ -321,6 +372,10 @@ class LeaderboardEntry {
       countingMemberIds: countingMemberIds ?? this.countingMemberIds,
       adjustedGrossScore: adjustedGrossScore ?? this.adjustedGrossScore,
       tieBreakMetrics: tieBreakMetrics ?? this.tieBreakMetrics,
+      holeScores: holeScores ?? this.holeScores,
+      teamIndex: teamIndex ?? this.teamIndex,
+      individualHandicaps: individualHandicaps ?? this.individualHandicaps,
+      individualPlayingHandicaps: individualPlayingHandicaps ?? this.individualPlayingHandicaps,
     );
   }
 }

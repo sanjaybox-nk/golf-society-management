@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/shared_ui/badges.dart';
-import '../../../../core/shared_ui/buttons.dart';
 
 class HoleScoreCard extends StatelessWidget {
   final int holeNum;
@@ -14,6 +12,8 @@ class HoleScoreCard extends StatelessWidget {
   final bool hasConflict;
   final VoidCallback? onIncrement;
   final VoidCallback? onDecrement;
+  final VoidCallback? onNextHole;
+  final VoidCallback? onPrevHole;
   final ValueChanged<int>? onScoreChanged;
 
   const HoleScoreCard({
@@ -28,6 +28,8 @@ class HoleScoreCard extends StatelessWidget {
     this.hasConflict = false,
     this.onIncrement,
     this.onDecrement,
+    this.onNextHole,
+    this.onPrevHole,
     this.onScoreChanged,
   });
 
@@ -43,88 +45,90 @@ class HoleScoreCard extends StatelessWidget {
       child: AbsorbPointer(
         absorbing: isDisabled,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-    
-              // Center Row: Singular Input
+              // 1. Far Left: Large Hole Identifier (Full Contrast & Navigation)
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!isReadOnly) ...[
-                    _buildThemedControl(context, Icons.remove, onDecrement),
-                    const SizedBox(width: 24),
-                  ],
-                  
-                  // Score Display/Input with Metadata
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _ScoreDisplay(
-                        score: score,
-                        hasConflict: hasConflict,
-                        isReadOnly: isReadOnly || isDisabled, 
-                        onChanged: onScoreChanged,
-                      ),
-                      _buildScoreMetadata(score, par),
-                    ],
+                  IconButton(
+                    icon: Icon(Icons.chevron_left_rounded, size: 32, color: onPrevHole != null ? primaryColor : onSurface.withValues(alpha: 0.05)),
+                    onPressed: onPrevHole,
                   ),
-    
-                  if (!isReadOnly) ...[
-                    const SizedBox(width: 24),
-                    _buildThemedControl(context, Icons.add, onIncrement),
+                  Text(
+                    'H$holeNum',
+                    style: textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: onSurface, // Full solid contrast
+                      letterSpacing: -2,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.chevron_right_rounded, size: 32, color: onNextHole != null ? primaryColor : onSurface.withValues(alpha: 0.05)),
+                    onPressed: onNextHole,
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+              
+              // 2. Vertical Stack of Detail Pills (Center-Left)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildPremiumPill(context, 'PAR $par', Colors.blueGrey, width: 60),
+                  if (si != null) ...[
+                    const SizedBox(height: 4),
+                    _buildPremiumPill(context, 'SI $si', primaryColor, width: 60),
+                  ],
+                  if (maxScore != null) ...[
+                    const SizedBox(height: 4),
+                    _buildPremiumPill(context, 'MAX $maxScore', Colors.orange, width: 60),
                   ],
                 ],
               ),
-              
-              if (!isReadOnly) ...[
-                const Spacer(),
-              ],
-              
-              // Bottom Row: Hole Info
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+
+              const Spacer(),
+
+              // 3. Score Entry (Far Right) with Bolder Controls
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'HOLE $holeNum',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: onSurface.withValues(alpha: 0.4),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 1, 
-                    height: 12, 
-                    color: onSurface.withValues(alpha: 0.1)
-                  ),
-                  const SizedBox(width: 12),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      BoxyArtStatusPill(
-                        text: 'PAR $par',
-                        baseColor: Colors.grey,
-                        backgroundColorOverride: onSurface.withValues(alpha: 0.05),
+                      if (!isReadOnly)
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(Icons.keyboard_arrow_left_rounded, size: 40, color: primaryColor),
+                          onPressed: onDecrement ?? () {},
+                        ),
+                      
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _ScoreDisplay(
+                          score: score,
+                          hasConflict: hasConflict,
+                          isReadOnly: isReadOnly || isDisabled, 
+                          onChanged: onScoreChanged,
+                          size: 64, 
+                        ),
                       ),
-                      if (si != null) ...[
-                        const SizedBox(width: 6),
-                        BoxyArtStatusPill(
-                          text: 'SI $si',
-                          baseColor: primaryColor,
+        
+                      if (!isReadOnly)
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(Icons.keyboard_arrow_right_rounded, size: 40, color: primaryColor),
+                          onPressed: onIncrement ?? () {},
                         ),
-                      ],
-                      if (maxScore != null) ...[
-                        const SizedBox(width: 6),
-                        BoxyArtStatusPill(
-                          text: 'MAX $maxScore',
-                          baseColor: Colors.orange,
-                          backgroundColorOverride: Colors.orange.withValues(alpha: 0.1),
-                        ),
-                      ],
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  _buildScoreMetadata(score, par),
                 ],
               ),
             ],
@@ -134,18 +138,33 @@ class HoleScoreCard extends StatelessWidget {
     );
   }
 
-  Widget _buildThemedControl(BuildContext context, IconData icon, VoidCallback? onTap) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    return BoxyArtCircularIconBtn(
-      icon: icon,
-      onTap: onTap ?? () {},
-      backgroundColor: onSurface.withValues(alpha: 0.05),
-      iconColor: Theme.of(context).primaryColor,
-      iconSize: 24,
-      padding: 8,
-      shadowOverride: AppShadows.inputSoft, 
+  Widget _buildPremiumPill(BuildContext context, String text, Color baseColor, {double? width}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: baseColor.withValues(alpha: isDark ? 0.15 : 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: baseColor.withValues(alpha: isDark ? 0.4 : 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: baseColor == Colors.blueGrey ? (isDark ? Colors.white70 : Colors.blueGrey.shade800) : baseColor,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
+
 
   Widget _buildScoreMetadata(int score, int par) {
     final diff = score - par;
@@ -190,12 +209,14 @@ class _ScoreDisplay extends StatefulWidget {
   final bool hasConflict;
   final bool isReadOnly;
   final ValueChanged<int>? onChanged;
+  final double size;
 
   const _ScoreDisplay({
     required this.score,
     required this.hasConflict,
     required this.isReadOnly,
     this.onChanged,
+    this.size = 72,
   });
 
   @override
@@ -246,11 +267,11 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
   Widget build(BuildContext context) {
     if (widget.isReadOnly) {
        return Container(
-        width: 72,
-        height: 72,
+        width: widget.size,
+        height: widget.size,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.05),
             width: 2,
@@ -258,8 +279,8 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
           boxShadow: [
              BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
             ...AppShadows.softScale,
           ],
@@ -267,8 +288,8 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         alignment: Alignment.center,
         child: Text(
           '${widget.score}',
-          style: const TextStyle(
-            fontSize: 36,
+          style: TextStyle(
+            fontSize: widget.size * 0.5,
             fontWeight: FontWeight.w900,
             color: Colors.black,
             letterSpacing: -1,
@@ -279,11 +300,11 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: 72,
-      height: 72,
+      width: widget.size,
+      height: widget.size,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.05),
           width: 2,
@@ -291,14 +312,14 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         boxShadow: widget.hasConflict ? [
           BoxShadow(
             color: Colors.red.withValues(alpha: 0.1),
-            blurRadius: 15,
+            blurRadius: 10,
             spreadRadius: 2,
           )
         ] : [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
           ...AppShadows.softScale,
         ],
@@ -310,8 +331,8 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         textAlign: TextAlign.center,
         onSubmitted: (_) => _handleCommit(),
         textAlignVertical: TextAlignVertical.center,
-        style: const TextStyle(
-          fontSize: 36,
+        style: TextStyle(
+          fontSize: widget.size * 0.5,
           fontWeight: FontWeight.w900,
           color: Colors.black,
           letterSpacing: -1,

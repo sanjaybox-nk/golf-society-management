@@ -32,30 +32,32 @@ class BoxyArtFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 8),
+          padding: const EdgeInsets.only(left: 14, bottom: 8),
           child: Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: primary,
+              letterSpacing: 1.0,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
         Container(
           decoration: ShapeDecoration(
-            color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
+            color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white12 
-                    : const Color(0xFFE0E0E0),
+                color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -111,30 +113,32 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 8),
+          padding: const EdgeInsets.only(left: 14, bottom: 8),
           child: Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: primary,
+              letterSpacing: 1.0,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
         Container(
           decoration: ShapeDecoration(
-            color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
+            color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white12 
-                    : const Color(0xFFE0E0E0),
+                color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -186,38 +190,40 @@ class BoxyArtDatePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 8),
+          padding: const EdgeInsets.only(left: 14, bottom: 8),
           child: Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: primary,
+              letterSpacing: 1.0,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             height: 50,
             width: double.infinity,
             decoration: ShapeDecoration(
-              color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white12 
-                    : const Color(0xFFE0E0E0),
-                width: 1,
+              color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
+                  width: 1,
+                ),
               ),
-            ),
               shadows: AppShadows.inputSoft,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -228,13 +234,13 @@ class BoxyArtDatePickerField extends StatelessWidget {
                   child: Text(
                     value,
                     style: TextStyle(
-              fontSize: 14, 
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
-              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-            ),
+                      fontSize: 14, 
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    ),
                   ),
                 ),
-                const Icon(Icons.calendar_today, color: Colors.black54, size: 18),
+                Icon(Icons.calendar_today, color: isDark ? Colors.white54 : Colors.black54, size: 18),
               ],
             ),
           ),
@@ -259,15 +265,16 @@ class BoxyArtSwitchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: ShapeDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white12 
-                : const Color(0xFFE0E0E0),
+            color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -277,18 +284,19 @@ class BoxyArtSwitchField extends StatelessWidget {
         color: Colors.transparent,
         child: SwitchListTile(
           title: Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: primary,
+              letterSpacing: 1.0,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
           value: value,
           onChanged: onChanged,
-          activeThumbColor: Theme.of(context).primaryColor,
-          activeTrackColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+          activeThumbColor: primary,
+          activeTrackColor: primary.withValues(alpha: 0.2),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           visualDensity: VisualDensity.compact,
         ),
@@ -314,16 +322,17 @@ class BoxyArtSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 50,
       decoration: ShapeDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white12 
-                : const Color(0xFFE0E0E0),
+            color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -337,13 +346,13 @@ class BoxyArtSearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Colors.black54, size: 20),
+          prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.black54, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
         style: TextStyle(
           fontSize: 14, 
-          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+          color: isDark ? Colors.white : Colors.black87,
           fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
         ),
       ),

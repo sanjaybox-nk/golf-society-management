@@ -15,9 +15,9 @@ import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../../features/competitions/utils/competition_rule_translator.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../../models/member.dart';
+import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
@@ -145,11 +145,11 @@ class EventDetailsContent extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const SizedBox(height: 24),
-              _buildRegistrationCard(context),
-              const SizedBox(height: 24),
-              _buildHeroSection(context),
-              const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                _buildRegistrationCard(context),
+                const SizedBox(height: 16),
+                _buildHeroSection(context),
+                const SizedBox(height: 24),
               _buildDateTimeSection(context),
               const SizedBox(height: 24),
               _buildCourseSelectionSection(context),
@@ -539,10 +539,12 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildRegistrationCard(BuildContext context) {
-    // Hide only if registration button is disabled or event is draft/cancelled
+    // Hide if registration button is disabled or event is in a terminal/live state
     if (!event.showRegistrationButton || 
         event.displayStatus == EventStatus.draft || 
-        event.displayStatus == EventStatus.cancelled) {
+        event.displayStatus == EventStatus.cancelled ||
+        event.displayStatus == EventStatus.completed ||
+        event.displayStatus == EventStatus.inPlay) {
       return const SizedBox.shrink();
     }
 
@@ -555,39 +557,9 @@ class EventDetailsContent extends ConsumerWidget {
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
 
-    // Show "Registration Closed" card if past deadline
-    if (isPastDeadline) {
-      return ModernCard(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                ),
-                child: const Text(
-                  'REGISTRATION CLOSED',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    color: Colors.grey,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Registration deadline has passed',
-                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-      );
+    // If past deadline and not registered, hide entire section
+    if (isPastDeadline && !isRegistered) {
+      return const SizedBox.shrink();
     }
 
     final stats = RegistrationLogic.getRegistrationStats(event);
@@ -657,7 +629,7 @@ class EventDetailsContent extends ConsumerWidget {
           ],
           BoxyArtButton(
             title: isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now'),
-            onTap: isPreview ? null : () {
+            onTap: (isPreview || isPastDeadline) ? null : () {
               try {
                 GoRouter.of(context).push('/events/${event.id}/register-form');
               } catch (_) {
@@ -1001,7 +973,6 @@ class _CompetitionRulesCard extends ConsumerWidget {
       data: (comp) {
         if (comp == null) return const SizedBox.shrink();
         
-        final description = CompetitionRuleTranslator.translate(comp.rules);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1052,41 +1023,12 @@ class _CompetitionRulesCard extends ConsumerWidget {
                   const SizedBox(height: 20),
                   const Divider(),
                   const SizedBox(height: 20),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                      height: 1.5,
-                    ),
-                  ),
+                  CompetitionRuleDescription(rules: comp.rules),
                   const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      BoxyArtStatusPill(
-                        text: comp.rules.scoringType.toUpperCase(),
-                        baseColor: comp.rules.scoringType == 'GROSS' ? const Color(0xFFE74C3C) : (eventId.contains('_secondary') ? const Color(0xFFF39C12) : const Color(0xFF16A085)),
-                      ),
-                      BoxyArtStatusPill(
-                        text: comp.rules.defaultAllowanceLabel,
-                        baseColor: iconColor,
-                      ),
-                      BoxyArtStatusPill(
-                        text: comp.rules.modeLabel,
-                        baseColor: const Color(0xFF34495E),
-                      ),
-                      if (comp.rules.applyCapToIndex && 
-                          comp.rules.handicapCap < 54 && 
-                          comp.rules.format != CompetitionFormat.scramble && 
-                          comp.rules.subtype != CompetitionSubtype.foursomes && 
-                          comp.rules.subtype != CompetitionSubtype.fourball)
-                        BoxyArtStatusPill(
-                          text: 'CAPPED @ ${comp.rules.handicapCap.toInt()} HCP',
-                          baseColor: const Color(0xFFD35400),
-                        ),
-                    ],
+                  CompetitionBadgeRow(
+                    rules: comp.rules,
+                    eventId: eventId,
+                    baseColor: iconColor,
                   ),
                 ],
               ),

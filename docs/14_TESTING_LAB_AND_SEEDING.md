@@ -11,6 +11,9 @@ Admin Settings > Testing Lab
 -   **Function**: Seeds **75 members** (20 female, 55 male) with realistic handicap distributions.
 -   **Hero Account**: Includes "Sanjay Patel" as a consistent Admin/Hero user for personal stats verification.
 -   **Master Event**: Creates "The Lab Open", a permanent test event where admins can experiment with different game formats.
+-   **Multi-Tee Architecture**: All seeded courses feature full **Yellow (Men's Standard)** and **Red (Ladies)** tee sets to verify mixed-gender equity.
+-   **Explicit Mapping**: Seeded events now include an explicit `selectedFemaleTeeName: 'Red'`, ensuring accurate Par/SI resolution even in complex mixed-gender competitions.
+-   **Scoring Variance**: Events are randomized with advanced rules (Mixed Tee Adjustments, Scramble Methods) to stress-test the calculation engine.
 
 ### 2. Iterative Testing Phases
 The lab is organized into phases to isolate specific technical challenges:
@@ -38,7 +41,8 @@ The core engine for generating believable competition data.
 -   **Guest Injection**: The `SeedingController` automatically injects 2 mock guest registrations into empty events during regeneration to facilitate testing Guest Leaderboards.
 -   **Leaderboard Segmentation**: The UI automatically detects these guests and displays them in a dedicated "Guest Leaderboard" section, keeping them separate from society members while still including them in group score totals.
 -   **Dynamic Scaling**: For empty events, the engine randomized the field size (typically 12-32 players) to simulate natural society attendance variety.
--   **Bulk Action**: Admins can trigger "Initialize Demo Season" from the General Settings to rapidly populate a multi-year history (Jan 2025 - Feb 2026) including multi-day events.
+-   **Bulk Action**: Admins can trigger "Initialize Demo Season" from the General Settings to rapidly populate a multi-year history (Jan 2025 - Feb 2026).
+-   **Hardened Seeder (Feb 2026)**: The seeder now includes granular progress logging, robust error handling for individual events, and explicit tee-name resolution to ensure scoring consistency across all views.
 
 ### 4. Unit Test Complement
 While the Lab verifies the **UI and Integration**, raw **Logic Accuracy** is enforced via unit tests:

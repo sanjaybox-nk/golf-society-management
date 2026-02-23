@@ -81,8 +81,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               ],
             ),
           ),
-          const SizedBox(height: 32),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           BoxyArtButton(
             title: widget.isTemplate
               ? (widget.competition == null ? 'CREATE TEMPLATE' : 'SAVE TEMPLATE')

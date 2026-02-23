@@ -69,6 +69,7 @@ abstract class GolfEvent with _$GolfEvent {
     String? courseId,
     @Default({}) Map<String, dynamic> courseConfig,
     String? selectedTeeName,
+    String? selectedFemaleTeeName, // [NEW] Explicit mapping for female players
     @Default([]) List<String> flashUpdates,
     @Default(false) bool isScoringLocked,
     @Default(false) bool isStatsReleased,

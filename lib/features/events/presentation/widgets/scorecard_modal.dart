@@ -6,10 +6,13 @@ import '../../../../models/scorecard.dart';
 import '../../../../models/golf_event.dart';
 import '../../../../models/competition.dart';
 import '../../../../models/member.dart';
-import '../../../../core/theme/theme_controller.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
+import '../../../../core/utils/handicap_calculator.dart';
+import '../../../matchplay/domain/match_play_calculator.dart';
+import '../../../matchplay/domain/match_definition.dart';
 import 'course_info_card.dart';
+
 
 class ScorecardModal {
   static void show(
@@ -23,17 +26,94 @@ class ScorecardModal {
     int? holeLimit,
     bool isAdmin = false,
   }) {
-    // 1. Try to find a live scorecard
-    Scorecard? scorecard = scorecards.firstWhereOrNull((s) => s.entryId == entry.entryId);
+    debugPrint("--- SCORECARD MODAL SHOW: ${entry.playerName} ---");
+    debugPrint("Entry ID: ${entry.entryId}");
+    debugPrint("Mode: ${entry.mode}");
+    debugPrint("TeamMemberIds: ${entry.teamMemberIds?.length} -> ${entry.teamMemberIds}");
+    debugPrint("TeamMemberNames: ${entry.teamMemberNames?.length} -> ${entry.teamMemberNames}");
+    debugPrint("HoleScores provided: ${entry.holeScores != null && entry.holeScores!.any((s) => s != null)}");
     
-    // 2. Fallback: Reconstruct from seeded results if live scorecard is missing
-    if (scorecard == null) {
-      final seededResult = event.results.firstWhere(
+    // 0. Prioritize scores passed directly from Leaderboard (Fix for Scramble populating)
+    Scorecard? scorecard;
+    bool isScorecardEmpty = true;
+
+    if (entry.holeScores != null && entry.holeScores!.any((s) => s != null)) {
+      debugPrint("Found scores via Direct Bridge");
+      scorecard = Scorecard(
+        id: 'direct_${entry.entryId}',
+        competitionId: event.id,
+        roundId: '1',
+        entryId: entry.entryId,
+        submittedByUserId: 'system',
+        status: ScorecardStatus.finalScore,
+        holeScores: entry.holeScores!,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      isScorecardEmpty = false;
+    }
+
+    // 1. Try to find a live scorecard if not found directly
+    if (isScorecardEmpty) {
+      scorecard = scorecards.firstWhereOrNull((s) => s.entryId == entry.entryId);
+      isScorecardEmpty = scorecard == null || scorecard.holeScores.every((s) => s == null);
+      if (!isScorecardEmpty) debugPrint("Found scores via Step 1 (Live Scorecard)");
+    }
+    
+    // 1b. Fallback for Team: Try each member ID if the combined team ID lookup fails or is empty
+    if (isScorecardEmpty && entry.teamMemberIds != null) {
+      for (final memberId in entry.teamMemberIds!) {
+        final memberCard = scorecards.firstWhereOrNull((s) => s.entryId == memberId);
+        if (memberCard != null && memberCard.holeScores.any((s) => s != null)) {
+          scorecard = memberCard;
+          isScorecardEmpty = false;
+          debugPrint("Found scores via Step 1b (Team Member Scorecard)");
+          break;
+        }
+      }
+    }
+    
+    // 1c. Double Fallback for Seeded Teams (team_N pattern)
+    if (isScorecardEmpty && entry.teamIndex != null) {
+      final seededTeamId = 'team_${entry.teamIndex}';
+      final teamCard = scorecards.firstWhereOrNull((s) => s.entryId == seededTeamId);
+      if (teamCard != null && teamCard.holeScores.any((s) => s != null)) {
+         scorecard = teamCard;
+         isScorecardEmpty = false;
+         debugPrint("Found scores via Step 1c (Seeded team_N Scorecard)");
+      }
+    }
+
+    // 2. Fallback: Reconstruct from seeded results if live scorecard is missing or empty
+    if (isScorecardEmpty) {
+      // 2a. Direct Match
+      var seededResult = event.results.firstWhereOrNull(
         (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == entry.entryId,
-        orElse: () => {},
       );
       
-      if (seededResult.isNotEmpty && seededResult['holeScores'] != null) {
+      // 2b. Fallback for Team Seeded: Try each member
+      if (seededResult == null && entry.teamMemberIds != null) {
+        for (final memberId in entry.teamMemberIds!) {
+          final s = event.results.firstWhereOrNull(
+            (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == memberId
+          );
+          if (s != null && s['holeScores'] != null && (s['holeScores'] as List).any((score) => score != null)) {
+            seededResult = s;
+            break;
+          }
+        }
+      }
+
+      // 2c. Last Resort: Try team index pattern in results (if stored there)
+      if (seededResult == null && entry.teamIndex != null) {
+        final seededTeamId = 'team_${entry.teamIndex}';
+        seededResult = event.results.firstWhereOrNull(
+          (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == seededTeamId,
+        );
+      }
+
+      if (seededResult != null && seededResult['holeScores'] != null) {
+        debugPrint("Found scores via Step 2 (Seeded Results map)");
         // Reconstruct temporary scorecard object
         scorecard = Scorecard(
           id: 'temp_${entry.entryId}',
@@ -48,24 +128,28 @@ class ScorecardModal {
           points: seededResult['points'] is num ? (seededResult['points'] as num).toInt() : null,
           netTotal: seededResult['netTotal'] is num ? (seededResult['netTotal'] as num).toInt() : null,
         );
+        isScorecardEmpty = false;
       }
     }
 
-    // 3. Final Bail if truly missing
-    if (scorecard == null) return;
+    // 3. Final Bail if truly missing (but allow empty modal for groups with NO scores yet)
+    scorecard ??= Scorecard(
+        id: 'empty_${entry.entryId}',
+        competitionId: event.id,
+        roundId: '1',
+        entryId: entry.entryId,
+        submittedByUserId: 'system',
+        status: ScorecardStatus.draft,
+        holeScores: List.generate(18, (index) => null),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
     final actualScorecard = scorecard;
     
     // Respect Lab Mode override
     final formatOverride = ref.read(gameFormatOverrideProvider);
     final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
-    final isStableford = currentFormat == CompetitionFormat.stableford;
-    
-    final themeConfig = ref.read(themeControllerProvider);
-
-    // Resolve gender-specific course config for this player
-    final resolvedCourseConfig = _resolvePlayerCourseConfig(entry.entryId, event, membersList);
-
     // Determine if this entry is a guest
     final bool isGuest = entry.isGuest || entry.entryId.endsWith('_guest');
 
@@ -74,17 +158,26 @@ class ScorecardModal {
     final isTeamDisplay = nameCount > 1;
     
     // "Come out further" -> Increase initial height if header is tall
-    final double dynamicInitialSize = isTeamDisplay ? 0.70 : 0.55;
+    final double dynamicInitialSize = isTeamDisplay ? 0.90 : 0.55;
+
+    // Initial focused player for mixed tee context
+    // If team mode, default to 'team' if it's a cumulative format, else if mixed tee choice matters, stay on first player.
+    // Let's default to the first player now (as per user request)
+    final isFourball = comp?.rules.subtype == CompetitionSubtype.fourball;
+    String focusedPlayerId = (entry.teamMemberIds != null && entry.teamMemberIds!.isNotEmpty)
+        ? entry.teamMemberIds!.first
+        : entry.entryId;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: dynamicInitialSize,
-        minChildSize: 0.45,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Container(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => DraggableScrollableSheet(
+          initialChildSize: dynamicInitialSize,
+          minChildSize: 0.45,
+          maxChildSize: 0.98,
+          builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
@@ -112,63 +205,146 @@ class ScorecardModal {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Player Name(s) + Guest Pill
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          // Player Name(s) / Interactive Pills
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Flexible(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty)
-                                      ...entry.teamMemberNames!.map((name) => Padding(
-                                        padding: const EdgeInsets.only(bottom: 2.0),
-                                        child: Text(
-                                          name.toUpperCase(),
-                                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, height: 1.1),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ))
-                                    else
-                                      Text(
-                                        entry.playerName.toUpperCase(),
-                                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
-                                        overflow: TextOverflow.ellipsis,
+                              if (isFourball)
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => setModalState(() => focusedPlayerId = 'team'),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
+                                    child: Text(
+                                      'TEAM VIEW',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900, 
+                                        fontSize: 13, 
+                                        color: focusedPlayerId == 'team' ? Theme.of(context).primaryColor : Theme.of(context).primaryColor.withValues(alpha: 0.4),
+                                        letterSpacing: 1.0,
                                       ),
-                                  ],
-                                ),
-                              ),
-                              if (isGuest) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.shade100,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: Colors.amber.shade600, width: 1),
-                                  ),
-                                  child: Text(
-                                    'GUEST',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.amber.shade800,
-                                      letterSpacing: 0.5,
                                     ),
                                   ),
                                 ),
-                              ],
+                              if (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty)
+                                ...entry.teamMemberNames!.asMap().entries.map((e) {
+                                  final idx = e.key;
+                                  final name = e.value;
+                                  final id = entry.teamMemberIds![idx];
+                                  final isFocused = id == focusedPlayerId;
+                                  final isMemberGuest = id.contains('_guest') || (entry.isGuest && entry.teamMemberIds!.length == 1);
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 2.0),
+                                    child: _buildHeaderPill(
+                                      context: context,
+                                      label: name,
+                                      isFocused: isFocused,
+                                      showGuest: isMemberGuest,
+                                      onTap: () => setModalState(() => focusedPlayerId = id),
+                                    ),
+                                  );
+                                })
+                              else
+                                _buildHeaderPill(
+                                  context: context,
+                                  label: entry.playerName,
+                                  isFocused: true,
+                                  showGuest: isGuest,
+                                  onTap: () {},
+                                ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            () {
-                              final isTeam = entry.mode != CompetitionMode.singles;
-                              final hcLabel = isTeam ? 'team hc' : 'hc';
-                              final phcLabel = isTeam ? 'team phc' : 'phc';
-                              return '$hcLabel: ${entry.handicap} | $phcLabel: ${entry.playingHandicap ?? "-"}';
-                            }(),
-                            style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
+                          (() {
+                            final isFourball = comp?.rules.subtype == CompetitionSubtype.fourball;
+                            
+                            if (isFourball && entry.teamMemberIds != null && entry.teamMemberIds!.length >= 2) {
+                               final idA = entry.teamMemberIds![0];
+                               final idB = entry.teamMemberIds![1];
+                               final nameA = (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty) ? entry.teamMemberNames![0].split(' ').first : 'A';
+                               final nameB = (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1) ? entry.teamMemberNames![1].split(' ').first : 'B';
+                               
+                               final configA = _resolvePlayerCourseConfig(idA, event, membersList);
+                               final configB = _resolvePlayerCourseConfig(idB, event, membersList);
+                               
+                               final memberA = membersList.firstWhereOrNull((m) => m.id == idA);
+                               final memberB = membersList.firstWhereOrNull((m) => m.id == idB);
+                               
+                               final phcA = HandicapCalculator.calculatePlayingHandicap(
+                                 handicapIndex: memberA?.handicap ?? 18.0,
+                                 rules: comp!.rules,
+                                 courseConfig: configA,
+                               );
+                               final phcB = HandicapCalculator.calculatePlayingHandicap(
+                                 handicapIndex: memberB?.handicap ?? 18.0,
+                                 rules: comp.rules,
+                                 courseConfig: configB,
+                               );
+
+                               return Row(
+                                 children: [
+                                   GestureDetector(
+                                     behavior: HitTestBehavior.opaque,
+                                     onTap: () => setModalState(() => focusedPlayerId = idA),
+                                     child: RichText(
+                                       text: TextSpan(
+                                         style: TextStyle(
+                                           color: idA == focusedPlayerId ? Theme.of(context).primaryColor : Colors.grey, 
+                                           fontSize: 12, 
+                                           fontWeight: idA == focusedPlayerId ? FontWeight.w900 : FontWeight.normal,
+                                         ),
+                                         children: [
+                                           TextSpan(text: '$nameA PHC: '),
+                                           TextSpan(text: '$phcA'),
+                                         ],
+                                       ),
+                                     ),
+                                   ),
+                                   const Padding(
+                                     padding: EdgeInsets.symmetric(horizontal: 4.0),
+                                     child: Text('|', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                                   ),
+                                   GestureDetector(
+                                     behavior: HitTestBehavior.opaque,
+                                     onTap: () => setModalState(() => focusedPlayerId = idB),
+                                     child: RichText(
+                                       text: TextSpan(
+                                         style: TextStyle(
+                                           color: idB == focusedPlayerId ? Theme.of(context).primaryColor : Colors.grey, 
+                                           fontSize: 12, 
+                                           fontWeight: idB == focusedPlayerId ? FontWeight.w900 : FontWeight.normal,
+                                         ),
+                                         children: [
+                                           TextSpan(text: '$nameB PHC: '),
+                                           TextSpan(text: '$phcB'),
+                                         ],
+                                       ),
+                                     ),
+                                   ),
+                                 ],
+                               );
+                            }
+
+                            final isTeam = entry.mode != CompetitionMode.singles;
+                            final hcLabel = isTeam ? 'team hc' : 'hc';
+                            final phcLabel = isTeam ? 'team phc' : 'phc';
+                            return RichText(
+                              text: TextSpan(
+                                style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.normal),
+                                children: [
+                                  TextSpan(text: '$hcLabel: '),
+                                  TextSpan(text: '${entry.handicap}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  const TextSpan(text: '  |  '),
+                                  TextSpan(text: '$phcLabel: '),
+                                  TextSpan(
+                                    text: '${entry.playingHandicap ?? "-"}', 
+                                    style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
+                            );
+                          })(),
                         ],
                       ),
                     ),
@@ -214,78 +390,325 @@ class ScorecardModal {
                       }
 
                       // [NEW] Logic for Team/Pairs Display
-                      List<CourseScoreRow>? additionalRows;
-                      List<int?>? mainScores = actualScorecard.holeScores;
-
+                      List<CourseScoreRow> additionalRows = [];
+                      List<int?>? bestBallPoints;
+                      
+                      final isFourball = comp?.rules.subtype == CompetitionSubtype.fourball;
+                      final isTeam = comp?.rules.mode == CompetitionMode.teams;
+                      final isStableford = comp?.rules.format == CompetitionFormat.stableford;
+                      final isScrambleFormat = comp?.rules.format == CompetitionFormat.scramble;
+                      
                       if (entry.teamMemberIds != null && entry.teamMemberIds!.isNotEmpty) {
-                         additionalRows = [];
+                         if (isStableford || comp?.rules.scoringType == 'STABLEFORD') {
+                           bestBallPoints = List<int?>.filled(18, null);
+                         }
+
                          for (int i = 0; i < entry.teamMemberIds!.length; i++) {
-                            final id = entry.teamMemberIds![i];
-                            final name = (entry.teamMemberNames != null && i < entry.teamMemberNames!.length) 
-                                ? entry.teamMemberNames![i] 
-                                : 'Player ${i+1}';
-                            
-                            // Find card for this member
-                            Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == id);
-                            
-                            // Fallback for seeded data
-                            if (card == null) {
-                               final seeded = event.results.firstWhere(
-                                 (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == id,
-                                 orElse: () => {},
-                               );
-                               if (seeded.isNotEmpty && seeded['holeScores'] != null) {
-                                  card = Scorecard(
-                                    id: 'temp_$id',
-                                    competitionId: event.id,
-                                    roundId: '1',
-                                    entryId: id,
-                                    submittedByUserId: 'system',
-                                    status: ScorecardStatus.finalScore,
-                                    holeScores: List<int?>.from(seeded['holeScores']),
-                                    createdAt: DateTime.now(),
-                                    updatedAt: DateTime.now(),
-                                  );
-                               }
-                            }
+                             final id = entry.teamMemberIds![i];
+                             final name = (entry.teamMemberNames != null && i < entry.teamMemberNames!.length) 
+                                 ? entry.teamMemberNames![i] 
+                                 : 'Player ${i+1}';
+                             
+                             Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == id);
+                             
+                             // Fallback for seeded data
+                             if (card == null) {
+                                final seeded = event.results.firstWhere(
+                                  (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == id,
+                                  orElse: () => {},
+                                );
+                                if (seeded.isNotEmpty && seeded['holeScores'] != null) {
+                                   card = Scorecard(
+                                     id: 'temp_$id',
+                                     competitionId: event.id,
+                                     roundId: '1',
+                                     entryId: id,
+                                     submittedByUserId: 'system',
+                                     status: ScorecardStatus.finalScore,
+                                     holeScores: List<int?>.from(seeded['holeScores']),
+                                     createdAt: DateTime.now(),
+                                     updatedAt: DateTime.now(),
+                                   );
+                                }
+                             }
 
-                            if (card != null) {
-                               // [NEW] Resolve which holes this player counted in
-                               final Set<int> memberCountingHoles = {};
-                               if (entry.countingMemberIds != null) {
-                                  entry.countingMemberIds!.forEach((holeIdx, memberId) {
-                                     if (memberId == id) {
-                                        memberCountingHoles.add(holeIdx);
-                                     }
-                                  });
-                               }
+                             if (card != null) {
+                                final Set<int> memberCountingHoles = {};
+                                if (entry.countingMemberIds != null) {
+                                   entry.countingMemberIds!.forEach((holeIdx, memberId) {
+                                      if (memberId == id) memberCountingHoles.add(holeIdx);
+                                   });
+                                }
 
-                               additionalRows.add(CourseScoreRow(
-                                 id: id,
-                                 playerName: name,
-                                 scores: card.holeScores,
-                                 handicap: null, // Todo: pipe through individual PHC
-                                 color: i == 0 ? Colors.blue[800] : Colors.green[800],
-                                 countingHoles: memberCountingHoles,
-                               ));
+                                final playerConfig = _resolvePlayerCourseConfig(id, event, membersList);
+                                final member = membersList.firstWhereOrNull((m) => m.id == id);
+                                final playerPhc = HandicapCalculator.calculatePlayingHandicap(
+                                  handicapIndex: member?.handicap ?? 18.0,
+                                  rules: comp!.rules,
+                                  courseConfig: playerConfig,
+                                );
+
+                                additionalRows.add(CourseScoreRow(
+                                  id: id,
+                                  playerName: name,
+                                  scores: card.holeScores,
+                                  handicap: playerPhc,
+                                  color: i == 0 ? Colors.blue[800] : Colors.green[800],
+                                  countingHoles: memberCountingHoles,
+                                ));
+
+                                // Calculate contribution to Best Ball points
+                                if (isStableford && bestBallPoints != null) {
+                                  final playerHoles = playerConfig['holes'] as List? ?? [];
+                                  for (int h = 0; h < 18; h++) {
+                                    final score = card.holeScores.length > h ? card.holeScores[h] : null;
+                                    if (score != null) {
+                                      final par = playerHoles.length > h ? (playerHoles[h]['par'] as int? ?? 4) : 4;
+                                      final si = playerHoles.length > h ? (playerHoles[h]['si'] as int? ?? 18) : 18;
+                                      
+                                      int shots = (playerPhc / 18).floor();
+                                      if (playerPhc % 18 >= si) shots++;
+                                      
+                                      final pts = (par - (score - shots) + 2).clamp(0, 8);
+                                      if (bestBallPoints[h] == null || pts > bestBallPoints[h]!) {
+                                        bestBallPoints[h] = pts;
+                                      }
+                                    }
+                                  }
+                                }
+                             }
+                         }
+                         
+                         // Scramble Points Calculation (if not Fourball)
+                         if (!isFourball && (isStableford || comp?.rules.scoringType == 'STABLEFORD') && bestBallPoints != null) {
+                            final teamPhc = entry.playingHandicap ?? 0;
+                            // Use first member's tee context as baseline for team points
+                            final teamTeeConfig = _resolvePlayerCourseConfig(entry.teamMemberIds?.first ?? '', event, membersList);
+                            final teamHoles = teamTeeConfig['holes'] as List? ?? [];
+                            
+                            for (int h = 0; h < 18; h++) {
+                              final score = actualScorecard.holeScores.length > h ? actualScorecard.holeScores[h] : null;
+                              if (score != null) {
+                                final par = teamHoles.length > h ? (teamHoles[h]['par'] as int? ?? 4) : 4;
+                                final si = teamHoles.length > h ? (teamHoles[h]['si'] as int? ?? 18) : 18;
+                                
+                                int shots = (teamPhc / 18).floor();
+                                if (teamPhc % 18 >= si) shots++;
+                                
+                                final pts = (par - (score - shots) + 2).clamp(0, 8);
+                                bestBallPoints[h] = pts;
+                              }
                             }
                          }
                       }
 
+                      final totalPoints = bestBallPoints?.where((p) => p != null).fold<int>(0, (sum, p) => sum + (p as int));
+
                       return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CourseInfoCard(
-                            courseConfig: resolvedCourseConfig,
-                            selectedTeeName: _resolvedTeeName(entry.entryId, event, membersList),
-                            distanceUnit: themeConfig.distanceUnit,
-                            isStableford: isStableford,
-                            playerHandicap: entry.playingHandicap,
-                            scores: mainScores,
-                            additionalRows: additionalRows, // [NEW] Pass rows
-                            format: currentFormat,
-                            maxScoreConfig: effectiveMaxScore,
-                            holeLimit: holeLimit,
-                          ),
+                          (() {
+                             // Context resolution
+                             // If 'team' is focused, we use the first player's tee by default for the card (standard for team cards)
+                             // OR we use the event baseline. 
+                             final effectiveFocusId = focusedPlayerId == 'team' 
+                                 ? (entry.teamMemberIds?.first ?? entry.entryId) 
+                                 : focusedPlayerId;
+
+                             final playerTeeConfig = _resolvePlayerCourseConfig(effectiveFocusId, event, membersList);
+                             final isFemale = playerTeeConfig['gender'] == 'female';
+                             final playerTeeName = isFemale
+                                 ? (event.selectedFemaleTeeName ?? 'Red')
+                                 : (event.selectedTeeName ?? 'Yellow');
+
+                             final focusedName = focusedPlayerId == 'team' 
+                                 ? 'TEAM'
+                                 : ((entry.teamMemberIds != null && entry.teamMemberIds!.contains(focusedPlayerId))
+                                     ? entry.teamMemberNames![entry.teamMemberIds!.indexOf(focusedPlayerId)]
+                                     : entry.playerName);
+
+                             // Scores to show in MAIN GRID
+                             List<int?>? gridScores;
+                             int? gridPhc = entry.playingHandicap;
+
+                             if (focusedPlayerId == 'team') {
+                               gridScores = actualScorecard.holeScores; // Team aggregate
+                             } else {
+                               // Find individual card
+                               final playerCard = scorecards.firstWhereOrNull((s) => s.entryId == focusedPlayerId);
+                               if (playerCard != null) {
+                                 gridScores = playerCard.holeScores;
+                               } else {
+                                 // Seeded fallback
+                                 final seeded = event.results.firstWhereOrNull((r) => 
+                                   (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == focusedPlayerId
+                                 );
+                                 if (seeded != null && seeded['holeScores'] != null) {
+                                   gridScores = List<int?>.from(seeded['holeScores']);
+                                 }
+                               }
+
+                               // For Scramble, we always show the team strokes in the main row
+                               if (comp?.rules.format == CompetitionFormat.scramble) {
+                                  gridScores = actualScorecard.holeScores;
+                               }
+
+                               // Resolve individual PHC for grid calculation
+                               final member = membersList.firstWhereOrNull((m) => m.id == focusedPlayerId);
+                               gridPhc = HandicapCalculator.calculatePlayingHandicap(
+                                  handicapIndex: member?.handicap ?? 18.0,
+                                  rules: comp!.rules,
+                                  courseConfig: playerTeeConfig,
+                               );
+                             }
+
+                             return Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 Padding(
+                                   padding: const EdgeInsets.only(bottom: 10.0, left: 4.0),
+                                   child: Text(
+                                     "VIEWING ${focusedName.toUpperCase()}'S SI CONTEXT ($playerTeeName TEES)".toUpperCase(),
+                                     style: TextStyle(
+                                       fontSize: 9, 
+                                       fontWeight: FontWeight.w900, 
+                                       color: Theme.of(context).primaryColor, 
+                                       letterSpacing: 0.5,
+                                     ),
+                                   ),
+                                 ),
+                                 CourseInfoCard(
+                                   courseConfig: playerTeeConfig,
+                                   selectedTeeName: playerTeeName,
+                                   distanceUnit: event.courseConfig['distanceUnit'] ?? 'yards',
+                                   isStableford: isStableford,
+                                   isNet: comp?.rules.scoringType != 'GROSS',
+                                   format: currentFormat,
+                                   maxScoreConfig: effectiveMaxScore,
+                                   playerHandicap: gridPhc,
+                                   scores: gridScores,
+                                   mainRowLabel: focusedPlayerId == 'team' ? (isFourball ? 'BEST BALL' : 'TEAM') : 'Strokes',
+                                   additionalRows: const [], // Cleaned up!
+                                   holeLimit: holeLimit,
+                                   overridePoints: focusedPlayerId == 'team' ? bestBallPoints : null,
+                                   overrideTotalPoints: focusedPlayerId == 'team' ? totalPoints : null,
+                                 ),
+                               ],
+                             );
+                          })(),
+                          const SizedBox(height: 24),
+                          // Comparison Footer
+                          
+                          (() {
+                             List<String>? matchPlayResults;
+                             String? matchPlaySummary;
+                             if (currentFormat == CompetitionFormat.matchPlay) {
+                                final myIds = entry.teamMemberIds ?? [entry.entryId];
+                                List<String>? myGroupIds;
+                                final groupsData = event.grouping["groups"] as List? ?? [];
+                                for (var g in groupsData) {
+                                    final players = g['players'] as List? ?? [];
+                                    final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
+                                    if (playerIds.any((id) => myIds.contains(id))) {
+                                        myGroupIds = playerIds;
+                                        break;
+                                    }
+                                }
+                                                                if (myGroupIds != null) {
+                                    final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
+                                    if (oppIds.isNotEmpty) {
+                                        // 1. Resolve relative strokes for the match
+                                        // 1. Resolve relative strokes for the match (Centralized)
+                                        final Map<String, double> playerIndices = {};
+                                        final Map<String, Map<String, dynamic>> courseConfigs = {};
+                                        
+                                        for (final pid in myGroupIds) {
+                                            courseConfigs[pid] = _resolvePlayerCourseConfig(pid, event, membersList);
+                                            final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
+                                            if (pid.contains('_guest')) {
+                                                final baseId = pid.replaceAll('_guest', '');
+                                                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+                                                playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+                                            } else {
+                                                playerIndices[pid] = member?.handicap ?? 18.0;
+                                            }
+                                        }
+
+                                        final baseRating = _parseValue(event.courseConfig['rating'] ?? 72.0);
+                                        final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
+                                          playerIds: myGroupIds,
+                                          playerIndices: playerIndices,
+                                          courseConfigs: courseConfigs,
+                                          rules: comp!.rules,
+                                          baseRating: baseRating,
+                                        );
+
+                                        // 2. Build Virtual Match Definition
+                                        final virtualMatch = MatchDefinition(
+                                          id: 'virtual_modal_${entry.entryId}',
+                                           type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
+                                          team1Ids: myIds,
+                                          team2Ids: oppIds,
+                                          strokesReceived: strokesReceived,
+                                        );
+
+                                        // 3. Collect all relevant scorecards
+                                        final List<Scorecard> sourceCards = [];
+                                        for (var pid in myGroupIds) {
+                                            Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
+                                            if (card == null) {
+                                               final seeded = event.results.firstWhereOrNull((r) => 
+                                                  (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == pid
+                                               );
+                                               if (seeded != null && seeded['holeScores'] != null) {
+                                                   card = Scorecard(
+                                                      id: 'temp_$pid', competitionId: event.id, roundId: '1', entryId: pid, submittedByUserId: 'system',
+                                                      status: ScorecardStatus.finalScore, holeScores: List<int?>.from(seeded['holeScores']),
+                                                      createdAt: DateTime.now(), updatedAt: DateTime.now()
+                                                   );
+                                               }
+                                            }
+                                            if (card != null) sourceCards.add(card);
+                                        }
+
+                                        // 4. Calculate via Authoritative Engine
+                                        final result = MatchPlayCalculator.calculate(
+                                          match: virtualMatch,
+                                          scorecards: sourceCards,
+                                          courseConfig: event.courseConfig,
+                                          holesToPlay: event.courseConfig['holes']?.length ?? 18,
+                                        );
+
+                                        // 5. Map to UI expectations
+                                        matchPlayResults = result.holeResults.map((r) {
+                                            if (r == 1) return 'W';
+                                            if (r == -1) return 'L';
+                                            return 'H';
+                                        }).toList();
+                                        
+                                        if (result.score == 0) {
+                                          matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
+                                        } else if (result.score > 0) {
+                                          matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
+                                        } else {
+                                          matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
+                                        }
+                                    }
+                                }
+                             }
+
+                             return ScorecardModal.buildUnifiedComparisonFooter(
+                               context,
+                               event: event,
+                               membersList: membersList,
+                               teamPoints: bestBallPoints, // Unified team points
+                               isScramble: isScrambleFormat,
+                               scorecard: actualScorecard,
+                               playerName: isFourball == true ? 'TEAM BEST BALL' : (isTeam == true ? 'TEAM SCORE' : entry.playerName),
+                               matchPlayResults: matchPlayResults,
+                               matchPlaySummary: matchPlaySummary,
+                             );
+                          })(),
                         ],
                       );
                     },
@@ -296,93 +719,344 @@ class ScorecardModal {
           ),
         ),
       ),
+    ),
+  );
+  }
+
+  static Widget buildUnifiedComparisonFooter(
+    BuildContext context, {
+    required GolfEvent event,
+    required List<Member> membersList,
+    required bool isScramble,
+    Scorecard? scorecard,
+    List<int?>? teamPoints,
+    String? playerName,
+    List<String>? matchPlayResults,
+    String? matchPlaySummary,
+  }) {
+    final List<int?> scores = teamPoints ?? scorecard?.holeScores ?? [];
+    // For Scramble, we use the scorecard. For Fourball, we use teamPoints.
+    // If both null (unlikely in this context), hide.
+    if (matchPlayResults == null && (scores.isEmpty || scores.every((s) => s == null))) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+          child: Text(
+            isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE"),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Colors.grey[600],
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        if (isScramble && scorecard != null && scorecard.shotAttributions.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: scorecard.shotAttributions.entries.map((attr) {
+                final holeNum = attr.key + 1;
+                final memberId = attr.value;
+                // Note: additionalRows removed from signature, we'll try to find name from membersList
+                final member = membersList.firstWhereOrNull((m) => m.id == memberId);
+                final name = member?.displayName.split(' ').first ?? 'Player';
+                
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    "H$holeNum: $name",
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        
+        // Unified Team Row
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 12,
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[800],
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                  Text(
+                    (playerName ?? "TEAM").toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.blue[800],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    matchPlayResults != null 
+                        ? "TOTAL: ${matchPlaySummary ?? 'AS'}"
+                        : "TOTAL: ${scores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int))}",
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Column(
+                children: [
+                  _buildNineHoleRow(context, event, membersList, scores, 0, matchPlayResults: matchPlayResults),
+                  const SizedBox(height: 4),
+                  _buildNineHoleRow(context, event, membersList, scores, 9, matchPlayResults: matchPlayResults),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  /// Resolves the correct course config (holes/par/SI) for a player based on their gender.
-  static Map<String, dynamic> _resolvePlayerCourseConfig(
-    String memberId,
-    GolfEvent event,
-    List<Member> membersList,
-  ) {
+  static Widget _buildNineHoleRow(
+    BuildContext context, 
+    GolfEvent event, 
+    List<Member> membersList, 
+    List<int?> scores, 
+    int startIdx, {
+    List<String>? matchPlayResults,
+  }) {
+    // We use the event course config by default for the UNIFIED view
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.blue.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(9, (i) {
+          final hIdx = startIdx + i;
+          
+          if (matchPlayResults != null) {
+              final result = matchPlayResults.length > hIdx ? matchPlayResults[hIdx] : '';
+              Color bgColor = Colors.transparent;
+              Color textColor = Colors.grey[400]!;
+              Color borderColor = Colors.grey[200]!;
+              
+              if (result == 'W') {
+                  bgColor = Colors.green;
+                  textColor = Colors.white;
+                  borderColor = Colors.green[700]!;
+              } else if (result == 'L') {
+                  bgColor = Colors.red;
+                  textColor = Colors.white;
+                  borderColor = Colors.red[700]!;
+              } else if (result == 'H') {
+                  bgColor = Colors.grey[400]!;
+                  textColor = Colors.white;
+                  borderColor = Colors.grey[500]!;
+              }
+
+              return Expanded(
+                child: Container(
+                  height: 28,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: borderColor, width: 1),
+                  ),
+                  child: Text(
+                    result.isEmpty ? '-' : result,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                    ),
+                  ),
+                ),
+              );
+          }
+
+          final score = scores.length > hIdx ? scores[hIdx] : null;
+
+          // Points Calculation (Assuming Stableford for unified view unless it's Medal)
+          // Since it's a "team score", we usually just show the calculated points passed in.
+          // In Scramble, holeScores are strokes, but if we want points, we might need more logic.
+          // BUT the user approved "Points-First Display" in the plan.
+          
+          final points = score; // We assume the passed 'scores' are already points if it's Fourball
+
+          // Performance colors removed as per user request
+          Color textColor = points != null ? Colors.black87 : Colors.grey[400]!;
+
+          return Expanded(
+            child: Container(
+              height: 28,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: points != null ? Colors.white : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: points != null ? Colors.grey[400]! : Colors.grey[200]!,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                points?.toString() ?? '-',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: points != null ? FontWeight.w900 : FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
     final tees = event.courseConfig['tees'] as List?;
     if (tees == null || tees.isEmpty) return event.courseConfig;
 
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-
-    Map<String, dynamic>? selectedTee;
-
-    // 1. Try explicit gender defaults set by admin
-    if (gender == 'female') {
-      final ladiesTeeName = event.courseConfig['ladiesTeeName']?.toString();
-      if (ladiesTeeName != null) {
-        selectedTee = (tees.firstWhereOrNull((t) =>
-          (t['name'] ?? '').toString().toLowerCase() == ladiesTeeName.toLowerCase()
-        ) as Map<String, dynamic>?);
-      }
-      // Fallback: auto-detect red/lady tee
-      selectedTee ??= (tees.firstWhereOrNull((t) =>
-        (t['name'] ?? '').toString().toLowerCase().contains('red') ||
-        (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-        (t['name'] ?? '').toString().toLowerCase().contains('female')
-      ) as Map<String, dynamic>?);
-    } else {
-      final mensTeeName = event.courseConfig['mensTeeName']?.toString();
-      if (mensTeeName != null) {
-        selectedTee = (tees.firstWhereOrNull((t) =>
-          (t['name'] ?? '').toString().toLowerCase() == mensTeeName.toLowerCase()
-        ) as Map<String, dynamic>?);
+    var member = membersList.firstWhereOrNull((m) => m.id == memberId);
+    
+    // Fallback: check registrations if not in members list (e.g. for Guests)
+    String? gender = member?.gender?.toLowerCase();
+    if (gender == null) {
+      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == memberId);
+      if (reg != null) {
+        final name = (reg.displayName).toLowerCase();
+        // Simple heuristic for demo/guest data
+        if (name.contains('lady') || 
+            name.contains('sarah') || 
+            name.contains('betty') || 
+            name.contains('jane') || 
+            name.contains('mary') ||
+            name.contains('margaret') ||
+            name.contains('female')) {
+          gender = 'female';
+        }
       }
     }
-
-    // 2. Fallback: event baseline tee
-    selectedTee ??= (tees.firstWhereOrNull((t) =>
-      (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
+    
+    final effectiveGender = gender ?? 'male';
+    
+    Map<String, dynamic>? selectedTee;
+    if (effectiveGender == 'female') {
+       if (event.selectedFemaleTeeName != null) {
+         selectedTee = (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+         ) as Map<String, dynamic>?);
+       }
+       selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+         (t['name'] ?? '').toString().toLowerCase().contains('female')
+       ) as Map<String, dynamic>?);
+    }
+    
+    selectedTee ??= (tees.firstWhereOrNull((t) => 
+       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'Yellow').toLowerCase()
     ) as Map<String, dynamic>?);
 
-    // 3. Final fallback: first tee
+    // Final fallback to white if Yellow not found (common in some configs)
+    selectedTee ??= (tees.firstWhereOrNull((t) => 
+       (t['name'] ?? '').toString().toLowerCase() == 'white'
+    ) as Map<String, dynamic>?);
+
     selectedTee ??= (tees.first as Map<String, dynamic>);
 
     return {
-      ...event.courseConfig,
-      'par': selectedTee['par'] ?? (selectedTee['holePars'] as List?)?.fold<int>(0, (a, b) => a + (b as int)) ?? 72,
-      'rating': selectedTee['rating'] ?? 72.0,
-      'slope': selectedTee['slope'] ?? 113,
-      'holes': List.generate(18, (i) => {
-        'hole': i + 1,
-        'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
-        'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
-        'yardage': (selectedTee['yardages'] as List?)?.elementAtOrNull(i) ?? 0,
-      }),
+       ...event.courseConfig,
+       'gender': effectiveGender,
+       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
+       'rating': selectedTee['rating'] ?? 72.0,
+       'slope': selectedTee['slope'] ?? 113,
+       'holes': List.generate(18, (i) => {
+          'hole': i + 1,
+          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
+          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
+       }),
     };
   }
 
-  /// Returns the display name of the resolved tee for this player.
-  static String? _resolvedTeeName(
-    String memberId,
-    GolfEvent event,
-    List<Member> membersList,
-  ) {
-    final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.selectedTeeName;
+  static Widget _buildHeaderPill({
+    required BuildContext context,
+    required String label,
+    required bool isFocused,
+    required VoidCallback onTap,
+    bool showGuest = false,
+  }) {
+    final primaryColor = Theme.of(context).primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 8, bottom: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        decoration: BoxDecoration(
+          color: isFocused ? primaryColor.withValues(alpha: 0.1) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isFocused ? primaryColor : Colors.grey[300]!,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                color: isFocused ? primaryColor : Colors.grey[600],
+              ),
+            ),
+            if (showGuest) ...[
+              const SizedBox(width: 6),
+              const Text(
+                'G',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-
-    if (gender == 'female') {
-      final ladiesTeeName = event.courseConfig['ladiesTeeName']?.toString();
-      if (ladiesTeeName != null) return ladiesTeeName;
-      final autoTee = (tees.firstWhereOrNull((t) =>
-        (t['name'] ?? '').toString().toLowerCase().contains('red') ||
-        (t['name'] ?? '').toString().toLowerCase().contains('lady')
-      ) as Map<String, dynamic>?);
-      if (autoTee != null) return autoTee['name']?.toString();
-    } else {
-      final mensTeeName = event.courseConfig['mensTeeName']?.toString();
-      if (mensTeeName != null) return mensTeeName;
-    }
-
-    return event.selectedTeeName;
+  static double _parseValue(dynamic val) {
+    if (val is num) return val.toDouble();
+    if (val is String) return double.tryParse(val) ?? 0.0;
+    return 0.0;
   }
 }

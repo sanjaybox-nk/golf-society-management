@@ -124,14 +124,15 @@ extension CompetitionRulesX on CompetitionRules {
   }
 
   CompetitionMode get effectiveMode {
-    if (format == CompetitionFormat.scramble || 
-        subtype == CompetitionSubtype.texas || 
+    if (subtype == CompetitionSubtype.texas || 
         subtype == CompetitionSubtype.florida ||
         subtype == CompetitionSubtype.ryderCup ||
-        subtype == CompetitionSubtype.teamMatchPlay ||
-        subtype == CompetitionSubtype.fourball || 
-        subtype == CompetitionSubtype.foursomes) {
+        subtype == CompetitionSubtype.teamMatchPlay) {
       return CompetitionMode.teams;
+    }
+    if (subtype == CompetitionSubtype.fourball || 
+        subtype == CompetitionSubtype.foursomes) {
+      return CompetitionMode.pairs;
     }
     return mode;
   }

@@ -80,6 +80,7 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   courseId: json['courseId'] as String?,
   courseConfig: json['courseConfig'] as Map<String, dynamic>? ?? const {},
   selectedTeeName: json['selectedTeeName'] as String?,
+  selectedFemaleTeeName: json['selectedFemaleTeeName'] as String?,
   flashUpdates:
       (json['flashUpdates'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -138,6 +139,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'courseId': instance.courseId,
   'courseConfig': instance.courseConfig,
   'selectedTeeName': instance.selectedTeeName,
+  'selectedFemaleTeeName': instance.selectedFemaleTeeName,
   'flashUpdates': instance.flashUpdates,
   'isScoringLocked': instance.isScoringLocked,
   'isStatsReleased': instance.isStatsReleased,

@@ -76,8 +76,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
           value: effectiveSubtype,
           items: const [
             DropdownMenuItem(value: CompetitionSubtype.none, child: Text('Singles Match Play')),
-            DropdownMenuItem(value: CompetitionSubtype.fourball, child: Text('Fourball (Better Ball)')),
-            DropdownMenuItem(value: CompetitionSubtype.foursomes, child: Text('Foursomes (Alternate Shot)')),
             DropdownMenuItem(value: CompetitionSubtype.ryderCup, child: Text('Ryder Cup (Team)')),
             DropdownMenuItem(value: CompetitionSubtype.teamMatchPlay, child: Text('Team Match Play')),
           ],

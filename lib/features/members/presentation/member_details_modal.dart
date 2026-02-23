@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/widgets/boxy_art_widgets.dart';
+import '../../../../core/widgets/boxy_art_nav_bar.dart';
 import 'widgets/member_stats_row.dart';
 
 import '../../../../core/constants/country_codes.dart';
@@ -512,91 +513,67 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   Widget _buildBottomMenu() {
     final isAdmin = _isAdmin();
     
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 4.0, bottom: 0.0, left: 8.0, right: 8.0),
-          child: BottomNavigationBar(
-            currentIndex: 2, // Highlight "Members" tab
-            onTap: (index) {
-              Navigator.of(context).pop();
-            },
-            backgroundColor: Colors.black,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.grey.shade600,
-            type: BottomNavigationBarType.fixed,
-            elevation: 0,
-            selectedFontSize: 10,
-            unselectedFontSize: 10,
-            items: isAdmin 
-              ? const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.dashboard_outlined),
-                    activeIcon: Icon(Icons.dashboard),
-                    label: 'Dashboard',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_month_outlined),
-                    activeIcon: Icon(Icons.calendar_month),
-                    label: 'Events',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.people_outline),
-                    activeIcon: Icon(Icons.people),
-                    label: 'Members',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.notification_add_outlined),
-                    activeIcon: Icon(Icons.notification_add),
-                    label: 'Comms',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings_outlined),
-                    activeIcon: Icon(Icons.settings),
-                    label: 'Settings',
-                  ),
-                ]
-              : const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_month_outlined),
-                    activeIcon: Icon(Icons.calendar_month),
-                    label: 'Events',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.people_outline),
-                    activeIcon: Icon(Icons.people),
-                    label: 'Members',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline),
-                    activeIcon: Icon(Icons.person),
-                    label: 'Locker',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.history_outlined),
-                    activeIcon: Icon(Icons.history),
-                    label: 'Archive',
-                  ),
-                ],
-          ),
-        ),
-      ),
+    return BoxyArtBottomNavBar(
+      selectedIndex: 2, // Highlight "Members" tab
+      onItemSelected: (index) => Navigator.of(context).pop(),
+      backgroundColor: Colors.black,
+      activeColor: Colors.white,
+      unselectedColor: Colors.grey.shade600,
+      items: isAdmin 
+        ? const [
+            BoxyArtBottomNavItem(
+              icon: Icons.dashboard_outlined,
+              activeIcon: Icons.dashboard,
+              label: 'Dashboard',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.calendar_month_outlined,
+              activeIcon: Icons.calendar_month,
+              label: 'Events',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.people_outline,
+              activeIcon: Icons.people,
+              label: 'Members',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.notification_add_outlined,
+              activeIcon: Icons.notification_add,
+              label: 'Comms',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.settings_outlined,
+              activeIcon: Icons.settings,
+              label: 'Settings',
+            ),
+          ]
+        : const [
+            BoxyArtBottomNavItem(
+              icon: Icons.home_outlined,
+              activeIcon: Icons.home,
+              label: 'Home',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.calendar_month_outlined,
+              activeIcon: Icons.calendar_month,
+              label: 'Events',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.people_outline,
+              activeIcon: Icons.people,
+              label: 'Members',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.person_outline,
+              activeIcon: Icons.person,
+              label: 'Locker',
+            ),
+            BoxyArtBottomNavItem(
+              icon: Icons.history_outlined,
+              activeIcon: Icons.history,
+              label: 'Archive',
+            ),
+          ],
     );
   }
 }

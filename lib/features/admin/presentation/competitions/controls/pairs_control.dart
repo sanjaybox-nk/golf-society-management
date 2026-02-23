@@ -93,30 +93,25 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
                 ),
               ),
 
-              // Scoring Format
-              BoxyArtDropdownField<CompetitionFormat>(
-                label: 'Scoring Type',
-                value: _scoringFormat,
-                items: const [
-                   DropdownMenuItem(
-                     value: CompetitionFormat.matchPlay, 
-                     child: Text('Match Play')
-                   ),
-                   DropdownMenuItem(
-                     value: CompetitionFormat.stroke, 
-                     child: Text('Stroke Play (Medal)')
-                   ),
-                   // Stableford is also possible for Fourball, but let's stick to Match/Stroke as per request
-                   // "Both Fourball and Foursomes can be played as either match play or stroke play"
-                   // "also common formats for ... Stableford tournaments"
-                   // OK, I should add Stableford too? User request said "Match Play or Stroke Play" primarily, but mentioned Stableford.
-                   // I'll add Stableford as an option.
-                   DropdownMenuItem(
-                     value: CompetitionFormat.stableford, 
-                     child: Text('Stableford')
-                   ),
-                ],
-                onChanged: (val) {
+               // Scoring Format
+               BoxyArtDropdownField<CompetitionFormat>(
+                 label: 'Scoring Format',
+                 value: _scoringFormat,
+                 items: const [
+                    DropdownMenuItem(
+                      value: CompetitionFormat.matchPlay, 
+                      child: Text('Match Play')
+                    ),
+                    DropdownMenuItem(
+                      value: CompetitionFormat.stroke, 
+                      child: Text('Stroke Play (Medal)')
+                    ),
+                    DropdownMenuItem(
+                      value: CompetitionFormat.stableford, 
+                      child: Text('Stableford')
+                    ),
+                 ],
+                 onChanged: (val) {
                   if (val != null) {
                     setState(() {
                       _scoringFormat = val;
@@ -285,6 +280,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       aggregation: _scoringFormat == CompetitionFormat.stableford 
           ? AggregationMethod.stablefordSum 
           : AggregationMethod.totalSum,
+      useMixedTeeAdjustment: _scoringFormat != CompetitionFormat.matchPlay, // Usually Off for Match Play
     );
   }
 

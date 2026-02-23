@@ -13,7 +13,7 @@ part of 'match_play_providers.dart';
 final currentMatchControllerProvider = CurrentMatchControllerFamily._();
 
 final class CurrentMatchControllerProvider
-    extends $AsyncNotifierProvider<CurrentMatchController, MatchResult?> {
+    extends $AsyncNotifierProvider<CurrentMatchController, MatchData?> {
   CurrentMatchControllerProvider._({
     required CurrentMatchControllerFamily super.from,
     required String super.argument,
@@ -52,15 +52,15 @@ final class CurrentMatchControllerProvider
 }
 
 String _$currentMatchControllerHash() =>
-    r'1cc0ceb834625dda82429cd6dd1d76419fa12ec3';
+    r'b3082458d64e255479d173287cd3b738ad70d9d8';
 
 final class CurrentMatchControllerFamily extends $Family
     with
         $ClassFamilyOverride<
           CurrentMatchController,
-          AsyncValue<MatchResult?>,
-          MatchResult?,
-          FutureOr<MatchResult?>,
+          AsyncValue<MatchData?>,
+          MatchData?,
+          FutureOr<MatchData?>,
           String
         > {
   CurrentMatchControllerFamily._()
@@ -79,20 +79,20 @@ final class CurrentMatchControllerFamily extends $Family
   String toString() => r'currentMatchControllerProvider';
 }
 
-abstract class _$CurrentMatchController extends $AsyncNotifier<MatchResult?> {
+abstract class _$CurrentMatchController extends $AsyncNotifier<MatchData?> {
   late final _$args = ref.$arg as String;
   String get eventId => _$args;
 
-  FutureOr<MatchResult?> build(String eventId);
+  FutureOr<MatchData?> build(String eventId);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<MatchResult?>, MatchResult?>;
+    final ref = this.ref as $Ref<AsyncValue<MatchData?>, MatchData?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<MatchResult?>, MatchResult?>,
-              AsyncValue<MatchResult?>,
+              AnyNotifier<AsyncValue<MatchData?>, MatchData?>,
+              AsyncValue<MatchData?>,
               Object?,
               Object?
             >;

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
@@ -10,11 +11,13 @@ import '../../../../models/scorecard.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../members/presentation/members_provider.dart';
-import 'hole_score_card.dart';
-import '../../../../core/utils/grouping_service.dart';
-import '../../../debug/presentation/state/debug_providers.dart';
+import '../../../../models/member.dart';
+import '../../../../core/utils/scoring_calculator.dart';
+
+
 import '../../../matchplay/presentation/widgets/match_status_header.dart';
 import '../../../matchplay/presentation/state/match_play_providers.dart';
+import '../hero_scoring_screen.dart';
 // events_provider.dart removed as it was unused
 enum MarkerTab { player, verifier }
 
@@ -26,7 +29,8 @@ class HoleByHoleScoringWidget extends ConsumerStatefulWidget {
   final bool isSelfMarking;
   final bool isAdmin; // [NEW] Allows bypassing global event locks
   final MarkerTab selectedTab;
-  final ValueChanged<MarkerTab> onTabChanged; // Remove nullability to fix assignment issues
+  final ValueChanged<MarkerTab> onTabChanged; 
+  final Function(Map<int, int> scores, bool isVerifier)? onScoresChanged; // [NEW] For immediate grid sync
 
   const HoleByHoleScoringWidget({
     super.key,
@@ -36,8 +40,9 @@ class HoleByHoleScoringWidget extends ConsumerStatefulWidget {
     this.targetEntryId,
     this.isSelfMarking = true,
     this.isAdmin = false,
-    this.selectedTab = MarkerTab.player,
-    required this.onTabChanged,
+    required this.selectedTab, // Lifted State
+    required this.onTabChanged, // Lifted State
+    this.onScoresChanged,
   });
 
   @override
@@ -49,29 +54,68 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   final Map<int, int> _localScores = {}; // Official (Target)
   final Map<int, int> _verifierScores = {}; // Verifier (My Record)
   final Map<int, String?> _shotAttributions = {}; // [NEW] Hole index -> Member ID
-  int _currentPage = 0;
   String? _activeEntryId; // [NEW] Track which partner is being edited
   Scorecard? _activeScorecard; // [NEW] Local cache if switching
-  // Internal state removed in favor of widget.selectedTab
- 
+  Scorecard? _localVerifierCard; // [NEW] Local cache for verifier card to prevent duplicates
+  final int _currentHoleIndex = 0; // [NEW] Track current hole across swiping/ribbon
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _activeEntryId = widget.targetEntryId ?? widget.targetScorecard?.entryId;
     _activeScorecard = widget.targetScorecard;
+    _localVerifierCard = widget.verifierScorecard;
     
     // Initialize local scores (Official)
     _syncScoresFromCard(_activeScorecard);
 
     // Initialize verifier scores (Secondary)
-    if (widget.verifierScorecard != null) {
-      for (int i = 0; i < widget.verifierScorecard!.playerVerifierScores.length; i++) {
-        final score = widget.verifierScorecard!.playerVerifierScores[i];
+    // Fallback: If playerVerifierScores is empty (e.g. seeded data or new card), 
+    // try to show valid holeScores so the user sees *some* score instead of dashes.
+    if (_localVerifierCard != null) {
+      final sourceScores = _localVerifierCard!.playerVerifierScores.isNotEmpty && _localVerifierCard!.playerVerifierScores.any((s) => s != null) 
+          ? _localVerifierCard!.playerVerifierScores
+          : _localVerifierCard!.holeScores;
+
+      for (int i = 0; i < sourceScores.length; i++) {
+        final score = sourceScores[i];
         if (score != null) {
           _verifierScores[i + 1] = score;
         }
       }
+    }
+  }
+
+  @override
+  void didUpdateWidget(HoleByHoleScoringWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.targetScorecard != oldWidget.targetScorecard) {
+      _activeScorecard = widget.targetScorecard;
+      // Re-sync only if we don't have pending changes? 
+      // For now, trust upstream if it changes.
+      if (_localScores.isEmpty) { 
+         _syncScoresFromCard(_activeScorecard);
+      }
+    }
+    if (widget.verifierScorecard != oldWidget.verifierScorecard) {
+       _localVerifierCard = widget.verifierScorecard;
+       
+       // [Fix Async Loading] If card arrives after init, populate scores
+       if (widget.verifierScorecard != null && oldWidget.verifierScorecard == null) {
+           final sourceScores = widget.verifierScorecard!.playerVerifierScores.isNotEmpty && widget.verifierScorecard!.playerVerifierScores.any((s) => s != null)
+              ? widget.verifierScorecard!.playerVerifierScores
+              : widget.verifierScorecard!.holeScores;
+
+           setState(() {
+              for (int i = 0; i < sourceScores.length; i++) {
+                final score = sourceScores[i];
+                if (score != null) {
+                  _verifierScores[i + 1] = score;
+                }
+              }
+           });
+       }
     }
   }
 
@@ -81,17 +125,85 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     super.dispose();
   }
 
-  void _updateScore(int holeNum, int delta, int par, {bool isVerifier = false}) {
-    setState(() {
-      final map = isVerifier ? _verifierScores : _localScores;
-      final currentScore = map[holeNum] ?? par;
-      final newScore = (currentScore + delta).clamp(1, 15);
-      map[holeNum] = newScore;
-    });
+
+  int? _calculateMaxScoreCap(int holeNum, int par, int si, CompetitionRules rules) {
+    if (rules.format != CompetitionFormat.maxScore || rules.maxScoreConfig == null) return null;
     
-    // Auto-save logic (debounced or immediate for now)
-    _persistScores(isVerifier: isVerifier);
+    final targetId = _activeEntryId;
+    if (targetId == null) return 15; // Fallback
+
+    final members = ref.read(allMembersProvider).asData?.value ?? [];
+    final member = members.firstWhereOrNull((m) => m.id == targetId.replaceFirst('_guest', ''));
+    
+    double index = 18.0;
+    if (targetId.contains('_guest')) {
+        final baseId = targetId.replaceAll('_guest', '');
+        final reg = widget.event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+        index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+    } else {
+        index = member?.handicap ?? 18.0;
+    }
+
+    final pConfig = _resolvePlayerCourseConfig(targetId, widget.event, members);
+    final baseRating = (widget.event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+
+    final phc = HandicapCalculator.calculatePlayingHandicap(
+      handicapIndex: index, 
+      rules: rules, 
+      courseConfig: pConfig,
+      baseRating: baseRating,
+    ).toDouble();
+
+    return ScoringCalculator.getMaxScoreCap(
+      par: par,
+      si: si,
+      playingHandicap: phc,
+      format: rules.format,
+      maxScoreConfig: rules.maxScoreConfig,
+    );
   }
+
+  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
+    final tees = event.courseConfig['tees'] as List?;
+    if (tees == null || tees.isEmpty) return event.courseConfig;
+
+    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
+    final gender = member?.gender?.toLowerCase() ?? 'male';
+    
+    Map<String, dynamic>? selectedTee;
+    if (gender == 'female') {
+       if (event.selectedFemaleTeeName != null) {
+         selectedTee = (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+         ) as Map<String, dynamic>?);
+       }
+       selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+         (t['name'] ?? '').toString().toLowerCase().contains('female')
+       ) as Map<String, dynamic>?);
+    }
+    
+    selectedTee ??= (tees.firstWhereOrNull((t) => 
+       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
+    ) as Map<String, dynamic>?);
+
+    selectedTee ??= (tees.first as Map<String, dynamic>);
+
+    return {
+       ...event.courseConfig,
+       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
+       'rating': selectedTee['rating'] ?? 72.0,
+       'slope': selectedTee['slope'] ?? 113,
+       'holes': List.generate(18, (i) => {
+          'hole': i + 1,
+          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
+          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
+       }),
+    };
+  }
+
+  // Duplicated locally during revamp logic integration, removing second instance
 
   void _syncScoresFromCard(Scorecard? card) {
     _localScores.clear();
@@ -107,42 +219,17 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     }
   }
 
-  Future<void> _switchPlayer(String newId) async {
-    if (_activeEntryId == newId) return;
-    
-    // 1. Save current
-    await _persistScores();
-    
-    // 2. Fetch/Switch to new card
-    final scorecards = await ref.read(scorecardsListProvider(widget.event.id).future);
-    final card = scorecards.firstWhereOrNull((s) => s.entryId == newId);
-    
-    setState(() {
-      _activeEntryId = newId;
-      _activeScorecard = card;
-      _syncScoresFromCard(card);
-    });
-  }
 
-  void _updateAttribution(int holeNum, String memberId) {
-    setState(() {
-      if (_shotAttributions[holeNum] == memberId) {
-        _shotAttributions.remove(holeNum);
-      } else {
-        _shotAttributions[holeNum] = memberId;
-      }
-    });
-    _persistScores();
-  }
 
   Future<void> _persistScores({bool isVerifier = false}) async {
-    final repo = ref.read(scorecardRepositoryProvider);
-    final userId = ref.read(effectiveUserProvider).id;
-    final entryId = isVerifier ? userId : _activeEntryId;
-    if (entryId == null) return;
+    try {
+      final repo = ref.read(scorecardRepositoryProvider);
+      final userId = ref.read(effectiveUserProvider).id;
+      final entryId = isVerifier ? userId : _activeEntryId;
+      if (entryId == null) return;
     
     // Determine which card we are updating
-    final cardToUpdate = isVerifier ? widget.verifierScorecard : _activeScorecard;
+    final cardToUpdate = isVerifier ? _localVerifierCard : _activeScorecard;
     final map = isVerifier ? _verifierScores : _localScores;
     
     final scoresList = List<int?>.generate(18, (i) => map[i + 1]);
@@ -176,7 +263,22 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
-        await repo.addScorecard(newCard);
+        
+        // HOWEVER, we can generate the ID ourselves!
+        // Firestore allows setting ID or auto-id.
+        // Better to generate ID here so we know it.
+        final generatedId = FirebaseFirestore.instance.collection('scorecards').doc().id;
+        final newCardWithId = newCard.copyWith(id: generatedId);
+        
+        await repo.addScorecard(newCardWithId);
+        
+        // Update Local State IMMEDIATELY
+        if (isVerifier) {
+            setState(() => _localVerifierCard = newCardWithId);
+        } else {
+            setState(() => _activeScorecard = newCardWithId);
+        }
+
     } else {
         // Update existing card
         final updatedCard = isVerifier 
@@ -192,471 +294,212 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
               );
               
         await repo.updateScorecard(updatedCard);
+        
+        // Update Local State with latest values
+        if (isVerifier) {
+             // setState(() => _localVerifierCard = updatedCard); // Optional, helps keep timestamps fresh
+        }
+    }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+         SnackBar(content: Text('Error saving score: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final holes = widget.event.courseConfig['holes'] as List? ?? [];
-    // Fixed height for tabbed view
-    const double cardHeight = 220; // Increased from 190 to avoid overflow
+    // [NEW] Resolve correct holes list based on the player being marked
+    final membersAsync = ref.watch(allMembersProvider);
+    final targetId = _activeEntryId;
+    final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == targetId);
+    final gender = member?.gender?.toLowerCase() ?? 'male';
+    
+    final tees = widget.event.courseConfig['tees'] as List?;
+    Map<String, dynamic> effectivePtc = widget.event.courseConfig;
+    
+    if (tees != null && tees.isNotEmpty) {
+      Map<String, dynamic>? selectedTee;
+      if (gender == 'female') {
+         // A) Explicit selection priority
+         if (widget.event.selectedFemaleTeeName != null) {
+           selectedTee = (tees.firstWhereOrNull((t) => 
+             (t['name'] ?? '').toString().toLowerCase() == widget.event.selectedFemaleTeeName!.toLowerCase()
+           ) as Map<String, dynamic>?);
+         }
+         
+         // B) Heuristic fallback
+         selectedTee ??= (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+           (t['name'] ?? '').toString().toLowerCase().contains('female')
+         ) as Map<String, dynamic>?);
+      }
+      
+      // Fallback or default choice
+      selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase() == (widget.event.selectedTeeName ?? 'white').toLowerCase()
+      ) as Map<String, dynamic>?);
+
+      // Final fallback: First tee
+      effectivePtc = selectedTee ?? (tees.first as Map<String, dynamic>);
+    }
+
+    final holes = effectivePtc['holes'] as List? ?? [];
     
     // Watch for active match status
     final matchResultAsync = ref.watch(currentMatchControllerProvider(widget.event.id));
     final matchResult = matchResultAsync.asData?.value;
 
-    return BoxyArtFloatingCard(
-      height: matchResult != null ? cardHeight + 40 : cardHeight, // Expand for match status
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: [
-            // Match Status Header (if active)
-            if (matchResult != null)
-              MatchStatusHeader(result: matchResult),
+    // Tactical Info Resolve
+    final currentHoleNum = _currentHoleIndex + 1;
+    int par = 4;
+    int? si;
+    if (holes.length >= currentHoleNum) {
+      final hData = holes[_currentHoleIndex];
+      par = (hData['par'] as num?)?.toInt() ?? 4;
+      si = (hData['si'] as num?)?.toInt();
+    }
 
-            _buildPlayerPicker(),
-
-           Expanded(
-             child: Stack(
-              children: [
-                PageView.builder(
-                  controller: _pageController,
-                  itemCount: 18,
-                  onPageChanged: (index) {
-                    setState(() => _currentPage = index);
-                    // Swiping automatically saves the current hole's score
-                    _persistScores();
-                  },
-                  itemBuilder: (context, index) {
-                    final holeNum = index + 1;
-                    int par = 4;
-                    int? si;
-
-                    if (holes.length >= holeNum) {
-                      final holeData = holes[index];
-                      par = (holeData['par'] as num?)?.toInt() ?? 4;
-                      si = (holeData['si'] as num?)?.toInt();
-                    }
-
-                    final score = _localScores[holeNum] ?? par;
-
-                    return _buildHoleView(holeNum, par, si, score);
-                  },
+    return GestureDetector(
+      onVerticalDragUpdate: (details) {
+        if (details.primaryDelta! < -10) {
+          _openHeroScoring(holes, effectivePtc);
+        }
+      },
+      child: BoxyArtFloatingCard(
+        height: matchResult != null ? 150 : 110, // [FIX] Increased height for two-row layout
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+              // Match Status Header (if active)
+              if (matchResult != null)
+                MatchStatusHeader(
+                  result: matchResult.result,
+                  match: matchResult.match,
                 ),
-                
-                // Left Chevron
-                if (_currentPage > 0)
-                  Positioned(
-                    left: 4,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: IconButton(
-                        icon: const Icon(Icons.chevron_left, size: 28),
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-                        onPressed: () {
-                          _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
 
-                // Right Chevron
-                if (_currentPage < 17)
-                  Positioned(
-                    right: 4,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: IconButton(
-                        icon: const Icon(Icons.chevron_right, size: 28),
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-                        onPressed: () {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHoleView(int holeNum, int par, int? si, int displayScore) {
-    final hasConflict = _localScores[holeNum] != null && _verifierScores[holeNum] != null && _localScores[holeNum] != _verifierScores[holeNum];
-    final isVerifierTab = widget.selectedTab == MarkerTab.verifier;
-
-    // Determine Lock State
-    final currentScorecard = isVerifierTab ? widget.verifierScorecard : _activeScorecard;
-    final bool isStatusLocked = currentScorecard?.status == ScorecardStatus.submitted || 
-                               currentScorecard?.status == ScorecardStatus.finalScore;
-    
-    final lockOverride = ref.watch(isScoringLockedOverrideProvider);
-    final bool isEventLocked = (widget.event.isScoringLocked == true || widget.event.status == EventStatus.completed) && lockOverride != false;
-    
-    final bool effectivelyLocked = widget.isAdmin ? isStatusLocked : (isStatusLocked || isEventLocked);
-    final bool isDisabled = effectivelyLocked;
-
-    return Column(
-      children: [
-        // Scramble Attribution Section
-        _buildScrambleAttributionSection(holeNum, effectivelyLocked),
-
-        // Match TOTAL bar layout structure (Label + Controls)
-        Visibility(
-          visible: !widget.isSelfMarking,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'SCORES',
-                        style: TextStyle(
-                          fontSize: 9, 
-                          fontWeight: FontWeight.w900, 
-                          letterSpacing: 2.0, 
-                          color: Colors.blueGrey
-                        ),
-                      ),
-                      Text(
-                        'MARKER MODE',
-                        style: TextStyle(
-                          fontSize: 7, 
-                          fontWeight: FontWeight.w900, 
-                          letterSpacing: 0.5,
-                          color: Theme.of(context).primaryColor
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: 220,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.all(2),
-                    child: Row(
-                      children: [
-                        _buildTab(
-                          context, 
-                          'PLAYER', 
-                          displayScore,
-                          widget.selectedTab == MarkerTab.player, 
-                          () => widget.onTabChanged.call(MarkerTab.player)
-                        ),
-                        _buildTab(
-                          context, 
-                          'MY SCORE', 
-                          _verifierScores[holeNum],
-                          widget.selectedTab == MarkerTab.verifier, 
-                          () => widget.onTabChanged.call(MarkerTab.verifier), 
-                          hasConflict: hasConflict,
-                          activeColor: Colors.orange,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        
-        Expanded(
-          child: Builder(
-            builder: (context) {
-              int? maxHoleScore;
-              
-              // Resolve Max Score Config & Overrides
-              final formatOverride = ref.watch(gameFormatOverrideProvider);
-              final compAsync = ref.watch(competitionDetailProvider(widget.event.id));
-              final comp = compAsync.asData?.value;
-              final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
-              
-              if (currentFormat == CompetitionFormat.maxScore) {
-                 final maxTypeOverride = ref.watch(maxScoreTypeOverrideProvider);
-                 final maxValueOverride = ref.watch(maxScoreValueOverrideProvider);
-                 MaxScoreConfig? maxConfig = comp?.rules.maxScoreConfig;
-                 
-                 if (maxTypeOverride != null) {
-                    maxConfig = MaxScoreConfig(
-                      type: maxTypeOverride,
-                      value: maxValueOverride ?? (maxConfig?.value ?? 2),
-                    );
-                 }
-                 
-                 if (maxConfig != null) {
-                    final membersAsync = ref.watch(allMembersProvider);
-                    final targetId = _activeEntryId;
-                    final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == targetId);
-                    
-                    double handicapIndex = member?.handicap ?? 18.0;
-                    final phc = member != null ? HandicapCalculator.calculatePlayingHandicap(
-                      handicapIndex: handicapIndex, 
-                      rules: comp?.rules ?? const CompetitionRules(), 
-                      courseConfig: widget.event.courseConfig,
-                    ) : handicapIndex.round();
-
-                    if (maxConfig.type == MaxScoreType.fixed) {
-                      maxHoleScore = maxConfig.value;
-                    } else if (maxConfig.type == MaxScoreType.parPlusX) {
-                      maxHoleScore = par + maxConfig.value;
-                    } else {
-                      final holeStrokes = (phc ~/ 18) + (si != null && si <= (phc % 18) ? 1 : 0);
-                      maxHoleScore = (par + 2 + holeStrokes).toInt();
-                    }
-                 }
-              }
-
-              return HoleScoreCard(
-                holeNum: holeNum,
-                par: par,
-                si: si,
-                score: displayScore,
-                maxScore: maxHoleScore,
-                isReadOnly: isDisabled, 
-                isDisabled: isDisabled,
-                hasConflict: isVerifierTab && hasConflict,
-                onIncrement: () => _updateScore(holeNum, 1, par, isVerifier: isVerifierTab),
-                onDecrement: () => _updateScore(holeNum, -1, par, isVerifier: isVerifierTab),
-                onScoreChanged: (newScore) => _setScore(holeNum, newScore, isVerifier: isVerifierTab),
-              );
-            }
-          ),
-        ),
-        if (isVerifierTab && _localScores[holeNum] != null) ...[
-           const SizedBox(height: 8),
-           _buildConflictIndicator(holeNum),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildConflictIndicator(int holeNum) {
-    final official = _localScores[holeNum];
-    final verifier = _verifierScores[holeNum];
-    if (official == null || verifier == null || official == verifier) return const SizedBox.shrink();
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.warning_amber_rounded, size: 14, color: Colors.red),
-          const SizedBox(width: 4),
-          Text(
-            'Conflict: Official is $official',
-            style: const TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlayerPicker() {
-    final compAsync = ref.watch(competitionDetailProvider(widget.event.id));
-    final comp = compAsync.asData?.value;
-    if (comp?.rules.subtype == CompetitionSubtype.foursomes) return const SizedBox.shrink();
-
-    final players = _getTeamPlayers();
-    if (players.length <= 1) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.05),
-        border: const Border(bottom: BorderSide(color: Colors.black12, width: 0.5)),
-      ),
-      child: Row(
-        children: [
-          const Text(
-            'SCORING FOR:',
-            style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 0.5),
-          ),
-          const SizedBox(width: 12),
-          ...players.map((p) {
-            final id = p.registrationMemberId;
-            final isActive = _activeEntryId == id;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: InkWell(
-                onTap: () => _switchPlayer(id),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isActive ? Theme.of(context).primaryColor : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isActive ? Theme.of(context).primaryColor : Colors.grey.shade300,
-                    ),
-                    boxShadow: isActive ? AppShadows.softScale : null,
-                  ),
-                  child: Text(
-                    p.name.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: isActive ? Colors.white : Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScrambleAttributionSection(int holeNum, bool isLocked) {
-    final compAsync = ref.watch(competitionDetailProvider(widget.event.id));
-    final comp = compAsync.asData?.value;
-    if (comp?.rules.format != CompetitionFormat.scramble) return const SizedBox.shrink();
-    if (comp?.rules.trackShotAttributions == false) return const SizedBox.shrink();
-
-    final players = _getTeamPlayers();
-    if (players.isEmpty) return const SizedBox.shrink();
-
-    final currentChosen = _shotAttributions[holeNum];
-    final isFlorida = comp?.rules.subtype == CompetitionSubtype.florida;
-    final prevHoleChosen = holeNum > 1 ? _shotAttributions[holeNum - 1] : null;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'CHOSEN SHOT / DRIVE',
-                style: TextStyle(
-                  fontSize: 9, 
-                  fontWeight: FontWeight.w900, 
-                  letterSpacing: 1.0, 
-                  color: Colors.blueGrey.shade400
-                ),
-              ),
-              const Spacer(),
-              if (isFlorida)
-               Text(
-                'FLORIDA STEP-ASIDE',
-                style: TextStyle(
-                  fontSize: 8, 
-                  fontWeight: FontWeight.bold, 
-                  color: Colors.orange.shade700
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: players.map((p) {
-              final isChosen = currentChosen == p.registrationMemberId;
-              final isSteppingAside = isFlorida && prevHoleChosen == p.registrationMemberId;
-              
-              return Expanded(
-                child: GestureDetector(
-                  onTap: isLocked ? null : () => _updateAttribution(holeNum, p.registrationMemberId),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: isChosen 
-                          ? Theme.of(context).primaryColor 
-                          : (isSteppingAside ? Colors.orange.withValues(alpha: 0.1) : Colors.blueGrey.withValues(alpha: 0.05)),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isChosen 
-                            ? Theme.of(context).primaryColor 
-                            : (isSteppingAside ? Colors.orange : Colors.transparent),
-                        width: 1.5,
-                      ),
-                      boxShadow: isChosen ? AppShadows.softScale : null,
-                    ),
-                    child: Column(
+              // Tactical Handle Content
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0), // [FIX] Top padding for two rows
+                child: Column(
+                  children: [
+                    // Row 1: Centered Hole Info
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          p.name.split(' ').first,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          'HOLE $currentHoleNum • PAR $par${si != null ? ' • SI $si' : ''}',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: isChosen ? Colors.white : (isSteppingAside ? Colors.orange.shade800 : Colors.blueGrey),
+                            fontWeight: FontWeight.w900,
+                            color: Colors.blueGrey.shade900,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        if (isSteppingAside)
-                          const Icon(Icons.do_not_disturb_on, size: 10, color: Colors.orange),
-                        if (isChosen && !isSteppingAside)
-                          const Icon(Icons.check_circle, size: 10, color: Colors.white),
+                        Text(
+                          'Swipe up to score',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey.shade400,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    // Row 2: 50/50 Split Actions
+                    Row(
+                      children: [
+                        // Persistent Toggle
+                        Expanded(
+                          child: Container(
+                            height: 36, // [FIX] Standardized height
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildTab(
+                                  context, 
+                                  'PLAYER', 
+                                  null, 
+                                  widget.selectedTab == MarkerTab.player, 
+                                  () => widget.onTabChanged(MarkerTab.player),
+                                  isDisabled: widget.isSelfMarking, 
+                                ),
+                                _buildTab(
+                                  context, 
+                                  'ME', 
+                                  null, 
+                                  widget.selectedTab == MarkerTab.verifier, 
+                                  () => widget.onTabChanged(MarkerTab.verifier),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Enter Button
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _openHeroScoring(holes, effectivePtc),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              minimumSize: const Size(double.infinity, 36), // [FIX] Expand to fill
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center, // Center for better symmetry
+                              children: [
+                                Icon(Icons.bolt, size: 12),
+                                SizedBox(width: 4),
+                                Text('SCORING', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              );
-            }).toList(),
-          ),
-        ],
+              ),
+              
+              const Spacer(),
+              // Drag Handle Indicator
+              Container(
+                width: 32,
+                height: 3,
+                margin: const EdgeInsets.only(bottom: 6),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  List<TeeGroupParticipant> _getTeamPlayers() {
-     final groupingData = widget.event.grouping['groups'] as List?;
-     if (groupingData == null) return [];
 
-     final targetId = widget.targetEntryId ?? widget.targetScorecard?.entryId;
-     if (targetId == null) return [];
-
-     for (var g in groupingData) {
-       final players = (g['players'] as List).map((p) => TeeGroupParticipant.fromJson(p)).toList();
-       if (players.any((p) => p.registrationMemberId == targetId)) {
-         return players;
-       }
-     }
-     return [];
-  }
-
-  Widget _buildTab(BuildContext context, String label, int? score, bool isActive, VoidCallback onTap, {bool hasConflict = false, Color? activeColor}) {
+  Widget _buildTab(BuildContext context, String label, int? score, bool isActive, VoidCallback? onTap, {bool hasConflict = false, Color? activeColor, bool isDisabled = false}) {
     final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: isDisabled ? null : onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
+            color: isActive ? (activeColor ?? theme.primaryColor) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
             boxShadow: isActive ? AppShadows.softScale : null,
           ),
           alignment: Alignment.center,
@@ -668,9 +511,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
-                  color: (hasConflict && isActive) 
+                  color: (hasConflict) 
                       ? Colors.red 
-                      : (isActive ? (activeColor ?? theme.primaryColor) : Colors.blueGrey.shade500),
+                      : (isActive 
+                          ? Colors.white 
+                          : (isDisabled ? Colors.grey.withValues(alpha: 0.5) : Colors.blueGrey.shade500)),
                 ),
               ),
               if (hasConflict) ...[
@@ -684,10 +529,56 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     );
   }
 
+  void _openHeroScoring(List<dynamic> holes, Map<String, dynamic> ptc) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => HeroScoringScreen(
+          event: widget.event,
+          initialPlayerScores: _localScores,
+          initialVerifierScores: _verifierScores,
+          initialHole: _currentHoleIndex + 1,
+          holes: holes,
+          effectivePtc: ptc,
+          initialTab: widget.selectedTab,
+          activeEntryId: _activeEntryId,
+          isSelfMarking: widget.isSelfMarking,
+          onSetScore: (h, score, isVerifier) {
+            _setScore(h, score, isVerifier: isVerifier);
+          },
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOutQuart;
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    ).then((_) => setState(() {}));
+  }
+
   void _setScore(int holeNum, int score, {bool isVerifier = false}) {
     setState(() {
       final map = isVerifier ? _verifierScores : _localScores;
-      map[holeNum] = score.clamp(1, 15);
+      
+      // Determine Cap
+      int? cap;
+      final comp = ref.read(competitionDetailProvider(widget.event.id)).asData?.value;
+      if (comp?.rules.format == CompetitionFormat.maxScore) {
+          // Resolve par for this hole
+          final members = ref.read(allMembersProvider).asData?.value ?? [];
+          final pConfig = _resolvePlayerCourseConfig(_activeEntryId ?? '', widget.event, members);
+          final holeData = (pConfig['holes'] as List?)?.elementAtOrNull(holeNum - 1);
+          final par = (holeData?['par'] as num?)?.toInt() ?? 4;
+          final si = (holeData?['si'] as num?)?.toInt() ?? 18;
+          cap = _calculateMaxScoreCap(holeNum, par, si, comp!.rules);
+      }
+
+      map[holeNum] = score.clamp(1, cap ?? 15);
     });
     _persistScores(isVerifier: isVerifier);
   }
