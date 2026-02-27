@@ -17,41 +17,34 @@ class CompetitionBadgeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pills = [];
-    final iconColor = baseColor ?? const Color(0xFF16A085);
 
     // 1. Format Pill (Stroke Play, Match Play, etc.)
     pills.add(
-      BoxyArtPill(
+      BoxyArtPill.format(
         label: rules.format == CompetitionFormat.matchPlay 
             ? rules.gameName 
             : rules.format.name,
-        color: const Color(0xFF3498DB), // Blue for format
       ),
     );
 
     // 2. Scoring Pill (Net or Gross)
     pills.add(
-      BoxyArtPill(
+      BoxyArtPill.format(
         label: rules.scoringType,
-        color: rules.scoringType == 'GROSS' 
-            ? const Color(0xFFE74C3C) 
-            : (eventId?.contains('_secondary') == true ? const Color(0xFFF39C12) : const Color(0xFF16A085)),
       ),
     );
 
     // 3. Allowance Pill (e.g., 95% HCP)
     pills.add(
-      BoxyArtPill(
+      BoxyArtPill.type(
         label: rules.defaultAllowanceLabel,
-        color: iconColor,
       ),
     );
 
     // 4. Mode Pill (Singles, Pairs, Team)
     pills.add(
-      BoxyArtPill(
+      BoxyArtPill.type(
         label: rules.modeLabel,
-        color: const Color(0xFF34495E),
       ),
     );
 
@@ -61,9 +54,9 @@ class CompetitionBadgeRow extends StatelessWidget {
         rules.subtype != CompetitionSubtype.foursomes && 
         rules.subtype != CompetitionSubtype.fourball) {
       pills.add(
-        BoxyArtPill(
+        BoxyArtPill.status(
           label: 'Capped @ ${rules.handicapCap.toInt()} HCP',
-          color: const Color(0xFFD35400),
+          color: AppColors.coral400,
         ),
       );
     }

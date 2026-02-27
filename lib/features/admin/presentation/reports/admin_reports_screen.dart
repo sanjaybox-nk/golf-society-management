@@ -26,17 +26,17 @@ class AdminReportsScreen extends ConsumerWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Core Society Stats
-              const BoxyArtSectionTitle(title: 'SOCIETY OVERVIEW', padding: EdgeInsets.only(bottom: 16)),
+              const BoxyArtSectionTitle(title: 'SOCIETY OVERVIEW', ),
               _buildSocietyStats(membersAsync, eventsAsync, primary),
               
               // 2. Season Standings Preview
-              const BoxyArtSectionTitle(title: 'SEASON STANDINGS', padding: EdgeInsets.only(bottom: 16)),
+              const BoxyArtSectionTitle(title: 'SEASON STANDINGS', ),
               _buildSeasonStandingsPreview(context, ref, primary),
 
               const SizedBox(height: 32),
 
               // 3. Event Specific Reports (Quick Access)
-              const BoxyArtSectionTitle(title: 'EVENT REPORTS', padding: EdgeInsets.only(bottom: 16)),
+              const BoxyArtSectionTitle(title: 'EVENT REPORTS', ),
               eventsAsync.when(
                 data: (List<GolfEvent> events) {
                   final sortedEvents = events.sortedBy((e) => e.date).reversed.toList();

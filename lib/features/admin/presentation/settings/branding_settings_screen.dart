@@ -25,7 +25,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'Society Identity', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Society Identity', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -46,7 +46,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               
-              const BoxyArtSectionTitle(title: 'Design Palettes', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Design Palettes', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -66,12 +66,12 @@ class BrandingSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'Live Preview', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Live Preview', ),
               const SizedBox(height: 12),
               _buildPreviewCard(currentColor, config.themeMode),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'Primary Color', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Primary Color', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: _ColorPalette(
@@ -84,7 +84,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'Card Appearance', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Card Appearance', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -163,7 +163,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'App Appearance', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'App Appearance', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(

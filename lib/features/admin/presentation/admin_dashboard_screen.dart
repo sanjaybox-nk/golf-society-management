@@ -62,9 +62,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               ),
 
               const BoxyArtSectionTitle(
-                title: 'Quick Actions',
-                padding: EdgeInsets.only(bottom: 16),
-              ),
+                title: 'Quick Actions',),
 
               // 3. Feature Action Grid (2x2)
               LayoutBuilder(
@@ -111,9 +109,7 @@ class AdminDashboardScreen extends ConsumerWidget {
 
               // 4. Recent Activity Feed
               const BoxyArtSectionTitle(
-                title: 'Recent Activity',
-                padding: EdgeInsets.only(bottom: 16),
-              ),
+                title: 'Recent Activity',),
               
               const _ActivityFeed(),
 
@@ -194,9 +190,7 @@ class _ActivityFeed extends StatelessWidget {
       ('New event "Spring Scramble" published', '3 hours ago', Icons.campaign_rounded, Colors.purple),
     ];
 
-    return BoxyArtCard(
-      padding: EdgeInsets.zero,
-      child: Column(
+    return BoxyArtCard(child: Column(
         children: activities.mapIndexed((index, item) {
           return Column(
             children: [

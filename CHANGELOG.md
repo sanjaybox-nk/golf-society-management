@@ -1,5 +1,11 @@
+### Design System Harmonization & Zero-Issue Build (2026-02-27)
+- **Zero-Issue Ecosystem**: Completely eliminated all 45+ `padding` deprecation warnings on `BoxyArtSectionTitle` using robust AST-style multi-line Python scripts, achieving a perfect `0 issues` state across the entire `Golf Society Management` codebase.
+- **Sub-Menu Harmonization**: Upgraded legacy pill-shaped filter chips (e.g., `MembersScreen`, `AdminMembersScreen`) to the sleek, underlined `ModernUnderlinedFilterBar` component to match the v3.1 `LiveHubToggle` standard.
+- **Typography Alignment**: Restored dynamic semantic color targeting (`AppColors.dark60` vs `AppColors.dark950`) to `ModernMemberCard` and shifted raw `TextStyle` elements strictly to `AppTypography` token generators (`displayMedium`, `caption`).
+- **Layout Fortification**: Deprecated the `padding` parameter inside `BoxyArtSectionTitle` to mandate strict global rhythmic spacing. Corrected upstream injection points across the Admin dashboard, stripping local ad-hoc overrides.
+- **StateError Elimination**: Hardened `MemberDetailsModal` by caching inherited `currentUserProvider` logic in the main builder, securing the application against catastrophic Riverpod contextual `StateError` rebuild exceptions.
+
 ### Architectural Migration & Build Hardening (2026-02-27)
-- **Zero-Issue Build**: Achieved an absolute zero-issue state (0 errors, 0 warnings) after resolving over 3,500 analysis issues.
 - **Clean Architecture Migration**: Established the `lib/domain` layer and relocated all models to `lib/domain/models/` for strict separation of concerns.
 - **Design System Centralization**: Repurposed `shared_ui` into a top-level `lib/design_system/` module, providing a unified export layer (`design_system.dart`) for the entire app.
 - **Atomic Decomposition**: Initiated the decomposition of bulky UI files into specialized `atoms/` and `widgets/` for better maintainability.

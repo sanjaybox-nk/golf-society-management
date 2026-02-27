@@ -89,25 +89,14 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Filter Row
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildFilterChip(
-                        label: 'Active ($activeCount)',
-                        filter: AdminMemberFilter.current,
-                      ),
-                      _buildFilterChip(
-                        label: 'Committee ($committeeCount)',
-                        filter: AdminMemberFilter.committee,
-                      ),
-                      _buildFilterChip(
-                        label: 'Other ($otherCount)',
-                        filter: AdminMemberFilter.other,
-                      ),
-                    ],
-                  ),
+                ModernUnderlinedFilterBar<AdminMemberFilter>(
+                  selectedValue: currentFilter,
+                  onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
+                  tabs: [
+                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -169,45 +158,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
     );
   }
 
-  Widget _buildFilterChip({
-    required String label,
-    required AdminMemberFilter filter,
-  }) {
-    final currentFilter = ref.watch(adminMemberFilterProvider);
-    final isSelected = currentFilter == filter;
-    final primary = Theme.of(context).primaryColor;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () => ref.read(adminMemberFilterProvider.notifier).update(filter),
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? primary : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.grey.shade600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 

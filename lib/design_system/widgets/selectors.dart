@@ -1,9 +1,4 @@
 import "package:golf_society/design_system/design_system.dart";
-import "package:flutter/material.dart";
-
-
-
-
 class BoxyHoleSelector extends StatelessWidget {
   final int currentHole;
   final Map<int, int> scores;

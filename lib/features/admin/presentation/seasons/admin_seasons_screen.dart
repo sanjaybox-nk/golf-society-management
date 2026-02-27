@@ -32,7 +32,7 @@ class AdminSeasonsScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'All Seasons', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'All Seasons', ),
               const SizedBox(height: 12),
               seasonsAsync.when(
                 data: (seasons) {

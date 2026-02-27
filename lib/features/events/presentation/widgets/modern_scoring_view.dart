@@ -84,11 +84,9 @@ class ModernScoringView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              BoxyArtPill(
-                label: markingName.toUpperCase(),
-                color: Theme.of(context).primaryColor,
+              BoxyArtPill.type(
+                label: markingName,
                 icon: Icons.person_outline,
-                textColor: Colors.black87,
               ),
               const Spacer(),
               _buildTeePill(context, selectedTeeName ?? event.selectedTeeName ?? 'White'),
@@ -129,18 +127,14 @@ class ModernScoringView extends StatelessWidget {
 
     // 2. Determine Match Hole Status
     String matchHoleStatus = '-';
-    Color matchColor = Colors.grey;
     if (matchResult != null && matchResult!.holeResults.length >= currentHole) {
       final res = matchResult!.holeResults[currentHole - 1];
       if (res == 1) {
         matchHoleStatus = isTeam1 ? 'WIN' : 'LOSS';
-        matchColor = isTeam1 ? Colors.green : Colors.red;
       } else if (res == -1) {
         matchHoleStatus = isTeam1 ? 'LOSS' : 'WIN';
-        matchColor = isTeam1 ? Colors.red : Colors.green;
       } else if (res == 0) {
         matchHoleStatus = 'HALVE';
-        matchColor = Colors.blue;
       }
     }
 
@@ -149,15 +143,13 @@ class ModernScoringView extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.all(AppSpacing.x2l),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 'HOLE $currentHole',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
+                style: AppTypography.caption.copyWith(
                   color: Colors.black.withValues(alpha: 0.6),
                   letterSpacing: 2.0,
                 ),
@@ -198,10 +190,14 @@ class ModernScoringView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  BoxyArtPill(label: 'STABLEFORD: $pts pts', color: pts > 0 ? Colors.orange : Colors.grey),
+                  BoxyArtPill.format(
+                    label: 'STABLEFORD: $pts pts',
+                  ),
                   if (matchResult != null) ...[
                     const SizedBox(width: 12),
-                    BoxyArtPill(label: 'MATCH: $matchHoleStatus', color: matchColor),
+                    BoxyArtPill.format(
+                      label: 'MATCH: $matchHoleStatus',
+                    ),
                   ],
                 ],
               ),

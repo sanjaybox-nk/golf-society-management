@@ -79,14 +79,14 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
               const SizedBox(height: 32),
 
               if (_searchController.text.isEmpty) ...[
-                const BoxyArtSectionTitle(title: 'Popular Currencies', padding: EdgeInsets.zero),
+                const BoxyArtSectionTitle(title: 'Popular Currencies', ),
                 const SizedBox(height: 12),
                 _buildPopularGrid(popularCurrencies, societyConfig.currencyCode, (c) {
                   controller.setCurrency(c.symbol, c.code);
                   context.pop();
                 }),
                 const SizedBox(height: 32),
-                const BoxyArtSectionTitle(title: 'All Currencies', padding: EdgeInsets.zero),
+                const BoxyArtSectionTitle(title: 'All Currencies', ),
                 const SizedBox(height: 12),
               ],
               

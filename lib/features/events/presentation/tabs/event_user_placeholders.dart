@@ -185,41 +185,36 @@ class _FieldHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventFieldTabProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+            width: 1.0,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ToggleItem(
+              label: 'Entries',
+              icon: Icons.people_outline_rounded,
+              isSelected: selectedTab == 0,
+              onTap: () => ref.read(eventFieldTabProvider.notifier).set(0),
+            ),
+          ),
+          Expanded(
+            child: _ToggleItem(
+              label: 'Groupings',
+              icon: Icons.grid_view_rounded,
+              isSelected: selectedTab == 1,
+              onTap: () => ref.read(eventFieldTabProvider.notifier).set(1),
+            ),
           ),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: _ToggleItem(
-                label: 'Entries',
-                icon: Icons.people_outline_rounded,
-                isSelected: selectedTab == 0,
-                onTap: () => ref.read(eventFieldTabProvider.notifier).set(0),
-              ),
-            ),
-            Expanded(
-              child: _ToggleItem(
-                label: 'Groupings',
-                icon: Icons.grid_view_rounded,
-                isSelected: selectedTab == 1,
-                onTap: () => ref.read(eventFieldTabProvider.notifier).set(1),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -230,25 +225,41 @@ class _ToggleItem extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final Color? activeColorOverride;
+  final Color? inactiveColorOverride;
 
   const _ToggleItem({
     required this.label,
     required this.icon,
     required this.isSelected,
     required this.onTap,
+    this.activeColorOverride,
+    this.inactiveColorOverride,
   });
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.primaryColor;
+    
+    Color activeColor = activeColorOverride ?? (isDark ? Colors.white : Colors.black);
+    Color inactiveColor = inactiveColorOverride ?? (isDark ? AppColors.dark300 : AppColors.dark400);
+    
+    final color = isSelected ? activeColor : inactiveColor;
+
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? primary : Colors.transparent,
+              width: 2.0,
+            ),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -256,15 +267,15 @@ class _ToggleItem extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : Colors.black,
+              color: color,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : Colors.black,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: color,
               ),
             ),
           ],
@@ -2222,47 +2233,44 @@ class _LiveHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventDetailsTabProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final List<({String label, int index, IconData icon})> tabs = [
-      (label: 'My Score', index: 0, icon: Icons.assignment_outlined),
-      (label: 'Group', index: 1, icon: Icons.groups_outlined),
-      (label: 'Leaderboard', index: 2, icon: Icons.emoji_events_outlined),
+    final tabs = <({String label, int index, IconData icon, Color? activeColor, Color? inactiveColor})>[
+      (label: 'My Score', index: 0, icon: Icons.grid_view_outlined, activeColor: null, inactiveColor: null),
+      (label: 'Group', index: 1, icon: Icons.people_outline, activeColor: null, inactiveColor: null),
+      (label: 'Leaderboard', index: 2, icon: Icons.star_border, activeColor: AppColors.lime500, inactiveColor: AppColors.lime500),
     ];
 
     if (event.matches.isNotEmpty) {
-      tabs.add((label: 'Matches', index: 4, icon: Icons.grid_view_outlined));
+      tabs.add((label: 'Matches', index: 4, icon: Icons.format_list_bulleted, activeColor: null, inactiveColor: null));
     }
     if (event.matches.any((m) => m.bracketId != null)) {
-      tabs.add((label: 'Bracket', index: 5, icon: Icons.account_tree_outlined));
+      tabs.add((label: 'Bracket', index: 5, icon: Icons.account_tree_outlined, activeColor: null, inactiveColor: null));
     }
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+            width: 1.0,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Row(
-          children: tabs.map((tab) {
-            final isSelected = selectedTab == tab.index;
-            return Expanded(
-              child: _ToggleItem(
-                label: tab.label,
-                icon: tab.icon,
-                isSelected: isSelected,
-                onTap: () => ref.read(eventDetailsTabProvider.notifier).set(tab.index),
-              ),
-            );
-          }).toList(),
         ),
+      ),
+      child: Row(
+        children: tabs.map((tab) {
+          final isSelected = selectedTab == tab.index;
+          return Expanded(
+            child: _ToggleItem(
+              label: tab.label,
+              icon: tab.icon,
+              isSelected: isSelected,
+              onTap: () => ref.read(eventDetailsTabProvider.notifier).set(tab.index),
+              activeColorOverride: tab.activeColor,
+              inactiveColorOverride: tab.inactiveColor,
+            ),
+          );
+        }).toList(),
       ),
     );
   }

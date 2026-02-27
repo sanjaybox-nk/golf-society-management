@@ -866,9 +866,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                 optionsViewBuilder: (context, onSelected, options) {
                                   return Align(
                                     alignment: Alignment.topLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 4.0),
-                                      child: Material(
+                                    child: Padding(padding: const EdgeInsets.only(top: 4), child: Material(
                                         elevation: 8,
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(12),
@@ -880,9 +878,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                             border: Border.all(color: Colors.grey.shade200),
                                             borderRadius: BorderRadius.circular(12),
                                           ),
-                                          child: ListView.builder(
-                                            padding: EdgeInsets.zero,
-                                            shrinkWrap: true,
+                                          child: ListView.builder(shrinkWrap: true,
                                             itemCount: options.length,
                                             itemBuilder: (context, index) {
                                               final course = options.elementAt(index);
@@ -1049,13 +1045,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 const SizedBox(height: 24),
 
                 const BoxyArtSectionTitle(
-                  title: 'COMPETITION RULES',
-                  padding: EdgeInsets.zero,
-                ),
+                  title: 'COMPETITION RULES',),
                 const SizedBox(height: 12),
-                BoxyArtCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Consumer(
+                BoxyArtCard(child: Consumer(
                     builder: (context, ref, child) {
                             final templatesAsync = ref.watch(templatesListProvider);
                             final templates = templatesAsync.value ?? [];
@@ -1279,9 +1271,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         const SizedBox(height: 24),
                         const BoxyArtSectionTitle(title: 'SECONDARY GAME (OVERLAY)'),
                         const SizedBox(height: 12),
-                        BoxyArtCard(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
+                        BoxyArtCard(child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (_secondaryTemplateId == null)
@@ -1543,9 +1533,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   child: Column(
                     children: [
                       ..._facilitiesControllers.asMap().entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20.0),
-                          child: BoxyArtFormField(
+                        return Padding(padding: const EdgeInsets.only(bottom: 12), child: BoxyArtFormField(
                             label: 'Facility ${entry.key + 1}',
                             controller: entry.value,
                           ),
@@ -1681,13 +1669,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade200),
                 borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.all(8),
-              child: QuillEditor.basic(
+              ),child: QuillEditor.basic(
                 controller: note.quillController,
-                config: QuillEditorConfig(
-                  padding: EdgeInsets.zero,
-                  autoFocus: false,
+                config: QuillEditorConfig(autoFocus: false,
                   expands: false,
                 ),
               ),

@@ -46,7 +46,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 // Upcoming Section
                 const Padding(
                   padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: BoxyArtSectionTitle(title: 'Upcoming Events', padding: EdgeInsets.zero),
+                  child: BoxyArtSectionTitle(title: 'Upcoming Events', ),
                 ),
                 if (upcoming.isEmpty)
                   const Padding(
@@ -62,7 +62,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 // Past Section
                 const Padding(
                   padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
-                  child: BoxyArtSectionTitle(title: 'Past Events', padding: EdgeInsets.zero),
+                  child: BoxyArtSectionTitle(title: 'Past Events', ),
                 ),
                 if (past.isEmpty)
                   const Padding(

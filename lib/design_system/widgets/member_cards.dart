@@ -52,6 +52,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final primary = Theme.of(context).primaryColor;
+    
     // Determine status display label
     final String statusLabel = (status == MemberStatus.member || status == MemberStatus.active) 
         ? "Active" 
@@ -66,7 +68,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     final system = society.handicapSystem;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -109,7 +110,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                         GestureDetector(
                           onTap: onCameraTap,
                           child: Container(
-                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
@@ -175,7 +175,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               children: [
                                 BoxyArtSectionTitle(
                                   title: 'Handicap',
-                                  padding: EdgeInsets.only(bottom: 6),
                                   isLevel2: true,
                                 ),
                                 const SizedBox(height: 6),
@@ -210,7 +209,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               children: [
                                 BoxyArtSectionTitle(
                                   title: system.idLabel,
-                                  padding: EdgeInsets.only(bottom: 6),
                                   isLevel2: true,
                                 ),
                                 const SizedBox(height: 6),
@@ -309,8 +307,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   fontSize: 14,
                                   fontWeight: s == status ? FontWeight.bold : FontWeight.w600,
                                   color: s == status 
-                                      ? Theme.of(context).primaryColor 
-                                      : (s.color == StatusColors.neutral ? Colors.black87 : s.color),
+                                      ? primary 
+                                      : (s.color == StatusColors.neutral ? textColor : s.color),
                                 ),
                               ),
                           ))
@@ -358,13 +356,12 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   onTap: onSocietyRoleTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                          color: primary.withValues(alpha: 0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -378,19 +375,18 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                            color: AppColors.actionText,
                             letterSpacing: 0.8,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.white),
+                        const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.actionText),
                       ],
                     ),
                   ),
                 )
               else if (societyRole?.isNotEmpty == true)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(20),
@@ -400,7 +396,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: AppColors.actionText,
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -435,11 +431,11 @@ class ModernMemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardBg = Theme.of(context).cardColor;
-    final textPrimary = Theme.of(context).textTheme.bodyLarge?.color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.dark60 : AppColors.dark950;
 
     return BoxyArtCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(14),
       backgroundColor: cardBg,
       borderRadius: 16,
       child: Row(
@@ -455,9 +451,8 @@ class ModernMemberCard extends StatelessWidget {
             child: Center(
               child: Text(
                 '$position',
-                style: TextStyle(
+                style: AppTypography.displayMedium.copyWith(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
                   color: statusColor,
                 ),
               ),
@@ -472,19 +467,17 @@ class ModernMemberCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: TextStyle(
+                  style: AppTypography.displayMedium.copyWith(
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
                     color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   status,
-                  style: TextStyle(
+                  style: AppTypography.caption.copyWith(
                     fontSize: 11,
                     color: statusColor,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

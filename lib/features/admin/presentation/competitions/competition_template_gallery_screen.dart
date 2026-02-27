@@ -80,7 +80,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 32),
-                      const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
+                      const BoxyArtSectionTitle(title: 'Saved Templates', ),
                       const SizedBox(height: 12),
                       ...filtered.map((t) => Padding(
                         padding: const EdgeInsets.only(bottom: 16),

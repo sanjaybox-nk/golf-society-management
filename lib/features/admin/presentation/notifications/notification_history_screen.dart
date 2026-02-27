@@ -198,9 +198,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BoxyArtSectionTitle(
-              title: key,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-            ),
+              title: key,),
             ...groupItems.map((c) => _HistoryCard(campaign: c)),
           ],
         );

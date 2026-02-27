@@ -1,9 +1,8 @@
-import "package:golf_society/design_system/design_system.dart";
-
-
-
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/theme/app_colors.dart';
+import 'package:golf_society/theme/app_typography.dart';
+import 'package:golf_society/theme/app_shapes.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
 class BoxyArtIconBadge extends StatelessWidget {
@@ -11,9 +10,6 @@ class BoxyArtIconBadge extends StatelessWidget {
   final Color color;
   final double size;
   final double iconSize;
-  final bool isCircle;
-  final double borderRadius;
-  final EdgeInsetsGeometry? margin;
 
   const BoxyArtIconBadge({
     super.key,
@@ -21,9 +17,6 @@ class BoxyArtIconBadge extends StatelessWidget {
     required this.color,
     this.size = 20,
     this.iconSize = 10,
-    this.isCircle = true,
-    this.borderRadius = 6.0,
-    this.margin,
   });
 
   @override
@@ -31,11 +24,9 @@ class BoxyArtIconBadge extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      margin: margin,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: isCircle ? null : BorderRadius.circular(borderRadius),
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
       ),
       child: Center(
         child: Icon(
@@ -48,7 +39,7 @@ class BoxyArtIconBadge extends StatelessWidget {
   }
 }
 
-/// A centralized number/position badge.
+/// A centralized number/position badge (e.g. for leaderboards).
 class BoxyArtNumberBadge extends StatelessWidget {
   final int number;
   final Color? color;
@@ -64,163 +55,49 @@ class BoxyArtNumberBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveColor = color ?? theme.primaryColor;
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Spec: Rank #1 is amber, others are dark/neutral
+    Color bg;
+    Color fg;
+    
+    if (number == 1) {
+      bg = AppColors.amber500;
+      fg = AppColors.dark900;
+    } else if (number == 2) {
+      bg = isDark ? AppColors.dark600 : AppColors.dark150;
+      fg = isDark ? AppColors.dark150 : AppColors.dark900;
+    } else {
+      bg = isDark ? AppColors.dark700 : AppColors.dark100;
+      fg = isDark ? AppColors.dark200 : AppColors.dark300;
+    }
+
     return Container(
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: effectiveColor.withValues(alpha: 0.2),
+        color: color ?? bg,
         shape: BoxShape.circle,
       ),
       child: Text(
         '$number',
-        style: TextStyle(
-          fontSize: size * 0.35,
-          fontWeight: FontWeight.w900,
-          color: effectiveColor,
+        style: AppTypography.caption.copyWith(
+          color: color != null ? AppColors.pureWhite : fg,
         ),
       ),
     );
   }
 }
 
-/// A centralized square-ish container for icons and mini-stats.
-class BoxyArtSquareBadge extends StatelessWidget {
-  final Widget child;
-  final double size;
-  final Color? color;
-
-  const BoxyArtSquareBadge({
-    super.key,
-    required this.child,
-    this.size = 32,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color ?? Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(child: child),
-    );
-  }
-}
-
-
-/// A wrapper that adds a red/yellow notification dot.
-class NotificationBadge extends StatelessWidget {
-  final int count;
-  final Widget child;
-
-  const NotificationBadge({super.key, required this.count, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        child,
-        if (count > 0)
-          Positioned(
-            right: -4,
-            top: -4,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
-              ),
-              child: Center(
-                child: Text(
-                  '$count',
-                  style: TextStyle(
-                    color: ContrastHelper.getContrastingText(Theme.of(context).primaryColor),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-/// An interactive Fee Paid/Due toggle with animation.
-class BoxyArtFeePill extends StatefulWidget {
-  final bool isPaid;
-  final VoidCallback onToggle;
-
-  const BoxyArtFeePill({
-    super.key,
-    required this.isPaid,
-    required this.onToggle,
-  });
-
-  @override
-  State<BoxyArtFeePill> createState() => _BoxyArtFeePillState();
-}
-
-class _BoxyArtFeePillState extends State<BoxyArtFeePill> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scale = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scale,
-      child: GestureDetector(
-        onTapDown: (_) => _controller.forward(),
-        onTapUp: (_) {
-          _controller.reverse();
-          widget.onToggle();
-        },
-        onTapCancel: () => _controller.reverse(),
-        child: BoxyArtPill(
-          label: widget.isPaid ? 'Fee Paid' : 'Fee Due',
-          color: widget.isPaid ? StatusColors.positive : StatusColors.warning,
-        ),
-      ),
-    );
-  }
-}
-
-
-/// A standardized high-fidelity pill for status badges and tags.
+/// A standardized pill for status badges and tags (v3.1 3-family taxonomy).
 class BoxyArtPill extends StatelessWidget {
   final String label;
   final Color color;
   final IconData? icon;
   final Color? textColor;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   const BoxyArtPill({
     super.key,
@@ -228,141 +105,91 @@ class BoxyArtPill extends StatelessWidget {
     required this.color,
     this.icon,
     this.textColor,
+    this.backgroundColor,
+    this.borderColor,
   });
+
+  /// Factory for Competition Formats (Stableford, Matchplay, etc.)
+  /// Spec: alpha 0.08 bg, 0.18 border, lime400 text
+  factory BoxyArtPill.format({
+    required String label,
+    IconData? icon,
+  }) {
+    return BoxyArtPill(
+      label: label,
+      color: AppColors.lime400,
+      icon: icon,
+      backgroundColor: AppColors.lime500.withValues(alpha: 0.08),
+      borderColor: AppColors.lime500.withValues(alpha: 0.18),
+    );
+  }
+
+  /// Factory for Event Types (Invitational, Multi-day, etc.)
+  /// Spec: bg-elevated bg, border-subtle, dark-100 text
+  factory BoxyArtPill.type({
+    required String label,
+    IconData? icon,
+  }) {
+    return BoxyArtPill(
+      label: label,
+      color: AppColors.dark100,
+      icon: icon,
+      backgroundColor: AppColors.dark600,
+      borderColor: AppColors.dark500,
+    );
+  }
+
+  /// Factory for Lifecycle Status (Published, Live, etc.)
+  factory BoxyArtPill.status({
+    required String label,
+    required Color color,
+    IconData? icon,
+  }) {
+    return BoxyArtPill(
+      label: label,
+      color: color,
+      icon: icon,
+      backgroundColor: color.withValues(alpha: 0.08),
+      borderColor: color.withValues(alpha: 0.18),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
+        color: backgroundColor ?? color.withValues(alpha: 0.08),
+        borderRadius: AppShapes.pill,
         border: Border.all(
-          color: color.withValues(alpha: 0.25),
-          width: 1.5,
+          color: borderColor ?? color.withValues(alpha: 0.18),
+          width: 1,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: color), // Slightly larger icon to match larger text
-            const SizedBox(width: 6),
+            Icon(icon, size: 10, color: color),
+            const SizedBox(width: 5),
+          ] else ...[
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.6), 
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 5),
           ],
           Text(
-            toTitleCase(label),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+            label.toUpperCase(),
+            style: AppTypography.caption.copyWith(
               color: textColor ?? color,
-              letterSpacing: -0.2, // Tighter spacing for a modern look
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// A centralized colored circle indicator for golf tees.
-class BoxyTeeIndicator extends StatelessWidget {
-  final Color color;
-  final double size;
-  final bool hasShadow;
-
-  const BoxyTeeIndicator({
-    super.key,
-    required this.color,
-    this.size = 14,
-    this.hasShadow = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        boxShadow: hasShadow ? [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          )
-        ] : null,
-        border: Border.all(
-          color: Colors.black.withValues(alpha: 0.1),
-          width: 0.5,
-        ),
-      ),
-    );
-  }
-}
-
-/// A chat bubble styled according to the BoxyArt theme.
-class BoxyArtChatBubble extends StatelessWidget {
-  final String message;
-  final bool isMe;
-  final String? time;
-
-  const BoxyArtChatBubble({
-    super.key,
-    required this.message,
-    required this.isMe,
-    this.time,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-        decoration: BoxDecoration(
-          color: isMe ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
-            bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
-          ),
-        ),
-        child: Builder(
-          builder: (context) {
-            final backgroundColor = isMe ? Theme.of(context).primaryColor : Theme.of(context).cardColor;
-            final textColor = ContrastHelper.getContrastingText(backgroundColor);
-            final subtleTextColor = textColor.withValues(alpha: 0.6);
-            
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  message,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                if (time != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    time!,
-                    style: TextStyle(
-                      color: subtleTextColor,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
-              ],
-            );
-          },
-        ),
       ),
     );
   }
@@ -381,63 +208,105 @@ class BoxyArtDateBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
-
-    final hasRange = endDate != null && endDate!.day != date.day;
-    final dayText = hasRange 
-        ? '${date.day}-${endDate!.day}'
-        : DateFormat('d').format(date);
+    final bool isMultiDay = endDate != null && !DateUtils.isSameDay(date, endDate);
 
     return Container(
-      width: 58,
-      height: 74,
+      width: 52,
+      constraints: const BoxConstraints(minHeight: 62),
       decoration: BoxDecoration(
-        color: primary.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.lime500.withValues(alpha: 0.07),
+        borderRadius: AppShapes.sm,
         border: Border.all(
-          color: primary.withValues(alpha: 0.35),
-          width: 1.5,
+          color: AppColors.lime500.withValues(alpha: 0.14),
+          width: 1,
         ),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             DateFormat('MMM').format(date).toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: primary,
-              letterSpacing: 1.2,
+            style: AppTypography.caption.copyWith(
+              fontSize: 9,
+              color: AppColors.lime500,
             ),
           ),
-          const SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                dayText,
-                style: TextStyle(
-                  fontSize: hasRange ? 16 : 22,
-                  fontWeight: FontWeight.bold,
-                  color: primary,
-                  height: 1.1,
-                ),
-              ),
+          Text(
+            isMultiDay 
+              ? '${date.day}-${endDate!.day}'
+              : DateFormat('d').format(date),
+            style: AppTypography.displayHero.copyWith(
+              fontSize: isMultiDay ? 18 : 28,
+              height: 1.0,
             ),
           ),
           Text(
             DateFormat('yyyy').format(date),
-            style: TextStyle(
+            style: AppTypography.caption.copyWith(
               fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: primary.withValues(alpha: 0.6),
-              letterSpacing: 0.5,
+              color: AppColors.dark300,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A specialized pill for fee status.
+class BoxyArtFeePill extends StatelessWidget {
+  final bool isPaid;
+  final VoidCallback? onToggle;
+
+  const BoxyArtFeePill({
+    super.key,
+    required this.isPaid,
+    this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isPaid ? AppColors.lime500 : AppColors.amber500;
+    
+    return GestureDetector(
+      onTap: onToggle,
+      child: BoxyArtPill.status(
+        label: isPaid ? 'PAID' : 'DUE',
+        color: color,
+        icon: isPaid ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+      ),
+    );
+  }
+}
+
+/// A small square badge for indicators (Guerst, Buggy, etc.)
+class BoxyArtSquareBadge extends StatelessWidget {
+  final Widget child;
+  final Color? backgroundColor;
+  final double? size;
+
+  const BoxyArtSquareBadge({
+    super.key,
+    required this.child,
+    this.backgroundColor,
+    this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: size ?? 24,
+      height: size ?? 24,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: child,
     );
   }
 }

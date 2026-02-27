@@ -168,8 +168,8 @@ class _EventDetailsContent extends StatelessWidget {
       statusColor = Colors.grey.shade600;
     }
 
-    return BoxyArtPill(
-      label: toTitleCase(statusText),
+    return BoxyArtPill.status(
+      label: statusText,
       color: statusColor,
     );
   }

@@ -183,7 +183,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'SCORING RULES', padding: EdgeInsets.zero),
+        const BoxyArtSectionTitle(title: 'SCORING RULES', ),
         const SizedBox(height: 16),
         _buildEnumDropdown('Source', OOMSource.values, _oomSource, (v) => setState(() => _oomSource = v!)),
         const SizedBox(height: 16),
@@ -200,7 +200,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'LEAGUE RULES', padding: EdgeInsets.zero),
+        const BoxyArtSectionTitle(title: 'LEAGUE RULES', ),
         const SizedBox(height: 16),
         BoxyArtFormField(
           label: 'Best N Rounds (e.g. 6)',
@@ -219,7 +219,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
      return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'ECLECTIC RULES', padding: EdgeInsets.zero),
+        const BoxyArtSectionTitle(title: 'ECLECTIC RULES', ),
         const SizedBox(height: 16),
          _buildEnumDropdown('Metric', EclecticMetric.values, _eclecticMetric, (v) => setState(() => _eclecticMetric = v!)),
       ],
@@ -230,7 +230,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
      return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'TARGET EVENTS', padding: EdgeInsets.zero),
+        const BoxyArtSectionTitle(title: 'TARGET EVENTS', ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 8,

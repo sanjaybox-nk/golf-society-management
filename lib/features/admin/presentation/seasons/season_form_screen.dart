@@ -80,10 +80,8 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const BoxyArtSectionTitle(title: 'BASIC INFO', padding: EdgeInsets.only(left: 4, bottom: 8)),
-                  BoxyArtCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
+                  const BoxyArtSectionTitle(title: 'BASIC INFO', ),
+                  BoxyArtCard(child: Column(
                       children: [
                         BoxyArtFormField(
                           label: 'Season Name',
@@ -108,7 +106,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const BoxyArtSectionTitle(title: 'DATES', padding: EdgeInsets.only(left: 4, bottom: 8)),
+                  const BoxyArtSectionTitle(title: 'DATES',),
                   BoxyArtCard(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -213,8 +211,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                   else
                     ListView.separated(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero, // Remove critical default padding
+                      physics: const NeverScrollableScrollPhysics(),// Remove critical default padding
                       itemCount: _leaderboards.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 8), // Standardize gap
                       itemBuilder: (context, index) {

@@ -63,9 +63,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
               if (formatFilter == null) ...[
                 const SizedBox(height: 16),
                 const BoxyArtSectionTitle(
-                  title: 'HEAD-TO-HEAD',
-                  padding: EdgeInsets.only(left: 4, bottom: 16),
-                ),
+                  title: 'HEAD-TO-HEAD',),
                 _TypeTile(
                   title: 'Match Play',
                   subtitle: 'Hole-by-hole knockout battles.',
@@ -79,9 +77,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
               if (formatFilter == null) ...[
                 const SizedBox(height: 16),
                 const BoxyArtSectionTitle(
-                  title: 'PAIRS FORMATS',
-                  padding: EdgeInsets.only(left: 4, bottom: 16),
-                ),
+                  title: 'PAIRS FORMATS',),
                 _TypeTile(
                   title: 'Fourball (Better Ball)',
                   subtitle: 'Pairs play own ball. Best score counts.',
@@ -103,9 +99,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
               if (formatFilter == null) ...[
                 const SizedBox(height: 16),
                 const BoxyArtSectionTitle(
-                  title: 'TEAM FORMATS',
-                  padding: EdgeInsets.only(left: 4, bottom: 16),
-                ),
+                  title: 'TEAM FORMATS',),
                 _TypeTile(
                   title: 'Scramble',
                   subtitle: 'Texas/Florida Scramble. Team aggregate play.',

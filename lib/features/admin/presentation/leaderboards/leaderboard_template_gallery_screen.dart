@@ -68,7 +68,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 32),
-                      const BoxyArtSectionTitle(title: 'Saved Templates', padding: EdgeInsets.zero),
+                      const BoxyArtSectionTitle(title: 'Saved Templates', ),
                       const SizedBox(height: 12),
                       ...filtered.map((t) => Padding(
                         padding: const EdgeInsets.only(bottom: 16),
@@ -80,7 +80,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'System Presets', ),
               const SizedBox(height: 12),
               _buildGalleryCard(
                 context,

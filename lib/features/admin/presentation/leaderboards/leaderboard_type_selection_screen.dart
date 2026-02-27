@@ -25,9 +25,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(
-                title: 'STANDARD FORMATS',
-                padding: EdgeInsets.only(bottom: 16),
-              ),
+                title: 'STANDARD FORMATS',),
               _TypeTile(
                 title: 'Order of Merit',
                 subtitle: 'Accumulate points from all rounds.',

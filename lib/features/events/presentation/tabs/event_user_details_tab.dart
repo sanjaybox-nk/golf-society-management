@@ -206,8 +206,8 @@ class EventDetailsContent extends ConsumerWidget {
     final badge = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        BoxyArtPill(
-          label: toTitleCase(statusText),
+        BoxyArtPill.status(
+          label: statusText,
           color: statusColor,
         ),
         if (onStatusChanged != null) ...[

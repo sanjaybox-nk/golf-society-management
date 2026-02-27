@@ -331,9 +331,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           BoxyArtSectionTitle(
-            title: 'SQUAD POOL (${squad.length})',
-            padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
-          ),
+            title: 'SQUAD POOL (${squad.length})',),
           SizedBox(
             height: 90,
             child: ListView.builder(
@@ -778,9 +776,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                           const SizedBox(height: 32),
                           const BoxyArtSectionTitle(
                             title: 'STRATEGY',
-                            isLevel2: true,
-                            padding: EdgeInsets.only(left: 4, bottom: 12),
-                          ),
+                            isLevel2: true,),
                           
                           Column(
                             children: [
@@ -794,9 +790,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                           const SizedBox(height: 24),
                           const BoxyArtSectionTitle(
                             title: 'PREFERENCES',
-                            isLevel2: true,
-                            padding: EdgeInsets.only(left: 4, bottom: 12),
-                          ),
+                            isLevel2: true,),
                           
                           ModernSwitchRow(
                             label: 'Pair Buggy Users',

@@ -207,6 +207,7 @@ class ModernSummaryIcon extends StatelessWidget {
   });
 
   @override
+  @override
   Widget build(BuildContext context) {
     final color = active ? (activeColor ?? const Color(0xFF27AE60)) : Colors.grey.shade300;
     return Column(

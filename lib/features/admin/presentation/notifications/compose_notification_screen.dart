@@ -193,17 +193,17 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const BoxyArtSectionTitle(title: 'Target Audience', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Target Audience', ),
               const SizedBox(height: 12),
               _buildTargetSelector(totalRecipients),
               const SizedBox(height: 32),
               
-              const BoxyArtSectionTitle(title: 'Message Content', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Message Content', ),
               const SizedBox(height: 12),
               _buildMessageForm(),
               const SizedBox(height: 32),
               
-              const BoxyArtSectionTitle(title: 'Interaction', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Interaction', ),
               const SizedBox(height: 12),
               _buildDeepLinkSelector(),
               const SizedBox(height: 48),

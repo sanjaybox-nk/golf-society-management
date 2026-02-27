@@ -91,16 +91,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Filter Row
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildFilterChip('Active ($activeCount)', AdminMemberFilter.current),
-                      _buildFilterChip('Committee ($committeeCount)', AdminMemberFilter.committee),
-                      _buildFilterChip('Other ($otherCount)', AdminMemberFilter.other),
-                    ],
-                  ),
+                ModernUnderlinedFilterBar<AdminMemberFilter>(
+                  selectedValue: currentFilter,
+                  onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
+                  tabs: [
+                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -154,42 +152,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, AdminMemberFilter filter) {
-    final currentFilter = ref.watch(userMemberFilterProvider);
-    final isSelected = currentFilter == filter;
-    final primary = Theme.of(context).primaryColor;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () => ref.read(userMemberFilterProvider.notifier).update(filter),
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? primary : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.grey.shade600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
 }
 

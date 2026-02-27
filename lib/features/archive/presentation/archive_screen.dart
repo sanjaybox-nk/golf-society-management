@@ -26,17 +26,13 @@ class ArchiveScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const BoxyArtSectionTitle(
-                  title: 'Archived Seasons',
-                  padding: EdgeInsets.zero,
-                ),
+                  title: 'Archived Seasons',),
                 const SizedBox(height: 12),
                 seasonsAsync.when(
                   data: (seasons) {
                     if (seasons.isEmpty) {
                       return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 40),
-                          child: Text('No archived seasons yet.'),
+                        child: Padding(padding: EdgeInsets.all(16), child: Text('No archived seasons yet.'),
                         ),
                       );
                     }

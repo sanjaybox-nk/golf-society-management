@@ -18,11 +18,11 @@ class FloatingBottomSearch extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 24, left: 32, right: 32),
       height: 60,
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlack,
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: AppColors.dark950.withValues(alpha: 0.2),
             offset: const Offset(0, 4),
             blurRadius: 12,
           ),
@@ -38,19 +38,24 @@ class FloatingBottomSearch extends StatelessWidget {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    BoxyArtThemedCircleIcon(Icons.search),
                    SizedBox(width: 8),
-                   Text("Search", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                   Text(
+                     "Search", 
+                     style: AppTypography.displayMedium.copyWith(
+                       color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.dark950
+                     ),
+                   ),
                 ],
               ),
             ),
           ),
           
           // Divider
-          Container(width: 1, height: 24, color: Colors.white24),
+          Container(width: 1, height: 24, color: AppColors.dark200),
 
           // Filter Button (Right)
           Expanded(
@@ -60,12 +65,17 @@ class FloatingBottomSearch extends StatelessWidget {
                 topRight: Radius.circular(16),
                 bottomRight: Radius.circular(16),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    BoxyArtThemedCircleIcon(Icons.tune), // Filter icon
                    SizedBox(width: 8),
-                   Text("Filter", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                   Text(
+                     "Filter", 
+                     style: AppTypography.displayMedium.copyWith(
+                       color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.dark950
+                     ),
+                   ),
                 ],
               ),
             ),
@@ -106,11 +116,11 @@ class FloatingFilterBar<T> extends StatelessWidget {
         width: 220,
         height: 50,
         decoration: ShapeDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
           shape: const StadiumBorder(),
           shadows: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
+              color: AppColors.dark950.withValues(alpha: 0.2),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -155,9 +165,9 @@ class FloatingFilterBar<T> extends StatelessWidget {
                 // Calculate text color based on background
                 final backgroundColor = isSelected 
                     ? Theme.of(context).primaryColor.withValues(alpha: 0.8)
-                    : Colors.white;
+                    : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite);
                 final textColor = ContrastHelper.getContrastingText(backgroundColor);
-                final inactiveTextColor = textColor.withValues(alpha: 0.2);
+                final inactiveTextColor = Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400;
                 
                 return Expanded(
                   child: InkWell(
@@ -208,6 +218,8 @@ class ProfileInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -215,7 +227,11 @@ class ProfileInfoRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 20, color: Colors.black54),
+            Icon(
+              icon, 
+              size: 20, 
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -223,20 +239,17 @@ class ProfileInfoRow extends StatelessWidget {
                 children: [
                   Text(
                     label.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black45,
-                      letterSpacing: 0.5,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark300,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: AppTypography.displayMedium.copyWith(
                       fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black87,
+                      color: isDark ? AppColors.dark60 : AppColors.dark950,
                     ),
                   ),
                 ],
@@ -259,7 +272,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
   const BoxyArtSectionTitle({
     super.key,
     required this.title,
-    this.padding,
+    @Deprecated('Overrides are ignored to enforce global harmony. Remove this.') this.padding,
     this.isLevel2 = false,
     this.isPeeking = false,
   });
@@ -267,7 +280,9 @@ class BoxyArtSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectivePadding = padding ?? EdgeInsets.only(left: 4, bottom: AppTheme.sectionSpacing);
+    
+    // Enforce global harmony
+    final effectivePadding = EdgeInsets.only(bottom: AppTheme.sectionSpacing);
     
     return Padding(
       padding: effectivePadding,
@@ -280,18 +295,18 @@ class BoxyArtSectionTitle extends StatelessWidget {
               Icon(
                 Icons.visibility,
                 size: isLevel2 ? 10 : 12,
-                color: isDark ? Colors.white54 : Colors.grey,
+                color: isDark ? AppColors.dark300 : AppColors.dark400,
               ),
               const SizedBox(width: 6),
             ],
             Flexible(
               child: Text(
                 title.toUpperCase(),
-                style: TextStyle(
-                  fontSize: isLevel2 ? 10 : 12,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white54 : Colors.grey,
-                  letterSpacing: 1.5,
+                style: AppTypography.caption.copyWith(
+                  fontSize: isLevel2 ? 10 : 11,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? AppColors.dark200 : AppColors.dark300,
+                  letterSpacing: isLevel2 ? 1.5 : 2.0,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

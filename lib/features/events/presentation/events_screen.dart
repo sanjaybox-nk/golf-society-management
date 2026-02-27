@@ -194,24 +194,20 @@ class _EventCard extends ConsumerWidget {
                 
                 // Bottom Pill Row
                 const SizedBox(height: 12),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    _buildGameTypeBadge(context, ref),
-                    if (event.isInvitational) ...[
-                      const SizedBox(width: 8),
-                      BoxyArtPill(
-                        label: toTitleCase('Invitational'),
-                        color: Colors.purple,
+                    _buildGameTypePill(context, ref, event.id),
+                    if (event.isInvitational)
+                      BoxyArtPill.type(
+                        label: 'Invitational',
                       ),
-                    ],
-                    if (event.isMultiDay == true) ...[
-                      const SizedBox(width: 8),
-                      BoxyArtPill(
-                        label: toTitleCase('Multi-day'),
-                        color: Colors.teal,
+                    if (event.isMultiDay == true)
+                      BoxyArtPill.type(
+                        label: 'Multi-day',
                       ),
-                    ],
-                    const Spacer(),
                     _buildStatusBadge(context),
                   ],
                 ),
@@ -251,24 +247,22 @@ class _EventCard extends ConsumerWidget {
       statusColor = const Color(0xFF27AE60);
     }
 
-    return BoxyArtPill(
+    return BoxyArtPill.status(
       label: statusText,
       color: statusColor,
     );
   }
 
-  Widget _buildGameTypeBadge(BuildContext context, WidgetRef ref) {
-    final compAsync = ref.watch(competitionDetailProvider(event.id));
+  Widget _buildGameTypePill(BuildContext context, WidgetRef ref, String eventId) {
+    final compAsync = ref.watch(competitionDetailProvider(eventId));
 
     return compAsync.when(
       data: (comp) {
         if (comp == null) return const SizedBox.shrink();
-
-        final color = Theme.of(context).primaryColor;
+        final gameName = comp.rules.gameName;
         
-        return BoxyArtPill(
-          label: toTitleCase(comp.rules.gameName),
-          color: color,
+        return BoxyArtPill.format(
+          label: gameName,
         );
       },
       loading: () => const SizedBox.shrink(),

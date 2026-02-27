@@ -89,18 +89,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   bool _isSaving = false;
   late bool _isNewMember;
 
-  bool _isAdmin() {
-    final role = ref.watch(currentUserProvider).role;
-    return role == MemberRole.admin || role == MemberRole.superAdmin;
-  }
-
-  bool _canEdit() {
-    final currentUser = ref.watch(currentUserProvider);
-    final isUserAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
-    final isOwner = widget.member != null && currentUser.id == widget.member!.id;
-    return isUserAdmin || isOwner || _isNewMember;
-  }
-
+  // Removed ref.watch wrapper methods to prevent StateError during async build phases.
   String? _gender; // [NEW]
 
   @override
@@ -279,10 +268,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   // Role Assignment Logic
-  bool _canAssignRoles() {
-    final currentUser = ref.watch(currentUserProvider);
-    return currentUser.role == MemberRole.superAdmin;
-  }
 
   void _showRolePicker() {
     MemberRolePicker.show(
@@ -295,6 +280,13 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
   @override
   Widget build(BuildContext context) {
+    // Cache variables here to satisfy Riverpod's strict ref.watch lifecycle rules
+    final currentUser = ref.watch(currentUserProvider);
+    final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
+    final isOwner = widget.member != null && currentUser.id == widget.member!.id;
+    final canEdit = isAdmin || isOwner || _isNewMember;
+    final canAssignRoles = currentUser.role == MemberRole.superAdmin;
+    
     String title = _isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : '${_firstController.text} ${_lastController.text}');
 
     return PopScope(
@@ -323,7 +315,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
         // Trailing Actions (Edit / Save)
         actions: [
-          if (!_isEditing && _canEdit())
+          if (!_isEditing && canEdit)
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: BoxyArtGlassIconButton(
@@ -363,7 +355,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
               ),
             ),
         ],
-        bottomNavigationBar: _buildBottomMenu(),
+        bottomNavigationBar: _buildBottomMenu(isAdmin),
         slivers: [
           SliverPadding(
             padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: 40),
@@ -392,14 +384,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         handicapFocusNode: _handicapFocusNode,
                         handicapIdFocusNode: _handicapIdFocusNode,
                         isEditing: _isEditing,
-                        isAdmin: _isAdmin(),
+                        isAdmin: isAdmin,
                         onCameraTap: _isEditing ? _pickImage : null,
                         onFeeToggle: (v) => setState(() => _hasPaid = v),
                         onStatusChanged: (v) => setState(() => _status = v),
                         role: _role,
-                        onRoleTap: _canAssignRoles() ? _showRolePicker : null,
+                        onRoleTap: canAssignRoles ? _showRolePicker : null,
                         societyRole: _societyRole,
-                        onSocietyRoleTap: _isAdmin() ? _showSocietyRolePicker : null,
+                        onSocietyRoleTap: isAdmin ? _showSocietyRolePicker : null,
                         joinedDate: _joinedDate,
                       ),
                     ),
@@ -508,9 +500,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
 
 
-  Widget _buildBottomMenu() {
-    final isAdmin = _isAdmin();
-    
+  Widget _buildBottomMenu(bool isAdmin) {
     return BoxyArtBottomNavBar(
       selectedIndex: 2, // Highlight "Members" tab
       onItemSelected: (index) => Navigator.of(context).pop(),

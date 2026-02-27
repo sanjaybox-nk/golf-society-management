@@ -307,7 +307,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                   ),
                   const SizedBox(height: 24),
                   
-                  const BoxyArtSectionTitle(title: 'Selected Members', padding: EdgeInsets.zero),
+                  const BoxyArtSectionTitle(title: 'Selected Members', ),
                   const SizedBox(height: 12),
                   if (_selectedMemberIds.isNotEmpty)
                     membersAsync.when(
@@ -349,7 +349,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                     ),
                   
                   const SizedBox(height: 24),
-                  const BoxyArtSectionTitle(title: 'Add Members', padding: EdgeInsets.zero),
+                  const BoxyArtSectionTitle(title: 'Add Members', ),
                   const SizedBox(height: 12),
                   BoxyArtCard(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

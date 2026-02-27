@@ -97,7 +97,7 @@ class RegistrationCard extends StatelessWidget {
     }
 
     return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       backgroundColor: isWithdrawn ? (isDark ? Colors.white10 : Colors.grey[50]) : null,
       child: Row(
         children: [
@@ -124,13 +124,11 @@ class RegistrationCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 1.5),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'G',
-                        style: TextStyle(
+                        style: AppTypography.caption.copyWith(
                           color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
@@ -155,10 +153,9 @@ class RegistrationCard extends StatelessWidget {
                   ),
                   Text(
                     label,
-                    style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                    style: AppTypography.subtext.copyWith(
+                      color: isDark ? AppColors.dark150 : AppColors.dark300,
+                      fontSize: 12, // Keep the density sizing
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -321,23 +318,23 @@ class RegistrationCard extends StatelessWidget {
     String text;
     switch (status) {
       case RegistrationStatus.confirmed:
-        color = Colors.green;
+        color = AppColors.lime500;
         text = 'Confirmed';
         break;
       case RegistrationStatus.reserved:
-        color = Colors.orange;
+        color = AppColors.amber500;
         text = 'Reserve';
         break;
       case RegistrationStatus.waitlist:
-        color = Colors.red;
+        color = AppColors.coral500;
         text = 'Waitlist';
         break;
       case RegistrationStatus.pendingGuest:
-        color = Colors.grey;
+        color = AppColors.dark400;
         text = 'Pending';
         break;
       case RegistrationStatus.withdrawn:
-        color = Colors.grey;
+        color = AppColors.dark400;
         text = 'Withdrawn';
         break;
       case RegistrationStatus.dinner:
@@ -348,7 +345,7 @@ class RegistrationCard extends StatelessWidget {
         return const SizedBox.shrink();
     }
 
-    return BoxyArtPill(label: text, color: color);
+    return BoxyArtPill.status(label: text, color: color);
   }
 
 

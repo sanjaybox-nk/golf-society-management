@@ -24,24 +24,24 @@ class RegistrationStatusPill extends StatelessWidget {
 
     switch (type) {
       case RegistrationStatusType.open:
-        baseColor = const Color(0xFF27AE60);
+        baseColor = AppColors.lime500;
         icon = Icons.timer_outlined;
         label = labelOverride ?? 'Registration Open';
         break;
       case RegistrationStatusType.closed:
-        baseColor = const Color(0xFFC0392B);
+        baseColor = AppColors.dark400;
         icon = Icons.lock_outline_rounded;
         label = labelOverride ?? 'Registration Closed';
         break;
       case RegistrationStatusType.closingSoon:
-        baseColor = const Color(0xFFF39C12);
+        baseColor = AppColors.coral400;
         icon = Icons.hourglass_bottom_rounded;
         label = labelOverride ?? 'Closing Soon';
         break;
     }
 
-    return BoxyArtPill(
-      label: label, // Restore original casing preferred by user
+    return BoxyArtPill.status(
+      label: label,
       color: baseColor,
       icon: icon,
     );

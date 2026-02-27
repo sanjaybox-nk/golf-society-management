@@ -30,8 +30,14 @@ export 'widgets/responsive_layout.dart';
 export 'widgets/scaffold_with_nav_bar.dart';
 export 'widgets/staggered_entrance.dart';
 
-// Theme
-export 'theme/app_theme.dart';
+// Theme v3.1 - Source of Truth
+export 'package:golf_society/theme/app_theme.dart';
+export 'package:golf_society/theme/app_colors.dart';
+export 'package:golf_society/theme/app_typography.dart';
+export 'package:golf_society/theme/app_shapes.dart';
+export 'package:golf_society/theme/app_spacing.dart';
+
+// UI Helpers
 export 'theme/app_palettes.dart';
 export 'theme/app_shadows.dart';
 export 'theme/theme_controller.dart';

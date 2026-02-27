@@ -1,265 +1,85 @@
-# Design System (BoxyArt)
+# Shared UI Library (BoxyArt v3.1)
 
-The BoxyArt Design System is a modular library of reusable components designed to enforce the "BoxyArt" premium aesthetic across the application.
+The BoxyArt UI Library is the source of truth for all visual components in the Golf Society Management ecosystem. It is optimized for a premium, high-density "Pro" aesthetic.
 
 ## Location
-`lib/design_system/`
+`lib/design_system/widgets/`
 
-## 1. Buttons (`buttons.dart`)
+## 1. Cards & Containers (`card.dart`)
 
-### `BoxyArtButton`
-The primary button component.
+### `BoxyArtCard`
+The foundational container for all UI blocks.
 - **Properties**:
-  - `title`: String
-  - `onTap`: VoidCallback
-  - `isPrimary`: (Default true) Yellow pill, black text.
-  - `isSecondary`: White pill, black text, soft shadow.
-  - `isGhost`: Transparent, grey text.
-  - `icon`: Optional IconData.
-  - `isLoading`: Shows spinner.
-  - `fullWidth`: (Default false) Expands to match parent width.
+  - `child`: Inner content.
+  - `onTap`: Optional interaction (wraps in `InkWell`).
+  - `padding`: Default `24px`.
+  - `borderRadius`: Default `16px` (`AppShapes.rLg`).
+  - `backgroundColor`: Manual color override.
 
-### `BoxyArtCircularIconBtn`
-Small circular button (e.g., Back button, Menu button).
+### `ModernNoteCard`
+A specialized horizontal card for informational notes.
+- Includes `title`, `content`, and optional `imageUrl`.
+- Automatically handles vertical spacing and image clipping.
 
-### `ModernButton` (New)
-Refined `ElevatedButton` wrapper used in modernized screens.
-- Standard rounded shape (`12px` - `16px`).
-- Consistent shadow and padding.
+## 2. Forms & Inputs (`inputs.dart`)
 
-## 2. Inputs (`inputs.dart`)
+### `BoxyArtInputField`
+The unified design-first input.
+- **Visuals**: Uppercase labels in `AppTypography.label`, filled background variants for dark mode, and integrated icon support.
 
-### `BoxyArtFormField`
-Standard text input with modernized branding.
-- `label`: Primary-themed, capitalized label for a premium look.
-- `controller`: TextEditingController.
-- `validator`: Form validation.
-- `decoration`: Subtle primary-colored background tint for high-end aesthetic.
-- `maxLines`: (Default 1) Supports multi-line input.
-- `focusNode`: Optional FocusNode for external control (e.g. Autocomplete).
-
-### `BoxyArtDropdownField<T>`
-pill-shaped dropdown.
+### Legacy Aliases (Backward Compatibility)
+- `BoxyArtFormField`: Maps to `BoxyArtInputField`. Supports `IconData` or `Widget` for icons.
+- `ModernTextField`: Specialized alias for quick-entry fields.
+- `ModernSwitchRow`: Full-width row combining a label, optional icon, and `Switch`.
 
 ### `BoxyArtDatePickerField`
-- **Shape**: Uses `RoundedRectangleBorder(borderRadius: BorderRadius.circular(100))` for standard appearance.
-- **Behavior**: Read-only field that looks like a standard input but triggers a tap callback (usually for `showDatePicker`).
+A labeled trigger for date selection.
+- **State**: Supports `readOnly` to disable interactions during loading/processing.
 
-### `BoxyArtSwitchField`
-Switch tile with styled track/thumb.
+## 3. Headers & Navigation (`app_bar.dart`, `headless_scaffold.dart`)
 
-### `BoxyArtSearchBar`
-Standalone search bar with icon.
-
-## 2b. Modern Inputs (`inputs.dart`)
-*Recommended for administrative and modernized screens.*
-
-### `ModernTextField`
-A cleaner, filled input style with integrated labeling.
-- `label`: Bold upstairs label.
-- `icon`: Integrated icon on the label row.
-- `filled`: uses `0.05` opacity of text color for background.
-- `borderRadius`: `16px`.
-
-### `ModernDropdownField<T>`
-Consistent with modern text fields, providing a unified selection UI in a filled container.
-
-### `ModernSwitchRow`
-A full-width row design combining a descriptive label, icon, and a Switch. Preferred over `BoxyArtSwitchField` for complex forms.
-
-### High-Efficiency Selection Grids (Pattern)
-Replaces legacy dropdowns with tiered horizontal chips or a 2-column grid.
-- **Usage**: Use for fields with 3-6 options (e.g., Tee Selection: Yellow, White, Red, Blue).
-- **Aesthetic**: Uses `BoxyArtStatusPill` with primary-colored backgrounds for active states and high-contrast text.
-- **Efficiency**: Reduces user friction by enabling "One-Tap" selection instead of opening a modal/dropdown.
-
-## 3. Cards (Consolidated in `modern_cards.dart`)
-*Legacy `cards.dart` has been removed in favor of the modernized design system.*
-
-### `BoxyArtFloatingCard`
-Generic container with "Soft Scale" shadow and rounded corners. Now part of the modern library.
-- **Properties**:
-  - `padding`: Custom EdgeInsets for content spacing.
-  - `onTap`: Makes the card interactive.
-
-### `BoxyArtSettingsCard`
-Grouped settings container.
-
-## 3b. Modern Cards (`modern_card.dart`)
-
-### `ModernCard`
-The core building block of the Modern Card design system.
-- **Properties**:
-  - `child`: Content widget.
-  - `padding`: Default `16-20px`.
-  - `onTap`: Interactive callback.
-  - `showGlow`: Optional subtle primary-colored glow.
-- **Design**: Rounded corners (`24px`), extremely subtle borders, and background tint support.
-
-### `BoxyArtMemberHeaderCard`
-A high-impact header component for the Member Detail screen.
-- **Identity Section**: Circular avatar with "Since [Year]" label positioned underneath. Top-right section for Name, handicap, and iGolf/WHS stats.
-- **Admin Controls**: Includes interactive `BoxyArtStatusPill` and `BoxyArtFeePill` when in edit mode or viewed by an admin. 
-- **Theming**: Automatically uses the society's primary color for role badges and interactive highlights.
-
-### `HomeNotificationCard`
-Specialized widget for the Home Screen feed.
-- **Features**: Status-based icons (Urgent/Info), truncated body text, and relative timestamps.
-
-### `RegistrationCard`
-The core widget for event participation management. Used in both Member and Admin apps.
-- **Modes**:
-  - **Display Only**: Regular list view for members.
-  - **Interactive (Admin)**: Allows toggling of Paid/Golf/Buggy/Dinner statuses via direct icon clicks.
-- **Lifecycle Visibility**:
-  - **Member View**: Automatically hides for non-registrants after the deadline.
-  - **Global**: Automatically hides for everyone once the event status is `InPlay` or `Completed` to prioritize scoring.
-- **Indicators**:
-  - **Status Pill**: Shows Confirmed, Reserved, etc.
-  - **Position Badge**: Shows FCFS list position.
-- **Interaction Icons**: Golf Club (Golf), Electric Car (Buggy), Restaurant (Dinner).
-
-### `ScorecardModal`
-A reusable modal for viewing detailed player scores. Used by both members (leaderboard) and admins (scoring list).
-- **Properties**:
-  - `entry`: The `LeaderboardEntry` data.
-  - `scorecards`: List of historical or active scorecards.
-  - `isAdmin`: When true, displays an **Edit (Pencil)** icon in the header.
-- **Features**:
-  - **Dynamic Calculation**: Reconstructs hole-by-hole points based on current competition rules and PHC.
-  - **Fallback Logic**: Gracefully handles missing live scorecards by showing seeded results.
-  - **Consistent Experience**: Unifies the tap action across all leaderboard-style lists.
-
-### `MemberTile`
-The standard list item for member directories.
-- **Layout**: Features a left-side avatar, central name/stats section, and right-aligned context indicators.
-- **Admin Enhancements**:
-  - **Quick Toggles**: Admins can tap the Status pill to open a change menu or tap the Fee pill to toggle payment status directly from the list.
-  - **Committee Badge**: Displays high-priority society roles (e.g., PRESIDENT) in a right-aligned primary-colored badge.
-  - **Interaction Guard**: Tapping specific badges (e.g., Committee roles) does not trigger navigation, ensuring specialized clicks are captured correctly.
-
-## 4. Badges (`badges.dart`)
-
-### `BoxyArtStatusPill`
-Semantic status indicator with automatic light/dark mode adaptation.
-- **Properties**:
-  - `text`: Display text (e.g., "Active", "Paid", "Confirmed", "Dinner", "Waitlist")
-  - `baseColor`: Semantic color from `StatusColors` (Positive/Green, Warning/Orange, Negative/Red, Neutral/Grey, Info/Blue)
-- **Special States**:
-  - **Confirmed**: Positive (Green)
-  - **Reserved/Pending**: Warning (Orange)
-  - **Waitlist**: Negative (Red)
-  - **Dinner Only**: Info (Blue)
-  - **Withdrawn/Off**: Neutral (Grey)
-  - **Game Type (Competition Format)**: Primary (Dynamic color, usually yellow/green) – Shown on event list cards for instant format recognition.
-  - **Multi-Day**: Teal – Indicates events spanning multiple days.
-- **Behavior**: 
-  - Automatically adjusts text color using `ContrastHelper` for optimal readability.
-  - Automatically adjusts background opacity based on theme brightness.
-
-### `StatusChip`
-Black pill with white text for role badges.
-
-### `BoxyArtFeePill`
-Interactive toggle for Fee Status (Paid/Due).
-- Uses `StatusColors.positive` (green) for Paid
-- Uses `StatusColors.warning` (orange) for Due
-
-### `NotificationBadge`
-Red/Yellow dot wrapper for unread counts.
-
-### `BoxyArtDateBadge`
-A stylized date badge for event lists.
-- **Properties**:
-  - `date`: DateTime (Required)
-  - `endDate`: DateTime (Optional) – If provided, the badge displays a date range (e.g., "20-21").
-- **Visuals**:
-  - Automatically scales text (`FittedBox`) to accommodate date ranges.
-  - Uses the society's primary color with varying opacity for a premium, themed look.
-
-## 5. Usage Patterns
-
-### Rich Rule Summaries
-Used for summarizing complex configurations (like Competition Rules) into a compact card.
-- **Implementation**: Combine `BoxyArtFloatingCard` with a `Wrap` containing multiple `BoxyArtStatusPill` widgets.
-- **Styling**: 
-    - Use bold, black/neutral pills for the primary identity (e.g., format name).
-    - Use semantic colors for properties (Red for GROSS, Teal for NET, Orange for special drives/rules).
-    - Only show non-default properties to keep the UI clean.
-
-## 6. Layout (`layout.dart`)
+### `BoxyArtAppBar`
+A highly flexible v3.1 compliant app bar.
+- **Features**: Subtitle support, `transparent` mode for hero-style headers, and dynamic back button handling.
 
 ### `HeadlessScaffold`
-The base layout for the "Pro Max" / Headerless Modern design.
-- **Properties**:
-  - `title`: Primary screen title (large, bold).
-  - `subtitle`: Optional secondary context.
-  - `showBack`: Controls back button visibility.
-  - `slivers`: List of widgets to display in the nested scroll view.
-- **Design**: Implements the signature blurred glass header, floating search bar integration, and standardized back navigation (`showBack`). Automatically handles title wrapping for long society or event names.
+The preferred layout for core screens.
+- **Sliver Architecture**: Uses `NestedScrollView` and `SliverAppBar` to provide a premium scrolling experience (scrolled-under transparency).
 
-### `FloatingBottomSearch`
-The signature "Floating Dock" for Search and Filter.
+## 4. Badges & Indicators (`badges.dart`)
+
+### `BoxyArtPill`
+The standard for highlighting status, format, or type classification. Implements the **v3.1 Tag Taxonomy**.
+- **Factories**:
+  - `BoxyArtPill.format(label)`: Competition formats (Stableford, Matchplay).
+  - `BoxyArtPill.type(label)`: Entity classification (Invitational, Player Role).
+  - `BoxyArtPill.status(label, color)`: Lifecycle and registration states.
+- **Visuals**: Uses high-opacity labels on low-opacity backgrounds (0.08) with subtle borders (0.18) for a glass-glass look.
+
+### `BoxyArtDateBadge`
+Vertical date display for event cards.
+- Supports `isMultiDay` detection automatically if `endDate` is provided.
+- Displays date ranges (e.g., "15-16") in a high-impact display font.
+
+### `BoxyArtNumberBadge`
+Leaderboard rank indicators.
+- **Branding**: Rank #1 is always `Amber 500` (Gold). Ranks #2-3 use dark-scale highlights.
+
+## 5. Buttons (`buttons.dart`)
+
+### `BoxyArtButton`
+Multipurpose action button.
+- **Primary**: Lime 500 background, Dark 950 text.
+- **Secondary**: Outlined/Ghost variants for less critical actions.
+- **Loading State**: Displays a `CircularProgressIndicator` while maintaining size.
+
+## 6. Layout Utils (`layout.dart`, `sections.dart`)
 
 ### `BoxyArtSectionTitle`
-A standardized section header used throughout the application. 
-- **Style**: Uppercase, Bold, Grey text, Letter spacing 1.2.
-- **Usage**: Used for grouping logically related content on a page (e.g. "EVENT DETAILS", "COSTS").
+Standard uppercase header for grouping content.
+- **Typography**: `AppTypography.label` with increased letter spacing.
+- **Spacing Guidelines**: The `padding` property is strictly **deprecated**. Global spacing harmony is now enforced at the component level to ensure consistent vertical rhythm across all screens. Do not inject ad-hoc `EdgeInsets`.
 
-### `BoxyArtFloatingActionBar` (`floating_action_bar.dart`)
-A premium floating bar for Save/Cancel actions.
-- **Properties**:
-  - `onSave`: VoidCallback
-  - `onCancel`: VoidCallback
-  - `saveLabel`: (Default 'Save Changes')
-  - `isLoading`: Shows spinner on save button.
-  - `isVisible`: For animated entry/exit.
-
-## 7. Administrative Visual Harmony
-All administrative configuration forms follow a refined layout rhythm:
-- **Vertical Spacing**: Reduced excessive 64px gaps to 24-32px to keep primary actions within context.
-- **Button Styling**: Primary configuration actions (e.g., "CUSTOMIZE RULES") are centered, bordered, and padded for a professional, tool-like feel.
-- **Consistent Tints**: Section-specific cards (like Match Play overlays) use secondary brand colors (Orange) for clear visual separation.
-
-## Usage
-Import everything via:
-```dart
-import 'package:golf_society/design_system/design_system.dart';
-```
-
----
-
-## Rich Stats Dashboard Widgets
-Used in the `EventStatsTab` to provide deep analysis of society-wide performance.
-
-- `ScoringTypeDistributionChart`: Bar chart showing Eagle/Birdie/Par/Bogey breakdown.
-- `StablefordDistributionChart`: Point range distribution across the field.
-- `SplitPerformanceCard`: Front 9 vs Back 9 comparison.
-- `ParTypeBreakdown`: Performance badges for Par 3, 4, and 5 holes.
-- `DifficultyHeatmap`: Grid view of hole difficulty relative to par.
-- `HoleDifficultyChart`: Progress-bar based view of the toughest holes.
-- `SocietyRecapSummaryCard`: Premium gradient card for event conclusion.
-- `PersonalBenchmarkingCard`: Me vs Field comparative stat rows.
-- `HoleComparisonHeatmap`: Star-based "Beat the Field" indicator grid.
-- `ConsistencyStatCard`: Round variance vs field average stability card.
-- `NetComparisonCard`: User net score vs societal average net.
-- `HoleNemesisComparison`: Personal Toughest vs Field Toughest side-by-side.
-- `BounceBackStatCard`: Comparative stat for recovery rate.
-- `HoleScoreCard`: Standalone card for a single hole's detail. Features +/- controls (Active Mode) or Read-Only display. Consistent across scoring and summaries.
-- `CourseInfoCard`: Provides a real-time summary of the course (Par, Slopes, Tees) and the player's performance vs. their PHC (Playing Handicap).
-- `HoleByHoleScoringWidget`: The core engine for scorecard entry on the grid. Features an interactive "Tactical Handle" with a persistent marker toggle and swipe-up gesture to launch the Hero scoring view. Fully standardized across Admin and User views.
-
-## 8. Standings & Performance Widgets
-*Premium widgets for seasonal competition tracking.*
-
-- `MasterScorecardWidget`: A multi-event holistic scorecard showing the "Eclectic" best scores achieved on each hole throughout the season.
-- `BirdieGalleryWidget`: Achievement-style display for Birdie/Eagle/Albatross counts across the season.
-- `PointsBreakdownWidget`: Detailed list of round-by-round points, highlighting which scores are currently counting towards the "Best N" total.
-- `PodiumHeader`: A high-impact header featuring physical-style podiums (Gold/Silver/Bronze) for the top 3 players in any standing format.
-- `RankingTrajectory`: A micro-widget providing visual rank delta (↑/↓) for personalized member dashboards.
-
-## 7. Universal Visual Parity
-Starting in Feb 2026, all scorecard components follow a unified "Universal Parity" standard:
-- **Typography**: Primary labels (`TOTAL`, `HOLE`, `SCORES`) use `FontWeight.w900` and `letterSpacing: 2.0`.
-- **Metadata**: Status labels (e.g., "BIRDIE", "PAR", "BOGEY") use `FontWeight.w900` and `letterSpacing: 0.5`.
-- **Layout Alignment**: Admin scorecard editors must include the exact same `HC / PHC` info row as member views to ensure admin-member alignment.
+### `ModernMetricStat`
+High-density data widget for displaying counts (e.g. "Playing: 24/32").
+- Supports compact and full-width modes.

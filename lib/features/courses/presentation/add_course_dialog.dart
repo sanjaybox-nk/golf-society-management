@@ -54,12 +54,17 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Course'),
+      appBar: BoxyArtAppBar(
+        title: 'Add New Course',
         actions: [
           TextButton(
             onPressed: _submit,
-            child: const Text('SAVE', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              'SAVE', 
+              style: AppTypography.displayMedium.copyWith(
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
           ),
         ],
       ),

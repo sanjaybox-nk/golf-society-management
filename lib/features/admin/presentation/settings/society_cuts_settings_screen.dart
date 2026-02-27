@@ -75,7 +75,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
               ),
               const SizedBox(height: 24),
               if (_enabled) ...[
-                const BoxyArtSectionTitle(title: 'Cut Rules (Shots)', padding: EdgeInsets.zero),
+                const BoxyArtSectionTitle(title: 'Cut Rules (Shots)', ),
                 const SizedBox(height: 12),
                 BoxyArtCard(
                   child: Column(

@@ -10,6 +10,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:golf_society/services/persistence_service.dart';
+import 'package:golf_society/theme/app_theme.dart' as v3;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,9 +46,7 @@ class GolfSocietyApp extends ConsumerWidget {
     final router = ref.watch(goRouterProvider);
     final societyConfig = ref.watch(themeControllerProvider);
     
-    final seedColor = Color(societyConfig.primaryColor);
     final themeModeStr = societyConfig.themeMode;
-    final palette = AppPalette.fromName(societyConfig.selectedPaletteName);
     
     ThemeMode mode = ThemeMode.system;
     if (themeModeStr == 'light') mode = ThemeMode.light;
@@ -55,16 +54,8 @@ class GolfSocietyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Golf Society',
-      theme: AppTheme.generateTheme(
-        seedColor: seedColor, 
-        brightness: Brightness.light,
-        palette: palette,
-      ),
-      darkTheme: AppTheme.generateTheme(
-        seedColor: seedColor, 
-        brightness: Brightness.dark,
-        palette: palette,
-      ),
+      theme: v3.AppTheme.light(),
+      darkTheme: v3.AppTheme.dark(),
       themeMode: mode,
       routerConfig: router,
       localizationsDelegates: const [

@@ -1,19 +1,18 @@
-import "package:golf_society/design_system/design_system.dart";
+import 'package:flutter/material.dart';
+import 'package:golf_society/theme/app_colors.dart';
+import 'package:golf_society/theme/app_typography.dart';
+import 'package:golf_society/theme/app_spacing.dart';
 
-
-
-
-
-/// A standardized BoxyArt themed dialog.
+/// Standard branded dialog for Fairway v3.1.
 class BoxyArtDialog extends StatelessWidget {
   final String title;
   final Widget? content;
-  final String? message; // Keep message for simple cases
+  final String? message;
   final List<Widget>? actions;
   final VoidCallback? onConfirm;
-  final String confirmText;
   final VoidCallback? onCancel;
-  final String cancelText;
+  final String? confirmText;
+  final String? cancelText;
 
   const BoxyArtDialog({
     super.key,
@@ -22,82 +21,79 @@ class BoxyArtDialog extends StatelessWidget {
     this.message,
     this.actions,
     this.onConfirm,
-    this.confirmText = 'Confirm',
     this.onCancel,
-    this.cancelText = 'Cancel',
+    this.confirmText,
+    this.cancelText,
   }) : assert(content != null || message != null, 'Either content or message must be provided');
 
   @override
   Widget build(BuildContext context) {
-    // Determine Actions
-    List<Widget> dialogActions = actions ?? [];
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
-    // If no custom actions provided, check for standard buttons
-    if (dialogActions.isEmpty) {
-      if (onConfirm != null || onCancel != null) {
-        // Standard Confirm/Cancel Layout
-        dialogActions = [
-          if (onCancel != null)
-            BoxyArtButton(
-              title: cancelText,
-              onTap: onCancel,
-              isGhost: true,
-            ),
-          if (onConfirm != null)
-            BoxyArtButton(
-              title: confirmText,
-              onTap: onConfirm,
-              isPrimary: true,
-            ),
-        ];
-      } else {
-        // Default Close Button
-        dialogActions = [
+    final List<Widget> dialogActions = actions ?? [
+      if (onCancel != null)
+        TextButton(
+          onPressed: onCancel,
+          child: Text(cancelText ?? 'Cancel'),
+        ),
+      if (onConfirm != null)
+        ElevatedButton(
+          onPressed: onConfirm,
+          child: Text(confirmText ?? 'Confirm'),
+        )
+      else if (onCancel == null)
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Close',
-              style: TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
+            child: const Text('Close'),
           ),
-        ];
-      }
-    }
+    ];
 
     return AlertDialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(25),
-      ),
-      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16), // Adjusted padding for buttons
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
+      title: Text(title, style: theme.dialogTheme.titleTextStyle),
+      content: SingleChildScrollView(
+        child: content ?? Text(
+          message!,
+          style: AppTypography.body.copyWith(
+            color: isDark ? AppColors.dark150 : AppColors.dark300,
+          ),
         ),
       ),
-      content: content ?? (message != null ? Text(
-        message!,
-        style: TextStyle(
-          fontSize: 15,
-          color: Colors.grey.shade700,
-          height: 1.5,
-        ),
-      ) : null),
       actions: dialogActions,
+      backgroundColor: theme.dialogTheme.backgroundColor,
+      shape: theme.dialogTheme.shape,
+      actionsPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+    );
+  }
+
+  static Future<T?> show<T>({
+    required BuildContext context,
+    required String title,
+    Widget? content,
+    String? message,
+    List<Widget>? actions,
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+    String? confirmText,
+    String? cancelText,
+  }) {
+    return showDialog<T>(
+      context: context,
+      builder: (context) => BoxyArtDialog(
+        title: title,
+        content: content,
+        message: message,
+        actions: actions,
+        onConfirm: onConfirm,
+        onCancel: onCancel,
+        confirmText: confirmText,
+        cancelText: cancelText,
+      ),
     );
   }
 }
 
-/// Helper function to show a standardized BoxyArt dialog.
+/// Helper function to show a standardized BoxyArt dialog (Legacy support).
 Future<T?> showBoxyArtDialog<T>({
   required BuildContext context,
   required String title,
@@ -111,15 +107,47 @@ Future<T?> showBoxyArtDialog<T>({
 }) {
   return showDialog<T>(
     context: context,
-    builder: (context) => BoxyArtDialog(
+    builder: (context) {
+      return BoxyArtDialog(
+        title: title,
+        message: message,
+        content: content,
+        actions: actions,
+        onConfirm: onConfirm,
+        onCancel: onCancel,
+        confirmText: confirmText,
+        cancelText: cancelText,
+      );
+    },
+  );
+}
+
+/// Generic confirmation dialog helper.
+class BoxyArtConfirmDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final String confirmLabel;
+  final String cancelLabel;
+  final bool isDestructive;
+
+  const BoxyArtConfirmDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    this.confirmLabel = 'Confirm',
+    this.cancelLabel = 'Cancel',
+    this.isDestructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BoxyArtDialog(
       title: title,
       message: message,
-      content: content,
-      actions: actions,
-      onConfirm: onConfirm,
-      confirmText: confirmText,
-      onCancel: onCancel,
-      cancelText: cancelText,
-    ),
-  );
+      onConfirm: () => Navigator.of(context).pop(true),
+      onCancel: () => Navigator.of(context).pop(false),
+      confirmText: confirmLabel,
+      cancelText: cancelLabel,
+    );
+  }
 }

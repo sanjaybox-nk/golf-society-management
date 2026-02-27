@@ -465,8 +465,7 @@ class CourseInfoCard extends StatelessWidget {
             children: [
               Text(
                 'TOTAL',
-                style: const TextStyle(
-                  fontSize: 10,
+                style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
                 ),
@@ -474,10 +473,9 @@ class CourseInfoCard extends StatelessWidget {
               if (holesPlayed > 0 && holesPlayed < 18)
                 Text(
                   'THRU $holesPlayed',
-                  style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
-                    color: Theme.of(context).primaryColor,
+                  style: AppTypography.caption.copyWith(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    letterSpacing: 2.0,
                   ),
                 ),
             ],

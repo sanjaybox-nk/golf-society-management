@@ -19,7 +19,7 @@ class AdminSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'Society Configurations', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Society Configurations', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -82,7 +82,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'Access & Permissions', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Access & Permissions', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -118,7 +118,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'Initialization Tools', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Initialization Tools', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: _SettingsTile(

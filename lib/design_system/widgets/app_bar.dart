@@ -1,162 +1,79 @@
-import "package:golf_society/design_system/design_system.dart";
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:golf_society/theme/app_typography.dart';
+import 'package:golf_society/theme/app_colors.dart';
 
-/// The standard app bar for the BoxyArt design system.
-/// Combines traditional AppBar features with modern glassmorphic aesthetics.
-class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
+/// The standard app bar for the Fairway v3.1 branding.
+/// Maintains legacy parameters while enforcing new design tokens.
+class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
-  final VoidCallback? onMenuPressed;
-  final bool showBack;
-  final bool showLeading;
-  final VoidCallback? onBack;
   final List<Widget>? actions;
-  final bool centerTitle;
   final Widget? leading;
-  final double? leadingWidth;
-  final bool showAdminShortcut;
+  final bool centerTitle;
+  final bool showBack;
+  final VoidCallback? onBack;
   final PreferredSizeWidget? bottom;
   final bool transparent;
+  final bool showLeading;
+  final double? leadingWidth;
+  final bool showAdminShortcut;
+  final Color? backgroundColor;
 
   const BoxyArtAppBar({
     super.key,
     required this.title,
     this.subtitle,
-    this.onMenuPressed,
-    this.showBack = false,
-    this.showLeading = false,
-    this.onBack,
     this.actions,
-    this.centerTitle = true,
     this.leading,
-    this.leadingWidth,
-    this.showAdminShortcut = true,
+    this.centerTitle = true,
+    this.showBack = false,
+    this.onBack,
     this.bottom,
     this.transparent = false,
+    this.showLeading = false,
+    this.leadingWidth,
+    this.showAdminShortcut = false,
+    this.backgroundColor,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final primaryColor = Theme.of(context).primaryColor;
-    final onPrimary = ContrastHelper.getContrastingText(primaryColor);
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
-    final isPeekingState = ref.watch(impersonationProvider) != null;
-    
-    // Build actions
-    final List<Widget> finalActions = actions != null ? [...actions!] : [];
-    
-    // Add Admin Shortcut if enabled
-    if (showAdminShortcut) {
-      finalActions.insert(0, const AdminShortcutAction());
-    }
-
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    
-    // Calculate colors based on transparency
-    final defaultBgColor = transparent 
-        ? onSurface.withValues(alpha: 0.2) 
-        : onPrimary.withValues(alpha: 0.2);
-    final defaultIconColor = transparent ? onSurface : onPrimary;
-
     return AppBar(
-      backgroundColor: transparent ? Colors.transparent : primaryColor,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      toolbarHeight: (subtitle != null && !transparent) ? 72 : 56,
-      automaticallyImplyLeading: false,
-      centerTitle: centerTitle,
-      leadingWidth: leadingWidth ?? 70,
-      leading: leading ?? (showBack
-          ? Center(
-              child: BoxyArtGlassIconButton(
-                icon: Icons.chevron_left_rounded,
-                onPressed: onBack ?? () => Navigator.of(context).pop(),
-                backgroundColor: defaultBgColor,
-                iconColor: defaultIconColor,
-                tooltip: 'Back',
-                iconSize: 28,
-              ),
-            )
-          : (showLeading
-              ? Center(
-                  child: BoxyArtGlassIconButton(
-                    icon: Icons.menu_rounded,
-                    onPressed: onMenuPressed,
-                    backgroundColor: defaultBgColor,
-                    iconColor: defaultIconColor,
-                    tooltip: 'Menu',
-                  ),
-                )
-              : const SizedBox.shrink())),
-      title: transparent ? null : Column(
+      title: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isPeekingState) ...[
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.visibility,
-                  color: onPrimary.withValues(alpha: 0.7),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: onPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                      letterSpacing: -0.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ] else ...[
+          if (title.isNotEmpty)
             Text(
               title,
-              style: TextStyle(
-                color: onPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                letterSpacing: -0.5,
-              ),
-              overflow: TextOverflow.ellipsis,
+              style: theme.appBarTheme.titleTextStyle,
             ),
-          ],
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
+          if (subtitle != null)
             Text(
               subtitle!,
-              style: TextStyle(
-                color: onPrimary.withValues(alpha: 0.8),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+              style: AppTypography.body.copyWith(
+                fontSize: 12,
+                color: isDark ? AppColors.dark200 : AppColors.dark300,
+                height: 1.1,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ],
         ],
       ),
-      actions: finalActions.isEmpty ? null : [
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: finalActions,
-          ),
-        ),
-      ],
+      actions: actions,
+      leading: leading ?? (showBack ? BackButton(onPressed: onBack) : null),
+      leadingWidth: leadingWidth,
+      centerTitle: centerTitle,
+      elevation: 0,
+      backgroundColor: backgroundColor ?? (transparent ? Colors.transparent : null),
+      scrolledUnderElevation: 0,
       bottom: bottom,
     );
   }
 
   @override
   Size get preferredSize => Size.fromHeight(
-        ((subtitle != null && !transparent) ? 72.0 : 56.0) + (bottom?.preferredSize.height ?? 0),
-      );
+    (subtitle != null ? 72 : kToolbarHeight) + (bottom?.preferredSize.height ?? 0)
+  );
 }

@@ -22,7 +22,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'Localisation', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Localisation', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -55,7 +55,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               
-              const BoxyArtSectionTitle(title: 'Competition Settings', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Competition Settings', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -72,7 +72,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'App Info', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'App Info', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
@@ -95,7 +95,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'Developer Tools', padding: EdgeInsets.zero),
+              const BoxyArtSectionTitle(title: 'Developer Tools', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
