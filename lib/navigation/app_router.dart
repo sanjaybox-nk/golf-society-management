@@ -27,7 +27,6 @@ import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
 import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
 import '../features/home/presentation/notification_inbox_screen.dart';
-import '../features/design_lab/header_playground.dart';
 import '../features/admin/presentation/seasons/admin_seasons_screen.dart';
 import '../features/events/presentation/event_registration_screen.dart';
 import '../features/admin/presentation/events/event_registrations_admin_screen.dart';
@@ -94,10 +93,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'notifications',
                     builder: (context, state) => const NotificationInboxScreen(),
-                  ),
-                  GoRoute(
-                    path: 'design-lab',
-                    builder: (context, state) => const HeaderPlayground(),
                   ),
                 ],
               ),

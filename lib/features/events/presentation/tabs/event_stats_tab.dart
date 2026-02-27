@@ -8,7 +8,6 @@ import 'package:golf_society/domain/models/event_registration.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../widgets/rich_stats_widgets.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
-import '../../../debug/presentation/state/debug_providers.dart';
 import '../../logic/event_analysis_engine.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
@@ -37,11 +36,9 @@ class EventStatsTab extends ConsumerWidget {
     final effectiveUser = ref.watch(effectiveUserProvider);
     final currentUserId = effectiveUser.id;
     
-    // [Lab Mode/Admin Restriction]
-    // Admins always see Society Stats (mode 0) and cannot toggle
-    final statsMode = isAdmin ? 0 : ref.watch(richStatsModeProvider);
-    final formatOverride = ref.watch(gameFormatOverrideProvider);
-    final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
+    // [Society Mode Only]
+    const statsMode = 0; 
+    final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
     final isStableford = currentFormat == CompetitionFormat.stableford;
 
     final myScorecard = scorecards.where((s) => s.entryId.replaceFirst('_guest', '') == currentUserId).firstOrNull;
@@ -51,14 +48,13 @@ class EventStatsTab extends ConsumerWidget {
     final hasFinalizedStats = event.finalizedStats.isNotEmpty;
     // print('DEBUG: EventStatsTab - hasFinalizedStats: $hasFinalizedStats');
 
-    final showStatsOverride = ref.watch(isStatsReleasedOverrideProvider) == true;
-    final statsReleased = event.isStatsReleased == true || showStatsOverride || isAdmin;
+    final statsReleased = event.isStatsReleased == true || isAdmin;
 
     // Check if scoring has even started
     final bool hasAnyData = scorecards.isNotEmpty || hasFinalizedStats;
     
     if (!hasAnyData || (!isAdmin && !statsReleased)) {
-      return const BoxyArtFloatingCard(
+      return const BoxyArtCard(
         child: Padding(
           padding: EdgeInsets.all(32.0),
           child: Center(
@@ -233,16 +229,12 @@ class EventStatsTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isAdmin) ...[
-          _buildStatsToggle(context, ref, ref.watch(richStatsModeProvider)),
-          const SizedBox(height: 16),
-        ],
         if (statsMode == 0) ...[
           const BoxyArtSectionTitle(title: 'Society Hero Recap'),
           if (eclecticRound.any((s) => s != null))
             FieldEclecticCard(eclecticScores: eclecticRound, holes: holes),
           const SizedBox(height: 8),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -301,7 +293,7 @@ class EventStatsTab extends ConsumerWidget {
           SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
         ] else ...[
           if (myScorecard == null)
-            const BoxyArtFloatingCard(
+            const BoxyArtCard(
               child: Padding(
                 padding: EdgeInsets.all(24.0),
                 child: Center(child: Text('No personal scorecard found for this event.', style: TextStyle(color: Colors.grey))),
@@ -441,75 +433,4 @@ class EventStatsTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsToggle(BuildContext context, WidgetRef ref, int statsMode) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppShadows.inputSoft,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildToggleButton(
-              context, 
-              label: 'SOCIETY', 
-              icon: Icons.groups_outlined,
-              isSelected: statsMode == 0, 
-              onTap: () => ref.read(richStatsModeProvider.notifier).set(0),
-            ),
-          ),
-          Expanded(
-            child: _buildToggleButton(
-              context, 
-              label: 'PERSONAL', 
-              icon: Icons.person_outline,
-              isSelected: statsMode == 1, 
-              onTap: () => ref.read(richStatsModeProvider.notifier).set(1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton(
-    BuildContext context, {
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon, 
-              size: 16, 
-              color: isSelected ? Colors.white : Colors.grey,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                color: isSelected ? Colors.white : Colors.grey,
-                letterSpacing: 1.1,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -40,7 +40,7 @@ class AdminReportsScreen extends ConsumerWidget {
               eventsAsync.when(
                 data: (List<GolfEvent> events) {
                   final sortedEvents = events.sortedBy((e) => e.date).reversed.toList();
-                  return ModernCard(
+                  return BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
                       children: sortedEvents.take(5).mapIndexed((index, event) {
@@ -193,7 +193,7 @@ class AdminReportsScreen extends ConsumerWidget {
     return activeSeasonAsync.when(
       data: (season) {
         if (season == null || season.leaderboards.isEmpty) {
-          return const ModernCard(
+          return const BoxyArtCard(
             padding: EdgeInsets.all(24),
             child: Center(child: Text('No active season leaderboards')),
           );
@@ -201,7 +201,7 @@ class AdminReportsScreen extends ConsumerWidget {
 
         final primaryConfig = season.leaderboards.first;
 
-        return ModernCard(
+        return BoxyArtCard(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,9 +280,9 @@ class _ReportMetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(20),
-      border: BorderSide(color: color.withValues(alpha: 0.1)),
+      border: Border.fromBorderSide(BorderSide(color: color.withValues(alpha: 0.1))),
       child: Row(
         children: [
           Container(

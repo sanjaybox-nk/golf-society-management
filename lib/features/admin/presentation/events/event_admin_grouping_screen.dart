@@ -857,11 +857,11 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
 
   Widget _buildRadioOption(BuildContext context, String value, String title, String subtitle, String groupValue, ValueChanged<String> onChanged) {
     final isSelected = value == groupValue;
-    return ModernCard(
+    return BoxyArtCard(
       onTap: () => onChanged(value),
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 8),
-      border: isSelected ? BorderSide(color: Theme.of(context).primaryColor, width: 2) : null,
+      border: isSelected ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor, width: 2)) : null,
       backgroundColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : null,
       child: Row(
         children: [
@@ -982,7 +982,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 itemBuilder: (context, index) {
                   final g = _localGroups![index];
                   if (g == currentGroup) return const SizedBox.shrink();
-                  return ModernCard(
+                  return BoxyArtCard(
                     margin: const EdgeInsets.only(bottom: 8),
                     onTap: () {
                       _handleMove(p, currentGroup, g, null);

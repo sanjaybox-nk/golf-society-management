@@ -9,10 +9,7 @@ import 'package:golf_society/domain/models/scorecard.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../members/presentation/members_provider.dart';
-import 'package:golf_society/domain/models/member.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
-
-
 import '../../../matchplay/presentation/widgets/match_status_header.dart';
 import '../../../matchplay/presentation/state/match_play_providers.dart';
 import '../hero_scoring_screen.dart';
@@ -138,7 +135,6 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     final targetId = _activeEntryId;
     if (targetId == null) return 15; // Fallback
 
-    // Single Source of Truth: Read PHC from grouping data
     final phc = HandicapCalculator.getStoredPhc(widget.event.grouping, targetId).toDouble();
 
     return ScoringCalculator.getMaxScoreCap(
@@ -150,74 +146,6 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     );
   }
 
-  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList, {String? manualTeeName}) {
-    final tees = event.courseConfig['tees'] as List?;
-    debugPrint(' [SCORING-DEBUG] Resolving for: $memberId');
-    debugPrint(' [SCORING-DEBUG] Manual Tee: $manualTeeName');
-    
-    if (tees == null || tees.isEmpty) {
-      debugPrint(' [SCORING-DEBUG] WARNING: No tees found in event.courseConfig: ${event.courseConfig.keys}');
-      return event.courseConfig;
-    }
-
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-    debugPrint(' [SCORING-DEBUG] Resolved Gender: $gender');
-    
-    Map<String, dynamic>? selectedTee;
-    
-    // 1. Manual Override logic
-    if (manualTeeName != null) {
-      selectedTee = (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase().trim() == manualTeeName.toLowerCase().trim()
-      ) as Map<String, dynamic>?);
-      if (selectedTee != null) debugPrint(' [SCORING-DEBUG] Manual Match Found: ${selectedTee['name']}');
-    }
-
-    if (selectedTee == null) {
-      if (gender == 'female') {
-         if (event.selectedFemaleTeeName != null) {
-           selectedTee = (tees.firstWhereOrNull((t) => 
-             (t['name'] ?? '').toString().toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
-           ) as Map<String, dynamic>?);
-         }
-         selectedTee ??= (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-           (t['name'] ?? '').toString().toLowerCase().contains('female')
-         ) as Map<String, dynamic>?);
-      }
-      
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
-      ) as Map<String, dynamic>?);
-  
-      selectedTee ??= (tees.first as Map<String, dynamic>);
-      debugPrint(' [SCORING-DEBUG] Fallback to: ${selectedTee['name']}');
-    }
-    
-    debugPrint(' [SCORING-DEBUG] FINAL TEE: ${selectedTee['name']}');
-    
-    // [CRITICAL FIX] ScoringCalculator expects a 'holes' list of maps with 'par' and 'si' keys.
-    // If we only update the top-level 'rating'/'slope' but leave the original 'holes' list,
-    // the actual scoring logic will use the WRONG pars/SIs for the overridden tee.
-    final List<int> pars = List<int>.from(selectedTee['holePars'] ?? []);
-    final List<int> sis = List<int>.from(selectedTee['holeSIs'] ?? []);
-    
-    final List<Map<String, dynamic>> reconstructedHoles = List.generate(pars.length, (i) => {
-      'hole': i + 1,
-      'par': pars[i],
-      'si': sis[i],
-    });
-
-    return {
-       ...event.courseConfig,
-       'rating': (selectedTee['rating'] as num?)?.toDouble() ?? (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
-       'slope': (selectedTee['slope'] as num?)?.toInt() ?? (event.courseConfig['slope'] as num?)?.toInt() ?? 113,
-       'par': pars.isEmpty ? (event.courseConfig['par'] as num?)?.toInt() ?? 72 : pars.fold(0, (a, b) => a + b),
-       'holes': reconstructedHoles.isNotEmpty ? reconstructedHoles : (event.courseConfig['holes'] as List?),
-    };
-  }
 
   // Duplicated locally during revamp logic integration, removing second instance
 
@@ -332,7 +260,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     final markerSelection = ref.watch(markerSelectionProvider);
     final String? manualTee = markerSelection.teeOverrides[_activeEntryId];
     
-    final resolvedPtc = _resolvePlayerCourseConfig(_activeEntryId ?? '', widget.event, members, manualTeeName: manualTee);
+    final resolvedPtc = ScoringCalculator.resolvePlayerCourseConfig(
+      memberId: _activeEntryId ?? '', 
+      event: widget.event, 
+      membersList: members, 
+      manualTeeName: manualTee,
+    );
     final holes = resolvedPtc['holes'] as List? ?? [];
     
     // Watch for active match status
@@ -355,7 +288,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
           _openHeroScoring(holes, resolvedPtc);
         }
       },
-      child: BoxyArtFloatingCard(
+      child: BoxyArtCard(
         height: matchResult != null ? 140 : 100, // [FIXED] Reduced height for more compact layout
         padding: EdgeInsets.zero,
         child: Column(
@@ -553,7 +486,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
           final markerSelection = ref.read(markerSelectionProvider);
           final String? manualTee = markerSelection.teeOverrides[_activeEntryId];
           
-          final pConfig = _resolvePlayerCourseConfig(_activeEntryId ?? '', widget.event, members, manualTeeName: manualTee);
+          final pConfig = ScoringCalculator.resolvePlayerCourseConfig(
+            memberId: _activeEntryId ?? '', 
+            event: widget.event, 
+            membersList: members, 
+            manualTeeName: manualTee,
+          );
           final holeData = (pConfig['holes'] as List?)?.elementAtOrNull(holeNum - 1);
           final par = (holeData?['par'] as num?)?.toInt() ?? 4;
           final si = (holeData?['si'] as num?)?.toInt() ?? 18;

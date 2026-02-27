@@ -31,7 +31,7 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: BoxyArtCard(
                     onTap: () {
                       controller.setHandicapSystem(system);
                     },

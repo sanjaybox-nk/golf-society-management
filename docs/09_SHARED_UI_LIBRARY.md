@@ -230,7 +230,7 @@ import 'package:golf_society/design_system/design_system.dart';
 ---
 
 ## Rich Stats Dashboard Widgets
-Used in the `RichStatsTab` to provide deep analysis of society and personal performance.
+Used in the `EventStatsTab` to provide deep analysis of society-wide performance.
 
 - `ScoringTypeDistributionChart`: Bar chart showing Eagle/Birdie/Par/Bogey breakdown.
 - `StablefordDistributionChart`: Point range distribution across the field.
@@ -248,8 +248,6 @@ Used in the `RichStatsTab` to provide deep analysis of society and personal perf
 - `HoleScoreCard`: Standalone card for a single hole's detail. Features +/- controls (Active Mode) or Read-Only display. Consistent across scoring and summaries.
 - `CourseInfoCard`: Provides a real-time summary of the course (Par, Slopes, Tees) and the player's performance vs. their PHC (Playing Handicap).
 - `HoleByHoleScoringWidget`: The core engine for scorecard entry on the grid. Features an interactive "Tactical Handle" with a persistent marker toggle and swipe-up gesture to launch the Hero scoring view. Fully standardized across Admin and User views.
-- `HeroScoringScreen`: A premium, full-screen interactive "Drawer" for intuitive one-handed hole-by-hole scoring. Features gesture-based navigation (swipe down to dismiss, swipe left/right for holes) and dynamic styling based on the active marker mode.
-- `ModernScoringView`: The core UI utilized by the `HeroScoringScreen`. Features a horizontal Hole Ribbon, a glassmorphic Hero Card with a tactical background map, and a large tactile numeric keypad designed for rapid entry.
 
 ## 8. Standings & Performance Widgets
 *Premium widgets for seasonal competition tracking.*

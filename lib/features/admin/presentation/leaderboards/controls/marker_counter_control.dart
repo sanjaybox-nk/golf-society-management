@@ -46,7 +46,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               children: [
                 BoxyArtFormField(
@@ -59,7 +59,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
           ),
           const SizedBox(height: 24),
           const BoxyArtSectionTitle(title: 'TRACKING RULES'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

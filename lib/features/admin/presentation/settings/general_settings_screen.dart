@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
-import 'package:golf_society/services/demo_seeding_service.dart';
+import 'package:golf_society/services/seeding_service.dart';
 
 class GeneralSettingsScreen extends ConsumerWidget {
   const GeneralSettingsScreen({super.key});
@@ -24,7 +24,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'Localisation', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -57,7 +57,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
               
               const BoxyArtSectionTitle(title: 'Competition Settings', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -74,7 +74,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'App Info', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -97,7 +97,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'Developer Tools', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -156,8 +156,8 @@ class GeneralSettingsScreen extends ConsumerWidget {
               Navigator.pop(context);
               // Trigger Seeding
               try {
-                final seedingService = ref.read(demoSeedingServiceProvider);
-                await seedingService.seedDemoSeason();
+                final seedingService = ref.read(seedingServiceProvider);
+                await seedingService.seedFullDemoData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Demo Season Initialized Successfully!')),
@@ -197,7 +197,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
               Navigator.pop(context);
               // Trigger Wipe & Seed
               try {
-                final seedingService = ref.read(demoSeedingServiceProvider);
+                final seedingService = ref.read(seedingServiceProvider);
                 
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -205,7 +205,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
                   );
                 }
                 
-                await seedingService.wipeAndSeed();
+                await seedingService.seedFullDemoData();
                 
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -98,7 +98,7 @@ class _TypeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       onTap: onTap,
       padding: const EdgeInsets.all(16),
       child: Row(

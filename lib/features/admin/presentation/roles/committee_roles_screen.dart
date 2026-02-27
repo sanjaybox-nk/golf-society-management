@@ -71,7 +71,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
 
-    return ModernCard(
+    return BoxyArtCard(
       onTap: () {
         context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(role)}');
       },

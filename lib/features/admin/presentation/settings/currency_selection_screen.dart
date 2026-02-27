@@ -60,7 +60,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Search Bar
-              ModernCard(
+              BoxyArtCard(
                 child: TextField(
                   controller: _searchController,
                   onChanged: _filterCurrencies,
@@ -94,7 +94,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 final isSelected = c.code == societyConfig.currencyCode;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: BoxyArtCard(
                     onTap: () {
                       controller.setCurrency(c.symbol, c.code);
                       context.pop();
@@ -202,7 +202,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
         final c = currencies[index];
         final isSelected = c.code == currentCode;
         
-        return ModernCard(
+        return BoxyArtCard(
           onTap: () => onSelect(c),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

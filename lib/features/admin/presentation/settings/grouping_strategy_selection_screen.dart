@@ -56,7 +56,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                 final isSelected = strategy.id == current;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: BoxyArtCard(
                     onTap: () => controller.setGroupingStrategy(strategy.id),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),

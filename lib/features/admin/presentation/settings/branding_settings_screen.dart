@@ -27,7 +27,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'Society Identity', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     ModernTextField(
@@ -48,7 +48,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
               
               const BoxyArtSectionTitle(title: 'Design Palettes', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -73,7 +73,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'Primary Color', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: _ColorPalette(
                   selectedColor: currentColor,
                   customColors: config.customColors,
@@ -86,7 +86,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'Card Appearance', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -165,7 +165,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'App Appearance', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _ThemeModeTile(
@@ -207,7 +207,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
     final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black;
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(20),
       child: Container(
         padding: const EdgeInsets.all(20),

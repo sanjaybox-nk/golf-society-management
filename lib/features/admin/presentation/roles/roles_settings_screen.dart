@@ -35,7 +35,7 @@ class RolesSettingsScreen extends ConsumerWidget {
                 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: ModernCard(
+                  child: BoxyArtCard(
                     onTap: () => context.push('/admin/settings/roles/members/${role.index}'),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),

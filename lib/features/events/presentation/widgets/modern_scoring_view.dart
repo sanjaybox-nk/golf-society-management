@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import '../../../matchplay/domain/match_definition.dart';
 
 class ModernScoringView extends StatelessWidget {
@@ -52,7 +53,13 @@ class ModernScoringView extends StatelessWidget {
     final par = (holeData?['par'] as num?)?.toInt() ?? 4;
     final si = (holeData?['si'] as num?)?.toInt();
     final score = scores[currentHole] ?? par;
-    final cap = _calculateCap(par, si);
+    final cap = ScoringCalculator.getMaxScoreCap(
+      par: par,
+      si: si ?? 18,
+      playingHandicap: playerPhc.toDouble(),
+      format: format,
+      maxScoreConfig: maxScoreConfig,
+    );
 
     return Container(
       color: Theme.of(context).colorScheme.surface,
@@ -111,12 +118,14 @@ class ModernScoringView extends StatelessWidget {
 
   Widget _buildHeroCard(BuildContext context, int par, int? si, int score, int? cap) {
     // 1. Calculate Stableford Points
-    int pts = 0;
-    if (si != null) {
-      final strokesReceived = (playerPhc / 18).floor() + (playerPhc % 18 >= si ? 1 : 0);
-      final netScore = score - strokesReceived;
-      pts = (par - netScore + 2).clamp(0, 8);
-    }
+    final int pts = si != null 
+        ? ScoringCalculator.calculateHolePoints(
+            grossScore: score,
+            par: par,
+            si: si,
+            playingHandicap: playerPhc.toDouble(),
+          )
+        : 0;
 
     // 2. Determine Match Hole Status
     String matchHoleStatus = '-';
@@ -135,7 +144,7 @@ class ModernScoringView extends StatelessWidget {
       }
     }
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -386,20 +395,6 @@ class ModernScoringView extends StatelessWidget {
     );
   }
 
-  int? _calculateCap(int par, int? si) {
-    if (format != CompetitionFormat.maxScore || maxScoreConfig == null) return null;
-    
-    switch (maxScoreConfig!.type) {
-      case MaxScoreType.fixed:
-        return maxScoreConfig!.value;
-      case MaxScoreType.parPlusX:
-        return par + maxScoreConfig!.value;
-      case MaxScoreType.netDoubleBogey:
-        if (si == null) return par + 2 + 2;
-        final freeShots = (playerPhc ~/ 18) + (si <= (playerPhc % 18) ? 1 : 0);
-        return par + 2 + freeShots;
-    }
-  }
 
   /// Builds a tee pill matching BoxyArtPill's exact style, with a coloured
   /// dot in place of the icon.

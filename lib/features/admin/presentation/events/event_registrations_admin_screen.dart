@@ -185,7 +185,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           delegate: SliverChildListDelegate([
             // METRICS CARD
             const BoxyArtSectionTitle(title: 'Registration Stats'),
-            ModernCard(
+            BoxyArtCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -73,7 +73,7 @@ class _SeasonCard extends StatelessWidget {
     final majors = (season.agmData['majorWinners'] as List<dynamic>?)?.cast<String>() ?? [];
     final primary = Theme.of(context).primaryColor;
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),

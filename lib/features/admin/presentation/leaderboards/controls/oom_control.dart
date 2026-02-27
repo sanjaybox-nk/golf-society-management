@@ -61,7 +61,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               children: [
                 BoxyArtFormField(
@@ -74,7 +74,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           ),
           const SizedBox(height: 24),
           const BoxyArtSectionTitle(title: 'SCORING RULES'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -93,7 +93,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           if (_scoringType == ScoringType.position) ...[
             const SizedBox(height: 24),
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
-            BoxyArtFloatingCard(
+            BoxyArtCard(
               child: Column(
                 children: [
                   BoxyArtFormField(

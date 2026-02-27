@@ -84,10 +84,10 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] No internet connection (Offline handling).
     - [ ] Large text sizes (Accessibility).
 - [x] **Testing & Verification**
-    - [x] **Iterative Testing Lab**: Multi-phase sandbox for seeding and verification.
+    - [x] **Full Demo Seeding**: Multi-phase engine for generating historical data.
     - [x] **Phase 3 (Teams)**: Scramble/Pairs logic verification.
     - [x] **Phase 4 (Hardening)**: Stress-test for ties and countbacks.
-    - [x] **Advanced Lab Mode**: Multi-scenario cycling for Matchplay and Team grouping.
+    - [x] **Match Play Simulation**: Automated match outcomes and standings verification.
     - [x] **Code Quality Hardening**: Achievement of "Zero Error" state across the entire codebase (Feb 2026).
     - [x] **Scaling Verification**: Simulation of 60+ member seasons with realistic data distribution.
 

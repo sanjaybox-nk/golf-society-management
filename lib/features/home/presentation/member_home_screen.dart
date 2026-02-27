@@ -285,7 +285,7 @@ class _NextMatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
 
     
-    return ModernCard(
+    return BoxyArtCard(
       padding: EdgeInsets.zero,
       onTap: () => context.push('/events/${event.id}'),
       child: Column(
@@ -420,7 +420,7 @@ class _LeaderboardSnippet extends StatelessWidget {
     final primary = Theme.of(context).primaryColor;
     final isPersonalInTop3 = topPlayers.any((p) => p['name'] == personalStanding?.memberName);
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [

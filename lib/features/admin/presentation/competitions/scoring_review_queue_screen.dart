@@ -29,7 +29,7 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
                     final review = reviews[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: BoxyArtFloatingCard(
+                      child: BoxyArtCard(
                         margin: EdgeInsets.zero,
                         padding: EdgeInsets.zero,
                         onTap: () => context.push('/admin/competitions/manage/${review.id}/reviews'),

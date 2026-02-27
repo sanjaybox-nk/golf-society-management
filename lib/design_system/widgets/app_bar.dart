@@ -1,12 +1,10 @@
 import "package:golf_society/design_system/design_system.dart";
-
-
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 
-/// ProMax glassmorphic app bar with modern aesthetics
-class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
+/// The standard app bar for the BoxyArt design system.
+/// Combines traditional AppBar features with modern glassmorphic aesthetics.
+class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
   final VoidCallback? onMenuPressed;
@@ -21,7 +19,7 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
   final bool transparent;
 
-  const ProMaxAppBar({
+  const BoxyArtAppBar({
     super.key,
     required this.title,
     this.subtitle,
@@ -63,21 +61,21 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: transparent ? Colors.transparent : primaryColor,
-      surfaceTintColor: Colors.transparent, // Disable M3 tint
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
-      toolbarHeight: transparent ? 56 : (subtitle != null ? 72 : 56),
+      toolbarHeight: (subtitle != null && !transparent) ? 72 : 56,
       automaticallyImplyLeading: false,
       centerTitle: centerTitle,
       leadingWidth: leadingWidth ?? 70,
       leading: leading ?? (showBack
           ? Center(
               child: BoxyArtGlassIconButton(
-                icon: Icons.chevron_left_rounded, // Themed chevron
+                icon: Icons.chevron_left_rounded,
                 onPressed: onBack ?? () => Navigator.of(context).pop(),
                 backgroundColor: defaultBgColor,
                 iconColor: defaultIconColor,
                 tooltip: 'Back',
-                iconSize: 28, // Slightly larger for better touch target and visibility
+                iconSize: 28,
               ),
             )
           : (showLeading
@@ -159,7 +157,6 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-        (subtitle != null ? 72.0 : 56.0) + (bottom?.preferredSize.height ?? 0),
+        ((subtitle != null && !transparent) ? 72.0 : 56.0) + (bottom?.preferredSize.height ?? 0),
       );
 }
-

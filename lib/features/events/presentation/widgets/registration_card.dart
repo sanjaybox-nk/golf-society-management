@@ -96,7 +96,7 @@ class RegistrationCard extends StatelessWidget {
       );
     }
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
       backgroundColor: isWithdrawn ? (isDark ? Colors.white10 : Colors.grey[50]) : null,
       child: Row(

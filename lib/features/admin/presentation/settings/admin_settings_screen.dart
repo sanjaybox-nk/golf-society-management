@@ -1,12 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:collection/collection.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/services/seeding_service.dart';
-import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
-import 'package:golf_society/features/debug/presentation/widgets/lab_control_panel.dart';
-import 'package:golf_society/features/events/presentation/events_provider.dart';
 
 class AdminSettingsScreen extends ConsumerWidget {
   const AdminSettingsScreen({super.key});
@@ -25,7 +21,7 @@ class AdminSettingsScreen extends ConsumerWidget {
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'Society Configurations', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -88,7 +84,7 @@ class AdminSettingsScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               const BoxyArtSectionTitle(title: 'Access & Permissions', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -122,66 +118,15 @@ class AdminSettingsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'Testing Lab', padding: EdgeInsets.zero),
-              const SizedBox(height: 4),
-              Text(
-                'Developer tools and experimental features for testing society-wide logic.',
-                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color),
-              ),
+              const BoxyArtSectionTitle(title: 'Initialization Tools', padding: EdgeInsets.zero),
               const SizedBox(height: 12),
-              ModernCard(
-                child: Column(
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.science_rounded,
-                      title: 'Developer Lab',
-                      subtitle: 'Experimental simulation and state controls',
-                      iconColor: Colors.deepPurple,
-                      onTap: () {
-                        // The LabControlPanel needs an eventId. 
-                        // We'll use a hardcoded 'the-lab' or lookup the lab event.
-                        // For now, look up 'the-lab' or use first available.
-                        ref.read(eventsProvider).whenData((events) {
-                          final labEvent = events.firstWhereOrNull((e) => e.title.contains('Lab')) ?? events.firstOrNull;
-                          if (labEvent != null) {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (context) => LabControlPanel(eventId: labEvent.id),
-                            );
-                          }
-                        });
-                      },
-                    ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      icon: Icons.auto_awesome_motion_rounded,
-                      title: 'Seed Full Demo Data',
-                      subtitle: 'Members, events, and historical scores',
-                      iconColor: Colors.pinkAccent,
-                      onTap: () => _seedFullDemo(context, ref),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: ref.watch(templatesListProvider).when(
-                        data: (templates) => ModernDropdownField<String>(
-                          label: 'Swap Lab Format',
-                          icon: Icons.swap_horiz_rounded,
-                          value: null,
-                          items: templates.map((t) => DropdownMenuItem(
-                            value: t.id,
-                            child: Text(t.rules.format.name.toUpperCase(), style: const TextStyle(fontSize: 14)),
-                          )).toList(),
-                          onChanged: (val) {
-                            if (val != null) _swapLabFormat(context, ref, val);
-                          },
-                        ),
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (e, _) => Text('Error: $e'),
-                      ),
-                    ),
-                  ],
+              BoxyArtCard(
+                child: _SettingsTile(
+                  icon: Icons.auto_awesome_motion_rounded,
+                  title: 'Seed Full Demo Data',
+                  subtitle: 'Populate members, events, and results',
+                  iconColor: Colors.pinkAccent,
+                  onTap: () => _seedFullDemo(context, ref),
                 ),
               ),
               const SizedBox(height: 100),
@@ -209,7 +154,7 @@ class AdminSettingsScreen extends ConsumerWidget {
     messenger.showSnackBar(const SnackBar(content: Text('Building Lab foundation... (Members & Events)')));
 
     try {
-      await ref.read(seedingServiceProvider).seedStableFoundation();
+      await ref.read(seedingServiceProvider).seedFullDemoData();
       messenger.showSnackBar(const SnackBar(
         content: Text('✅ Lab Ready! Check "Events" to see all 4 matches in the 2026 season.'),
         duration: Duration(seconds: 4),
@@ -220,18 +165,6 @@ class AdminSettingsScreen extends ConsumerWidget {
   }
 
 
-  Future<void> _swapLabFormat(BuildContext context, WidgetRef ref, String templateId) async {
-    if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Swapping game format...')));
-
-    try {
-      await ref.read(seedingServiceProvider).swapLabEventFormat(templateId);
-      messenger.showSnackBar(const SnackBar(content: Text('✅ Format Swapped! Recalculating...')));
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
 
 
   Future<void> _clearDatabase(BuildContext context, WidgetRef ref) async {

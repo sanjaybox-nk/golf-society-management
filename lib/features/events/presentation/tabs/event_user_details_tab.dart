@@ -229,7 +229,7 @@ class EventDetailsContent extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => BoxyArtFloatingCard(
+      builder: (context) => BoxyArtCard(
         margin: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -305,7 +305,7 @@ class EventDetailsContent extends ConsumerWidget {
 
   Widget _buildHeroSection(BuildContext context) {
     if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
-      return ModernCard(
+      return BoxyArtCard(
         padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +336,7 @@ class EventDetailsContent extends ConsumerWidget {
         ),
       );
     } else if (event.description != null && event.description!.isNotEmpty) {
-      return ModernCard(
+      return BoxyArtCard(
         child: Text(
           event.description!,
           style: TextStyle(
@@ -357,7 +357,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Date & Time'),
-        ModernCard(
+        BoxyArtCard(
           child: Column(
             children: [
               ModernInfoRow(
@@ -408,7 +408,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Course'),
-        ModernCard(
+        BoxyArtCard(
           child: Column(
             children: [
               Row(
@@ -680,7 +680,7 @@ class EventDetailsContent extends ConsumerWidget {
     final stats = RegistrationLogic.getRegistrationStats(event);
     final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
 
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         children: [
           if (!isRegistered) ...[
@@ -839,7 +839,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Playing Costs'),
-        ModernCard(
+        BoxyArtCard(
           child: Column(
             children: [
               _buildModernCostRow(context, 'Member Cost', event.memberCost),
@@ -910,7 +910,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Meals'),
-        ModernCard(
+        BoxyArtCard(
           child: Column(
             children: [
               if (hasBreakfast) ...[
@@ -936,7 +936,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Facilities'),
-        ModernCard(
+        BoxyArtCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: event.facilities.map((f) => Padding(
@@ -986,7 +986,7 @@ class EventDetailsContent extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: ModernCard(
+      child: BoxyArtCard(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1039,7 +1039,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Dinner Info'),
-        ModernCard(
+        BoxyArtCard(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1095,7 +1095,7 @@ class _CompetitionRulesCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BoxyArtSectionTitle(title: title),
-            ModernCard(
+            BoxyArtCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

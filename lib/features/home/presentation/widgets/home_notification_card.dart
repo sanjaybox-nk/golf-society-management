@@ -19,7 +19,7 @@ class HomeNotificationCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: ModernCard(
+      child: BoxyArtCard(
         padding: const EdgeInsets.all(16),
         child: InkWell(
           onTap: onTap ?? () => _handleTap(context),

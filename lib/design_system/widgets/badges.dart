@@ -11,6 +11,9 @@ class BoxyArtIconBadge extends StatelessWidget {
   final Color color;
   final double size;
   final double iconSize;
+  final bool isCircle;
+  final double borderRadius;
+  final EdgeInsetsGeometry? margin;
 
   const BoxyArtIconBadge({
     super.key,
@@ -18,6 +21,9 @@ class BoxyArtIconBadge extends StatelessWidget {
     required this.color,
     this.size = 20,
     this.iconSize = 10,
+    this.isCircle = true,
+    this.borderRadius = 6.0,
+    this.margin,
   });
 
   @override
@@ -25,15 +31,18 @@ class BoxyArtIconBadge extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      padding: EdgeInsets.all((size - iconSize) / 2),
+      margin: margin,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.2),
-        shape: BoxShape.circle,
+        shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: isCircle ? null : BorderRadius.circular(borderRadius),
       ),
-      child: Icon(
-        icon,
-        size: iconSize,
-        color: color,
+      child: Center(
+        child: Icon(
+          icon,
+          size: iconSize,
+          color: color,
+        ),
       ),
     );
   }
@@ -103,30 +112,6 @@ class BoxyArtSquareBadge extends StatelessWidget {
   }
 }
 
-/// A simple status chip created with a solid black background.
-class StatusChip extends StatelessWidget {
-  final String label;
-  const StatusChip({super.key, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
 
 /// A wrapper that adds a red/yellow notification dot.
 class NotificationBadge extends StatelessWidget {

@@ -236,7 +236,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     
-    return ModernCard(
+    return BoxyArtCard(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

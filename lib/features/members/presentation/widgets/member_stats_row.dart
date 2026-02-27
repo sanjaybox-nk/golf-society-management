@@ -22,7 +22,7 @@ class MemberStatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0),
-      child: ModernCard(
+      child: BoxyArtCard(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         borderRadius: 24,
         child: Row(

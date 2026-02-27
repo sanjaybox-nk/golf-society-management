@@ -102,9 +102,9 @@ class _SeasonCard extends ConsumerWidget {
           },
         );
       },
-      child: ModernCard(
+      child: BoxyArtCard(
         onTap: () => context.push('/admin/settings/seasons/edit/${season.id}', extra: season),
-        border: BorderSide(color: theme.primaryColor.withValues(alpha: 0.1)),
+        border: Border.fromBorderSide(BorderSide(color: theme.primaryColor.withValues(alpha: 0.1))),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           child: Row(

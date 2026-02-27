@@ -56,7 +56,7 @@ class _EventDetailsContent extends StatelessWidget {
               
               // Event Hero Image
               if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
-                ModernCard(
+                BoxyArtCard(
                   padding: EdgeInsets.zero,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
@@ -69,7 +69,7 @@ class _EventDetailsContent extends StatelessWidget {
                   ),
                 )
               else
-                ModernCard(
+                BoxyArtCard(
                   padding: const EdgeInsets.symmetric(vertical: 60),
                   child: Center(
                     child: Icon(Icons.golf_course, size: 64, color: primary.withValues(alpha: 0.2)),
@@ -192,7 +192,7 @@ class _EventDetailsContent extends StatelessWidget {
                           DateTime.now().isAfter(event.registrationDeadline!);
     final isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
 
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,7 +278,7 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildWhenWhereCard(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         children: [
           ModernInfoRow(
@@ -304,7 +304,7 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildCourseDetailsCard(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -326,7 +326,7 @@ class _EventDetailsContent extends StatelessWidget {
         return compAsync.when(
           data: (comp) {
             if (comp == null) return const SizedBox.shrink();
-            return ModernCard(
+            return BoxyArtCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -362,7 +362,7 @@ class _EventDetailsContent extends StatelessWidget {
         (hasLunch ? (event.lunchCost ?? 0) : 0) +
         (hasDinner ? (event.dinnerCost ?? 0) : 0);
 
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -394,7 +394,7 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildDinnerLocationCard(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       child: ModernInfoRow(
         label: 'Dinner Venue',
         value: event.dinnerLocation!,
@@ -404,7 +404,7 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildUpdateCard(BuildContext context, String update) {
-    return ModernCard(
+    return BoxyArtCard(
       margin: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [

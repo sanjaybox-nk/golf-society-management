@@ -100,7 +100,7 @@ class LockerScreen extends ConsumerWidget {
               SizedBox(height: AppTheme.cardSpacing),
 
               // Handicap Section
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
@@ -163,7 +163,7 @@ class LockerScreen extends ConsumerWidget {
 
               // Settings Section
               const BoxyArtSectionTitle(title: 'Account Settings'),
-              ModernCard(
+              BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [

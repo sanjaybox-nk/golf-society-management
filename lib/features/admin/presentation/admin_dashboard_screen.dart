@@ -145,12 +145,13 @@ class _FeatureGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       width: width,
-      child: ModernCard(
+      child: BoxyArtCard(
         onTap: onTap,
         padding: const EdgeInsets.all(20),
-        border: BorderSide(color: color.withValues(alpha: 0.05)),
+        border: Border.fromBorderSide(BorderSide(color: theme.primaryColor.withValues(alpha: 0.1))),
         child: Column(
           children: [
             Container(
@@ -193,7 +194,7 @@ class _ActivityFeed extends StatelessWidget {
       ('New event "Spring Scramble" published', '3 hours ago', Icons.campaign_rounded, Colors.purple),
     ];
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: activities.mapIndexed((index, item) {

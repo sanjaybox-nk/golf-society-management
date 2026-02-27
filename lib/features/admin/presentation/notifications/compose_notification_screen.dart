@@ -228,7 +228,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
     final members = ref.watch(allMembersProvider).value ?? [];
     final theme = Theme.of(context);
 
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -367,7 +367,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
 
   Widget _buildMessageForm() {
     final theme = Theme.of(context);
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         children: [
           TextField(
@@ -416,7 +416,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
 
   Widget _buildDeepLinkSelector() {
     final theme = Theme.of(context);
-    return ModernCard(
+    return BoxyArtCard(
       child: Column(
         children: [
           DropdownButtonFormField<String>(

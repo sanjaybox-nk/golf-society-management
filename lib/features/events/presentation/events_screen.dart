@@ -127,7 +127,7 @@ class _EventCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final textSecondary = theme.textTheme.bodySmall?.color;
 
-    return ModernCard(
+    return BoxyArtCard(
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
       padding: const EdgeInsets.all(14),
       backgroundColor: isHighlighted 

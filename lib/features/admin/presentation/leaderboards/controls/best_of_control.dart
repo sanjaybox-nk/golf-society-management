@@ -72,7 +72,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               children: [
                 BoxyArtFormField(
@@ -85,7 +85,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
           ),
           const SizedBox(height: 24),
           const BoxyArtSectionTitle(title: 'LEAGUE RULES'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -111,7 +111,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
           if (_scoringType == ScoringType.position) ...[
             const SizedBox(height: 24),
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
-            BoxyArtFloatingCard(
+            BoxyArtCard(
               child: Column(
                 children: [
                    BoxyArtFormField(

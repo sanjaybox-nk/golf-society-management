@@ -6,7 +6,6 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
-import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
@@ -149,8 +148,7 @@ class ScorecardModal {
     final actualScorecard = scorecard;
     
     // Respect Lab Mode override
-    final formatOverride = ref.read(gameFormatOverrideProvider);
-    final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
+    final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
     // Determine if this entry is a guest
     final bool isGuest = entry.isGuest || entry.entryId.endsWith('_guest');
 
@@ -380,18 +378,7 @@ class ScorecardModal {
                   child: Builder(
                     builder: (context) {
                       // Resolve effective rules/format for modal
-                      final maxTypeOverride = ref.watch(maxScoreTypeOverrideProvider);
-                      final maxValueOverride = ref.watch(maxScoreValueOverrideProvider);
-                      
-                      MaxScoreConfig? effectiveMaxScore = comp?.rules.maxScoreConfig;
-                      if (currentFormat == CompetitionFormat.maxScore) {
-                        if (maxTypeOverride != null) {
-                           effectiveMaxScore = MaxScoreConfig(
-                             type: maxTypeOverride,
-                             value: maxValueOverride ?? (effectiveMaxScore?.value ?? 2),
-                           );
-                        }
-                      }
+                      final effectiveMaxScore = comp?.rules.maxScoreConfig;
 
                       // [NEW] Logic for Team/Pairs Display
                       List<CourseScoreRow> additionalRows = [];

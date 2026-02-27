@@ -36,7 +36,7 @@ We use `riverpod_generator` (`@riverpod` annotation) which auto-generates provid
 - **Services**: 
     - `AuthService` (Firebase Auth)
     - `StorageService` (Firebase Storage - Image Uploads)
-    - `SeedingService` (Testing Lab - Iterative data initialization)
+    - `SeedingService` (Historical data initialization)
     - `LeaderboardInvokerService` (Season Standings Calculator)
 - **Providers**: Defined in `feature/presentation/provider_name.dart`.
 - **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.

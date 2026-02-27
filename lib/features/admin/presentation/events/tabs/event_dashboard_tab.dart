@@ -183,7 +183,7 @@ class EventDashboardTab extends ConsumerWidget {
   }
 
   Widget _buildUpcomingEventCard(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Row(
         children: [
           // Date Badge

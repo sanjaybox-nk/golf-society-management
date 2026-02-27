@@ -201,7 +201,7 @@ class _LeaderboardTab extends ConsumerWidget {
 
   Widget _buildFormatSpecificHeader(LeaderboardConfig config) {
     // Return unique UI helpers based on format
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(16),
       child: config.map(
         orderOfMerit: (oom) => Row(
@@ -366,9 +366,9 @@ class _StandingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: isMe ? BorderSide(color: Theme.of(context).primaryColor) : null,
+      border: isMe ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor)) : null,
       onTap: () => _showDetails(context),
       child: Row(
         children: [
@@ -509,7 +509,7 @@ class _StandingDetailSheet extends StatelessWidget {
       );
     }
     
-    return const ModernCard(
+    return const BoxyArtCard(
       padding: EdgeInsets.all(24),
       child: Center(
         child: Text('No further breakdown available for this format.', style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -532,7 +532,7 @@ class PointsBreakdownWidget extends StatelessWidget {
         ? sortedPoints[countingRounds - 1] 
         : -1.0;
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -578,7 +578,7 @@ class MasterScorecardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -625,7 +625,7 @@ class BirdieGalleryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

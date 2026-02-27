@@ -1,4 +1,7 @@
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:collection/collection.dart';
 
 class ScoringResult {
   final int score;
@@ -15,6 +18,84 @@ class ScoringResult {
 }
 
 class ScoringCalculator {
+  /// Calculates Stableford points for a single hole.
+  static int calculateHolePoints({
+    required int grossScore,
+    required int par,
+    required int si,
+    required double playingHandicap,
+  }) {
+    final int freeShots = (playingHandicap ~/ 18) + (si <= (playingHandicap % 18) ? 1 : 0);
+    final int netScore = grossScore - freeShots;
+    return (par - netScore + 2).clamp(0, 8); // Standard Stableford: Net Par=2, Bogey=1, Double=0
+  }
+
+  /// Resolves the correct course configuration (pars, SIs, rating, slope) for a specific player
+  /// based on their gender and the event's tee settings.
+  static Map<String, dynamic> resolvePlayerCourseConfig({
+    required String memberId,
+    required GolfEvent event,
+    required List<Member> membersList,
+    String? manualTeeName,
+  }) {
+    final tees = event.courseConfig['tees'] as List?;
+    
+    if (tees == null || tees.isEmpty) {
+      return event.courseConfig;
+    }
+
+    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
+    final gender = member?.gender?.toLowerCase() ?? 'male';
+    
+    Map<String, dynamic>? selectedTee;
+    
+    // 1. Manual Override logic
+    if (manualTeeName != null) {
+      selectedTee = (tees.firstWhereOrNull((t) => 
+        (t['name'] ?? '').toString().toLowerCase().trim() == manualTeeName.toLowerCase().trim()
+      ) as Map<String, dynamic>?);
+    }
+
+    if (selectedTee == null) {
+      if (gender == 'female') {
+         if (event.selectedFemaleTeeName != null) {
+           selectedTee = (tees.firstWhereOrNull((t) => 
+             (t['name'] ?? '').toString().toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
+           ) as Map<String, dynamic>?);
+         }
+         selectedTee ??= (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+           (t['name'] ?? '').toString().toLowerCase().contains('female')
+         ) as Map<String, dynamic>?);
+      }
+      
+      selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
+      ) as Map<String, dynamic>?);
+  
+      selectedTee ??= (tees.first as Map<String, dynamic>);
+    }
+    
+    final List<int> pars = List<int>.from(selectedTee['holePars'] ?? []);
+    final List<int> sis = List<int>.from(selectedTee['holeSIs'] ?? []);
+    
+    final List<Map<String, dynamic>> reconstructedHoles = List.generate(pars.length, (i) => {
+      'hole': i + 1,
+      'par': pars[i],
+      'si': sis[i],
+    });
+
+    return {
+       ...event.courseConfig,
+       'rating': (selectedTee['rating'] as num?)?.toDouble() ?? (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
+       'slope': (selectedTee['slope'] as num?)?.toInt() ?? (event.courseConfig['slope'] as num?)?.toInt() ?? 113,
+       'par': pars.isEmpty ? (event.courseConfig['par'] as num?)?.toInt() ?? 72 : pars.fold(0, (a, b) => a + b),
+       'holes': reconstructedHoles.isNotEmpty ? reconstructedHoles : (event.courseConfig['holes'] as List?),
+       'selectedTeeName': selectedTee['name'],
+    };
+  }
+
   /// Calculates "Score to Par" (Net) or Stableford Points.
   /// Handles partial rounds by scaling par and handicap correctly.
   static ScoringResult calculate({
@@ -58,9 +139,12 @@ class ScoringCalculator {
 
         // 2. Format Specifics
         if (format == CompetitionFormat.stableford) {
-          final netScore = scoreCounted - freeShots;
-          final points = (par - netScore + 2).clamp(0, 10);
-          totalPoints += points;
+          totalPoints += calculateHolePoints(
+            grossScore: scoreCounted,
+            par: par,
+            si: si,
+            playingHandicap: playingHandicap,
+          );
         } else {
           int compScore = applyMaxScoreCap(
             grossScore: scoreCounted,

@@ -158,7 +158,7 @@ class _TypeTile extends StatelessWidget {
     final mainTitle = parts[0];
     final bracketText = parts.length > 1 ? '(${parts[1]}' : null;
 
-    return ModernCard(
+    return BoxyArtCard(
       onTap: onTap,
       padding: const EdgeInsets.all(18),
       child: Row(

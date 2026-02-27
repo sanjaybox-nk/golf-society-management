@@ -60,7 +60,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ModernCard(
+          BoxyArtCard(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

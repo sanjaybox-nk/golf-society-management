@@ -28,7 +28,7 @@ class LeaderboardWidget extends StatelessWidget {
         final Color avatarColor = entry.isGuest ? Colors.orange.withValues(alpha: 0.1) : theme.primaryColor.withValues(alpha: 0.1);
         final Color textColor = entry.isGuest ? Colors.orange : theme.primaryColor;
 
-        return ModernCard(
+        return BoxyArtCard(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
           backgroundColor: isTop3 

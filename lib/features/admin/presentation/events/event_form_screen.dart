@@ -703,7 +703,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 // Seasonal context is handled automatically via listeners
 
                 const BoxyArtSectionTitle(title: 'Basic Info'),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       BoxyArtFormField(
@@ -726,7 +726,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 
                 const BoxyArtSectionTitle(title: 'DateTime & Registration'),
                 const SizedBox(height: AppTheme.sectionSpacing),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       BoxyArtDatePickerField(
@@ -811,7 +811,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
                 const BoxyArtSectionTitle(title: 'Course Selection'),
                 const SizedBox(height: AppTheme.sectionSpacing),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       // Course Lookup field
@@ -1053,7 +1053,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   padding: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 12),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   padding: const EdgeInsets.all(16),
                   child: Consumer(
                     builder: (context, ref, child) {
@@ -1279,7 +1279,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         const SizedBox(height: 24),
                         const BoxyArtSectionTitle(title: 'SECONDARY GAME (OVERLAY)'),
                         const SizedBox(height: 12),
-                        BoxyArtFloatingCard(
+                        BoxyArtCard(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1445,7 +1445,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 const SizedBox(height: AppTheme.cardSpacing),
                 const BoxyArtSectionTitle(title: 'Playing Costs'),
                 const SizedBox(height: AppTheme.sectionSpacing),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       Row(
@@ -1474,7 +1474,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
                 const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
                 const SizedBox(height: AppTheme.sectionSpacing),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       BoxyArtSwitchField(
@@ -1525,7 +1525,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
                 const BoxyArtSectionTitle(title: 'Dinner Info'),
                 const SizedBox(height: AppTheme.sectionSpacing),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       BoxyArtFormField(
@@ -1539,7 +1539,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
 
                 const BoxyArtSectionTitle(title: 'Facilities'),
                 const SizedBox(height: AppTheme.sectionSpacing),
-                BoxyArtFloatingCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       ..._facilitiesControllers.asMap().entries.map((entry) {
@@ -1603,7 +1603,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   Widget _buildRichNoteItem(int index, NoteItemController note) {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
-      child: BoxyArtFloatingCard(
+      child: BoxyArtCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

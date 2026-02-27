@@ -2,75 +2,8 @@ import "package:golf_society/design_system/design_system.dart";
 
 
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 
-/// A standard clean app bar with circular action buttons.
-class BoxyArtAppBar extends ConsumerWidget implements PreferredSizeWidget {
-  final String title;
-  final VoidCallback? onMenuPressed;
-  final bool showBack;
-  final bool showLeading;
-  final VoidCallback? onBack;
-
-  final PreferredSizeWidget? bottom;
-  final List<Widget>? actions;
-  final bool isLarge;
-  final bool? centerTitle;
-  final Widget? leading;
-  final double? leadingWidth;
-  final Widget? topRow;
-  final String? subtitle;
-  final bool isPeeking;
-  final bool transparent;
-
-  final bool showAdminShortcut;
-
-  const BoxyArtAppBar({
-    super.key,
-    required this.title,
-    this.onMenuPressed,
-    this.showBack = false,
-    this.showLeading = true,
-    this.onBack,
-    this.bottom,
-    this.actions,
-    this.isLarge = false,
-    this.centerTitle,
-    this.leading,
-    this.leadingWidth,
-    this.topRow,
-    this.subtitle,
-    this.isPeeking = false,
-    this.showAdminShortcut = true,
-    this.transparent = false,
-  });
-
-  static const double largeHeight = 72.0;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Delegate to ProMaxAppBar for modern glassmorphic design
-    return ProMaxAppBar(
-      title: title,
-      subtitle: subtitle,
-      onMenuPressed: onMenuPressed,
-      showBack: showBack,
-      showLeading: showLeading,
-      onBack: onBack,
-      actions: actions,
-      centerTitle: centerTitle ?? (isLarge ? true : false),
-      leading: leading,
-      leadingWidth: leadingWidth,
-      showAdminShortcut: showAdminShortcut,
-      bottom: bottom,
-      transparent: transparent,
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.fromHeight((isLarge ? largeHeight : kToolbarHeight) + (bottom?.preferredSize.height ?? 0));
-}
 
 /// A floating bottom bar with Search and Filter segments.
 class FloatingBottomSearch extends StatelessWidget {

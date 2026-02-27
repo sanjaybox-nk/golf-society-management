@@ -10,8 +10,6 @@ import '../../../competitions/presentation/competitions_provider.dart';
 import 'widgets/admin_scorecard_list.dart';
 
 import '../../../events/logic/event_analysis_engine.dart';
-import '../../../../domain/grouping/grouping_service.dart';
-import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../events/presentation/widgets/event_leaderboard.dart';
 import '../../../events/presentation/widgets/scorecard_modal.dart';
@@ -109,7 +107,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             const SizedBox(height: 24),
             const BoxyArtSectionTitle(title: 'ANALYTICS & STATS'),
             const SizedBox(height: 12),
-            BoxyArtFloatingCard(
+            BoxyArtCard(
               child: Column(
                 children: [
                    _buildControlRow(
@@ -206,25 +204,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           ],
         );
       case 3: // Stats
-        // [Lab Mode Simulation]
-        final simulationHoles = ref.watch(simulationHoleCountOverrideProvider);
-        final statusOverride = ref.watch(eventStatusOverrideProvider);
-        final effectiveStatus = statusOverride ?? event.status;
         final Map<String, int> playerHoleLimits = {};
-
-        if (simulationHoles != null && effectiveStatus == EventStatus.inPlay) {
-          final groupsData = event.grouping['groups'] as List?;
-          if (groupsData != null) {
-            final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
-            for (int i = 0; i < groups.length; i++) {
-              final groupLimit = (simulationHoles - i).clamp(0, 18);
-              for (var p in groups[i].players) {
-                playerHoleLimits[p.registrationMemberId] = groupLimit;
-                playerHoleLimits['${p.registrationMemberId}_guest'] = groupLimit;
-              }
-            }
-          }
-        }
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -374,7 +354,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
   }
 
   Widget _buildBadgeCard(String label, String value, Color color) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

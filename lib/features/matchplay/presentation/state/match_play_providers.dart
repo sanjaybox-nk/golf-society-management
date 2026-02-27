@@ -9,8 +9,7 @@ import '../../../../features/members/presentation/profile_provider.dart';
 import '../../../../features/competitions/presentation/competitions_provider.dart';
 import '../../../../features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 
 part 'match_play_providers.g.dart';
 
@@ -78,7 +77,11 @@ class CurrentMatchController extends _$CurrentMatchController {
                         index = member?.handicap ?? 18.0;
                       }
                       indices[pid] = index;
-                      configs[pid] = _resolvePlayerCourseConfig(pid, event, membersList);
+                      configs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+                        memberId: pid, 
+                        event: event, 
+                        membersList: membersList,
+                      );
                     }
 
                     final Map<String, int> strokes = MatchPlayCalculator.calculateRelativeStrokes(
@@ -125,7 +128,11 @@ class CurrentMatchController extends _$CurrentMatchController {
                         index = member?.handicap ?? 18.0;
                       }
                       indices[pid] = index;
-                      configs[pid] = _resolvePlayerCourseConfig(pid, event, membersList);
+                      configs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+                        memberId: pid, 
+                        event: event, 
+                        membersList: membersList,
+                      );
                    }
 
                    final Map<String, int> strokes = MatchPlayCalculator.calculateRelativeStrokes(
@@ -194,39 +201,4 @@ class CurrentMatchController extends _$CurrentMatchController {
     );
   }
 
-  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
-    final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.courseConfig;
-
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-    
-    Map<String, dynamic>? selectedTee;
-    if (gender == 'female') {
-       if (event.selectedFemaleTeeName != null) {
-         selectedTee = (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
-         ) as Map<String, dynamic>?);
-       }
-       selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-         (t['name'] ?? '').toString().toLowerCase().contains('female')
-       ) as Map<String, dynamic>?);
-    }
-    
-    selectedTee ??= (tees.firstWhereOrNull((t) => 
-       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
-    ) as Map<String, dynamic>?);
-
-    selectedTee ??= (tees.first as Map<String, dynamic>);
-
-    return {
-       ...event.courseConfig,
-       'par': selectedTee['par'] ?? (selectedTee['holes'] as List?)?.fold<int>(0, (a, b) => a + ((b as Map)['par'] as int? ?? 0)) ?? 72,
-       'rating': selectedTee['rating'] ?? 72,
-       'slope': selectedTee['slope'] ?? 113,
-       'holes': selectedTee['holes'] ?? event.courseConfig['holes'],
-    };
-  }
 }

@@ -65,7 +65,7 @@ class SocietyRolePicker extends StatelessWidget {
                         Navigator.pop(context);
                         _showCustomRoleDialog(context);
                       },
-                      child: ModernCard(
+                      child: BoxyArtCard(
                         padding: const EdgeInsets.all(18),
                         borderRadius: 16,
                         child: Row(
@@ -114,10 +114,10 @@ class SocietyRolePicker extends StatelessWidget {
           onRoleSelected(role);
           Navigator.pop(context);
         },
-        child: ModernCard(
+        child: BoxyArtCard(
           padding: const EdgeInsets.all(18),
           borderRadius: 16,
-          border: isSelected ? BorderSide(color: primary, width: 2) : null,
+          border: isSelected ? Border.fromBorderSide(BorderSide(color: primary, width: 2)) : null,
           child: Row(
             children: [
               Expanded(

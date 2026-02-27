@@ -30,7 +30,7 @@ class MemberTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final primary = theme.primaryColor;
     
-    return ModernCard(
+    return BoxyArtCard(
       onTap: onTap ?? () => MemberDetailsModal.show(context, member),
       padding: const EdgeInsets.all(18),
       child: Column(

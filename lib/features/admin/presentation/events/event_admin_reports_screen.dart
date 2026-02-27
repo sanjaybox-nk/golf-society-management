@@ -136,7 +136,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
       child: Column(
         children: [
           // HEADER SUMMARY
-          ModernCard(
+          BoxyArtCard(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
@@ -184,7 +184,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
           // PARTICIPATION
           const BoxyArtSectionTitle(title: 'PARTICIPATION BREAKDOWN'),
-          ModernCard(
+          BoxyArtCard(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Column(
               children: [
@@ -201,7 +201,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
           // SERVICES
           const BoxyArtSectionTitle(title: 'SERVICES & CATERING'),
-          ModernCard(
+          BoxyArtCard(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Column(
               children: [
@@ -216,7 +216,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
           // FINANCIALS
           const BoxyArtSectionTitle(title: 'FINANCIAL SUMMARY'),
-          ModernCard(
+          BoxyArtCard(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [

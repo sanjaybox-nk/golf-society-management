@@ -114,7 +114,7 @@ class _InboxNotificationCard extends StatelessWidget {
     final primary = Theme.of(context).primaryColor;
     final accent = isUrgent ? Colors.red : primary;
 
-    return ModernCard(
+    return BoxyArtCard(
       onTap: () {
         // Handle tap - deep link or dialog
       },

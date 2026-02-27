@@ -103,7 +103,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                               SnackBar(content: Text('Deleted ${list.name}')),
                             );
                           },
-                          child: ModernCard(
+                          child: BoxyArtCard(
                             onTap: () => _showCreateListDialog(listToEdit: list),
                             child: Row(
                               children: [
@@ -287,7 +287,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ModernCard(
+                  BoxyArtCard(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
@@ -351,7 +351,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                   const SizedBox(height: 24),
                   const BoxyArtSectionTitle(title: 'Add Members', padding: EdgeInsets.zero),
                   const SizedBox(height: 12),
-                  ModernCard(
+                  BoxyArtCard(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: TextField(
                       onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
@@ -389,7 +389,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                       return Column(
                         children: filtered.map((m) => Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: ModernCard(
+                          child: BoxyArtCard(
                             onTap: () => _toggleMember(m.id),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             child: Row(

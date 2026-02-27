@@ -11,7 +11,6 @@ import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/grouping/grouping_service.dart';
 
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
-import '../../../debug/presentation/state/debug_providers.dart';
 // removed unused society_config
 
 import '../../../matchplay/domain/match_definition.dart';
@@ -47,26 +46,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
   @override
   Widget build(BuildContext context) {
     // 1. Resolve effective rules/format
-    final formatOverride = ref.watch(gameFormatOverrideProvider);
-    final maxTypeOverride = ref.watch(maxScoreTypeOverrideProvider);
-    final maxValueOverride = ref.watch(maxScoreValueOverrideProvider);
-    final simulationHoles = ref.watch(simulationHoleCountOverrideProvider);
 
-    final currentFormat = formatOverride ?? (widget.comp?.rules.format ?? CompetitionFormat.stableford);
-    
-    CompetitionRules effectiveRules = widget.comp?.rules ?? const CompetitionRules();
-    if (formatOverride != null) {
-      effectiveRules = effectiveRules.copyWith(format: formatOverride);
-    }
-    
-    if (currentFormat == CompetitionFormat.maxScore && maxTypeOverride != null) {
-      effectiveRules = effectiveRules.copyWith(
-        maxScoreConfig: MaxScoreConfig(
-          type: maxTypeOverride,
-          value: maxValueOverride ?? (effectiveRules.maxScoreConfig?.value ?? 2),
-        ),
-      );
-    }
+    final currentFormat = widget.comp?.rules.format ?? CompetitionFormat.stableford;
+    final effectiveRules = widget.comp?.rules ?? const CompetitionRules();
 
     // 2. Merge Live Scorecards with Seeded Results
     final Map<String, dynamic> mergedData = {};
@@ -135,7 +117,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                     effectiveRules: effectiveRules,
                     membersList: widget.membersList,
                     currentFormat: currentFormat,
-                    holeLimit: simulationHoles,
+                    holeLimit: null,
                     teeOverrides: widget.teeOverrides,
                   ));
                 }
@@ -151,7 +133,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                     effectiveRules: effectiveRules,
                     membersList: widget.membersList,
                     currentFormat: currentFormat,
-                    holeLimit: simulationHoles,
+                    holeLimit: null,
                     teeOverrides: widget.teeOverrides,
                   ));
                 }
@@ -167,7 +149,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                     effectiveRules: effectiveRules,
                     membersList: widget.membersList,
                     currentFormat: currentFormat,
-                    holeLimit: simulationHoles,
+                    holeLimit: null,
                     teeOverrides: widget.teeOverrides,
                   ));
                }
@@ -192,7 +174,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             effectiveRules: effectiveRules,
             membersList: widget.membersList,
             currentFormat: currentFormat,
-            holeLimit: widget.playerHoleLimits[regId] ?? simulationHoles,
+            holeLimit: widget.playerHoleLimits[regId],
             teamIndex: getGroupIndex(regId),
             manualTeeName: widget.teeOverrides?[regId],
           ));
@@ -210,7 +192,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             effectiveRules: effectiveRules,
             membersList: widget.membersList,
             currentFormat: currentFormat,
-            holeLimit: widget.playerHoleLimits[key] ?? simulationHoles,
+            holeLimit: widget.playerHoleLimits[key],
             teamIndex: getGroupIndex(key),
             manualTeeName: widget.teeOverrides?[key],
           ));

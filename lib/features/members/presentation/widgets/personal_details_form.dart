@@ -50,7 +50,7 @@ class PersonalDetailsForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

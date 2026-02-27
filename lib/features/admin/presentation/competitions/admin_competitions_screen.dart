@@ -140,7 +140,7 @@ class _CompetitionsSliverList extends ConsumerWidget {
                 final comp = comps[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: ModernCard(
+                  child: BoxyArtCard(
                     padding: const EdgeInsets.all(16),
                     child: InkWell(
                       onTap: () => context.push('/admin/competitions/manage/${comp.id}'),
@@ -260,7 +260,7 @@ class _AdminSeasonStandingsTab extends ConsumerWidget {
                 final config = season.leaderboards[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: ModernCard(
+                  child: BoxyArtCard(
                     padding: const EdgeInsets.all(16),
                     child: InkWell(
                       onTap: () => context.push('/admin/leaderboards/manage/${config.id}', extra: config),

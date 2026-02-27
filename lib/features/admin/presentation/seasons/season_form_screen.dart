@@ -81,7 +81,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const BoxyArtSectionTitle(title: 'BASIC INFO', padding: EdgeInsets.only(left: 4, bottom: 8)),
-                  ModernCard(
+                  BoxyArtCard(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
@@ -109,7 +109,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                   ),
                   const SizedBox(height: 24),
                   const BoxyArtSectionTitle(title: 'DATES', padding: EdgeInsets.only(left: 4, bottom: 8)),
-                  ModernCard(
+                  BoxyArtCard(
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
@@ -420,7 +420,7 @@ class _LeaderboardListTile extends StatelessWidget {
       markerCounter: (_) { typeLabel = 'BIRDIE TREE'; icon = Icons.park; },
     );
 
-    return ModernCard(
+    return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       onTap: onEdit,
       child: Row(

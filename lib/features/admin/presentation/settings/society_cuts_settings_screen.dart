@@ -57,7 +57,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              ModernCard(
+              BoxyArtCard(
                 child: Column(
                   children: [
                     ModernSwitchRow(
@@ -77,7 +77,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
               if (_enabled) ...[
                 const BoxyArtSectionTitle(title: 'Cut Rules (Shots)', padding: EdgeInsets.zero),
                 const SizedBox(height: 12),
-                ModernCard(
+                BoxyArtCard(
                   child: Column(
                     children: _rules.entries.map((entry) {
                       return Padding(

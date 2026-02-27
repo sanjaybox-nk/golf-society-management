@@ -35,7 +35,7 @@ class _EclecticControlState extends State<EclecticControl> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               children: [
                 BoxyArtFormField(
@@ -48,7 +48,7 @@ class _EclecticControlState extends State<EclecticControl> {
           ),
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
-          BoxyArtFloatingCard(
+          BoxyArtCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

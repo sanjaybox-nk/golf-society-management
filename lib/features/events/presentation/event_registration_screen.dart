@@ -190,7 +190,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                     children: [
                       const BoxyArtSectionTitle(title: 'Your Attendance'),
                       const SizedBox(height: 12),
-                      ModernCard(
+                      BoxyArtCard(
                         child: Column(
                           children: [
                             _buildModernSwitchRow(
@@ -250,7 +250,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       const SizedBox(height: 32),
                       const BoxyArtSectionTitle(title: 'Guest Registration'),
                       const SizedBox(height: 12),
-                      ModernCard(
+                      BoxyArtCard(
                         child: Column(
                           children: [
                             _buildModernSwitchRow(
@@ -302,7 +302,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       const SizedBox(height: 32),
                       const BoxyArtSectionTitle(title: 'Notes & Requirements'),
                       const SizedBox(height: 12),
-                      ModernCard(
+                      BoxyArtCard(
                         child: Column(
                           children: [
                             _buildModernTextField(

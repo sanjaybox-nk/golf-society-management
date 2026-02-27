@@ -19,7 +19,7 @@ class ScoringTypeDistributionChart extends StatelessWidget {
     
     final maxCount = counts.values.fold(0, (max, v) => v > max ? v : max).clamp(1, 999);
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -90,7 +90,7 @@ class StablefordDistributionChart extends StatelessWidget {
     final buckets = ['<20', '20-25', '26-30', '31-35', '36+'];
     final maxCount = bucketCounts.values.fold(0, (max, v) => v > max ? v : max).clamp(1, 999);
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -171,7 +171,7 @@ class SplitPerformanceCard extends StatelessWidget {
     final isColapse = isStableford ? diff < 0 : diff > 0;
     final label = isStableford ? 'pts' : 'strokes';
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -262,7 +262,7 @@ class ParTypeBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -331,7 +331,7 @@ class DifficultyHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -428,7 +428,7 @@ class HoleDifficultyChart extends StatelessWidget {
         return diffB.compareTo(diffA); // Toughest first
       });
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -541,7 +541,7 @@ class AchievementTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
@@ -610,7 +610,7 @@ class FieldEclecticCard extends StatelessWidget {
     final parTotal = holes.fold(0, (sum, h) => sum + (h['par'] as int? ?? 4));
     final vsPar = totalStrokes - parTotal;
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -696,7 +696,7 @@ class SocietyRecapSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
@@ -778,7 +778,7 @@ class PersonalBenchmarkingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -868,7 +868,7 @@ class HoleComparisonHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -948,7 +948,7 @@ class ConsistencyStatCard extends StatelessWidget {
     final moreConsistent = myVariance < fieldAvgVariance;
     final color = moreConsistent ? Colors.green : Colors.orange;
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -1008,7 +1008,7 @@ class NetComparisonCard extends StatelessWidget {
     final diff = myNet - fieldAvgNet;
     final better = diff < 0;
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
@@ -1077,7 +1077,7 @@ class HoleNemesisComparison extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSame = myHardestHoleIdx == fieldHardestHoleIdx;
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -1150,7 +1150,7 @@ class BounceBackStatCard extends StatelessWidget {
     final better = myRate >= fieldRate;
     final color = better ? Colors.blue : Colors.grey;
 
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(

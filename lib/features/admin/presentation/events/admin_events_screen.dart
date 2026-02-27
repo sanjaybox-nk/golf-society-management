@@ -124,7 +124,7 @@ class AdminEventsScreen extends ConsumerWidget {
         ref.read(eventsRepositoryProvider).deleteEvent(event.id);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted "${event.title}"')));
       },
-      child: ModernCard(
+      child: BoxyArtCard(
         onTap: () => _showEventDetailsDialog(context, ref, event),
         padding: const EdgeInsets.all(14),
         child: Row(

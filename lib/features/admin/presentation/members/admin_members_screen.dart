@@ -63,7 +63,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Search & Filter Card
-                ModernCard(
+                BoxyArtCard(
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [

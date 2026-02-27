@@ -46,7 +46,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                 const SizedBox(height: 24),
                 
                 // Search & Filters
-                ModernCard(
+                BoxyArtCard(
                   child: Column(
                     children: [
                       TextField(
@@ -248,7 +248,7 @@ class _HistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: ModernCard(
+      child: BoxyArtCard(
         onTap: () => _showCampaignDetails(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -152,7 +152,7 @@ class HeadlessScaffold extends StatelessWidget {
               top: 0,
               left: 0,
               right: 0,
-              child: ProMaxAppBar(
+              child: BoxyArtAppBar(
                 title: title, // RE-ENABLED: Headless title
                 subtitle: subtitle, // RE-ENABLED: Headless subtitle
                 transparent: true,
@@ -181,7 +181,7 @@ class HeadlessScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: bg,
       extendBodyBehindAppBar: true,
-      appBar: ProMaxAppBar(
+      appBar: BoxyArtAppBar(
         title: '', // Headless
         transparent: true,
         showBack: showBack,

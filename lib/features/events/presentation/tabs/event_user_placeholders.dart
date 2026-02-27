@@ -2,7 +2,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
-import '../../../../features/debug/presentation/widgets/lab_control_panel.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
 import '../../../../domain/grouping/grouping_service.dart';
@@ -32,7 +31,6 @@ import '../../../matchplay/presentation/widgets/match_group_standings_widget.dar
 import '../../../matchplay/domain/golf_event_match_extensions.dart';
 import '../../../matchplay/domain/match_definition.dart';
 
-import '../../../debug/presentation/state/debug_providers.dart';
 import 'event_stats_tab.dart';
 import 'event_user_registration_tab.dart';
 import '../../../matchplay/presentation/state/match_play_providers.dart'; // [NEW] Added for Match Play row in My Score tab
@@ -69,7 +67,6 @@ class EventGroupingUserTab extends ConsumerWidget {
     final membersAsync = ref.watch(allMembersProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
-    final statusOverride = ref.watch(eventStatusOverrideProvider);
 
     return eventsAsync.when(
       data: (events) {
@@ -79,10 +76,6 @@ class EventGroupingUserTab extends ConsumerWidget {
         }
         
         var effectiveEvent = event;
-        // [LAB MODE] Apply Status Override
-        if (statusOverride != null) {
-          effectiveEvent = effectiveEvent.copyWith(status: statusOverride);
-        }
         
         final bool isPublished = effectiveEvent.isGroupingPublished;
         final groupsData = effectiveEvent.grouping['groups'] as List?;
@@ -160,13 +153,11 @@ class EventGroupingUserTab extends ConsumerWidget {
                                   history: history,
                                   totalGroups: groups.length,
                                   rules: comp?.rules.copyWith(
-                                    format: ref.watch(gameFormatOverrideProvider) ?? comp.rules.format,
-                                    mode: ref.watch(gameModeOverrideProvider) ?? comp.rules.mode,
-                                    handicapAllowance: ref.watch(handicapAllowanceOverrideProvider) ?? comp.rules.handicapAllowance,
-                                    teamBestXCount: ref.watch(teamBestXCountOverrideProvider) ?? comp.rules.teamBestXCount,
-                                    aggregation: ref.watch(aggregationMethodOverrideProvider) == 'betterBall' 
-                                        ? AggregationMethod.singleBest 
-                                        : (ref.watch(aggregationMethodOverrideProvider) == 'combined' ? AggregationMethod.totalSum : comp.rules.aggregation),
+                                    format: comp.rules.format,
+                                    mode: comp.rules.mode,
+                                    handicapAllowance: comp.rules.handicapAllowance,
+                                    teamBestXCount: comp.rules.teamBestXCount,
+                                    aggregation: comp.rules.aggregation,
                                   ),
                                   courseConfig: event.courseConfig,
                                   isAdmin: false,
@@ -313,48 +304,22 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     final compAsync = ref.watch(competitionDetailProvider(widget.eventId));
     return eventsAsync.when(
       data: (events) {
-        // [Lab Mode] Apply overrides
-        final statusOverride = ref.watch(eventStatusOverrideProvider);
         final baseEvent = events.firstWhereOrNull((e) => e.id == widget.eventId);
         if (baseEvent == null) {
           return const Scaffold(body: Center(child: Text('Event not found')));
         }
         
         var event = baseEvent;
-        if (statusOverride != null) {
-          event = event.copyWith(status: statusOverride);
-        }
 
-        final forceLockedOverride = ref.watch(isScoringLockedOverrideProvider);
-        if (forceLockedOverride != null) {
-          event = event.copyWith(isScoringLocked: forceLockedOverride);
-        }
 
-        final statsReleasedOverride = ref.watch(isStatsReleasedOverrideProvider);
-        if (statsReleasedOverride != null) {
-          event = event.copyWith(isStatsReleased: statsReleasedOverride);
-        }
         
         return compAsync.when(
           data: (comp) {
-            // [Lab Mode] Merged Rules with overrides
             final rules = comp?.rules ?? const CompetitionRules();
-            final handicapCapOverride = ref.watch(handicapCapOverrideProvider);
-            final scoringType = ref.watch(scoringTypeOverrideProvider);
             
-            final effectiveRules = rules.copyWith(
-              format: ref.watch(gameFormatOverrideProvider) ?? rules.format,
-              mode: ref.watch(gameModeOverrideProvider) ?? rules.mode,
-              handicapAllowance: ref.watch(handicapAllowanceOverrideProvider) ?? rules.handicapAllowance,
-              teamBestXCount: ref.watch(teamBestXCountOverrideProvider) ?? rules.teamBestXCount,
-              aggregation: ref.watch(aggregationMethodOverrideProvider) == 'betterBall' 
-                  ? AggregationMethod.singleBest 
-                  : (ref.watch(aggregationMethodOverrideProvider) == 'combined' ? AggregationMethod.totalSum : rules.aggregation),
-              handicapCap: handicapCapOverride ?? rules.handicapCap,
-            );
+            final effectiveRules = rules;
 
             // Force Gross Scoring check
-            final isGross = scoringType == ScoringType.gross;
 
             final currentFormat = effectiveRules.format;
             final currentMode = effectiveRules.effectiveMode;
@@ -370,8 +335,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               leaderboardEntries.addAll(results.map((r) {
                 // Gross Scoring Check
                 final score = isStableford 
-                    ? (isGross ? (r['grossPoints'] as int? ?? 0) : (r['points'] as int? ?? 0))
-                    : (isGross ? (r['grossTotal'] as int? ?? 0) : (r['netTotal'] as int? ?? 0));
+                    ? (r['points'] as int? ?? 0)
+                    : (r['netTotal'] as int? ?? 0);
                 
                 final entryId = (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString();
                 final bool isGuest = event.registrations.any((reg) => reg.memberId == entryId && reg.isGuest);
@@ -390,7 +355,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   score: score,
                   scoreLabel: scoreLabel,
                   handicap: (r['handicap'] as num?)?.toInt() ?? 0,
-                  playingHandicap: isGross ? 0 : (r['playingHandicap'] as num?)?.toInt(),
+                  playingHandicap: (r['playingHandicap'] as num?)?.toInt(),
                   isGuest: isGuest,
                 );
               }));
@@ -410,8 +375,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 final ids = groupResults.map((r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString()).toList();
                 
                 final score = isStableford 
-                    ? (isGross ? (mainR['grossPoints'] as int? ?? 0) : (mainR['points'] as int? ?? 0))
-                    : (isGross ? (mainR['grossTotal'] as int? ?? 0) : (mainR['netTotal'] as int? ?? 0));
+                    ? (mainR['points'] as int? ?? 0)
+                    : (mainR['netTotal'] as int? ?? 0);
 
                 final entryId = ids.join('_');
                 final bool isGuest = groupResults.any((r) {
@@ -465,11 +430,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             
             // Only show badge in "My Score" tab (index 0)
             if (selectedTabIndex == 0) {
-                final statusOverride = ref.watch(eventStatusOverrideProvider);
-                final effectiveStatus = statusOverride ?? event.status;
+                final effectiveStatus = event.status;
                 final bool isLocked = event.isScoringLocked == true;
                 final bool isCompleted = effectiveStatus == EventStatus.completed;
-                final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
                 
                 final now = DateTime.now();
                 final isSameDayOrPast = now.year == event.date.year && 
@@ -477,7 +440,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                                          now.day == event.date.day || 
                                          now.isAfter(event.date);
 
-                final bool isScoringActive = (forceActiveOverride == true) || (!isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked)));
+                final bool isScoringActive = !isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked));
 
                 // Simple check for completeness (needs full score list for accuracy, but this is a close approximation for the header)
                 // For a robust implementation, this logic is usually identical to what was inside _buildMyScoreView.
@@ -603,10 +566,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     final markerSelection = ref.watch(markerSelectionProvider);
     final scorecardsAsync = ref.watch(scorecardsListProvider(event.id));
     
-    // Respect Lab Mode override
-    // [Force Reload]
-    final formatOverride = ref.watch(gameFormatOverrideProvider);
-    final currentFormat = formatOverride ?? (comp?.rules.format ?? CompetitionFormat.stableford);
+    final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
     final isStableford = currentFormat == CompetitionFormat.stableford;
 
     final now = DateTime.now();
@@ -615,32 +575,15 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                              now.day == event.date.day || 
                              now.isAfter(event.date);
     
-    final statusOverride = ref.watch(eventStatusOverrideProvider);
-    final effectiveStatus = statusOverride ?? event.status;
+    final effectiveStatus = event.status;
 
     final bool isLocked = event.isScoringLocked == true;
     final bool isCompleted = effectiveStatus == EventStatus.completed;
-    final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
-    // [FIX] Allow Force Active override to bypass 'Completed' status for testing
-    final bool isScoringActive = (forceActiveOverride == true) || (!isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked)));
+    // [FIX] Allow Force Active override removed (Lab only)
+    final bool isScoringActive = !isCompleted && ((effectiveStatus == EventStatus.inPlay) || (isSameDayOrPast && !isLocked));
     final bool shouldShowCard = isSameDayOrPast || isCompleted || isLocked;
 
-    final simulationHoles = ref.watch(simulationHoleCountOverrideProvider);
     final Map<String, int> playerHoleLimits = {};
-    // [FIX] Only apply simulation if the event is 'In Play'
-    if (simulationHoles != null && effectiveStatus == EventStatus.inPlay) {
-      final groupsData = event.grouping['groups'] as List?;
-      if (groupsData != null) {
-        final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
-        for (int i = 0; i < groups.length; i++) {
-          final groupLimit = (simulationHoles - i).clamp(0, 18);
-          for (var p in groups[i].players) {
-            playerHoleLimits[p.registrationMemberId] = groupLimit;
-            playerHoleLimits['${p.registrationMemberId}_guest'] = groupLimit;
-          }
-        }
-      }
-    }
 
     switch (ref.watch(eventDetailsTabProvider)) {
       case 0: { // My Score
@@ -679,12 +622,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
           debugPrint('fallbackScores: ${fallbackScores.length} holes loaded');
         }
 
-        final emptyData = ref.watch(simulateEmptyDataProvider);
         // Per-hole merge: live scorecard > seeded data (fills scattered nulls)
         List<int?> rawDisplayScores;
-        if (emptyData) {
-          rawDisplayScores = [];
-        } else if (userScorecard != null && userScorecard.holeScores.any((s) => s != null)) {
+        if (userScorecard != null && userScorecard.holeScores.any((s) => s != null)) {
           // Merge live + seeded per-hole
           rawDisplayScores = List.generate(18, (i) {
             final live = i < userScorecard.holeScores.length ? userScorecard.holeScores[i] : null;
@@ -882,7 +822,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               event: event, 
               comp: comp,
               membersList: membersAsync.value ?? [],
-              holeLimit: playerHoleLimits[entry.entryId] ?? simulationHoles,
+              holeLimit: playerHoleLimits[entry.entryId],
               teeOverrides: markerSelection.teeOverrides,
             ),
           ),
@@ -1562,8 +1502,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   }
 
   Widget _buildInactiveBanner(GolfEvent event) {
-    final forceActiveOverride = ref.watch(scoringForceActiveOverrideProvider);
-    return BoxyArtFloatingCard(
+    return BoxyArtCard(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -1576,9 +1515,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             ),
             const SizedBox(height: 8),
             Text(
-              (forceActiveOverride == true) 
-                  ? 'Admin has forced scoring to be active for this event.'
-                  : 'Scoring will open on ${DateFormat('EEEE, d MMMM').format(event.date)}.',
+              'Scoring will open on ${DateFormat('EEEE, d MMMM').format(event.date)}.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w500),
             ),
@@ -2227,7 +2164,6 @@ class EventStatsUserTab extends ConsumerWidget {
     final eventsAsync = ref.watch(eventsProvider);
     final compAsync = ref.watch(competitionDetailProvider(eventId));
     final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
-    final isPeeking = ref.watch(impersonationProvider) != null;
 
     return eventsAsync.when(
       data: (events) {
@@ -2248,18 +2184,7 @@ class EventStatsUserTab extends ConsumerWidget {
           ),
           showBack: true,
           onBack: () => context.go('/events'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.science, color: isPeeking ? Colors.orange : Colors.black),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context, 
-                  isScrollControlled: true,
-                  builder: (context) => LabControlPanel(eventId: event.id)
-                );
-              },
-            ),
-          ],
+          actions: const [],
           slivers: [
             SliverToBoxAdapter(
               child: compAsync.when(

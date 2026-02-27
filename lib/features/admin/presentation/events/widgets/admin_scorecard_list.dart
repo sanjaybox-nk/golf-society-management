@@ -41,7 +41,7 @@ class AdminScorecardList extends ConsumerWidget {
     });
 
     if (golfers.isEmpty) {
-      return const BoxyArtFloatingCard(
+      return const BoxyArtCard(
         child: Padding(
           padding: EdgeInsets.all(32),
           child: Center(
@@ -61,7 +61,7 @@ class AdminScorecardList extends ConsumerWidget {
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: BoxyArtFloatingCard(
+          child: BoxyArtCard(
             onTap: () {
               final id = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
               final comp = compAsync.value;
