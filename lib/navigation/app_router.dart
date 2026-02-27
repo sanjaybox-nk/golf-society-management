@@ -383,7 +383,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         pageBuilder: (context, state) {
                           final eventId = state.pathParameters['id']!;
                           return NoTransitionPage(
-                            child: EventUserDetailsTab(eventId: eventId),
+                            child: EventUserDetailsTab(eventId: eventId, useScaffold: false),
                           );
                         },
                         routes: [
@@ -585,7 +585,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: 'details',
-            redirect: (context, state) => '/events/${state.pathParameters['id']}/info',
+            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/info',
           ),
           GoRoute(
             path: 'info',
@@ -640,19 +640,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           // Old path redirects for backward compatibility
           GoRoute(
             path: 'register',
-            redirect: (context, state) => '/events/${state.pathParameters['id']}/field',
+            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
           ),
           GoRoute(
             path: 'grouping',
-            redirect: (context, state) => '/events/${state.pathParameters['id']}/field',
+            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
           ),
           GoRoute(
             path: 'scores',
-            redirect: (context, state) => '/events/${state.pathParameters['id']}/live',
+            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/live',
           ),
           GoRoute(
             path: 'gallery',
-            redirect: (context, state) => '/events/${state.pathParameters['id']}/photos',
+            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/photos',
           ),
         ],
       ),

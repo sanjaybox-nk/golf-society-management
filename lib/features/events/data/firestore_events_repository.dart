@@ -76,6 +76,11 @@ class FirestoreEventsRepository implements EventsRepository {
   }
 
   @override
+  Stream<GolfEvent?> watchEvent(String id) {
+    return _eventsRef.doc(id).snapshots().map((snapshot) => snapshot.data());
+  }
+
+  @override
   Future<List<GolfEvent>> getEvents({String? seasonId, EventStatus? status}) async {
     Query<GolfEvent> query = _eventsRef;
     if (seasonId != null) {

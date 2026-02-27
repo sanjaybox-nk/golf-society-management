@@ -221,7 +221,9 @@ class LabControlPanel extends ConsumerWidget {
                       icon: Icons.settings_input_composite,
                       color: Colors.blueGrey,
                       onTap: () {
-                         context.push('/admin/events/competitions/edit/$eventId');
+                         if (eventId != null) {
+                           context.push('/admin/events/competitions/edit/${Uri.encodeComponent(eventId!)}');
+                         }
                       },
                     ),
                     const SizedBox(height: 12),

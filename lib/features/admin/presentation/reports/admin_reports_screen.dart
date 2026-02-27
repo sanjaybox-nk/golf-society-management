@@ -65,7 +65,7 @@ class AdminReportsScreen extends ConsumerWidget {
                                 style: const TextStyle(fontSize: 12),
                               ),
                               trailing: const Icon(Icons.chevron_right_rounded),
-                              onTap: () => context.push('/admin/events/manage/${event.id}/reports'),
+                              onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/reports'),
                             ),
                             if (index < 4 && index < sortedEvents.length - 1)
                               const Divider(height: 1, indent: 64),

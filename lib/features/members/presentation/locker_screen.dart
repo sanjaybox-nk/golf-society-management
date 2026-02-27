@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/widgets/boxy_art_widgets.dart';
 import 'package:golf_society/models/handicap_system.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/theme/app_theme.dart';
 import 'profile_provider.dart';
 
 class LockerScreen extends ConsumerWidget {
@@ -22,10 +23,11 @@ class LockerScreen extends ConsumerWidget {
       showBack: false,
       onBack: () => context.go('/'),
       slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              const SizedBox(height: 32),
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Profile Section
               Center(
@@ -98,22 +100,13 @@ class LockerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Handicap Section
               ModernCard(
                 child: Column(
                   children: [
-                    Text(
-                      'CURRENT HANDICAP',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
                     Text(
                       user.handicap.toStringAsFixed(1),
                       style: TextStyle(
@@ -126,19 +119,10 @@ class LockerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Stats Section
-              const Text(
-                'SEASON HIGHLIGHTS',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 16),
+              const BoxyArtSectionTitle(title: 'Season Highlights'),
               Row(
                 children: [
                   Expanded(
@@ -178,19 +162,10 @@ class LockerScreen extends ConsumerWidget {
                 icon: Icons.leaderboard_rounded,
                 onTap: () => GoRouter.of(context).push('/locker/standings'),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Settings Section
-              const Text(
-                'ACCOUNT SETTINGS',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 12),
+              const BoxyArtSectionTitle(title: 'Account Settings'),
               ModernCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -225,7 +200,7 @@ class LockerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppTheme.cardSpacing),
               
               Center(
                 child: TextButton(
@@ -242,7 +217,8 @@ class LockerScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-            ],
+              const SizedBox(height: 80), // Extra space for nav bar
+            ]),
           ),
         ),
       ],

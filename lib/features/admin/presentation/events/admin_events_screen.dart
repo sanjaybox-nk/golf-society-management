@@ -127,75 +127,60 @@ class AdminEventsScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted "${event.title}"')));
       },
       child: ModernCard(
+        onTap: () => _showEventDetailsDialog(context, ref, event),
         padding: const EdgeInsets.all(14),
-        child: InkWell(
-          onTap: () => _showEventDetailsDialog(context, ref, event),
-          borderRadius: BorderRadius.circular(24),
-          child: Row(
-            children: [
-              // Date Badge
-              BoxyArtDateBadge(date: event.date, endDate: event.endDate),
-              const SizedBox(width: 14),
+        child: Row(
+          children: [
+            // Date Badge
+            BoxyArtDateBadge(date: event.date, endDate: event.endDate),
+            const SizedBox(width: 14),
 
-              // Event Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status Row
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        _buildStatusBadge(event),
-                        if (event.isInvitational)
-                          _buildInvitationalBadge(),
-                        _buildGameTypePill(context, ref, event.id),
+            // Event Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, letterSpacing: -0.4),
+                  ),
+                  const SizedBox(height: 6),
+                  
+                  // Location Row
+                  _buildIconLabel(
+                    context, 
+                    Icons.location_on_rounded, 
+                    event.courseName ?? 'TBA',
+                    Theme.of(context).primaryColor,
+                  ),
+                  const SizedBox(height: 4),
+                  
+                  // Time Row
+                  _buildIconLabel(
+                    context, 
+                    Icons.access_time_filled_rounded, 
+                    'Reg: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
+                    Colors.grey.shade600,
+                    isRegistration: true,
+                  ),
+
+                  // Bottom Pill Row
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildGameTypePill(context, ref, event.id),
+                      if (event.isInvitational) ...[
+                        const SizedBox(width: 8),
+                        _buildInvitationalBadge(),
                       ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      event.title,
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, letterSpacing: -0.4),
-                    ),
-                    const SizedBox(height: 6),
-                    
-                    // Location Row
-                    _buildIconLabel(
-                      context, 
-                      Icons.location_on_rounded, 
-                      event.courseName ?? 'TBA',
-                      Theme.of(context).primaryColor,
-                    ),
-                    const SizedBox(height: 4),
-                    
-                    // Time Row
-                    _buildIconLabel(
-                      context, 
-                      Icons.access_time_filled_rounded, 
-                      'Reg: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
-                      Colors.grey.shade600,
-                    ),
-                  ],
-                ),
+                      const Spacer(),
+                      _buildStatusBadge(event),
+                    ],
+                  ),
+                ],
               ),
-
-              const SizedBox(width: 8),
-
-              // Admin Action Indicator - Now shows dynamic registration count
-              _buildRegistrationActionButton(
-                context,
-                '${event.registrations.length}',
-                () => context.push(
-                  '/admin/events/manage/${event.id}/registrations',
-                  extra: event,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 20),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -216,7 +201,7 @@ class AdminEventsScreen extends ConsumerWidget {
           onCancel: () => Navigator.pop(dialogContext),
           onEdit: () {
             Navigator.pop(dialogContext);
-            context.push('/admin/events/manage/${event.id}/event/edit', extra: event);
+            context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event/edit', extra: event);
           },
           onStatusChanged: (newStatus) {
             ref.read(eventsRepositoryProvider).updateEvent(
@@ -231,11 +216,11 @@ class AdminEventsScreen extends ConsumerWidget {
               if (index == 0) return;
               
               final routes = [
-                '/admin/events/manage/${event.id}/event',
-                '/admin/events/manage/${event.id}/registrations',
-                '/admin/events/manage/${event.id}/grouping',
-                '/admin/events/manage/${event.id}/scores',
-                '/admin/events/manage/${event.id}/reports',
+                '/admin/events/manage/${Uri.encodeComponent(event.id)}/event',
+                '/admin/events/manage/${Uri.encodeComponent(event.id)}/registrations',
+                '/admin/events/manage/${Uri.encodeComponent(event.id)}/grouping',
+                '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores',
+                '/admin/events/manage/${Uri.encodeComponent(event.id)}/reports',
               ];
               context.push(routes[index], extra: event);
             },
@@ -252,52 +237,15 @@ class AdminEventsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRegistrationActionButton(BuildContext context, String count, VoidCallback onTap) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-      ),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Center(
-          child: Text(
-            count,
-            style: const TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildInvitationalBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.purple.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 0.5),
-      ),
-      child: const Text(
-        'INVITATIONAL',
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-          color: Colors.purple,
-          letterSpacing: 0.4,
-        ),
-      ),
+    return BoxyArtPill(
+      label: toTitleCase('Invitational'),
+      color: Colors.purple,
     );
   }
 
-  Widget _buildIconLabel(BuildContext context, IconData icon, String label, Color color) {
+  Widget _buildIconLabel(BuildContext context, IconData icon, String label, Color color, {bool isRegistration = false}) {
     return Row(
       children: [
         Container(
@@ -315,7 +263,8 @@ class AdminEventsScreen extends ConsumerWidget {
             style: TextStyle(
               color: Theme.of(context).textTheme.bodySmall?.color,
               fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontWeight: isRegistration ? FontWeight.w900 : FontWeight.w600,
+              letterSpacing: isRegistration ? 0.8 : null,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -334,17 +283,9 @@ class AdminEventsScreen extends ConsumerWidget {
         final gameName = comp.rules.gameName;
         final color = Theme.of(context).colorScheme.primary;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
-          ),
-          child: Text(
-            gameName,
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color, letterSpacing: 0.5),
-          ),
+        return BoxyArtPill(
+          label: toTitleCase(gameName),
+          color: color,
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -383,34 +324,18 @@ class AdminEventsScreen extends ConsumerWidget {
         statusColor = const Color(0xFF27AE60);
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            statusText,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: statusColor,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
-      ),
+    return BoxyArtPill(
+      label: toTitleCase(statusText),
+      color: statusColor,
     );
+  }
+
+  String toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 }
 

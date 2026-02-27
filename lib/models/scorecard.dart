@@ -40,6 +40,8 @@ abstract class Scorecard with _$Scorecard {
     int? grossTotal,
     int? netTotal,
     int? points,
+    double? handicapIndex,
+    int? playingHandicap,
     AdminEditAudit? adminEditAudit,
     @Default(false) bool adminOverridePublish,
     @TimestampConverter() required DateTime createdAt,

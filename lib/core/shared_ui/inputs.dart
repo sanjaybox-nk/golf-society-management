@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_shadows.dart';
 
 /// A standard form field with BoxyArt styling (pill shaped, soft shadow).
 class BoxyArtFormField extends StatelessWidget {
@@ -32,36 +31,34 @@ class BoxyArtFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 14, bottom: 8),
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
           child: Text(
-            label.toUpperCase(),
+            label,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: primary,
-              letterSpacing: 1.0,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              letterSpacing: 0.2,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
         Container(
           decoration: ShapeDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
+            color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
+                color: isDark ? Colors.white10 : Colors.black12,
                 width: 1,
               ),
             ),
-            shadows: AppShadows.inputSoft,
           ),
           child: TextFormField(
             controller: controller,
@@ -86,6 +83,7 @@ class BoxyArtFormField extends StatelessWidget {
             ),
             style: TextStyle(
               fontSize: 14, 
+              fontWeight: FontWeight.w700,
               color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
@@ -113,36 +111,34 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 14, bottom: 8),
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
           child: Text(
-            label.toUpperCase(),
+            label,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: primary,
-              letterSpacing: 1.0,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              letterSpacing: 0.2,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
         ),
         Container(
           decoration: ShapeDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
+            color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
+                color: isDark ? Colors.white10 : Colors.black12,
                 width: 1,
               ),
             ),
-            shadows: AppShadows.inputSoft,
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<T>(
@@ -162,6 +158,7 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
               icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
               style: TextStyle(
               fontSize: 14, 
+              fontWeight: FontWeight.w700,
               color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
@@ -190,21 +187,20 @@ class BoxyArtDatePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 14, bottom: 8),
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
           child: Text(
-            label.toUpperCase(),
+            label,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: primary,
-              letterSpacing: 1.0,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              letterSpacing: 0.2,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
@@ -216,15 +212,14 @@ class BoxyArtDatePickerField extends StatelessWidget {
             height: 50,
             width: double.infinity,
             decoration: ShapeDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
+              color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
+                  color: isDark ? Colors.white10 : Colors.black12,
                   width: 1,
                 ),
               ),
-              shadows: AppShadows.inputSoft,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20),
             alignment: Alignment.centerLeft,
@@ -235,6 +230,7 @@ class BoxyArtDatePickerField extends StatelessWidget {
                     value,
                     style: TextStyle(
                       fontSize: 14, 
+                      fontWeight: FontWeight.w700,
                       color: isDark ? Colors.white : Colors.black87,
                       fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     ),
@@ -265,38 +261,36 @@ class BoxyArtSwitchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: ShapeDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
+        color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
+            color: isDark ? Colors.white10 : Colors.black12,
             width: 1,
           ),
         ),
-        shadows: AppShadows.inputSoft,
       ),
       child: Material(
         color: Colors.transparent,
         child: SwitchListTile(
           title: Text(
-            label.toUpperCase(),
+            label,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: primary,
-              letterSpacing: 1.0,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              letterSpacing: 0.2,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
           value: value,
           onChanged: onChanged,
-          activeThumbColor: primary,
-          activeTrackColor: primary.withValues(alpha: 0.2),
+          activeThumbColor: Theme.of(context).primaryColor,
+          activeTrackColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           visualDensity: VisualDensity.compact,
         ),
@@ -322,21 +316,19 @@ class BoxyArtSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 50,
       decoration: ShapeDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : primary.withValues(alpha: 0.03),
+        color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: isDark ? Colors.white10 : primary.withValues(alpha: 0.1),
+            color: isDark ? Colors.white10 : Colors.black12,
             width: 1,
           ),
         ),
-        shadows: AppShadows.inputSoft,
       ),
       child: TextField(
         controller: controller,
@@ -424,7 +416,7 @@ class ModernTextField extends StatelessWidget {
             ),
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.05)
+                ? Colors.white.withValues(alpha: 0.08)
                 : Colors.black.withValues(alpha: 0.05),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -480,7 +472,7 @@ class ModernDropdownField<T> extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.05)
+                ? Colors.white.withValues(alpha: 0.08)
                 : Colors.black.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -540,7 +532,7 @@ class ModernSwitchRow extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),

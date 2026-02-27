@@ -92,7 +92,7 @@ class EventSliverAppBar extends ConsumerWidget {
                     icon: const Icon(Icons.edit),
                     iconSize: 20,
                     color: Colors.white,
-                    onPressed: () => context.push('/admin/events/manage/${event.id}/event'),
+                    onPressed: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
                     padding: EdgeInsets.zero,
                     tooltip: 'Edit Event',
                   ),

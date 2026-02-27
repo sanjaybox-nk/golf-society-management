@@ -67,6 +67,12 @@ Consistent with modern text fields, providing a unified selection UI in a filled
 ### `ModernSwitchRow`
 A full-width row design combining a descriptive label, icon, and a Switch. Preferred over `BoxyArtSwitchField` for complex forms.
 
+### High-Efficiency Selection Grids (Pattern)
+Replaces legacy dropdowns with tiered horizontal chips or a 2-column grid.
+- **Usage**: Use for fields with 3-6 options (e.g., Tee Selection: Yellow, White, Red, Blue).
+- **Aesthetic**: Uses `BoxyArtStatusPill` with primary-colored backgrounds for active states and high-contrast text.
+- **Efficiency**: Reduces user friction by enabling "One-Tap" selection instead of opening a modal/dropdown.
+
 ## 3. Cards (Consolidated in `modern_cards.dart`)
 *Legacy `cards.dart` has been removed in favor of the modernized design system.*
 

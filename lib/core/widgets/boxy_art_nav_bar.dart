@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class BoxyArtBottomNavBar extends StatelessWidget {
@@ -28,99 +27,96 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     
-    // Adaptive parameters
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      height: 72, // Slightly tighter height
-      decoration: BoxDecoration(
-        color: backgroundColor ?? (isDark 
-            ? Colors.black.withValues(alpha: 0.7) 
-            : Colors.white.withValues(alpha: 0.8)),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(
-          color: borderColor ?? (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-          width: borderColor != null ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    // Dock Proportions
+    final availableWidth = screenWidth - 64; // Horizontal margins (32 * 2)
+    final itemWidth = availableWidth / items.length;
+    final indicatorWidth = itemWidth * 0.65; // Narrower highlight
+    const double indicatorHeight = 36.0;
+    const double dockHeight = 60.0;
+    
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(32, 0, 32, 12),
+        height: dockHeight,
+        width: availableWidth,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? (isDark 
+              ? const Color(0xFF1A1C1E) // Deep dark card
+              : Colors.white),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.25),
+            width: 0.5,
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Stack(
-            children: [
-              // Sliding Indicator (Circle behind icon)
-              AnimatedAlign(
-                duration: const Duration(milliseconds: 350),
-                curve: Curves.easeOutCubic,
-                alignment: Alignment(
-                  (items.length > 1) ? (selectedIndex / (items.length - 1)) * 2 - 1 : 0,
-                  -0.5,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: (screenWidth - 32) / (items.length * 2) - 21,
-                  ),
-                  child: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 30,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Selection Island (Dock Background Behind Icon)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeOutQuart,
+              left: (selectedIndex * itemWidth) + (itemWidth - indicatorWidth) / 2,
+              top: 5.0, // Tighter alignment for slim dock
+              child: Container(
+                width: indicatorWidth,
+                height: indicatorHeight,
+                decoration: ShapeDecoration(
+                  color: primaryColor.withValues(alpha: 0.12),
+                  shape: ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.circular(22),
                   ),
                 ),
               ),
-                
-                // Tab Items
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: items.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    final isSelected = selectedIndex == index;
-                    final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.7) ?? 
-                        (isDark ? Colors.white60 : Colors.black45);
+            ),
+                  
+            // Interaction Row
+            Row(
+              children: items.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final isSelected = selectedIndex == index;
+                final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.4) ?? 
+                    (isDark ? Colors.white54 : Colors.black38);
   
-                    return Expanded(
-                      child: GestureDetector(
+                return Expanded(
+                  child: GestureDetector(
                         onTap: () => onItemSelected(index),
                         behavior: HitTestBehavior.opaque,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const SizedBox(height: 6),
-                            Icon(
-                              isSelected ? item.activeIcon : item.icon,
-                              color: isSelected ? Colors.white : unselectedItemColor,
-                              size: 22,
+                            const SizedBox(height: 2),
+                            AnimatedScale(
+                              duration: const Duration(milliseconds: 300),
+                              scale: isSelected ? 1.1 : 1.0,
+                              curve: Curves.easeOutBack,
+                              child: Icon(
+                                isSelected ? item.activeIcon : item.icon,
+                                color: isSelected ? primaryColor : unselectedItemColor,
+                                size: 20,
+                              ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Text(
                               item.label,
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                fontSize: 10.5,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                                 color: isSelected ? primaryColor : unselectedItemColor,
-                                letterSpacing: 0.1,
+                                letterSpacing: 0.2,
                               ),
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
+                            const SizedBox(height: 2),
                           ],
                         ),
                       ),
@@ -129,7 +125,6 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                 ),
               ],
             ),
-          ),
       ),
     );
   }

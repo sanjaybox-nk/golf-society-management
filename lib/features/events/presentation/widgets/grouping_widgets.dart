@@ -139,16 +139,9 @@ class GroupingPlayerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
 
-    // Recalculate PHC if rules are available (to respect caps and allowances)
+    // Single Source of Truth: PHC comes from stored grouping data.
+    // The admin "Recalculate PHCs" button is the ONLY place PHCs are calculated.
     int displayPhc = phcOverride ?? player.playingHandicap.round();
-    if (rules != null && phcOverride == null) {
-      displayPhc = HandicapCalculator.calculatePlayingHandicap(
-        handicapIndex: player.handicapIndex,
-        rules: rules!,
-        courseConfig: courseConfig ?? {},
-        useWhs: useWhs,
-      );
-    }
 
     return InkWell(
       onTap: onTap,
@@ -268,8 +261,8 @@ class GroupingPlayerTile extends StatelessWidget {
                         'HC: ${player.handicapIndex.toStringAsFixed(1)}',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -319,35 +312,34 @@ class GroupingPlayerTile extends StatelessWidget {
               ),
             ),
             if (isScoreMode)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      scoreDisplay ?? '-',
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                      ),
-                    ),
+              Container(
+                width: 52,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: primaryColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: primaryColor.withValues(alpha: 0.3),
+                    width: 0.8,
                   ),
-                ],
+                ),
+                child: Text(
+                  scoreDisplay ?? '-',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: primaryColor,
+                    letterSpacing: -0.3,
+                  ),
+                ),
               )
             else
             // Guest Indicator (Consistent across all modes)
             if (player.isGuest || (isScoreMode && player.isGuest))
               Padding(
                 padding: const EdgeInsets.only(right: 4),
-                child: _buildIconContainer(
+                child: BoxyArtSquareBadge(
                   child: const Text(
                     'G',
                     style: TextStyle(
@@ -363,7 +355,7 @@ class GroupingPlayerTile extends StatelessWidget {
             if (isScoreMode && isWinner)
               Padding(
                 padding: const EdgeInsets.only(right: 4),
-                child: _buildIconContainer(
+                child: BoxyArtSquareBadge(
                   child: const Icon(
                     Icons.emoji_events_rounded,
                     size: 14,
@@ -377,7 +369,7 @@ class GroupingPlayerTile extends StatelessWidget {
               if (hasGuest)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: _buildIconContainer(
+                  child: BoxyArtSquareBadge(
                     child: const Icon(
                       Icons.person_add,
                       color: Colors.deepPurple,
@@ -390,7 +382,7 @@ class GroupingPlayerTile extends StatelessWidget {
               if (player.needsBuggy || isAdmin)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: _buildIconContainer(
+                  child: BoxyArtSquareBadge(
                     child: InkWell(
                       onTap: isAdmin
                           ? () => onAction?.call('buggy', player, group)
@@ -410,7 +402,7 @@ class GroupingPlayerTile extends StatelessWidget {
               if (player.isCaptain || isAdmin)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: _buildIconContainer(
+                  child: BoxyArtSquareBadge(
                     child: InkWell(
                       onTap: isAdmin
                           ? () => onAction?.call('captain', player, group)
@@ -433,17 +425,6 @@ class GroupingPlayerTile extends StatelessWidget {
     );
   }
 
-  Widget _buildIconContainer({required Widget child}) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(child: child),
-    );
-  }
 
   Widget _buildBuggyIcon(RegistrationStatus status, {double size = 16}) {
     Color color;
@@ -529,12 +510,11 @@ class GroupingCard extends StatelessWidget {
     // Recalculate Total PHC dynamically to respect capping rules
     double displayTotalHandicap = 0;
     if (rules != null) {
-      final isTeamMode =
-          rules!.effectiveMode == CompetitionMode.teams ||
-          rules!.effectiveMode == CompetitionMode.pairs;
+      final isScramble = rules!.format == CompetitionFormat.scramble;
+      final isFoursomes = rules!.subtype == CompetitionSubtype.foursomes;
 
-      if (isTeamMode) {
-        // Use Team PHC calculation
+      if (isScramble || isFoursomes) {
+        // Use Team PHC calculation (Aggregate)
         final List<double> indices = group.players
             .map((p) => p.handicapIndex)
             .toList();
@@ -544,14 +524,9 @@ class GroupingCard extends StatelessWidget {
           courseConfig: courseConfig ?? {},
         ).toDouble();
       } else {
-        // Individual Sum
+        // Individual Sum (Singles, Fourball, etc.)
         for (var p in group.players) {
-          displayTotalHandicap += HandicapCalculator.calculatePlayingHandicap(
-            handicapIndex: p.handicapIndex,
-            rules: rules!,
-            courseConfig: courseConfig ?? {},
-            useWhs: useWhs,
-          );
+          displayTotalHandicap += p.playingHandicap;
         }
       }
     } else {
@@ -785,24 +760,9 @@ class GroupingCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'Group ${group.index + 1}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
+                    BoxyArtPill(
+                      label: 'Group ${group.index + 1}',
+                      color: Colors.grey.shade700,
                     ),
                   ],
                 ),

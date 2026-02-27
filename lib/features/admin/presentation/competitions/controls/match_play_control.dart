@@ -41,9 +41,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   }
 
   void _updateDefaultAllowance() {
-    if (_subtype == CompetitionSubtype.fourball) {
-      _allowance = 1.0;
-    } else if (_subtype == CompetitionSubtype.foursomes) {
+    if (_subtype == CompetitionSubtype.foursomes) {
       _allowance = 0.50;
     } else {
       _allowance = 1.0;
@@ -69,8 +67,10 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── MATCH FORMAT ──────────────────────────────────────
         const BoxyArtSectionTitle(title: 'MATCH FORMAT'),
         const SizedBox(height: 16),
+
         BoxyArtDropdownField<CompetitionSubtype>(
           label: 'Format',
           value: effectiveSubtype,
@@ -88,98 +88,82 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
             }
           },
         ),
+        buildInfoBubble(_getFormatDescription(effectiveSubtype)),
+        const SizedBox(height: 16),
+
+        // Format info card
+        buildInfoCard(_getFormatRules(effectiveSubtype)),
+
         const SizedBox(height: 24),
-        _buildAllowanceSlider(context),
+        const Divider(height: 1),
         const SizedBox(height: 24),
-        BoxyArtFormField(
-          label: 'Handicap Cap',
-          initialValue: _handicapCap.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (val) => setState(() => _handicapCap = int.tryParse(val) ?? 28),
+
+        // ── HANDICAP ──────────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const SizedBox(height: 16),
+
+        buildAllowanceSlider(
+          _allowance,
+          (val) => setState(() => _allowance = val),
+          hint: 'Fraction of the handicap difference given as stroke allowance.',
         ),
         const SizedBox(height: 24),
+
+        buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
+        buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
+
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+
+        // ── TIE BREAK ─────────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        const SizedBox(height: 16),
+
         BoxyArtDropdownField<TieBreakMethod>(
           label: 'Tie Break Method',
           value: _tieBreak,
           items: const [
-            DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Manual Playoff')),
+            DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Manual Playoff (Sudden Death)')),
             DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
           ],
-          onChanged: (val) {
-            if (val != null) setState(() => _tieBreak = val);
-          },
+          onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
         ),
+        buildInfoBubble('Match Play normally ends before 18 holes — a playoff is the standard resolution for all-square matches.'),
       ],
     );
   }
 
-  Widget _buildAllowanceSlider(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final pct = (_allowance * 100).round();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'HANDICAP ALLOWANCE',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-                color: isDark ? Colors.white70 : Colors.black87,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '$pct%',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primary),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: primary,
-            inactiveTrackColor: primary.withValues(alpha: 0.15),
-            thumbColor: primary,
-            overlayColor: primary.withValues(alpha: 0.12),
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-            valueIndicatorColor: primary,
-            valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          child: Slider(
-            value: _allowance.clamp(0.0, 1.0),
-            min: 0,
-            max: 1.0,
-            divisions: 20,
-            label: '$pct%',
-            onChanged: (val) => setState(() => _allowance = val),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
-            Text('Applied to handicap difference', style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
-            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ],
-    );
+  String _getFormatDescription(CompetitionSubtype subtype) {
+    switch (subtype) {
+      case CompetitionSubtype.none:
+        return 'One player vs one player. Win a hole, go 1-up. First to win more holes than remain wins the match.';
+      case CompetitionSubtype.ryderCup:
+        return 'Team event: points are accumulated from individual singles, fourball, and foursomes matches.';
+      case CompetitionSubtype.teamMatchPlay:
+        return 'Two teams face off. Combined match points from individual contests determine the winning team.';
+      default:
+        return 'Standard match play format.';
+    }
   }
 
+  List<(String, String)> _getFormatRules(CompetitionSubtype subtype) {
+    if (subtype == CompetitionSubtype.ryderCup || subtype == CompetitionSubtype.teamMatchPlay) {
+      return [
+        ('Points', 'Win = 1 pt, Halve = ½ pt, Loss = 0 pt per match.'),
+        ('Sessions', 'Admin configures which session types are played (Singles, Fourball, Foursomes).'),
+        ('Concessions', 'Putts and holes may be conceded to speed play.'),
+        ('Result', 'Team with most points wins; >50% needed for outright victory.'),
+      ];
+    }
+    return [
+      ('Goal', 'Win more holes than your opponent across 18.'),
+      ('Scoring', 'Lowest score on a hole wins it and goes \'1-up\'.'),
+      ('Concessions', 'You can concede a putt or hole to speed up play.'),
+      ('Result', 'Match ends when holes up > holes remaining (e.g. 3 & 2).'),
+      ('Handicap', 'Lower index gives strokes on the SI-ranked holes.'),
+    ];
+  }
 
   @override
   CompetitionRules buildRules() {

@@ -19,7 +19,7 @@ class MatchPlayCalculator {
 
     for (final id in playerIds) {
       final phc = HandicapCalculator.calculatePlayingHandicap(
-        handicapIndex: playerIndices[id] ?? 18.0,
+        handicapIndex: playerIndices[id] ?? 0.0,
         rules: rules,
         courseConfig: courseConfigs[id] ?? {},
         baseRating: baseRating,

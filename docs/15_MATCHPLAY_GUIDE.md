@@ -21,6 +21,7 @@ Matches are played independently of society events.
 The match status is calculated in real-time by comparing net scores hole-by-hole using the authoritative **`MatchPlayCalculator`** engine. This ensures absolute parity across the Hero Scoring View, Grouping Card, Leaderboard, and Scorecard Modal—preventing scoring discrepancies between different parts of the application.
 - **Universal Result Standard**: All views display the same derivation (e.g., "WIN 4 & 3", "2 UP", "DORMIE", or "A/S").
 - **Authoritative Relative Strokes**: Receiving strokes relative to the lowest player is centrally computed in `MatchPlayCalculator.calculateRelativeStrokes`.
+- **Tee Parity**: Derived status resolution automatically accounts for the authoritative Pars and SIs from each player's specific tee, ensuring "Holes Up" calculations are always based on the correct hole par.
 
 ## 3. Handicap Logic (`MatchplayHandicapCalculator`)
 

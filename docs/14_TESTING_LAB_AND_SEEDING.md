@@ -43,6 +43,7 @@ The core engine for generating believable competition data.
 -   **Dynamic Scaling**: For empty events, the engine randomized the field size (typically 12-32 players) to simulate natural society attendance variety.
 -   **Bulk Action**: Admins can trigger "Initialize Demo Season" from the General Settings to rapidly populate a multi-year history (Jan 2025 - Feb 2026).
 -   **Hardened Seeder (Feb 2026)**: The seeder now includes granular progress logging, robust error handling for individual events, and explicit tee-name resolution to ensure scoring consistency across all views.
+-   **Authoritative Course Config**: Seeded events now store the full course configuration (Tees, Pars, SIs, Yardages) at the time of creation. Fallback logic in `DemoSeedingService` ensures that even if manual marker selection is not present, the `holes` map defaults to the authoritative Men's (Yellow) or Ladies' (Red) set to prevent "Resolution Discrepancy" errors.
 
 ### 4. Unit Test Complement
 While the Lab verifies the **UI and Integration**, raw **Logic Accuracy** is enforced via unit tests:

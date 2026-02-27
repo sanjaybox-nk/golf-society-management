@@ -31,6 +31,18 @@ enum MemberRole {
   viewer,
   member 
 }
+
+extension MemberRoleX on MemberRole {
+  String get displayName {
+    switch (this) {
+      case MemberRole.superAdmin: return 'Super Admin';
+      case MemberRole.admin: return 'Admin';
+      case MemberRole.restrictedAdmin: return 'Restricted Admin';
+      case MemberRole.viewer: return 'Viewer';
+      case MemberRole.member: return 'Member';
+    }
+  }
+}
 enum MemberStatus { 
   member, 
   active, // For compatibility

@@ -2,6 +2,105 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/status_colors.dart';
 import '../theme/contrast_helper.dart';
+import '../utils/string_utils.dart';
+
+/// A centralized icon badge for small indicators (location, time, etc.)
+class BoxyArtIconBadge extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final double size;
+  final double iconSize;
+
+  const BoxyArtIconBadge({
+    super.key,
+    required this.icon,
+    required this.color,
+    this.size = 20,
+    this.iconSize = 10,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all((size - iconSize) / 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        icon,
+        size: iconSize,
+        color: color,
+      ),
+    );
+  }
+}
+
+/// A centralized number/position badge.
+class BoxyArtNumberBadge extends StatelessWidget {
+  final int number;
+  final Color? color;
+  final double size;
+
+  const BoxyArtNumberBadge({
+    super.key,
+    required this.number,
+    this.color,
+    this.size = 28,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveColor = color ?? theme.primaryColor;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: effectiveColor.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        '$number',
+        style: TextStyle(
+          fontSize: size * 0.35,
+          fontWeight: FontWeight.w900,
+          color: effectiveColor,
+        ),
+      ),
+    );
+  }
+}
+
+/// A centralized square-ish container for icons and mini-stats.
+class BoxyArtSquareBadge extends StatelessWidget {
+  final Widget child;
+  final double size;
+  final Color? color;
+
+  const BoxyArtSquareBadge({
+    super.key,
+    required this.child,
+    this.size = 32,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color ?? Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(child: child),
+    );
+  }
+}
 
 /// A simple status chip created with a solid black background.
 class StatusChip extends StatelessWidget {
@@ -120,45 +219,96 @@ class _BoxyArtFeePillState extends State<BoxyArtFeePill> with SingleTickerProvid
           widget.onToggle();
         },
         onTapCancel: () => _controller.reverse(),
-        child: BoxyArtStatusPill(
-          text: widget.isPaid ? 'Fee Paid' : 'Fee Due',
-          baseColor: widget.isPaid ? StatusColors.positive : StatusColors.warning,
+        child: BoxyArtPill(
+          label: widget.isPaid ? 'Fee Paid' : 'Fee Due',
+          color: widget.isPaid ? StatusColors.positive : StatusColors.warning,
         ),
       ),
     );
   }
 }
 
-/// A semantic status pill that adapts to Light/Dark modes.
-class BoxyArtStatusPill extends StatelessWidget {
-  final String text;
-  final Color baseColor;
-  final Color? backgroundColorOverride;
 
-  const BoxyArtStatusPill({
+/// A standardized high-fidelity pill for status badges and tags.
+class BoxyArtPill extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData? icon;
+  final Color? textColor;
+
+  const BoxyArtPill({
     super.key,
-    required this.text,
-    required this.baseColor,
-    this.backgroundColorOverride,
+    required this.label,
+    required this.color,
+    this.icon,
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: backgroundColorOverride ??
-            (Theme.of(context).brightness == Brightness.light
-                ? baseColor.withValues(alpha: 0.1)
-                : baseColor.withValues(alpha: 0.2)),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+          width: 1.5,
+        ),
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: baseColor == Colors.grey ? Colors.black.withValues(alpha: 0.6) : baseColor,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: color), // Slightly larger icon to match larger text
+            const SizedBox(width: 6),
+          ],
+          Text(
+            toTitleCase(label),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: textColor ?? color,
+              letterSpacing: -0.2, // Tighter spacing for a modern look
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A centralized colored circle indicator for golf tees.
+class BoxyTeeIndicator extends StatelessWidget {
+  final Color color;
+  final double size;
+  final bool hasShadow;
+
+  const BoxyTeeIndicator({
+    super.key,
+    required this.color,
+    this.size = 14,
+    this.hasShadow = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: hasShadow ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          )
+        ] : null,
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.1),
+          width: 0.5,
         ),
       ),
     );
@@ -246,7 +396,6 @@ class BoxyArtDateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).primaryColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final hasRange = endDate != null && endDate!.day != date.day;
     final dayText = hasRange 
@@ -257,10 +406,10 @@ class BoxyArtDateBadge extends StatelessWidget {
       width: 58,
       height: 74,
       decoration: BoxDecoration(
-        color: primary.withValues(alpha: isDark ? 0.15 : 0.08),
+        color: primary.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: primary.withValues(alpha: isDark ? 0.3 : 0.15),
+          color: primary.withValues(alpha: 0.35),
           width: 1.5,
         ),
       ),
@@ -271,7 +420,7 @@ class BoxyArtDateBadge extends StatelessWidget {
             DateFormat('MMM').format(date).toUpperCase(),
             style: TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.bold,
               color: primary,
               letterSpacing: 1.2,
             ),
@@ -296,7 +445,7 @@ class BoxyArtDateBadge extends StatelessWidget {
             DateFormat('yyyy').format(date),
             style: TextStyle(
               fontSize: 9,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.bold,
               color: primary.withValues(alpha: 0.6),
               letterSpacing: 0.5,
             ),

@@ -1,9 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../models/competition.dart';
 import '../../../../models/golf_event.dart';
 import '../../../matchplay/domain/match_definition.dart';
-import '../../../../core/shared_ui/modern_cards.dart';
+import '../../../../core/shared_ui/shared_ui.dart';
 
 class ModernScoringView extends StatelessWidget {
   final GolfEvent event;
@@ -20,6 +19,11 @@ class ModernScoringView extends StatelessWidget {
   final CompetitionFormat format;
   final MaxScoreConfig? maxScoreConfig;
   final CompetitionRules? rules;
+  // [NEW] Tab selection lifted from AppBar into keypad card
+  final int selectedTab; // 0 = player, 1 = me/verifier
+  final ValueChanged<int> onTabChanged;
+  final bool isSelfMarking;
+  final String? selectedTeeName;
 
   const ModernScoringView({
     super.key,
@@ -37,6 +41,10 @@ class ModernScoringView extends StatelessWidget {
     this.maxScoreConfig,
     this.rules,
     this.isTeam1 = true,
+    this.selectedTab = 1,
+    required this.onTabChanged,
+    this.isSelfMarking = true,
+    this.selectedTeeName,
   });
 
   @override
@@ -47,35 +55,46 @@ class ModernScoringView extends StatelessWidget {
     final score = scores[currentHole] ?? par;
     final cap = _calculateCap(par, si);
 
-    return Column(
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      width: double.infinity,
+      height: double.infinity,
+      child: Column(
       children: [
         // Hole Ribbon
-        _buildHoleRibbon(context),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: BoxyHoleSelector(
+            currentHole: currentHole,
+            scores: scores,
+            onHoleChanged: onHoleChanged,
+          ),
+        ),
         
         const SizedBox(height: 12),
 
-        // Marking Info Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            'MARKING: ${markingName.toUpperCase()}',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: Theme.of(context).primaryColor,
-              letterSpacing: 1.0,
-            ),
+        // Player + Tee Pills Row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              BoxyArtPill(
+                label: markingName.toUpperCase(),
+                color: Theme.of(context).primaryColor,
+                icon: Icons.person_outline,
+                textColor: Colors.black87,
+              ),
+              const Spacer(),
+              _buildTeePill(context, selectedTeeName ?? event.selectedTeeName ?? 'White'),
+            ],
           ),
         ),
         
         const SizedBox(height: 12),
         
         // Hero Card
-        Expanded(
+        SizedBox(
+          height: 280,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: _buildHeroCard(context, par, si, score, cap),
@@ -84,74 +103,12 @@ class ModernScoringView extends StatelessWidget {
         
         const SizedBox(height: 16),
         
-        // Keypad
         _buildKeypad(context, par, score, cap),
       ],
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildHoleRibbon(BuildContext context) {
-    return SizedBox(
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 18,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemBuilder: (context, index) {
-          final holeNum = index + 1;
-          final isSelected = holeNum == currentHole;
-          final hasScore = scores.containsKey(holeNum);
-
-          return GestureDetector(
-            onTap: () => onHoleChanged(holeNum),
-            child: Container(
-              width: 50,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.white10,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withValues(alpha: 0.2),
-                ),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ] : null,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Text(
-                    '$holeNum',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
-                    ),
-                  ),
-                  if (hasScore && !isSelected)
-                    Positioned(
-                      bottom: 4,
-                      child: Container(
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildHeroCard(BuildContext context, int par, int? si, int score, int? cap) {
     // 1. Calculate Stableford Points
@@ -183,122 +140,70 @@ class ModernScoringView extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            // [NEW] Hole Map Background
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.15,
-                child: Image.file(
-                  File('/Users/sanjaypatel/.gemini/antigravity/brain/4808b1a2-a9a6-47fe-8085-5aa51827339d/tactical_golf_hole_map_1771762989431.png'),
-                  fit: BoxFit.cover,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                'HOLE $currentHole',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black.withValues(alpha: 0.6),
+                  letterSpacing: 2.0,
                 ),
               ),
-            ),
-            
-            // Glass Overlay for legibility
-            Positioned.fill(
-              child: Container(
+              const SizedBox(height: 4),
+              Text(
+                'Par $par${si != null ? ' • SI $si' : ''}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Large Score Display
+              Container(
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.9),
-                      Colors.white.withValues(alpha: 0.7),
-                    ],
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                      blurRadius: 30,
+                      spreadRadius: 4,
+                    )
+                  ],
+                ),
+                child: Text(
+                  cap != null && score >= cap ? 'MAX' : '$score',
+                  style: TextStyle(
+                    fontSize: cap != null && score >= cap ? 44 : 64,
+                    fontWeight: FontWeight.w900,
+                    color: cap != null && score >= cap ? Colors.red : Theme.of(context).primaryColor,
                   ),
                 ),
               ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'HOLE $currentHole',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.grey[600],
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Par $par${si != null ? ' • SI $si' : ''}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const Spacer(),
-                  // Large Score Display with subtle glow
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
-                          blurRadius: 40,
-                          spreadRadius: 5,
-                        )
-                      ],
-                    ),
-                    child: Text(
-                      cap != null && score >= cap ? 'MAX' : '$score',
-                      style: TextStyle(
-                        fontSize: cap != null && score >= cap ? 48 : 84,
-                        fontWeight: FontWeight.w900,
-                        color: cap != null && score >= cap ? Colors.red : Theme.of(context).primaryColor,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildBadge(context, 'STABLEFORD', '$pts pts', pts > 0 ? Colors.orange : Colors.grey),
-                      if (matchResult != null) ...[
-                        const SizedBox(width: 12),
-                        _buildBadge(context, 'MATCH', matchHoleStatus, matchColor),
-                      ],
-                    ],
-                  ),
+                  BoxyArtPill(label: 'STABLEFORD: $pts pts', color: pts > 0 ? Colors.orange : Colors.grey),
+                  if (matchResult != null) ...[
+                    const SizedBox(width: 12),
+                    BoxyArtPill(label: 'MATCH: $matchHoleStatus', color: matchColor),
+                  ],
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildBadge(BuildContext context, String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: color),
-          ),
-          Text(
-            value,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildKeypad(BuildContext context, int par, int currentScore, int? cap) {
     // We'll show buttons for Par-1, Par, Par+1, Par+2, and 7+
@@ -306,10 +211,11 @@ class ModernScoringView extends StatelessWidget {
     
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -321,6 +227,9 @@ class ModernScoringView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Full-width PLAYER / ME toggle
+          _buildMarkerToggle(context),
+          const SizedBox(height: 12),
           Row(
             children: [
               ...options.map((val) {
@@ -355,6 +264,10 @@ class ModernScoringView extends StatelessWidget {
                    style: OutlinedButton.styleFrom(
                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                      padding: const EdgeInsets.symmetric(vertical: 12),
+                     side: BorderSide(
+                       color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+                       width: 0.8,
+                     ),
                    ),
                    child: const Icon(Icons.remove),
                  ),
@@ -383,6 +296,10 @@ class ModernScoringView extends StatelessWidget {
                    style: OutlinedButton.styleFrom(
                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                      padding: const EdgeInsets.symmetric(vertical: 12),
+                     side: BorderSide(
+                       color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+                       width: 0.8,
+                     ),
                    ),
                    child: const Icon(Icons.add),
                  ),
@@ -420,6 +337,56 @@ class ModernScoringView extends StatelessWidget {
     );
   }
 
+  /// Full-width PLAYER / ME segmented toggle for the keypad card.
+  Widget _buildMarkerToggle(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: theme.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _buildToggleTab(context, 0, 'PLAYER', isDisabled: isSelfMarking),
+          _buildToggleTab(context, 1, 'ME'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleTab(BuildContext context, int tab, String label, {bool isDisabled = false}) {
+    final theme = Theme.of(context);
+    final isSelected = selectedTab == tab;
+    return Expanded(
+      child: GestureDetector(
+        onTap: isDisabled ? null : () => onTabChanged(tab),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: double.infinity,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? theme.primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+              color: isSelected
+                  ? Colors.white
+                  : (isDisabled
+                      ? theme.primaryColor.withValues(alpha: 0.3)
+                      : theme.primaryColor),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   int? _calculateCap(int par, int? si) {
     if (format != CompetitionFormat.maxScore || maxScoreConfig == null) return null;
     
@@ -433,5 +400,60 @@ class ModernScoringView extends StatelessWidget {
         final freeShots = (playerPhc ~/ 18) + (si <= (playerPhc % 18) ? 1 : 0);
         return par + 2 + freeShots;
     }
+  }
+
+  /// Builds a tee pill matching BoxyArtPill's exact style, with a coloured
+  /// dot in place of the icon.
+  Widget _buildTeePill(BuildContext context, String teeName) {
+    final teeColor = _getTeeColor(teeName);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: teeColor.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: teeColor.withValues(alpha: 0.35),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: teeColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            teeName,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Colors.black87,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getTeeColor(String teeName) {
+    final name = teeName.toLowerCase();
+    if (name.contains('white')) return Colors.grey.shade400;
+    if (name.contains('yellow')) return const Color(0xFFFFD700);
+    if (name.contains('red')) return const Color(0xFFFF4D4D);
+    if (name.contains('blue')) return const Color(0xFF1E90FF);
+    if (name.contains('black')) return const Color(0xFF2F2F2F);
+    if (name.contains('green')) return const Color(0xFF2ECC71);
+    if (name.contains('gold')) return const Color(0xFFFFD700);
+    if (name.contains('silver')) return const Color(0xFFC0C0C0);
+    if (name.contains('orange')) return Colors.orange;
+    if (name.contains('purple')) return Colors.purple;
+    return Colors.grey;
   }
 }

@@ -22,16 +22,18 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
     final format = CompetitionFormat.values.where((e) => e.name == typeStr).firstOrNull ?? CompetitionFormat.stableford;
-    
-    final gameName = (subtype != null && subtype != CompetitionSubtype.none)
-        ? subtype.name.toUpperCase()
-        : format.name.toUpperCase();
+
+    final gameName = CompetitionRules(
+      format: format,
+      subtype: subtype ?? CompetitionSubtype.none,
+    ).gameName;
 
     final templatesAsync = ref.watch(templatesListProvider);
 
     return HeadlessScaffold(
-      title: gameName,
-      subtitle: 'Choose a template or start blank',
+      title: 'Create $gameName Game',
+      autoPrefix: false,
+      subtitle: 'Choose a saved template or start blank',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -95,32 +97,6 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                 error: (e, s) => Text('Error loading templates: $e'),
               ),
 
-              const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'System Presets', padding: EdgeInsets.zero),
-              const SizedBox(height: 12),
-              _buildGalleryCard(
-                context,
-                title: 'Standard $gameName',
-                subtitle: 'The traditional configuration used by most societies',
-                icon: Icons.auto_awesome_rounded,
-                onTap: () async {
-                  if (isPicker) {
-                      final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
-                      if (result != null && context.mounted) {
-                        context.pop(result);
-                      }
-                  } else {
-                    context.push('/admin/settings/templates/create/$typeStr');
-                  }
-                },
-                badges: [
-                  _RuleBadge(label: CompetitionRules(
-                    format: format, 
-                    subtype: subtype ?? CompetitionSubtype.none,
-                  ).defaultAllowanceLabel),
-                  const _RuleBadge(label: '1 ROUND'),
-                ],
-              ),
               const SizedBox(height: 100),
             ]),
           ),

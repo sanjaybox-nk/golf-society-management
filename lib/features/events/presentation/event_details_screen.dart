@@ -10,6 +10,7 @@ import 'events_provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/theme/app_theme.dart';
 
 class EventDetailsScreen extends ConsumerWidget {
   final String eventId;
@@ -50,7 +51,7 @@ class _EventDetailsContent extends StatelessWidget {
       onBack: () => context.go('/events'),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+          padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               _buildStatusBadge(context),
@@ -77,49 +78,50 @@ class _EventDetailsContent extends StatelessWidget {
                     child: Icon(Icons.golf_course, size: 64, color: primary.withValues(alpha: 0.2)),
                   ),
                 ),
-              const SizedBox(height: 20),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Registration Card
               _buildRegistrationCard(context),
-              const SizedBox(height: 16),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // When & Where Card
               _buildWhenWhereCard(context),
-              const SizedBox(height: 16),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Course Details Card
               _buildCourseDetailsCard(context),
-              const SizedBox(height: 16),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Competition Rules Card
               _buildCompetitionCard(context),
-              const SizedBox(height: 16),
+              SizedBox(height: AppTheme.cardSpacing),
 
               // Costs Card
               _buildCostsCard(context),
-              const SizedBox(height: 16),
               
               // Dinner Location Card
-              if (event.dinnerLocation != null && event.dinnerLocation!.isNotEmpty)
+              if (event.dinnerLocation != null && event.dinnerLocation!.isNotEmpty) ...[
+                SizedBox(height: AppTheme.cardSpacing),
                 _buildDinnerLocationCard(context),
-              const SizedBox(height: 16),
+              ],
 
               // Notes Section
               if (event.notes.isNotEmpty) ...[
+                SizedBox(height: AppTheme.cardSpacing),
                 const BoxyArtSectionTitle(title: 'Notes & Content'),
                 ...event.notes.map((note) => _buildNoteCard(context, note)),
-                const SizedBox(height: 16),
               ],
 
               // Updates Section
               if (event.flashUpdates.isNotEmpty) ...[
+                SizedBox(height: AppTheme.cardSpacing),
                 const BoxyArtSectionTitle(title: 'Updates'),
                 ...event.flashUpdates.map((update) => _buildUpdateCard(context, update)),
-                const SizedBox(height: 16),
               ],
 
               // Gallery Section
               if (event.galleryUrls.isNotEmpty) ...[
+                SizedBox(height: AppTheme.cardSpacing),
                 const BoxyArtSectionTitle(title: 'Gallery'),
                 _buildGalleryCard(context),
               ],
@@ -169,38 +171,18 @@ class _EventDetailsContent extends StatelessWidget {
       statusColor = Colors.grey.shade600;
     }
 
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                statusText,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: statusColor,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return BoxyArtPill(
+      label: toTitleCase(statusText),
+      color: statusColor,
     );
+  }
+
+  String toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 
   Widget _buildRegistrationCard(BuildContext context) {
@@ -268,11 +250,7 @@ class _EventDetailsContent extends StatelessWidget {
           ),
           const Divider(height: 32),
           if (isRegistered) ...[
-            const Text(
-              'YOUR STATUS',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
+            const BoxyArtSectionTitle(title: 'Your Status'),
             Row(
               children: [
                 Expanded(child: _buildSummaryIcon(Icons.golf_course, 'Golf', myRegistration.attendingGolf)),
@@ -295,7 +273,7 @@ class _EventDetailsContent extends StatelessWidget {
                 : (isRegistered ? 'Update Registration' : 'Register Now'),
             onTap: isRegistrationDisabled 
                 ? null 
-                : () => context.push('/events/${event.id}/register'),
+                : () => context.push('/events/${Uri.encodeComponent(event.id)}/register'),
           ),
         ],
       ),
@@ -333,11 +311,7 @@ class _EventDetailsContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'COURSE INFO',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
-          ),
-          const SizedBox(height: 12),
+          const BoxyArtSectionTitle(title: 'Course Info'),
           ModernRuleItem(label: 'Dress Code', value: event.dressCode ?? 'Standard Golf Attire'),
           if (event.availableBuggies != null)
             ModernRuleItem(label: 'Buggies', value: '${event.availableBuggies} available'),
@@ -359,11 +333,7 @@ class _EventDetailsContent extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'COMPETITION',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 12),
+                  const BoxyArtSectionTitle(title: 'Competition'),
                   ModernRuleItem(label: 'Format', value: comp.rules.gameName),
                   ModernRuleItem(label: 'Scoring', value: comp.rules.scoringType),
                   if (event.isInvitational)
@@ -399,11 +369,7 @@ class _EventDetailsContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'COSTS',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.grey),
-          ),
-          const SizedBox(height: 12),
+          const BoxyArtSectionTitle(title: 'Costs'),
           ModernCostRow(label: 'Member Golf', amount: _formatCost(event.memberCost)),
           if (hasBreakfast) ModernCostRow(label: 'Breakfast', amount: _formatCost(event.breakfastCost)),
           if (hasLunch) ModernCostRow(label: 'Lunch', amount: _formatCost(event.lunchCost)),

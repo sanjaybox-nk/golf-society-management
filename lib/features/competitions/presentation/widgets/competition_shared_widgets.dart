@@ -20,21 +20,21 @@ class CompetitionBadgeRow extends StatelessWidget {
     final List<Widget> pills = [];
     final iconColor = baseColor ?? const Color(0xFF16A085);
 
-    // 1. Format Pill (STABLEFORD, STROKE PLAY, MATCH PLAY, etc.)
+    // 1. Format Pill (Stroke Play, Match Play, etc.)
     pills.add(
-      BoxyArtStatusPill(
-        text: rules.format == CompetitionFormat.matchPlay 
-            ? rules.gameName.toUpperCase() 
-            : rules.format.name.toUpperCase(),
-        baseColor: const Color(0xFF3498DB), // Blue for format
+      BoxyArtPill(
+        label: rules.format == CompetitionFormat.matchPlay 
+            ? rules.gameName 
+            : rules.format.name,
+        color: const Color(0xFF3498DB), // Blue for format
       ),
     );
 
-    // 2. Scoring Pill (NET or GROSS)
+    // 2. Scoring Pill (Net or Gross)
     pills.add(
-      BoxyArtStatusPill(
-        text: rules.scoringType.toUpperCase(),
-        baseColor: rules.scoringType == 'GROSS' 
+      BoxyArtPill(
+        label: rules.scoringType,
+        color: rules.scoringType == 'GROSS' 
             ? const Color(0xFFE74C3C) 
             : (eventId?.contains('_secondary') == true ? const Color(0xFFF39C12) : const Color(0xFF16A085)),
       ),
@@ -42,30 +42,29 @@ class CompetitionBadgeRow extends StatelessWidget {
 
     // 3. Allowance Pill (e.g., 95% HCP)
     pills.add(
-      BoxyArtStatusPill(
-        text: rules.defaultAllowanceLabel,
-        baseColor: iconColor,
+      BoxyArtPill(
+        label: rules.defaultAllowanceLabel,
+        color: iconColor,
       ),
     );
 
-    // 4. Mode Pill (SINGLES, PAIRS, TEAM)
+    // 4. Mode Pill (Singles, Pairs, Team)
     pills.add(
-      BoxyArtStatusPill(
-        text: rules.modeLabel,
-        baseColor: const Color(0xFF34495E),
+      BoxyArtPill(
+        label: rules.modeLabel,
+        color: const Color(0xFF34495E),
       ),
     );
 
-    // 5. Handicap Cap Pill (if applicable)
     if (rules.applyCapToIndex && 
         rules.handicapCap < 54 && 
         rules.format != CompetitionFormat.scramble && 
         rules.subtype != CompetitionSubtype.foursomes && 
         rules.subtype != CompetitionSubtype.fourball) {
       pills.add(
-        BoxyArtStatusPill(
-          text: 'CAPPED @ ${rules.handicapCap.toInt()} HCP',
-          baseColor: const Color(0xFFD35400),
+        BoxyArtPill(
+          label: 'Capped @ ${rules.handicapCap.toInt()} HCP',
+          color: const Color(0xFFD35400),
         ),
       );
     }

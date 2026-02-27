@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import '../../../../models/golf_event.dart';
+import 'events_provider.dart';
 import '../../matchplay/presentation/state/match_play_providers.dart';
 import 'widgets/modern_scoring_view.dart';
 import '../../../../models/competition.dart';
@@ -10,6 +11,7 @@ import '../../../../core/utils/handicap_calculator.dart';
 import '../../members/presentation/members_provider.dart';
 import '../../members/presentation/profile_provider.dart';
 import 'widgets/hole_by_hole_scoring_widget.dart'; // For MarkerTab
+import 'state/marker_selection_provider.dart';
 
 class HeroScoringScreen extends ConsumerStatefulWidget {
   final GolfEvent event;
@@ -60,13 +62,16 @@ class _HeroScoringScreenState extends ConsumerState<HeroScoringScreen> {
   Widget build(BuildContext context) {
     final matchResultAsync = ref.watch(currentMatchControllerProvider(widget.event.id));
     final compAsync = ref.watch(competitionDetailProvider(widget.event.id));
+    final markerSelection = ref.watch(markerSelectionProvider);
     final matchResult = matchResultAsync.asData?.value;
     final isVerifier = _selectedTab == MarkerTab.verifier;
     final currentScores = isVerifier ? _verifierScores : _playerScores;
 
     // Resolve Marking Name
-    final memberId = isVerifier ? ref.watch(effectiveUserProvider).id : widget.activeEntryId;
-    final member = ref.watch(allMembersProvider).asData?.value.firstWhereOrNull(
+    final effectiveUser = ref.watch(effectiveUserProvider);
+    final memberId = isVerifier ? effectiveUser.id : widget.activeEntryId;
+    final members = ref.watch(allMembersProvider).value ?? [];
+    final member = members.firstWhereOrNull(
       (m) => m.id == memberId?.replaceFirst('_guest', '')
     );
     final markingName = member?.displayName ?? (isVerifier ? 'Me' : 'Player');
@@ -99,10 +104,6 @@ class _HeroScoringScreenState extends ConsumerState<HeroScoringScreen> {
           onPressed: () => Navigator.of(context).pop(),
           tooltip: 'Dismiss',
         ),
-        actions: [
-          _buildMarkerToggle(context),
-          const SizedBox(width: 8),
-        ],
       ),
       body: GestureDetector(
         onVerticalDragUpdate: (details) {
@@ -126,86 +127,53 @@ class _HeroScoringScreenState extends ConsumerState<HeroScoringScreen> {
             }
           }
         },
-        child: SafeArea(
-          child: compAsync.when(
-            data: (comp) => ModernScoringView(
-              event: widget.event,
-              scores: currentScores,
-              currentHole: _currentHole,
-              holes: widget.holes,
-              playerPhc: _calculatePhc(isVerifier),
-              markingName: markingName,
-              matchResult: matchResult?.result,
-              isTeam1: matchResult?.match.team1Ids.contains(memberId) ?? true,
-              format: comp?.rules.format ?? CompetitionFormat.stableford,
-              maxScoreConfig: comp?.rules.maxScoreConfig,
-              rules: comp?.rules,
-              onHoleChanged: (h) => setState(() => _currentHole = h),
-              onSetScore: (h, score) {
-                setState(() {
-                  if (isVerifier) {
-                    _verifierScores[h] = score;
-                  } else {
-                    _playerScores[h] = score;
-                  }
-                });
-                widget.onSetScore(h, score, isVerifier);
-              },
-              onShowFullCard: () => Navigator.of(context).pop(),
+        child: SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: SafeArea(
+            bottom: false,
+            child: compAsync.when(
+              data: (comp) => ModernScoringView(
+                event: widget.event,
+                scores: currentScores,
+                currentHole: _currentHole,
+                holes: widget.holes,
+                playerPhc: _calculatePhc(isVerifier),
+                markingName: markingName,
+                matchResult: matchResult?.result,
+                isTeam1: matchResult?.match.team1Ids.contains(memberId) ?? true,
+                format: comp?.rules.format ?? CompetitionFormat.stableford,
+                maxScoreConfig: comp?.rules.maxScoreConfig,
+                rules: comp?.rules,
+                selectedTab: _selectedTab == MarkerTab.verifier ? 1 : 0,
+                isSelfMarking: widget.isSelfMarking,
+                selectedTeeName: markerSelection.teeOverrides[memberId],
+                onTabChanged: (tab) => setState(() {
+                  _selectedTab = tab == 0 ? MarkerTab.player : MarkerTab.verifier;
+                }),
+                onHoleChanged: (h) => setState(() => _currentHole = h),
+                onSetScore: (h, score) {
+                  setState(() {
+                    if (isVerifier) {
+                      _verifierScores[h] = score;
+                    } else {
+                      _playerScores[h] = score;
+                    }
+                  });
+                  widget.onSetScore(h, score, isVerifier);
+                },
+                onShowFullCard: () => Navigator.of(context).pop(),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, st) => Center(child: Text('Error: $err')),
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, st) => Center(child: Text('Error: $err')),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMarkerToggle(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildToggleButton(MarkerTab.player, 'PLAYER', isDisabled: widget.isSelfMarking),
-          _buildToggleButton(MarkerTab.verifier, 'ME'),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildToggleButton(MarkerTab tab, String label, {bool isDisabled = false}) {
-    final isSelected = _selectedTab == tab;
-    final theme = Theme.of(context);
-    
-    return GestureDetector(
-      onTap: isDisabled ? null : () => setState(() => _selectedTab = tab),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 60, // [FIX] Equal width for both buttons
-        height: 32, // Match parent height
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-            color: isSelected 
-                ? Colors.white 
-                : (isDisabled ? theme.primaryColor.withValues(alpha: 0.3) : theme.primaryColor),
-          ),
-        ),
-      ),
-    );
-  }
 
   int _calculatePhc(bool isVerifier) {
     final memberId = isVerifier ? ref.read(effectiveUserProvider).id : widget.activeEntryId;
@@ -213,7 +181,7 @@ class _HeroScoringScreenState extends ConsumerState<HeroScoringScreen> {
     
     final comp = ref.watch(competitionDetailProvider(widget.event.id)).asData?.value;
     
-    // [NEW] If Match Play, show relative strokes received in the match
+    // 1. Check for explicit Match Play strokes
     if (comp?.rules.format == CompetitionFormat.matchPlay) {
        final matchData = ref.watch(currentMatchControllerProvider(widget.event.id)).asData?.value;
        if (matchData != null) {
@@ -221,17 +189,11 @@ class _HeroScoringScreenState extends ConsumerState<HeroScoringScreen> {
        }
     }
 
-    final member = ref.watch(allMembersProvider).asData?.value.firstWhereOrNull(
-      (m) => m.id == memberId.replaceFirst('_guest', '')
-    );
-    final baseHc = member?.handicap ?? 0.0;
-    
-    if (comp == null) return baseHc.round();
-
-    return HandicapCalculator.calculatePlayingHandicap(
-      handicapIndex: baseHc, 
-      courseConfig: widget.effectivePtc,
-      rules: comp.rules,
-    );
+    // 2. Single Source of Truth: Read PHC from Event Grouping data.
+    //    Watch the LIVE event from Firestore so PHC updates immediately
+    //    when the admin recalculates and saves in the Grouping screen.
+    final liveEvent = ref.watch(eventProvider(widget.event.id)).asData?.value;
+    final grouping = liveEvent?.grouping ?? widget.event.grouping;
+    return HandicapCalculator.getStoredPhc(grouping, memberId);
   }
 }

@@ -10,15 +10,11 @@ class HandicapCalculator {
   static int calculatePlayingHandicap({
     required double handicapIndex,
     required CompetitionRules rules,
-    required Map<String, dynamic> courseConfig, // Should contain 'slope', 'rating', 'par' or tees
+    required Map<String, dynamic> courseConfig,
     bool useWhs = true,
-    String? teeColor, // Optional, if courseConfig has tees
-    double? baseRating, // [NEW] For mixed tee equity adjustments
+    String? teeColor,
+    double? baseRating,
   }) {
-    // 1. Cap the Index first? Usually calculated plays off full then capped? 
-    // WHS says: Use full index to calc Course Handicap, then apply allowance, then cap?
-    // User request implies simple system. Let's follow standard WHS flow but allow non-WHS shortcut.
-    
     double baseHandicap = handicapIndex;
     
     // 1. Apply Hard Cap on INDEX if specified
@@ -30,30 +26,39 @@ class HandicapCalculator {
 
     if (useWhs) {
        // WHS Formula: Index * (Slope / 113) + (Rating - Par)
-       final slope = parseValue(courseConfig['slope'] ?? 113);
-       final rating = parseValue(courseConfig['rating'] ?? 72);
-       final par = parseValue(courseConfig['par'] ?? 72);
+       // Strictly data-driven: If course data is empty/null, we cannot calculate accurately.
+       // We use 0.0 as the 'ignore' value but avoid hidden hardcoding in the formula.
+       final slope = parseValue(courseConfig['slope']);
+       final rating = parseValue(courseConfig['rating']);
+       final par = parseValue(courseConfig['par']);
 
-       courseHandicap = baseHandicap * (slope / 113) + (rating - par);
+       if (slope > 0) {
+         courseHandicap = baseHandicap * (slope / 113) + (rating - par);
+       }
     }
 
     // 2. Apply Allowance (e.g. 95%)
-    double playingHandicap = courseHandicap * rules.handicapAllowance;
+    // Safety: If allowance is 0 but competition isn't explicitly GROSS mode,
+    // treat it as 1.0 to prevent misconfigured data from zeroing all PHCs.
+    final effectiveAllowance = (rules.handicapAllowance == 0 && rules.subtype != CompetitionSubtype.grossStableford)
+        ? 1.0
+        : rules.handicapAllowance;
+    double playingHandicap = courseHandicap * effectiveAllowance;
 
     // 3. Rounding (Standard .5 rounds up)
     int rounded = playingHandicap.round();
 
     // 4. Apply Mixed Tee Equity Adjustment (CR - BaseRating) 
-    // This is primarily for Medal play to normalize everyone to a single rating/par benchmark.
-    // [UPDATED] Now gated by rule setting (default OFF).
     if (useWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {
-      final rating = parseValue(courseConfig['rating'] ?? 72);
-      final adjustment = (rating - baseRating).round();
-      rounded += adjustment;
+      final rating = parseValue(courseConfig['rating']);
+      if (rating > 0) {
+        final adjustment = (rating - baseRating).round();
+        rounded += adjustment;
+      }
     }
 
     // 5. Apply Cap on FINAL result (Safety Gate)
-    if (rounded > rules.handicapCap) {
+    if (rounded > rules.handicapCap && rules.handicapCap > 0) {
       rounded = rules.handicapCap;
     }
 
@@ -113,8 +118,10 @@ class HandicapCalculator {
           }
           break;
       }
-
-      // Apply society allowance as a final multiplier (100% = no change)
+      
+      // DE-STACKING ALLOWANCE: If using WHS recommended percentages, 
+      // the Global Allowance is usually 1.0 (100%). We respect the rules.handicapAllowance 
+      // as the "Final Multiplier", but we warn in Admin UI if it's set to something like 0.10.
       int result = (baseTeamHandicap * rules.handicapAllowance).round();
 
       // Apply Team Cap if specified
@@ -159,5 +166,39 @@ class HandicapCalculator {
     if (val is num) return val.toDouble();
     if (val is String) return double.tryParse(val) ?? 0.0;
     return 0.0;
+  }
+
+  /// Single Source of Truth: Read a player's PHC from the event's grouping data.
+  /// Returns 0 if the player is not found in the grouping.
+  /// Resilience: Automatically strips '_guest' suffix for lookup.
+  static int getStoredPhc(Map<String, dynamic> grouping, String memberId) {
+    final groups = (grouping['groups'] as List?) ?? [];
+    final lookupId = memberId.replaceFirst('_guest', '');
+    for (final g in groups) {
+      final players = (g['players'] as List?) ?? [];
+      for (final p in players) {
+        if (p['registrationMemberId'] == lookupId) {
+          return (p['playingHandicap'] as num?)?.round() ?? 0;
+        }
+      }
+    }
+    return 0;
+  }
+
+  /// Build a full map of memberId → PHC from the event's grouping data.
+  /// Used by leaderboard, scorecard modal, etc.
+  static Map<String, int> getStoredPhcMap(Map<String, dynamic> grouping) {
+    final Map<String, int> result = {};
+    final groups = (grouping['groups'] as List?) ?? [];
+    for (final g in groups) {
+      final players = (g['players'] as List?) ?? [];
+      for (final p in players) {
+        final id = p['registrationMemberId'] as String?;
+        if (id != null) {
+          result[id] = (p['playingHandicap'] as num?)?.round() ?? 0;
+        }
+      }
+    }
+    return result;
   }
 }

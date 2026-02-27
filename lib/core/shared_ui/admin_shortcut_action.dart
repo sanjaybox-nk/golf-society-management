@@ -51,7 +51,7 @@ class AdminShortcutAction extends ConsumerWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: primary.withValues(alpha: 0.1),
+          color: primary.withValues(alpha: 0.2),
           shape: BoxShape.circle,
         ),
         child: IconButton(

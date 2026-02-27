@@ -18,6 +18,7 @@ import '../../../../core/utils/scoring_calculator.dart';
 import '../../../matchplay/presentation/widgets/match_status_header.dart';
 import '../../../matchplay/presentation/state/match_play_providers.dart';
 import '../hero_scoring_screen.dart';
+import '../state/marker_selection_provider.dart';
 // events_provider.dart removed as it was unused
 enum MarkerTab { player, verifier }
 
@@ -90,10 +91,17 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   @override
   void didUpdateWidget(HoleByHoleScoringWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    
+    // [FIX] Update active Entry ID if it changed from parent
+    if (widget.targetEntryId != oldWidget.targetEntryId) {
+      setState(() {
+        _activeEntryId = widget.targetEntryId;
+      });
+    }
+
     if (widget.targetScorecard != oldWidget.targetScorecard) {
       _activeScorecard = widget.targetScorecard;
-      // Re-sync only if we don't have pending changes? 
-      // For now, trust upstream if it changes.
+      // Re-sync local scores if we haven't started typing yet
       if (_localScores.isEmpty) { 
          _syncScoresFromCard(_activeScorecard);
       }
@@ -132,27 +140,8 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     final targetId = _activeEntryId;
     if (targetId == null) return 15; // Fallback
 
-    final members = ref.read(allMembersProvider).asData?.value ?? [];
-    final member = members.firstWhereOrNull((m) => m.id == targetId.replaceFirst('_guest', ''));
-    
-    double index = 18.0;
-    if (targetId.contains('_guest')) {
-        final baseId = targetId.replaceAll('_guest', '');
-        final reg = widget.event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
-        index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
-    } else {
-        index = member?.handicap ?? 18.0;
-    }
-
-    final pConfig = _resolvePlayerCourseConfig(targetId, widget.event, members);
-    final baseRating = (widget.event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
-
-    final phc = HandicapCalculator.calculatePlayingHandicap(
-      handicapIndex: index, 
-      rules: rules, 
-      courseConfig: pConfig,
-      baseRating: baseRating,
-    ).toDouble();
+    // Single Source of Truth: Read PHC from grouping data
+    final phc = HandicapCalculator.getStoredPhc(widget.event.grouping, targetId).toDouble();
 
     return ScoringCalculator.getMaxScoreCap(
       par: par,
@@ -163,43 +152,72 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     );
   }
 
-  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
+  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList, {String? manualTeeName}) {
     final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.courseConfig;
+    debugPrint(' [SCORING-DEBUG] Resolving for: $memberId');
+    debugPrint(' [SCORING-DEBUG] Manual Tee: $manualTeeName');
+    
+    if (tees == null || tees.isEmpty) {
+      debugPrint(' [SCORING-DEBUG] WARNING: No tees found in event.courseConfig: ${event.courseConfig.keys}');
+      return event.courseConfig;
+    }
 
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
+    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
     final gender = member?.gender?.toLowerCase() ?? 'male';
+    debugPrint(' [SCORING-DEBUG] Resolved Gender: $gender');
     
     Map<String, dynamic>? selectedTee;
-    if (gender == 'female') {
-       if (event.selectedFemaleTeeName != null) {
-         selectedTee = (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+    
+    // 1. Manual Override logic
+    if (manualTeeName != null) {
+      selectedTee = (tees.firstWhereOrNull((t) => 
+        (t['name'] ?? '').toString().toLowerCase().trim() == manualTeeName.toLowerCase().trim()
+      ) as Map<String, dynamic>?);
+      if (selectedTee != null) debugPrint(' [SCORING-DEBUG] Manual Match Found: ${selectedTee['name']}');
+    }
+
+    if (selectedTee == null) {
+      if (gender == 'female') {
+         if (event.selectedFemaleTeeName != null) {
+           selectedTee = (tees.firstWhereOrNull((t) => 
+             (t['name'] ?? '').toString().toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
+           ) as Map<String, dynamic>?);
+         }
+         selectedTee ??= (tees.firstWhereOrNull((t) => 
+           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+           (t['name'] ?? '').toString().toLowerCase().contains('female')
          ) as Map<String, dynamic>?);
-       }
-       selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-         (t['name'] ?? '').toString().toLowerCase().contains('female')
-       ) as Map<String, dynamic>?);
+      }
+      
+      selectedTee ??= (tees.firstWhereOrNull((t) => 
+         (t['name'] ?? '').toString().toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
+      ) as Map<String, dynamic>?);
+  
+      selectedTee ??= (tees.first as Map<String, dynamic>);
+      debugPrint(' [SCORING-DEBUG] Fallback to: ${selectedTee['name']}');
     }
     
-    selectedTee ??= (tees.firstWhereOrNull((t) => 
-       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
-    ) as Map<String, dynamic>?);
-
-    selectedTee ??= (tees.first as Map<String, dynamic>);
+    debugPrint(' [SCORING-DEBUG] FINAL TEE: ${selectedTee['name']}');
+    
+    // [CRITICAL FIX] ScoringCalculator expects a 'holes' list of maps with 'par' and 'si' keys.
+    // If we only update the top-level 'rating'/'slope' but leave the original 'holes' list,
+    // the actual scoring logic will use the WRONG pars/SIs for the overridden tee.
+    final List<int> pars = List<int>.from(selectedTee['holePars'] ?? []);
+    final List<int> sis = List<int>.from(selectedTee['holeSIs'] ?? []);
+    
+    final List<Map<String, dynamic>> reconstructedHoles = List.generate(pars.length, (i) => {
+      'hole': i + 1,
+      'par': pars[i],
+      'si': sis[i],
+    });
 
     return {
        ...event.courseConfig,
-       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
-       'rating': selectedTee['rating'] ?? 72.0,
-       'slope': selectedTee['slope'] ?? 113,
-       'holes': List.generate(18, (i) => {
-          'hole': i + 1,
-          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
-          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
-       }),
+       'rating': (selectedTee['rating'] as num?)?.toDouble() ?? (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
+       'slope': (selectedTee['slope'] as num?)?.toInt() ?? (event.courseConfig['slope'] as num?)?.toInt() ?? 113,
+       'par': pars.isEmpty ? (event.courseConfig['par'] as num?)?.toInt() ?? 72 : pars.fold(0, (a, b) => a + b),
+       'holes': reconstructedHoles.isNotEmpty ? reconstructedHoles : (event.courseConfig['holes'] as List?),
     };
   }
 
@@ -312,41 +330,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   Widget build(BuildContext context) {
     // [NEW] Resolve correct holes list based on the player being marked
     final membersAsync = ref.watch(allMembersProvider);
-    final targetId = _activeEntryId;
-    final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == targetId);
-    final gender = member?.gender?.toLowerCase() ?? 'male';
+    final members = membersAsync.asData?.value ?? [];
+    final markerSelection = ref.watch(markerSelectionProvider);
+    final String? manualTee = markerSelection.teeOverrides[_activeEntryId];
     
-    final tees = widget.event.courseConfig['tees'] as List?;
-    Map<String, dynamic> effectivePtc = widget.event.courseConfig;
-    
-    if (tees != null && tees.isNotEmpty) {
-      Map<String, dynamic>? selectedTee;
-      if (gender == 'female') {
-         // A) Explicit selection priority
-         if (widget.event.selectedFemaleTeeName != null) {
-           selectedTee = (tees.firstWhereOrNull((t) => 
-             (t['name'] ?? '').toString().toLowerCase() == widget.event.selectedFemaleTeeName!.toLowerCase()
-           ) as Map<String, dynamic>?);
-         }
-         
-         // B) Heuristic fallback
-         selectedTee ??= (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-           (t['name'] ?? '').toString().toLowerCase().contains('female')
-         ) as Map<String, dynamic>?);
-      }
-      
-      // Fallback or default choice
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase() == (widget.event.selectedTeeName ?? 'white').toLowerCase()
-      ) as Map<String, dynamic>?);
-
-      // Final fallback: First tee
-      effectivePtc = selectedTee ?? (tees.first as Map<String, dynamic>);
-    }
-
-    final holes = effectivePtc['holes'] as List? ?? [];
+    final resolvedPtc = _resolvePlayerCourseConfig(_activeEntryId ?? '', widget.event, members, manualTeeName: manualTee);
+    final holes = resolvedPtc['holes'] as List? ?? [];
     
     // Watch for active match status
     final matchResultAsync = ref.watch(currentMatchControllerProvider(widget.event.id));
@@ -365,11 +354,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         if (details.primaryDelta! < -10) {
-          _openHeroScoring(holes, effectivePtc);
+          _openHeroScoring(holes, resolvedPtc);
         }
       },
       child: BoxyArtFloatingCard(
-        height: matchResult != null ? 150 : 110, // [FIX] Increased height for two-row layout
+        height: matchResult != null ? 140 : 100, // [FIXED] Reduced height for more compact layout
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -382,7 +371,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
 
               // Tactical Handle Content
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0), // [FIX] Top padding for two rows
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), // [FIXED] Reduced top padding
                 child: Column(
                   children: [
                     // Row 1: Centered Hole Info
@@ -393,24 +382,15 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                           'HOLE $currentHoleNum • PAR $par${si != null ? ' • SI $si' : ''}',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 14,
                             fontWeight: FontWeight.w900,
                             color: Colors.blueGrey.shade900,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        Text(
-                          'Swipe up to score',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 7,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey.shade400,
-                          ),
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     // Row 2: 50/50 Split Actions
                     Row(
                       children: [
@@ -447,7 +427,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                         // Enter Button
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _openHeroScoring(holes, effectivePtc),
+                            onPressed: () => _openHeroScoring(holes, resolvedPtc),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).primaryColor,
                               foregroundColor: Colors.white,
@@ -461,7 +441,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               children: [
                                 Icon(Icons.bolt, size: 12),
                                 SizedBox(width: 4),
-                                Text('SCORING', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                                Text('SCORING', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                               ],
                             ),
                           ),
@@ -511,11 +491,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
                   color: (hasConflict) 
                       ? Colors.red 
                       : (isActive 
                           ? Colors.white 
-                          : (isDisabled ? Colors.grey.withValues(alpha: 0.5) : Colors.blueGrey.shade500)),
+                          : (isDisabled ? Colors.grey.withValues(alpha: 0.5) : Colors.black)),
                 ),
               ),
               if (hasConflict) ...[
@@ -571,7 +552,10 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       if (comp?.rules.format == CompetitionFormat.maxScore) {
           // Resolve par for this hole
           final members = ref.read(allMembersProvider).asData?.value ?? [];
-          final pConfig = _resolvePlayerCourseConfig(_activeEntryId ?? '', widget.event, members);
+          final markerSelection = ref.read(markerSelectionProvider);
+          final String? manualTee = markerSelection.teeOverrides[_activeEntryId];
+          
+          final pConfig = _resolvePlayerCourseConfig(_activeEntryId ?? '', widget.event, members, manualTeeName: manualTee);
           final holeData = (pConfig['holes'] as List?)?.elementAtOrNull(holeNum - 1);
           final par = (holeData?['par'] as num?)?.toInt() ?? 4;
           final si = (holeData?['si'] as num?)?.toInt() ?? 18;

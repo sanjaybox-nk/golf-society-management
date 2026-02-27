@@ -83,7 +83,7 @@ class EventUserShell extends ConsumerWidget {
     // segments[1] = id
     
     if (segments.length < 2) return;
-    final id = segments[1];
+    final id = Uri.decodeComponent(segments[1]);
     
     // Determine current index to detect if tapping same tab
     int currentIndex = 0;
@@ -101,26 +101,28 @@ class EventUserShell extends ConsumerWidget {
     final query = uri.query;
     final suffix = query.isNotEmpty ? '?$query' : '';
 
+    final encodedId = Uri.encodeComponent(id);
+
     switch (index) {
       case 0:
         // If already on Event details tab, go back to events list
         if (currentIndex == 0) {
           context.go('/events');
         } else {
-          context.go('/events/$id$suffix');
+          context.go('/events/$encodedId$suffix');
         }
         break;
       case 1:
-        context.go('/events/$id/field$suffix');
+        context.go('/events/$encodedId/field$suffix');
         break;
       case 2:
-        context.go('/events/$id/live$suffix');
+        context.go('/events/$encodedId/live$suffix');
         break;
       case 3:
-        context.go('/events/$id/stats$suffix');
+        context.go('/events/$encodedId/stats$suffix');
         break;
       case 4:
-        context.go('/events/$id/photos$suffix');
+        context.go('/events/$encodedId/photos$suffix');
         break;
     }
   }

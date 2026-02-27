@@ -166,9 +166,11 @@ The scoring engine is hardened against edge cases to ensure 100% accuracy and ab
 
 ### 9.1 Authoritative Calculators
 
--   **`MatchPlayCalculator`**: Centralized logic for Net Match Play relative strokes and result derivation. Guaranteed status parity (e.g., "3 & 2") across the **Hero View**, **Grouping Card**, **Leaderboard**, and **Scorecard Modal**.
--   **`ScoringCalculator`**: Centralized logic for Stableford, Stroke Play, and Max Score.
-    -   **Max Score Capping**: Authoritative capping for entry and reporting. Supported modes include `Fixed`, `Par + X`, and `WHS Net Double Bogey`.
+-   **Centralized Scoring Engine**: The system uses authoritative calculators to ensure consistency across Scorecard, Grouping, and Leaderboard views.
+    - `MatchPlayCalculator`: Authoritative engine for Match Play (Net Match Play, Relative PHC, Fourball/Foursomes status).
+    - `ScoringCalculator`: Authoritative engine for Stroke, Stableford, and Max Score capping logic.
+    - **Authoritative Tee Resolution**: To prevent "Resolution Discrepancy," views must reconstruct the `holes` data map passed to calculators based on the specific tee override (Marker Selection).
+    - Pattern: **Calculate Once, Display Everywhere**. Views must NOT implement their own scoring logic.
 
 ### 9.2 Universal Visual Parity
 
@@ -186,5 +188,8 @@ Core scoring logic is verified via a comprehensive test suite covering:
 -   **4BBB**: Partner-based better-ball selection logic.
 -   **Tee Mapping**: Gender-aware tee resolution (e.g., Red for Women) for mixed field equity.
 
-### 9.2 Manual Validation
-The **Testing Lab** (Phase 1-6) provides the secondary layer of verification by seeding high-density randomized data to stress test leaderboard UI and tie-breaking presentation.
+### 9.4 Authoritative Tee Resolution
+To prevent scoring discrepancies, the system enforces a strict synchronization pattern:
+- **Map-Based Sync**: The `ScoringCalculator` must receive a reconstructed `holes` map where Par and SI values are derived directly from the player's selected tee. 
+- **State Overrides**: Manual tee selections (via the Marker Sheet) take priority over event-level defaults, with independent state management ensuring all views (Group/Leaderboard/Hero) reflect the same data on the same frame.
+- **Guest Support**: Normalization of guest player IDs ensures resolution parity for non-member entries.

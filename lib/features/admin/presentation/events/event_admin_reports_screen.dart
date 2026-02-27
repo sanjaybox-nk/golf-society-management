@@ -25,6 +25,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
         return HeadlessScaffold(
           title: 'Manage Reports',
           subtitle: event.title,
+          useScaffold: false,
           showBack: true,
           onBack: () => context.go('/admin/events'),
           slivers: [
@@ -34,8 +35,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const HeadlessScaffold(title: 'Loading...', slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
-      error: (err, _) => HeadlessScaffold(title: 'Error', slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
+      loading: () => const HeadlessScaffold(title: 'Loading...', useScaffold: false, slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
+      error: (err, _) => HeadlessScaffold(title: 'Error', useScaffold: false, slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
     );
   }
 

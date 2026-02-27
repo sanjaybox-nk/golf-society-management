@@ -23,6 +23,7 @@ class HeadlessScaffold extends StatelessWidget {
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final bool showAdminShortcut;
   final double? leadingWidth;
+  final bool useScaffold;
 
   const HeadlessScaffold({
     super.key,
@@ -45,6 +46,7 @@ class HeadlessScaffold extends StatelessWidget {
     this.floatingActionButtonLocation,
     this.showAdminShortcut = true,
     this.autoPrefix = true,
+    this.useScaffold = true,
   });
 
   final bool autoPrefix;
@@ -57,6 +59,122 @@ class HeadlessScaffold extends StatelessWidget {
     // Calculate top padding: Standard AppBar (56) + Dynamic Gap (64) = 120
     // This is a fixed absolute offset from the top edge of the screen.
     final contentTopPadding = 120.0;
+
+    final scrollView = CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        // Headless Header
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: contentPadding ?? EdgeInsets.only(
+              top: contentTopPadding,
+              left: 20,
+              right: 20,
+              bottom: 24,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          String displayTitle = title;
+                          try {
+                            final state = GoRouterState.of(context);
+                            final isAdmin = state.matchedLocation.startsWith('/admin');
+                            if (autoPrefix && isAdmin && !displayTitle.toLowerCase().contains('manage')) {
+                              displayTitle = 'Manage $displayTitle';
+                            }
+                          } catch (_) {}
+                          
+                          return Text(
+                            displayTitle,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1.2,
+                              height: 1.1,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    if (titleSuffix != null) ...[
+                      const SizedBox(width: 8),
+                      titleSuffix!,
+                    ],
+                  ],
+                ),
+                if (subtitleWidget != null) ...[
+                  const SizedBox(height: 6),
+                  subtitleWidget!
+                ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        
+        // Content Slivers
+        ...slivers,
+        
+        // Natural Bottom Spacing
+        const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+      ],
+    );
+
+    // When useScaffold=false (e.g. inside EventAdminShell), skip the Scaffold
+    // wrapper to avoid nested Scaffolds causing blank-screen layout failures.
+    // Instead, use a Stack to overlay the AppBar on top of the scroll view,
+    // replicating Scaffold's extendBodyBehindAppBar behavior.
+    if (!useScaffold) {
+      return ColoredBox(
+        color: bg,
+        child: Stack(
+          children: [
+            scrollView,
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: ProMaxAppBar(
+                title: title, // RE-ENABLED: Headless title
+                subtitle: subtitle, // RE-ENABLED: Headless subtitle
+                transparent: true,
+                showBack: showBack,
+                showLeading: showMenu && !showBack,
+                onBack: onBack,
+                actions: actions,
+                leading: leading,
+                leadingWidth: leadingWidth,
+                bottom: bottom,
+                showAdminShortcut: () {
+                  if (!showAdminShortcut) return false;
+                  try {
+                    return !GoRouterState.of(context).uri.path.startsWith('/admin');
+                  } catch (_) {
+                    return false;
+                  }
+                }(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: bg,
@@ -83,81 +201,7 @@ class HeadlessScaffold extends StatelessWidget {
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Headless Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: contentPadding ?? EdgeInsets.only(
-                top: contentTopPadding,
-                left: 20,
-                right: 20,
-                bottom: 24,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Builder(
-                          builder: (context) {
-                            String displayTitle = title;
-                            try {
-                              final state = GoRouterState.of(context);
-                              final isAdmin = state.matchedLocation.startsWith('/admin');
-                              if (autoPrefix && isAdmin && !displayTitle.toLowerCase().contains('manage')) {
-                                displayTitle = 'Manage $displayTitle';
-                              }
-                            } catch (_) {}
-                            
-                            return Text(
-                              displayTitle,
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -1.2,
-                                height: 1.1,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      if (titleSuffix != null) ...[
-                        const SizedBox(width: 8),
-                        titleSuffix!,
-                      ],
-                    ],
-                  ),
-                  if (subtitleWidget != null) ...[
-                    const SizedBox(height: 6),
-                    subtitleWidget!
-                  ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      subtitle!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          
-          // Content Slivers
-          ...slivers,
-          
-          // Natural Bottom Spacing
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-        ],
-      ),
+      body: scrollView,
     );
   }
 }

@@ -25,6 +25,7 @@ class EventLeaderboard extends ConsumerStatefulWidget {
   final Map<String, int> playerHoleLimits;
   final Function(LeaderboardEntry)? onPlayerTap;
   final bool showTitles;
+  final Map<String, String>? teeOverrides; // [NEW] Manual tee overrides
 
   const EventLeaderboard({
     super.key,
@@ -35,6 +36,7 @@ class EventLeaderboard extends ConsumerStatefulWidget {
     this.playerHoleLimits = const {},
     this.onPlayerTap,
     this.showTitles = true,
+    this.teeOverrides,
   });
 
   @override
@@ -134,6 +136,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                     membersList: widget.membersList,
                     currentFormat: currentFormat,
                     holeLimit: simulationHoles,
+                    teeOverrides: widget.teeOverrides,
                   ));
                 }
                 
@@ -149,6 +152,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                     membersList: widget.membersList,
                     currentFormat: currentFormat,
                     holeLimit: simulationHoles,
+                    teeOverrides: widget.teeOverrides,
                   ));
                 }
              } else {
@@ -164,6 +168,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                     membersList: widget.membersList,
                     currentFormat: currentFormat,
                     holeLimit: simulationHoles,
+                    teeOverrides: widget.teeOverrides,
                   ));
                }
               }
@@ -189,6 +194,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             currentFormat: currentFormat,
             holeLimit: widget.playerHoleLimits[regId] ?? simulationHoles,
             teamIndex: getGroupIndex(regId),
+            manualTeeName: widget.teeOverrides?[regId],
           ));
         }
       }
@@ -206,6 +212,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             currentFormat: currentFormat,
             holeLimit: widget.playerHoleLimits[key] ?? simulationHoles,
             teamIndex: getGroupIndex(key),
+            manualTeeName: widget.teeOverrides?[key],
           ));
         });
       }
@@ -301,6 +308,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     required List<Member> membersList,
     required CompetitionFormat currentFormat,
     int? holeLimit,
+    Map<String, String>? teeOverrides, // [NEW] Overrides passed from parent
   }) {
      final names = teamPlayers.map((p) => p.name).toList();
      final ids = teamPlayers.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList(); // [NEW] Track IDs
@@ -313,33 +321,26 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         // 1. Calculate Individual PHCs
         final Map<String, int> playerPhcs = {};
         
-        // Override allowance for Fourball to 85% if using default 10%
-        final fourballRules = effectiveRules.handicapAllowance == 0.10 
-            ? effectiveRules.copyWith(handicapAllowance: 0.85) 
-            : effectiveRules;
   
         for (var p in teamPlayers) {
            final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
-           
-           double index;
-           if (p.isGuest) {
-              final reg = event.registrations.firstWhereOrNull((r) => r.memberId == p.registrationMemberId);
-              index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
-           } else {
-              final member = membersList.firstWhereOrNull((m) => m.id == p.registrationMemberId);
-              index = member?.handicap ?? 18.0;
-           }
-  
-           // Individual PHC
-           final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
-           final baseRating = _parseValue(event.courseConfig['rating'] ?? 72.0);
 
-           playerPhcs[id] = HandicapCalculator.calculatePlayingHandicap(
-             handicapIndex: index, 
-             rules: fourballRules, 
-             courseConfig: playerTeeConfig,
-             baseRating: baseRating,
-           );
+           // Single Source of Truth: Check Scorecard first (submitted rounds),
+           // then grouping data. Never calculate on-the-fly.
+           int? storedPhc;
+           
+           // A. Check Scorecard first (submitted rounds may store PHC snapshot)
+           final entrySource = mergedData[id];
+           if (entrySource != null && entrySource['data'] is Scorecard) {
+              storedPhc = (entrySource['data'] as Scorecard).playingHandicap;
+           }
+
+           // B. Grouping data is the authoritative source
+           if (storedPhc == null || storedPhc == 0) {
+              storedPhc = HandicapCalculator.getStoredPhc(event.grouping, p.registrationMemberId);
+           }
+
+           playerPhcs[id] = storedPhc;
         }
         
         // 2. Calculate Team Best Ball Score
@@ -373,9 +374,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
            }
         }
           // 3. Compare partners hole by hole or use Best Team Card
-         // Resolve holes list for calculator
-         final rawHoles = event.courseConfig['holes'] as List? ?? [];
-         final List<Map<String, dynamic>> holesData = rawHoles.map((h) => Map<String, dynamic>.from(h)).toList();
+          // Resolve holes list for calculator - needs to be per-player in Fourball
+          // For Team Par/Context, we might need a baseline, but calculations are per-player.
 
          for (int i = 0; i < 18; i++) {
             if (holeLimit != null && i >= holeLimit) break;
@@ -386,10 +386,14 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             for (var pid in pScores.keys) {
                final scores = pScores[pid]!;
                if (i < scores.length && scores[i] != null) {
-                  final rawVal = scores[i]!;
+                  final manualTee = teeOverrides?[pid];
+                  final playerTeeConfig = _resolvePlayerCourseConfig(pid, event, membersList, manualTeeName: manualTee);
+                  final playerHoles = playerTeeConfig['holes'] as List? ?? [];
+                  final si = playerHoles.length > i ? (playerHoles[i]['si'] as int? ?? 18) : 18;
+                  final par = playerHoles.length > i ? (playerHoles[i]['par'] as int? ?? 4) : 4;
+   
+                  final int rawVal = scores[i]!;
                   final phc = playerPhcs[pid] ?? 0;
-                  final si = holesData[i]['si'] as int? ?? 18;
-                  final par = holesData[i]['par'] as int? ?? 4;
    
                   // Calculate hole net/points
                   final int freeShots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
@@ -406,7 +410,11 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             }
             if (someValid) {
                teamScore += (holeBestScore ?? 0);
-               teamPar += (holesData[i]['par'] as int? ?? 4); // [NEW] Track total par
+               // Baseline Par for team aggregate (using first player's tee config)
+               final firstId = teamPlayers.first.registrationMemberId;
+               final firstConfig = _resolvePlayerCourseConfig(firstId, event, membersList, manualTeeName: teeOverrides?[firstId]);
+               final firstHoles = firstConfig['holes'] as List? ?? [];
+               teamPar += (firstHoles.length > i ? (firstHoles[i]['par'] as int? ?? 4) : 4);
                maxHolesPlayed = i + 1;
             }
          } // closing for i loop
@@ -559,6 +567,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     required CompetitionFormat currentFormat,
     int? holeLimit,
     int? teamIndex,
+    String? manualTeeName, 
   }) {
     final data = source['data'];
     final isGuest = reg.memberId.contains('_guest') || reg.isGuest;
@@ -571,16 +580,24 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       handicapIndex = member?.handicap ?? 18.0;
     }
 
-    // Mixed Tee Resolution
-    final baseRating = _parseValue(event.courseConfig['rating'] ?? 72.0);
-    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
+    // Course config is still needed for hole data and tie-break calculations
+    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList, manualTeeName: manualTeeName);
 
-    final phc = HandicapCalculator.calculatePlayingHandicap(
-      handicapIndex: handicapIndex, 
-      rules: effectiveRules, 
-      courseConfig: playerTeeConfig,
-      baseRating: baseRating,
-    );
+
+    // Single Source of Truth: Scorecard snapshot → Grouping data
+    int? authoritativePhc;
+    
+    // A. Check Scorecard first (submitted rounds)
+    if (data is Scorecard) {
+       authoritativePhc = data.playingHandicap;
+    }
+
+    // B. Grouping data is the authoritative source
+    if (authoritativePhc == null || authoritativePhc == 0) {
+       authoritativePhc = HandicapCalculator.getStoredPhc(event.grouping, id.replaceFirst('_guest', ''));
+    }
+
+    final phc = authoritativePhc;
 
     List<int?> rawScores = [];
     if (data is Scorecard) {
@@ -706,6 +723,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     required Map<String, dynamic> mergedData,
     required List<Member> membersList,
     required CompetitionRules rules,
+    Map<String, String>? teeOverrides,
   }) {
       List<String>? myGroupIds;
       final groupsData = event.grouping['groups'] as List? ?? [];
@@ -733,7 +751,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       final Map<String, Map<String, dynamic>> courseConfigs = {};
       
       for (final pid in myGroupIds) {
-          courseConfigs[pid] = _resolvePlayerCourseConfig(pid, event, membersList);
+          courseConfigs[pid] = _resolvePlayerCourseConfig(pid, event, membersList, manualTeeName: teeOverrides?[pid]);
           final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
           if (pid.contains('_guest')) {
               final baseId = pid.replaceAll('_guest', '');
@@ -817,42 +835,49 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       return {'score': result.score, 'label': label};
   }
 
-  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
+  // Helper to resolve course config per player (gender + event defaults + manual override)
+  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList, {String? manualTeeName}) {
     // 1. If courseConfig has no tees list, just return it as is (legacy/flat)
     final tees = event.courseConfig['tees'] as List?;
     if (tees == null || tees.isEmpty) return event.courseConfig;
 
-    // 2. Identify Player Gender for automatic selection if not explicitly assigned
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
+    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
     final gender = member?.gender?.toLowerCase() ?? 'male';
     
-    // Simple logic: If female, look for 'Red' or 'Lady' or 'Female' tee. 
-    // Otherwise look for 'White' or 'Yellow' or 'Standard'.
     Map<String, dynamic>? selectedTee;
-    
-    if (gender == 'female') {
-       // A) Explicit selection priority
-       if (event.selectedFemaleTeeName != null) {
-         selectedTee = (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
-         ) as Map<String, dynamic>?);
-       }
-       
-       // B) Heuristic fallback
-       selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-         (t['name'] ?? '').toString().toLowerCase().contains('female')
-       ) as Map<String, dynamic>?);
-    }
-    
-    // Fallback or default choice
-    selectedTee ??= (tees.firstWhereOrNull((t) => 
-       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
-    ) as Map<String, dynamic>?);
 
-    // Final fallback: First tee
-    selectedTee ??= (tees.first as Map<String, dynamic>);
+    // 2. Manual Override logic (Matches HoleByHoleScoringWidget logic)
+    if (manualTeeName != null) {
+      selectedTee = (tees.firstWhereOrNull((t) => 
+        (t['name'] ?? '').toString().toLowerCase() == manualTeeName.toLowerCase()
+      ) as Map<String, dynamic>?);
+    }
+
+    if (selectedTee == null) {
+      if (gender == 'female') {
+        // A) Explicit selection priority
+        if (event.selectedFemaleTeeName != null) {
+          selectedTee = (tees.firstWhereOrNull((t) => 
+            (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
+          ) as Map<String, dynamic>?);
+        }
+        
+        // B) Heuristic fallback
+        selectedTee ??= (tees.firstWhereOrNull((t) => 
+          (t['name'] ?? '').toString().toLowerCase().contains('red') || 
+          (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
+          (t['name'] ?? '').toString().toLowerCase().contains('female')
+        ) as Map<String, dynamic>?);
+      }
+      
+      // Fallback or default choice
+      selectedTee ??= (tees.firstWhereOrNull((t) => 
+        (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
+      ) as Map<String, dynamic>?);
+
+      // Final fallback: First tee
+      selectedTee ??= (tees.first as Map<String, dynamic>);
+    }
 
     // Merge tee data into a clean config for the calculator
     return {

@@ -56,7 +56,7 @@ class BoxyArtButton extends StatelessWidget {
       derivedTextColor = Theme.of(context).colorScheme.onPrimary;
       shadows = [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.15),
+          color: Colors.black.withValues(alpha: 0.2),
           blurRadius: 10,
           offset: const Offset(0, 4),
         )
@@ -204,7 +204,7 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
     final defaultIconColor = widget.iconColor ?? primaryColor;
-    final defaultBgColor = widget.backgroundColor ?? primaryColor.withValues(alpha: 0.1);
+    final defaultBgColor = widget.backgroundColor ?? primaryColor.withValues(alpha: 0.2);
     
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -227,13 +227,13 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
             boxShadow: [
               // Base Soft Shadow
               BoxShadow(
-                color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.03),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
               // Sharp Close Shadow
               BoxShadow(
-                color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.02),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),

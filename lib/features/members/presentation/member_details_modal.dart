@@ -13,6 +13,7 @@ import 'profile_provider.dart';
 import 'widgets/member_role_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
@@ -368,13 +369,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         bottomNavigationBar: _buildBottomMenu(),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.all(24).copyWith(bottom: 40),
+            padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: 40),
             sliver: SliverToBoxAdapter(
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(height: AppTheme.cardSpacing),
                     ListenableBuilder(
                       listenable: Listenable.merge([
                         _firstController,
@@ -405,8 +407,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       ),
                     ),
 
-                    
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppTheme.cardSpacing),
                     
                     // Stats Row
                     if (!_isNewMember && widget.member != null)
@@ -428,7 +429,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         },
                       ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppTheme.cardSpacing),
 
                     PersonalDetailsForm(
                       isEditing: _isEditing,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/member.dart';
 import '../../domain/registration_logic.dart';
-import '../../../../core/shared_ui/modern_cards.dart';
+import '../../../../core/shared_ui/shared_ui.dart';
 
 class RegistrationCard extends StatelessWidget {
   final String name;
@@ -104,23 +104,7 @@ class RegistrationCard extends StatelessWidget {
         children: [
           // Position Badge
           if (!isDinnerOnly && position != null && position != 0 && !isWithdrawn) ...[
-            Container(
-              width: 28,
-              height: 28,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: theme.primaryColor.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                '$position',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: theme.primaryColor,
-                ),
-              ),
-            ),
+            BoxyArtNumberBadge(number: position!),
             const SizedBox(width: 8),
           ],
           
@@ -339,41 +323,33 @@ class RegistrationCard extends StatelessWidget {
     switch (status) {
       case RegistrationStatus.confirmed:
         color = Colors.green;
-        text = 'CONFIRMED';
+        text = 'Confirmed';
         break;
       case RegistrationStatus.reserved:
         color = Colors.orange;
-        text = 'RESERVE';
+        text = 'Reserve';
         break;
       case RegistrationStatus.waitlist:
         color = Colors.red;
-        text = 'WAITLIST';
+        text = 'Waitlist';
         break;
       case RegistrationStatus.pendingGuest:
         color = Colors.grey;
-        text = 'PENDING';
+        text = 'Pending';
         break;
       case RegistrationStatus.withdrawn:
         color = Colors.grey;
-        text = 'WITHDRAWN';
+        text = 'Withdrawn';
         break;
       case RegistrationStatus.dinner:
         color = Colors.blue; 
-        text = 'DINNER';
+        text = 'Dinner';
         break;
       case RegistrationStatus.none:
         return const SizedBox.shrink();
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color, width: 0.5),
-      ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold)),
-    );
+    return BoxyArtPill(label: text, color: color);
   }
 
 

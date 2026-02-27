@@ -65,6 +65,11 @@ To prioritize active competition once play begins:
 - **Event Edits**: The system is designed to preserve all participant registrations even if an admin modifies the event's date, time, cost, or description.
 - **FCFS Integrity**: The original `registeredAt` timestamp is preserved when a member edits their registration, maintaining their position in the queue.
 
+### Guest ID Normalization
+To ensure consistent resolution across scoring and registration:
+- **ID Format**: All guest entries must use the `GUEST_` prefix (e.g., `GUEST_123`).
+- **Resolution**: Scoring views and the `markerSelectionProvider` use this prefix to distinguish between society members and one-off guest entries, ensuring that tee-specific Pars and SIs are resolved correctly even without a member profile.
+
 ---
 
 ## Metrics & Reporting

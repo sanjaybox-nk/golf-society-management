@@ -1,0 +1,8 @@
+Analyzing Golf Society Management...                            
+
+warning • Dead code • lib/features/events/presentation/tabs/event_user_placeholders.dart:1351:27 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/features/events/presentation/tabs/event_user_placeholders.dart:1351:30 • dead_null_aware_expression
+warning • The value of the local variable 'effectiveTargetId' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:1784:26 • unused_local_variable
+warning • Dead code • lib/features/events/presentation/widgets/modern_scoring_view.dart:343:5 • dead_code
+
+4 issues found. (ran in 15.7s)

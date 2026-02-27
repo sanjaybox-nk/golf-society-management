@@ -177,7 +177,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
           shape: const StadiumBorder(),
           shadows: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.2),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -207,7 +207,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
                   width: (220 / count) - 8,
                   height: 42,
                   decoration: ShapeDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                     shape: const StadiumBorder(),
                   ),
                 ),
@@ -224,7 +224,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
                     ? Theme.of(context).primaryColor.withValues(alpha: 0.8)
                     : Colors.white;
                 final textColor = ContrastHelper.getContrastingText(backgroundColor);
-                final inactiveTextColor = textColor.withValues(alpha: 0.6);
+                final inactiveTextColor = textColor.withValues(alpha: 0.2);
                 
                 return Expanded(
                   child: InkWell(
@@ -292,10 +292,9 @@ class ProfileInfoRow extends StatelessWidget {
                     label.toUpperCase(),
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.black45,
                       letterSpacing: 0.5,
-                      fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -303,7 +302,7 @@ class ProfileInfoRow extends StatelessWidget {
                     value,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w900,
                       color: Colors.black87,
                     ),
                   ),
@@ -320,14 +319,14 @@ class ProfileInfoRow extends StatelessWidget {
 /// A standard section title with BoxyArt styling (uppercase, bold, grey).
 class BoxyArtSectionTitle extends StatelessWidget {
   final String title;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
   final bool isLevel2;
   final bool isPeeking;
 
   const BoxyArtSectionTitle({
     super.key,
     required this.title,
-    this.padding = const EdgeInsets.only(left: 4, bottom: 8),
+    this.padding,
     this.isLevel2 = false,
     this.isPeeking = false,
   });
@@ -335,9 +334,10 @@ class BoxyArtSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectivePadding = padding ?? EdgeInsets.only(left: 4, bottom: AppTheme.sectionSpacing);
     
     return Padding(
-      padding: padding,
+      padding: effectivePadding,
       child: Align(
         alignment: Alignment.centerLeft,
         child: Row(
@@ -356,10 +356,9 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 title.toUpperCase(),
                 style: TextStyle(
                   fontSize: isLevel2 ? 10 : 12,
-                  fontWeight: FontWeight.w900, // Maximized Boldness
+                  fontWeight: FontWeight.w900,
                   color: isDark ? Colors.white54 : Colors.grey,
-                  letterSpacing: 1.5, // Increased spacing
-                  fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                  letterSpacing: 1.5,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

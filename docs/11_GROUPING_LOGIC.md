@@ -94,3 +94,8 @@ While in Match Play Mode, the grouping tiles become interactive for pairing:
 - **Swapping**: Tapping another player within the same group (or an empty slot) swaps their positions.
 - **Side Assignment**: Using the interactive grid, admins can quickly decide which players are on "Side A" vs "Side B" for the match without manually editing IDs in a text field.
 - **Persistence**: Match definitions (`event.grouping['matches']`) are updated and persisted automatically upon saving the grouping.
+
+### 9. Authoritative Tee Resolution via Marker Selection
+The grouping UI reflects the authoritative tee resolved for each player.
+- **Marker Overrides**: Admins can override event-level tee defaults (e.g., forcing a high-handicapper to use Red tees) via the **Marker Selection Sheet** accessible from the scoring views.
+- **Dynamic Feedback**: Real-time integration with `markerSelectionProvider` ensures that any manual tee change is instantly visible on the grouping card, allowing admins to verify competitive equity at a glance.

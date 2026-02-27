@@ -57,16 +57,10 @@ class PersonalDetailsForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'PERSONAL DETAILS',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: Colors.black45,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 20),
+        const BoxyArtSectionTitle(
+          title: 'Personal Details',
+          isLevel2: true,
+        ),
           
           if (isEditing) ...[
             BoxyArtFormField(

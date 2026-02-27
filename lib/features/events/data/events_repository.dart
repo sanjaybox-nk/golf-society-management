@@ -4,6 +4,9 @@ abstract class EventsRepository {
   /// Stream of all events (real-time updates)
   Stream<List<GolfEvent>> watchEvents({String? seasonId, EventStatus? status});
 
+  /// Stream of a single event (real-time updates)
+  Stream<GolfEvent?> watchEvent(String id);
+
   /// Single fetch of events
   Future<List<GolfEvent>> getEvents({String? seasonId, EventStatus? status});
 

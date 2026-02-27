@@ -53,6 +53,8 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
   grossTotal: (json['grossTotal'] as num?)?.toInt(),
   netTotal: (json['netTotal'] as num?)?.toInt(),
   points: (json['points'] as num?)?.toInt(),
+  handicapIndex: (json['handicapIndex'] as num?)?.toDouble(),
+  playingHandicap: (json['playingHandicap'] as num?)?.toInt(),
   adminEditAudit: json['adminEditAudit'] == null
       ? null
       : AdminEditAudit.fromJson(json['adminEditAudit'] as Map<String, dynamic>),
@@ -79,6 +81,8 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'grossTotal': instance.grossTotal,
       'netTotal': instance.netTotal,
       'points': instance.points,
+      'handicapIndex': instance.handicapIndex,
+      'playingHandicap': instance.playingHandicap,
       'adminEditAudit': instance.adminEditAudit?.toJson(),
       'adminOverridePublish': instance.adminOverridePublish,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),

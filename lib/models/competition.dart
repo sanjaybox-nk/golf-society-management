@@ -43,7 +43,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(CompetitionMode.singles) CompetitionMode mode,
     @Default(HandicapMode.whs) HandicapMode handicapMode,
     @Default(28) int handicapCap,
-    @Default(0.10) double handicapAllowance,
+    @Default(1.0) double handicapAllowance,
     int? teamHandicapCap, // [NEW] For Scramble/Team capping
     @Default(CompetitionFormat.stroke) CompetitionFormat underlyingFormat, // [NEW] For Scramble base logic
     @Default(true) bool useCourseAllowance,
@@ -93,21 +93,25 @@ abstract class Competition with _$Competition {
 extension CompetitionRulesX on CompetitionRules {
   String get gameName {
     if (subtype != CompetitionSubtype.none) {
-      if (subtype == CompetitionSubtype.fourball) return 'FOURBALL';
-      if (subtype == CompetitionSubtype.foursomes) return 'FOURSOMES';
-      if (subtype == CompetitionSubtype.grossStableford) return 'GROSS STABLEFORD';
-      if (subtype == CompetitionSubtype.texas) return 'TEXAS SCRAMBLE';
-      if (subtype == CompetitionSubtype.florida) return 'FLORIDA SCRAMBLE';
-      if (subtype == CompetitionSubtype.ryderCup) return 'RYDER CUP';
-      if (subtype == CompetitionSubtype.teamMatchPlay) return 'TEAM MATCH PLAY';
-      return subtype.name.toUpperCase();
+      return switch (subtype) {
+        CompetitionSubtype.texas       => 'Texas Scramble',
+        CompetitionSubtype.florida     => 'Florida Scramble',
+        CompetitionSubtype.fourball    => 'Fourball',
+        CompetitionSubtype.foursomes   => 'Foursomes',
+        CompetitionSubtype.ryderCup    => 'Ryder Cup',
+        CompetitionSubtype.teamMatchPlay => 'Team Match Play',
+        CompetitionSubtype.grossStableford => 'Gross Stableford',
+        _                              => subtype.name,
+      };
     }
     
-    // Split camelCase format (e.g. matchPlay -> MATCH PLAY)
-    return format.name
-        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}')
-        .trim()
-        .toUpperCase();
+    return switch (format) {
+      CompetitionFormat.stableford => 'Stableford',
+      CompetitionFormat.stroke     => 'Stroke Play',
+      CompetitionFormat.maxScore   => 'Max Score',
+      CompetitionFormat.matchPlay  => 'Match Play',
+      CompetitionFormat.scramble   => 'Scramble',
+    };
   }
 
   String get scoringType {

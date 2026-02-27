@@ -12,6 +12,7 @@ import '../../../../core/utils/handicap_calculator.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../logic/event_analysis_engine.dart';
+import '../../../../core/theme/app_theme.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
 // Use richStatsModeProvider from debug_providers.dart
@@ -240,7 +241,7 @@ class EventStatsTab extends ConsumerWidget {
           const SizedBox(height: 16),
         ],
         if (statsMode == 0) ...[
-          const BoxyArtSectionTitle(title: 'SOCIETY HERO RECAP'),
+          const BoxyArtSectionTitle(title: 'Society Hero Recap'),
           if (eclecticRound.any((s) => s != null))
             FieldEclecticCard(eclecticScores: eclecticRound, holes: holes),
           const SizedBox(height: 8),
@@ -257,8 +258,8 @@ class EventStatsTab extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          const BoxyArtSectionTitle(title: 'FIELD COMPETITIVENESS'),
+          SizedBox(height: AppTheme.cardSpacing),
+          const BoxyArtSectionTitle(title: 'Field Competitiveness'),
           ScoringTypeDistributionChart(counts: {
             'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'BLOB': fieldBlobs,
           }),
@@ -266,18 +267,18 @@ class EventStatsTab extends ConsumerWidget {
             const SizedBox(height: 12),
             StablefordDistributionChart(bucketCounts: stablefordBuckets),
           ],
-          const SizedBox(height: 24),
-          const BoxyArtSectionTitle(title: 'PERFORMANCE TRENDS'),
+          SizedBox(height: AppTheme.cardSpacing),
+          const BoxyArtSectionTitle(title: 'Performance Trends'),
           SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
           const SizedBox(height: 12),
           ParTypeBreakdown(parTypeAverages: parTypeAverages),
-          const SizedBox(height: 24),
-          const BoxyArtSectionTitle(title: 'COURSE ANALYSIS'),
+          SizedBox(height: AppTheme.cardSpacing),
+          const BoxyArtSectionTitle(title: 'Course Analysis'),
           DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
           const SizedBox(height: 12),
           HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
-          const SizedBox(height: 24),
-          const BoxyArtSectionTitle(title: 'HALL OF FAME'),
+          SizedBox(height: AppTheme.cardSpacing),
+          const BoxyArtSectionTitle(title: 'Hall of Fame'),
           if (maxStreak > 0)
             AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: Colors.orange),
           const SizedBox(height: 8),
@@ -286,8 +287,8 @@ class EventStatsTab extends ConsumerWidget {
           const SizedBox(height: 8),
           if (finisherPlayer != 'None')
             AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: Colors.purple),
-          const SizedBox(height: 24),
-          const BoxyArtSectionTitle(title: 'BANTER & BRAGGING RIGHTS'),
+          SizedBox(height: AppTheme.cardSpacing),
+          const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
           if (maxBlobs > 0)
             AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: Colors.red),
           const SizedBox(height: 8),
@@ -299,7 +300,7 @@ class EventStatsTab extends ConsumerWidget {
           const SizedBox(height: 8),
           if (maxVariance > 3.0)
             AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: Colors.pink),
-          const SizedBox(height: 32),
+          SizedBox(height: AppTheme.cardSpacing),
           SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
         ] else ...[
           if (myScorecard == null)
@@ -405,7 +406,7 @@ class EventStatsTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'PERSONAL PERFORMANCE'),
+        const BoxyArtSectionTitle(title: 'Personal Performance'),
         if (myAwards.isNotEmpty) ...[
           Container(
             width: double.infinity,

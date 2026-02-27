@@ -42,7 +42,7 @@ _CompetitionRules _$CompetitionRulesFromJson(
       $enumDecodeNullable(_$HandicapModeEnumMap, json['handicapMode']) ??
       HandicapMode.whs,
   handicapCap: (json['handicapCap'] as num?)?.toInt() ?? 28,
-  handicapAllowance: (json['handicapAllowance'] as num?)?.toDouble() ?? 0.10,
+  handicapAllowance: (json['handicapAllowance'] as num?)?.toDouble() ?? 1.0,
   teamHandicapCap: (json['teamHandicapCap'] as num?)?.toInt(),
   underlyingFormat:
       $enumDecodeNullable(

@@ -9,6 +9,7 @@ import '../../../members/presentation/members_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../../models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
+import '../../../events/presentation/widgets/registration_status_pill.dart';
 import '../../../../core/theme/theme_controller.dart';
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
@@ -26,6 +27,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
         return HeadlessScaffold(
           title: 'Manage Registrations',
           subtitle: event.title,
+          useScaffold: false,
           showBack: true,
           onBack: () => context.go('/admin/events'),
           slivers: [
@@ -37,8 +39,8 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, st) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, st) => Center(child: Text('Error: $err')),
     );
   }
 
@@ -356,25 +358,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                               color: Color(0xFF2C3E50),
                             ),
                           ),
-                          Container(width: 1, height: 16, color: Colors.grey.withValues(alpha: 0.3)),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isClosed ? Icons.lock_outline_rounded : Icons.lock_open_rounded,
-                                size: 18,
-                                color: isClosed ? const Color(0xFFC0392B) : const Color(0xFF27AE60),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                isClosed ? 'Registration Closed' : 'Registration Open',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: isClosed ? const Color(0xFFC0392B) : const Color(0xFF27AE60),
-                                ),
-                              ),
-                            ],
+                          RegistrationStatusPill(
+                            type: isClosed 
+                                ? RegistrationStatusType.closed 
+                                : RegistrationStatusType.open,
                           ),
                         ],
                       ),

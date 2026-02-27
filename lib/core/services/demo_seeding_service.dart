@@ -154,7 +154,11 @@ class DemoSeedingService {
     final courses = await _seedCourses();
     debugPrint('Courses Seeded: ${courses.length}');
 
-    // 4. Track Society Cuts (Member ID -> Cumulative Cut)
+    // [NEW] Fetch user templates to influence seeding
+    final userTemplates = await ref.read(competitionsRepositoryProvider).getTemplates();
+    debugPrint('Found ${userTemplates.length} user templates to influence seeding.');
+
+    // 5. Track Society Cuts (Member ID -> Cumulative Cut)
     final Map<String, double> cumulativeCuts = {};
 
     // 5. Seed Events in Chronological order to apply cuts
@@ -197,6 +201,7 @@ class DemoSeedingService {
           members: members,
           appliedCuts: Map<String, double>.from(cumulativeCuts),
           status: config.status,
+          templates: userTemplates,
           isMultiDay: config.isMultiDay,
           endDate: config.endDate,
         );
@@ -362,25 +367,41 @@ class DemoSeedingService {
         address: 'Golf Coast, Demo Land',
         isGlobal: false,
         tees: [
-          // Yellow Tee (Men's Standard) - Longer, Harder
+          // White Tee (Men's Championship)
+          TeeConfig(
+            name: 'White',
+            rating: 71.0 + i % 5, 
+            slope: 128 + (i * 3) % 30,
+            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]), 
+            holeSIs: _generateSI(),
+            yardages: List.generate(18, (h) => 380 + _random.nextInt(200)), 
+          ),
+          // Yellow Tee (Men's Standard) 
           TeeConfig(
             name: 'Yellow',
-            rating: 70.0 + i % 5, // 70.0 - 74.0
-            slope: 125 + (i * 3) % 30, // 125 - 152
-            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]), // Par 72
+            rating: 70.0 + i % 5, 
+            slope: 125 + (i * 3) % 30, 
+            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]),
             holeSIs: _generateSI(),
-            yardages: List.generate(18, (h) => 350 + _random.nextInt(200)), // Long yardages
+            yardages: List.generate(18, (h) => 350 + _random.nextInt(200)), 
           ),
-          // Red Tee (Ladies' Standard) - Shorter, but relative rating might be higher against its own Par/Standard
-          // To test mixed tee adjustments: Make Red Tee have a HIGHER rating relative to Par than White?
-          // Or make Par different? Let's keep Par same but Rating different.
+          // Blue Tee (Competition/Senior)
+          TeeConfig(
+            name: 'Blue',
+            rating: 69.0 + i % 5, 
+            slope: 122 + (i * 3) % 30, 
+            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]),
+            holeSIs: _generateSI(),
+            yardages: List.generate(18, (h) => 320 + _random.nextInt(200)), 
+          ),
+          // Red Tee (Ladies' Standard) 
           TeeConfig(
             name: 'Red',
-            rating: 72.0 + i % 4, // 72.0 - 75.0 (Often higher relative difficulty for women on their tee vs men on theirs)
+            rating: 72.0 + i % 4, 
             slope: 120 + (i * 2) % 30,
-            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]), // Same Par
-            holeSIs: _generateSI(), // Different SIs possibly?
-            yardages: List.generate(18, (h) => 280 + _random.nextInt(150)), // Shorter
+            holePars: List.generate(18, (h) => [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5][h]), 
+            holeSIs: _generateSI(), 
+            yardages: List.generate(18, (h) => 280 + _random.nextInt(150)), 
           ),
         ],
       );
@@ -407,14 +428,17 @@ class DemoSeedingService {
     required List<Member> members,
     required Map<String, double> appliedCuts,
     required EventStatus status,
+    required List<Competition> templates,
     bool isMultiDay = false,
     DateTime? endDate,
   }) async {
     final eventRepo = ref.read(eventsRepositoryProvider);
     final compRepo = ref.read(competitionsRepositoryProvider);
 
+    final yellowTee = course.tees.firstWhere((t) => t.name == 'Yellow');
+
     final event = GolfEvent(
-      id: 'demo_ev_${title.replaceAll(' ', '_').toLowerCase()}',
+      id: 'demo_ev_${title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}',
       title: title,
       seasonId: seasonId,
       date: date,
@@ -431,16 +455,16 @@ class DemoSeedingService {
         'tees': course.tees.map((t) => t.toMap()).toList(), // Save full tee list
         'mensTeeName': 'Yellow',
         'ladiesTeeName': 'Red',
-        
-        // Legacy flat structure (fallback) - using Yellow Data
-        'holes': List.generate(18, (i) => {
-          'hole': i + 1,
-          'par': course.tees.first.holePars[i],
-          'si': course.tees.first.holeSIs[i],
-        }),
-        'par': course.tees.first.holePars.fold(0, (a, b) => a + b),
-        'slope': course.tees.first.slope,
-        'rating': course.tees.first.rating,
+        // [FIX] Ensure the 'holes' list (maps) matches the Yellow tee by default
+        'holes': course.tees.firstWhere((t) => t.name == 'Yellow').holePars.asMap().entries.map((e) => {
+          'hole': e.key + 1,
+          'par': e.value,
+          'si': yellowTee.holeSIs[e.key],
+          'yardage': yellowTee.yardages[e.key],
+        }).toList(),
+        'par': yellowTee.holePars.fold(0, (a, b) => a + b),
+        'slope': yellowTee.slope,
+        'rating': yellowTee.rating,
       },
       hasBreakfast: true,
       hasLunch: _random.nextBool(),
@@ -552,7 +576,15 @@ class DemoSeedingService {
     final updatedEvent = event.copyWith(registrations: regs);
     await eventRepo.addEvent(updatedEvent);
 
-    final rules = CompetitionRules(
+    // Try to find a matching template from the user's library
+    final matchingTemplate = templates.where((t) {
+      if (subtype != CompetitionSubtype.none) {
+        return t.rules.format == format && t.rules.subtype == subtype;
+      }
+      return t.rules.format == format && t.rules.subtype == CompetitionSubtype.none;
+    }).firstOrNull;
+
+    final rules = matchingTemplate?.rules ?? CompetitionRules(
       format: format, 
       subtype: subtype, 
       handicapAllowance: subtype == CompetitionSubtype.fourball ? 0.85 : (subtype == CompetitionSubtype.foursomes ? 0.50 : 0.95),
@@ -574,6 +606,10 @@ class DemoSeedingService {
       // [NEW] Randomize Tie Break (10% Playoff)
       tieBreak: _random.nextDouble() < 0.10 ? TieBreakMethod.playoff : TieBreakMethod.back9,
     );
+
+    if (matchingTemplate != null) {
+      debugPrint('--- SEEDING: Applied rules from user template "${matchingTemplate.name}" to event "$title" ---');
+    }
 
     await compRepo.addCompetition(Competition(
       id: updatedEvent.id,
@@ -727,7 +763,8 @@ class DemoSeedingService {
                   status: cardStatus,
                   holeScores: holeScores,
                   points: isInternalStableford ? pointsTotal : null,
-                  // gross: grossTotal, // Removed as not in constructor
+                  handicapIndex: index,
+                  playingHandicap: phc,
                   netTotal: grossTotal - phc.round(), // Ensure integer
                   createdAt: DateTime.now(),
                   updatedAt: DateTime.now(),
@@ -910,7 +947,10 @@ class DemoSeedingService {
                submittedByUserId: 'system_seeder',
                status: cardStatus,
                holeScores: teamHoleScores,
-               shotAttributions: format == CompetitionFormat.scramble ? { for (var h in List.generate(18, (i) => i + 1)) h : team[_random.nextInt(team.length)].registrationMemberId } : {}, points: teamPts,
+               shotAttributions: format == CompetitionFormat.scramble ? { for (var h in List.generate(18, (i) => i + 1)) h : team[_random.nextInt(team.length)].registrationMemberId } : {}, 
+               points: teamPts,
+               handicapIndex: player.handicapIndex,
+               playingHandicap: playingHc.round(),
                grossTotal: teamGross,
                netTotal: teamNet,
                createdAt: date,

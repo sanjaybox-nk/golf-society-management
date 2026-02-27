@@ -49,15 +49,17 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── SCORE CAP SETTINGS ────────────────────────────────
         const BoxyArtSectionTitle(title: 'SCORE CAP SETTINGS'),
         const SizedBox(height: 16),
+
         BoxyArtDropdownField<MaxScoreType>(
           label: 'Max Score Type',
           value: _type,
           items: const [
-            DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Relative to Par (e.g. Par + 2)')),
-            DropdownMenuItem(value: MaxScoreType.netDoubleBogey, child: Text('Net Double Bogey (Par + 2 + HCP Strokes)')),
-            DropdownMenuItem(value: MaxScoreType.fixed, child: Text('Fixed Value (e.g. 10)')),
+            DropdownMenuItem(value: MaxScoreType.parPlusX, child: Text('Relative to Par')),
+            DropdownMenuItem(value: MaxScoreType.netDoubleBogey, child: Text('Net Double Bogey (WHS Standard)')),
+            DropdownMenuItem(value: MaxScoreType.fixed, child: Text('Fixed Score')),
           ],
           onChanged: (val) {
             if (val != null) {
@@ -69,37 +71,57 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
             }
           },
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Text(
-            _getMaxScoreTypeDescription(_type),
-            style: const TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
-          ),
-        ),
+        buildInfoBubble(_getMaxScoreTypeDescription(_type)),
+
         if (_type != MaxScoreType.netDoubleBogey) ...[
           const SizedBox(height: 24),
-          BoxyArtFormField(
-            label: _type == MaxScoreType.parPlusX ? 'Strokes Over Par (X)' : 'Max Score Value',
-            initialValue: _value.toString(),
-            keyboardType: TextInputType.number,
-            onChanged: (val) => setState(() => _value = int.tryParse(val) ?? (_type == MaxScoreType.parPlusX ? 2 : 10)),
+          buildSliderField(
+            label: _type == MaxScoreType.parPlusX ? 'Maximum Strokes Over Par' : 'Fixed Score Cap',
+            valueLabel: '$_value',
+            value: _value.toDouble(),
+            min: 1,
+            max: _type == MaxScoreType.fixed ? 15 : 6,
+            divisions: _type == MaxScoreType.fixed ? 14 : 5,
+            onChanged: (val) => setState(() => _value = val.round()),
           ),
         ],
-        const SizedBox(height: 24),
-        _buildAllowanceSlider(context),
 
         const SizedBox(height: 24),
         const Divider(height: 1),
         const SizedBox(height: 24),
-        const BoxyArtSectionTitle(title: 'ADDITIONAL SETTINGS'),
+
+        // ── HANDICAP ──────────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
         const SizedBox(height: 16),
-        BoxyArtFormField(
-          label: 'Handicap Cap',
-          initialValue: _handicapCap.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (val) => setState(() => _handicapCap = int.tryParse(val) ?? 28),
+
+        buildAllowanceSlider(
+          _allowance,
+          (val) => setState(() => _allowance = val),
+          hint: "Fraction of each player's course handicap applied to the score.",
         ),
         const SizedBox(height: 24),
+
+        buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
+        buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
+        const SizedBox(height: 24),
+
+        BoxyArtSwitchField(
+          label: 'Hard Cap Playing HC\nOff = Max Cap Index + WHS ·\nOn = HC + WHS',
+          value: !_applyCapToIndex,
+          onChanged: (val) => setState(() => _applyCapToIndex = !val),
+        ),
+        buildInfoBubble(_applyCapToIndex
+            ? 'Cap applies to the baseline index. WHS course adjustments may push the playing HC above it.'
+            : 'Cap is applied to the final playing HC — a player will never exceed $_handicapCap.'),
+
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+
+        // ── TIE BREAK ─────────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        const SizedBox(height: 16),
+
         BoxyArtDropdownField<TieBreakMethod>(
           label: 'Tie Break Method',
           value: _tieBreak,
@@ -107,27 +129,26 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
             DropdownMenuItem(value: TieBreakMethod.back9, child: Text('Standard (Back 9-6-3-1)')),
             DropdownMenuItem(value: TieBreakMethod.playoff, child: Text('Playoff (Manual Result)')),
           ],
-          onChanged: (val) {
-            if (val != null) setState(() => _tieBreak = val);
-          },
+          onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
         ),
+        buildInfoBubble('Back 9 compares the last 9 holes in reverse order. Playoff is a sudden-death hole-off decided manually.'),
+
         const SizedBox(height: 24),
-        ModernSwitchRow(
-          label: 'Hard Cap Playing HC',
-          subtitle: _applyCapToIndex
-              ? 'Cap applies to baseline Index.'
-              : 'Cap applies to final Playing HC.',
-          value: !_applyCapToIndex,
-          icon: Icons.lock_outline_rounded,
-          onChanged: (val) => setState(() => _applyCapToIndex = !val),
-        ),
+        const Divider(height: 1),
         const SizedBox(height: 24),
-        BoxyArtFormField(
-          label: 'Rounds (Series)',
-          initialValue: _roundsCount.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (val) => setState(() => _roundsCount = int.tryParse(val) ?? 1),
+
+        // ── SERIES / MULTI-ROUND ──────────────────────────────
+        const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
+        const SizedBox(height: 16),
+
+        buildSliderField(
+          label: 'Number of Rounds',
+          valueLabel: '$_roundsCount',
+          value: _roundsCount.toDouble(),
+          min: 1, max: 6, divisions: 5,
+          onChanged: (val) => setState(() => _roundsCount = val.round()),
         ),
+        buildInfoBubble('Leave at 1 for single events. Increase for season-long or multi-round series.'),
         if (_roundsCount > 1) ...[
           const SizedBox(height: 24),
           BoxyArtDropdownField<AggregationMethod>(
@@ -137,107 +158,36 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
               DropdownMenuItem(value: AggregationMethod.totalSum, child: Text('Cumulative Score')),
               DropdownMenuItem(value: AggregationMethod.singleBest, child: Text('Best Round Counts')),
             ],
-            onChanged: (val) {
-              if (val != null) setState(() => _aggregation = val);
-            },
+            onChanged: (val) { if (val != null) setState(() => _aggregation = val); },
           ),
+          buildInfoBubble('Cumulative adds all round scores. Best Round only counts a player\'s lowest gross round.'),
         ],
 
         const SizedBox(height: 24),
         const Divider(height: 1),
         const SizedBox(height: 24),
+
+        // ── TEAM / GROUP SCORING ──────────────────────────────
         const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
         const SizedBox(height: 16),
+
         BoxyArtDropdownField<int>(
           label: 'Best X Scores per Flight',
           value: _teamBestXCount,
-          items: [1, 2, 3, 4].map((i) => DropdownMenuItem(
-            value: i,
-            child: Text('Best $i Scores'),
-          )).toList(),
-          onChanged: (val) {
-            if (val != null) setState(() => _teamBestXCount = val);
-          },
+          items: [1, 2, 3, 4].map((i) => DropdownMenuItem(value: i, child: Text('Best $i Scores'))).toList(),
+          onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
         ),
-
+        buildInfoBubble('How many individual scores count towards the group total in the flight view.'),
       ],
     );
   }
-
-  Widget _buildAllowanceSlider(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final pct = (_allowance * 100).round();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'HANDICAP ALLOWANCE',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-                color: isDark ? Colors.white70 : Colors.black87,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '$pct%',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: primary),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: primary,
-            inactiveTrackColor: primary.withValues(alpha: 0.15),
-            thumbColor: primary,
-            overlayColor: primary.withValues(alpha: 0.12),
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-            valueIndicatorColor: primary,
-            valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          child: Slider(
-            value: _allowance.clamp(0.0, 1.0),
-            min: 0,
-            max: 1.0,
-            divisions: 20,
-            label: '$pct%',
-            onChanged: (val) => setState(() => _allowance = val),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
-            Text('Applied to each player\'s course handicap', style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
-            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ],
-    );
-  }
-
 
   String _getMaxScoreTypeDescription(MaxScoreType type) {
     switch (type) {
       case MaxScoreType.parPlusX:
-        return 'Scores are capped at a specific number of strokes over par (e.g. Par + 2).';
+        return 'Scores are capped at a specific number of strokes over par (e.g. Par + 2 = double bogey cap).';
       case MaxScoreType.netDoubleBogey:
-        return 'The standard tournament cap. Your score is capped at Net Double Bogey (Par + 2 + Handicap Strokes).';
+        return 'The standard tournament cap: Par + 2 + Handicap Strokes received on that hole.';
       case MaxScoreType.fixed:
         return 'Every hole is capped at a single fixed value (e.g. 10), regardless of par or handicap.';
     }

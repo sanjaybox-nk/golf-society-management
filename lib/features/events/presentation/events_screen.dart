@@ -8,6 +8,7 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/models/golf_event.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/models/competition.dart';
+import 'package:golf_society/core/widgets/staggered_entrance.dart';
 
 class EventsScreen extends ConsumerWidget {
   const EventsScreen({super.key});
@@ -55,9 +56,12 @@ class EventsScreen extends ConsumerWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final isNextMatch = index == 0;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _EventCard(event: events[index], isHighlighted: isNextMatch),
+                    return StaggeredEntrance(
+                      index: index,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _EventCard(event: events[index], isHighlighted: isNextMatch),
+                      ),
                     );
                   },
                   childCount: events.length,
@@ -91,9 +95,12 @@ class EventsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _EventCard(event: events[index], isHighlighted: false),
+                    return StaggeredEntrance(
+                      index: index + 5, // Offset stagger for past events
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _EventCard(event: events[index], isHighlighted: false),
+                      ),
                     );
                   },
                   childCount: events.length,
@@ -123,7 +130,7 @@ class _EventCard extends ConsumerWidget {
     final textSecondary = theme.textTheme.bodySmall?.color;
 
     return ModernCard(
-      onTap: () => context.push('/events/${event.id}'),
+      onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
       padding: const EdgeInsets.all(14),
       backgroundColor: isHighlighted 
           ? (isDark ? primary.withValues(alpha: 0.15) : primary.withValues(alpha: 0.03))
@@ -140,58 +147,11 @@ class _EventCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Status Row
-                Row(
-                  children: [
-                    _buildStatusBadge(context),
-                    if (event.isInvitational) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.purple.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 0.5),
-                        ),
-                        child: const Text(
-                          'INVITATIONAL',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (event.isMultiDay == true) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.teal.withValues(alpha: 0.3), width: 0.5),
-                        ),
-                        child: const Text(
-                          'MULTI-DAY',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.teal,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 6),
                 Text(
                   event.title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 17,
-                    letterSpacing: -0.4,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -199,18 +159,7 @@ class _EventCard extends ConsumerWidget {
                 // Location Row
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.location_on_rounded,
-                        size: 10,
-                        color: primary,
-                      ),
-                    ),
+                    BoxyArtIconBadge(icon: Icons.location_on_rounded, color: primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -231,52 +180,47 @@ class _EventCard extends ConsumerWidget {
                 // Time Row
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.access_time_filled_rounded,
-                        size: 10,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
+                    BoxyArtIconBadge(icon: Icons.access_time_filled_rounded, color: Colors.grey.shade600),
                     const SizedBox(width: 8),
                     Text(
                       'Registration: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
                       style: TextStyle(
-                        color: textSecondary?.withValues(alpha: 0.7),
+                        color: textSecondary?.withValues(alpha: 0.75),
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
                       ),
                     ),
                   ],
                 ),
                 
-                // Game Type Badge
-                const SizedBox(height: 8),
-                _buildGameTypeBadge(context, ref),
+                // Bottom Pill Row
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildGameTypeBadge(context, ref),
+                    if (event.isInvitational) ...[
+                      const SizedBox(width: 8),
+                      BoxyArtPill(
+                        label: toTitleCase('Invitational'),
+                        color: Colors.purple,
+                      ),
+                    ],
+                    if (event.isMultiDay == true) ...[
+                      const SizedBox(width: 8),
+                      BoxyArtPill(
+                        label: toTitleCase('Multi-day'),
+                        color: Colors.teal,
+                      ),
+                    ],
+                    const Spacer(),
+                    _buildStatusBadge(context),
+                  ],
+                ),
               ],
             ),
           ),
 
-          const SizedBox(width: 8),
-
-          // Action Indicator
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.chevron_right_rounded, 
-              color: Colors.grey.shade400, 
-              size: 20
-            ),
-          ),
         ],
       ),
     );
@@ -289,56 +233,29 @@ class _EventCard extends ConsumerWidget {
     Color statusColor;
     
     if (status == EventStatus.draft) {
-      statusText = 'DRAFT';
+      statusText = 'Draft';
       statusColor = Colors.orange;
     } else if (status == EventStatus.inPlay) {
-      statusText = 'LIVE';
+      statusText = 'Live';
       statusColor = Colors.blue;
     } else if (status == EventStatus.suspended) {
-      statusText = 'SUSPENDED';
+      statusText = 'Suspended';
       statusColor = Colors.deepOrange;
     } else if (status == EventStatus.cancelled) {
-      statusText = 'CANCELLED';
+      statusText = 'Cancelled';
       statusColor = Colors.red;
     } else if (status == EventStatus.completed) {
-      statusText = 'COMPLETED';
+      statusText = 'Completed';
       statusColor = Colors.grey;
     } else {
       // Published = Open for members
-      statusText = 'PUBLISHED';
+      statusText = 'Published';
       statusColor = const Color(0xFF27AE60);
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            statusText,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: statusColor,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
-      ),
+    return BoxyArtPill(
+      label: statusText,
+      color: statusColor,
     );
   }
 
@@ -351,28 +268,23 @@ class _EventCard extends ConsumerWidget {
 
         final color = Theme.of(context).primaryColor;
         
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
-          ),
-          child: Text(
-            comp.rules.gameName.toUpperCase(),
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: color,
-              letterSpacing: 0.5,
-            ),
-          ),
+        return BoxyArtPill(
+          label: toTitleCase(comp.rules.gameName),
+          color: color,
         );
       },
       loading: () => const SizedBox.shrink(),
       error: (err, stack) => const SizedBox.shrink(),
     );
   }
+}
+
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
 }
 
 

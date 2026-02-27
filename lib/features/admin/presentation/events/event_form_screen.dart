@@ -16,6 +16,7 @@ import '../../../../core/services/storage_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 import '../../../../models/course.dart';
@@ -282,6 +283,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       _selectedFemaleTeeName = e.selectedFemaleTeeName;
       _mensTeeName = e.courseConfig['mensTeeName']?.toString();
       _ladiesTeeName = e.courseConfig['ladiesTeeName']?.toString();
+    
+    // [HARDENING] Initialize available tees from the event's existing config.
+    // This prevents the 'tees' list from being wiped if the user saves before the coursesProvider finishes loading.
+    if (e.courseConfig['tees'] != null) {
+      final List<dynamic> teeMaps = e.courseConfig['tees'];
+      _availableTees = teeMaps.map((m) => TeeConfig.fromMap(m as Map<String, dynamic>)).toList();
+    }
+
     if (_facilitiesControllers.isEmpty) _facilitiesControllers.add(TextEditingController());
 
     _selectedDate = e.date;
@@ -636,7 +645,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     }
 
     return HeadlessScaffold(
-      title: isEditing ? 'Edit Event Settings' : 'Create Event',
+      title: isEditing ? 'Event Settings' : 'Create Event',
       subtitle: isEditing ? (widget.event?.title ?? 'Update Details') : 'Create a new society event',
       leadingWidth: 70,
       leading: Center(
@@ -646,7 +655,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           onPressed: () {
             if (isEditing) {
               final id = widget.eventId ?? widget.event?.id;
-              context.go('/admin/events/manage/$id/event');
+              context.go('/admin/events/manage/${Uri.encodeComponent(id!)}/event');
             } else {
               context.go('/admin/events');
             }
@@ -716,10 +725,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
                 
                 const BoxyArtSectionTitle(title: 'DateTime & Registration'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -801,10 +810,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
 
                 const BoxyArtSectionTitle(title: 'Course Selection'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -1100,7 +1109,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                         onTap: () async {
                                            String? eventId = _editingEvent?.id ?? widget.event?.id;
                                            if (eventId != null) {
-                                               context.push('/admin/events/competitions/edit/$eventId');
+                                               context.push('/admin/events/competitions/edit/${Uri.encodeComponent(eventId)}');
                                            }
                                         },
                                         child: Column(
@@ -1411,7 +1420,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                             }
 
                                              if (!context.mounted) return;
-                                             context.push('/admin/events/competitions/edit/$secondaryId');
+                                             context.push('/admin/events/competitions/edit/${Uri.encodeComponent(secondaryId)}');
                                              if (context.mounted) _fetchSecondaryCompetition(eventId);
                                           },
                                           icon: Icon(_isSecondaryCustomized ? Icons.edit_note : Icons.tune, size: 18),
@@ -1436,9 +1445,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   }
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
                 const BoxyArtSectionTitle(title: 'Playing Costs'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -1464,10 +1473,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
 
                 const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -1515,10 +1524,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
 
                 const BoxyArtSectionTitle(title: 'Dinner Info'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -1529,10 +1538,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
 
                 const BoxyArtSectionTitle(title: 'Facilities'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtFloatingCard(
                   child: Column(
                     children: [
@@ -1554,10 +1563,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.cardSpacing),
 
                 const BoxyArtSectionTitle(title: 'Notes & Content'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTheme.sectionSpacing),
                 ..._notesControllers.asMap().entries.map((entry) {
                    return _buildRichNoteItem(entry.key, entry.value);
                 }),

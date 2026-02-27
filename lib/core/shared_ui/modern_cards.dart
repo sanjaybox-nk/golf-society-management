@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_shadows.dart';
@@ -8,6 +7,7 @@ import '../theme/theme_controller.dart';
 import '../../models/member.dart';
 import '../../models/handicap_system.dart';
 import 'badges.dart';
+import 'layout.dart';
 
 /// A card with a soft diffused shadow and high rounded corners.
 class BoxyArtFloatingCard extends ConsumerWidget {
@@ -72,7 +72,7 @@ class BoxyArtFloatingCard extends ConsumerWidget {
           )
         ] : AppShadows.softScale,
         border: border ?? Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.03),
+          color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -116,7 +116,7 @@ class BoxyArtSettingsCard extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               letterSpacing: -0.5,
             ),
           ),
@@ -197,7 +197,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
 
     // Force White Layout (Consistent with MemberTile)
     const textColor = Colors.black87;
-    const subTextColor = Colors.black54;
 
     final society = ref.watch(themeControllerProvider);
     final system = society.handicapSystem;
@@ -221,7 +220,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                            color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                             width: 2,
                           ),
                         ),
@@ -235,7 +234,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   (lastName.isNotEmpty ? lastName[0] : ''),
                                   style: const TextStyle(
                                     fontSize: 24,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w900,
                                     color: Colors.black54,
                                   ),
                                 )
@@ -274,7 +273,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black.withValues(alpha: 0.4),
+                        color: Colors.black.withValues(alpha: 0.2),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -310,9 +309,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'HANDICAP', 
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8)
+                                BoxyArtSectionTitle(
+                                  title: 'Handicap',
+                                  padding: EdgeInsets.only(bottom: 6),
+                                  isLevel2: true,
                                 ),
                                 const SizedBox(height: 6),
                                 Container(
@@ -320,7 +320,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF8F9FA),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                                    border: Border.all(color: Colors.black.withValues(alpha: 0.2)),
                                   ),
                                   child: TextFormField(
                                     controller: handicapController,
@@ -344,9 +344,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  system.idLabel, 
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8)
+                                BoxyArtSectionTitle(
+                                  title: system.idLabel,
+                                  padding: EdgeInsets.only(bottom: 6),
+                                  isLevel2: true,
                                 ),
                                 const SizedBox(height: 6),
                                 Container(
@@ -354,7 +355,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF8F9FA),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                                    border: Border.all(color: Colors.black.withValues(alpha: 0.2)),
                                   ),
                                   child: TextFormField(
                                     controller: handicapIdController,
@@ -382,9 +383,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'HANDICAP',
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8),
+                                BoxyArtSectionTitle(
+                                  title: 'Handicap',
+                                  isLevel2: true,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -399,9 +400,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  system.idLabel,
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: subTextColor, letterSpacing: 0.8),
+                                BoxyArtSectionTitle(
+                                  title: system.idLabel,
+                                  isLevel2: true,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -450,17 +451,15 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               ),
                           ))
                       .toList(),
-                  child: BoxyArtStatusPill(
-                    text: statusLabel,
-                    baseColor: status.color,
-                    backgroundColorOverride: Colors.grey.shade50,
+                  child: BoxyArtPill(
+                    label: statusLabel,
+                    color: status.color,
                   ),
                 )
               else
-                BoxyArtStatusPill(
-                  text: statusLabel,
-                  baseColor: status.color,
-                  backgroundColorOverride: Colors.grey.shade50,
+                BoxyArtPill(
+                  label: statusLabel,
+                  color: status.color,
                 ),
               
               const SizedBox(width: 8),
@@ -469,22 +468,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
               if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
                 GestureDetector(
                   onTap: canEdit ? onRoleTap : null,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.2), width: 1),
-                    ),
-                    child: Text(
-                      _getRoleLabel(role ?? MemberRole.viewer).toUpperCase(),
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
+                  child: BoxyArtPill(
+                    label: (role?.displayName ?? 'Member').toUpperCase(),
+                    color: Colors.blueGrey,
                   ),
                 ),
 
@@ -514,7 +500,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -562,15 +548,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     );
   }
 
-  String _getRoleLabel(MemberRole role) {
-    switch (role) {
-      case MemberRole.superAdmin: return 'Super Admin';
-      case MemberRole.admin: return 'Admin';
-      case MemberRole.restrictedAdmin: return 'Restricted';
-      case MemberRole.viewer: return 'Viewer';
-      case MemberRole.member: return 'Member';
-    }
-  }
 }
 
 /// A refined modern card with deep soft shadows and modular structure.
@@ -607,13 +584,13 @@ class ModernCard extends StatelessWidget {
         boxShadow: [
           // Base Soft Shadow
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
           // Sharp Close Shadow
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -629,7 +606,7 @@ class ModernCard extends StatelessWidget {
         border: border != null 
           ? Border.fromBorderSide(border!) 
           : Border.all(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.08 : 0.04),
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
               width: 0.5,
             ),
       ),
@@ -703,7 +680,7 @@ class ModernMetricCircle extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -762,7 +739,7 @@ class ModernInfoRow extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: (iconColor ?? primary).withValues(alpha: 0.1),
+              color: (iconColor ?? primary).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -780,17 +757,18 @@ class ModernInfoRow extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
-                  color: textSecondary,
+                  fontSize: 12,
+                  color: textSecondary?.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w500,
+                  letterSpacing: 0.2,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 value,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w900,
                   color: textPrimary,
                 ),
               ),
@@ -906,7 +884,7 @@ class ModernIconBadge extends StatelessWidget {
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: color.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon, size: 14, color: color),
@@ -932,7 +910,6 @@ class ModernRuleItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = accentColor ?? Theme.of(context).primaryColor;
     final textPrimary = Theme.of(context).textTheme.bodyLarge?.color;
-    final textSecondary = Theme.of(context).textTheme.bodySmall?.color;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -948,13 +925,9 @@ class ModernRuleItem extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
+            child: BoxyArtSectionTitle(
+              title: label,
+              isLevel2: true,
             ),
           ),
           const Spacer(),
@@ -1045,7 +1018,7 @@ class ModernMetricStat extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.06),
+          color: color.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -1095,7 +1068,7 @@ class ModernMetricStat extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -1150,7 +1123,7 @@ class ModernSummaryIcon extends StatelessWidget {
         Icon(icon, color: color, size: 22),
         const SizedBox(height: 6),
         Text(
-          label.toUpperCase(),
+          label,
           style: TextStyle(
             fontSize: 9,
             fontWeight: active ? FontWeight.bold : FontWeight.normal,
@@ -1227,110 +1200,106 @@ class ModernSubTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We want a floating pill at the bottom
     final primary = Theme.of(context).primaryColor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
     
-    // Support themed placeholders/unselected icons
-    final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.7) ?? 
-                    (isDark ? Colors.white60 : Colors.black45);
+    // Dock Proportions
+    final availableWidth = screenWidth - 64; // Horizontal margins (32 * 2)
+    final itemWidth = availableWidth / items.length;
+    final indicatorWidth = itemWidth * 0.65;
+    const double indicatorHeight = 36.0;
+    const double dockHeight = 60.0;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
-      height: 72, // Increased height for outside labels
-      decoration: BoxDecoration(
-        color: (isDark ? Colors.grey.shade900 : Colors.white).withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(36),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(32, 0, 32, 12),
+        height: dockHeight,
+        width: availableWidth,
+        decoration: BoxDecoration(
+          color: (isDark ? const Color(0xFF1A1C1E) : Colors.white),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+              blurRadius: 30,
+              offset: const Offset(0, 8),
+            ),
+          ],
+          border: Border.all(
+            color: borderColor ?? (isDark ? Colors.white : Colors.black).withValues(alpha: 0.25), 
+            width: 0.5,
           ),
-        ],
-        border: Border.all(
-          color: borderColor ?? (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05), 
-          width: borderColor != null ? 1.0 : 0.5
         ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(36),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Stack(
-            children: [
-              // Travelling Indicator (Now a small circle)
-              AnimatedAlign(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.elasticOut,
-                alignment: Alignment(
-                  (items.length > 1) ? (selectedIndex / (items.length - 1)) * 2 - 1 : 0,
-                  -0.5, // Shift up slightly more
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: (MediaQuery.of(context).size.width - 48) / (items.length * 2) - 20,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Precision Highlight
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutQuart,
+              left: (selectedIndex * itemWidth) + (itemWidth - indicatorWidth) / 2,
+              top: 5.0,
+              child: Container(
+                width: indicatorWidth,
+                height: indicatorHeight,
+                decoration: ShapeDecoration(
+                  color: primary.withValues(alpha: 0.12),
+                  shape: ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: primary.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                ),
+              ),
+            ),
+            
+            // Tab Items
+            Row(
+              children: items.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final isSelected = index == selectedIndex;
+                final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.45) ?? 
+                    (isDark ? Colors.white54 : Colors.black45);
+                
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => onSelected(index),
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 2),
+                        AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: isSelected ? 1.1 : 1.0,
+                          curve: Curves.easeOutBack,
+                          child: Icon(
+                            isSelected ? item.activeIcon : item.icon,
+                            color: isSelected ? primary : unselectedItemColor,
+                            size: 20,
+                          ),
                         ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            color: isSelected ? primary : unselectedItemColor,
+                            letterSpacing: 0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
                       ],
                     ),
                   ),
-                ),
-              ),
-              
-              // Tab Items
-              Row(
-                children: items.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  final isSelected = index == selectedIndex;
-                  
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => onSelected(index),
-                      behavior: HitTestBehavior.opaque,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 6), // Tighten top
-                          Icon(
-                            isSelected ? item.activeIcon : item.icon,
-                            color: isSelected ? Colors.white : unselectedItemColor,
-                            size: 20,
-                          ),
-                          if (items.length <= 5) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              item.label,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                                color: isSelected ? primary : unselectedItemColor,
-                                letterSpacing: 0.1,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
+                );
+              }).toList(),
+            ),
+          ],
         ),
       ),
     );

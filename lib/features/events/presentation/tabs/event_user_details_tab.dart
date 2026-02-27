@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../../core/shared_ui/shared_ui.dart';
 import '../../../../models/golf_event.dart';
 import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -17,28 +16,21 @@ import '../../../../../models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../../models/member.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
+  final bool useScaffold;
 
-  const EventUserDetailsTab({super.key, required this.eventId});
+  const EventUserDetailsTab({super.key, required this.eventId, this.useScaffold = true});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(eventsProvider);
-    return eventsAsync.when(
-      data: (events) {
-        final event = events.firstWhereOrNull((e) => e.id == eventId);
-        
-        if (event == null) {
-          return const Scaffold(
-            body: Center(
-              child: Text('Event data no longer available'),
-            ),
-          );
-        }
-        
+    final eventAsync = ref.watch(eventProvider(eventId));
+    
+    return eventAsync.when(
+      data: (event) {
         final config = ref.watch(themeControllerProvider);
         // Check for preview mode
         bool isPreview = false;
@@ -52,10 +44,15 @@ class EventUserDetailsTab extends ConsumerWidget {
           event: event, 
           currencySymbol: config.currencySymbol,
           isPreview: isPreview,
+          useScaffold: useScaffold,
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => useScaffold 
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => useScaffold
+          ? Scaffold(body: Center(child: Text('Error: $err')))
+          : Center(child: Text('Error: $err')),
     );
   }
 }
@@ -68,6 +65,7 @@ class EventDetailsContent extends ConsumerWidget {
   final VoidCallback? onEdit;
   final ValueChanged<EventStatus>? onStatusChanged;
   final Widget? bottomNavigationBar;
+  final bool useScaffold;
 
   const EventDetailsContent({
     super.key,
@@ -78,6 +76,7 @@ class EventDetailsContent extends ConsumerWidget {
     this.onEdit,
     this.onStatusChanged,
     this.bottomNavigationBar,
+    this.useScaffold = true,
   });
 
   @override
@@ -88,6 +87,7 @@ class EventDetailsContent extends ConsumerWidget {
     return HeadlessScaffold(
       title: event.title,
       subtitle: 'Info Hub',
+      useScaffold: useScaffold,
       leading: isPreview ? Center(
         child: BoxyArtGlassIconButton(
           icon: Icons.close_rounded,
@@ -127,7 +127,7 @@ class EventDetailsContent extends ConsumerWidget {
             iconSize: 24,
             onPressed: () {
                final id = event.id;
-               context.push('/admin/events/manage/$id/event/edit', extra: event);
+               context.push('/admin/events/manage/${Uri.encodeComponent(id)}/event/edit', extra: event);
             },
             tooltip: 'Edit Event Settings',
           ),
@@ -137,7 +137,7 @@ class EventDetailsContent extends ConsumerWidget {
         // Status Badge (Integrated into content)
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
             child: _buildStatusBadge(context),
           ),
         ),
@@ -145,29 +145,30 @@ class EventDetailsContent extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _buildRegistrationCard(context),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _buildHeroSection(context),
-                const SizedBox(height: 24),
+                SizedBox(height: AppTheme.cardSpacing),
               _buildDateTimeSection(context),
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildCourseSelectionSection(context),
-              const SizedBox(height: 24),
+              _buildCourseDataHardeningSection(context),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildCompetitionRulesSection(context),
               if (event.secondaryTemplateId != null) ...[
-                const SizedBox(height: 24),
+                SizedBox(height: AppTheme.cardSpacing),
                 _buildSecondaryRulesSection(context),
               ],
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildPlayingCostsSection(context),
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildMealCostsSection(context),
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildDinnerLocationSection(context),
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildFacilitiesSection(context),
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.cardSpacing),
               _buildNotesSection(context),
             ]),
           ),
@@ -205,40 +206,18 @@ class EventDetailsContent extends ConsumerWidget {
       statusColor = const Color(0xFF27AE60);
     }
 
-    final badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            statusText,
-            style: TextStyle(
-              color: statusColor,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          if (onStatusChanged != null) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: statusColor),
-          ],
+    final badge = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        BoxyArtPill(
+          label: toTitleCase(statusText),
+          color: statusColor,
+        ),
+        if (onStatusChanged != null) ...[
+          const SizedBox(width: 4),
+          Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: statusColor),
         ],
-      ),
+      ],
     );
 
     if (onStatusChanged == null) return badge;
@@ -350,6 +329,7 @@ class EventDetailsContent extends ConsumerWidget {
                   event.description!,
                   style: TextStyle(
                     fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
                     height: 1.5,
                   ),
@@ -364,6 +344,7 @@ class EventDetailsContent extends ConsumerWidget {
           event.description!,
           style: TextStyle(
             fontSize: 15,
+            fontWeight: FontWeight.w600,
             color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
             height: 1.5,
           ),
@@ -379,7 +360,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Date & Time'),
-        const SizedBox(height: 12),
         ModernCard(
           child: Column(
             children: [
@@ -431,7 +411,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Course'),
-        const SizedBox(height: 12),
         ModernCard(
           child: Column(
             children: [
@@ -538,6 +517,145 @@ class EventDetailsContent extends ConsumerWidget {
     }
   }
 
+  Widget _buildCourseDataHardeningSection(BuildContext context) {
+    // Only show for Admins (based on presence of onStatusChanged callback)
+    if (onStatusChanged == null) return const SizedBox.shrink();
+
+    final config = event.courseConfig;
+    final slope = double.tryParse(config['slope']?.toString() ?? '0') ?? 0;
+    final rating = double.tryParse(config['rating']?.toString() ?? '0') ?? 0;
+    final par = double.tryParse(config['par']?.toString() ?? '0') ?? 0;
+
+    final bool isMissing = slope <= 0 || rating <= 0 || par <= 0;
+    if (!isMissing) return const SizedBox.shrink();
+
+    return Consumer(
+      builder: (context, ref, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Row(
+                     children: [
+                       const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24),
+                       const SizedBox(width: 12),
+                       Expanded(
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             const Text(
+                               'Missing Course Data',
+                               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.red),
+                             ),
+                             Text(
+                               'Handicaps cannot be accurately calculated.',
+                               style: TextStyle(fontSize: 13, color: Colors.red.withValues(alpha: 0.8)),
+                             ),
+                           ],
+                         ),
+                       ),
+                     ],
+                   ),
+                   const SizedBox(height: 20),
+                   _buildManualDataFixer(context, ref),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildManualDataFixer(BuildContext context, WidgetRef ref) {
+    final Map<String, dynamic> localConfig = Map.from(event.courseConfig);
+    final slopeController = TextEditingController(text: localConfig['slope']?.toString() ?? '');
+    final ratingController = TextEditingController(text: localConfig['rating']?.toString() ?? '');
+    final parController = TextEditingController(text: localConfig['par']?.toString() ?? '');
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildMiniInput(context, 'Slope', slopeController),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMiniInput(context, 'Rating', ratingController),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMiniInput(context, 'Par', parController),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        BoxyArtButton(
+          title: 'Apply Course Updates',
+          isPrimary: true,
+          onTap: () async {
+             final updatedConfig = Map<String, dynamic>.from(event.courseConfig);
+             updatedConfig['slope'] = slopeController.text;
+             updatedConfig['rating'] = ratingController.text;
+             updatedConfig['par'] = parController.text;
+
+             final updatedEvent = event.copyWith(courseConfig: updatedConfig);
+             await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
+             
+             if (context.mounted) {
+               ScaffoldMessenger.of(context).showSnackBar(
+                 const SnackBar(content: Text('Course data updated! Scroll to Grouping to Recalculate HCPs.'))
+               );
+             }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniInput(BuildContext context, String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildRegistrationCard(BuildContext context) {
     // Hide if registration button is disabled or event is in a terminal/live state
     if (!event.showRegistrationButton || 
@@ -574,8 +692,9 @@ class EventDetailsContent extends ConsumerWidget {
                 Text(
                   isFull ? 'Event Full' : 'Secure your spot',
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     fontSize: 18,
+                    letterSpacing: 0.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -583,7 +702,12 @@ class EventDetailsContent extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8), 
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ] else ...[
@@ -619,8 +743,9 @@ class EventDetailsContent extends ConsumerWidget {
                 Text(
                   myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     fontSize: 18,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
@@ -717,7 +842,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Playing Costs'),
-        const SizedBox(height: 12),
         ModernCard(
           child: Column(
             children: [
@@ -789,7 +913,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Meals'),
-        const SizedBox(height: 12),
         ModernCard(
           child: Column(
             children: [
@@ -816,7 +939,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Facilities'),
-        const SizedBox(height: 12),
         ModernCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -848,7 +970,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Notes & Content'),
-        const SizedBox(height: 12),
         ...event.notes.map((note) => _buildNoteCard(context, note)),
       ],
     );
@@ -921,7 +1042,6 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Dinner Info'),
-        const SizedBox(height: 12),
         ModernCard(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -978,7 +1098,6 @@ class _CompetitionRulesCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BoxyArtSectionTitle(title: title),
-            const SizedBox(height: 12),
             ModernCard(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -1040,4 +1159,12 @@ class _CompetitionRulesCard extends ConsumerWidget {
       error: (_, _) => const SizedBox.shrink(),
     );
   }
+}
+
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
 }

@@ -143,7 +143,7 @@ class CourseInfoCard extends StatelessWidget {
                 front9Pars,
                 1,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               
               // Back 9
               _buildNineHoles(
@@ -154,7 +154,7 @@ class CourseInfoCard extends StatelessWidget {
                 back9Pars,
                 10,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               
               // Totals
               _buildTotalsRow(context, totalPar, totalStrokes, totalAdjustedStrokes, totalPoints, holesPlayed, holePars, holeSIs),
@@ -260,10 +260,9 @@ class CourseInfoCard extends StatelessWidget {
     
     return Column(
       children: [
-          // Header row (Hole numbers) with themed background
           Container(
             decoration: BoxDecoration(
-              color: headerColor ?? Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              color: headerColor ?? Colors.grey.withValues(alpha: 0.05),
             ),
             child: Row(
               children: [
@@ -537,8 +536,8 @@ class CourseInfoCard extends StatelessWidget {
           '$label: ',
           style: TextStyle(
             fontSize: 9, 
-            fontWeight: FontWeight.normal, 
-            color: isHighlighted ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            fontWeight: FontWeight.w900, 
+            color: isHighlighted ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             letterSpacing: 0.5,
           ),
         ),
@@ -575,7 +574,7 @@ class CourseInfoCard extends StatelessWidget {
           text,
           style: TextStyle(
             fontSize: 9,
-            fontWeight: isBold ? FontWeight.w900 : FontWeight.w800,
+            fontWeight: FontWeight.w900,
             color: Colors.grey[700],
           ),
         ),
@@ -598,7 +597,7 @@ class CourseInfoCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w900,
-              color: color ?? (isOnTeeColor ? Colors.white : Colors.grey[700]),
+              color: color ?? (isOnTeeColor ? Colors.white : Colors.black87),
             ),
           ),
         ),
@@ -648,9 +647,8 @@ class CourseInfoCard extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(
-            fontSize: isSmall ? 8 : ((isScore || isPoints) ? 12 : 10), // Increased font size for Score and Points
-            // Make scores and points extra heavy (w900)
-            fontWeight: (isBold || isScore || isPoints) ? FontWeight.w900 : (isPar ? FontWeight.w800 : FontWeight.bold),
+            fontSize: isSmall ? 8 : ((isScore || isPoints) ? 12 : 11), 
+            fontWeight: FontWeight.w900,
             color: textColor,
           ),
         ),
@@ -660,12 +658,16 @@ class CourseInfoCard extends StatelessWidget {
 
   Color _getTeeColor(String teeName) {
     final name = teeName.toLowerCase();
-    if (name.contains('black')) return Colors.black;
-    if (name.contains('blue')) return Colors.blue;
-    if (name.contains('white')) return Colors.grey[600]!;
-    if (name.contains('yellow')) return Colors.amber;
-    if (name.contains('red')) return Colors.red;
-    if (name.contains('green')) return Colors.green;
+    if (name.contains('white')) return Colors.grey.shade400; // Using grey for White tee background to keep text visible
+    if (name.contains('yellow')) return const Color(0xFFFFD700);
+    if (name.contains('red')) return const Color(0xFFFF4D4D);
+    if (name.contains('blue')) return const Color(0xFF1E90FF);
+    if (name.contains('black')) return const Color(0xFF2F2F2F);
+    if (name.contains('green')) return const Color(0xFF2ECC71);
+    if (name.contains('gold')) return const Color(0xFFFFD700);
+    if (name.contains('silver')) return const Color(0xFFC0C0C0);
+    if (name.contains('orange')) return Colors.orange;
+    if (name.contains('purple')) return Colors.purple;
     return Colors.grey;
   }
 

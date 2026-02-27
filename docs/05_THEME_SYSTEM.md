@@ -38,6 +38,7 @@ Starting in early 2026, the application transitioned from the classic "Pill & Ca
 - **Glassmorphism Hints**: Background tints and subtle gradients create a layered, premium feel.
 - **Micro-Animations**: Uses rounded shapes and smooth transitions.
 - **Content Hierarchy**: Information is grouped into `ModernCard` containers with consistent `20px` horizontal padding.
+- **High-Contrast Selection Grids**: Prefer 2-column selection grids (Chips) over dropdowns for critical state changes (e.g., Tee Selection). Active states must use high-opacity primary backgrounds with contrasting text (via `ContrastHelper`).
 
 ### Modern Components
 - **`ModernCard`**: Replaces `BoxyArtFloatingCard` with refined borders, better tinting, and optional glass effects.
@@ -61,6 +62,8 @@ Use `StatusColors` for consistent status indicators:
 -   **Neutral**: `#9E9E9E` (Grey) - Archived, Default
 
 ### 2. Typography & Icons
+-   **Headers**: Use `Fredoka` for a rounded, playful feel.
+-   **Body**: Use `Nunito` for friendly readability.
 -   **Weight**: Titles should use `FontWeight.w900` or `FontWeight.bold` for strong hierarchy.
 -   **Spacing**: Modern designs use negative `letterSpacing: -0.5` for titles to feel more contemporary.
 -   **Icons**: Prefer `Icons.*_rounded` variants (e.g., `Icons.home_rounded` over `Icons.home`) for a friendlier look.
@@ -89,9 +92,9 @@ Do **NOT** use default Material Elevation. Use these defined styles:
     -   *Look*: Extremely subtle offset (4px) with 5% opacity to maintain clarity on white cards.
 
 ### 4. Shapes
--   **Cards**: `BorderRadius.circular(30)` or `BorderRadius.circular(25)`.
--   **Buttons/Inputs**: `BorderRadius.circular(100)` (Pill shape).
-    -   *Note*: Use `RoundedRectangleBorder(borderRadius: BorderRadius.circular(100))` for input containers to ensure consistent shadow rendering compared to `StadiumBorder`.
+-   **Cards**: `BorderRadius.circular(28)`.
+-   **Buttons/Inputs**: `BorderRadius.circular(18)`.
+    -   *Note*: Use `RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))` for input containers to ensure consistent shadow rendering compared to `StadiumBorder`.
 -   **Dialogs**: `BorderRadius.circular(25)`.
 
 ### 5. Theme-Aware Development

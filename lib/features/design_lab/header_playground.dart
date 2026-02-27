@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:golf_society/core/shared_ui/modern_cards.dart';
+import 'package:golf_society/features/events/presentation/widgets/registration_status_pill.dart';
 
 
 // Color scheme definitions
@@ -687,17 +688,8 @@ class _ModernRegistration extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Container(width: 1, height: 16, color: scheme.textSecondary.withValues(alpha: 0.3)),
-                          const SizedBox(width: 16),
-                          Icon(Icons.lock_outline_rounded, size: 18, color: const Color(0xFFC0392B)),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Registration Closed',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFC0392B),
-                            ),
+                          const RegistrationStatusPill(
+                            type: RegistrationStatusType.closed,
                           ),
                         ],
                       ),

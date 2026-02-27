@@ -120,7 +120,8 @@ final pastEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
 // Single Event Provider
 final eventProvider = StreamProvider.family<GolfEvent, String>((ref, id) {
   final repository = ref.watch(eventsRepositoryProvider);
-  return repository.watchEvents().map((events) {
-    return events.firstWhere((e) => e.id == id);
+  return repository.watchEvent(id).map((event) {
+    if (event == null) throw Exception('Event $id not found');
+    return event;
   });
 });

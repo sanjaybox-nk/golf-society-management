@@ -27,18 +27,27 @@ class HomeNotificationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Row(
             children: [
-              // Left: Circular Icon
+              // Left: Squircle Icon with Glow
               Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
+                width: 52,
+                height: 52,
+                decoration: ShapeDecoration(
                   color: primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
+                  shape: ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  shadows: [
+                    BoxShadow(
+                      color: primary.withValues(alpha: 0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   isUrgent ? Icons.campaign_rounded : Icons.info_rounded,
                   color: primary,
-                  size: 24,
+                  size: 26,
                 ),
               ),
               const SizedBox(width: 16),
@@ -56,7 +65,6 @@ class HomeNotificationCard extends StatelessWidget {
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              letterSpacing: -0.3,
                             ),
                           ),
                         ),

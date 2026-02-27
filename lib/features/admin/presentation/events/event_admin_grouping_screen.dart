@@ -186,8 +186,22 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
             HeadlessScaffold(
               title: 'Manage Grouping',
               subtitle: event.title,
+              useScaffold: false,
               showBack: true,
-              onBack: () => context.go('/admin/events'),
+              onBack: () async {
+                if (_isDirty) {
+                  final action = await _showExitConfirmation();
+                  if (action == GroupingExitAction.save && context.mounted) {
+                    await _saveGrouping(event);
+                    if (context.mounted) context.go('/admin/events');
+                  } else if (action == GroupingExitAction.discard && context.mounted) {
+                    _updateDirty(false);
+                    context.go('/admin/events');
+                  }
+                } else {
+                  context.go('/admin/events');
+                }
+              },
               actions: [
                 Opacity(
                   opacity: event.isRegistrationClosed ? 1.0 : 0.4,
@@ -233,6 +247,12 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     iconColor: _isDirty ? Colors.amber : null,
                     onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
                   ),
+                ),
+                const SizedBox(width: 8),
+                BoxyArtGlassIconButton(
+                  icon: Icons.calculate_outlined,
+                  tooltip: 'Recalculate PHCs',
+                  onPressed: () => _recalculateAllPHCs(event, handicapMap, comp?.rules, config.useWhsHandicaps),
                 ),
                 const SizedBox(width: 8),
                 BoxyArtGlassIconButton(
@@ -894,6 +914,57 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       );
     });
     _updateDirty(true);
+  }
+
+  void _recalculateAllPHCs(GolfEvent event, Map<String, double> handicapMap, CompetitionRules? rules, bool useWhs) {
+    if (_localGroups == null) return;
+    
+    setState(() {
+      final updatedGroups = _localGroups!.map((group) {
+        final updatedPlayers = group.players.map((player) {
+          final double rawHandicap;
+          if (player.isGuest) {
+            rawHandicap = player.handicapIndex; 
+          } else {
+            rawHandicap = handicapMap[player.registrationMemberId] ?? player.handicapIndex;
+          }
+
+          final double newPlayingHandicap;
+          if (rules != null) {
+            newPlayingHandicap = HandicapCalculator.calculatePlayingHandicap(
+              handicapIndex: rawHandicap,
+              rules: rules,
+              courseConfig: event.courseConfig,
+              useWhs: useWhs,
+            ).toDouble();
+          } else {
+            newPlayingHandicap = rawHandicap;
+          }
+
+          return TeeGroupParticipant(
+            registrationMemberId: player.registrationMemberId,
+            name: player.name,
+            isGuest: player.isGuest,
+            handicapIndex: rawHandicap,
+            playingHandicap: newPlayingHandicap,
+            needsBuggy: player.needsBuggy,
+            buggyStatus: player.buggyStatus,
+            isCaptain: player.isCaptain,
+            status: player.status,
+          );
+        }).toList();
+
+        return TeeGroup(
+          index: group.index,
+          teeTime: group.teeTime,
+          players: updatedPlayers,
+        );
+      }).toList();
+
+      _localGroups = updatedGroups;
+      _updateDirty(true);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All PHCs recalculated from latest member profiles.')));
+    });
   }
 
   void _showMoveDialog(TeeGroupParticipant p, TeeGroup currentGroup) {

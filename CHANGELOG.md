@@ -1,3 +1,15 @@
+### Tee Resolution, UX Hardening & Selection Grid (2026-02-27)
+- **Authoritative Tee Resolution**: Fixed a critical scoring discrepancy by ensuring `ScoringCalculator` receives accurate Par/SI maps derived from the specific tee override.
+- **High-Efficiency Selection Layout**: Replaced legacy dropdowns with a sleek, 2-column horizontal selection grid (Chips) for one-tap tee changes.
+- **Marker Selection Provider**: Centralized manual tee state using `markerSelectionProvider` to ensure absolute parity across all views.
+- **Guest ID Normalization**: Standardized handling of `GUEST_` prefixed IDs to ensure robust data resolution for non-member entries.
+- **Zero-Warning Final Audit**: Achieved 100% clean analysis in `flutter analyze` and resolved all remaining compilation errors in `DemoSeedingService`.
+- **Documentation Hardening**: Updated `13_GAMES_AND_COMPETITIONS.md` and `04_ARCHITECTURE.md` to record authoritative scoring patterns.
+
+### Design System Hardening & Typography (2026-02-25)
+- **Typography Migration to Inter**: Switched the primary typeface from `Nunito` to `Inter` across the entire application for a more modern and premium aesthetic.
+- **Theme Hardening**: Centralized all font configurations within `AppTheme` and audited components for font family inheritance.
+
 ### Design System Hardening & UI Refinement (2026-02-23)
 - **Branded Input Library**: Upgraded the `BoxyArt` input library (`lib/core/shared_ui/inputs.dart`) to use primary-themed labels and subtle branded backgrounds.
 - **Registration Lifecycle UI**: Implemented intelligent visibility rules for the registration card. It now hides automatically for non-registrants after the deadline and for everyone once the event is Live (InPlay) or Completed.

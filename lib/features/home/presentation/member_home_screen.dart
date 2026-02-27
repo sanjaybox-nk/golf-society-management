@@ -12,6 +12,7 @@ import '../../../models/golf_event.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
+import '../../../../core/widgets/staggered_entrance.dart';
 import '../../../models/member.dart';
 import '../../../models/leaderboard_standing.dart';
 
@@ -49,12 +50,12 @@ class MemberHomeScreen extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'PEEKING AS ${effectiveUser.displayName.toUpperCase()}',
+                        'Peeking as ${effectiveUser.displayName}',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 10,
-                          letterSpacing: 1.1,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
@@ -143,7 +144,7 @@ class MemberHomeScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Welcome back,',
+                                    _getGreeting(),
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Theme.of(context).textTheme.bodySmall?.color,
@@ -151,11 +152,10 @@ class MemberHomeScreen extends ConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    effectiveUser.displayName,
+                                    effectiveUser.firstName,
                                     style: const TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
-                                      letterSpacing: -0.5,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -199,7 +199,10 @@ class MemberHomeScreen extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            ...homeNotifications.map((n) => HomeNotificationCard(notification: n)),
+                            ...homeNotifications.asMap().entries.map((entry) => StaggeredEntrance(
+                              index: entry.key,
+                              child: HomeNotificationCard(notification: entry.value),
+                            )),
                             const SizedBox(height: 24),
                           ],
           
@@ -209,20 +212,23 @@ class MemberHomeScreen extends ConsumerWidget {
                             isPeeking: isPeeking,
                           ),
                           const SizedBox(height: 12),
-                          nextMatch.when(
-                            data: (event) {
-                              if (event == null) {
-                                return const Card(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Text('No upcoming matches scheduled.'),
-                                  ),
-                                );
-                              }
-                              return _NextMatchCard(event: event);
-                            },
-                            loading: () => const Center(child: CircularProgressIndicator()),
-                            error: (err, stack) => Text('Error: $err'),
+                          StaggeredEntrance(
+                            index: homeNotifications.length, // Stagger after notifications
+                            child: nextMatch.when(
+                              data: (event) {
+                                if (event == null) {
+                                  return const Card(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Text('No upcoming matches scheduled.'),
+                                    ),
+                                  );
+                                }
+                                return _NextMatchCard(event: event);
+                              },
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (err, stack) => Text('Error: $err'),
+                            ),
                           ),
                       const SizedBox(height: 24),
 
@@ -232,13 +238,16 @@ class MemberHomeScreen extends ConsumerWidget {
                         isPeeking: isPeeking,
                       ),
                       const SizedBox(height: 12),
-                      topPlayers.when(
-                        data: (players) => _LeaderboardSnippet(
-                          topPlayers: players,
-                          personalStanding: personalStanding.value,
+                      StaggeredEntrance(
+                        index: homeNotifications.length + 1, // Stagger after match card
+                        child: topPlayers.when(
+                          data: (players) => _LeaderboardSnippet(
+                            topPlayers: players,
+                            personalStanding: personalStanding.value,
+                          ),
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (err, stack) => Text('Error loading standings: $err'),
                         ),
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (err, stack) => Text('Error loading standings: $err'),
                       ),
                       const SizedBox(height: 40),
                     ]),
@@ -328,12 +337,12 @@ class _NextMatchCard extends StatelessWidget {
                         const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 12),
                         const SizedBox(width: 6),
                         Text(
-                          DateFormat('d MMM').format(event.date).toUpperCase(),
+                          DateFormat('d MMM').format(event.date),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ],
@@ -367,12 +376,12 @@ class _NextMatchCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
-                          'PLAYING',
+                          'Playing',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF27AE60),
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),
@@ -394,7 +403,7 @@ class _NextMatchCard extends StatelessWidget {
                 BoxyArtButton(
                   title: 'View Details',
                   isPrimary: true,
-                  onTap: () => context.push('/events/${event.id}'),
+                  onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
                 ),
               ],
             ),
@@ -429,21 +438,23 @@ class _LeaderboardSnippet extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: isFirst ? primary.withValues(alpha: 0.15) : Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
-                      child: Text(
-                        '$position',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                          color: isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ),
+                      child: isFirst 
+                        ? Icon(Icons.emoji_events_rounded, color: primary, size: 18)
+                        : Text(
+                            '$position',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color,
+                            ),
+                          ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -523,4 +534,11 @@ class _LeaderboardSnippet extends StatelessWidget {
       ),
     );
   }
+}
+
+String _getGreeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Ready for the green,';
+  if (hour < 17) return 'Perfect day for a round,';
+  return 'Fore! Welcome back,';
 }

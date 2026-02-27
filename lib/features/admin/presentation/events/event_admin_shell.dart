@@ -71,14 +71,21 @@ class EventAdminShell extends ConsumerWidget {
   void _onTap(BuildContext context, WidgetRef ref, int index, int currentIndex) async {
     if (index == currentIndex) return;
 
-    // Extract ID from current location: /admin/events/manage/:id/...
-    // Capture this BEFORE any async gaps
-    final currentLocation = GoRouterState.of(context).uri.toString();
-    final parts = currentLocation.split('/');
-    if (parts.length < 5) return;
-    final id = parts[4];
+    // Extract ID from path parameters: /admin/events/manage/:id/...
+    // Fallback: If pathParameters is empty (common in ShellRoute), parse from URI segments
+    String? id = GoRouterState.of(context).pathParameters['id'];
+    if (id == null) {
+      final segments = GoRouterState.of(context).uri.pathSegments;
+      final manageIndex = segments.indexOf('manage');
+      if (manageIndex != -1 && manageIndex < segments.length - 1) {
+        id = segments[manageIndex + 1];
+      }
+    }
+    
+    if (id == null) return;
 
     // Check if grouping is dirty before leaving it
+    // currentIndex 2 = Grouping tab
     if (currentIndex == 2) {
       final isDirty = ref.read(groupingDirtyProvider);
       if (isDirty) {
@@ -114,23 +121,24 @@ class EventAdminShell extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    switch (index) {
-      case 0:
-        context.go('/admin/events/manage/$id/event');
-        break;
-      case 1:
-        context.go('/admin/events/manage/$id/registrations');
-        break;
-      case 2:
-        context.go('/admin/events/manage/$id/grouping');
-        break;
-      case 3:
-        context.go('/admin/events/manage/$id/scores');
-        break;
-      case 4:
-        context.go('/admin/events/manage/$id/reports');
-        break;
-    }
+      final encodedId = Uri.encodeComponent(id);
+      switch (index) {
+        case 0:
+          context.go('/admin/events/manage/$encodedId/event');
+          break;
+        case 1:
+          context.go('/admin/events/manage/$encodedId/registrations');
+          break;
+        case 2:
+          context.go('/admin/events/manage/$encodedId/grouping');
+          break;
+        case 3:
+          context.go('/admin/events/manage/$encodedId/scores');
+          break;
+        case 4:
+          context.go('/admin/events/manage/$encodedId/reports');
+          break;
+      }
   }
 
   Future<GroupingExitAction> _showExitConfirmation(BuildContext context) async {

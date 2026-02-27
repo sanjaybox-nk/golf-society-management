@@ -9,8 +9,8 @@ class PairsControl extends BaseCompetitionControl {
 
   const PairsControl({
     super.key,
-    super.competition, 
-    super.competitionId, 
+    super.competition,
+    super.competitionId,
     super.isTemplate,
     required this.subtype,
   });
@@ -20,58 +20,47 @@ class PairsControl extends BaseCompetitionControl {
 }
 
 class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
-  // Specific State
-  late CompetitionFormat _scoringFormat; // matchPlay or stroke
-  late int _handicapCap;
-  late double _allowance;
-  late TieBreakMethod _tieBreak;
-  late int _roundsCount;
+  CompetitionFormat _scoringFormat = CompetitionFormat.matchPlay;
+  int _handicapCap = 28;
+  double _allowance = 1.0;
+  TieBreakMethod _tieBreak = TieBreakMethod.playoff;
+  int _roundsCount = 1;
 
   @override
   CompetitionFormat get format => _scoringFormat;
 
   @override
   void initState() {
-    super.initState();
-    // Load initial values or defaults
     if (widget.competition != null) {
       _scoringFormat = widget.competition!.rules.format;
       _handicapCap = widget.competition!.rules.handicapCap;
       _allowance = widget.competition!.rules.handicapAllowance.clamp(0.0, 1.0);
       _tieBreak = widget.competition!.rules.tieBreak;
       _roundsCount = widget.competition!.rules.roundsCount;
-      
-      // Validation: Ensure TieBreak matches Format
       if (_scoringFormat == CompetitionFormat.matchPlay && _tieBreak != TieBreakMethod.playoff) {
         _tieBreak = TieBreakMethod.playoff;
       }
     } else {
       _scoringFormat = CompetitionFormat.matchPlay;
       _handicapCap = 28;
-      _tieBreak = TieBreakMethod.playoff; // Match Play default
+      _tieBreak = TieBreakMethod.playoff;
       _roundsCount = 1;
       _allowance = _getDefaultAllowance(_scoringFormat);
     }
+    super.initState();
   }
 
   double _getDefaultAllowance(CompetitionFormat format) {
-    if (widget.subtype == CompetitionSubtype.foursomes) {
-      return 0.5; // Foursomes: 50% of combined handicap
-    }
-    return 1.0; // Fourball: 100% — society adjusts as needed
+    if (widget.subtype == CompetitionSubtype.foursomes) return 0.5;
+    return 1.0;
   }
 
   @override
   Widget buildSpecificFields(BuildContext context) {
-    final title = widget.subtype == CompetitionSubtype.fourball 
-        ? "Fourball (Better Ball)" 
-        : "Foursomes (Alternate Shot)";
-        
-    final description = widget.subtype == CompetitionSubtype.fourball
-        ? "Two teams of two players. Players play their own ball. Best score on each hole counts."
-        : "Two teams of two players. Partners alternate hitting the same ball. One score per side.";
+    final title = widget.subtype == CompetitionSubtype.fourball
+        ? 'MATCH FORMAT'
+        : 'TEAM FORMAT';
 
-    // Calculate effective tie break here to ensure valid value for dropdown
     final effectiveTieBreak = (_scoringFormat == CompetitionFormat.matchPlay && _tieBreak != TieBreakMethod.playoff)
         ? TieBreakMethod.playoff
         : _tieBreak;
@@ -79,191 +68,131 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BoxyArtSectionTitle(title: title.toUpperCase()),
+        // ── FORMAT ────────────────────────────────────────────
+        BoxyArtSectionTitle(title: title),
         const SizedBox(height: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-              // Description
-               Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: Text(
-                  description,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.4, fontStyle: FontStyle.italic),
-                ),
-              ),
 
-               // Scoring Format
-               BoxyArtDropdownField<CompetitionFormat>(
-                 label: 'Scoring Format',
-                 value: _scoringFormat,
-                 items: const [
-                    DropdownMenuItem(
-                      value: CompetitionFormat.matchPlay, 
-                      child: Text('Match Play')
-                    ),
-                    DropdownMenuItem(
-                      value: CompetitionFormat.stroke, 
-                      child: Text('Stroke Play (Medal)')
-                    ),
-                    DropdownMenuItem(
-                      value: CompetitionFormat.stableford, 
-                      child: Text('Stableford')
-                    ),
-                 ],
-                 onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _scoringFormat = val;
-                      _allowance = _getDefaultAllowance(val);
-                      // Reset Tie Break to valid default for format
-                      // Match Play -> Playoff
-                      // Others -> Back 9 (or keep existing if not playoff, but easier to just reset)
-                      if (val == CompetitionFormat.matchPlay) {
-                        _tieBreak = TieBreakMethod.playoff;
-                      } else {
-                        _tieBreak = TieBreakMethod.back9;
-                      }
-                    });
-                  }
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              _buildInfoCard(),
-              
-              const SizedBox(height: 24),
+        BoxyArtDropdownField<CompetitionFormat>(
+          label: 'Scoring Format',
+          value: _scoringFormat,
+          items: const [
+            DropdownMenuItem(value: CompetitionFormat.matchPlay, child: Text('Match Play')),
+            DropdownMenuItem(value: CompetitionFormat.stroke, child: Text('Stroke Play (Medal)')),
+            DropdownMenuItem(value: CompetitionFormat.stableford, child: Text('Stableford')),
+          ],
+          onChanged: (val) {
+            if (val != null) {
+              setState(() {
+                _scoringFormat = val;
+                _allowance = _getDefaultAllowance(val);
+                _tieBreak = val == CompetitionFormat.matchPlay ? TieBreakMethod.playoff : TieBreakMethod.back9;
+              });
+            }
+          },
+        ),
+        buildInfoBubble(_getScoringFormatDescription(_scoringFormat, widget.subtype)),
+        const SizedBox(height: 16),
 
-              // Allowance
-              _buildAllowanceSlider(),
-              
-              const SizedBox(height: 24),
-              
-              // Cap
-              BoxyArtFormField(
-                label: 'Handicap Cap',
-                initialValue: _handicapCap.toString(),
-                keyboardType: TextInputType.number,
-                onChanged: (val) => setState(() => _handicapCap = int.tryParse(val) ?? 28),
-              ),
-              const SizedBox(height: 24),
+        // Format info card
+        _buildInfoCardForFormat(),
 
-              // Tie Break - Filtered by Format
-              if (_scoringFormat != CompetitionFormat.matchPlay) ...[
-                BoxyArtDropdownField<TieBreakMethod>(
-                  label: 'Tie Break Method',
-                  value: effectiveTieBreak,
-                  items: TieBreakMethod.values
-                      .where((m) {
-                        return m != TieBreakMethod.playoff; // Hide 'Playoff' for Stroke/Stableford
-                      })
-                      .map((m) {
-                        String label;
-                        switch (m) {
-                          case TieBreakMethod.back9: label = 'Standard (Back 9-6-3-1)'; break;
-                          case TieBreakMethod.back6: label = 'Back 6'; break;
-                          case TieBreakMethod.back3: label = 'Back 3'; break;
-                          case TieBreakMethod.back1: label = 'Back 1'; break;
-                          case TieBreakMethod.playoff: label = 'Playoff (Sudden Death)'; break;
-                        }
-                        return DropdownMenuItem(value: m, child: Text(label));
-                      }).toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _tieBreak = val);
-                  },
-                ),
-                const SizedBox(height: 24),
-              ],
-              
-              // Rounds (Series) - Only show for Stroke/Stableford (Match Play is usually 1 off or handle manually)
-              if (_scoringFormat != CompetitionFormat.matchPlay) ...[
-                BoxyArtFormField(
-                  label: 'Rounds (Series)',
-                  initialValue: _roundsCount.toString(),
-                  keyboardType: TextInputType.number,
-                  onChanged: (val) => setState(() => _roundsCount = int.tryParse(val) ?? 1),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ],
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+
+        // ── HANDICAP ──────────────────────────────────────────
+        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const SizedBox(height: 16),
+
+        buildAllowanceSlider(
+          _allowance,
+          (val) => setState(() => _allowance = val),
+          label: widget.subtype == CompetitionSubtype.foursomes ? 'TEAM HCP ALLOWANCE' : 'HANDICAP ALLOWANCE',
+          hint: widget.subtype == CompetitionSubtype.foursomes
+              ? 'WHS recommends 50% of combined team handicap for Foursomes.'
+              : 'Fraction of each player\'s course handicap applied. 100% is standard for Fourball.',
+        ),
+        const SizedBox(height: 24),
+
+        buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
+        buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
+
+        if (_scoringFormat != CompetitionFormat.matchPlay) ...[
+          const SizedBox(height: 24),
+          const Divider(height: 1),
+          const SizedBox(height: 24),
+
+          // ── TIE BREAK ───────────────────────────────────────
+          const BoxyArtSectionTitle(title: 'TIE BREAK'),
+          const SizedBox(height: 16),
+
+          BoxyArtDropdownField<TieBreakMethod>(
+            label: 'Tie Break Method',
+            value: effectiveTieBreak,
+            items: TieBreakMethod.values
+                .where((m) => m != TieBreakMethod.playoff)
+                .map((m) {
+                  final lbl = switch (m) {
+                    TieBreakMethod.back9 => 'Standard (Back 9-6-3-1)',
+                    TieBreakMethod.back6 => 'Back 6',
+                    TieBreakMethod.back3 => 'Back 3',
+                    TieBreakMethod.back1 => 'Back 1',
+                    TieBreakMethod.playoff => 'Playoff (Sudden Death)',
+                  };
+                  return DropdownMenuItem(value: m, child: Text(lbl));
+                }).toList(),
+            onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
           ),
+          buildInfoBubble('Back 9 compares the last 9 holes in reverse order to determine who takes priority.'),
+          const SizedBox(height: 24),
+
+          // ── SERIES ────────────────────────────────────────
+          buildSliderField(
+            label: 'Number of Rounds',
+            valueLabel: '$_roundsCount',
+            value: _roundsCount.toDouble(),
+            min: 1, max: 6, divisions: 5,
+            onChanged: (val) => setState(() => _roundsCount = val.round()),
+          ),
+          buildInfoBubble('Leave at 1 for single events. Increase for a multi-round pairs series.'),
+        ],
       ],
     );
   }
 
-  Widget _buildAllowanceSlider() {
-    final primary = Theme.of(context).primaryColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final labelText = widget.subtype == CompetitionSubtype.foursomes ? 'TEAM HCP ALLOWANCE' : 'HANDICAP ALLOWANCE';
-    final pct = (_allowance * 100).round();
+  String _getScoringFormatDescription(CompetitionFormat format, CompetitionSubtype subtype) {
+    final pairType = subtype == CompetitionSubtype.fourball ? 'Fourball' : 'Foursomes';
+    switch (format) {
+      case CompetitionFormat.matchPlay:
+        return '$pairType Match Play: Win more holes than the opposing pair.';
+      case CompetitionFormat.stroke:
+        return '$pairType Medal: The best/combined score per hole is added for an 18-hole total.';
+      case CompetitionFormat.stableford:
+        return '$pairType Stableford: Points are awarded per hole based on the best score relative to par.';
+      default:
+        return '';
+    }
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              labelText,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-                color: isDark ? Colors.white70 : Colors.black87,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '$pct%',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: primary,
-            inactiveTrackColor: primary.withValues(alpha: 0.15),
-            thumbColor: primary,
-            overlayColor: primary.withValues(alpha: 0.12),
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-            valueIndicatorColor: primary,
-            valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          child: Slider(
-            value: _allowance.clamp(0.0, 1.0),
-            min: 0,
-            max: 1.0,
-            divisions: 20, // 5% steps
-            label: '$pct%',
-            onChanged: (val) => setState(() => _allowance = val),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
-            Text(
-              'Applied to each player\'s course handicap',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-            ),
-            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ],
-    );
+  Widget _buildInfoCardForFormat() {
+    if (_scoringFormat == CompetitionFormat.stableford) return const SizedBox.shrink();
+
+    final isFourball = widget.subtype == CompetitionSubtype.fourball;
+    if (_scoringFormat == CompetitionFormat.matchPlay) {
+      return buildInfoCard([
+        ('Goal', isFourball ? 'Win more holes as a pair against the opposing pair.' : 'Your pair wins more holes playing one ball alternately.'),
+        ('Scoring', 'Lowest score on a hole wins it. Halved means both pairs share the hole.'),
+        ('Concessions', 'Putts and holes can be conceded. No need to hole out when conceded.'),
+        ('Result', 'Match ends when holes up > holes remaining (e.g. 2 & 1).'),
+        ('Handicap', isFourball ? '90–100% of the difference from the lowest handicap.' : '50% of the combined team handicap.'),
+      ]);
+    }
+    return buildInfoCard([
+      ('Goal', isFourball ? 'Lowest combined net/gross total over 18 holes.' : 'Partners alternate hitting the same ball every shot.'),
+      ('Scoring', isFourball ? 'Best ball per hole counts for the pair\'s score.' : 'One combined score per hole — every stroke counts.'),
+      ('Concessions', 'NO CONCESSIONS — must hole out every ball.'),
+      ('Handicap', isFourball ? 'Each player\'s full (or adjusted) course handicap.' : '50% of combined team handicap distributed by WHS SI.'),
+    ]);
   }
 
   @override
@@ -274,90 +203,13 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       mode: CompetitionMode.pairs,
       handicapAllowance: _allowance,
       handicapCap: _handicapCap,
-      tieBreak: _tieBreak, 
+      tieBreak: _tieBreak,
       holeByHoleRequired: true,
       roundsCount: _roundsCount,
-      aggregation: _scoringFormat == CompetitionFormat.stableford 
-          ? AggregationMethod.stablefordSum 
+      aggregation: _scoringFormat == CompetitionFormat.stableford
+          ? AggregationMethod.stablefordSum
           : AggregationMethod.totalSum,
-      useMixedTeeAdjustment: _scoringFormat != CompetitionFormat.matchPlay, // Usually Off for Match Play
-    );
-  }
-
-  Widget _buildInfoCard() {
-    if (_scoringFormat == CompetitionFormat.stableford) return const SizedBox.shrink();
-
-    String goal = "";
-    String scoring = "";
-    String result = "";
-    String concessions = "";
-    String handicap = "";
-
-    if (_scoringFormat == CompetitionFormat.matchPlay) {
-      goal = "Win more individual holes than your opponent.";
-      scoring = "Lowest score wins 1 point per hole (goes '1-up').";
-      result = "Match ends when holes up > holes left (e.g. 3 & 2).";
-      concessions = "You can concede a putt or hole to speed up play.";
-      handicap = "90% (Fourball) or 50% (Foursomes) of difference from lowest.";
-    } else {
-      goal = "Finish 18 holes with lowest total strokes.";
-      scoring = "Every stroke counts. Sum all holes at end.";
-      result = "Team with lowest total gross/net score wins.";
-      concessions = "NO CONCESSIONS. Must hole out every ball.";
-      handicap = "Set % of full handicap (e.g. 85% Fourball).";
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildInfoRow("Goal", goal),
-          const SizedBox(height: 8),
-          _buildInfoRow("Scoring", scoring),
-          const SizedBox(height: 8),
-          _buildInfoRow("Result", result),
-          const SizedBox(height: 8),
-          _buildInfoRow("Concessions", concessions, isBold: true),
-          const SizedBox(height: 8),
-          _buildInfoRow("Handicap", handicap),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 110, // Widened from 80 to prevent 'Concessions' wrapping
-          child: Text(
-            "$label:", 
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              fontSize: 12, 
-              color: theme.colorScheme.primary, // Themed color
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 12, 
-              height: 1.3, 
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: theme.textTheme.bodyMedium?.color, // Themed text color
-            ),
-          ),
-        ),
-      ],
+      useMixedTeeAdjustment: _scoringFormat != CompetitionFormat.matchPlay,
     );
   }
 }

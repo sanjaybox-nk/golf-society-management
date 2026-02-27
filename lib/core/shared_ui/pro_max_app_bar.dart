@@ -57,8 +57,8 @@ class ProMaxAppBar extends ConsumerWidget implements PreferredSizeWidget {
     
     // Calculate colors based on transparency
     final defaultBgColor = transparent 
-        ? onSurface.withValues(alpha: 0.1) // Slightly more visible background
-        : onPrimary.withValues(alpha: 0.15); // Contrasting background for solid mode
+        ? onSurface.withValues(alpha: 0.2) 
+        : onPrimary.withValues(alpha: 0.2);
     final defaultIconColor = transparent ? onSurface : onPrimary;
 
     return AppBar(
