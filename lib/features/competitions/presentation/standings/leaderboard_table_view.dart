@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../models/leaderboard_standing.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
 
 class LeaderboardTableView extends StatelessWidget {
   final List<LeaderboardStanding> standings;

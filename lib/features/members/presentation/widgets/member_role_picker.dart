@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class MemberRolePicker extends StatelessWidget {
   final MemberRole currentRole;

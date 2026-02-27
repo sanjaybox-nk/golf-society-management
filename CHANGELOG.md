@@ -1,3 +1,11 @@
+### Architectural Migration & Build Hardening (2026-02-27)
+- **Zero-Issue Build**: Achieved an absolute zero-issue state (0 errors, 0 warnings) after resolving over 3,500 analysis issues.
+- **Clean Architecture Migration**: Established the `lib/domain` layer and relocated all models to `lib/domain/models/` for strict separation of concerns.
+- **Design System Centralization**: Repurposed `shared_ui` into a top-level `lib/design_system/` module, providing a unified export layer (`design_system.dart`) for the entire app.
+- **Atomic Decomposition**: Initiated the decomposition of bulky UI files into specialized `atoms/` and `widgets/` for better maintainability.
+- **Import Hygiene**: Standardized all project-wide imports to use consistent package absolute paths (`package:golf_society/`), eliminating brittle relative paths.
+- **Core Refactoring**: Relocated `services`, `constants`, and `utils` to the top-level `lib` directory, simplifying the project hierarchy.
+
 ### Tee Resolution, UX Hardening & Selection Grid (2026-02-27)
 - **Authoritative Tee Resolution**: Fixed a critical scoring discrepancy by ensuring `ScoringCalculator` receives accurate Par/SI maps derived from the specific tee override.
 - **High-Efficiency Selection Layout**: Replaced legacy dropdowns with a sleek, 2-column horizontal selection grid (Chips) for one-tap tee changes.

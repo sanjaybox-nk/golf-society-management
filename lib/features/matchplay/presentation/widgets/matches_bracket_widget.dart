@@ -1,5 +1,4 @@
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import '../../domain/match_definition.dart';
@@ -9,9 +8,10 @@ import '../../domain/golf_event_match_extensions.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
-import '../../../../models/member.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 class MatchesBracketWidget extends ConsumerWidget {
   final String eventId;

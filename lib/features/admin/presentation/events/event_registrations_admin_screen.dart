@@ -1,16 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/event_registration.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../events/domain/registration_logic.dart';
-import '../../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
 import '../../../events/presentation/widgets/registration_status_pill.dart';
-import '../../../../core/theme/theme_controller.dart';
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
   final String eventId;

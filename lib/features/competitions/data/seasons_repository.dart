@@ -1,4 +1,4 @@
-import '../../../models/season.dart';
+import 'package:golf_society/domain/models/season.dart';
 
 abstract class SeasonsRepository {
   Future<void> addSeason(Season season);

@@ -1,18 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ForceSync: Unified Scorecard UI Update
 
 import 'package:firebase_auth/firebase_auth.dart'; // [NEW]
 
-import 'core/theme/app_theme.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'navigation/app_router.dart';
-import 'core/theme/theme_controller.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'core/services/persistence_service.dart';
-import 'core/theme/app_palettes.dart';
+import 'package:golf_society/services/persistence_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

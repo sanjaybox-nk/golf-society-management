@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'members_repository.dart';
 
 class FirestoreMembersRepository implements MembersRepository {

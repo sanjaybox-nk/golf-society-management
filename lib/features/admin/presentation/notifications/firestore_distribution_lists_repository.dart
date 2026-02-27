@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../models/distribution_list.dart';
+import 'package:golf_society/domain/models/distribution_list.dart';
 import 'distribution_lists_repository.dart';
 
 class FirestoreDistributionListsRepository implements DistributionListsRepository {

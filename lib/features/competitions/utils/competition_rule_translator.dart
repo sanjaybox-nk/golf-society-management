@@ -1,4 +1,4 @@
-import '../../../models/competition.dart';
+import 'package:golf_society/domain/models/competition.dart';
 
 class CompetitionRuleTranslator {
   static String translate(CompetitionRules rules) {

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -9,18 +8,16 @@ import '../../../events/presentation/tabs/event_user_details_tab.dart';
 
 
 import '../../../events/presentation/events_provider.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/season.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/services/storage_service.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/services/storage_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/theme/theme_controller.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
-import '../../../../models/course.dart';
-import '../../../../models/competition.dart';
+import 'package:golf_society/domain/models/course.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../../courses/presentation/courses_provider.dart';
 
 

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../events_provider.dart';
 
 import '../../domain/registration_logic.dart';
@@ -11,9 +11,7 @@ import '../widgets/registration_status_pill.dart';
 
 // ... (existing imports)
 
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
 import '../../../members/presentation/members_provider.dart';
 
 class EventRegistrationUserTab extends ConsumerWidget {

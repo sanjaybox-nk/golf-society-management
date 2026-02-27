@@ -1,14 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
-import 'package:golf_society/models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
-import 'package:golf_society/models/competition.dart';
-import 'package:golf_society/core/widgets/staggered_entrance.dart';
+import 'package:golf_society/domain/models/competition.dart';
 
 class EventsScreen extends ConsumerWidget {
   const EventsScreen({super.key});

@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../models/leaderboard_config.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../../../features/events/presentation/events_provider.dart';
 import 'package:uuid/uuid.dart';
 

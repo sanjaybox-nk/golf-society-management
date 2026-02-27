@@ -1,33 +1,30 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import '../../../../features/debug/presentation/widgets/lab_control_panel.dart';
-import '../../../../core/utils/grouping_service.dart';
-import '../../../../core/utils/handicap_calculator.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/scorecard.dart';
-import '../../../../models/member.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
+import '../../../../domain/scoring/scoring_calculator.dart';
+import '../../../../domain/grouping/grouping_service.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
-import 'package:golf_society/models/competition.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../widgets/grouping_widgets.dart';
 import '../widgets/event_leaderboard.dart';
 import '../widgets/scorecard_modal.dart';
 import '../events_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
-import '../../../../core/theme/theme_controller.dart';
 import '../widgets/course_info_card.dart';
 import '../widgets/hole_by_hole_scoring_widget.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/society_config.dart';
-import '../../../../core/utils/scoring_calculator.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 // REDACTED: unused imports
 // REDACTED: unused imports
-import '../../../../core/services/persistence_service.dart';
+import 'package:golf_society/services/persistence_service.dart';
 // REDACTED: unused math import
 import '../../../matchplay/presentation/widgets/matches_list_widget.dart';
 import '../../../matchplay/presentation/widgets/matches_bracket_widget.dart';

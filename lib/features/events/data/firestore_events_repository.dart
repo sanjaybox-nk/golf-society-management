@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import 'events_repository.dart';
 
 class FirestoreEventsRepository implements EventsRepository {

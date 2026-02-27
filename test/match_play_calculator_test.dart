@@ -2,7 +2,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
-import 'package:golf_society/models/scorecard.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 void main() {
   group('MatchPlayCalculator Tests', () {

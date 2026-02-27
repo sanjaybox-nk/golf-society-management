@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/member.dart';
-import '../../../core/services/persistence_service.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/services/persistence_service.dart';
 import 'dart:convert';
 
 // Mock Provider for the current logged-in user

@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import '../../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../../models/golf_event.dart';
-import '../../../../../models/member.dart';
-import '../../../../../models/scorecard.dart';
-import '../../../../../models/event_registration.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import '../../../../competitions/presentation/competitions_provider.dart';
-import '../../../../../core/utils/handicap_calculator.dart';
-import '../../../../../models/competition.dart';
+import '../../../../../domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../../events/presentation/widgets/scorecard_modal.dart';
 

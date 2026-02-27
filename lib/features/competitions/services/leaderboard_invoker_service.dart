@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../models/leaderboard_config.dart';
-import '../../../../models/scorecard.dart';
-import '../../../../models/competition.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
 
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider

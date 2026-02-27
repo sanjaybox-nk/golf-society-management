@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
-import 'package:golf_society/models/member.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
 import 'package:golf_society/features/members/presentation/member_details_modal.dart';
 

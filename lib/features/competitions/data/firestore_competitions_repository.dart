@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/competition.dart';
-import '../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 import 'competitions_repository.dart';
 
 class FirestoreCompetitionsRepository implements CompetitionsRepository {

@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/models/campaign.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/campaign.dart';
 import 'package:intl/intl.dart';
 import 'admin_notifications_provider.dart';
 

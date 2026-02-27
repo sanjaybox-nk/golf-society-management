@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../events/presentation/events_provider.dart';
-import '../../../../core/shared_ui/shared_ui.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../providers/admin_ui_providers.dart';
 import './event_admin_grouping_screen.dart'; // For GroupingExitAction
 

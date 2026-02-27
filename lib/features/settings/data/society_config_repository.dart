@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/society_config.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 
 final societyConfigRepositoryProvider = Provider((ref) => SocietyConfigRepository());
 

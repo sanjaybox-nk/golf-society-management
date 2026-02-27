@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../models/campaign.dart';
+import 'package:golf_society/domain/models/campaign.dart';
 
 final adminNotificationsProvider = StreamProvider<List<Campaign>>((ref) {
   return FirebaseFirestore.instance

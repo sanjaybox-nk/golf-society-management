@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/theme/theme_controller.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 
 

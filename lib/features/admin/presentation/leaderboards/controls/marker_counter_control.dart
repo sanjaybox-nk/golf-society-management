@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../../../models/leaderboard_config.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:uuid/uuid.dart';
 
 class MarkerCounterControl extends StatefulWidget {

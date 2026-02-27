@@ -1,4 +1,4 @@
-import '../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 abstract class ScorecardRepository {
   Future<void> addScorecard(Scorecard scorecard);

@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/competition.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../data/competitions_repository.dart';
 import '../data/firestore_competitions_repository.dart';
 import '../data/scorecard_repository.dart';
 import '../data/firestore_scorecard_repository.dart';
-import '../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 import '../../members/presentation/profile_provider.dart';
 
 final competitionsRepositoryProvider = Provider<CompetitionsRepository>((ref) {

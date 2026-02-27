@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:golf_society/core/theme/theme_controller.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/models/handicap_system.dart';
-import 'package:golf_society/core/services/demo_seeding_service.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/handicap_system.dart';
+import 'package:golf_society/services/demo_seeding_service.dart';
 
 class GeneralSettingsScreen extends ConsumerWidget {
   const GeneralSettingsScreen({super.key});

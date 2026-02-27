@@ -1,4 +1,4 @@
-import '../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
 
 abstract class MembersRepository {
   Stream<List<Member>> watchMembers();

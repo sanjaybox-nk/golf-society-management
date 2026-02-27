@@ -1,17 +1,17 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/scorecard.dart';
-import '../../../../models/member.dart';
-import '../../../../models/event_registration.dart';
-import '../../../../core/utils/handicap_calculator.dart';
-import '../../../../core/utils/grouping_service.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
+import '../../../../domain/scoring/scoring_calculator.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
+import '../../../../domain/grouping/grouping_service.dart';
 
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
-import '../../../../core/utils/scoring_calculator.dart';
 // removed unused society_config
 
 import '../../../matchplay/domain/match_definition.dart';

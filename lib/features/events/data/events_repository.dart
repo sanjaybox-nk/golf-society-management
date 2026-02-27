@@ -1,4 +1,4 @@
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 
 abstract class EventsRepository {
   /// Stream of all events (real-time updates)

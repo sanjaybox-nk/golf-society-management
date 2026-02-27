@@ -1,6 +1,6 @@
 # Theme System (BoxyArt)
 
-The design system, widely referred to as **BoxyArt**, is centralized in `lib/core/theme/`.
+- **Location**: `lib/design_system/theme/`
 
 ## Key Files
 -   **`app_theme.dart`**: Defines the `ThemeData` with dynamic color generation from seed colors.

@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/season.dart';
+import 'package:golf_society/domain/models/season.dart';
 
-import '../core/widgets/scaffold_with_nav_bar.dart';
-import '../models/golf_event.dart';
-import '../models/member.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
 import '../features/archive/presentation/archive_screen.dart';
 import '../features/events/presentation/events_screen.dart';
 import '../features/home/presentation/member_home_screen.dart';
@@ -44,12 +43,12 @@ import '../features/admin/presentation/competitions/competition_builder_screen.d
 // import '../features/admin/presentation/competitions/scoring_review_queue_screen.dart'; // Removed
 import '../features/admin/presentation/competitions/competition_type_selection_screen.dart'; // Added
 import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart'; // Added
-import '../models/competition.dart'; // Added for enum
+import 'package:golf_society/domain/models/competition.dart'; // Added for enum
 import '../features/admin/presentation/seasons/season_form_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_type_selection_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_builder_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart'; // Added
-import '../models/leaderboard_config.dart'; // Ensure this is imported
+import 'package:golf_society/domain/models/leaderboard_config.dart'; // Ensure this is imported
 
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';

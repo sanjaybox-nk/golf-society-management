@@ -1,4 +1,4 @@
-import '../../../../../models/distribution_list.dart';
+import 'package:golf_society/domain/models/distribution_list.dart';
 
 abstract class DistributionListsRepository {
   Stream<List<DistributionList>> watchLists();

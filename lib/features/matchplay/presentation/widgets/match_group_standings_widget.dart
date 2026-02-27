@@ -1,10 +1,10 @@
 
-import 'package:flutter/material.dart';
 import '../../domain/match_definition.dart';
 import '../../domain/match_standings_calculator.dart';
 import '../../domain/golf_event_match_extensions.dart';
-import '../../../../models/scorecard.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class MatchGroupStandingsWidget extends StatelessWidget {
   final GolfEvent event;

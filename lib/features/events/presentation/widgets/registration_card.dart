@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../domain/registration_logic.dart';
-import '../../../../core/shared_ui/shared_ui.dart';
 
 class RegistrationCard extends StatelessWidget {
   final String name;

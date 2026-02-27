@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/course.dart';
+import 'package:golf_society/domain/models/course.dart';
 import 'course_repository.dart';
 
 class FirestoreCourseRepository implements CourseRepository {

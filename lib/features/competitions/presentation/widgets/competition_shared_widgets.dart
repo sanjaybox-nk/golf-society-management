@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../models/competition.dart';
-import '../../../../core/shared_ui/badges.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../utils/competition_rule_translator.dart';
 
 class CompetitionBadgeRow extends StatelessWidget {

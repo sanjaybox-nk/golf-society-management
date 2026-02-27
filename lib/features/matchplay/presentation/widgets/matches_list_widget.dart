@@ -1,5 +1,5 @@
+import 'package:golf_society/design_system/design_system.dart';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/match_definition.dart';
 import '../../domain/match_play_calculator.dart';

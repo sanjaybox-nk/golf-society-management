@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/member.dart';
-import '../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import '../../events/presentation/events_provider.dart';
 
 import '../data/members_repository.dart';

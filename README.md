@@ -22,7 +22,11 @@ Detailed documentation can be found in the `docs/` folder:
 3. [Setup Guide](docs/03_SETUP_GUIDE.md)
 4. [Architecture](docs/04_ARCHITECTURE.md)
 5. [Theme System](docs/05_THEME_SYSTEM.md)
-6. [Shared UI Library](docs/09_SHARED_UI_LIBRARY.md)
+6. [Design System (BoxyArt)](docs/09_SHARED_UI_LIBRARY.md)
+- [Registration Logic](docs/10_REGISTRATION_LOGIC.md)
+- [Grouping Logic](docs/11_GROUPING_LOGIC.md)
+- [Games & Scoring](docs/13_GAMES_AND_COMPETITIONS.md)
+- [Testing Lab & Seeding](docs/14_TESTING_LAB_AND_SEEDING.md)
 
 ## 🚀 Getting Started
 1. Clone the repository.

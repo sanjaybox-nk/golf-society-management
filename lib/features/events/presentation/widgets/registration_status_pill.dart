@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/core/shared_ui/badges.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 enum RegistrationStatusType {
   open,

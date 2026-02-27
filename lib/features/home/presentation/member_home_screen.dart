@@ -1,20 +1,15 @@
 import 'dart:ui';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/shared_ui/shared_ui.dart';
-import '../../../../core/shared_ui/admin_shortcut_action.dart';
-import '../../../../core/theme/theme_controller.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
-import '../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
-import '../../../../core/widgets/staggered_entrance.dart';
-import '../../../models/member.dart';
-import '../../../models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
 
 class MemberHomeScreen extends ConsumerWidget {
   const MemberHomeScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:golf_society/core/widgets/boxy_art_nav_bar.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:golf_society/core/services/persistence_service.dart';
+import 'package:golf_society/services/persistence_service.dart';
 import 'package:golf_society/main.dart';
 
 void main() {

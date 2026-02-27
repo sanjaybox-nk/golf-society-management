@@ -1,18 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
-import '../../../../models/golf_event.dart';
-import '../../../../models/scorecard.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/event_registration.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import '../../../members/presentation/profile_provider.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
 import '../widgets/rich_stats_widgets.dart';
-import '../../../../core/utils/handicap_calculator.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../logic/event_analysis_engine.dart';
-import '../../../../core/theme/app_theme.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
 // Use richStatsModeProvider from debug_providers.dart

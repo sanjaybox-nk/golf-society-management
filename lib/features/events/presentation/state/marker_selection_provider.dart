@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/services/persistence_service.dart';
+import 'package:golf_society/services/persistence_service.dart';
 
 // [LAB MODE] Persistence for Marker Selection
 class MarkerSelection {

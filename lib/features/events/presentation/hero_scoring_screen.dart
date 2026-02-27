@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'events_provider.dart';
 import '../../matchplay/presentation/state/match_play_providers.dart';
 import 'widgets/modern_scoring_view.dart';
-import '../../../../models/competition.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../competitions/presentation/competitions_provider.dart';
-import '../../../../core/utils/handicap_calculator.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../members/presentation/members_provider.dart';
 import '../../members/presentation/profile_provider.dart';
 import 'widgets/hole_by_hole_scoring_widget.dart'; // For MarkerTab

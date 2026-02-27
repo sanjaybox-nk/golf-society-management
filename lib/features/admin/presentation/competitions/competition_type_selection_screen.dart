@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/competition.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/competition.dart';
 
 class CompetitionTypeSelectionScreen extends StatelessWidget {
   final bool isTemplate;

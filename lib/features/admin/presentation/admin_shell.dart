@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/widgets/responsive_layout.dart';
-import '../../../core/widgets/boxy_art_nav_bar.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class AdminShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;

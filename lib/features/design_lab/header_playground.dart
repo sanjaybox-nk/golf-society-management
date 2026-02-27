@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/core/shared_ui/modern_cards.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/widgets/registration_status_pill.dart';
 
 

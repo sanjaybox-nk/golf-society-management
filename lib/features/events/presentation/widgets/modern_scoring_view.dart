@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../../matchplay/domain/match_definition.dart';
-import '../../../../core/shared_ui/shared_ui.dart';
 
 class ModernScoringView extends StatelessWidget {
   final GolfEvent event;

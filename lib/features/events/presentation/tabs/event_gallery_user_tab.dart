@@ -1,13 +1,12 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/services/storage_service.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/services/storage_service.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../events_provider.dart';
-import '../../../../core/shared_ui/headless_scaffold.dart';
 
 class EventGalleryUserTab extends ConsumerStatefulWidget {
   final String eventId;

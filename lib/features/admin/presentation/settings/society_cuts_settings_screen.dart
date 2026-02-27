@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/theme_controller.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class SocietyCutsSettingsScreen extends ConsumerStatefulWidget {
   const SocietyCutsSettingsScreen({super.key});

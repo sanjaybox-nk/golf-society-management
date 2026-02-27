@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/shared_ui/modern_cards.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../members/presentation/profile_provider.dart';
-import '../../../models/member.dart';
+import 'package:golf_society/domain/models/member.dart';
 
 class EventUserShell extends ConsumerWidget {
   final Widget child;

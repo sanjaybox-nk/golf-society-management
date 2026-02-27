@@ -1,17 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/tabs/event_stats_tab.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 import '../../../competitions/presentation/competitions_provider.dart';
 import 'widgets/admin_scorecard_list.dart';
 
 import '../../../events/logic/event_analysis_engine.dart';
-import '../../../../core/utils/grouping_service.dart';
+import '../../../../domain/grouping/grouping_service.dart';
 import '../../../debug/presentation/state/debug_providers.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../events/presentation/widgets/event_leaderboard.dart';

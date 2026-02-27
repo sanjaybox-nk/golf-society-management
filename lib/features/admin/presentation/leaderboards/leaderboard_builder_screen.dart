@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../../../features/events/presentation/events_provider.dart';
 
 import 'controls/oom_control.dart';

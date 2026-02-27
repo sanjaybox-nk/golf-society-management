@@ -1,15 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../events/presentation/events_provider.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import '../../../events/presentation/tabs/event_user_details_tab.dart';
-import '../../../../core/theme/theme_controller.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../../models/competition.dart';
+import 'package:golf_society/domain/models/competition.dart';
 
 class AdminEventsScreen extends ConsumerWidget {
   const AdminEventsScreen({super.key});

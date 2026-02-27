@@ -1,5 +1,5 @@
+import 'package:golf_society/design_system/design_system.dart';
 
-import 'package:flutter/material.dart';
 import '../../domain/match_definition.dart';
 
 class MatchStatusHeader extends StatelessWidget {

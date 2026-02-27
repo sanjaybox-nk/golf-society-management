@@ -1,4 +1,4 @@
-import '../../../models/course.dart';
+import 'package:golf_society/domain/models/course.dart';
 
 abstract class CourseRepository {
   Future<List<Course>> searchCourses(String query);

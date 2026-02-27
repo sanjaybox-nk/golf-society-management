@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 class ScoringTypeDistributionChart extends StatelessWidget {
   final Map<String, int> counts;

@@ -1,9 +1,9 @@
-# Shared UI Library
+# Design System (BoxyArt)
 
-The BoxyArt Shared UI Library is a modular system of reusable widgets designed to enforce the "BoxyArt" Boxy/Clean aesthetic across the application.
+The BoxyArt Design System is a modular library of reusable components designed to enforce the "BoxyArt" premium aesthetic across the application.
 
 ## Location
-`lib/core/shared_ui/`
+`lib/design_system/`
 
 ## 1. Buttons (`buttons.dart`)
 
@@ -224,9 +224,7 @@ All administrative configuration forms follow a refined layout rhythm:
 ## Usage
 Import everything via:
 ```dart
-import 'package:golf_society/core/shared_ui/shared_ui.dart';
-// OR compatible legacy import
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/design_system/design_system.dart';
 ```
 
 ---

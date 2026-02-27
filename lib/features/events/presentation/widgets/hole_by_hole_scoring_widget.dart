@@ -1,18 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import '../../../../models/competition.dart';
-import '../../../../core/utils/handicap_calculator.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/shared_ui/modern_cards.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../members/presentation/members_provider.dart';
-import '../../../../models/member.dart';
-import '../../../../core/utils/scoring_calculator.dart';
+import 'package:golf_society/domain/models/member.dart';
+import '../../../../domain/scoring/scoring_calculator.dart';
 
 
 import '../../../matchplay/presentation/widgets/match_status_header.dart';

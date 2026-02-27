@@ -1,8 +1,8 @@
 import 'dart:math' as math;
-import '../../../models/golf_event.dart';
-import '../../../models/scorecard.dart';
-import '../../../models/competition.dart';
-import '../../../models/event_registration.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:collection/collection.dart';
 
 class EventAnalysisEngine {

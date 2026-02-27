@@ -8,9 +8,9 @@ import '../../../../features/events/presentation/events_provider.dart';
 import '../../../../features/members/presentation/profile_provider.dart';
 import '../../../../features/competitions/presentation/competitions_provider.dart';
 import '../../../../features/members/presentation/members_provider.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/member.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
 
 part 'match_play_providers.g.dart';
 

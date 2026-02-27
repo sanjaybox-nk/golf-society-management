@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../../../core/theme/app_shadows.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class HoleScoreCard extends StatelessWidget {
   final int holeNum;

@@ -1,5 +1,5 @@
-import '../../../models/season.dart';
-import '../../../models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
 
 abstract class SeasonsRepository {
   Stream<List<Season>> watchSeasons();

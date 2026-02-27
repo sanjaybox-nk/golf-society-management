@@ -1,13 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/theme_controller.dart';
-import 'package:golf_society/core/theme/contrast_helper.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:golf_society/core/services/storage_service.dart';
-import 'package:golf_society/core/theme/app_palettes.dart';
+import 'package:golf_society/services/storage_service.dart';
 
 
 class BrandingSettingsScreen extends ConsumerWidget {

@@ -1,5 +1,5 @@
-import '../../../models/competition.dart';
-import '../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 abstract class CompetitionsRepository {
   // Competitions

@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../models/course.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/course.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class AddCourseDialog extends StatefulWidget {
   final String initialName;

@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../core/widgets/boxy_art_widgets.dart';
-import '../../../models/notification.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/notification.dart';
 import 'home_providers.dart';
 
 class NotificationInboxScreen extends ConsumerWidget {

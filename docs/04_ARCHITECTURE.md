@@ -4,24 +4,27 @@ The project follows a **Feature-First** architecture combined with Riverpod for 
 
 ## Folder Structure (`lib/`)
 
-```
 lib/
-├── core/                   # Shared resources across the app
-│   ├── theme/              # AppTheme, AppShadows, StatusColors, ContrastHelper
-│   ├── shared_ui/          # Modular UI library (buttons, cards, inputs, badges, layout)
-│   ├── widgets/            # Legacy facade (boxy_art_widgets.dart)
-│   ├── utils/              # Helper functions (dates, formatters)
-│   └── constants/          # Environment vars, static keys
-├── features/               # distinct domains of the application
-│   ├── home/               # Member Dashboard & Notifications
-│   ├── events/             # Events listing & details (Tabs: Details, Reg, Live, Stats, Photos)
-│   ├── members/            # Directory & Locker Room (Season Standings)
-│   ├── admin/              # Management Console (Events, Members, Comms, Leaderboards)
-│   └── auth/               # Login & Registration flows
-├── models/                 # Shared Data Models (Freezed classes)
-├── main.dart               # Entry point
-└── navigation/             # App Router configuration (app_router.dart)
-```
+├── design_system/          # Clean UI system (Atoms, Widgets, Theme)
+│   ├── atoms/              # Base components (Buttons, Inputs)
+│   ├── widgets/            # Complex layouts (AppBars, Cards)
+│   ├── theme/              # AppTheme, Shadows, Palettes
+│   └── design_system.dart  # Central export layer
+├── features/               # Domain-specific features
+│   ├── home/               # Dashboard
+│   ├── events/             # Scoring & Event Management
+│   ├── members/            # Directory
+│   ├── admin/              # Admin Console
+│   └── matchplay/          # Specialized Match Play Logic
+├── domain/                 # Core Business Logic & Entities
+│   ├── models/             # Shared Data Models (Freezed)
+│   ├── scoring/            # Scoring engines
+│   └── handicap/           # Calculation logic
+├── services/               # Infrastructure (Auth, Firebase, Persistence)
+├── utils/                  # Helper functions (Dates, Strings)
+├── constants/              # Static keys & Config
+├── navigation/             # App Router (GoRouter)
+└── main.dart               # Entry point
 
 ## State Management (Riverpod)
 We use `riverpod_generator` (`@riverpod` annotation) which auto-generates providers.
@@ -57,7 +60,7 @@ The app uses `StatefulShellRoute` to implement the persistent bottom navigation 
 
 ## Data Models
 Models are immutable and generated using `freezed`.
--   **Location**: `lib/models/`
+-   **Location**: `lib/domain/models/`
 -   **Extension**: `.freezed.dart` and `.g.dart` (JsonSerializable).
 -   **Key Models**:
     -   `Member`: Core user profile.
@@ -68,4 +71,4 @@ The project maintains a strict standard for code quality and reliability:
 - **Strict Linting**: Powered by `analysis_options.yaml`. The project maintains a "Zero Error" policy where `flutter analyze` must return no issues.
 - **Async Safety**: Use of `mounted` guards and localized navigator state ensures `BuildContext` is never used invalidly across async gaps (standardized in Feb 2026).
 - **Type Safety**: Heavy reliance on `freezed` for immutable models and `riverpod_generator` for type-safe state management.
-- **Import Hygiene**: Strict policing of redundant imports and consolidated use of the `boxy_art_widgets.dart` library for UI components.
+- **Import Hygiene**: Strict policing of redundant imports. The project uses a centralized `package:golf_society/design_system/design_system.dart` export for all UI components, drastically reducing import noise.

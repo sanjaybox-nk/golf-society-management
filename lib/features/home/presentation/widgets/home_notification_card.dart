@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../models/notification.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/notification.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class HomeNotificationCard extends StatelessWidget {
   final AppNotification notification;

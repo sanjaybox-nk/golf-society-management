@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/season.dart';
+import 'package:golf_society/domain/models/season.dart';
 import '../../events/presentation/events_provider.dart';
 
 // Mock Season Data

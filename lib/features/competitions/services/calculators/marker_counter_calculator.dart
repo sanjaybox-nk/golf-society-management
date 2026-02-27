@@ -1,7 +1,7 @@
-import '../../../../models/leaderboard_config.dart';
-import '../../../../models/leaderboard_standing.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 import 'leaderboard_calculator.dart';
 
 class MarkerCounterCalculator implements LeaderboardCalculator {

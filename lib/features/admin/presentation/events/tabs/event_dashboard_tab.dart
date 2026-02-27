@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/core/theme/app_shadows.dart';
-import 'package:golf_society/core/theme/theme_controller.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class EventDashboardTab extends ConsumerWidget {
   const EventDashboardTab({super.key});

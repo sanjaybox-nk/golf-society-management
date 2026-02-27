@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import '../../../../core/services/persistence_service.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/services/persistence_service.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 
 // [LAB MODE] Master Toggle
 class LabModeEnabled extends Notifier<bool> {

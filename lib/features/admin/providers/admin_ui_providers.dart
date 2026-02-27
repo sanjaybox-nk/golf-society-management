@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/utils/grouping_service.dart';
+import '../../../domain/grouping/grouping_service.dart';
 
 /// Tracks if the current grouping screen has unsaved changes.
 class GroupingDirtyNotifier extends Notifier<bool> {

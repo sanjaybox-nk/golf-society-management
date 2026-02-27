@@ -1,4 +1,4 @@
-import '../../../models/notification.dart';
+import 'package:golf_society/domain/models/notification.dart';
 
 abstract class NotificationsRepository {
   /// Stream of notifications for a specific user

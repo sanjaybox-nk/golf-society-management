@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/models/leaderboard_config.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 
 class LeaderboardTypeSelectionScreen extends StatelessWidget {
   final bool isTemplate;

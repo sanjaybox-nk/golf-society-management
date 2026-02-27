@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../models/competition.dart';
-import '../../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../../../../competitions/presentation/competitions_provider.dart';
 
 abstract class BaseCompetitionControl extends ConsumerStatefulWidget {

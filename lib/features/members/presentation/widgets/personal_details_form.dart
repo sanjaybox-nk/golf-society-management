@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/constants/country_codes.dart';
-import '../../../../core/theme/app_shadows.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/constants/country_codes.dart';
 
 class PersonalDetailsForm extends StatelessWidget {
   final bool isEditing;

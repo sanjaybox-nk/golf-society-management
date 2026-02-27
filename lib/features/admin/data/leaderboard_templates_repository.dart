@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 
 abstract class LeaderboardTemplatesRepository {
   Stream<List<LeaderboardConfig>> watchTemplates();

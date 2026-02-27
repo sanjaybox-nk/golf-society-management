@@ -12,22 +12,24 @@
 7. **Season Standings**: Advanced leaderboards (OoM, Birdie Tree, Eclectic) with industry-standard point systems.
 8. **Testing Lab (Admin)**: A sophisticated sandbox for seeding historical data and verifying scoring logic across development phases.
 
--   **Typography**: Google Fonts (Poppins)
+-   **Typography**: Google Fonts (Inter)
 
 ## Code Health & Standards
 -   **Zero Error State**: The project adheres to a strict "Zero Warning/Error" policy for `flutter analyze`. 
+-   **Architecture**: Follows a Clean Architecture pattern with distinct `domain`, `features`, and `design_system` layers.
 -   **Async Safety**: Standardized use of `mounted` guards across all asynchronous operations.
 -   **Universal Parity**: 1:1 visual alignment between Admin and Member scoring components.
 
 ## Detailed Documentation
 For deep dives into specific system logic, see:
+-   [Architecture Registry](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/04_ARCHITECTURE.md)
 -   [Registration Logic](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/10_REGISTRATION_LOGIC.md)
 -   [Grouping & Tee Sheets](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/11_GROUPING_LOGIC.md)
 -   [Games & Competitions](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/13_GAMES_AND_COMPETITIONS.md)
 -   [Testing Lab & Seeding](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/14_TESTING_LAB_AND_SEEDING.md)
 
 ## Visual Identity ("BoxyArt")
-The app uses a strict design system called **BoxyArt**:
+The app uses a centralized design system called **BoxyArt**:
 -   **Primary Color**: Configurable seed color (e.g., Mustard Yellow `#F7D354`, Navy, Indigo).
 -   **Secondary Color**: Solid Black (`#000000`)
 -   **Shapes**: High border radius (`30px` for cards, `100px` stadium for buttons).

@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/widgets/boxy_art_widgets.dart';
-import 'package:golf_society/models/handicap_system.dart';
-import '../../../core/theme/theme_controller.dart';
-import '../../../core/theme/app_theme.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/handicap_system.dart';
 import 'profile_provider.dart';
 
 class LockerScreen extends ConsumerWidget {

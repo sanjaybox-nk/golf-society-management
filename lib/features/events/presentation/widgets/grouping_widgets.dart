@@ -1,13 +1,11 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
-import '../../../../core/utils/grouping_service.dart';
-import '../../../../core/utils/handicap_calculator.dart'; // Ensure imported
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/member.dart';
-import '../../../../models/golf_event.dart';
-import '../../../../models/competition.dart';
-import '../../../../models/scorecard.dart';
-// import '../../../../core/utils/tie_breaker_logic.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
+import '../../../../domain/grouping/grouping_service.dart';
 import '../../domain/registration_logic.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';

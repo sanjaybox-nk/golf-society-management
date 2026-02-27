@@ -1,7 +1,7 @@
 
 import 'match_definition.dart';
 import 'match_play_calculator.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 class MatchGroupEntry {
   final String playerId;

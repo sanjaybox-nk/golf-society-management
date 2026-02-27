@@ -1,6 +1,6 @@
-import '../../../../models/scorecard.dart';
-import '../../../../models/competition.dart';
-import '../../../../core/utils/handicap_calculator.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import '../../../domain/scoring/handicap_calculator.dart';
 import 'match_definition.dart';
 
 class MatchPlayCalculator {

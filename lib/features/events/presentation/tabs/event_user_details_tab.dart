@@ -1,22 +1,19 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
-import '../../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/theme/theme_controller.dart';
 import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../../models/competition.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
-import '../../../../models/member.dart';
-import '../../../../../core/theme/app_theme.dart';
+import 'package:golf_society/domain/models/member.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {

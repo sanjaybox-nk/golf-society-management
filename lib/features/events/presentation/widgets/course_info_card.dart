@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../../models/competition.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class CourseInfoCard extends StatelessWidget {
   final Map<String, dynamic> courseConfig;

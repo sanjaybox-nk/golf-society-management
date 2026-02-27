@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/notification.dart';
+import 'package:golf_society/domain/models/notification.dart';
 import 'notifications_repository.dart';
 
 class FirestoreNotificationsRepository implements NotificationsRepository {

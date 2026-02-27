@@ -1,5 +1,5 @@
 
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import 'match_definition.dart';
 
 extension GolfEventMatchExtensions on GolfEvent {

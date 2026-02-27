@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:collection/collection.dart';
 import '../../events/presentation/events_provider.dart';
 import 'standings/standings_providers.dart';
-import '../../../models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import '../../members/presentation/profile_provider.dart';
-import '../../../models/leaderboard_config.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 class SeasonStandingsScreen extends ConsumerWidget {
   final String? seasonId;

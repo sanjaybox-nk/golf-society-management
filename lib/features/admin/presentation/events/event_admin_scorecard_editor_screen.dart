@@ -1,20 +1,17 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import 'package:golf_society/models/event_registration.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 
-import '../../../../core/shared_ui/headless_scaffold.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/widgets/course_info_card.dart';
 import '../../../events/presentation/widgets/hole_by_hole_scoring_widget.dart';
-import '../../../../core/theme/theme_controller.dart';
-import '../../../../core/utils/handicap_calculator.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../members/presentation/members_provider.dart';
-import '../../../../models/member.dart';
-import '../../../../models/competition.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 
 class EventAdminScorecardEditorScreen extends ConsumerWidget {

@@ -1,5 +1,5 @@
-import '../../../../models/event_registration.dart';
-import '../../../../models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 
 enum RegistrationStatus {
   confirmed,

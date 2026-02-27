@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print, unused_import
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:golf_society/models/golf_event.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import 'dart:io';
 
 void main() async {

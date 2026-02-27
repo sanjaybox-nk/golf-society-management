@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:golf_society/core/widgets/boxy_art_widgets.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
-import 'package:golf_society/models/golf_event.dart';
-import 'package:golf_society/models/event_registration.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 
 class EventRegistrationScreen extends ConsumerStatefulWidget {
   final String eventId;

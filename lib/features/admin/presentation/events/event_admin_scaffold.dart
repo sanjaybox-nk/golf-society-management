@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/core/shared_ui/headless_scaffold.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../widgets/admin_bottom_nav_bar.dart';
 import 'tabs/event_dashboard_tab.dart';
 

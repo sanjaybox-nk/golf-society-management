@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../models/member.dart';
-import '../../../../models/handicap_system.dart';
-import '../../../../core/shared_ui/modern_cards.dart';
-import '../../../../core/theme/theme_controller.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/handicap_system.dart';
 import '../member_details_modal.dart';
 
 class MemberTile extends ConsumerWidget {

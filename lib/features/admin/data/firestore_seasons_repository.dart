@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/season.dart';
-import '../../../models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'seasons_repository.dart';
 
 class FirestoreSeasonsRepository implements SeasonsRepository {

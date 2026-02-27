@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/golf_event.dart';
-import '../../../models/notification.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/notification.dart';
 import '../../notifications/data/notifications_repository.dart';
 import '../../notifications/data/firestore_notifications_repository.dart';
 import '../../members/presentation/profile_provider.dart';
 import 'package:collection/collection.dart';
 
 // Mock data provider for Next Match
-import '../../../models/leaderboard_standing.dart';
-import '../../../models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../events/presentation/events_provider.dart';
 
 // Next Match derived from Upcoming Events

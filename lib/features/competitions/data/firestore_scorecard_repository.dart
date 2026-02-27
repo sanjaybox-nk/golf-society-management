@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:golf_society/models/scorecard.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 import 'scorecard_repository.dart';
 
 class FirestoreScorecardRepository implements ScorecardRepository {

@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/models/competition.dart';
-import 'package:golf_society/models/golf_event.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import '../state/debug_providers.dart';
-import '../../../../core/utils/seeding_controller.dart';
+import 'package:golf_society/utils/seeding_controller.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
-import '../../../../core/services/seeding_service.dart';
-import '../../../../core/utils/csv_export_service.dart';
-import '../../../../core/services/persistence_service.dart';
+import 'package:golf_society/services/seeding_service.dart';
+import 'package:golf_society/utils/csv_export_service.dart';
+import 'package:golf_society/services/persistence_service.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../events/presentation/events_provider.dart';
 

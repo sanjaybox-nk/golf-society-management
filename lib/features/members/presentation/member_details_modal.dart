@@ -1,19 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/services/storage_service.dart';
-import '../../../../core/widgets/boxy_art_widgets.dart';
-import '../../../../core/widgets/boxy_art_nav_bar.dart';
+import 'package:golf_society/services/storage_service.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'widgets/member_stats_row.dart';
 
-import '../../../../core/constants/country_codes.dart';
-import '../../../../models/member.dart';
+import 'package:golf_society/constants/country_codes.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'members_provider.dart';
 import 'profile_provider.dart';
 import 'widgets/member_role_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
-import '../../../../core/theme/app_theme.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member

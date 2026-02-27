@@ -1,7 +1,7 @@
 import '../domain/match_definition.dart';
 import '../domain/match_play_calculator.dart';
 import '../domain/match_standings_calculator.dart';
-import '../../../../models/scorecard.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 class MatchProgressionLogic {
   

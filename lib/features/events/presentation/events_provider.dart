@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/golf_event.dart';
-import '../../../models/season.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/season.dart';
 import '../../events/data/events_repository.dart';
 import '../../events/data/firestore_events_repository.dart';
 import '../../admin/data/seasons_repository.dart';
