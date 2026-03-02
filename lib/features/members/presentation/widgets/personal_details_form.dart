@@ -58,6 +58,7 @@ class PersonalDetailsForm extends StatelessWidget {
         const BoxyArtSectionTitle(
           title: 'Personal Details',
           isLevel2: true,
+          icon: Icons.account_circle_outlined,
         ),
           
           if (isEditing) ...[
@@ -105,31 +106,52 @@ class PersonalDetailsForm extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 12, bottom: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, bottom: 4),
                         child: Text(
-                          'Gender',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          'Gender'.toUpperCase(),
+                          style: AppTypography.label.copyWith(
+                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                          ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFF5F5F5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-                          shadows: AppShadows.inputSoft,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(100),
+                          boxShadow: AppShadows.inputSoft,
+                          border: Theme.of(context).brightness == Brightness.dark 
+                              ? null 
+                              : Border.all(color: AppColors.lightBorder),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: gender,
-                            isExpanded: true,
-                            hint: const Text('Select', style: TextStyle(color: Colors.grey)),
-                            items: const [
-                              DropdownMenuItem(value: 'Male', child: Text('Male')),
-                              DropdownMenuItem(value: 'Female', child: Text('Female')),
-                            ],
-                            onChanged: onGenderChanged,
-                          ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.wc_outlined,
+                              size: 18,
+                              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark300,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: gender,
+                                  isExpanded: true,
+                                  hint: const Text('Select', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                                  items: const [
+                                    DropdownMenuItem(value: 'Male', child: Text('Male', style: TextStyle(fontSize: 14))),
+                                    DropdownMenuItem(value: 'Female', child: Text('Female', style: TextStyle(fontSize: 14))),
+                                  ],
+                                  onChanged: onGenderChanged,
+                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : Colors.white,
+                                  style: AppTypography.body.copyWith(
+                                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -217,96 +239,121 @@ class PersonalDetailsForm extends StatelessWidget {
        child: Column(
          crossAxisAlignment: CrossAxisAlignment.start,
          children: [
-           const Padding(
-             padding: EdgeInsets.only(left: 12, bottom: 4),
-             child: Text(
-               'Code',
-               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
-             ),
-           ),
-            Container(
-              decoration: ShapeDecoration(
-                color: const Color(0xFFF5F5F5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-                shadows: AppShadows.inputSoft,
+            Padding(
+              padding: const EdgeInsets.only(left: 12, bottom: 4),
+              child: Text(
+                'Code'.toUpperCase(),
+                style: AppTypography.label.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                ),
               ),
-              child: Autocomplete<Map<String, String>>(
-                initialValue: TextEditingValue(text: countryCodeController.text),
-                optionsBuilder: (textEditingValue) {
-                  if (textEditingValue.text == '') return const Iterable<Map<String, String>>.empty();
-                  return countryList.where((option) {
-                    return option['name']!.toLowerCase().contains(textEditingValue.text.toLowerCase()) ||
-                           option['code']!.contains(textEditingValue.text);
-                  });
-                },
-                displayStringForOption: (option) => option['code']!,
-                onSelected: (selection) => countryCodeController.text = selection['code']!,
-                optionsViewBuilder: (context, onSelected, options) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: OverflowBox(
-                      maxWidth: 195,
-                      minWidth: 195,
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 8,
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          width: 195,
-                          constraints: const BoxConstraints(maxHeight: 250),
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: options.length,
-                            itemBuilder: (context, index) {
-                              final option = options.elementAt(index);
-                              return InkWell(
-                                onTap: () => onSelected(option),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        option['flag'] ?? '',
-                                        style: const TextStyle(fontSize: 18),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: AppShadows.inputSoft,
+                border: Theme.of(context).brightness == Brightness.dark 
+                    ? null 
+                    : Border.all(color: AppColors.lightBorder),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+                  Icon(
+                    Icons.public_rounded,
+                    size: 18,
+                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark300,
+                  ),
+                  Expanded(
+                    child: Autocomplete<Map<String, String>>(
+                      initialValue: TextEditingValue(text: countryCodeController.text),
+                      optionsBuilder: (textEditingValue) {
+                        if (textEditingValue.text == '') return const Iterable<Map<String, String>>.empty();
+                        return countryList.where((option) {
+                          return option['name']!.toLowerCase().contains(textEditingValue.text.toLowerCase()) ||
+                                 option['code']!.contains(textEditingValue.text);
+                        });
+                      },
+                      displayStringForOption: (option) => option['code']!,
+                      onSelected: (selection) => countryCodeController.text = selection['code']!,
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: OverflowBox(
+                            maxWidth: 195,
+                            minWidth: 195,
+                            alignment: Alignment.topLeft,
+                            child: Material(
+                              elevation: 8,
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                width: 195,
+                                constraints: const BoxConstraints(maxHeight: 250),
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  itemCount: options.length,
+                                  itemBuilder: (context, index) {
+                                    final option = options.elementAt(index);
+                                    return InkWell(
+                                      onTap: () => onSelected(option),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              option['flag'] ?? '',
+                                              style: const TextStyle(fontSize: 18),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              option['code']!,
+                                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                                child: Text(
+                                                  option['name']!,
+                                                  style: TextStyle(
+                                                    fontSize: 13, 
+                                                    fontWeight: FontWeight.w600, 
+                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                            ),
+                                          ],
+                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        option['code']!,
-                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          option['name']!,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black54),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                   ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
+                      fieldViewBuilder: (context, controller, focus, onSubmitted) {
+                        return TextFormField(
+                          controller: controller,
+                          focusNode: focus,
+                          cursorColor: Theme.of(context).primaryColor,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          style: AppTypography.body.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-                fieldViewBuilder: (context, controller, focus, onSubmitted) {
-                  return TextFormField(
-                    controller: controller,
-                    focusNode: focus,
-                    cursorColor: Theme.of(context).primaryColor,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
          ],

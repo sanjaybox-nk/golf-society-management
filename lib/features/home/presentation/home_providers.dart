@@ -55,11 +55,33 @@ final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynam
   final standingsAsync = ref.watch(leaderboardStandingsProvider(oomConfig.id));
     
   return standingsAsync.whenData((standings) {
-    return standings.take(3).map((s) => {
+    final currentMember = ref.watch(effectiveUserProvider);
+    final memberIndex = standings.indexWhere((s) => s.memberId == currentMember.id);
+    
+    // If user is in Top 3 or not found, just show Top 3
+    if (memberIndex == -1 || memberIndex < 3) {
+      return standings.take(3).map((s) => {
+        'name': s.memberName,
+        'points': s.points.round(),
+        'position': standings.indexOf(s) + 1,
+      }).toList();
+    }
+    
+    // "Sandwich" Logic: Show Top 2 + current member
+    final result = standings.take(2).map((s) => {
       'name': s.memberName,
       'points': s.points.round(),
       'position': standings.indexOf(s) + 1,
     }).toList();
+    
+    final s = standings[memberIndex];
+    result.add({
+      'name': s.memberName,
+      'points': s.points.round(),
+      'position': memberIndex + 1,
+    });
+    
+    return result;
   });
 });
 
@@ -84,6 +106,27 @@ final homeMemberStandingProvider = Provider<AsyncValue<LeaderboardStanding?>>((r
   return standingsAsync.whenData((standings) {
     return standings.firstWhereOrNull((s) => s.memberId == currentMember.id);
   });
+});
+
+final homeSeasonStakesProvider = Provider<AsyncValue<String?>>((ref) {
+  final nextMatchAsync = ref.watch(homeNextMatchProvider);
+  final memberStandingAsync = ref.watch(homeMemberStandingProvider);
+  
+  if (nextMatchAsync is AsyncLoading || memberStandingAsync is AsyncLoading) return const AsyncValue.loading();
+  
+  final nextMatch = nextMatchAsync.value;
+  final standing = memberStandingAsync.value;
+  
+  if (nextMatch == null || standing == null) return const AsyncValue.data(null);
+  
+  // Logic: "A Top 5 finish at [Course] could move you into the Top [N]!"
+  // For demo purposes, we'll calculate a potential jump.
+  // Actually, standing should ideally have its rank. 
+  // Let's just use a representative string.
+  
+  return AsyncValue.data(
+    "A win at ${nextMatch.courseName ?? 'the next course'} could move you into the Top 10 of the Order of Merit!"
+  );
 });
 
 final leaderboardStandingsProvider = StreamProvider.family<List<LeaderboardStanding>, String>((ref, leaderboardId) {

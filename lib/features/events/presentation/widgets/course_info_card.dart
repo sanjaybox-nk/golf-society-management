@@ -261,14 +261,14 @@ class CourseInfoCard extends StatelessWidget {
       children: [
           Container(
             decoration: BoxDecoration(
-              color: headerColor ?? Colors.grey.withValues(alpha: 0.05),
+              color: headerColor ?? AppColors.dark600,
             ),
             child: Row(
               children: [
-                SizedBox(width: 50, child: _buildCellHeader('', width: 50)),
+                SizedBox(width: 50, child: _buildCellHeader(context, '', width: 50)),
                 for (int i = 0; i < 9; i++)
-                  Expanded(child: _buildCellHeader('${startHole + i}', width: double.infinity)),
-                SizedBox(width: 40, child: _buildCellHeader(label, width: 40, isBold: true)),
+                  Expanded(child: _buildCellHeader(context, '${startHole + i}', width: double.infinity)),
+                SizedBox(width: 40, child: _buildCellHeader(context, label, width: 40, isBold: true)),
               ],
             ),
           ),
@@ -277,16 +277,14 @@ class CourseInfoCard extends StatelessWidget {
           // Par row with tee color background
           Container(
             decoration: BoxDecoration(
-              color: selectedTeeName != null 
-                  ? _getTeeColor(selectedTeeName!)
-                  : Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
             ),
             child: Row(
               children: [
-                SizedBox(width: 50, child: _buildCellLabel('Par', width: 50, isOnTeeColor: selectedTeeName != null)),
+                SizedBox(width: 50, child: _buildCellLabel(context, 'Par', width: 50)),
                 for (int i = 0; i < 9; i++)
-                  Expanded(child: _buildCell(context, i < pars.length ? '${pars[i]}' : '-', width: double.infinity, isPar: true, isOnTeeColor: selectedTeeName != null)),
-                SizedBox(width: 40, child: _buildCell(context, '$totalPar', width: 40, isBold: true, isOnTeeColor: selectedTeeName != null)),
+                  Expanded(child: _buildCell(context, i < pars.length ? '${pars[i]}' : '-', width: double.infinity, isPar: true)),
+                SizedBox(width: 40, child: _buildCell(context, '$totalPar', width: 40, isBold: true)),
               ],
             ),
           ),
@@ -295,7 +293,7 @@ class CourseInfoCard extends StatelessWidget {
           // SI row
           Row(
             children: [
-              SizedBox(width: 50, child: _buildCellLabel('SI', width: 50)),
+              SizedBox(width: 50, child: _buildCellLabel(context, 'SI', width: 50)),
               for (int i = 0; i < 9; i++)
                 Expanded(child: _buildCell(context, i < sis.length ? '${sis[i]}' : '-', width: double.infinity)),
               SizedBox(width: 40, child: _buildCell(context, '', width: 40)),
@@ -307,7 +305,7 @@ class CourseInfoCard extends StatelessWidget {
           if (scores != null) ...[
              Row(
               children: [
-                SizedBox(width: 50, child: _buildCellLabel(mainRowLabel ?? 'Strokes', width: 50)),
+                SizedBox(width: 50, child: _buildCellLabel(context, mainRowLabel ?? 'Strokes', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(
                     child: _buildCell(
@@ -337,7 +335,7 @@ class CourseInfoCard extends StatelessWidget {
             const Divider(height: 1),
             Row(
               children: [
-                SizedBox(width: 50, child: _buildCellLabel('Adjusted', width: 50)),
+                SizedBox(width: 50, child: _buildCellLabel(context, 'Adjusted', width: 50)),
                 for (int i = 0; i < 9; i++)
                   (() {
                     final score = adjustedScores[i];
@@ -352,8 +350,8 @@ class CourseInfoCard extends StatelessWidget {
                         isScore: true,
                         // Highlight if adjusted (capped)
                         isBold: isCapped,
-                        overrideBgColor: isCapped ? Colors.deepPurple : Colors.grey.withValues(alpha: 0.1),
-                        overrideTextColor: isCapped ? Colors.white : Colors.grey[600],
+                        overrideBgColor: isCapped ? AppColors.amber500 : AppColors.dark500,
+                        overrideTextColor: isCapped ? Colors.black : AppColors.dark200,
                         scoreDiff: null, // Don't use standard golf colors for Adjusted row
                       ),
                     );
@@ -367,7 +365,7 @@ class CourseInfoCard extends StatelessWidget {
             const Divider(height: 1),
             Row(
               children: [
-                SizedBox(width: 50, child: _buildCellLabel('Match', width: 50)),
+                SizedBox(width: 50, child: _buildCellLabel(context, 'Match', width: 50)),
                 for (int i = 0; i < 9; i++)
                   (() {
                     final idx = startHole - 1 + i;
@@ -405,7 +403,7 @@ class CourseInfoCard extends StatelessWidget {
           if (isStableford)
             Row(
               children: [
-                SizedBox(width: 50, child: _buildCellLabel('Points', width: 50)),
+                SizedBox(width: 50, child: _buildCellLabel(context, 'Points', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(child: _buildCell(context, (i < stablefordPoints.length) ? (stablefordPoints[i]?.toString() ?? '-') : '-', width: double.infinity, isPoints: true)),
                 SizedBox(width: 40, child: _buildCell(context, totalPoints > 0 || stablefordPoints.any((p) => p != null) ? '$totalPoints' : '-', width: 40, isBold: true, isPoints: true)),
@@ -468,6 +466,7 @@ class CourseInfoCard extends StatelessWidget {
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
+                  color: AppColors.dark150,
                 ),
               ),
               if (holesPlayed > 0 && holesPlayed < 18)
@@ -531,19 +530,19 @@ class CourseInfoCard extends StatelessWidget {
       children: [
         Text(
           '$label: ',
-          style: TextStyle(
+          style: AppTypography.label.copyWith(
             fontSize: 9, 
             fontWeight: FontWeight.w900, 
-            color: isHighlighted ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            color: isHighlighted ? AppColors.lime500 : AppColors.dark200,
             letterSpacing: 0.5,
           ),
         ),
         Text(
           displayValue,
-          style: TextStyle(
+          style: AppTypography.label.copyWith(
             fontSize: 12, 
             fontWeight: FontWeight.w900,
-            color: isHighlighted ? Theme.of(context).primaryColor : null,
+            color: isHighlighted ? AppColors.lime500 : AppColors.dark60,
           ),
         ),
         if (diffLabel != null)
@@ -554,7 +553,7 @@ class CourseInfoCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: diff! < 0 ? Colors.red : (diff > 0 ? Colors.blue : Colors.grey),
+                color: diff! < 0 ? AppColors.lime500 : (diff > 0 ? AppColors.coral500 : AppColors.dark200),
               ),
             ),
           ),
@@ -562,24 +561,24 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCellHeader(String text, {double width = 30, bool isBold = false}) {
+  Widget _buildCellHeader(BuildContext context, String text, {double width = 30, bool isBold = false}) {
     return SizedBox(
       width: width,
       height: 24,
       child: Center(
         child: Text(
           text,
-          style: TextStyle(
+          style: AppTypography.label.copyWith(
             fontSize: 9,
             fontWeight: FontWeight.w900,
-            color: Colors.grey[700],
+            color: AppColors.dark200,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCellLabel(String text, {double width = 50, bool isOnTeeColor = false, Color? color}) {
+  Widget _buildCellLabel(BuildContext context, String text, {double width = 50, Color? color}) {
     return SizedBox(
       width: width,
       height: 28,
@@ -591,10 +590,10 @@ class CourseInfoCard extends StatelessWidget {
             text,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: AppTypography.label.copyWith(
               fontSize: 9,
               fontWeight: FontWeight.w900,
-              color: color ?? (isOnTeeColor ? Colors.white : Colors.black87),
+              color: color ?? AppColors.dark150,
             ),
           ),
         ),
@@ -602,29 +601,27 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCell(BuildContext context, String text, {double width = 30, bool isBold = false, bool isPar = false, bool isSmall = false, bool isScore = false, bool isPoints = false, bool isOnTeeColor = false, int? scoreDiff, Color? overrideBgColor, Color? overrideTextColor}) {
+  Widget _buildCell(BuildContext context, String text, {double width = 30, bool isBold = false, bool isPar = false, bool isSmall = false, bool isScore = false, bool isPoints = false, int? scoreDiff, Color? overrideBgColor, Color? overrideTextColor}) {
     Color? bgColor = overrideBgColor;
-    Color textColor = overrideTextColor ?? (isOnTeeColor
-        ? Colors.white
-        : ((isPoints || isScore)
-            ? Theme.of(context).primaryColor 
-            : (isPar ? Colors.black87 : Colors.grey[700]!)));
+    Color textColor = overrideTextColor ?? (isPoints || isScore
+        ? AppColors.lime500 
+        : (isPar ? AppColors.dark60 : AppColors.dark200));
 
     if (scoreDiff != null) {
       if (scoreDiff <= -2) { // Eagle or better
-        bgColor = Colors.amber;
+        bgColor = AppColors.amber500;
         textColor = Colors.black;
       } else if (scoreDiff == -1) { // Birdie
-        bgColor = Colors.red;
+        bgColor = AppColors.lime500;
         textColor = Colors.white;
       } else if (scoreDiff == 0) { // Par
         bgColor = null; // Transparent
-        textColor = Colors.black;
+        textColor = Theme.of(context).colorScheme.onSurface;
       } else if (scoreDiff == 1) { // Bogey
-        bgColor = Colors.blue;
+        bgColor = AppColors.coral400;
         textColor = Colors.white;
       } else { // Double Bogey or worse
-        bgColor = Colors.black;
+        bgColor = AppColors.coral500;
         textColor = Colors.white;
       }
     }
@@ -653,21 +650,6 @@ class CourseInfoCard extends StatelessWidget {
     );
   }
 
-  Color _getTeeColor(String teeName) {
-    final name = teeName.toLowerCase();
-    if (name.contains('white')) return Colors.grey.shade400; // Using grey for White tee background to keep text visible
-    if (name.contains('yellow')) return const Color(0xFFFFD700);
-    if (name.contains('red')) return const Color(0xFFFF4D4D);
-    if (name.contains('blue')) return const Color(0xFF1E90FF);
-    if (name.contains('black')) return const Color(0xFF2F2F2F);
-    if (name.contains('green')) return const Color(0xFF2ECC71);
-    if (name.contains('gold')) return const Color(0xFFFFD700);
-    if (name.contains('silver')) return const Color(0xFFC0C0C0);
-    if (name.contains('orange')) return Colors.orange;
-    if (name.contains('purple')) return Colors.purple;
-    return Colors.grey;
-  }
-
   Widget _buildScoreRow(BuildContext context, String playerName, List<int?> allScores, int startHole, List<dynamic> pars, List<dynamic> sis, int? handicap, {Color? color, Set<int>? countingHoles}) {
     // Slice scores for this 9
     final startIdx = startHole - 1;
@@ -683,7 +665,7 @@ class CourseInfoCard extends StatelessWidget {
       children: [
         Row(
            children: [
-             SizedBox(width: 50, child: _buildCellLabel(handicap != null ? '$playerName ($handicap)' : playerName, width: 50, color: color)),
+             SizedBox(width: 50, child: _buildCellLabel(context, handicap != null ? '$playerName ($handicap)' : playerName, width: 50, color: color)),
              for (int i = 0; i < 9; i++)
                (() {
                  final idx = startIdx + i;

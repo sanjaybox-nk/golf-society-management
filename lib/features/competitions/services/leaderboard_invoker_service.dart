@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/competition.dart';
 
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
+import '../../members/presentation/members_provider.dart';
 import 'calculators/leaderboard_calculator.dart';
 import 'calculators/oom_calculator.dart';
 import 'calculators/best_of_series_calculator.dart';
@@ -18,11 +19,14 @@ class LeaderboardInvokerService {
 
   LeaderboardInvokerService(this.ref);
 
-  Future<void> recalculateAll(String seasonId) async {
+  Future<void> recalculateAll(String seasonId, {List<LeaderboardConfig>? overrideConfigs}) async {
     // 1. Fetch Season
     final seasonRepo = ref.read(seasonsRepositoryProvider);
     final seasons = await seasonRepo.getSeasons();
     final season = seasons.firstWhere((s) => s.id == seasonId);
+
+    // Use overrideConfigs if provided (e.g. from a form), otherwise use the ones in the saved season
+    final configs = overrideConfigs ?? season.leaderboards;
 
     // 2. Fetch All Competitions in Date Range
     final compRepo = ref.read(competitionsRepositoryProvider);
@@ -49,8 +53,13 @@ class LeaderboardInvokerService {
       }
     }
 
+    // 2.6 Fetch Members for name resolution in standings
+    final memberRepo = ref.read(membersRepositoryProvider);
+    final members = await memberRepo.getMembers();
+    final Map<String, String> memberNames = {for (var m in members) m.id: m.displayName};
+
     // 3. For each Leaderboard, calculate
-    for (var config in season.leaderboards) {
+    for (var config in configs) {
       LeaderboardCalculator? calculator;
 
       config.map(
@@ -66,14 +75,11 @@ class LeaderboardInvokerService {
         final scorecardRepo = ref.read(scorecardRepositoryProvider);
 
         for (var comp in seasonComps) {
-           // Create a safe fetch wrapper
            try {
-             final stream = scorecardRepo.watchScorecards(comp.id);
-             final cards = await stream.first; 
+             // Use getScorecards instead of watch().first for cleaner execution
+             final cards = await scorecardRepo.getScorecards(comp.id);
              allScorecards.addAll(cards);
-           } catch (_) {
-             // Silently fail or use a logger
-           }
+           } catch (_) {}
         }
         
         // Calculate
@@ -84,8 +90,13 @@ class LeaderboardInvokerService {
           groupings: groupings,
         );
 
+        // Update standings with real names
+        final namedStandings = standings.map((s) => s.copyWith(
+          memberName: memberNames[s.memberId] ?? s.memberName,
+        )).toList();
+
         // Save
-        await seasonRepo.updateLeaderboardStandings(seasonId, config.id, standings);
+        await seasonRepo.updateLeaderboardStandings(seasonId, config.id, namedStandings);
       }
     }
   }

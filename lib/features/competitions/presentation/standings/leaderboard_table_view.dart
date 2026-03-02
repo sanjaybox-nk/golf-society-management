@@ -25,25 +25,18 @@ class LeaderboardTableView extends StatelessWidget {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       itemCount: standings.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final standing = standings[index];
         final isMe = standing.memberId == currentUserId;
 
-        return Container(
-          decoration: BoxDecoration(
-            color: isMe 
-                ? Theme.of(context).primaryColor.withValues(alpha: 0.1) 
-                : Colors.grey[900],
-            borderRadius: BorderRadius.circular(12),
-            border: isMe 
-                ? Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.5))
-                : Border.all(color: Colors.white10),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        return BoxyArtCard(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Rank
@@ -51,10 +44,9 @@ class LeaderboardTableView extends StatelessWidget {
                 width: 32,
                 child: Text(
                   '${index + 1}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  style: AppTypography.displayHeading.copyWith(
+                    fontSize: 18,
+                    color: isMe ? AppColors.lime500 : (isDark ? AppColors.dark150 : AppColors.dark700),
                   ),
                 ),
               ),
@@ -62,11 +54,15 @@ class LeaderboardTableView extends StatelessWidget {
               
               // Avatar Placeholder
               CircleAvatar(
-                radius: 16,
-                backgroundColor: isMe ? Theme.of(context).primaryColor : Colors.grey[800],
+                radius: 18,
+                backgroundColor: isMe ? AppColors.lime500 : (isDark ? AppColors.dark600 : AppColors.dark150),
                 child: Text(
                   standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: AppTypography.label.copyWith(
+                    color: isMe ? AppColors.actionText : (isDark ? AppColors.pureWhite : AppColors.dark900),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -78,16 +74,19 @@ class LeaderboardTableView extends StatelessWidget {
                   children: [
                     Text(
                       standing.memberName,
-                      style: TextStyle(
-                        color: isMe ? Theme.of(context).primaryColor : Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: isMe ? AppColors.lime500 : (isDark ? AppColors.pureWhite : AppColors.dark900),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      '${standing.roundsPlayed} Rounds',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      '${standing.roundsPlayed} ROUNDS',
+                      style: AppTypography.label.copyWith(
+                        color: isDark ? AppColors.dark300 : AppColors.dark400,
+                        fontSize: 10,
+                        letterSpacing: 1.0,
+                      ),
                     ),
                   ],
                 ),
@@ -99,15 +98,18 @@ class LeaderboardTableView extends StatelessWidget {
                 children: [
                   Text(
                     standing.points.toStringAsFixed(standing.points.truncateToDouble() == standing.points ? 0 : 1),
-                    style: TextStyle(
-                      color: isMe ? Theme.of(context).primaryColor : Colors.white,
-                      fontWeight: FontWeight.bold,
+                    style: AppTypography.displayHeading.copyWith(
+                      color: isMe ? AppColors.lime500 : (isDark ? AppColors.pureWhite : AppColors.dark900),
                       fontSize: 18,
                     ),
                   ),
                   Text(
                     'PTS',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 10),
+                    style: AppTypography.label.copyWith(
+                      color: isDark ? AppColors.dark300 : AppColors.dark400,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ],
               ),

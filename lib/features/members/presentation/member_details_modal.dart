@@ -25,16 +25,7 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: Material(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: MemberDetailsModal(member: member),
-            ),
-          ),
-        );
+        return MemberDetailsModal(member: member);
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
@@ -298,9 +289,11 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         }
       },
       child: HeadlessScaffold(
+        useScaffold: false,
         title: title,
         showBack: !_isEditing,
         showAdminShortcut: false, // Modal context, no shortcut needed
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         
         // Leading Action (Back / Cancel)
         leading: _isEditing 
@@ -420,6 +413,43 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
                     SizedBox(height: AppTheme.cardSpacing),
 
+                    // Season Highlights (Design 3.1)
+                    if (!_isNewMember && widget.member != null) ...[
+                      const BoxyArtSectionTitle(title: 'Season Standing'),
+                      const SizedBox(height: 12),
+                      BoxyArtCard(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            _buildHighlightRow(
+                              context,
+                              icon: Icons.emoji_events_rounded,
+                              color: Colors.amber,
+                              label: 'Order of Merit',
+                              value: 'Rank #6', // Mock for now, linked to logic later
+                            ),
+                            const Divider(height: 24, indent: 48),
+                            _buildHighlightRow(
+                              context,
+                              icon: Icons.grid_view_rounded,
+                              color: Colors.blue,
+                              label: 'Season Eclectic',
+                              value: '68 Gross',
+                            ),
+                            const Divider(height: 24, indent: 48),
+                            _buildHighlightRow(
+                              context,
+                              icon: Icons.park_rounded,
+                              color: Colors.green,
+                              label: 'Birdie Tree',
+                              value: '12 Birdies',
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: AppTheme.cardSpacing),
+                    ],
+
                     PersonalDetailsForm(
                       isEditing: _isEditing,
                       firstController: _firstController,
@@ -483,7 +513,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                });
              }
           },
-          child: const Text('Discard', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          child: Text('Discard', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -497,14 +527,52 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     );
   }
 
+  Widget _buildHighlightRow(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 18, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+            color: color == Colors.amber ? Theme.of(context).primaryColor : color,
+          ),
+        ),
+      ],
+    );
+  }
+
 
 
 
   Widget _buildBottomMenu(bool isAdmin) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return BoxyArtBottomNavBar(
       selectedIndex: 2, // Highlight "Members" tab
       onItemSelected: (index) => Navigator.of(context).pop(),
-      backgroundColor: Colors.black,
+      backgroundColor: isDark ? AppColors.dark900 : Colors.black,
       activeColor: Colors.white,
       unselectedColor: Colors.grey.shade600,
       items: isAdmin 

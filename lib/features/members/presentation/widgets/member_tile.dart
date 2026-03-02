@@ -28,7 +28,7 @@ class MemberTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final primary = theme.primaryColor;
+    final primary = theme.colorScheme.primary;
     
     return BoxyArtCard(
       onTap: onTap ?? () => MemberDetailsModal.show(context, member),
@@ -153,10 +153,10 @@ class MemberTile extends ConsumerWidget {
                 ),
               ],
               const Spacer(),
-              if (member.hasPaid)
+              if (showFeeStatus && member.hasPaid)
                 _buildStatusPill(
                   'Fee Paid',
-                  const Color(0xFF27AE60),
+                  StatusColors.positive,
                 ),
             ],
           ),

@@ -29,7 +29,9 @@ class RegistrationStatusPill extends StatelessWidget {
         label = labelOverride ?? 'Registration Open';
         break;
       case RegistrationStatusType.closed:
-        baseColor = AppColors.dark400;
+        baseColor = Theme.of(context).brightness == Brightness.dark 
+            ? AppColors.dark150 
+            : AppColors.dark400;
         icon = Icons.lock_outline_rounded;
         label = labelOverride ?? 'Registration Closed';
         break;

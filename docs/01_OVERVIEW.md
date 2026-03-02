@@ -4,15 +4,15 @@
 
 ## Core Features
 1. **Member Dashboard**: Personalized view with dynamic notifications, "Next Match" details, and quick actions.
-2. **Communications Hub (Admin)**: A sophisticated broadcasting system with custom distribution lists and targeting.
-3. **Events Hub**: Comprehensive listing of Upcoming and Past events, with registration capabilities.
-4. **Members Directory**: Searchable list of all society members with live filtering and photo uploads.
-5. **Locker Room**: User profile management (Bio, Photo), handicap tracking, and statistics.
-6. **Archive**: Historical data of past seasons and major winners.
+2. **Society Reporting Hub**: Comprehensive reporting engine for finances, member engagement, and competition analytics.
+3. **Communications Hub (Admin)**: A sophisticated broadcasting system with custom distribution lists and targeting.
+4. **Events Hub**: Comprehensive listing of Upcoming and Past events, with registration capabilities.
+5. **Members Directory**: Searchable list of all society members with live filtering and photo uploads.
+6. **Locker Room**: User profile management (Bio, Photo), handicap tracking, and statistics.
 7. **Season Standings**: Advanced leaderboards (OoM, Birdie Tree, Eclectic) with industry-standard point systems.
 8. **Demo Seeding (Admin)**: A sophisticated system for populating historical data across development and testing environments.
 
--   **Typography**: Google Fonts (Inter)
+-   **Typography**: Inter (Body, Labels), Fredoka (Display)
 
 ## Code Health & Standards
 -   **Zero Error State**: The project adheres to a strict "Zero Warning/Error" policy for `flutter analyze`. 

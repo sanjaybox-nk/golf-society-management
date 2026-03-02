@@ -67,6 +67,26 @@ class GeneralSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.indigo,
                       onTap: () => context.push('/admin/settings/general/grouping-strategy'),
                     ),
+                    const Divider(height: 1, indent: 68),
+                    ModernSwitchRow(
+                      icon: Icons.splitscreen_rounded,
+                      label: 'Separate Guest Leaderboard',
+                      subtitle: 'Move guests to their own section in the standings.',
+                      value: config.separateGuestLeaderboard,
+                      onChanged: (val) {
+                        ref.read(themeControllerProvider.notifier).setSeparateGuestLeaderboard(val);
+                      },
+                    ),
+                    const Divider(height: 1, indent: 68),
+                    ModernSwitchRow(
+                      icon: Icons.person_add_disabled_rounded,
+                      label: 'Include Guests in Standings',
+                      subtitle: 'Whether guests appear on any leaderboards by default.',
+                      value: config.includeGuestsInLeaderboard,
+                      onChanged: (val) {
+                        ref.read(themeControllerProvider.notifier).setIncludeGuestsInLeaderboard(val);
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -101,19 +121,11 @@ class GeneralSettingsScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     _SettingsTile(
-                      icon: Icons.data_usage_rounded,
-                      title: 'Initialize Demo Season',
-                      subtitle: 'Generate 60 members & 10 full events',
+                      icon: Icons.refresh_rounded,
+                      title: 'Reset Demo Environment',
+                      subtitle: 'Wipe all data and generate 75 members & 15 events',
                       iconColor: Colors.deepPurple,
-                      onTap: () => _showSeedingDialog(context, ref),
-                    ),
-                    const Divider(height: 1, indent: 68),
-                    _SettingsTile(
-                      icon: Icons.delete_forever_rounded,
-                      title: 'Wipe & Re-Seed Season',
-                      subtitle: 'Clear ALL data and restart demo',
-                      iconColor: Colors.red,
-                      onTap: () => _showWipeConfirmDialog(context, ref),
+                      onTap: () => _showResetConfirmDialog(context, ref),
                     ),
                   ],
                 ),
@@ -138,13 +150,13 @@ class GeneralSettingsScreen extends ConsumerWidget {
   // _getStrategyDescription not needed here anymore as it's in the selection screen.
   // Picker methods removed.
 
-  void _showSeedingDialog(BuildContext context, WidgetRef ref) {
+  void _showResetConfirmDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Initialize Demo Season?'),
+        title: const Text('Reset Demo Environment?'),
         content: const Text(
-          'This will create a new "Demo Season 2026" with 60 high-fidelity members, 11 unique courses, and 10 full events. \n\nThis may take 30-60 seconds to populate Firestore.',
+          'This will PERMANENTLY DELETE all existing members, events, and scores.\n\nIt will then generate a fresh "Demo Season 2026" with 75 members and 15 high-fidelity events. \n\nThis may take 30-60 seconds.',
         ),
         actions: [
           TextButton(
@@ -152,15 +164,25 @@ class GeneralSettingsScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               Navigator.pop(context);
-              // Trigger Seeding
               try {
-                final seedingService = ref.read(seedingServiceProvider);
-                await seedingService.seedFullDemoData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Demo Season Initialized Successfully!')),
+                    const SnackBar(content: Text('Resetting Demo Data... Please wait.')),
+                  );
+                }
+                
+                final seedingService = ref.read(seedingServiceProvider);
+                await seedingService.seedFullDemoData();
+                
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Demo Environment Reset Successfully!')),
                   );
                 }
               } catch (e) {
@@ -171,56 +193,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
                 }
               }
             },
-            child: const Text('Initialize'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showWipeConfirmDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('⚠️ Wipe Everything?'),
-        content: const Text(
-          'This will PERMANENTLY DELETE all members, events, scores, and settings.\n\nThe app will then re-seed the "Demo Season 2026" from scratch.\n\nAre you sure?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-            onPressed: () async {
-              Navigator.pop(context);
-              // Trigger Wipe & Seed
-              try {
-                final seedingService = ref.read(seedingServiceProvider);
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Wiping data... This may take a moment.')),
-                  );
-                }
-                
-                await seedingService.seedFullDemoData();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Data Wiped & Re-Seeded Successfully!')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-            child: const Text('WIPE & RE-SEED'),
+            child: const Text('CONFIRM RESET'),
           ),
         ],
       ),

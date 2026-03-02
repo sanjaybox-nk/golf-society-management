@@ -20,6 +20,8 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
   bool _applyCapToIndex = true;
   int _teamBestXCount = 2;
   bool _useMixedTeeAdjustment = false;
+  bool _includeGuests = true;
+  bool? _separateGuests;
 
   @override
   CompetitionFormat get format => CompetitionFormat.stableford;
@@ -38,6 +40,8 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
       _useMixedTeeAdjustment = widget.competition!.rules.useMixedTeeAdjustment;
+      _includeGuests = widget.competition!.rules.includeGuests;
+      _separateGuests = widget.competition!.rules.separateGuests;
     }
   }
 
@@ -63,7 +67,8 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         const SizedBox(height: 24),
 
         BoxyArtSwitchField(
-          label: 'Hard Cap Playing HC\nOff = Max Cap Index + WHS ·\nOn = HC + WHS',
+          label: 'Hard Cap Playing HC',
+          subtitle: 'Off = Max Cap Index + WHS\nOn = HCP + WHS',
           value: !_applyCapToIndex,
           onChanged: (val) => setState(() => _applyCapToIndex = !val),
         ),
@@ -74,18 +79,18 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
 
         BoxyArtSwitchField(
           label: 'Mixed Tee Adjustments',
+          subtitle: 'Adds (Rating − Par) correction for mixed-gender events.',
           value: _useMixedTeeAdjustment,
           onChanged: (val) => setState(() => _useMixedTeeAdjustment = val),
         ),
-        buildInfoBubble('Adds (Rating − Par) correction when players tee off from different boxes in mixed-gender events.'),
         const SizedBox(height: 24),
 
         BoxyArtSwitchField(
           label: 'Gross Scoring',
+          subtitle: 'Handicap is ignored; points awarded against par only.',
           value: _isGross,
           onChanged: (val) => setState(() => _isGross = val),
         ),
-        buildInfoBubble('Points are awarded against par only — handicap is ignored entirely.'),
 
         const SizedBox(height: 24),
         const Divider(height: 1),
@@ -151,6 +156,18 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
         ),
         buildInfoBubble('Determines how many individual scores are combined for the group total shown in the flight view.'),
+
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+
+        // ── GUEST SETTINGS ────────────────────────────────────
+        buildGuestSettings(
+          includeGuests: _includeGuests,
+          separateGuests: _separateGuests,
+          onIncludeChanged: (val) => setState(() => _includeGuests = val),
+          onSeparateChanged: (val) => setState(() => _separateGuests = val),
+        ),
       ],
     );
   }
@@ -170,6 +187,8 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       applyCapToIndex: _applyCapToIndex,
       teamBestXCount: _teamBestXCount,
       useMixedTeeAdjustment: _useMixedTeeAdjustment,
+      includeGuests: _includeGuests,
+      separateGuests: _separateGuests,
     );
   }
 }

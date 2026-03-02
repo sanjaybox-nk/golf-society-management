@@ -48,17 +48,44 @@ class EventStatsTab extends ConsumerWidget {
     final hasFinalizedStats = event.finalizedStats.isNotEmpty;
     // print('DEBUG: EventStatsTab - hasFinalizedStats: $hasFinalizedStats');
 
-    final statsReleased = event.isStatsReleased == true || isAdmin;
+    final statsReleased = event.isStatsReleased == true || isAdmin || event.status == EventStatus.completed;
 
     // Check if scoring has even started
-    final bool hasAnyData = scorecards.isNotEmpty || hasFinalizedStats;
+    final bool isCalculating = scorecards.any((s) => s.status == ScorecardStatus.draft);
+    final bool isCompleted = event.status == EventStatus.completed;
+    final bool hasResults = event.results.isNotEmpty;
     
-    if (!hasAnyData || (!isAdmin && !statsReleased)) {
-      return const BoxyArtCard(
+    final bool isDataReady = isCompleted || hasResults || scorecards.any((s) => 
+        s.status == ScorecardStatus.submitted || s.status == ScorecardStatus.finalScore
+    ) || hasFinalizedStats;
+    
+    if (!isDataReady || (!isAdmin && !statsReleased)) {
+      return BoxyArtCard(
         child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Center(
-            child: Text('Stats will be available after scoring starts.', style: TextStyle(color: Colors.grey)),
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.analytics_outlined, size: 48, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                isCalculating 
+                    ? 'Stats are being calculated as scores come in...' 
+                    : 'Stats will be available after scoring starts.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
+              if (isAdmin && scorecards.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                BoxyArtButton(
+                  title: 'FORCE REFRESH',
+                  onTap: () {
+                    // Trigger recalculation logic or just force a rebuild
+                  },
+                  isSecondary: true,
+                ),
+              ],
+            ],
           ),
         ),
       );
@@ -73,6 +100,7 @@ class EventStatsTab extends ConsumerWidget {
     int fieldBirdies = 0;
     int fieldPars = 0;
     int fieldBogeys = 0;
+    int fieldDoubleBogeys = 0;
     int fieldBlobs = 0;
     List<int?> eclecticRound = List.generate(18, (_) => null);
     Map<String, int> stablefordBuckets = {'<20': 0, '20-25': 0, '26-30': 0, '31-35': 0, '36+': 0};
@@ -142,6 +170,7 @@ class EventStatsTab extends ConsumerWidget {
       fieldBirdies = dist?['BIRDIE'] ?? 0;
       fieldPars = dist?['PAR'] ?? 0;
       fieldBogeys = dist?['BOGEY'] ?? 0;
+      fieldDoubleBogeys = dist?['DBL BOGEY'] ?? 0;
       fieldBlobs = dist?['BLOB'] ?? 0;
 
       final trends = fs['performanceTrends'] as Map?;
@@ -250,7 +279,7 @@ class EventStatsTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           const BoxyArtSectionTitle(title: 'Field Competitiveness'),
           ScoringTypeDistributionChart(counts: {
-            'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'BLOB': fieldBlobs,
+            'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
           }),
           if (isStableford) ...[
             const SizedBox(height: 12),

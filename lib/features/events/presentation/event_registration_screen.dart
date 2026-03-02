@@ -139,6 +139,72 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
     }
   }
 
+  double _calculateTotal(GolfEvent event) {
+    double total = 0;
+    if (_attendingGolf) total += event.memberCost ?? 0.0;
+    if (_attendingBreakfast) total += event.breakfastCost ?? 0.0;
+    if (_attendingLunch) total += event.lunchCost ?? 0.0;
+    if (_attendingDinner) total += event.dinnerCost ?? 0.0;
+    if (_needsBuggy) total += event.buggyCost ?? 0.0;
+
+    if (_registerGuest) {
+      total += event.guestCost ?? 0.0;
+      if (_guestAttendingBreakfast) total += event.breakfastCost ?? 0.0;
+      if (_guestAttendingLunch) total += event.lunchCost ?? 0.0;
+      if (_guestAttendingDinner) total += event.dinnerCost ?? 0.0;
+      if (_guestNeedsBuggy) total += event.buggyCost ?? 0.0;
+    }
+    return total;
+  }
+
+  String _formatPrice(double amount, WidgetRef ref) {
+    final currency = ref.watch(themeControllerProvider).currencySymbol;
+    return '$currency${amount.toStringAsFixed(2)}';
+  }
+
+  Widget _buildPriceBreakdownRow(BuildContext context, GolfEvent event) {
+    return Column(
+      children: [
+        if (_attendingGolf) _buildMiniCostRow('Member Golf', event.memberCost),
+        if (_attendingBreakfast) _buildMiniCostRow('Breakfast', event.breakfastCost),
+        if (_attendingLunch) _buildMiniCostRow('Lunch', event.lunchCost),
+        if (_attendingDinner) _buildMiniCostRow('Dinner', event.dinnerCost),
+        if (_needsBuggy) _buildMiniCostRow('Buggy', event.buggyCost),
+        if (_registerGuest) ...[
+          const Divider(height: 16),
+          _buildMiniCostRow('Guest Golf', event.guestCost, isGuest: true),
+          if (_guestAttendingBreakfast) _buildMiniCostRow('Guest Breakfast', event.breakfastCost, isGuest: true),
+          if (_guestAttendingLunch) _buildMiniCostRow('Guest Lunch', event.lunchCost, isGuest: true),
+          if (_guestAttendingDinner) _buildMiniCostRow('Guest Dinner', event.dinnerCost, isGuest: true),
+          if (_guestNeedsBuggy) _buildMiniCostRow('Guest Buggy', event.buggyCost, isGuest: true),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMiniCostRow(String label, double? amount, {bool isGuest = false}) {
+    final currency = ref.watch(themeControllerProvider).currencySymbol;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14, 
+              color: Colors.grey,
+            ),
+          ),
+          Text(
+            amount == null ? 'TBA' : '$currency${amount.toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(upcomingEventsProvider);
@@ -324,6 +390,35 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
+                      const SizedBox(height: 32),
+                      const BoxyArtSectionTitle(title: 'Estimated Fees'),
+                      const SizedBox(height: 12),
+                      BoxyArtCard(
+                        child: Column(
+                          children: [
+                            _buildPriceBreakdownRow(context, event),
+                            const Divider(height: 32),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Total to Pay',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                Text(
+                                  _formatPrice(_calculateTotal(event), ref),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 20,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
                       const SizedBox(height: 40),
                       if (_isSaving)
                         const Center(child: CircularProgressIndicator())

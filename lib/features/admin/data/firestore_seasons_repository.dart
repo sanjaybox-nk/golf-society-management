@@ -134,6 +134,13 @@ class FirestoreSeasonsRepository implements SeasonsRepository {
           toFirestore: (s, _) => s.toJson()..remove('id'),
         );
 
+    // 1. Clear existing standings for this leaderboard
+    final existingStandings = await collection.get();
+    for (var doc in existingStandings.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // 2. Set new standings
     for (var s in standings) {
       batch.set(collection.doc(s.memberId), s);
     }

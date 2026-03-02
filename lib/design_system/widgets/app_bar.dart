@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:golf_society/theme/app_typography.dart';
 import 'package:golf_society/theme/app_colors.dart';
+import 'package:golf_society/design_system/atoms/buttons/boxy_art_icon_buttons.dart';
 
 /// The standard app bar for the Fairway v3.1 branding.
 /// Maintains legacy parameters while enforcing new design tokens.
@@ -62,8 +63,24 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: actions,
-      leading: leading ?? (showBack ? BackButton(onPressed: onBack) : null),
-      leadingWidth: leadingWidth,
+      leading: leading ?? (showBack 
+        ? Center(
+            child: BoxyArtGlassIconButton(
+              icon: Icons.arrow_back_rounded,
+              onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+              tooltip: 'Back',
+            ),
+          )
+        : (showLeading 
+            ? Center(
+                child: BoxyArtGlassIconButton(
+                  icon: Icons.menu_rounded,
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  tooltip: 'Menu',
+                ),
+              )
+            : null)),
+      leadingWidth: leadingWidth ?? 72,
       centerTitle: centerTitle,
       elevation: 0,
       backgroundColor: backgroundColor ?? (transparent ? Colors.transparent : null),

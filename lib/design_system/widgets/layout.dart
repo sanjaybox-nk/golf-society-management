@@ -268,6 +268,8 @@ class BoxyArtSectionTitle extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final bool isLevel2;
   final bool isPeeking;
+  final IconData? icon;
+  final int? count;
 
   const BoxyArtSectionTitle({
     super.key,
@@ -275,6 +277,8 @@ class BoxyArtSectionTitle extends StatelessWidget {
     @Deprecated('Overrides are ignored to enforce global harmony. Remove this.') this.padding,
     this.isLevel2 = false,
     this.isPeeking = false,
+    this.icon,
+    this.count,
   });
 
   @override
@@ -284,6 +288,8 @@ class BoxyArtSectionTitle extends StatelessWidget {
     // Enforce global harmony
     final effectivePadding = EdgeInsets.only(bottom: AppTheme.sectionSpacing);
     
+    final displayTitle = count != null ? '$title ($count)' : title;
+
     return Padding(
       padding: effectivePadding,
       child: Align(
@@ -291,7 +297,14 @@ class BoxyArtSectionTitle extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isPeeking) ...[
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: isLevel2 ? 12 : 14,
+                color: isDark ? AppColors.dark300 : AppColors.dark400,
+              ),
+              const SizedBox(width: 8),
+            ] else if (isPeeking) ...[
               Icon(
                 Icons.visibility,
                 size: isLevel2 ? 10 : 12,
@@ -301,11 +314,11 @@ class BoxyArtSectionTitle extends StatelessWidget {
             ],
             Flexible(
               child: Text(
-                title.toUpperCase(),
+                displayTitle.toUpperCase(),
                 style: AppTypography.caption.copyWith(
                   fontSize: isLevel2 ? 10 : 11,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? AppColors.dark200 : AppColors.dark300,
+                  color: isDark ? AppColors.dark150 : AppColors.dark300,
                   letterSpacing: isLevel2 ? 1.5 : 2.0,
                 ),
                 maxLines: 1,

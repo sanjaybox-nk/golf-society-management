@@ -18,135 +18,119 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
   @override
   Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(adminNotificationsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const Text(
-                  'Notifications',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -1,
-                  ),
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const Text(
+                'Notifications',
+                style: AppTypography.displayHeading,
+              ),
+              Text(
+                'Communication history and reach',
+                style: AppTypography.displayMedium.copyWith(
+                  fontSize: 14,
+                  color: isDark ? AppColors.dark150 : AppColors.dark300,
                 ),
-                Text(
-                  'Communication history and reach',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Search & Filters
-                BoxyArtCard(
-                  child: Column(
-                    children: [
-                      TextField(
-                        onChanged: (v) => setState(() => _searchQuery = v),
-                        decoration: InputDecoration(
-                          hintText: 'Search history...',
-                          hintStyle: TextStyle(
-                            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                            fontSize: 14,
-                          ),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          children: [
+              ),
+              const SizedBox(height: 24),
+              
+              // Search & Filters
+              BoxyArtCard(
+                child: Column(
+                  children: [
+                    BoxyArtInputField(
+                      label: 'Search History',
+                      hint: 'Search by title or message...',
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                    ),
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        children: [
                             Text(
                               'Group By:', 
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold, 
-                                color: Theme.of(context).textTheme.bodyMedium?.color
-                              )
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    _GroupChip(
-                                      label: 'Date',
-                                      isSelected: _groupBy == 'Date',
-                                      onTap: () => setState(() => _groupBy = 'Date'),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _GroupChip(
-                                      label: 'Category',
-                                      isSelected: _groupBy == 'Category',
-                                      onTap: () => setState(() => _groupBy = 'Category'),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _GroupChip(
-                                      label: 'None',
-                                      isSelected: _groupBy == 'None',
-                                      onTap: () => setState(() => _groupBy = 'None'),
-                                    ),
-                                  ],
-                                ),
+                              style: AppTypography.label.copyWith(
+                                color: isDark ? AppColors.dark150 : AppColors.dark400,
                               ),
+                            ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  _GroupChip(
+                                    label: 'Date',
+                                    isSelected: _groupBy == 'Date',
+                                    onTap: () => setState(() => _groupBy = 'Date'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _GroupChip(
+                                    label: 'Category',
+                                    isSelected: _groupBy == 'Category',
+                                    onTap: () => setState(() => _groupBy = 'Category'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _GroupChip(
+                                    label: 'None',
+                                    isSelected: _groupBy == 'None',
+                                    onTap: () => setState(() => _groupBy = 'None'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              notificationsAsync.when(
+                data: (notifications) {
+                  final filtered = notifications.where((n) {
+                    final term = _searchQuery.toLowerCase();
+                    return n.title.toLowerCase().contains(term) || 
+                           n.message.toLowerCase().contains(term);
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(48.0),
+                        child: Column(
+                          children: [
+                            Icon(Icons.history_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No notifications found',
+                              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+                    );
+                  }
 
-                notificationsAsync.when(
-                  data: (notifications) {
-                    final filtered = notifications.where((n) {
-                      final term = _searchQuery.toLowerCase();
-                      return n.title.toLowerCase().contains(term) || 
-                             n.message.toLowerCase().contains(term);
-                    }).toList();
-
-                    if (filtered.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(48.0),
-                          child: Column(
-                            children: [
-                              Icon(Icons.history_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No notifications found',
-                                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    return _buildGroupedList(filtered);
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Error: $e')),
-                ),
-                const SizedBox(height: 100),
-              ]),
-            ),
+                  return _buildGroupedList(filtered);
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Error: $e')),
+              ),
+              const SizedBox(height: 100),
+            ]),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -244,6 +228,7 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: BoxyArtCard(
@@ -254,16 +239,27 @@ class _HistoryCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(parseDate(campaign.timestamp), style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w500)),
+                Text(
+                  parseDate(campaign.timestamp), 
+                  style: AppTypography.label.copyWith(
+                    fontSize: 11,
+                    color: isDark ? AppColors.dark200 : AppColors.dark400,
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: theme.primaryColor.withValues(alpha: 0.1),
+                    color: AppColors.lime500.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     campaign.category.toUpperCase(),
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: theme.primaryColor, letterSpacing: 0.5),
+                    style: AppTypography.label.copyWith(
+                      fontSize: 9,
+                      color: isDark ? AppColors.lime500 : AppColors.lime700,
+                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -274,16 +270,19 @@ class _HistoryCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     campaign.title, 
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800),
                   )
                 ),
                 if (campaign.recipientCount > 0) ...[
                   const SizedBox(width: 8),
-                  Icon(Icons.people_alt_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
+                  Icon(Icons.people_alt_rounded, size: 14, color: isDark ? AppColors.dark300 : AppColors.dark400),
                   const SizedBox(width: 4),
                   Text(
                     '${campaign.recipientCount}', 
-                    style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w600),
+                    style: AppTypography.label.copyWith(
+                      fontSize: 12,
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
+                    ),
                   ),
                 ],
               ],
@@ -291,7 +290,11 @@ class _HistoryCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               campaign.message, 
-              style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 14, height: 1.4), 
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.dark150 : AppColors.dark400,
+                fontSize: 13,
+                height: 1.4,
+              ), 
               maxLines: 2, 
               overflow: TextOverflow.ellipsis,
             ),

@@ -44,6 +44,7 @@ abstract class Scorecard with _$Scorecard {
     int? playingHandicap,
     AdminEditAudit? adminEditAudit,
     @Default(false) bool adminOverridePublish,
+    @TimestampConverter() DateTime? submittedAt,
     @TimestampConverter() required DateTime createdAt,
     @TimestampConverter() required DateTime updatedAt,
   }) = _Scorecard;

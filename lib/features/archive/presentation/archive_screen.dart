@@ -15,13 +15,14 @@ class ArchiveScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Archive',
-      showBack: true,
+      subtitle: 'Past society glory and seasons',
+      showBack: false,
       onBack: () => context.go('/'),
       backgroundColor: beigeBackground,
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

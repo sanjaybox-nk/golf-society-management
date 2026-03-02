@@ -25,19 +25,26 @@ class ModernInfoRow extends StatelessWidget {
       children: [
         if (icon != null) ...[
           Container(
-            width: 40,
-            height: 40,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
-              color: (iconColor ?? primary).withValues(alpha: 0.2),
+              color: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.dark700.withValues(alpha: 0.8) 
+                  : (iconColor ?? primary).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white.withValues(alpha: 0.15) 
+                    : (iconColor ?? primary).withValues(alpha: 0.1),
+              ),
             ),
             child: Icon(
               icon,
-              color: iconColor ?? primary,
-              size: 22,
+              color: iconColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : primary),
+              size: 20,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
         ],
         Expanded(
           child: Column(
@@ -46,7 +53,7 @@ class ModernInfoRow extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: textSecondary?.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.2,
@@ -56,7 +63,7 @@ class ModernInfoRow extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w900,
                   color: textPrimary,
                 ),
@@ -126,12 +133,14 @@ class ModernCostRow extends StatelessWidget {
   final String label;
   final String amount;
   final bool isTotal;
+  final Color? color;
 
   const ModernCostRow({
     super.key,
     required this.label,
     required this.amount,
     this.isTotal = false,
+    this.color,
   });
 
   @override
@@ -147,8 +156,8 @@ class ModernCostRow extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: isTotal ? 14 : 13,
-                color: isTotal ? textPrimary : textSecondary,
+                fontSize: isTotal ? 16 : 15,
+                color: color ?? (isTotal ? textPrimary : textSecondary),
                 fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
               ),
             ),
@@ -157,7 +166,7 @@ class ModernCostRow extends StatelessWidget {
           Text(
             amount,
             style: TextStyle(
-              fontSize: isTotal ? 16 : 13,
+              fontSize: isTotal ? 18 : 15,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
               color: textPrimary,
             ),

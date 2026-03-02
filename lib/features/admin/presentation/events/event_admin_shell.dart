@@ -24,40 +24,47 @@ class EventAdminShell extends ConsumerWidget {
       currentIndex = 2;
     } else if (location.endsWith('/scores')) {
       currentIndex = 3;
-    } else if (location.endsWith('/reports')) {
+    } else if (location.endsWith('/financials')) {
       currentIndex = 4;
+    } else if (location.endsWith('/reports')) {
+      currentIndex = 5;
     }
 
     return Scaffold(
       extendBody: true,
       body: child,
-      bottomNavigationBar: ModernSubTabBar(
+      bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
-        onSelected: (index) => _onTap(context, ref, index, currentIndex),
-        unselectedColor: null,
-        borderColor: Theme.of(context).primaryColor,
+        onItemSelected: (index) => _onTap(context, ref, index, currentIndex),
+        activeColor: AppColors.lime500,
+        borderColor: AppColors.lime500,
         items: const [
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.info_outline_rounded,
             activeIcon: Icons.info_rounded,
             label: 'Info',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.people_outline,
             activeIcon: Icons.people,
             label: 'Registration',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.grid_view_rounded,
             activeIcon: Icons.grid_view_sharp,
             label: 'Grouping',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.emoji_events_outlined,
             activeIcon: Icons.emoji_events,
             label: 'Scores',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
+            icon: Icons.account_balance_wallet_outlined,
+            activeIcon: Icons.account_balance_wallet_rounded,
+            label: 'Financials',
+          ),
+          BoxyArtBottomNavItem(
             icon: Icons.bar_chart_outlined,
             activeIcon: Icons.bar_chart,
             label: 'Reports',
@@ -135,6 +142,9 @@ class EventAdminShell extends ConsumerWidget {
           context.go('/admin/events/manage/$encodedId/scores');
           break;
         case 4:
+          context.go('/admin/events/manage/$encodedId/financials');
+          break;
+        case 5:
           context.go('/admin/events/manage/$encodedId/reports');
           break;
       }

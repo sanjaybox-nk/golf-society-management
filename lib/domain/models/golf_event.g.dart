@@ -19,6 +19,43 @@ Map<String, dynamic> _$EventNoteToJson(_EventNote instance) =>
       'imageUrl': instance.imageUrl,
     };
 
+_EventExpense _$EventExpenseFromJson(Map<String, dynamic> json) =>
+    _EventExpense(
+      id: json['id'] as String,
+      label: json['label'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      category: json['category'] as String? ?? 'Misc',
+      date: const OptionalTimestampConverter().fromJson(json['date']),
+    );
+
+Map<String, dynamic> _$EventExpenseToJson(_EventExpense instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'label': instance.label,
+      'amount': instance.amount,
+      'category': instance.category,
+      'date': const OptionalTimestampConverter().toJson(instance.date),
+    };
+
+_EventAward _$EventAwardFromJson(Map<String, dynamic> json) => _EventAward(
+  id: json['id'] as String,
+  label: json['label'] as String,
+  type: json['type'] as String? ?? 'Cash',
+  value: (json['value'] as num?)?.toDouble() ?? 0.0,
+  winnerId: json['winnerId'] as String?,
+  winnerName: json['winnerName'] as String?,
+);
+
+Map<String, dynamic> _$EventAwardToJson(_EventAward instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'label': instance.label,
+      'type': instance.type,
+      'value': instance.value,
+      'winnerId': instance.winnerId,
+      'winnerName': instance.winnerName,
+    };
+
 _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   id: json['id'] as String,
   title: json['title'] as String,
@@ -56,6 +93,10 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   hasLunch: json['hasLunch'] as bool? ?? false,
   hasDinner: json['hasDinner'] as bool? ?? true,
   dinnerLocation: json['dinnerLocation'] as String?,
+  societyGreenFee: (json['societyGreenFee'] as num?)?.toDouble(),
+  societyBreakfastCost: (json['societyBreakfastCost'] as num?)?.toDouble(),
+  societyLunchCost: (json['societyLunchCost'] as num?)?.toDouble(),
+  societyDinnerCost: (json['societyDinnerCost'] as num?)?.toDouble(),
   notes:
       (json['notes'] as List<dynamic>?)
           ?.map((e) => EventNote.fromJson(e as Map<String, dynamic>))
@@ -94,6 +135,17 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   status:
       $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
       EventStatus.draft,
+  expenses:
+      (json['expenses'] as List<dynamic>?)
+          ?.map((e) => EventExpense.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  showAwards: json['showAwards'] as bool? ?? true,
+  awards:
+      (json['awards'] as List<dynamic>?)
+          ?.map((e) => EventAward.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$GolfEventToJson(
@@ -127,6 +179,10 @@ Map<String, dynamic> _$GolfEventToJson(
   'hasLunch': instance.hasLunch,
   'hasDinner': instance.hasDinner,
   'dinnerLocation': instance.dinnerLocation,
+  'societyGreenFee': instance.societyGreenFee,
+  'societyBreakfastCost': instance.societyBreakfastCost,
+  'societyLunchCost': instance.societyLunchCost,
+  'societyDinnerCost': instance.societyDinnerCost,
   'notes': instance.notes.map((e) => e.toJson()).toList(),
   'galleryUrls': instance.galleryUrls,
   'showRegistrationButton': instance.showRegistrationButton,
@@ -147,6 +203,9 @@ Map<String, dynamic> _$GolfEventToJson(
   'secondaryTemplateId': instance.secondaryTemplateId,
   'isInvitational': instance.isInvitational,
   'status': _$EventStatusEnumMap[instance.status]!,
+  'expenses': instance.expenses.map((e) => e.toJson()).toList(),
+  'showAwards': instance.showAwards,
+  'awards': instance.awards.map((e) => e.toJson()).toList(),
 };
 
 const _$EventStatusEnumMap = {

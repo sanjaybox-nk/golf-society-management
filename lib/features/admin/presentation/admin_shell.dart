@@ -29,7 +29,6 @@ class AdminShell extends StatelessWidget {
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: navigationShell.currentIndex,
         onItemSelected: (index) => navigationShell.goBranch(index),
-        unselectedColor: Theme.of(context).primaryColor,
         borderColor: Theme.of(context).primaryColor,
         items: const [
           BoxyArtBottomNavItem(
@@ -53,9 +52,9 @@ class AdminShell extends StatelessWidget {
             label: 'Comms',
           ),
           BoxyArtBottomNavItem(
-            icon: Icons.leaderboard_outlined,
-            activeIcon: Icons.leaderboard,
-            label: 'Results',
+            icon: Icons.analytics_outlined,
+            activeIcon: Icons.analytics,
+            label: 'Reporting',
           ),
         ],
       ),
@@ -111,9 +110,9 @@ class AdminShell extends StatelessWidget {
         label: 'Comms',
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.leaderboard_outlined),
-        activeIcon: Icon(Icons.leaderboard),
-        label: 'Results',
+        icon: Icon(Icons.analytics_outlined),
+        activeIcon: Icon(Icons.analytics),
+        label: 'Reporting',
       ),
     ];
   }

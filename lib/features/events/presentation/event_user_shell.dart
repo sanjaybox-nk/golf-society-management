@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import '../../members/presentation/profile_provider.dart';
-import 'package:golf_society/domain/models/member.dart';
 
 class EventUserShell extends ConsumerWidget {
   final Widget child;
@@ -14,8 +12,6 @@ class EventUserShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(effectiveUserProvider);
-    final isAdmin = user.role != MemberRole.member;
     final location = GoRouterState.of(context).uri.toString();
     int currentIndex = 0;
     
@@ -33,34 +29,31 @@ class EventUserShell extends ConsumerWidget {
     return Scaffold(
       extendBody: true,
       body: child,
-      bottomNavigationBar: ModernSubTabBar(
+      bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
-        onSelected: (index) => _onTap(context, index),
-        unselectedColor: (isAdmin || location.contains('preview=true')) 
-          ? Theme.of(context).primaryColor 
-          : null,
+        onItemSelected: (index) => _onTap(context, index),
         items: const [
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.info_outline_rounded,
             activeIcon: Icons.info_rounded,
             label: 'Info',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.grid_view_rounded,
             activeIcon: Icons.grid_view_rounded,
             label: 'Field',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.emoji_events_outlined,
             activeIcon: Icons.emoji_events_rounded,
             label: 'Live',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.analytics_outlined,
             activeIcon: Icons.analytics_rounded,
             label: 'Stats',
           ),
-          ModernSubTabItem(
+          BoxyArtBottomNavItem(
             icon: Icons.photo_library_outlined,
             activeIcon: Icons.photo_library_rounded,
             label: 'Photos',

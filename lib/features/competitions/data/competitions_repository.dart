@@ -3,7 +3,7 @@ import 'package:golf_society/domain/models/scorecard.dart';
 
 abstract class CompetitionsRepository {
   // Competitions
-  Stream<List<Competition>> watchCompetitions({CompetitionStatus? status});
+  Stream<List<Competition>> watchCompetitions({List<CompetitionStatus>? statuses});
   Future<List<Competition>> getCompetitions();
   Future<Competition?> getCompetition(String id);
   Stream<Competition?> watchCompetition(String id);

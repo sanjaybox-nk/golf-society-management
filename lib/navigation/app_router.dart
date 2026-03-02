@@ -35,9 +35,10 @@ import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
+import '../features/admin/presentation/events/event_admin_financials_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
-import '../features/admin/presentation/competitions/admin_competitions_screen.dart';
+// import '../features/admin/presentation/competitions/admin_competitions_screen.dart'; // Removed
 import '../features/admin/presentation/competitions/competition_builder_screen.dart';
 // import '../features/admin/presentation/competitions/scoring_review_queue_screen.dart'; // Removed
 import '../features/admin/presentation/competitions/competition_type_selection_screen.dart'; // Added
@@ -165,10 +166,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   child: AdminDashboardScreen(),
                 ),
                 routes: [
-                  GoRoute(
-                    path: 'reports',
-                    builder: (context, state) => const AdminReportsScreen(),
-                  ),
                   // Settings - Integrated into Dashboard branch for persistent menu
                   GoRoute(
                     path: 'settings',
@@ -285,14 +282,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         ],
                       ),
                       GoRoute(
-                        path: 'leaderboards/create/:type',
-                        builder: (context, state) {
-                           final typeStr = state.pathParameters['type']!;
-                           final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                           return LeaderboardBuilderScreen(type: type, isTemplate: false); 
-                        },
-                      ),
-                      GoRoute(
                         path: 'leaderboards/create/picker',
                         builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
                         routes: [
@@ -305,6 +294,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             },
                           ),
                         ],
+                      ),
+                      GoRoute(
+                        path: 'leaderboards/create/:type',
+                        builder: (context, state) {
+                           final typeStr = state.pathParameters['type']!;
+                           final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                           return LeaderboardBuilderScreen(type: type, isTemplate: false); 
+                        },
                       ),
                     ],
                   ),
@@ -433,6 +430,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         ],
                       ),
                       GoRoute(
+                        path: 'manage/:id/financials',
+                        pageBuilder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return NoTransitionPage(
+                            child: EventAdminFinancialsScreen(eventId: id),
+                          );
+                        },
+                      ),
+                      GoRoute(
                         path: 'manage/:id/reports',
                         pageBuilder: (context, state) {
                           final id = state.pathParameters['id']!;
@@ -469,14 +475,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // 4. Leaderboards (formerly index 5)
+          // 4. Reporting
           StatefulShellBranch(
             navigatorKey: _adminLeaderboardsKey,
             routes: [
               GoRoute(
-                path: '/admin/leaderboards',
+                path: '/admin/reports',
                 pageBuilder: (context, state) => const NoTransitionPage(
-                  child: AdminLeaderboardsScreen(), 
+                  child: AdminReportsScreen(), 
                 ),
                 routes: [
                   GoRoute(
@@ -485,8 +491,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       final id = state.pathParameters['id']!;
                       final config = state.extra as LeaderboardConfig?;
                       
-                      // If we have the config, use it. Otherwise, we might need a fetcher
-                      // For now, assume it's passed or handle the fallback
                       if (config != null) {
                         return LeaderboardBuilderScreen(
                           type: _getTypeFromConfig(config),
@@ -565,94 +569,94 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
         builder: (context, state) => const SizedBox.shrink(),
         routes: [
-      GoRoute(
-        path: 'register-form', 
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return EventRegistrationScreen(eventId: id);
-        },
-      ),
-      ShellRoute(
-        pageBuilder: (context, state, child) => NoTransitionPage(
-          child: EventUserShell(child: child),
-        ),
-        routes: [
           GoRoute(
-            path: 'details',
-            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/info',
+            path: 'register-form', 
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return EventRegistrationScreen(eventId: id);
+            },
           ),
-          GoRoute(
-            path: 'info',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: EventUserDetailsTab(eventId: state.pathParameters['id']!),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+          ShellRoute(
+            pageBuilder: (context, state, child) => NoTransitionPage(
+              child: EventUserShell(child: child),
             ),
-          ),
-          GoRoute(
-            path: 'field',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: EventGroupingUserTab(eventId: state.pathParameters['id']!),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
-          GoRoute(
-            path: 'live',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: EventScoresUserTab(eventId: state.pathParameters['id']!),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
-          GoRoute(
-            path: 'stats',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: EventStatsUserTab(eventId: state.pathParameters['id']!),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
-          GoRoute(
-            path: 'photos',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: EventGalleryUserTab(eventId: state.pathParameters['id']!),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
-          // Old path redirects for backward compatibility
-          GoRoute(
-            path: 'register',
-            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
-          ),
-          GoRoute(
-            path: 'grouping',
-            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
-          ),
-          GoRoute(
-            path: 'scores',
-            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/live',
-          ),
-          GoRoute(
-            path: 'gallery',
-            redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/photos',
+            routes: [
+              GoRoute(
+                path: 'details',
+                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/info',
+              ),
+              GoRoute(
+                path: 'info',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: EventUserDetailsTab(eventId: state.pathParameters['id']!),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'field',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: EventGroupingUserTab(eventId: state.pathParameters['id']!),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'live',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: EventScoresUserTab(eventId: state.pathParameters['id']!),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'stats',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: EventStatsUserTab(eventId: state.pathParameters['id']!),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'photos',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: EventGalleryUserTab(eventId: state.pathParameters['id']!),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              // Old path redirects for backward compatibility
+              GoRoute(
+                path: 'register',
+                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
+              ),
+              GoRoute(
+                path: 'grouping',
+                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
+              ),
+              GoRoute(
+                path: 'scores',
+                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/live',
+              ),
+              GoRoute(
+                path: 'gallery',
+                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/photos',
+              ),
+            ],
           ),
         ],
       ),
     ],
-  ),
-],
   );
 });
 

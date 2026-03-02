@@ -130,6 +130,18 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setSeparateGuestLeaderboard(bool separate) async {
+    final newConfig = state.copyWith(separateGuestLeaderboard: separate);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setIncludeGuestsInLeaderboard(bool include) async {
+    final newConfig = state.copyWith(includeGuestsInLeaderboard: include);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setEnableSocietyCuts(bool enabled) async {
     final newConfig = state.copyWith(enableSocietyCuts: enabled);
     state = newConfig;

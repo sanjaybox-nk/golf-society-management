@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:golf_society/theme/app_colors.dart';
 import 'package:golf_society/theme/app_typography.dart';
 import 'package:golf_society/theme/app_shapes.dart';
+import 'package:golf_society/theme/app_spacing.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
 class BoxyArtIconBadge extends StatelessWidget {
@@ -43,13 +44,19 @@ class BoxyArtIconBadge extends StatelessWidget {
 class BoxyArtNumberBadge extends StatelessWidget {
   final int number;
   final Color? color;
+  final Color? textColor;
   final double size;
+  final bool isRanking;
+  final bool isFilled;
 
   const BoxyArtNumberBadge({
     super.key,
     required this.number,
     this.color,
+    this.textColor,
     this.size = 28,
+    this.isRanking = true,
+    this.isFilled = true,
   });
 
   @override
@@ -61,10 +68,10 @@ class BoxyArtNumberBadge extends StatelessWidget {
     Color bg;
     Color fg;
     
-    if (number == 1) {
+    if (isRanking && number == 1) {
       bg = AppColors.amber500;
       fg = AppColors.dark900;
-    } else if (number == 2) {
+    } else if (isRanking && number == 2) {
       bg = isDark ? AppColors.dark600 : AppColors.dark150;
       fg = isDark ? AppColors.dark150 : AppColors.dark900;
     } else {
@@ -77,13 +84,15 @@ class BoxyArtNumberBadge extends StatelessWidget {
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: color ?? bg,
+        color: !isFilled ? Colors.transparent : (color ?? bg),
         shape: BoxShape.circle,
       ),
       child: Text(
         '$number',
         style: AppTypography.caption.copyWith(
-          color: color != null ? AppColors.pureWhite : fg,
+          color: textColor ?? (!isFilled ? AppColors.pureWhite : (color != null ? AppColors.pureWhite : fg)),
+          fontSize: size * 0.45,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
@@ -154,6 +163,41 @@ class BoxyArtPill extends StatelessWidget {
     );
   }
 
+  /// Factory for Handicap (HC)
+  factory BoxyArtPill.hc({
+    required String label,
+  }) {
+    return BoxyArtPill(
+      label: 'HC: $label',
+      color: AppColors.dark150,
+      icon: Icons.show_chart_rounded,
+    );
+  }
+
+  /// Factory for Playing Handicap (PHC)
+  factory BoxyArtPill.phc({
+    required String label,
+  }) {
+    return BoxyArtPill(
+      label: 'PHC: $label',
+      color: AppColors.lime500,
+      icon: Icons.flash_on_rounded,
+    );
+  }
+
+  /// Factory for Tee Marker
+  factory BoxyArtPill.tee({
+    required String label,
+    required Color teeColor,
+  }) {
+    return BoxyArtPill(
+      label: label,
+      color: teeColor,
+      backgroundColor: teeColor.withValues(alpha: 0.1),
+      borderColor: teeColor.withValues(alpha: 0.3),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -171,7 +215,7 @@ class BoxyArtPill extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 10, color: color),
-            const SizedBox(width: 5),
+            SizedBox(width: AppSpacing.xs),
           ] else ...[
             Container(
               width: 5,
@@ -181,7 +225,7 @@ class BoxyArtPill extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 5),
+            SizedBox(width: AppSpacing.xs),
           ],
           Text(
             label.toUpperCase(),

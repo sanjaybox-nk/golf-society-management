@@ -2,8 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/competition.dart';
-import '../../competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/features/competitions/presentation/widgets/competition_shared_widgets.dart';
 import 'events_provider.dart';
 
 import 'package:go_router/go_router.dart';
@@ -320,35 +319,9 @@ class _EventDetailsContent extends StatelessWidget {
   }
 
   Widget _buildCompetitionCard(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final compAsync = ref.watch(competitionDetailProvider(event.id));
-        return compAsync.when(
-          data: (comp) {
-            if (comp == null) return const SizedBox.shrink();
-            return BoxyArtCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const BoxyArtSectionTitle(title: 'Competition'),
-                  ModernRuleItem(label: 'Format', value: comp.rules.gameName),
-                  ModernRuleItem(label: 'Scoring', value: comp.rules.scoringType),
-                  if (event.isInvitational)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: ModernRuleItem(
-                        label: 'Status', 
-                        value: 'Non-Scoring / Invitational',
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (err, stack) => const SizedBox.shrink(),
-        );
-      },
+    return CompetitionRulesCard(
+      eventId: event.id,
+      title: 'Competition',
     );
   }
 
@@ -373,13 +346,16 @@ class _EventDetailsContent extends StatelessWidget {
           if (hasDinner) ModernCostRow(label: 'Dinner', amount: _formatCost(event.dinnerCost)),
           const Divider(height: 24),
           ModernCostRow(label: 'Member Total', amount: _formatCost(memberSubtotal), isTotal: true),
+
+          const SizedBox(height: 12),
+          ModernCostRow(label: 'Guest Golf', amount: _formatCost(event.guestCost), color: Colors.purple.shade300),
           
           if (event.buggyCost != null) ...[
             const SizedBox(height: 12),
-            ModernRuleItem(label: 'Buggy Cost', value: _formatCost(event.buggyCost)),
-            Text(
-              'Shared cost paid to Pro Shop',
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+            ModernRuleItem(label: 'Buggy (Optional)', value: _formatCost(event.buggyCost)),
+            const Text(
+              'Shared cost per buggy',
+              style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
             ),
           ],
         ],

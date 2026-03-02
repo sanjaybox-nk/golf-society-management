@@ -57,7 +57,7 @@ class CompetitionRuleTranslator {
     }
 
     // 3. Specific Rule Modifiers
-    if (rules.handicapCap < 54) {
+    if (rules.handicapCap > 0 && rules.handicapCap < 54) {
       parts.add('Maximum playing handicap is capped at ${rules.handicapCap.toInt()}.');
     }
 

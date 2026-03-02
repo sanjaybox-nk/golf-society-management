@@ -68,13 +68,3 @@ final effectiveUserProvider = Provider<Member>((ref) {
 
   return currentUser;
 });
-
-// Mock Provider for user statistics
-final userStatsProvider = Provider<Map<String, dynamic>>((ref) {
-  return {
-    'roundsPlayed': 12,
-    'averageScore': 88.5,
-    'wins': 2,
-    'bestScore': 82,
-  };
-});

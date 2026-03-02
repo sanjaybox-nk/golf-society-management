@@ -4,14 +4,14 @@
 
 ## Key Files
 -   **`app_colors.dart`**: Fairway v3.1 Primitives (Lime, Coral, Amber) and dark-first neutral scale.
--   **`app_typography.dart`**: Unified typography tokens using Fredoka (Display) and Nunito (Body).
+-   **`app_typography.dart`**: Unified typography tokens using Fredoka (Display) and Inter (Body/Labels).
 -   **`app_shapes.dart`**: Standardized radii (rXs to r2xl) and common UI shapes (Pill, Card).
--   **`app_spacing.dart`**: Layout spacing scale (sm, md, lg, xl).
+-   **`app_spacing.dart`**: Layout spacing scale based on an 8pt grid (sm, md, lg, xl, x2l, etc.).
 -   **`app_theme.dart`**: Compiles tokens into `ThemeData` for Light and Dark modes.
 
 ## Branding v3.1 Evolution
 
-The system has transitioned to a **Vivid Emerald** (Lime) primary palette with a heavy emphasis on dark-mode first design and high-contrast accessibility.
+The system has transitioned to a **Vivid Emerald** (Lime) primary palette with a heavy emphasis on dark-mode first design, high-contrast accessibility, and **pro-grade administrative hardening**.
 
 ### 1. Colors (`AppColors`)
 
@@ -33,9 +33,9 @@ The system has transitioned to a **Vivid Emerald** (Lime) primary palette with a
 -   **rPill (999.0)**: For buttons and status tags.
 
 ### 3. Typography (`AppTypography`)
--   **Fredoka**: Used for `displayHero` and `label` (Headers/Uppercase labels).
+-   **Fredoka**: Used strictly for `displayHero` (Large Hero headers).
+-   **Inter**: Switched to **Inter** as the primary typeface for all `body`, `label`, and `caption` styles to ensure a clean, professional, and readable interface.
 -   **Weight**: Headers use `FontWeight.w900` with `letterSpacing: -0.8` for a contemporary feel.
--   **Nunito**: Standard body font for readability.
 
 ## Tag System Taxonomy (BoxyArtPill)
 

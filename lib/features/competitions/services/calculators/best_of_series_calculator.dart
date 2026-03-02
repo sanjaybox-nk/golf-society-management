@@ -71,7 +71,7 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
            }
         }
         
-        playerScores.putIfAbsent(card.submittedByUserId, () => []).add(score);
+        playerScores.putIfAbsent(card.entryId, () => []).add(score);
       }
     }
 

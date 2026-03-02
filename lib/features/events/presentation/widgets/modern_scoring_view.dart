@@ -98,7 +98,7 @@ class ModernScoringView extends StatelessWidget {
         
         // Hero Card
         SizedBox(
-          height: 280,
+          height: 240,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: _buildHeroCard(context, par, si, score, cap),
@@ -145,21 +145,21 @@ class ModernScoringView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.x2l),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'HOLE $currentHole',
-                style: AppTypography.caption.copyWith(
-                  color: Colors.black.withValues(alpha: 0.6),
+                style: AppTypography.label.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   letterSpacing: 2.0,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Par $par${si != null ? ' • SI $si' : ''}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
+                style: AppTypography.displayHeading.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 20, // Manual override to keep it compact
                 ),
               ),
               const SizedBox(height: 10),
@@ -167,11 +167,15 @@ class ModernScoringView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.lime500.withValues(alpha: 0.2),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                      color: AppColors.lime500.withValues(alpha: 0.15),
                       blurRadius: 30,
                       spreadRadius: 4,
                     )
@@ -179,10 +183,9 @@ class ModernScoringView extends StatelessWidget {
                 ),
                 child: Text(
                   cap != null && score >= cap ? 'MAX' : '$score',
-                  style: TextStyle(
+                  style: AppTypography.displayHero.copyWith(
                     fontSize: cap != null && score >= cap ? 44 : 64,
-                    fontWeight: FontWeight.w900,
-                    color: cap != null && score >= cap ? Colors.red : Theme.of(context).primaryColor,
+                    color: cap != null && score >= cap ? AppColors.coral500 : AppColors.lime500,
                   ),
                 ),
               ),
@@ -218,8 +221,12 @@ class ModernScoringView extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -261,54 +268,34 @@ class ModernScoringView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Row(
-             children: [
-               Expanded(
-                 child: OutlinedButton(
-                   onPressed: currentScore > 1 ? () => onSetScore(currentHole, currentScore - 1) : null,
-                   style: OutlinedButton.styleFrom(
-                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                     padding: const EdgeInsets.symmetric(vertical: 12),
-                     side: BorderSide(
-                       color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
-                       width: 0.8,
-                     ),
-                   ),
-                   child: const Icon(Icons.remove),
-                 ),
-               ),
-               const SizedBox(width: 8),
-               Expanded(
-                 flex: 2,
-                 child: ElevatedButton(
-                   onPressed: currentHole < 18 ? () => onHoleChanged(currentHole + 1) : onShowFullCard,
-                   style: ElevatedButton.styleFrom(
-                     backgroundColor: Theme.of(context).primaryColor,
-                     foregroundColor: Colors.white,
-                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                     padding: const EdgeInsets.symmetric(vertical: 12),
-                   ),
-                   child: Text(
-                     currentHole < 18 ? 'NEXT HOLE' : 'FINISH CARD', 
-                     style: const TextStyle(fontWeight: FontWeight.bold)
-                   ),
-                 ),
-               ),
-               const SizedBox(width: 8),
-               Expanded(
-                 child: OutlinedButton(
-                   onPressed: (cap == null || currentScore < cap) ? () => onSetScore(currentHole, currentScore + 1) : null,
-                   style: OutlinedButton.styleFrom(
-                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                     padding: const EdgeInsets.symmetric(vertical: 12),
-                     side: BorderSide(
-                       color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
-                       width: 0.8,
-                     ),
-                   ),
-                   child: const Icon(Icons.add),
-                 ),
-               ),
-             ],
+            children: [
+              Expanded(
+                child: BoxyArtButton(
+                  title: '',
+                  icon: Icons.remove,
+                  isSecondary: true,
+                  onTap: currentScore > 1 ? () => onSetScore(currentHole, currentScore - 1) : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: BoxyArtButton(
+                  title: currentHole < 18 ? 'NEXT HOLE' : 'FINISH CARD',
+                  isPrimary: true,
+                  onTap: currentHole < 18 ? () => onHoleChanged(currentHole + 1) : onShowFullCard,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: BoxyArtButton(
+                  title: '',
+                  icon: Icons.add,
+                  isSecondary: true,
+                  onTap: (cap == null || currentScore < cap) ? () => onSetScore(currentHole, currentScore + 1) : null,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -316,25 +303,34 @@ class ModernScoringView extends StatelessWidget {
   }
 
   Widget _buildKeypadButton(BuildContext context, String label, int value, bool isSelected, {bool isDisabled = false}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: isDisabled ? null : () => onSetScore(currentHole, value),
-      child: Container(
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         height: 50,
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          color: Colors.transparent,
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+              width: 2.0,
+            ),
           ),
         ),
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: AppTypography.displayHeading.copyWith(
+              color: isSelected 
+                  ? (isDark ? AppColors.pureWhite : AppColors.dark900) 
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              fontSize: isSelected ? 24 : 18,
             ),
+            child: Text(label),
           ),
         ),
       ),
@@ -343,48 +339,71 @@ class ModernScoringView extends StatelessWidget {
 
   /// Full-width PLAYER / ME segmented toggle for the keypad card.
   Widget _buildMarkerToggle(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
-      height: 40,
+      height: 44,
       decoration: BoxDecoration(
-        color: theme.primaryColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+            width: 1.0,
+          ),
+        ),
       ),
       child: Row(
         children: [
-          _buildToggleTab(context, 0, 'PLAYER', isDisabled: isSelfMarking),
-          _buildToggleTab(context, 1, 'ME'),
+          _buildToggleTab(context, 0, 'PLAYER', icon: Icons.person_outline, isDisabled: isSelfMarking),
+          _buildToggleTab(context, 1, 'ME', icon: Icons.account_circle_outlined),
         ],
       ),
     );
   }
 
-  Widget _buildToggleTab(BuildContext context, int tab, String label, {bool isDisabled = false}) {
+  Widget _buildToggleTab(BuildContext context, int tab, String label, {required IconData icon, bool isDisabled = false}) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isSelected = selectedTab == tab;
     return Expanded(
       child: GestureDetector(
         onTap: isDisabled ? null : () => onTabChanged(tab),
+        behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           height: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? theme.primaryColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
-              color: isSelected
-                  ? Colors.white
-                  : (isDisabled
-                      ? theme.primaryColor.withValues(alpha: 0.3)
-                      : theme.primaryColor),
+            border: Border(
+              bottom: BorderSide(
+                color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                width: 2.0,
+              ),
             ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? (isDark ? AppColors.pureWhite : AppColors.dark900)
+                    : (isDisabled
+                        ? (isDark ? AppColors.dark400 : AppColors.dark200)
+                        : (isDark ? AppColors.dark150 : AppColors.dark600)),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                  color: isSelected
+                      ? (isDark ? AppColors.pureWhite : AppColors.dark900)
+                      : (isDisabled
+                          ? (isDark ? AppColors.dark400 : AppColors.dark200)
+                          : (isDark ? AppColors.dark150 : AppColors.dark600)),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -420,10 +439,10 @@ class ModernScoringView extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             teeName,
-            style: const TextStyle(
+            style: AppTypography.caption.copyWith(
               fontSize: 10,
               fontWeight: FontWeight.w900,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
               letterSpacing: 0.5,
             ),
           ),

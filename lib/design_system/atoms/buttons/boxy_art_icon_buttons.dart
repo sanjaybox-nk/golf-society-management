@@ -95,9 +95,15 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
-    final defaultIconColor = widget.iconColor ?? primaryColor;
-    final defaultBgColor = widget.backgroundColor ?? primaryColor.withValues(alpha: 0.2);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.primaryColor;
+    
+    // In dark mode, favor white/light glass over dark primary tints
+    final defaultIconColor = widget.iconColor ?? (isDark ? Colors.white : primaryColor);
+    final defaultBgColor = widget.backgroundColor ?? (isDark 
+        ? Colors.white.withValues(alpha: 0.08) 
+        : primaryColor.withValues(alpha: 0.12));
     
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -114,27 +120,23 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
             color: defaultBgColor,
             shape: BoxShape.circle,
             border: Border.all(
-              color: defaultIconColor.withValues(alpha: 0.3),
+              color: isDark 
+                  ? Colors.white.withValues(alpha: 0.15) 
+                  : primaryColor.withValues(alpha: 0.2),
               width: 0.8,
             ),
             boxShadow: [
-              // Base Soft Shadow
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-              // Sharp Close Shadow
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
+              if (!isDark) // Soft shadows only in light mode for glass
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
             ],
           ),
           child: ClipOval(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Center(
                 child: Icon(
                   widget.icon,

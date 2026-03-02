@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
-import 'profile_provider.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/features/members/presentation/member_stats_provider.dart';
+import '../../home/presentation/home_providers.dart';
 
 class LockerScreen extends ConsumerWidget {
   const LockerScreen({super.key});
@@ -16,12 +18,13 @@ class LockerScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Locker Room',
+      subtitle: 'Private performance and settings',
       backgroundColor: beigeBackground,
       showBack: false,
       onBack: () => context.go('/'),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
+          padding: EdgeInsets.fromLTRB(AppTheme.pagePadding, 8, AppTheme.pagePadding, 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               SizedBox(height: AppTheme.cardSpacing),
@@ -117,6 +120,65 @@ class LockerScreen extends ConsumerWidget {
                 ),
               ),
               SizedBox(height: AppTheme.cardSpacing),
+
+              // Season Stakes section
+              Consumer(
+                builder: (context, ref, _) {
+                  final stakesAsync = ref.watch(homeSeasonStakesProvider);
+                  return stakesAsync.when(
+                    data: (stakes) {
+                      if (stakes == null) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: BoxyArtCard(
+                          backgroundColor: primary.withValues(alpha: 0.05),
+                          border: Border.all(color: primary.withValues(alpha: 0.1)),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.auto_awesome_rounded, color: primary, size: 20),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'SEASON STAKES',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      stakes,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (e, s) => const SizedBox.shrink(),
+                  );
+                },
+              ),
 
               // Stats Section
               const BoxyArtSectionTitle(title: 'Season Highlights'),

@@ -10,8 +10,6 @@ import 'dart:io';
 import 'package:go_router/go_router.dart';
 import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:golf_society/domain/models/competition.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
@@ -142,9 +140,9 @@ class EventDetailsContent extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-                SizedBox(height: 16),
+                SizedBox(height: AppTheme.cardSpacing),
                 _buildRegistrationCard(context),
-                SizedBox(height: 16),
+                SizedBox(height: AppTheme.cardSpacing),
                 _buildHeroSection(context),
                 SizedBox(height: AppTheme.cardSpacing),
               _buildDateTimeSection(context),
@@ -165,6 +163,8 @@ class EventDetailsContent extends ConsumerWidget {
               _buildDinnerLocationSection(context),
               SizedBox(height: AppTheme.cardSpacing),
               _buildFacilitiesSection(context),
+              SizedBox(height: AppTheme.cardSpacing),
+              _buildAwardsSection(context, ref),
               SizedBox(height: AppTheme.cardSpacing),
               _buildNotesSection(context),
             ]),
@@ -274,7 +274,7 @@ class EventDetailsContent extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.cardSpacing),
           ],
         ),
       ),
@@ -366,20 +366,20 @@ class EventDetailsContent extends ConsumerWidget {
                 icon: Icons.calendar_today_rounded,
               ),
               if (event.isMultiDay && event.endDate != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.cardSpacing),
                 ModernInfoRow(
                   label: 'End Date',
                   value: DateFormat('EEEE, d MMM yyyy').format(event.endDate!),
                   icon: Icons.calendar_today_rounded,
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.cardSpacing),
               ModernInfoRow(
                 label: 'Tee-off',
                 value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
                 icon: Icons.schedule_rounded,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.cardSpacing),
               ModernInfoRow(
                 label: 'Registration',
                 value: event.regTime != null 
@@ -388,7 +388,7 @@ class EventDetailsContent extends ConsumerWidget {
                 icon: Icons.app_registration_rounded,
               ),
               if (event.registrationDeadline != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.cardSpacing),
                 ModernInfoRow(
                   label: 'Deadline',
                   value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
@@ -445,16 +445,32 @@ class EventDetailsContent extends ConsumerWidget {
                   ),
                 ),
               ],
-              if (event.selectedTeeName != null) ...[
-                const SizedBox(height: 16),
-                ModernInfoRow(
-                  label: 'Tee Position',
-                  value: event.selectedTeeName!,
-                  icon: Icons.flag_rounded,
+              if (event.selectedTeeName != null || event.selectedFemaleTeeName != null) ...[
+                const SizedBox(height: AppTheme.cardSpacing),
+                Builder(
+                  builder: (context) {
+                    final maleTee = event.selectedTeeName;
+                    final femaleTee = event.selectedFemaleTeeName;
+                    String value;
+                    if (maleTee != null && femaleTee != null) {
+                      if (maleTee == femaleTee) {
+                        value = maleTee;
+                      } else {
+                        value = '$maleTee / $femaleTee';
+                      }
+                    } else {
+                      value = maleTee ?? femaleTee ?? 'TBA';
+                    }
+                    return ModernInfoRow(
+                      label: 'Tee Position',
+                      value: value,
+                      icon: Icons.flag_rounded,
+                    );
+                  }
                 ),
               ],
               if (event.maxParticipants != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.cardSpacing),
                 Builder(
                   builder: (context) {
                     final stats = RegistrationLogic.getRegistrationStats(event);
@@ -468,14 +484,14 @@ class EventDetailsContent extends ConsumerWidget {
                   }
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.cardSpacing),
               ModernInfoRow(
                 label: 'Dress Code',
                 value: event.dressCode ?? 'Standard Golf Attire',
                 icon: Icons.checkroom_rounded,
               ),
               if (event.availableBuggies != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.cardSpacing),
                 ModernInfoRow(
                   label: 'Buggies',
                   value: '${event.availableBuggies} available',
@@ -531,7 +547,7 @@ class EventDetailsContent extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.cardSpacing),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -597,7 +613,7 @@ class EventDetailsContent extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppTheme.cardSpacing),
         BoxyArtButton(
           title: 'Apply Course Updates',
           isPrimary: true,
@@ -816,20 +832,17 @@ class EventDetailsContent extends ConsumerWidget {
 
 
   Widget _buildCompetitionRulesSection(BuildContext context) {
-    return _CompetitionRulesCard(
+    return CompetitionRulesCard(
       eventId: event.id,
       title: 'Competition Rules',
-      icon: Icons.golf_course,
-      iconColor: Theme.of(context).primaryColor,
     );
   }
 
   Widget _buildSecondaryRulesSection(BuildContext context) {
-    return _CompetitionRulesCard(
+    return CompetitionRulesCard(
       eventId: '${event.id}_secondary',
       title: 'Secondary Game (Overlay)',
-      icon: Icons.compare_arrows,
-      iconColor: Colors.orange,
+      isSecondary: true,
     );
   }
 
@@ -842,16 +855,38 @@ class EventDetailsContent extends ConsumerWidget {
         BoxyArtCard(
           child: Column(
             children: [
-              _buildModernCostRow(context, 'Member Cost', event.memberCost),
+              ModernCostRow(
+                label: 'Member Golf', 
+                amount: '$currencySymbol${event.memberCost?.toStringAsFixed(2) ?? 'TBA'}',
+              ),
               if (event.guestCost != null) ...[
-                const SizedBox(height: 12),
-                _buildModernCostRow(context, 'Guest Cost', event.guestCost),
+                const SizedBox(height: 10),
+                ModernCostRow(
+                  label: 'Guest Golf', 
+                  amount: '$currencySymbol${event.guestCost?.toStringAsFixed(2)}',
+                ),
               ],
               if (event.buggyCost != null) ...[
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 12),
-                _buildModernCostRow(context, 'Buggy Cost', event.buggyCost, subtitle: 'Payable to Pro Shop'),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1),
+                ),
+                ModernCostRow(
+                  label: 'Buggy Hire', 
+                  amount: '$currencySymbol${event.buggyCost?.toStringAsFixed(2)}',
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Payable to Pro Shop',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6), 
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ],
             ],
           ),
@@ -860,44 +895,6 @@ class EventDetailsContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernCostRow(BuildContext context, String label, double? cost, {String? subtitle}) {
-    if (cost == null) return const SizedBox.shrink();
-    
-    final String costText = cost == 0 
-        ? 'FREE' 
-        : '$currencySymbol${cost.toStringAsFixed(2)}';
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label, 
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              )
-            ),
-            if (subtitle != null)
-              Text(
-                subtitle,
-                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 11),
-              ),
-          ],
-        ),
-        Text(
-          costText, 
-          style: TextStyle(
-            fontWeight: FontWeight.w800, 
-            fontSize: 16,
-            color: Theme.of(context).primaryColor,
-          )
-        ),
-      ],
-    );
-  }
 
   Widget _buildMealCostsSection(BuildContext context) {
     final bool hasBreakfast = event.hasBreakfast && event.breakfastCost != null;
@@ -914,14 +911,14 @@ class EventDetailsContent extends ConsumerWidget {
           child: Column(
             children: [
               if (hasBreakfast) ...[
-                _buildModernCostRow(context, 'Breakfast', event.breakfastCost),
-                if (hasLunch || hasDinner) const SizedBox(height: 12),
+                ModernCostRow(label: 'Breakfast', amount: '$currencySymbol${event.breakfastCost?.toStringAsFixed(2)}'),
+                if (hasLunch || hasDinner) const SizedBox(height: 10),
               ],
               if (hasLunch) ...[
-                _buildModernCostRow(context, 'Lunch', event.lunchCost),
-                if (hasDinner) const SizedBox(height: 12),
+                ModernCostRow(label: 'Lunch', amount: '$currencySymbol${event.lunchCost?.toStringAsFixed(2)}'),
+                if (hasDinner) const SizedBox(height: 10),
               ],
-              if (hasDinner) _buildModernCostRow(context, 'Dinner', event.dinnerCost),
+              if (hasDinner) ModernCostRow(label: 'Dinner', amount: '$currencySymbol${event.dinnerCost?.toStringAsFixed(2)}'),
             ],
           ),
         ),
@@ -940,15 +937,26 @@ class EventDetailsContent extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: event.facilities.map((f) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              padding: const EdgeInsets.symmetric(vertical: 6.0),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF27AE60)),
-                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF27AE60).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF27AE60)),
+                  ),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       f,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600, 
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.9),
+                      ),
                     ),
                   ),
                 ],
@@ -998,7 +1006,7 @@ class EventDetailsContent extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.cardSpacing),
             ],
             if (note.imageUrl != null) ...[
               ClipRRect(
@@ -1015,7 +1023,7 @@ class EventDetailsContent extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.cardSpacing),
             ],
             if (quillController != null)
               QuillEditor.basic(
@@ -1066,97 +1074,100 @@ class EventDetailsContent extends ConsumerWidget {
     );
   }
 
+  Widget _buildAwardsSection(BuildContext context, WidgetRef ref) {
+    if (!event.showAwards || event.awards.isEmpty) return const SizedBox.shrink();
 
-}
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const BoxyArtSectionTitle(title: 'Event Prizes'),
+        BoxyArtCard(
+          child: Column(
+            children: event.awards.map((award) {
+              final isLast = award == event.awards.last;
+              IconData icon;
+              Color iconColor;
+              
+              switch (award.type.toLowerCase()) {
+                case 'cup':
+                  icon = Icons.emoji_events_rounded;
+                  iconColor = const Color(0xFFFFD700); // Gold
+                  break;
+                case 'voucher':
+                  icon = Icons.confirmation_number_rounded;
+                  iconColor = const Color(0xFF27AE60);
+                  break;
+                default:
+                  icon = Icons.payments_rounded;
+                  iconColor = const Color(0xFF2D9CDB);
+              }
 
-class _CompetitionRulesCard extends ConsumerWidget {
-  final String eventId;
-  final String title;
-  final IconData icon;
-  final Color iconColor;
-
-  const _CompetitionRulesCard({
-    required this.eventId,
-    required this.title,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final compsAsync = ref.watch(competitionDetailProvider(eventId));
-    
-    return compsAsync.when(
-      data: (comp) {
-        if (comp == null) return const SizedBox.shrink();
-        
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BoxyArtSectionTitle(title: title),
-            BoxyArtCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              return Column(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: iconColor.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: iconColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(icon, size: 20, color: iconColor),
                         ),
-                        child: Icon(icon, color: iconColor, size: 24),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              (comp.name != null && comp.name!.isNotEmpty)
-                                  ? comp.name!.toUpperCase()
-                                  : comp.rules.gameName.toUpperCase(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                            ),
-                            if (comp.name != null && comp.name!.isNotEmpty)
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                comp.rules.gameName,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Theme.of(context).textTheme.bodySmall?.color,
-                                  fontWeight: FontWeight.w400,
+                                award.label,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                          ],
+                              if (award.type.toLowerCase() != 'cup' && award.value > 0)
+                                Text(
+                                  'Value: ${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  award.type.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 20),
-                  CompetitionRuleDescription(rules: comp.rules),
-                  const SizedBox(height: 20),
-                  CompetitionBadgeRow(
-                    rules: comp.rules,
-                    eventId: eventId,
-                    baseColor: iconColor,
+                  if (!isLast) const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(),
                   ),
                 ],
-              ),
-            ),
-          ],
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
+
+
 }
+
 
 String toTitleCase(String text) {
   if (text.isEmpty) return text;

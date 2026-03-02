@@ -12,6 +12,7 @@ export 'atoms/inputs/boxy_art_text_field.dart';
 
 // Legacy Widgets (to be decomposed)
 export 'widgets/admin_shortcut_action.dart';
+export 'widgets/avatars.dart';
 export 'widgets/badges.dart';
 export 'widgets/dialogs.dart';
 export 'widgets/floating_action_bar.dart';
@@ -29,6 +30,7 @@ export 'widgets/boxy_art_nav_bar.dart';
 export 'widgets/responsive_layout.dart';
 export 'widgets/scaffold_with_nav_bar.dart';
 export 'widgets/staggered_entrance.dart';
+export 'widgets/scorecard_tile.dart';
 
 // Theme v3.1 - Source of Truth
 export 'package:golf_society/theme/app_theme.dart';

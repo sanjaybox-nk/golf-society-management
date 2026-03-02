@@ -91,6 +91,7 @@ class ModernMetricStat extends StatelessWidget {
   final IconData? icon;
   final Color color;
   final bool isCompact;
+  final bool isSolid;
 
   const ModernMetricStat({
     super.key,
@@ -99,34 +100,35 @@ class ModernMetricStat extends StatelessWidget {
     this.icon,
     required this.color,
     this.isCompact = false,
+    this.isSolid = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final textSecondary = Theme.of(context).textTheme.bodySmall?.color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (isCompact) {
       return Container(
-        width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.2),
+          color: isSolid ? color : color.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
+          border: isSolid ? null : Border.all(color: color.withValues(alpha: 0.1), width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 20, color: color),
+              Icon(icon, size: 20, color: isSolid ? Colors.white : color),
               const SizedBox(height: 8),
             ],
             Text(
               value,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-                color: color,
+              style: AppTypography.displayHeading.copyWith(
+                fontSize: 18,
+                color: isSolid ? Colors.white : color,
                 letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
@@ -136,9 +138,11 @@ class ModernMetricStat extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+              style: AppTypography.caption.copyWith(
+                fontSize: 10,
+                color: isSolid 
+                    ? Colors.white.withValues(alpha: 0.8) 
+                    : (isDark ? AppColors.dark200 : AppColors.dark300),
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,

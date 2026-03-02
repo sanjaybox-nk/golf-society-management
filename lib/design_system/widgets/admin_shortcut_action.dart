@@ -20,7 +20,6 @@ class AdminShortcutAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
     final isPeeking = ref.watch(impersonationProvider) != null;
-    final primary = Theme.of(context).primaryColor;
 
     // Visibility logic: Must be admin/superAdmin, NOT peeking, and NOT already in/previewing admin console
     final bool isAdmin = (currentUser.role == MemberRole.admin || 
@@ -55,14 +54,15 @@ class AdminShortcutAction extends ConsumerWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: primary.withValues(alpha: 0.2),
+          color: Theme.of(context).cardColor,
           shape: BoxShape.circle,
+          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
         ),
         child: IconButton(
           icon: Icon(
             Icons.admin_panel_settings_rounded,
-            color: primary,
-            size: 24,
+            color: Theme.of(context).iconTheme.color,
+            size: 20,
           ),
           tooltip: 'Admin Console',
           onPressed: () => context.go('/admin'),

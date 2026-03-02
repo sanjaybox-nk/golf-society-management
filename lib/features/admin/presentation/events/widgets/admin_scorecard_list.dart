@@ -1,15 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
+import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
-import '../../../../competitions/presentation/competitions_provider.dart';
-import '../../../../../domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/models/competition.dart';
-import '../../../../competitions/presentation/widgets/leaderboard_widget.dart';
-import '../../../../events/presentation/widgets/scorecard_modal.dart';
+import 'package:golf_society/domain/grouping/tee_group.dart';
+import 'package:golf_society/features/events/domain/registration_logic.dart';
+import 'package:golf_society/features/events/presentation/widgets/scorecard_modal.dart';
+import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 
 class AdminScorecardList extends ConsumerWidget {
   final GolfEvent event;
@@ -26,252 +29,326 @@ class AdminScorecardList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final compAsync = ref.watch(competitionDetailProvider(event.id));
+    final comp = compAsync.value;
+    final rules = comp?.rules ?? const CompetitionRules();
     
-    // Filter down to only those playing golf
-    final golfers = event.registrations.where((r) => 
-      r.attendingGolf && (r.isConfirmed || r.guestIsConfirmed)
-    ).toList();
+    final isTeamMode = rules.effectiveMode == CompetitionMode.teams || 
+                       rules.effectiveMode == CompetitionMode.pairs;
+
+    if (isTeamMode) {
+      return _buildTeamList(context, ref, comp);
+    }
+
+    return _buildIndividualList(context, ref, comp);
+  }
+
+  Widget _buildIndividualList(BuildContext context, WidgetRef ref, Competition? comp) {
+    final golfers = RegistrationLogic.getPlayingParticipants(event);
+    final members = golfers.where((item) => !item.isGuest).toList();
+    final guests = golfers.where((item) => item.isGuest).toList();
     
-    // Sort: Submitted first, then by name
-    golfers.sort((a, b) {
-      final aHasScore = _getScorecard(a) != null;
-      final bHasScore = _getScorecard(b) != null;
-      if (aHasScore != bHasScore) return bHasScore ? 1 : -1;
-      return a.displayName.compareTo(b.displayName);
-    });
+    _sortRegistrationList(members);
+    _sortRegistrationList(guests);
 
     if (golfers.isEmpty) {
-      return const BoxyArtCard(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Center(
-            child: Text('No confirmed golfers found for this event.'),
-          ),
-        ),
-      );
+      return _buildEmptyState();
     }
 
     return Column(
-      children: golfers.asMap().entries.map((entry) {
-        final index = entry.key + 1;
-        final reg = entry.value;
-        final scorecard = _getScorecard(reg);
-        final isSubmitted = scorecard?.status == ScorecardStatus.submitted || 
-                            scorecard?.status == ScorecardStatus.finalScore;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: BoxyArtCard(
-            onTap: () {
-              final id = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
-              final comp = compAsync.value;
-              final member = membersList.firstWhereOrNull((m) => m.id == reg.memberId);
-              final double baseHcp = reg.isGuest 
-                ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
-                : (member?.handicap ?? 18.0); 
-              
-              final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
-              final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
-
-              final phc = HandicapCalculator.calculatePlayingHandicap(
-                handicapIndex: baseHcp,
-                rules: comp?.rules ?? const CompetitionRules(),
-                courseConfig: playerTeeConfig,
-                baseRating: baseRating,
-              );
-
-              ScorecardModal.show(
-                context, 
-                ref, 
-                entry: LeaderboardEntry(
-                  entryId: id,
-                  playerName: reg.displayName,
-                  handicap: baseHcp.toInt(),
-                  playingHandicap: phc,
-                  score: scorecard?.points ?? 0,
-                  isGuest: reg.isGuest,
-                ), 
-                scorecards: scorecards, 
-                event: event, 
-                comp: comp,
-                membersList: membersList,
-                isAdmin: true,
-              );
-            },
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: Row(
-              children: [
-                // Position Index
-                Container(
-                  width: 24,
-                  height: 24,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text('$index', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
-                ),
-                const SizedBox(width: 8),
-
-                // Avatar
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                  child: Text(
-                    reg.displayName.isNotEmpty ? reg.displayName[0] : '?',
-                    style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 12),
-
-                // Name & Metadata
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        reg.displayName,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: -0.2),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        reg.isGuest ? 'Guest' : 'Member',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
-                      ),
-                      const SizedBox(height: 4),
-                      _buildStatusPill(context, isSubmitted),
-                    ],
-                  ),
-                ),
-
-                // Scores
-                if (scorecard != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${scorecard.points}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900, 
-                            fontSize: 18, 
-                            color: Theme.of(context).primaryColor,
-                            height: 1.0,
-                          ),
-                        ),
-                        const Text(
-                          'PTS',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 7, color: Colors.grey, letterSpacing: 0.5),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // Handicap column
-                compAsync.when(
-                  data: (comp) {
-                    final member = membersList.firstWhereOrNull((m) => m.id == reg.memberId);
-                    final double baseHcp = reg.isGuest 
-                      ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
-                      : (member?.handicap ?? 18.0); 
-                    
-                    final id = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
-                    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
-                    final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
-
-                    final phc = HandicapCalculator.calculatePlayingHandicap(
-                      handicapIndex: baseHcp,
-                      rules: comp?.rules ?? const CompetitionRules(),
-                      courseConfig: playerTeeConfig,
-                      baseRating: baseRating,
-                    );
-                    
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '$phc',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
-                        ),
-                        Text(
-                          '(${baseHcp.toStringAsFixed(1)})',
-                          style: TextStyle(fontSize: 8, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (e, s) => const SizedBox.shrink(),
-                ),
-
-                const SizedBox(width: 8),
-
-                // Controls
-                if (scorecard != null)
-                  IconButton(
-                    icon: Icon(
-                      isSubmitted ? Icons.lock_rounded : Icons.lock_open_rounded, 
-                      color: isSubmitted ? Colors.red.withValues(alpha: 0.7) : Colors.green, 
-                      size: 20
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () async {
-                      try {
-                        final newStatus = isSubmitted ? ScorecardStatus.draft : ScorecardStatus.submitted;
-                        await ref.read(scorecardRepositoryProvider).updateScorecardStatus(
-                          scorecard.id,
-                          newStatus,
-                        );
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Scorecard for ${reg.displayName} marked as ${newStatus == ScorecardStatus.draft ? "Open" : "Submitted"}.')),
-                          );
-                        }
-                      } catch (e) {
-                        debugPrint('❌ Scorecard Status Update Error: $e');
-                        if (context.mounted) {
-                          final errorMsg = 'Error updating status (ID: ${scorecard.id}): $e';
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(errorMsg),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 10),
-                              action: SnackBarAction(
-                                label: 'COPY',
-                                textColor: Colors.white,
-                                onPressed: () {
-                                  // Simplified copy if needed, but usually just for reading
-                                },
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    },
-                  ),
-                Icon(Icons.chevron_right_rounded, color: Theme.of(context).primaryColor.withValues(alpha: 0.5), size: 20),
-              ],
-            ),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (members.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, top: 8),
+            child: BoxyArtSectionTitle(title: 'SOCIETY MEMBERS', count: members.length),
           ),
-        );
-      }).toList(),
+          ...members.asMap().entries.map((entry) => _buildIndividualTile(context, ref, entry.key + 1, entry.value, comp)),
+          const SizedBox(height: 24),
+        ],
+        if (guests.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: BoxyArtSectionTitle(title: 'GUESTS', count: guests.length),
+          ),
+          ...guests.asMap().entries.map((entry) => _buildIndividualTile(context, ref, members.length + entry.key + 1, entry.value, comp)),
+        ],
+      ],
     );
   }
 
-  Scorecard? _getScorecard(EventRegistration reg) {
-    // Handle Guest Logic: Guest ID is typically "memberId_guest" for legacy reasons or we match by name?
-    // In seeding, we used "memberId_guest" for guests.
-    final expectedId = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+  Widget _buildTeamList(BuildContext context, WidgetRef ref, Competition? comp) {
+    final groupsData = event.grouping['groups'] as List? ?? [];
+    final List<TeamScoreGroup> teamGroups = [];
+    final rules = comp?.rules ?? const CompetitionRules();
+
+    for (var g in groupsData) {
+      final group = TeeGroup.fromJson(g);
+      if (rules.effectiveMode == CompetitionMode.pairs) {
+        // Split into two pairs
+        final pairA = group.players.take(2).toList();
+        if (pairA.isNotEmpty) teamGroups.add(TeamScoreGroup(players: pairA, index: group.index, isPair: true));
+        
+        final pairB = group.players.skip(2).take(2).toList();
+        if (pairB.isNotEmpty) teamGroups.add(TeamScoreGroup(players: pairB, index: group.index, isPair: true));
+      } else {
+        // Scramble/Full Team
+        teamGroups.add(TeamScoreGroup(players: group.players, index: group.index, isPair: false));
+      }
+    }
+
+    if (teamGroups.isEmpty) return _buildEmptyState();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12, top: 8),
+          child: BoxyArtSectionTitle(title: 'TEAMS & GROUPS'),
+        ),
+        ...teamGroups.asMap().entries.map((entry) => _buildTeamTile(context, ref, entry.key + 1, entry.value, comp)),
+      ],
+    );
+  }
+
+  Widget _buildIndividualTile(BuildContext context, WidgetRef ref, int index, RegistrationItem item, Competition? comp) {
+    final scorecard = _getScorecard(item: item);
+    final status = scorecard?.status ?? ScorecardStatus.draft;
+    final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
+    final id = item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
+
+    // Resolve PHC for parity
+    final member = membersList.firstWhereOrNull((m) => m.id == item.registration.memberId);
+    final double baseHcp = item.isGuest 
+      ? (double.tryParse(item.registration.guestHandicap ?? '18.0') ?? 18.0)
+      : (member?.handicap ?? 18.0);
+    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
+    final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+    final phc = HandicapCalculator.calculatePlayingHandicap(
+      handicapIndex: baseHcp,
+      rules: comp?.rules ?? const CompetitionRules(),
+      courseConfig: playerTeeConfig,
+      baseRating: baseRating,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: BoxyArtScorecardTile(
+        playerName: item.name,
+        isConfirmed: isConfirmed,
+        leading: BoxyArtNumberBadge(number: index, size: 40, isFilled: false),
+        status: _buildMetadataRow(status, scorecard, baseHcp.toInt(), phc),
+        score: _formatScore(scorecard, comp),
+        trailingActions: _buildLockAction(ref, scorecard, item.name, status, isConfirmed),
+        onTap: () => _showScorecardModal(context, ref, item, id, scorecard, comp),
+      ),
+    );
+  }
+
+  Widget _buildTeamTile(BuildContext context, WidgetRef ref, int index, TeamScoreGroup team, Competition? comp) {
+    final names = team.players.map((p) => p.name).toList();
+    final ids = team.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
     
-    // Find matching scorecard
+    // For teams, we usually look for a scorecard with the teamId or use the first player's card as proxy if not Scramble
+    // For simplicity in Admin List, we fetch the first available card to show status
+    Scorecard? scorecard;
+    for (final id in ids) {
+      scorecard = scorecards.firstWhereOrNull((s) => s.entryId == id);
+      if (scorecard != null) break;
+    }
+    
+    // If Scramble, look for 'team_X' card
+    if (scorecard == null && comp?.rules.format == CompetitionFormat.scramble) {
+      scorecard = scorecards.firstWhereOrNull((s) => s.entryId == 'team_${team.index}');
+    }
+
+    final status = scorecard?.status ?? ScorecardStatus.draft;
+    final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: BoxyArtScorecardTile(
+        playerName: names.first,
+        secondaryPlayerName: names.length > 1 ? names[1] : null,
+        avatarNames: names,
+        isConfirmed: isConfirmed,
+        leading: BoxyArtNumberBadge(number: index, size: 40, isFilled: false),
+        status: _buildMetadataRow(status, scorecard, null, null), // TODO: Team PHC if needed
+        score: _formatScore(scorecard, comp),
+        trailingActions: _buildLockAction(ref, scorecard, names.join(' / '), status, isConfirmed),
+        onTap: () {
+           // For team tap, we show the first player's modal which handles team view
+           final item = RegistrationLogic.getSortedItems(event, includeWithdrawn: true)
+               .firstWhereOrNull((i) => i.name == names.first);
+           if (item != null) {
+              _showScorecardModal(context, ref, item, ids.first, scorecard, comp);
+           }
+        },
+      ),
+    );
+  }
+
+  Widget _buildMetadataRow(ScorecardStatus status, Scorecard? card, int? hcp, int? phc) {
+    final isDraft = status == ScorecardStatus.draft;
+    final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
+    
+    final label = isConfirmed ? 'CONFIRMED' : (status == ScorecardStatus.submitted ? 'PENDING' : 'OPEN');
+    final color = isConfirmed ? StatusColors.positive : (status == ScorecardStatus.submitted ? StatusColors.warning : StatusColors.neutral);
+
+    final holesPlayed = card?.holeScores.where((s) => s != null).length ?? 0;
+    final showThru = !isConfirmed && holesPlayed > 0 && holesPlayed < 18;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            BoxyArtPill.status(label: label, color: color),
+            if (showThru) ...[
+              const SizedBox(width: 8),
+              _buildProMaxLabel('THRU $holesPlayed', AppColors.lime500),
+            ],
+          ],
+        ),
+        if (hcp != null && phc != null)
+           Padding(
+             padding: const EdgeInsets.only(top: 6),
+             child: Row(
+               children: [
+                 _buildProMaxLabel('HC: $hcp', AppColors.dark150),
+                 const SizedBox(width: 8),
+                 _buildProMaxLabel('PHC: $phc', AppColors.lime500),
+               ],
+             ),
+           ),
+        if (!isDraft && card?.submittedAt != null) ...[
+          const SizedBox(height: 6),
+          _buildProMaxLabel('SUBMITTED ${DateFormat('HH:mm').format(card!.submittedAt!)}', AppColors.dark60),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildProMaxLabel(String text, Color color) {
+    return Text(
+      text,
+      style: AppTypography.label.copyWith(
+        fontSize: 10,
+        color: color,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 2.0,
+      ),
+    );
+  }
+
+  String? _formatScore(Scorecard? card, Competition? comp) {
+    if (card == null) return null;
+    final format = comp?.rules.format ?? CompetitionFormat.stableford;
+    
+    if (format == CompetitionFormat.stableford) {
+      return '${card.points}';
+    }
+    
+    // For Stroke/Scramble formats, show relative to par if available
+    // Otherwise fallback to points/gross. 
+    // In this simplified Admin list view, points is often the points field
+    return '${card.points}'; 
+  }
+
+  Widget? _buildLockAction(WidgetRef ref, Scorecard? card, String name, ScorecardStatus status, bool isConfirmed) {
+    if (card == null) return null;
+    final isPending = status == ScorecardStatus.submitted;
+
+    return GestureDetector(
+      onTap: () => _toggleScorecardStatus(ref, card, name, status),
+      child: BoxyArtIconBadge(
+        icon: isConfirmed ? Icons.lock_rounded : (isPending ? Icons.pending_actions_rounded : Icons.lock_open_rounded),
+        color: isConfirmed ? AppColors.lime500 : (isPending ? AppColors.amber500 : AppColors.dark400),
+        size: 32,
+        iconSize: 16,
+      ),
+    );
+  }
+
+  void _sortRegistrationList(List<RegistrationItem> list) {
+    list.sort((a, b) {
+      final sA = _getScorecard(item: a);
+      final sB = _getScorecard(item: b);
+      
+      int getPriority(Scorecard? s) {
+        if (s == null) return 1;
+        if (s.status == ScorecardStatus.draft) return 1;
+        if (s.status == ScorecardStatus.submitted) return 0;
+        return 2;
+      }
+      
+      final pA = getPriority(sA);
+      final pB = getPriority(sB);
+      
+      if (pA != pB) return pA.compareTo(pB);
+      return a.name.compareTo(b.name);
+    });
+  }
+
+  Widget _buildEmptyState() {
+    return const BoxyArtCard(
+      child: Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: Text('No participants found for this event.')),
+      ),
+    );
+  }
+
+  void _showScorecardModal(BuildContext context, WidgetRef ref, RegistrationItem item, String id, Scorecard? card, Competition? comp) {
+    final member = membersList.firstWhereOrNull((m) => m.id == item.registration.memberId);
+    final double baseHcp = item.isGuest 
+      ? (double.tryParse(item.registration.guestHandicap ?? '18.0') ?? 18.0)
+      : (member?.handicap ?? 18.0); 
+    
+    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
+    final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+
+    final phc = HandicapCalculator.calculatePlayingHandicap(
+      handicapIndex: baseHcp,
+      rules: comp?.rules ?? const CompetitionRules(),
+      courseConfig: playerTeeConfig,
+      baseRating: baseRating,
+    );
+
+    ScorecardModal.show(
+      context, 
+      ref, 
+      entry: LeaderboardEntry(
+        entryId: id,
+        playerName: item.name,
+        handicap: baseHcp.toInt(),
+        playingHandicap: phc,
+        score: card?.points ?? 0,
+        isGuest: item.isGuest,
+      ), 
+      scorecards: scorecards, 
+      event: event, 
+      comp: comp,
+      membersList: membersList,
+      isAdmin: true,
+    );
+  }
+
+  Future<void> _toggleScorecardStatus(WidgetRef ref, Scorecard card, String name, ScorecardStatus currentStatus) async {
     try {
-      return scorecards.firstWhere((s) => s.entryId == expectedId);
-    } catch (_) {
-      return null;
+      ScorecardStatus nextStatus;
+      
+      if (currentStatus == ScorecardStatus.draft) {
+        nextStatus = ScorecardStatus.submitted;
+      } else if (currentStatus == ScorecardStatus.submitted) {
+        nextStatus = ScorecardStatus.reviewed;
+      } else {
+        nextStatus = ScorecardStatus.draft;
+      }
+
+      await ref.read(scorecardRepositoryProvider).updateScorecardStatus(card.id, nextStatus);
+    } catch (e) {
+      debugPrint('❌ Scorecard Status Error: $e');
     }
   }
 
@@ -315,25 +392,36 @@ class AdminScorecardList extends ConsumerWidget {
     };
   }
 
-  Widget _buildStatusPill(BuildContext context, bool isSubmitted) {
-    Color color = isSubmitted ? Colors.green : Colors.orange;
-    String text = isSubmitted ? 'DONE' : 'PENDING';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color, width: 0.5),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
+  Scorecard? _getScorecard({RegistrationItem? item, EventRegistration? reg}) {
+    if (item != null) {
+      final expectedId = item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
+      try {
+        return scorecards.firstWhere((s) => s.entryId == expectedId);
+      } catch (_) {
+        return null;
+      }
+    }
+    
+    if (reg != null) {
+       final expectedId = reg.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+       try {
+         return scorecards.firstWhere((s) => s.entryId == expectedId);
+       } catch (_) {
+         return null;
+       }
+    }
+    return null;
   }
+}
+
+class TeamScoreGroup {
+  final List<TeeGroupParticipant> players;
+  final int index;
+  final bool isPair;
+
+  TeamScoreGroup({
+    required this.players,
+    required this.index,
+    required this.isPair,
+  });
 }

@@ -282,16 +282,573 @@ as String?,
 
 
 /// @nodoc
+mixin _$EventExpense {
+
+ String get id; String get label; double get amount; String get category;// Venue, Food, Prize, Misc
+@OptionalTimestampConverter() DateTime? get date;
+/// Create a copy of EventExpense
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EventExpenseCopyWith<EventExpense> get copyWith => _$EventExpenseCopyWithImpl<EventExpense>(this as EventExpense, _$identity);
+
+  /// Serializes this EventExpense to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventExpense&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,label,amount,category,date);
+
+@override
+String toString() {
+  return 'EventExpense(id: $id, label: $label, amount: $amount, category: $category, date: $date)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EventExpenseCopyWith<$Res>  {
+  factory $EventExpenseCopyWith(EventExpense value, $Res Function(EventExpense) _then) = _$EventExpenseCopyWithImpl;
+@useResult
+$Res call({
+ String id, String label, double amount, String category,@OptionalTimestampConverter() DateTime? date
+});
+
+
+
+
+}
+/// @nodoc
+class _$EventExpenseCopyWithImpl<$Res>
+    implements $EventExpenseCopyWith<$Res> {
+  _$EventExpenseCopyWithImpl(this._self, this._then);
+
+  final EventExpense _self;
+  final $Res Function(EventExpense) _then;
+
+/// Create a copy of EventExpense
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [EventExpense].
+extension EventExpensePatterns on EventExpense {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _EventExpense value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _EventExpense() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _EventExpense value)  $default,){
+final _that = this;
+switch (_that) {
+case _EventExpense():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _EventExpense value)?  $default,){
+final _that = this;
+switch (_that) {
+case _EventExpense() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  double amount,  String category, @OptionalTimestampConverter()  DateTime? date)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _EventExpense() when $default != null:
+return $default(_that.id,_that.label,_that.amount,_that.category,_that.date);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  double amount,  String category, @OptionalTimestampConverter()  DateTime? date)  $default,) {final _that = this;
+switch (_that) {
+case _EventExpense():
+return $default(_that.id,_that.label,_that.amount,_that.category,_that.date);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  double amount,  String category, @OptionalTimestampConverter()  DateTime? date)?  $default,) {final _that = this;
+switch (_that) {
+case _EventExpense() when $default != null:
+return $default(_that.id,_that.label,_that.amount,_that.category,_that.date);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _EventExpense implements EventExpense {
+  const _EventExpense({required this.id, required this.label, required this.amount, this.category = 'Misc', @OptionalTimestampConverter() this.date});
+  factory _EventExpense.fromJson(Map<String, dynamic> json) => _$EventExpenseFromJson(json);
+
+@override final  String id;
+@override final  String label;
+@override final  double amount;
+@override@JsonKey() final  String category;
+// Venue, Food, Prize, Misc
+@override@OptionalTimestampConverter() final  DateTime? date;
+
+/// Create a copy of EventExpense
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$EventExpenseCopyWith<_EventExpense> get copyWith => __$EventExpenseCopyWithImpl<_EventExpense>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$EventExpenseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventExpense&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.date, date) || other.date == date));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,label,amount,category,date);
+
+@override
+String toString() {
+  return 'EventExpense(id: $id, label: $label, amount: $amount, category: $category, date: $date)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$EventExpenseCopyWith<$Res> implements $EventExpenseCopyWith<$Res> {
+  factory _$EventExpenseCopyWith(_EventExpense value, $Res Function(_EventExpense) _then) = __$EventExpenseCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String label, double amount, String category,@OptionalTimestampConverter() DateTime? date
+});
+
+
+
+
+}
+/// @nodoc
+class __$EventExpenseCopyWithImpl<$Res>
+    implements _$EventExpenseCopyWith<$Res> {
+  __$EventExpenseCopyWithImpl(this._self, this._then);
+
+  final _EventExpense _self;
+  final $Res Function(_EventExpense) _then;
+
+/// Create a copy of EventExpense
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? amount = null,Object? category = null,Object? date = freezed,}) {
+  return _then(_EventExpense(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$EventAward {
+
+ String get id; String get label; String get type;// Cup, Cash, Voucher
+ double get value; String? get winnerId; String? get winnerName;
+/// Create a copy of EventAward
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EventAwardCopyWith<EventAward> get copyWith => _$EventAwardCopyWithImpl<EventAward>(this as EventAward, _$identity);
+
+  /// Serializes this EventAward to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventAward&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.winnerId, winnerId) || other.winnerId == winnerId)&&(identical(other.winnerName, winnerName) || other.winnerName == winnerName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,label,type,value,winnerId,winnerName);
+
+@override
+String toString() {
+  return 'EventAward(id: $id, label: $label, type: $type, value: $value, winnerId: $winnerId, winnerName: $winnerName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EventAwardCopyWith<$Res>  {
+  factory $EventAwardCopyWith(EventAward value, $Res Function(EventAward) _then) = _$EventAwardCopyWithImpl;
+@useResult
+$Res call({
+ String id, String label, String type, double value, String? winnerId, String? winnerName
+});
+
+
+
+
+}
+/// @nodoc
+class _$EventAwardCopyWithImpl<$Res>
+    implements $EventAwardCopyWith<$Res> {
+  _$EventAwardCopyWithImpl(this._self, this._then);
+
+  final EventAward _self;
+  final $Res Function(EventAward) _then;
+
+/// Create a copy of EventAward
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? type = null,Object? value = null,Object? winnerId = freezed,Object? winnerName = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as double,winnerId: freezed == winnerId ? _self.winnerId : winnerId // ignore: cast_nullable_to_non_nullable
+as String?,winnerName: freezed == winnerName ? _self.winnerName : winnerName // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [EventAward].
+extension EventAwardPatterns on EventAward {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _EventAward value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _EventAward() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _EventAward value)  $default,){
+final _that = this;
+switch (_that) {
+case _EventAward():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _EventAward value)?  $default,){
+final _that = this;
+switch (_that) {
+case _EventAward() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  String type,  double value,  String? winnerId,  String? winnerName)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _EventAward() when $default != null:
+return $default(_that.id,_that.label,_that.type,_that.value,_that.winnerId,_that.winnerName);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  String type,  double value,  String? winnerId,  String? winnerName)  $default,) {final _that = this;
+switch (_that) {
+case _EventAward():
+return $default(_that.id,_that.label,_that.type,_that.value,_that.winnerId,_that.winnerName);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  String type,  double value,  String? winnerId,  String? winnerName)?  $default,) {final _that = this;
+switch (_that) {
+case _EventAward() when $default != null:
+return $default(_that.id,_that.label,_that.type,_that.value,_that.winnerId,_that.winnerName);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _EventAward implements EventAward {
+  const _EventAward({required this.id, required this.label, this.type = 'Cash', this.value = 0.0, this.winnerId, this.winnerName});
+  factory _EventAward.fromJson(Map<String, dynamic> json) => _$EventAwardFromJson(json);
+
+@override final  String id;
+@override final  String label;
+@override@JsonKey() final  String type;
+// Cup, Cash, Voucher
+@override@JsonKey() final  double value;
+@override final  String? winnerId;
+@override final  String? winnerName;
+
+/// Create a copy of EventAward
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$EventAwardCopyWith<_EventAward> get copyWith => __$EventAwardCopyWithImpl<_EventAward>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$EventAwardToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventAward&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.winnerId, winnerId) || other.winnerId == winnerId)&&(identical(other.winnerName, winnerName) || other.winnerName == winnerName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,label,type,value,winnerId,winnerName);
+
+@override
+String toString() {
+  return 'EventAward(id: $id, label: $label, type: $type, value: $value, winnerId: $winnerId, winnerName: $winnerName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$EventAwardCopyWith<$Res> implements $EventAwardCopyWith<$Res> {
+  factory _$EventAwardCopyWith(_EventAward value, $Res Function(_EventAward) _then) = __$EventAwardCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String label, String type, double value, String? winnerId, String? winnerName
+});
+
+
+
+
+}
+/// @nodoc
+class __$EventAwardCopyWithImpl<$Res>
+    implements _$EventAwardCopyWith<$Res> {
+  __$EventAwardCopyWithImpl(this._self, this._then);
+
+  final _EventAward _self;
+  final $Res Function(_EventAward) _then;
+
+/// Create a copy of EventAward
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? type = null,Object? value = null,Object? winnerId = freezed,Object? winnerName = freezed,}) {
+  return _then(_EventAward(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as double,winnerId: freezed == winnerId ? _self.winnerId : winnerId // ignore: cast_nullable_to_non_nullable
+as String?,winnerName: freezed == winnerName ? _self.winnerName : winnerName // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$GolfEvent {
 
  String get id; String get title; String get seasonId;@TimestampConverter() DateTime get date; String? get description; String? get imageUrl;@OptionalTimestampConverter() DateTime? get regTime;@OptionalTimestampConverter() DateTime? get teeOffTime;@OptionalTimestampConverter() DateTime? get registrationDeadline; List<EventRegistration> get registrations;// New detailed fields
- String? get courseName; String? get courseDetails; String? get dressCode; int? get availableBuggies; int? get maxParticipants; List<String> get facilities; double? get memberCost; double? get guestCost; double? get breakfastCost; double? get lunchCost; double? get dinnerCost; double? get buggyCost; bool get hasBreakfast; bool get hasLunch; bool get hasDinner; String? get dinnerLocation; List<EventNote> get notes; List<String> get galleryUrls; bool get showRegistrationButton; int get teeOffInterval; bool get isGroupingPublished;// Multi-day support
+ String? get courseName; String? get courseDetails; String? get dressCode; int? get availableBuggies; int? get maxParticipants; List<String> get facilities; double? get memberCost; double? get guestCost; double? get breakfastCost; double? get lunchCost; double? get dinnerCost; double? get buggyCost; bool get hasBreakfast; bool get hasLunch; bool get hasDinner; String? get dinnerLocation; double? get societyGreenFee; double? get societyBreakfastCost; double? get societyLunchCost; double? get societyDinnerCost; List<EventNote> get notes; List<String> get galleryUrls; bool get showRegistrationButton; int get teeOffInterval; bool get isGroupingPublished;// Multi-day support
  bool get isMultiDay;@OptionalTimestampConverter() DateTime? get endDate;// Grouping/Tee Sheet data
  Map<String, dynamic> get grouping;// Results/Leaderboard data
  List<Map<String, dynamic>> get results;// Course configuration (Par, SI, holes)
  String? get courseId; Map<String, dynamic> get courseConfig; String? get selectedTeeName; String? get selectedFemaleTeeName;// [NEW] Explicit mapping for female players
  List<String> get flashUpdates; bool get isScoringLocked; bool get isStatsReleased; Map<String, dynamic> get finalizedStats; String? get secondaryTemplateId;// Reference for Match Play overlay
- bool get isInvitational; EventStatus get status;
+ bool get isInvitational; EventStatus get status; List<EventExpense> get expenses; bool get showAwards; List<EventAward> get awards;
 /// Create a copy of GolfEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -304,16 +861,16 @@ $GolfEventCopyWith<GolfEvent> get copyWith => _$GolfEventCopyWithImpl<GolfEvent>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GolfEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.seasonId, seasonId) || other.seasonId == seasonId)&&(identical(other.date, date) || other.date == date)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.regTime, regTime) || other.regTime == regTime)&&(identical(other.teeOffTime, teeOffTime) || other.teeOffTime == teeOffTime)&&(identical(other.registrationDeadline, registrationDeadline) || other.registrationDeadline == registrationDeadline)&&const DeepCollectionEquality().equals(other.registrations, registrations)&&(identical(other.courseName, courseName) || other.courseName == courseName)&&(identical(other.courseDetails, courseDetails) || other.courseDetails == courseDetails)&&(identical(other.dressCode, dressCode) || other.dressCode == dressCode)&&(identical(other.availableBuggies, availableBuggies) || other.availableBuggies == availableBuggies)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other.facilities, facilities)&&(identical(other.memberCost, memberCost) || other.memberCost == memberCost)&&(identical(other.guestCost, guestCost) || other.guestCost == guestCost)&&(identical(other.breakfastCost, breakfastCost) || other.breakfastCost == breakfastCost)&&(identical(other.lunchCost, lunchCost) || other.lunchCost == lunchCost)&&(identical(other.dinnerCost, dinnerCost) || other.dinnerCost == dinnerCost)&&(identical(other.buggyCost, buggyCost) || other.buggyCost == buggyCost)&&(identical(other.hasBreakfast, hasBreakfast) || other.hasBreakfast == hasBreakfast)&&(identical(other.hasLunch, hasLunch) || other.hasLunch == hasLunch)&&(identical(other.hasDinner, hasDinner) || other.hasDinner == hasDinner)&&(identical(other.dinnerLocation, dinnerLocation) || other.dinnerLocation == dinnerLocation)&&const DeepCollectionEquality().equals(other.notes, notes)&&const DeepCollectionEquality().equals(other.galleryUrls, galleryUrls)&&(identical(other.showRegistrationButton, showRegistrationButton) || other.showRegistrationButton == showRegistrationButton)&&(identical(other.teeOffInterval, teeOffInterval) || other.teeOffInterval == teeOffInterval)&&(identical(other.isGroupingPublished, isGroupingPublished) || other.isGroupingPublished == isGroupingPublished)&&(identical(other.isMultiDay, isMultiDay) || other.isMultiDay == isMultiDay)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.grouping, grouping)&&const DeepCollectionEquality().equals(other.results, results)&&(identical(other.courseId, courseId) || other.courseId == courseId)&&const DeepCollectionEquality().equals(other.courseConfig, courseConfig)&&(identical(other.selectedTeeName, selectedTeeName) || other.selectedTeeName == selectedTeeName)&&(identical(other.selectedFemaleTeeName, selectedFemaleTeeName) || other.selectedFemaleTeeName == selectedFemaleTeeName)&&const DeepCollectionEquality().equals(other.flashUpdates, flashUpdates)&&(identical(other.isScoringLocked, isScoringLocked) || other.isScoringLocked == isScoringLocked)&&(identical(other.isStatsReleased, isStatsReleased) || other.isStatsReleased == isStatsReleased)&&const DeepCollectionEquality().equals(other.finalizedStats, finalizedStats)&&(identical(other.secondaryTemplateId, secondaryTemplateId) || other.secondaryTemplateId == secondaryTemplateId)&&(identical(other.isInvitational, isInvitational) || other.isInvitational == isInvitational)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GolfEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.seasonId, seasonId) || other.seasonId == seasonId)&&(identical(other.date, date) || other.date == date)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.regTime, regTime) || other.regTime == regTime)&&(identical(other.teeOffTime, teeOffTime) || other.teeOffTime == teeOffTime)&&(identical(other.registrationDeadline, registrationDeadline) || other.registrationDeadline == registrationDeadline)&&const DeepCollectionEquality().equals(other.registrations, registrations)&&(identical(other.courseName, courseName) || other.courseName == courseName)&&(identical(other.courseDetails, courseDetails) || other.courseDetails == courseDetails)&&(identical(other.dressCode, dressCode) || other.dressCode == dressCode)&&(identical(other.availableBuggies, availableBuggies) || other.availableBuggies == availableBuggies)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other.facilities, facilities)&&(identical(other.memberCost, memberCost) || other.memberCost == memberCost)&&(identical(other.guestCost, guestCost) || other.guestCost == guestCost)&&(identical(other.breakfastCost, breakfastCost) || other.breakfastCost == breakfastCost)&&(identical(other.lunchCost, lunchCost) || other.lunchCost == lunchCost)&&(identical(other.dinnerCost, dinnerCost) || other.dinnerCost == dinnerCost)&&(identical(other.buggyCost, buggyCost) || other.buggyCost == buggyCost)&&(identical(other.hasBreakfast, hasBreakfast) || other.hasBreakfast == hasBreakfast)&&(identical(other.hasLunch, hasLunch) || other.hasLunch == hasLunch)&&(identical(other.hasDinner, hasDinner) || other.hasDinner == hasDinner)&&(identical(other.dinnerLocation, dinnerLocation) || other.dinnerLocation == dinnerLocation)&&(identical(other.societyGreenFee, societyGreenFee) || other.societyGreenFee == societyGreenFee)&&(identical(other.societyBreakfastCost, societyBreakfastCost) || other.societyBreakfastCost == societyBreakfastCost)&&(identical(other.societyLunchCost, societyLunchCost) || other.societyLunchCost == societyLunchCost)&&(identical(other.societyDinnerCost, societyDinnerCost) || other.societyDinnerCost == societyDinnerCost)&&const DeepCollectionEquality().equals(other.notes, notes)&&const DeepCollectionEquality().equals(other.galleryUrls, galleryUrls)&&(identical(other.showRegistrationButton, showRegistrationButton) || other.showRegistrationButton == showRegistrationButton)&&(identical(other.teeOffInterval, teeOffInterval) || other.teeOffInterval == teeOffInterval)&&(identical(other.isGroupingPublished, isGroupingPublished) || other.isGroupingPublished == isGroupingPublished)&&(identical(other.isMultiDay, isMultiDay) || other.isMultiDay == isMultiDay)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.grouping, grouping)&&const DeepCollectionEquality().equals(other.results, results)&&(identical(other.courseId, courseId) || other.courseId == courseId)&&const DeepCollectionEquality().equals(other.courseConfig, courseConfig)&&(identical(other.selectedTeeName, selectedTeeName) || other.selectedTeeName == selectedTeeName)&&(identical(other.selectedFemaleTeeName, selectedFemaleTeeName) || other.selectedFemaleTeeName == selectedFemaleTeeName)&&const DeepCollectionEquality().equals(other.flashUpdates, flashUpdates)&&(identical(other.isScoringLocked, isScoringLocked) || other.isScoringLocked == isScoringLocked)&&(identical(other.isStatsReleased, isStatsReleased) || other.isStatsReleased == isStatsReleased)&&const DeepCollectionEquality().equals(other.finalizedStats, finalizedStats)&&(identical(other.secondaryTemplateId, secondaryTemplateId) || other.secondaryTemplateId == secondaryTemplateId)&&(identical(other.isInvitational, isInvitational) || other.isInvitational == isInvitational)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.expenses, expenses)&&(identical(other.showAwards, showAwards) || other.showAwards == showAwards)&&const DeepCollectionEquality().equals(other.awards, awards));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,title,seasonId,date,description,imageUrl,regTime,teeOffTime,registrationDeadline,const DeepCollectionEquality().hash(registrations),courseName,courseDetails,dressCode,availableBuggies,maxParticipants,const DeepCollectionEquality().hash(facilities),memberCost,guestCost,breakfastCost,lunchCost,dinnerCost,buggyCost,hasBreakfast,hasLunch,hasDinner,dinnerLocation,const DeepCollectionEquality().hash(notes),const DeepCollectionEquality().hash(galleryUrls),showRegistrationButton,teeOffInterval,isGroupingPublished,isMultiDay,endDate,const DeepCollectionEquality().hash(grouping),const DeepCollectionEquality().hash(results),courseId,const DeepCollectionEquality().hash(courseConfig),selectedTeeName,selectedFemaleTeeName,const DeepCollectionEquality().hash(flashUpdates),isScoringLocked,isStatsReleased,const DeepCollectionEquality().hash(finalizedStats),secondaryTemplateId,isInvitational,status]);
+int get hashCode => Object.hashAll([runtimeType,id,title,seasonId,date,description,imageUrl,regTime,teeOffTime,registrationDeadline,const DeepCollectionEquality().hash(registrations),courseName,courseDetails,dressCode,availableBuggies,maxParticipants,const DeepCollectionEquality().hash(facilities),memberCost,guestCost,breakfastCost,lunchCost,dinnerCost,buggyCost,hasBreakfast,hasLunch,hasDinner,dinnerLocation,societyGreenFee,societyBreakfastCost,societyLunchCost,societyDinnerCost,const DeepCollectionEquality().hash(notes),const DeepCollectionEquality().hash(galleryUrls),showRegistrationButton,teeOffInterval,isGroupingPublished,isMultiDay,endDate,const DeepCollectionEquality().hash(grouping),const DeepCollectionEquality().hash(results),courseId,const DeepCollectionEquality().hash(courseConfig),selectedTeeName,selectedFemaleTeeName,const DeepCollectionEquality().hash(flashUpdates),isScoringLocked,isStatsReleased,const DeepCollectionEquality().hash(finalizedStats),secondaryTemplateId,isInvitational,status,const DeepCollectionEquality().hash(expenses),showAwards,const DeepCollectionEquality().hash(awards)]);
 
 @override
 String toString() {
-  return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isInvitational: $isInvitational, status: $status)';
+  return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, societyGreenFee: $societyGreenFee, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isInvitational: $isInvitational, status: $status, expenses: $expenses, showAwards: $showAwards, awards: $awards)';
 }
 
 
@@ -324,7 +881,7 @@ abstract mixin class $GolfEventCopyWith<$Res>  {
   factory $GolfEventCopyWith(GolfEvent value, $Res Function(GolfEvent) _then) = _$GolfEventCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String seasonId,@TimestampConverter() DateTime date, String? description, String? imageUrl,@OptionalTimestampConverter() DateTime? regTime,@OptionalTimestampConverter() DateTime? teeOffTime,@OptionalTimestampConverter() DateTime? registrationDeadline, List<EventRegistration> registrations, String? courseName, String? courseDetails, String? dressCode, int? availableBuggies, int? maxParticipants, List<String> facilities, double? memberCost, double? guestCost, double? breakfastCost, double? lunchCost, double? dinnerCost, double? buggyCost, bool hasBreakfast, bool hasLunch, bool hasDinner, String? dinnerLocation, List<EventNote> notes, List<String> galleryUrls, bool showRegistrationButton, int teeOffInterval, bool isGroupingPublished, bool isMultiDay,@OptionalTimestampConverter() DateTime? endDate, Map<String, dynamic> grouping, List<Map<String, dynamic>> results, String? courseId, Map<String, dynamic> courseConfig, String? selectedTeeName, String? selectedFemaleTeeName, List<String> flashUpdates, bool isScoringLocked, bool isStatsReleased, Map<String, dynamic> finalizedStats, String? secondaryTemplateId, bool isInvitational, EventStatus status
+ String id, String title, String seasonId,@TimestampConverter() DateTime date, String? description, String? imageUrl,@OptionalTimestampConverter() DateTime? regTime,@OptionalTimestampConverter() DateTime? teeOffTime,@OptionalTimestampConverter() DateTime? registrationDeadline, List<EventRegistration> registrations, String? courseName, String? courseDetails, String? dressCode, int? availableBuggies, int? maxParticipants, List<String> facilities, double? memberCost, double? guestCost, double? breakfastCost, double? lunchCost, double? dinnerCost, double? buggyCost, bool hasBreakfast, bool hasLunch, bool hasDinner, String? dinnerLocation, double? societyGreenFee, double? societyBreakfastCost, double? societyLunchCost, double? societyDinnerCost, List<EventNote> notes, List<String> galleryUrls, bool showRegistrationButton, int teeOffInterval, bool isGroupingPublished, bool isMultiDay,@OptionalTimestampConverter() DateTime? endDate, Map<String, dynamic> grouping, List<Map<String, dynamic>> results, String? courseId, Map<String, dynamic> courseConfig, String? selectedTeeName, String? selectedFemaleTeeName, List<String> flashUpdates, bool isScoringLocked, bool isStatsReleased, Map<String, dynamic> finalizedStats, String? secondaryTemplateId, bool isInvitational, EventStatus status, List<EventExpense> expenses, bool showAwards, List<EventAward> awards
 });
 
 
@@ -341,7 +898,7 @@ class _$GolfEventCopyWithImpl<$Res>
 
 /// Create a copy of GolfEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? seasonId = null,Object? date = null,Object? description = freezed,Object? imageUrl = freezed,Object? regTime = freezed,Object? teeOffTime = freezed,Object? registrationDeadline = freezed,Object? registrations = null,Object? courseName = freezed,Object? courseDetails = freezed,Object? dressCode = freezed,Object? availableBuggies = freezed,Object? maxParticipants = freezed,Object? facilities = null,Object? memberCost = freezed,Object? guestCost = freezed,Object? breakfastCost = freezed,Object? lunchCost = freezed,Object? dinnerCost = freezed,Object? buggyCost = freezed,Object? hasBreakfast = null,Object? hasLunch = null,Object? hasDinner = null,Object? dinnerLocation = freezed,Object? notes = null,Object? galleryUrls = null,Object? showRegistrationButton = null,Object? teeOffInterval = null,Object? isGroupingPublished = null,Object? isMultiDay = null,Object? endDate = freezed,Object? grouping = null,Object? results = null,Object? courseId = freezed,Object? courseConfig = null,Object? selectedTeeName = freezed,Object? selectedFemaleTeeName = freezed,Object? flashUpdates = null,Object? isScoringLocked = null,Object? isStatsReleased = null,Object? finalizedStats = null,Object? secondaryTemplateId = freezed,Object? isInvitational = null,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? seasonId = null,Object? date = null,Object? description = freezed,Object? imageUrl = freezed,Object? regTime = freezed,Object? teeOffTime = freezed,Object? registrationDeadline = freezed,Object? registrations = null,Object? courseName = freezed,Object? courseDetails = freezed,Object? dressCode = freezed,Object? availableBuggies = freezed,Object? maxParticipants = freezed,Object? facilities = null,Object? memberCost = freezed,Object? guestCost = freezed,Object? breakfastCost = freezed,Object? lunchCost = freezed,Object? dinnerCost = freezed,Object? buggyCost = freezed,Object? hasBreakfast = null,Object? hasLunch = null,Object? hasDinner = null,Object? dinnerLocation = freezed,Object? societyGreenFee = freezed,Object? societyBreakfastCost = freezed,Object? societyLunchCost = freezed,Object? societyDinnerCost = freezed,Object? notes = null,Object? galleryUrls = null,Object? showRegistrationButton = null,Object? teeOffInterval = null,Object? isGroupingPublished = null,Object? isMultiDay = null,Object? endDate = freezed,Object? grouping = null,Object? results = null,Object? courseId = freezed,Object? courseConfig = null,Object? selectedTeeName = freezed,Object? selectedFemaleTeeName = freezed,Object? flashUpdates = null,Object? isScoringLocked = null,Object? isStatsReleased = null,Object? finalizedStats = null,Object? secondaryTemplateId = freezed,Object? isInvitational = null,Object? status = null,Object? expenses = null,Object? showAwards = null,Object? awards = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -369,7 +926,11 @@ as double?,hasBreakfast: null == hasBreakfast ? _self.hasBreakfast : hasBreakfas
 as bool,hasLunch: null == hasLunch ? _self.hasLunch : hasLunch // ignore: cast_nullable_to_non_nullable
 as bool,hasDinner: null == hasDinner ? _self.hasDinner : hasDinner // ignore: cast_nullable_to_non_nullable
 as bool,dinnerLocation: freezed == dinnerLocation ? _self.dinnerLocation : dinnerLocation // ignore: cast_nullable_to_non_nullable
-as String?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,societyGreenFee: freezed == societyGreenFee ? _self.societyGreenFee : societyGreenFee // ignore: cast_nullable_to_non_nullable
+as double?,societyBreakfastCost: freezed == societyBreakfastCost ? _self.societyBreakfastCost : societyBreakfastCost // ignore: cast_nullable_to_non_nullable
+as double?,societyLunchCost: freezed == societyLunchCost ? _self.societyLunchCost : societyLunchCost // ignore: cast_nullable_to_non_nullable
+as double?,societyDinnerCost: freezed == societyDinnerCost ? _self.societyDinnerCost : societyDinnerCost // ignore: cast_nullable_to_non_nullable
+as double?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as List<EventNote>,galleryUrls: null == galleryUrls ? _self.galleryUrls : galleryUrls // ignore: cast_nullable_to_non_nullable
 as List<String>,showRegistrationButton: null == showRegistrationButton ? _self.showRegistrationButton : showRegistrationButton // ignore: cast_nullable_to_non_nullable
 as bool,teeOffInterval: null == teeOffInterval ? _self.teeOffInterval : teeOffInterval // ignore: cast_nullable_to_non_nullable
@@ -389,7 +950,10 @@ as bool,finalizedStats: null == finalizedStats ? _self.finalizedStats : finalize
 as Map<String, dynamic>,secondaryTemplateId: freezed == secondaryTemplateId ? _self.secondaryTemplateId : secondaryTemplateId // ignore: cast_nullable_to_non_nullable
 as String?,isInvitational: null == isInvitational ? _self.isInvitational : isInvitational // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as EventStatus,
+as EventStatus,expenses: null == expenses ? _self.expenses : expenses // ignore: cast_nullable_to_non_nullable
+as List<EventExpense>,showAwards: null == showAwards ? _self.showAwards : showAwards // ignore: cast_nullable_to_non_nullable
+as bool,awards: null == awards ? _self.awards : awards // ignore: cast_nullable_to_non_nullable
+as List<EventAward>,
   ));
 }
 
@@ -474,10 +1038,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String seasonId, @TimestampConverter()  DateTime date,  String? description,  String? imageUrl, @OptionalTimestampConverter()  DateTime? regTime, @OptionalTimestampConverter()  DateTime? teeOffTime, @OptionalTimestampConverter()  DateTime? registrationDeadline,  List<EventRegistration> registrations,  String? courseName,  String? courseDetails,  String? dressCode,  int? availableBuggies,  int? maxParticipants,  List<String> facilities,  double? memberCost,  double? guestCost,  double? breakfastCost,  double? lunchCost,  double? dinnerCost,  double? buggyCost,  bool hasBreakfast,  bool hasLunch,  bool hasDinner,  String? dinnerLocation,  List<EventNote> notes,  List<String> galleryUrls,  bool showRegistrationButton,  int teeOffInterval,  bool isGroupingPublished,  bool isMultiDay, @OptionalTimestampConverter()  DateTime? endDate,  Map<String, dynamic> grouping,  List<Map<String, dynamic>> results,  String? courseId,  Map<String, dynamic> courseConfig,  String? selectedTeeName,  String? selectedFemaleTeeName,  List<String> flashUpdates,  bool isScoringLocked,  bool isStatsReleased,  Map<String, dynamic> finalizedStats,  String? secondaryTemplateId,  bool isInvitational,  EventStatus status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String seasonId, @TimestampConverter()  DateTime date,  String? description,  String? imageUrl, @OptionalTimestampConverter()  DateTime? regTime, @OptionalTimestampConverter()  DateTime? teeOffTime, @OptionalTimestampConverter()  DateTime? registrationDeadline,  List<EventRegistration> registrations,  String? courseName,  String? courseDetails,  String? dressCode,  int? availableBuggies,  int? maxParticipants,  List<String> facilities,  double? memberCost,  double? guestCost,  double? breakfastCost,  double? lunchCost,  double? dinnerCost,  double? buggyCost,  bool hasBreakfast,  bool hasLunch,  bool hasDinner,  String? dinnerLocation,  double? societyGreenFee,  double? societyBreakfastCost,  double? societyLunchCost,  double? societyDinnerCost,  List<EventNote> notes,  List<String> galleryUrls,  bool showRegistrationButton,  int teeOffInterval,  bool isGroupingPublished,  bool isMultiDay, @OptionalTimestampConverter()  DateTime? endDate,  Map<String, dynamic> grouping,  List<Map<String, dynamic>> results,  String? courseId,  Map<String, dynamic> courseConfig,  String? selectedTeeName,  String? selectedFemaleTeeName,  List<String> flashUpdates,  bool isScoringLocked,  bool isStatsReleased,  Map<String, dynamic> finalizedStats,  String? secondaryTemplateId,  bool isInvitational,  EventStatus status,  List<EventExpense> expenses,  bool showAwards,  List<EventAward> awards)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GolfEvent() when $default != null:
-return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description,_that.imageUrl,_that.regTime,_that.teeOffTime,_that.registrationDeadline,_that.registrations,_that.courseName,_that.courseDetails,_that.dressCode,_that.availableBuggies,_that.maxParticipants,_that.facilities,_that.memberCost,_that.guestCost,_that.breakfastCost,_that.lunchCost,_that.dinnerCost,_that.buggyCost,_that.hasBreakfast,_that.hasLunch,_that.hasDinner,_that.dinnerLocation,_that.notes,_that.galleryUrls,_that.showRegistrationButton,_that.teeOffInterval,_that.isGroupingPublished,_that.isMultiDay,_that.endDate,_that.grouping,_that.results,_that.courseId,_that.courseConfig,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.flashUpdates,_that.isScoringLocked,_that.isStatsReleased,_that.finalizedStats,_that.secondaryTemplateId,_that.isInvitational,_that.status);case _:
+return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description,_that.imageUrl,_that.regTime,_that.teeOffTime,_that.registrationDeadline,_that.registrations,_that.courseName,_that.courseDetails,_that.dressCode,_that.availableBuggies,_that.maxParticipants,_that.facilities,_that.memberCost,_that.guestCost,_that.breakfastCost,_that.lunchCost,_that.dinnerCost,_that.buggyCost,_that.hasBreakfast,_that.hasLunch,_that.hasDinner,_that.dinnerLocation,_that.societyGreenFee,_that.societyBreakfastCost,_that.societyLunchCost,_that.societyDinnerCost,_that.notes,_that.galleryUrls,_that.showRegistrationButton,_that.teeOffInterval,_that.isGroupingPublished,_that.isMultiDay,_that.endDate,_that.grouping,_that.results,_that.courseId,_that.courseConfig,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.flashUpdates,_that.isScoringLocked,_that.isStatsReleased,_that.finalizedStats,_that.secondaryTemplateId,_that.isInvitational,_that.status,_that.expenses,_that.showAwards,_that.awards);case _:
   return orElse();
 
 }
@@ -495,10 +1059,10 @@ return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String seasonId, @TimestampConverter()  DateTime date,  String? description,  String? imageUrl, @OptionalTimestampConverter()  DateTime? regTime, @OptionalTimestampConverter()  DateTime? teeOffTime, @OptionalTimestampConverter()  DateTime? registrationDeadline,  List<EventRegistration> registrations,  String? courseName,  String? courseDetails,  String? dressCode,  int? availableBuggies,  int? maxParticipants,  List<String> facilities,  double? memberCost,  double? guestCost,  double? breakfastCost,  double? lunchCost,  double? dinnerCost,  double? buggyCost,  bool hasBreakfast,  bool hasLunch,  bool hasDinner,  String? dinnerLocation,  List<EventNote> notes,  List<String> galleryUrls,  bool showRegistrationButton,  int teeOffInterval,  bool isGroupingPublished,  bool isMultiDay, @OptionalTimestampConverter()  DateTime? endDate,  Map<String, dynamic> grouping,  List<Map<String, dynamic>> results,  String? courseId,  Map<String, dynamic> courseConfig,  String? selectedTeeName,  String? selectedFemaleTeeName,  List<String> flashUpdates,  bool isScoringLocked,  bool isStatsReleased,  Map<String, dynamic> finalizedStats,  String? secondaryTemplateId,  bool isInvitational,  EventStatus status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String seasonId, @TimestampConverter()  DateTime date,  String? description,  String? imageUrl, @OptionalTimestampConverter()  DateTime? regTime, @OptionalTimestampConverter()  DateTime? teeOffTime, @OptionalTimestampConverter()  DateTime? registrationDeadline,  List<EventRegistration> registrations,  String? courseName,  String? courseDetails,  String? dressCode,  int? availableBuggies,  int? maxParticipants,  List<String> facilities,  double? memberCost,  double? guestCost,  double? breakfastCost,  double? lunchCost,  double? dinnerCost,  double? buggyCost,  bool hasBreakfast,  bool hasLunch,  bool hasDinner,  String? dinnerLocation,  double? societyGreenFee,  double? societyBreakfastCost,  double? societyLunchCost,  double? societyDinnerCost,  List<EventNote> notes,  List<String> galleryUrls,  bool showRegistrationButton,  int teeOffInterval,  bool isGroupingPublished,  bool isMultiDay, @OptionalTimestampConverter()  DateTime? endDate,  Map<String, dynamic> grouping,  List<Map<String, dynamic>> results,  String? courseId,  Map<String, dynamic> courseConfig,  String? selectedTeeName,  String? selectedFemaleTeeName,  List<String> flashUpdates,  bool isScoringLocked,  bool isStatsReleased,  Map<String, dynamic> finalizedStats,  String? secondaryTemplateId,  bool isInvitational,  EventStatus status,  List<EventExpense> expenses,  bool showAwards,  List<EventAward> awards)  $default,) {final _that = this;
 switch (_that) {
 case _GolfEvent():
-return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description,_that.imageUrl,_that.regTime,_that.teeOffTime,_that.registrationDeadline,_that.registrations,_that.courseName,_that.courseDetails,_that.dressCode,_that.availableBuggies,_that.maxParticipants,_that.facilities,_that.memberCost,_that.guestCost,_that.breakfastCost,_that.lunchCost,_that.dinnerCost,_that.buggyCost,_that.hasBreakfast,_that.hasLunch,_that.hasDinner,_that.dinnerLocation,_that.notes,_that.galleryUrls,_that.showRegistrationButton,_that.teeOffInterval,_that.isGroupingPublished,_that.isMultiDay,_that.endDate,_that.grouping,_that.results,_that.courseId,_that.courseConfig,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.flashUpdates,_that.isScoringLocked,_that.isStatsReleased,_that.finalizedStats,_that.secondaryTemplateId,_that.isInvitational,_that.status);case _:
+return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description,_that.imageUrl,_that.regTime,_that.teeOffTime,_that.registrationDeadline,_that.registrations,_that.courseName,_that.courseDetails,_that.dressCode,_that.availableBuggies,_that.maxParticipants,_that.facilities,_that.memberCost,_that.guestCost,_that.breakfastCost,_that.lunchCost,_that.dinnerCost,_that.buggyCost,_that.hasBreakfast,_that.hasLunch,_that.hasDinner,_that.dinnerLocation,_that.societyGreenFee,_that.societyBreakfastCost,_that.societyLunchCost,_that.societyDinnerCost,_that.notes,_that.galleryUrls,_that.showRegistrationButton,_that.teeOffInterval,_that.isGroupingPublished,_that.isMultiDay,_that.endDate,_that.grouping,_that.results,_that.courseId,_that.courseConfig,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.flashUpdates,_that.isScoringLocked,_that.isStatsReleased,_that.finalizedStats,_that.secondaryTemplateId,_that.isInvitational,_that.status,_that.expenses,_that.showAwards,_that.awards);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -515,10 +1079,10 @@ return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String seasonId, @TimestampConverter()  DateTime date,  String? description,  String? imageUrl, @OptionalTimestampConverter()  DateTime? regTime, @OptionalTimestampConverter()  DateTime? teeOffTime, @OptionalTimestampConverter()  DateTime? registrationDeadline,  List<EventRegistration> registrations,  String? courseName,  String? courseDetails,  String? dressCode,  int? availableBuggies,  int? maxParticipants,  List<String> facilities,  double? memberCost,  double? guestCost,  double? breakfastCost,  double? lunchCost,  double? dinnerCost,  double? buggyCost,  bool hasBreakfast,  bool hasLunch,  bool hasDinner,  String? dinnerLocation,  List<EventNote> notes,  List<String> galleryUrls,  bool showRegistrationButton,  int teeOffInterval,  bool isGroupingPublished,  bool isMultiDay, @OptionalTimestampConverter()  DateTime? endDate,  Map<String, dynamic> grouping,  List<Map<String, dynamic>> results,  String? courseId,  Map<String, dynamic> courseConfig,  String? selectedTeeName,  String? selectedFemaleTeeName,  List<String> flashUpdates,  bool isScoringLocked,  bool isStatsReleased,  Map<String, dynamic> finalizedStats,  String? secondaryTemplateId,  bool isInvitational,  EventStatus status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String seasonId, @TimestampConverter()  DateTime date,  String? description,  String? imageUrl, @OptionalTimestampConverter()  DateTime? regTime, @OptionalTimestampConverter()  DateTime? teeOffTime, @OptionalTimestampConverter()  DateTime? registrationDeadline,  List<EventRegistration> registrations,  String? courseName,  String? courseDetails,  String? dressCode,  int? availableBuggies,  int? maxParticipants,  List<String> facilities,  double? memberCost,  double? guestCost,  double? breakfastCost,  double? lunchCost,  double? dinnerCost,  double? buggyCost,  bool hasBreakfast,  bool hasLunch,  bool hasDinner,  String? dinnerLocation,  double? societyGreenFee,  double? societyBreakfastCost,  double? societyLunchCost,  double? societyDinnerCost,  List<EventNote> notes,  List<String> galleryUrls,  bool showRegistrationButton,  int teeOffInterval,  bool isGroupingPublished,  bool isMultiDay, @OptionalTimestampConverter()  DateTime? endDate,  Map<String, dynamic> grouping,  List<Map<String, dynamic>> results,  String? courseId,  Map<String, dynamic> courseConfig,  String? selectedTeeName,  String? selectedFemaleTeeName,  List<String> flashUpdates,  bool isScoringLocked,  bool isStatsReleased,  Map<String, dynamic> finalizedStats,  String? secondaryTemplateId,  bool isInvitational,  EventStatus status,  List<EventExpense> expenses,  bool showAwards,  List<EventAward> awards)?  $default,) {final _that = this;
 switch (_that) {
 case _GolfEvent() when $default != null:
-return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description,_that.imageUrl,_that.regTime,_that.teeOffTime,_that.registrationDeadline,_that.registrations,_that.courseName,_that.courseDetails,_that.dressCode,_that.availableBuggies,_that.maxParticipants,_that.facilities,_that.memberCost,_that.guestCost,_that.breakfastCost,_that.lunchCost,_that.dinnerCost,_that.buggyCost,_that.hasBreakfast,_that.hasLunch,_that.hasDinner,_that.dinnerLocation,_that.notes,_that.galleryUrls,_that.showRegistrationButton,_that.teeOffInterval,_that.isGroupingPublished,_that.isMultiDay,_that.endDate,_that.grouping,_that.results,_that.courseId,_that.courseConfig,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.flashUpdates,_that.isScoringLocked,_that.isStatsReleased,_that.finalizedStats,_that.secondaryTemplateId,_that.isInvitational,_that.status);case _:
+return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description,_that.imageUrl,_that.regTime,_that.teeOffTime,_that.registrationDeadline,_that.registrations,_that.courseName,_that.courseDetails,_that.dressCode,_that.availableBuggies,_that.maxParticipants,_that.facilities,_that.memberCost,_that.guestCost,_that.breakfastCost,_that.lunchCost,_that.dinnerCost,_that.buggyCost,_that.hasBreakfast,_that.hasLunch,_that.hasDinner,_that.dinnerLocation,_that.societyGreenFee,_that.societyBreakfastCost,_that.societyLunchCost,_that.societyDinnerCost,_that.notes,_that.galleryUrls,_that.showRegistrationButton,_that.teeOffInterval,_that.isGroupingPublished,_that.isMultiDay,_that.endDate,_that.grouping,_that.results,_that.courseId,_that.courseConfig,_that.selectedTeeName,_that.selectedFemaleTeeName,_that.flashUpdates,_that.isScoringLocked,_that.isStatsReleased,_that.finalizedStats,_that.secondaryTemplateId,_that.isInvitational,_that.status,_that.expenses,_that.showAwards,_that.awards);case _:
   return null;
 
 }
@@ -530,7 +1094,7 @@ return $default(_that.id,_that.title,_that.seasonId,_that.date,_that.description
 @JsonSerializable()
 
 class _GolfEvent extends GolfEvent {
-  const _GolfEvent({required this.id, required this.title, required this.seasonId, @TimestampConverter() required this.date, this.description, this.imageUrl, @OptionalTimestampConverter() this.regTime, @OptionalTimestampConverter() this.teeOffTime, @OptionalTimestampConverter() this.registrationDeadline, final  List<EventRegistration> registrations = const [], this.courseName, this.courseDetails, this.dressCode, this.availableBuggies, this.maxParticipants, final  List<String> facilities = const [], this.memberCost, this.guestCost, this.breakfastCost, this.lunchCost, this.dinnerCost, this.buggyCost, this.hasBreakfast = false, this.hasLunch = false, this.hasDinner = true, this.dinnerLocation, final  List<EventNote> notes = const [], final  List<String> galleryUrls = const [], this.showRegistrationButton = true, this.teeOffInterval = 10, this.isGroupingPublished = false, this.isMultiDay = false, @OptionalTimestampConverter() this.endDate, final  Map<String, dynamic> grouping = const {}, final  List<Map<String, dynamic>> results = const [], this.courseId, final  Map<String, dynamic> courseConfig = const {}, this.selectedTeeName, this.selectedFemaleTeeName, final  List<String> flashUpdates = const [], this.isScoringLocked = false, this.isStatsReleased = false, final  Map<String, dynamic> finalizedStats = const {}, this.secondaryTemplateId, this.isInvitational = false, this.status = EventStatus.draft}): _registrations = registrations,_facilities = facilities,_notes = notes,_galleryUrls = galleryUrls,_grouping = grouping,_results = results,_courseConfig = courseConfig,_flashUpdates = flashUpdates,_finalizedStats = finalizedStats,super._();
+  const _GolfEvent({required this.id, required this.title, required this.seasonId, @TimestampConverter() required this.date, this.description, this.imageUrl, @OptionalTimestampConverter() this.regTime, @OptionalTimestampConverter() this.teeOffTime, @OptionalTimestampConverter() this.registrationDeadline, final  List<EventRegistration> registrations = const [], this.courseName, this.courseDetails, this.dressCode, this.availableBuggies, this.maxParticipants, final  List<String> facilities = const [], this.memberCost, this.guestCost, this.breakfastCost, this.lunchCost, this.dinnerCost, this.buggyCost, this.hasBreakfast = false, this.hasLunch = false, this.hasDinner = true, this.dinnerLocation, this.societyGreenFee, this.societyBreakfastCost, this.societyLunchCost, this.societyDinnerCost, final  List<EventNote> notes = const [], final  List<String> galleryUrls = const [], this.showRegistrationButton = true, this.teeOffInterval = 10, this.isGroupingPublished = false, this.isMultiDay = false, @OptionalTimestampConverter() this.endDate, final  Map<String, dynamic> grouping = const {}, final  List<Map<String, dynamic>> results = const [], this.courseId, final  Map<String, dynamic> courseConfig = const {}, this.selectedTeeName, this.selectedFemaleTeeName, final  List<String> flashUpdates = const [], this.isScoringLocked = false, this.isStatsReleased = false, final  Map<String, dynamic> finalizedStats = const {}, this.secondaryTemplateId, this.isInvitational = false, this.status = EventStatus.draft, final  List<EventExpense> expenses = const [], this.showAwards = true, final  List<EventAward> awards = const []}): _registrations = registrations,_facilities = facilities,_notes = notes,_galleryUrls = galleryUrls,_grouping = grouping,_results = results,_courseConfig = courseConfig,_flashUpdates = flashUpdates,_finalizedStats = finalizedStats,_expenses = expenses,_awards = awards,super._();
   factory _GolfEvent.fromJson(Map<String, dynamic> json) => _$GolfEventFromJson(json);
 
 @override final  String id;
@@ -572,6 +1136,10 @@ class _GolfEvent extends GolfEvent {
 @override@JsonKey() final  bool hasLunch;
 @override@JsonKey() final  bool hasDinner;
 @override final  String? dinnerLocation;
+@override final  double? societyGreenFee;
+@override final  double? societyBreakfastCost;
+@override final  double? societyLunchCost;
+@override final  double? societyDinnerCost;
  final  List<EventNote> _notes;
 @override@JsonKey() List<EventNote> get notes {
   if (_notes is EqualUnmodifiableListView) return _notes;
@@ -643,6 +1211,21 @@ class _GolfEvent extends GolfEvent {
 // Reference for Match Play overlay
 @override@JsonKey() final  bool isInvitational;
 @override@JsonKey() final  EventStatus status;
+ final  List<EventExpense> _expenses;
+@override@JsonKey() List<EventExpense> get expenses {
+  if (_expenses is EqualUnmodifiableListView) return _expenses;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_expenses);
+}
+
+@override@JsonKey() final  bool showAwards;
+ final  List<EventAward> _awards;
+@override@JsonKey() List<EventAward> get awards {
+  if (_awards is EqualUnmodifiableListView) return _awards;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_awards);
+}
+
 
 /// Create a copy of GolfEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -657,16 +1240,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GolfEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.seasonId, seasonId) || other.seasonId == seasonId)&&(identical(other.date, date) || other.date == date)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.regTime, regTime) || other.regTime == regTime)&&(identical(other.teeOffTime, teeOffTime) || other.teeOffTime == teeOffTime)&&(identical(other.registrationDeadline, registrationDeadline) || other.registrationDeadline == registrationDeadline)&&const DeepCollectionEquality().equals(other._registrations, _registrations)&&(identical(other.courseName, courseName) || other.courseName == courseName)&&(identical(other.courseDetails, courseDetails) || other.courseDetails == courseDetails)&&(identical(other.dressCode, dressCode) || other.dressCode == dressCode)&&(identical(other.availableBuggies, availableBuggies) || other.availableBuggies == availableBuggies)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other._facilities, _facilities)&&(identical(other.memberCost, memberCost) || other.memberCost == memberCost)&&(identical(other.guestCost, guestCost) || other.guestCost == guestCost)&&(identical(other.breakfastCost, breakfastCost) || other.breakfastCost == breakfastCost)&&(identical(other.lunchCost, lunchCost) || other.lunchCost == lunchCost)&&(identical(other.dinnerCost, dinnerCost) || other.dinnerCost == dinnerCost)&&(identical(other.buggyCost, buggyCost) || other.buggyCost == buggyCost)&&(identical(other.hasBreakfast, hasBreakfast) || other.hasBreakfast == hasBreakfast)&&(identical(other.hasLunch, hasLunch) || other.hasLunch == hasLunch)&&(identical(other.hasDinner, hasDinner) || other.hasDinner == hasDinner)&&(identical(other.dinnerLocation, dinnerLocation) || other.dinnerLocation == dinnerLocation)&&const DeepCollectionEquality().equals(other._notes, _notes)&&const DeepCollectionEquality().equals(other._galleryUrls, _galleryUrls)&&(identical(other.showRegistrationButton, showRegistrationButton) || other.showRegistrationButton == showRegistrationButton)&&(identical(other.teeOffInterval, teeOffInterval) || other.teeOffInterval == teeOffInterval)&&(identical(other.isGroupingPublished, isGroupingPublished) || other.isGroupingPublished == isGroupingPublished)&&(identical(other.isMultiDay, isMultiDay) || other.isMultiDay == isMultiDay)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._grouping, _grouping)&&const DeepCollectionEquality().equals(other._results, _results)&&(identical(other.courseId, courseId) || other.courseId == courseId)&&const DeepCollectionEquality().equals(other._courseConfig, _courseConfig)&&(identical(other.selectedTeeName, selectedTeeName) || other.selectedTeeName == selectedTeeName)&&(identical(other.selectedFemaleTeeName, selectedFemaleTeeName) || other.selectedFemaleTeeName == selectedFemaleTeeName)&&const DeepCollectionEquality().equals(other._flashUpdates, _flashUpdates)&&(identical(other.isScoringLocked, isScoringLocked) || other.isScoringLocked == isScoringLocked)&&(identical(other.isStatsReleased, isStatsReleased) || other.isStatsReleased == isStatsReleased)&&const DeepCollectionEquality().equals(other._finalizedStats, _finalizedStats)&&(identical(other.secondaryTemplateId, secondaryTemplateId) || other.secondaryTemplateId == secondaryTemplateId)&&(identical(other.isInvitational, isInvitational) || other.isInvitational == isInvitational)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GolfEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.seasonId, seasonId) || other.seasonId == seasonId)&&(identical(other.date, date) || other.date == date)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.regTime, regTime) || other.regTime == regTime)&&(identical(other.teeOffTime, teeOffTime) || other.teeOffTime == teeOffTime)&&(identical(other.registrationDeadline, registrationDeadline) || other.registrationDeadline == registrationDeadline)&&const DeepCollectionEquality().equals(other._registrations, _registrations)&&(identical(other.courseName, courseName) || other.courseName == courseName)&&(identical(other.courseDetails, courseDetails) || other.courseDetails == courseDetails)&&(identical(other.dressCode, dressCode) || other.dressCode == dressCode)&&(identical(other.availableBuggies, availableBuggies) || other.availableBuggies == availableBuggies)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other._facilities, _facilities)&&(identical(other.memberCost, memberCost) || other.memberCost == memberCost)&&(identical(other.guestCost, guestCost) || other.guestCost == guestCost)&&(identical(other.breakfastCost, breakfastCost) || other.breakfastCost == breakfastCost)&&(identical(other.lunchCost, lunchCost) || other.lunchCost == lunchCost)&&(identical(other.dinnerCost, dinnerCost) || other.dinnerCost == dinnerCost)&&(identical(other.buggyCost, buggyCost) || other.buggyCost == buggyCost)&&(identical(other.hasBreakfast, hasBreakfast) || other.hasBreakfast == hasBreakfast)&&(identical(other.hasLunch, hasLunch) || other.hasLunch == hasLunch)&&(identical(other.hasDinner, hasDinner) || other.hasDinner == hasDinner)&&(identical(other.dinnerLocation, dinnerLocation) || other.dinnerLocation == dinnerLocation)&&(identical(other.societyGreenFee, societyGreenFee) || other.societyGreenFee == societyGreenFee)&&(identical(other.societyBreakfastCost, societyBreakfastCost) || other.societyBreakfastCost == societyBreakfastCost)&&(identical(other.societyLunchCost, societyLunchCost) || other.societyLunchCost == societyLunchCost)&&(identical(other.societyDinnerCost, societyDinnerCost) || other.societyDinnerCost == societyDinnerCost)&&const DeepCollectionEquality().equals(other._notes, _notes)&&const DeepCollectionEquality().equals(other._galleryUrls, _galleryUrls)&&(identical(other.showRegistrationButton, showRegistrationButton) || other.showRegistrationButton == showRegistrationButton)&&(identical(other.teeOffInterval, teeOffInterval) || other.teeOffInterval == teeOffInterval)&&(identical(other.isGroupingPublished, isGroupingPublished) || other.isGroupingPublished == isGroupingPublished)&&(identical(other.isMultiDay, isMultiDay) || other.isMultiDay == isMultiDay)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._grouping, _grouping)&&const DeepCollectionEquality().equals(other._results, _results)&&(identical(other.courseId, courseId) || other.courseId == courseId)&&const DeepCollectionEquality().equals(other._courseConfig, _courseConfig)&&(identical(other.selectedTeeName, selectedTeeName) || other.selectedTeeName == selectedTeeName)&&(identical(other.selectedFemaleTeeName, selectedFemaleTeeName) || other.selectedFemaleTeeName == selectedFemaleTeeName)&&const DeepCollectionEquality().equals(other._flashUpdates, _flashUpdates)&&(identical(other.isScoringLocked, isScoringLocked) || other.isScoringLocked == isScoringLocked)&&(identical(other.isStatsReleased, isStatsReleased) || other.isStatsReleased == isStatsReleased)&&const DeepCollectionEquality().equals(other._finalizedStats, _finalizedStats)&&(identical(other.secondaryTemplateId, secondaryTemplateId) || other.secondaryTemplateId == secondaryTemplateId)&&(identical(other.isInvitational, isInvitational) || other.isInvitational == isInvitational)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._expenses, _expenses)&&(identical(other.showAwards, showAwards) || other.showAwards == showAwards)&&const DeepCollectionEquality().equals(other._awards, _awards));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,title,seasonId,date,description,imageUrl,regTime,teeOffTime,registrationDeadline,const DeepCollectionEquality().hash(_registrations),courseName,courseDetails,dressCode,availableBuggies,maxParticipants,const DeepCollectionEquality().hash(_facilities),memberCost,guestCost,breakfastCost,lunchCost,dinnerCost,buggyCost,hasBreakfast,hasLunch,hasDinner,dinnerLocation,const DeepCollectionEquality().hash(_notes),const DeepCollectionEquality().hash(_galleryUrls),showRegistrationButton,teeOffInterval,isGroupingPublished,isMultiDay,endDate,const DeepCollectionEquality().hash(_grouping),const DeepCollectionEquality().hash(_results),courseId,const DeepCollectionEquality().hash(_courseConfig),selectedTeeName,selectedFemaleTeeName,const DeepCollectionEquality().hash(_flashUpdates),isScoringLocked,isStatsReleased,const DeepCollectionEquality().hash(_finalizedStats),secondaryTemplateId,isInvitational,status]);
+int get hashCode => Object.hashAll([runtimeType,id,title,seasonId,date,description,imageUrl,regTime,teeOffTime,registrationDeadline,const DeepCollectionEquality().hash(_registrations),courseName,courseDetails,dressCode,availableBuggies,maxParticipants,const DeepCollectionEquality().hash(_facilities),memberCost,guestCost,breakfastCost,lunchCost,dinnerCost,buggyCost,hasBreakfast,hasLunch,hasDinner,dinnerLocation,societyGreenFee,societyBreakfastCost,societyLunchCost,societyDinnerCost,const DeepCollectionEquality().hash(_notes),const DeepCollectionEquality().hash(_galleryUrls),showRegistrationButton,teeOffInterval,isGroupingPublished,isMultiDay,endDate,const DeepCollectionEquality().hash(_grouping),const DeepCollectionEquality().hash(_results),courseId,const DeepCollectionEquality().hash(_courseConfig),selectedTeeName,selectedFemaleTeeName,const DeepCollectionEquality().hash(_flashUpdates),isScoringLocked,isStatsReleased,const DeepCollectionEquality().hash(_finalizedStats),secondaryTemplateId,isInvitational,status,const DeepCollectionEquality().hash(_expenses),showAwards,const DeepCollectionEquality().hash(_awards)]);
 
 @override
 String toString() {
-  return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isInvitational: $isInvitational, status: $status)';
+  return 'GolfEvent(id: $id, title: $title, seasonId: $seasonId, date: $date, description: $description, imageUrl: $imageUrl, regTime: $regTime, teeOffTime: $teeOffTime, registrationDeadline: $registrationDeadline, registrations: $registrations, courseName: $courseName, courseDetails: $courseDetails, dressCode: $dressCode, availableBuggies: $availableBuggies, maxParticipants: $maxParticipants, facilities: $facilities, memberCost: $memberCost, guestCost: $guestCost, breakfastCost: $breakfastCost, lunchCost: $lunchCost, dinnerCost: $dinnerCost, buggyCost: $buggyCost, hasBreakfast: $hasBreakfast, hasLunch: $hasLunch, hasDinner: $hasDinner, dinnerLocation: $dinnerLocation, societyGreenFee: $societyGreenFee, societyBreakfastCost: $societyBreakfastCost, societyLunchCost: $societyLunchCost, societyDinnerCost: $societyDinnerCost, notes: $notes, galleryUrls: $galleryUrls, showRegistrationButton: $showRegistrationButton, teeOffInterval: $teeOffInterval, isGroupingPublished: $isGroupingPublished, isMultiDay: $isMultiDay, endDate: $endDate, grouping: $grouping, results: $results, courseId: $courseId, courseConfig: $courseConfig, selectedTeeName: $selectedTeeName, selectedFemaleTeeName: $selectedFemaleTeeName, flashUpdates: $flashUpdates, isScoringLocked: $isScoringLocked, isStatsReleased: $isStatsReleased, finalizedStats: $finalizedStats, secondaryTemplateId: $secondaryTemplateId, isInvitational: $isInvitational, status: $status, expenses: $expenses, showAwards: $showAwards, awards: $awards)';
 }
 
 
@@ -677,7 +1260,7 @@ abstract mixin class _$GolfEventCopyWith<$Res> implements $GolfEventCopyWith<$Re
   factory _$GolfEventCopyWith(_GolfEvent value, $Res Function(_GolfEvent) _then) = __$GolfEventCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String seasonId,@TimestampConverter() DateTime date, String? description, String? imageUrl,@OptionalTimestampConverter() DateTime? regTime,@OptionalTimestampConverter() DateTime? teeOffTime,@OptionalTimestampConverter() DateTime? registrationDeadline, List<EventRegistration> registrations, String? courseName, String? courseDetails, String? dressCode, int? availableBuggies, int? maxParticipants, List<String> facilities, double? memberCost, double? guestCost, double? breakfastCost, double? lunchCost, double? dinnerCost, double? buggyCost, bool hasBreakfast, bool hasLunch, bool hasDinner, String? dinnerLocation, List<EventNote> notes, List<String> galleryUrls, bool showRegistrationButton, int teeOffInterval, bool isGroupingPublished, bool isMultiDay,@OptionalTimestampConverter() DateTime? endDate, Map<String, dynamic> grouping, List<Map<String, dynamic>> results, String? courseId, Map<String, dynamic> courseConfig, String? selectedTeeName, String? selectedFemaleTeeName, List<String> flashUpdates, bool isScoringLocked, bool isStatsReleased, Map<String, dynamic> finalizedStats, String? secondaryTemplateId, bool isInvitational, EventStatus status
+ String id, String title, String seasonId,@TimestampConverter() DateTime date, String? description, String? imageUrl,@OptionalTimestampConverter() DateTime? regTime,@OptionalTimestampConverter() DateTime? teeOffTime,@OptionalTimestampConverter() DateTime? registrationDeadline, List<EventRegistration> registrations, String? courseName, String? courseDetails, String? dressCode, int? availableBuggies, int? maxParticipants, List<String> facilities, double? memberCost, double? guestCost, double? breakfastCost, double? lunchCost, double? dinnerCost, double? buggyCost, bool hasBreakfast, bool hasLunch, bool hasDinner, String? dinnerLocation, double? societyGreenFee, double? societyBreakfastCost, double? societyLunchCost, double? societyDinnerCost, List<EventNote> notes, List<String> galleryUrls, bool showRegistrationButton, int teeOffInterval, bool isGroupingPublished, bool isMultiDay,@OptionalTimestampConverter() DateTime? endDate, Map<String, dynamic> grouping, List<Map<String, dynamic>> results, String? courseId, Map<String, dynamic> courseConfig, String? selectedTeeName, String? selectedFemaleTeeName, List<String> flashUpdates, bool isScoringLocked, bool isStatsReleased, Map<String, dynamic> finalizedStats, String? secondaryTemplateId, bool isInvitational, EventStatus status, List<EventExpense> expenses, bool showAwards, List<EventAward> awards
 });
 
 
@@ -694,7 +1277,7 @@ class __$GolfEventCopyWithImpl<$Res>
 
 /// Create a copy of GolfEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? seasonId = null,Object? date = null,Object? description = freezed,Object? imageUrl = freezed,Object? regTime = freezed,Object? teeOffTime = freezed,Object? registrationDeadline = freezed,Object? registrations = null,Object? courseName = freezed,Object? courseDetails = freezed,Object? dressCode = freezed,Object? availableBuggies = freezed,Object? maxParticipants = freezed,Object? facilities = null,Object? memberCost = freezed,Object? guestCost = freezed,Object? breakfastCost = freezed,Object? lunchCost = freezed,Object? dinnerCost = freezed,Object? buggyCost = freezed,Object? hasBreakfast = null,Object? hasLunch = null,Object? hasDinner = null,Object? dinnerLocation = freezed,Object? notes = null,Object? galleryUrls = null,Object? showRegistrationButton = null,Object? teeOffInterval = null,Object? isGroupingPublished = null,Object? isMultiDay = null,Object? endDate = freezed,Object? grouping = null,Object? results = null,Object? courseId = freezed,Object? courseConfig = null,Object? selectedTeeName = freezed,Object? selectedFemaleTeeName = freezed,Object? flashUpdates = null,Object? isScoringLocked = null,Object? isStatsReleased = null,Object? finalizedStats = null,Object? secondaryTemplateId = freezed,Object? isInvitational = null,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? seasonId = null,Object? date = null,Object? description = freezed,Object? imageUrl = freezed,Object? regTime = freezed,Object? teeOffTime = freezed,Object? registrationDeadline = freezed,Object? registrations = null,Object? courseName = freezed,Object? courseDetails = freezed,Object? dressCode = freezed,Object? availableBuggies = freezed,Object? maxParticipants = freezed,Object? facilities = null,Object? memberCost = freezed,Object? guestCost = freezed,Object? breakfastCost = freezed,Object? lunchCost = freezed,Object? dinnerCost = freezed,Object? buggyCost = freezed,Object? hasBreakfast = null,Object? hasLunch = null,Object? hasDinner = null,Object? dinnerLocation = freezed,Object? societyGreenFee = freezed,Object? societyBreakfastCost = freezed,Object? societyLunchCost = freezed,Object? societyDinnerCost = freezed,Object? notes = null,Object? galleryUrls = null,Object? showRegistrationButton = null,Object? teeOffInterval = null,Object? isGroupingPublished = null,Object? isMultiDay = null,Object? endDate = freezed,Object? grouping = null,Object? results = null,Object? courseId = freezed,Object? courseConfig = null,Object? selectedTeeName = freezed,Object? selectedFemaleTeeName = freezed,Object? flashUpdates = null,Object? isScoringLocked = null,Object? isStatsReleased = null,Object? finalizedStats = null,Object? secondaryTemplateId = freezed,Object? isInvitational = null,Object? status = null,Object? expenses = null,Object? showAwards = null,Object? awards = null,}) {
   return _then(_GolfEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -722,7 +1305,11 @@ as double?,hasBreakfast: null == hasBreakfast ? _self.hasBreakfast : hasBreakfas
 as bool,hasLunch: null == hasLunch ? _self.hasLunch : hasLunch // ignore: cast_nullable_to_non_nullable
 as bool,hasDinner: null == hasDinner ? _self.hasDinner : hasDinner // ignore: cast_nullable_to_non_nullable
 as bool,dinnerLocation: freezed == dinnerLocation ? _self.dinnerLocation : dinnerLocation // ignore: cast_nullable_to_non_nullable
-as String?,notes: null == notes ? _self._notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,societyGreenFee: freezed == societyGreenFee ? _self.societyGreenFee : societyGreenFee // ignore: cast_nullable_to_non_nullable
+as double?,societyBreakfastCost: freezed == societyBreakfastCost ? _self.societyBreakfastCost : societyBreakfastCost // ignore: cast_nullable_to_non_nullable
+as double?,societyLunchCost: freezed == societyLunchCost ? _self.societyLunchCost : societyLunchCost // ignore: cast_nullable_to_non_nullable
+as double?,societyDinnerCost: freezed == societyDinnerCost ? _self.societyDinnerCost : societyDinnerCost // ignore: cast_nullable_to_non_nullable
+as double?,notes: null == notes ? _self._notes : notes // ignore: cast_nullable_to_non_nullable
 as List<EventNote>,galleryUrls: null == galleryUrls ? _self._galleryUrls : galleryUrls // ignore: cast_nullable_to_non_nullable
 as List<String>,showRegistrationButton: null == showRegistrationButton ? _self.showRegistrationButton : showRegistrationButton // ignore: cast_nullable_to_non_nullable
 as bool,teeOffInterval: null == teeOffInterval ? _self.teeOffInterval : teeOffInterval // ignore: cast_nullable_to_non_nullable
@@ -742,7 +1329,10 @@ as bool,finalizedStats: null == finalizedStats ? _self._finalizedStats : finaliz
 as Map<String, dynamic>,secondaryTemplateId: freezed == secondaryTemplateId ? _self.secondaryTemplateId : secondaryTemplateId // ignore: cast_nullable_to_non_nullable
 as String?,isInvitational: null == isInvitational ? _self.isInvitational : isInvitational // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as EventStatus,
+as EventStatus,expenses: null == expenses ? _self._expenses : expenses // ignore: cast_nullable_to_non_nullable
+as List<EventExpense>,showAwards: null == showAwards ? _self.showAwards : showAwards // ignore: cast_nullable_to_non_nullable
+as bool,awards: null == awards ? _self._awards : awards // ignore: cast_nullable_to_non_nullable
+as List<EventAward>,
   ));
 }
 

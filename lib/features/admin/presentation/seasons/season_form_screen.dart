@@ -211,7 +211,8 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                   else
                     ListView.separated(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),// Remove critical default padding
+                      physics: const NeverScrollableScrollPhysics(), // Remove critical default padding
+                      padding: EdgeInsets.zero,
                       itemCount: _leaderboards.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 8), // Standardize gap
                       itemBuilder: (context, index) {
@@ -327,7 +328,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       result = dialogResult;
 
     } else {
-      result = await context.push<LeaderboardConfig>('/admin/settings/seasons/leaderboards/create/picker');
+      result = await context.push<LeaderboardConfig>('/admin/settings/leaderboards/create/picker');
     }
 
     if (result != null) {
@@ -376,7 +377,10 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     setState(() => _isRecalculating = true);
     
     try {
-      await ref.read(leaderboardInvokerServiceProvider).recalculateAll(widget.seasonId!);
+      await ref.read(leaderboardInvokerServiceProvider).recalculateAll(
+        widget.seasonId!,
+        overrideConfigs: _leaderboards,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Standings updated successfully')),
@@ -407,28 +411,31 @@ class _LeaderboardListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     String typeLabel = '';
     IconData icon = Icons.leaderboard;
+    Color color = Theme.of(context).primaryColor;
     
     config.map(
-      orderOfMerit: (_) { typeLabel = 'ORDER OF MERIT'; icon = Icons.emoji_events; },
-      bestOfSeries: (_) { typeLabel = 'BEST OF SERIES'; icon = Icons.list_alt; },
-      eclectic: (_) { typeLabel = 'ECLECTIC'; icon = Icons.grid_on; },
-      markerCounter: (_) { typeLabel = 'BIRDIE TREE'; icon = Icons.park; },
+      orderOfMerit: (_) { typeLabel = 'ORDER OF MERIT'; icon = Icons.emoji_events_rounded; color = Colors.amber; },
+      bestOfSeries: (_) { typeLabel = 'BEST OF SERIES'; icon = Icons.list_alt_rounded; color = Colors.blue; },
+      eclectic: (_) { typeLabel = 'ECLECTIC'; icon = Icons.grid_on_rounded; color = Colors.purple; },
+      markerCounter: (_) { typeLabel = 'BIRDIE TREE'; icon = Icons.park_rounded; color = Colors.green; },
     );
 
     return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
       onTap: onEdit,
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12,
-              borderRadius: BorderRadius.circular(12),
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -437,18 +444,24 @@ class _LeaderboardListTile extends StatelessWidget {
               children: [
                 Text(
                   typeLabel,
-                  style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: AppTypography.label.copyWith(
+                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                    fontSize: 10,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   config.name,
-                  style: TextStyle(color: Theme.of(context).textTheme.titleMedium?.color, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                  ),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
+            icon: Icon(Icons.delete_outline_rounded, color: isDark ? AppColors.dark300 : AppColors.dark400, size: 20),
             onPressed: onDelete,
           ),
         ],

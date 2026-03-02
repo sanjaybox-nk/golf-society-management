@@ -56,23 +56,24 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
       behavior: HitTestBehavior.opaque,
       child: HeadlessScaffold(
         title: 'Members',
-        subtitle: 'Manage society roster and roles',
+        subtitle: 'Society Roster',
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Search & Filter Card
                 BoxyArtCard(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                   child: Row(
                     children: [
                       const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: TextField(
                           focusNode: _searchFocusNode,
                           onChanged: (v) => ref.read(adminMemberSearchQueryProvider.notifier).update(v),
+                          style: AppTypography.label.copyWith(fontSize: 15),
                           decoration: const InputDecoration(
                             hintText: 'Search roster...',
                             border: InputBorder.none,
@@ -80,14 +81,14 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                             focusedBorder: InputBorder.none,
                             isDense: true,
                             filled: false,
-                            contentPadding: EdgeInsets.symmetric(vertical: 4),
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
                 ModernUnderlinedFilterBar<AdminMemberFilter>(
                   selectedValue: currentFilter,
@@ -176,12 +177,12 @@ Widget _buildDismissibleMember(
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.red.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(AppSpacing.lg),
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 24),
       ),
       confirmDismiss: (direction) async {
         return await showBoxyArtDialog<bool>(

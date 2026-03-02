@@ -10,17 +10,18 @@ class BoxyHoleSelector extends StatelessWidget {
     required this.currentHole,
     required this.scores,
     required this.onHoleChanged,
-    this.height = 60,
+    this.height = 48,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       height: height,
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left, color: Colors.grey, size: 28),
+            icon: Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: 0.5), size: 28),
             onPressed: currentHole > 1 ? () => onHoleChanged(currentHole - 1) : null,
           ),
           Expanded(
@@ -37,7 +38,7 @@ class BoxyHoleSelector extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: Colors.grey, size: 28),
+            icon: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: 0.5), size: 28),
             onPressed: currentHole < 18 ? () => onHoleChanged(currentHole + 1) : null,
           ),
         ],
@@ -47,6 +48,8 @@ class BoxyHoleSelector extends StatelessWidget {
 
   Widget _buildHoleItem(BuildContext context, int holeNum, bool isSelected, bool hasScore) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => onHoleChanged(holeNum),
       child: AnimatedContainer(
@@ -54,30 +57,26 @@ class BoxyHoleSelector extends StatelessWidget {
         width: 50,
         margin: const EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
-          color: isSelected ? theme.primaryColor : Colors.grey.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? theme.primaryColor : Colors.grey.withValues(alpha: 0.2),
-            width: isSelected ? 2 : 1,
+          color: Colors.transparent,
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+              width: 2.0,
+            ),
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: theme.primaryColor.withValues(alpha: 0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            )
-          ] : null,
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Text(
-              '$holeNum',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: isSelected ? Colors.white : (theme.brightness == Brightness.dark ? Colors.white : Colors.black87),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: AppTypography.displayHeading.copyWith(
+                color: isSelected
+                    ? (isDark ? AppColors.pureWhite : AppColors.dark900)
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: isSelected ? 24 : 18,
               ),
+              child: Text('$holeNum'),
             ),
             if (hasScore)
               Positioned(
@@ -86,7 +85,7 @@ class BoxyHoleSelector extends StatelessWidget {
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : theme.primaryColor,
+                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
                 ),

@@ -15,8 +15,8 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HeadlessScaffold(
-      title: (isTemplate || isPicker) ? 'Select Type' : 'New Template',
-      subtitle: 'Leaderboard Formats',
+      title: 'Leaderboard Formats',
+      subtitle: (isTemplate || isPicker) ? 'Select a type to continue' : 'Standard Season Formats',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -68,7 +68,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
   void _navigateToBuilder(BuildContext context, LeaderboardType type) async {
     final typeName = type.name;
     final path = isPicker 
-       ? '/admin/settings/seasons/leaderboards/create/picker/gallery/$typeName' 
+       ? '/admin/settings/leaderboards/create/picker/gallery/$typeName' 
        : '/admin/settings/leaderboards/gallery/$typeName';
 
     final result = await context.push<LeaderboardConfig>(path);
@@ -96,6 +96,8 @@ class _TypeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return BoxyArtCard(
       onTap: onTap,
       padding: const EdgeInsets.all(16),
@@ -106,7 +108,7 @@ class _TypeTile extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 28),
           ),
@@ -117,26 +119,27 @@ class _TypeTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
-                    letterSpacing: -0.5,
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                  style: AppTypography.label.copyWith(
+                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                    fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded, color: Theme.of(context).dividerColor),
+          Icon(
+            Icons.chevron_right_rounded, 
+            color: isDark ? AppColors.dark300 : AppColors.dark400,
+            size: 20,
+          ),
         ],
       ),
     );

@@ -182,7 +182,22 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           children: [
             HeadlessScaffold(
               title: 'Manage Grouping',
-              subtitle: event.title,
+              subtitleWidget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildToolbar(event, events, handicapMap, comp, config),
+                ],
+              ),
               useScaffold: false,
               showBack: true,
               onBack: () async {
@@ -199,80 +214,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   context.go('/admin/events');
                 }
               },
-              actions: [
-                Opacity(
-                  opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-                  child: BoxyArtGlassIconButton(
-                    icon: Icons.refresh_rounded,
-                    tooltip: (_localGroups == null || _localGroups!.isEmpty) ? 'Generate' : 'Regenerate',
-                    onPressed: event.isRegistrationClosed
-                        ? () {
-                            if (_isLocked == true) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
-                              return;
-                            }
-                            _showRegenerationOptions(event, events, handicapMap);
-                          }
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Opacity(
-                  opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-                  child: BoxyArtGlassIconButton(
-                    icon: _isLocked == true ? Icons.lock_rounded : Icons.lock_open_rounded,
-                    tooltip: _isLocked == true ? 'Unlock' : 'Lock',
-                    iconColor: _isLocked == true ? Colors.amber : null,
-                    onPressed: event.isRegistrationClosed
-                        ? () {
-                            if (_localGroups == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
-                              return;
-                            }
-                            setState(() => _isLocked = !(_isLocked ?? false));
-                            _updateDirty(true);
-                          }
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Opacity(
-                  opacity: event.isRegistrationClosed ? 1.0 : 0.4,
-                  child: BoxyArtGlassIconButton(
-                    icon: Icons.save_rounded,
-                    tooltip: 'Save',
-                    iconColor: _isDirty ? Colors.amber : null,
-                    onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                BoxyArtGlassIconButton(
-                  icon: Icons.calculate_outlined,
-                  tooltip: 'Recalculate PHCs',
-                  onPressed: () => _recalculateAllPHCs(event, handicapMap, comp?.rules, config.useWhsHandicaps),
-                ),
-                const SizedBox(width: 8),
-                BoxyArtGlassIconButton(
-                  icon: event.isGroupingPublished ? Icons.visibility_off_rounded : Icons.send_rounded,
-                  tooltip: event.isGroupingPublished ? 'Unpublish' : 'Publish',
-                  iconColor: event.isGroupingPublished ? Colors.orange : null,
-                  onPressed: () => _togglePublish(event),
-                ),
-                if (event.secondaryTemplateId != null) ...[
-                  const SizedBox(width: 8),
-                  BoxyArtGlassIconButton(
-                    icon: _matchPlayMode ? Icons.check_circle_rounded : Icons.circle_outlined,
-                    tooltip: 'Match Mode',
-                    iconColor: _matchPlayMode ? Colors.orange : null,
-                    onPressed: () {
-                      setState(() => _matchPlayMode = !_matchPlayMode);
-                      if (_matchPlayMode && (_localMatches == null || _localMatches!.isEmpty)) {
-                        _autoLinkMatches(event);
-                      }
-                    },
-                  ),
-                ],
-              ],
+              actions: const [],
               slivers: [
                 SliverFillRemaining(
                   hasScrollBody: true,
@@ -437,6 +379,9 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
             builder: (context, candidateData, rejectedData) {
               final isOver = candidateData.isNotEmpty;
 
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final primary = Theme.of(context).colorScheme.primary;
+
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 height: 60,
@@ -444,18 +389,32 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isOver ? Theme.of(context).primaryColor : Colors.grey.shade200,
-                    style: isOver ? BorderStyle.solid : BorderStyle.none,
-                    width: 2,
+                    color: isOver ? primary : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
+                    style: BorderStyle.solid,
+                    width: isOver ? 2 : 1,
                   ),
-                  color: isOver ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
+                  color: isOver 
+                      ? primary.withValues(alpha: 0.1) 
+                      : Theme.of(context).cardColor,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_circle_outline_rounded, size: 16, color: Theme.of(context).primaryColor.withValues(alpha: 0.4)),
+                    Icon(
+                      Icons.add_circle_outline_rounded, 
+                      size: 16, 
+                      color: isOver ? primary : primary.withValues(alpha: 0.4),
+                    ),
                     const SizedBox(width: 8),
-                    Text('EMPTY SLOT', style: TextStyle(color: Theme.of(context).primaryColor.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                    Text(
+                      'EMPTY SLOT', 
+                      style: AppTypography.displayMedium.copyWith(
+                        color: isOver ? primary : primary.withValues(alpha: 0.4),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -1131,5 +1090,104 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       _localMatches = newMatches;
       _updateDirty(true);
     });
+  }
+
+  Widget _buildToolbar(
+    GolfEvent event, 
+    List<GolfEvent> events, 
+    Map<String, double> handicapMap, 
+    Competition? comp, 
+    SocietyConfig config,
+  ) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // 1. Generate/Regenerate
+          Opacity(
+            opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+            child: BoxyArtGlassIconButton(
+              icon: Icons.refresh_rounded,
+              tooltip: (_localGroups == null || _localGroups!.isEmpty) ? 'Generate' : 'Regenerate',
+              onPressed: event.isRegistrationClosed
+                  ? () {
+                      if (_isLocked == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupings locked. Unlock to regenerate.')));
+                        return;
+                      }
+                      _showRegenerationOptions(event, events, handicapMap);
+                    }
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 2. Recalculate PHCs
+          BoxyArtGlassIconButton(
+            icon: Icons.calculate_outlined,
+            tooltip: 'Recalculate PHCs',
+            onPressed: () => _recalculateAllPHCs(event, handicapMap, comp?.rules, config.useWhsHandicaps),
+          ),
+          const SizedBox(width: 8),
+
+          // 3. Lock/Unlock
+          Opacity(
+            opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+            child: BoxyArtGlassIconButton(
+              icon: _isLocked == true ? Icons.lock_rounded : Icons.lock_open_rounded,
+              tooltip: _isLocked == true ? 'Unlock' : 'Lock',
+              iconColor: _isLocked == true ? Theme.of(context).colorScheme.primary : null,
+              onPressed: event.isRegistrationClosed
+                  ? () {
+                      if (_localGroups == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generate groups first!')));
+                        return;
+                      }
+                      setState(() => _isLocked = !(_isLocked ?? false));
+                      _updateDirty(true);
+                    }
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 4. Match Mode (if applicable)
+          if (event.secondaryTemplateId != null) ...[
+            BoxyArtGlassIconButton(
+              icon: _matchPlayMode ? Icons.check_circle_rounded : Icons.circle_outlined,
+              tooltip: 'Match Mode',
+              iconColor: _matchPlayMode ? Theme.of(context).colorScheme.primary : null,
+              onPressed: () {
+                setState(() => _matchPlayMode = !_matchPlayMode);
+                if (_matchPlayMode && (_localMatches == null || _localMatches!.isEmpty)) {
+                  _autoLinkMatches(event);
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
+
+          // 5. Save
+          Opacity(
+            opacity: event.isRegistrationClosed ? 1.0 : 0.4,
+            child: BoxyArtGlassIconButton(
+              icon: Icons.save_rounded,
+              tooltip: 'Save',
+              iconColor: _isDirty ? Theme.of(context).colorScheme.primary : null,
+              onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 6. Publish
+          BoxyArtGlassIconButton(
+            icon: event.isGroupingPublished ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+            tooltip: event.isGroupingPublished ? 'Unpublish' : 'Publish',
+            iconColor: event.isGroupingPublished ? Theme.of(context).colorScheme.primary : null,
+            onPressed: () => _togglePublish(event),
+          ),
+        ],
+      ),
+    );
   }
 }

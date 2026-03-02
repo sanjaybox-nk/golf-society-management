@@ -16,14 +16,17 @@ class EclecticCalculator implements LeaderboardCalculator {
 
     // 1. Iterate all cards
     for (var comp in competitions) {
-      final compCards = scorecards.where((s) => s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok);
+      final compCards = scorecards.where((s) {
+        final isExcluded = comp.rules.oomExcludedRoundIds.contains(s.roundId);
+        return s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok && !isExcluded;
+      });
       
       for (var card in compCards) {
         // Init player map
-        if (!playerHoleScores.containsKey(card.submittedByUserId)) {
-          playerHoleScores[card.submittedByUserId] = {};
+        if (!playerHoleScores.containsKey(card.entryId)) {
+          playerHoleScores[card.entryId] = {};
         }
-        final holes = playerHoleScores[card.submittedByUserId]!;
+        final holes = playerHoleScores[card.entryId]!;
 
         // Check each hole
         for (int i = 0; i < card.holeScores.length; i++) {

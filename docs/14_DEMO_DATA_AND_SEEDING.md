@@ -13,6 +13,7 @@ Admin Settings > General > [Initialize Demo Season]
 -   **Automatic Scaling**: Generates a full multi-year history (Jan 2025 - Feb 2026) with realistic attendance (12-32 players per event).
 -   **Multi-Tee Architecture**: All seeded courses feature full **Yellow (Men's Standard)** and **Red (Ladies)** tee sets to verify mixed-gender equity.
 -   **Explicit Mapping**: Seeded events now include an explicit `selectedFemaleTeeName: 'Red'`, ensuring accurate Par/SI resolution even in complex mixed-gender competitions.
+-   **Financial & Engagement Seeding**: The seeder now generates realistic payment statuses, custom prize distributions, and attendance history to populate the **Society Reporting Hub**.
 
 ### 2. Historical Data Generation
 The seeding engine populates the society history with various scenarios:

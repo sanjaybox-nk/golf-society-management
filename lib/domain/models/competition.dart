@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:golf_society/utils/json_converters.dart';
 
@@ -60,6 +61,9 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(4) int teamSize,
     @Default(false) bool useMixedTeeAdjustment, // [NEW] C.R. - Par adjustment
     @Default(TeamHandicapMethod.whs) TeamHandicapMethod teamHandicapMethod, // [NEW] Scramble method
+    @Default(true) bool includeGuests, // [NEW] Event-level toggle for guest leaderboard inclusion
+    bool? separateGuests, // [NEW] Event-level override for guest separation (null = use global)
+    @Default([]) List<String> oomExcludedRoundIds, // [NEW] Rounds to skip in season standings
   }) = _CompetitionRules;
 
   factory CompetitionRules.fromJson(Map<String, dynamic> json) =>
@@ -146,5 +150,28 @@ extension CompetitionRulesX on CompetitionRules {
       return '$teamSize-MAN TEAM';
     }
     return effectiveMode.name.toUpperCase();
+  }
+  
+  IconData get gameIcon {
+    if (subtype != CompetitionSubtype.none) {
+      return switch (subtype) {
+        CompetitionSubtype.fourball    => Icons.people_outline_rounded,
+        CompetitionSubtype.foursomes   => Icons.sync_alt_rounded,
+        CompetitionSubtype.texas       => Icons.group_work_rounded,
+        CompetitionSubtype.florida     => Icons.group_work_rounded,
+        CompetitionSubtype.ryderCup    => Icons.emoji_events_rounded,
+        CompetitionSubtype.teamMatchPlay => Icons.compare_arrows_rounded,
+        CompetitionSubtype.grossStableford => Icons.format_list_numbered_rounded,
+        _                              => Icons.golf_course_rounded,
+      };
+    }
+    
+    return switch (format) {
+      CompetitionFormat.stableford => Icons.format_list_numbered_rounded,
+      CompetitionFormat.stroke     => Icons.golf_course_rounded,
+      CompetitionFormat.maxScore   => Icons.vertical_align_top_rounded,
+      CompetitionFormat.matchPlay  => Icons.compare_arrows_rounded,
+      CompetitionFormat.scramble   => Icons.group_work_rounded,
+    };
   }
 }

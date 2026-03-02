@@ -108,6 +108,36 @@ class RegistrationLogic {
     return items;
   }
 
+  /// Returns a list of participants who are "Playing" (Confirmed or Reserved).
+  /// Excludes waitlisted and withdrawn participants.
+  static List<RegistrationItem> getPlayingParticipants(GolfEvent event) {
+    final sortedPool = getSortedItems(event);
+    final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
+    final capacity = event.maxParticipants ?? 999;
+    
+    final playing = <RegistrationItem>[];
+    int rollingTakenSlots = 0;
+    
+    for (int i = 0; i < sortedPool.length; i++) {
+      final item = sortedPool[i];
+      final status = calculateStatus(
+        isGuest: item.isGuest,
+        isConfirmed: item.isConfirmed,
+        hasPaid: item.hasPaid,
+        capacity: capacity,
+        confirmedCount: rollingTakenSlots,
+        isEventClosed: isClosed,
+        statusOverride: item.statusOverride,
+      );
+
+      if (status == RegistrationStatus.confirmed || status == RegistrationStatus.reserved) {
+        playing.add(item);
+        rollingTakenSlots++;
+      }
+    }
+    return playing;
+  }
+
   static RegistrationStats getRegistrationStats(GolfEvent event) {
     int totalRegistrations = event.registrations.length;
     int confirmedGolfers = 0;

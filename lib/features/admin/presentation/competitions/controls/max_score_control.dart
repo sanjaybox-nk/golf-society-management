@@ -20,6 +20,8 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
   AggregationMethod _aggregation = AggregationMethod.totalSum;
   bool _applyCapToIndex = true;
   int _teamBestXCount = 2;
+  bool _includeGuests = true;
+  bool? _separateGuests;
 
   @override
   CompetitionFormat get format => CompetitionFormat.maxScore;
@@ -40,6 +42,8 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
       _aggregation = widget.competition!.rules.aggregation;
       _applyCapToIndex = widget.competition!.rules.applyCapToIndex;
       _teamBestXCount = widget.competition!.rules.teamBestXCount;
+      _includeGuests = widget.competition!.rules.includeGuests;
+      _separateGuests = widget.competition!.rules.separateGuests;
     }
   }
 
@@ -177,6 +181,18 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
           onChanged: (val) { if (val != null) setState(() => _teamBestXCount = val); },
         ),
         buildInfoBubble('How many individual scores count towards the group total in the flight view.'),
+
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+
+        // ── GUEST SETTINGS ────────────────────────────────────
+        buildGuestSettings(
+          includeGuests: _includeGuests,
+          separateGuests: _separateGuests,
+          onIncludeChanged: (val) => setState(() => _includeGuests = val),
+          onSeparateChanged: (val) => setState(() => _separateGuests = val),
+        ),
       ],
     );
   }
@@ -206,6 +222,8 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
       maxScoreConfig: MaxScoreConfig(type: _type, value: _value),
       holeByHoleRequired: true,
       teamBestXCount: _teamBestXCount,
+      includeGuests: _includeGuests,
+      separateGuests: _separateGuests,
     );
   }
 }

@@ -46,6 +46,7 @@ class EventAnalysisEngine {
     int fieldBirdies = 0;
     int fieldPars = 0;
     int fieldBogeys = 0;
+    int fieldDoubleBogeys = 0;
     int fieldBlobs = 0;
     List<int?> eclecticRound = List.generate(18, (_) => null);
 
@@ -86,7 +87,9 @@ class EventAnalysisEngine {
             fieldPars++;
           } else if (diff == 1) {
             fieldBogeys++;
-          } else if (diff >= 2) {
+          } else if (diff == 2) {
+            fieldDoubleBogeys++;
+          } else if (diff >= 3) {
             fieldBlobs++;
           }
 
@@ -307,6 +310,7 @@ class EventAnalysisEngine {
       'BIRDIE': fieldBirdies,
       'PAR': fieldPars,
       'BOGEY': fieldBogeys,
+      'DBL BOGEY': fieldDoubleBogeys,
       'BLOB': fieldBlobs,
     };
 

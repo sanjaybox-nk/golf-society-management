@@ -59,12 +59,11 @@ class DashboardHeroCard extends StatelessWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'NEXT EVENT',
-                          style: TextStyle(
+                          style: AppTypography.label.copyWith(
                             color: Colors.white,
                             fontSize: 10,
-                            fontWeight: FontWeight.w900,
                             letterSpacing: 1.2,
                           ),
                         ),
@@ -147,10 +146,9 @@ class DashboardHeroCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: AppTypography.label.copyWith(
             color: Colors.white.withValues(alpha: 0.6),
             fontSize: 9,
-            fontWeight: FontWeight.w900,
             letterSpacing: 1.0,
           ),
         ),

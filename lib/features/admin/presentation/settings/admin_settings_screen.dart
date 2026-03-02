@@ -9,6 +9,7 @@ class AdminSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     return HeadlessScaffold(
       title: 'Settings',
       subtitle: 'App-wide configuration',
@@ -22,6 +23,7 @@ class AdminSettingsScreen extends ConsumerWidget {
               const BoxyArtSectionTitle(title: 'Society Configurations', ),
               const SizedBox(height: 12),
               BoxyArtCard(
+                padding: EdgeInsets.zero,
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -31,7 +33,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: const Color(0xFF1A237E),
                       onTap: () => context.push('/admin/settings/committee-roles'),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.rule_folder_rounded,
                       title: 'Game Templates',
@@ -39,7 +41,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.orange,
                       onTap: () => context.push('/admin/settings/templates'),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.emoji_events_rounded,
                       title: 'Leaderboard Templates',
@@ -47,7 +49,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.amber,
                       onTap: () => context.push('/admin/settings/leaderboards'),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.tune_rounded,
                       title: 'General',
@@ -55,7 +57,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.blueGrey,
                       onTap: () => context.push('/admin/settings/general'),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.layers_rounded,
                       title: 'Manage Seasons',
@@ -63,14 +65,14 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.teal,
                       onTap: () => context.push('/admin/settings/seasons'),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.notifications_rounded,
                       title: 'Notifications',
                       subtitle: 'Push notification preferences',
                       iconColor: Colors.indigo,
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.palette_rounded,
                       title: 'Society Branding',
@@ -81,10 +83,11 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'Access & Permissions', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.x3l),
+              const BoxyArtSectionTitle(title: 'Access & Permissions'),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
+                padding: EdgeInsets.zero,
                 child: Column(
                   children: [
                     _SettingsTile(
@@ -94,7 +97,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.purple,
                       onTap: () => context.push('/admin/settings/roles'),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.history_rounded,
                       title: 'Audit Logs',
@@ -106,7 +109,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                         );
                       },
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
                     _SettingsTile(
                       icon: Icons.delete_forever_rounded,
                       title: 'Clear Database',
@@ -117,10 +120,11 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'Initialization Tools', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.x3l),
+              const BoxyArtSectionTitle(title: 'Initialization Tools'),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
+                padding: EdgeInsets.zero,
                 child: _SettingsTile(
                   icon: Icons.auto_awesome_motion_rounded,
                   title: 'Seed Full Demo Data',
@@ -212,35 +216,55 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: iconColor, size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: -0.3),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: Text(
-          subtitle, 
-          style: TextStyle(
-            fontSize: 13, 
-            color: Theme.of(context).textTheme.bodySmall?.color,
-            fontWeight: FontWeight.w500,
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.md),
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.label.copyWith(
+                        fontSize: 16,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded, 
+                color: theme.dividerColor.withValues(alpha: 0.3), 
+                size: 14,
+              ),
+            ],
           ),
         ),
       ),
-      trailing: Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).dividerColor.withValues(alpha: 0.3), size: 14),
     );
   }
 }

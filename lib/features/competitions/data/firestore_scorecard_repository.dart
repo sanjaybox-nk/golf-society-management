@@ -48,10 +48,20 @@ class FirestoreScorecardRepository implements ScorecardRepository {
 
   @override
   Future<void> updateScorecardStatus(String id, ScorecardStatus status) async {
-    await _firestore.collection('scorecards').doc(id).update({
+    final updates = <String, dynamic>{
       'status': status.name,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+
+    // If submitting or finalizing, record the submission time
+    if (status == ScorecardStatus.submitted || status == ScorecardStatus.finalScore) {
+      updates['submittedAt'] = FieldValue.serverTimestamp();
+    } else if (status == ScorecardStatus.draft) {
+      // If moved back to draft, we clear it (or you could keep it if you want to know the "initial" submission)
+      updates['submittedAt'] = null;
+    }
+
+    await _firestore.collection('scorecards').doc(id).update(updates);
   }
 
   @override
@@ -63,6 +73,14 @@ class FirestoreScorecardRepository implements ScorecardRepository {
   Stream<List<Scorecard>> watchScorecards(String competitionId) {
     return _scorecardsRef
         .where('competitionId', isEqualTo: competitionId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  @override
+  Stream<List<Scorecard>> watchMemberScorecards(String memberId) {
+    return _scorecardsRef
+        .where('entryId', isEqualTo: memberId)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
@@ -84,5 +102,13 @@ class FirestoreScorecardRepository implements ScorecardRepository {
       batch.delete(doc.reference);
     }
     await batch.commit();
+  }
+
+  @override
+  Future<List<Scorecard>> getScorecards(String competitionId) async {
+    final snapshot = await _scorecardsRef
+        .where('competitionId', isEqualTo: competitionId)
+        .get();
+    return snapshot.docs.map((doc) => doc.data()).toList();
   }
 }

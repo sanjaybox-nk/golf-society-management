@@ -17,24 +17,19 @@ class AdminDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final membersAsync = ref.watch(allMembersProvider);
     final eventsAsync = ref.watch(adminEventsProvider);
-    final primary = Theme.of(context).primaryColor;
 
     return HeadlessScaffold(
       title: 'Admin Console',
       autoPrefix: false,
       subtitle: 'Command Center',
-      leading: IconButton(
-        icon: Icon(Icons.home_rounded, color: primary, size: 26),
-        onPressed: () => context.go('/home'),
-        tooltip: 'Exit to App',
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.settings_rounded, color: primary, size: 24),
-          onPressed: () => context.push('/admin/settings'),
-          tooltip: 'Admin Settings',
+      leading: Center(
+        child: BoxyArtGlassIconButton(
+          icon: Icons.home_rounded,
+          onPressed: () => context.go('/home'),
+          tooltip: 'Exit to App',
         ),
-      ],
+      ),
+      actions: const [],
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -141,31 +136,25 @@ class _FeatureGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return SizedBox(
       width: width,
       child: BoxyArtCard(
         onTap: onTap,
-        padding: const EdgeInsets.all(20),
-        border: Border.fromBorderSide(BorderSide(color: theme.primaryColor.withValues(alpha: 0.1))),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
-                letterSpacing: -0.2,
-              ),
+              style: AppTypography.label.copyWith(fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -190,38 +179,36 @@ class _ActivityFeed extends StatelessWidget {
       ('New event "Spring Scramble" published', '3 hours ago', Icons.campaign_rounded, Colors.purple),
     ];
 
-    return BoxyArtCard(child: Column(
+    return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      child: Column(
         children: activities.mapIndexed((index, item) {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: item.$4.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppSpacing.sm),
                       ),
                       child: Icon(item.$3, color: item.$4, size: 18),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: AppSpacing.lg),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             item.$1,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: AppTypography.label.copyWith(fontSize: 13),
                           ),
                           Text(
                             item.$2,
-                            style: TextStyle(
-                              fontSize: 11,
+                            style: AppTypography.bodySmall.copyWith(
                               color: theme.textTheme.bodySmall?.color,
                             ),
                           ),
@@ -232,7 +219,11 @@ class _ActivityFeed extends StatelessWidget {
                 ),
               ),
               if (index < activities.length - 1)
-                const Divider(height: 1, indent: 64),
+                Divider(
+                  height: 1, 
+                  indent: 64, 
+                  color: theme.dividerColor.withValues(alpha: 0.05),
+                ),
             ],
           );
         }).toList(),

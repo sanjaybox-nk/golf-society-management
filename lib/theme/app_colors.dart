@@ -42,6 +42,10 @@ class AppColors {
   static const Color actionGreen = lime500;
   static const Color actionText = Color(0xFF0A1A0F); // Dark green-tinted black for lime buttons
 
+  // Team Participation Colors (v3.1)
+  static const Color teamA = Color(0xFF1E40AF); // Deep Blue
+  static const Color teamB = Color(0xFF166534); // Deep Green
+
   // Score State Colors
   static const Color scoreEagle = Color(0xFF34D399);
   static const Color scoreBirdie = lime500;

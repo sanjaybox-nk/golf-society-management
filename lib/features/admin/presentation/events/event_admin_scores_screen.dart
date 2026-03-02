@@ -13,6 +13,7 @@ import '../../../events/logic/event_analysis_engine.dart';
 import '../../../members/presentation/members_provider.dart';
 import '../../../events/presentation/widgets/event_leaderboard.dart';
 import '../../../events/presentation/widgets/scorecard_modal.dart';
+import '../../../events/domain/registration_logic.dart';
 
 class EventAdminScoresScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -33,7 +34,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
     return eventAsync.when(
       data: (event) {
-        final primary = Theme.of(context).primaryColor;
         
         // Clear optimistic toggles if they match the server state
         _optimisticToggles.removeWhere((key, val) {
@@ -47,42 +47,22 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           useScaffold: false,
           showBack: true,
           onBack: () => context.go('/admin/events'),
-          actions: [
-            BoxyArtGlassIconButton(
-              icon: Icons.settings_outlined,
-              tooltip: 'Controls',
-              iconColor: _selectedTab == 0 ? primary : primary.withValues(alpha: 0.4),
-              backgroundColor: _selectedTab == 0 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
-              onPressed: () => setState(() => _selectedTab = 0),
-            ),
-            const SizedBox(width: 8),
-            BoxyArtGlassIconButton(
-              icon: Icons.emoji_events_outlined,
-              tooltip: 'Leaderboard',
-              iconColor: _selectedTab == 1 ? primary : primary.withValues(alpha: 0.4),
-              backgroundColor: _selectedTab == 1 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
-              onPressed: () => setState(() => _selectedTab = 1),
-            ),
-            const SizedBox(width: 8),
-            BoxyArtGlassIconButton(
-              icon: Icons.people_outline,
-              tooltip: 'Scorecards',
-              iconColor: _selectedTab == 2 ? primary : primary.withValues(alpha: 0.4),
-              backgroundColor: _selectedTab == 2 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
-              onPressed: () => setState(() => _selectedTab = 2),
-            ),
-            const SizedBox(width: 8),
-            BoxyArtGlassIconButton(
-              icon: Icons.analytics_outlined,
-              tooltip: 'Stats',
-              iconColor: _selectedTab == 3 ? primary : primary.withValues(alpha: 0.4),
-              backgroundColor: _selectedTab == 3 ? Colors.white.withValues(alpha: 0.9) : primary.withValues(alpha: 0.05),
-              onPressed: () => setState(() => _selectedTab = 3),
-            ),
-          ],
+          actions: const [],
           slivers: [
+            SliverToBoxAdapter(
+              child: ModernUnderlinedFilterBar<int>(
+                selectedValue: _selectedTab,
+                onTabSelected: (val) => setState(() => _selectedTab = val),
+                tabs: const [
+                  ModernFilterTab(label: 'Controls', value: 0),
+                  ModernFilterTab(label: 'Leaderboard', value: 1),
+                  ModernFilterTab(label: 'Scorecards', value: 2),
+                  ModernFilterTab(label: 'Stats', value: 3),
+                ],
+              ),
+            ),
             SliverPadding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               sliver: SliverToBoxAdapter(
                 child: _buildTabContent(event, scorecardsAsync),
               ),
@@ -110,10 +90,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
             BoxyArtCard(
               child: Column(
                 children: [
-                   _buildControlRow(
-                    context,
+                   ModernSwitchRow(
                     icon: Icons.analytics_outlined,
-                    title: 'Show Live Stats to Players',
+                    label: 'Show Live Stats to Players',
                     subtitle: 'Allow players to see live-calculated analytics during the event.',
                     value: _optimisticToggles['isStatsReleased'] ?? (event.isStatsReleased == true),
                     onChanged: (val) {
@@ -124,10 +103,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                     },
                   ),
                   const Divider(height: 32),
-                   _buildControlRow(
-                    context,
+                   ModernSwitchRow(
                     icon: Icons.lock_outline,
-                    title: 'Close Event & Finalize',
+                    label: 'Close Event & Finalize',
                     subtitle: 'Lock scorecards and calculate final society statistics.',
                     value: event.status == EventStatus.completed,
                     onChanged: (val) {
@@ -190,7 +168,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
       case 2: // Scorecards
         return Column(
           children: [
-            BoxyArtSectionTitle(title: 'PLAYER SCORECARDS (${event.registrations.where((r) => r.attendingGolf).length})'),
+            BoxyArtSectionTitle(title: 'PLAYER SCORECARDS (${RegistrationLogic.getPlayingParticipants(event).length})'),
             const SizedBox(height: 12),
             scorecardsAsync.when(
               data: (scorecards) => AdminScorecardList(
@@ -206,12 +184,10 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
       case 3: // Stats
         final Map<String, int> playerHoleLimits = {};
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              EventStatsTab(
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+            EventStatsTab(
                 event: event,
                 comp: ref.watch(competitionDetailProvider(event.id)).value,
                 liveScorecards: scorecardsAsync.value ?? [],
@@ -220,7 +196,6 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               ),
               const SizedBox(height: 80),
             ],
-          ),
         );
       default:
         return const SizedBox.shrink();
@@ -326,15 +301,30 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
 
     final now = DateTime.now();
-    final isSameDayOrFuture = now.year == event.date.year && 
-                             now.month == event.date.month && 
-                             now.day == event.date.day || 
-                             now.isAfter(event.date);
+    final bool isToday = now.year == event.date.year && 
+                        now.month == event.date.month && 
+                        now.day == event.date.day;
+    final bool isPast = event.date.isBefore(now) && !isToday;
     
-    final bool isLive = isSameDayOrFuture && event.isScoringLocked != true;
     final bool isClosed = event.status == EventStatus.completed || event.isScoringLocked == true;
-    final status = isClosed ? 'CLOSED' : (isLive ? 'LIVE' : 'PENDING');
-    final statusColor = isClosed ? Colors.red : (isLive ? Colors.green : Colors.orange);
+    final bool isLive = (isToday || event.status == EventStatus.inPlay) && !isClosed;
+    
+    String status;
+    Color statusColor;
+    
+    if (isClosed) {
+      status = 'CLOSED';
+      statusColor = Theme.of(context).colorScheme.error;
+    } else if (isLive) {
+      status = 'LIVE';
+      statusColor = Theme.of(context).colorScheme.primary;
+    } else if (isPast) {
+      status = 'PAST';
+      statusColor = Colors.orange;
+    } else {
+      status = 'UPCOMING';
+      statusColor = Colors.blue;
+    }
 
     return Row(
       children: [
@@ -355,54 +345,14 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
   Widget _buildBadgeCard(String label, String value, Color color) {
     return BoxyArtCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.1)),
-            const SizedBox(height: 8),
-            Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
-          ],
-        ),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.1)),
+          const SizedBox(height: 12),
+          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
+        ],
       ),
-    );
-  }
-
-  Widget _buildControlRow(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: Theme.of(context).primaryColor, size: 24),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 2),
-              Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-            ],
-          ),
-        ),
-        Switch.adaptive(
-          value: value, 
-          onChanged: onChanged,
-          activeTrackColor: Theme.of(context).primaryColor,
-        ),
-      ],
     );
   }
 }

@@ -47,9 +47,10 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                BoxyArtFormField(
+                BoxyArtInputField(
                   label: 'Name',
                   controller: _nameController,
                   validator: (v) => v!.isEmpty ? 'Required' : null,
@@ -60,18 +61,24 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
           const SizedBox(height: 24),
           const BoxyArtSectionTitle(title: 'TRACKING RULES'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('TARGET MARKERS', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                Text(
+                  'TARGET MARKERS',
+                  style: AppTypography.label.copyWith(
+                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: MarkerType.values.map((type) {
                     final isSelected = _targetTypes.contains(type);
-                    return FilterChip(
-                      label: Text(_formatEnum(type.name)),
+                    return ChoiceChip(
+                      label: Text(_formatEnum(type.name).toUpperCase()),
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
@@ -84,31 +91,54 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                           }
                         });
                       },
-                      selectedColor: Theme.of(context).primaryColor,
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.black : Colors.white70,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      selectedColor: AppColors.lime500,
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lightHeader,
+                      labelStyle: AppTypography.label.copyWith(
+                        color: isSelected ? AppColors.actionText : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark400),
+                        fontSize: 10,
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
                       ),
-                      backgroundColor: Colors.white10,
-                      checkmarkColor: Colors.black,
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      showCheckmark: false,
                     );
                   }).toList(),
                 ),
                 const SizedBox(height: 24),
-                _buildEnumDropdown('Hole Filter', HoleFilter.values, _holeFilter, (v) => setState(() => _holeFilter = v!)),
+                BoxyArtDropdownField<HoleFilter>(
+                  label: 'Hole Filter',
+                  value: _holeFilter,
+                  items: HoleFilter.values.map((v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(_formatEnum(v.name)),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _holeFilter = v!),
+                ),
                 const SizedBox(height: 24),
-                _buildEnumDropdown('Ranking Basis', MarkerRankingMethod.values, _rankingMethod, (v) => setState(() => _rankingMethod = v!)),
+                BoxyArtDropdownField<MarkerRankingMethod>(
+                  label: 'Ranking Basis',
+                  value: _rankingMethod,
+                  items: MarkerRankingMethod.values.map((v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(_formatEnum(v.name)),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _rankingMethod = v!),
+                ),
                 const SizedBox(height: 24),
-                BoxyArtFormField(
+                BoxyArtInputField(
                   label: 'Best N Rounds',
                   controller: _bestNController,
                   keyboardType: TextInputType.number,
-                  hintText: '0 = All rounds counted',
+                  hint: '0 = All rounds counted',
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Only markers from the best N Stableford rounds will be counted.',
-                  style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.dark400,
+                    fontSize: 10,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
                 
                 _buildRuleDescription(),
@@ -127,36 +157,6 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
     );
   }
 
-  Widget _buildEnumDropdown<T>(String label, List<T> values, T currentValue, Function(T?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label.toUpperCase(), style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).dividerColor),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<T>(
-              value: currentValue,
-              isExpanded: true,
-              dropdownColor: Theme.of(context).cardColor,
-              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-              onChanged: onChanged,
-              items: values.map((v) => DropdownMenuItem(
-                value: v,
-                child: Text(_formatEnum(v.toString().split('.').last)),
-              )).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   String _formatEnum(String val) {
     if (val == 'holeInOne') return 'Hole In One';
@@ -187,7 +187,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor, 
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -210,19 +210,19 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
           width: 80, 
           child: Text(
             '$label:', 
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              color: Theme.of(context).primaryColor,
-              fontSize: 13
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w900, 
+              color: AppColors.lime500,
+              fontSize: 11,
             )
           )
         ),
         Expanded(
           child: Text(
             value, 
-            style: TextStyle(
-              fontSize: 13,
-              color: Theme.of(context).textTheme.bodyMedium?.color
+            style: AppTypography.label.copyWith(
+              fontSize: 11,
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )
         ),

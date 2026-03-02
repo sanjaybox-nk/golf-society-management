@@ -59,6 +59,7 @@ _Scorecard _$ScorecardFromJson(Map<String, dynamic> json) => _Scorecard(
       ? null
       : AdminEditAudit.fromJson(json['adminEditAudit'] as Map<String, dynamic>),
   adminOverridePublish: json['adminOverridePublish'] as bool? ?? false,
+  submittedAt: const TimestampConverter().fromJson(json['submittedAt']),
   createdAt: const TimestampConverter().fromJson(json['createdAt']),
   updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
 );
@@ -85,6 +86,10 @@ Map<String, dynamic> _$ScorecardToJson(_Scorecard instance) =>
       'playingHandicap': instance.playingHandicap,
       'adminEditAudit': instance.adminEditAudit?.toJson(),
       'adminOverridePublish': instance.adminOverridePublish,
+      'submittedAt': _$JsonConverterToJson<Object?, DateTime>(
+        instance.submittedAt,
+        const TimestampConverter().toJson,
+      ),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
     };
@@ -103,3 +108,8 @@ const _$ScoringStatusEnumMap = {
   ScoringStatus.wd: 'wd',
   ScoringStatus.dq: 'dq',
 };
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) => value == null ? null : toJson(value);

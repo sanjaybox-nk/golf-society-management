@@ -178,6 +178,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final reservedGuests = guestModels.where((vm) => vm.status == RegistrationStatus.reserved).toList();
     final waitlistMembers = memberModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
     final waitlistGuests = guestModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -200,7 +201,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '${event.registrations.length}',
                             label: 'Total',
                             icon: Icons.groups_rounded,
-                            color: const Color(0xFF2C3E50),
+                            color: isDark ? AppColors.dark150 : AppColors.dark500,
                             isCompact: true,
                           ),
                         ),
@@ -210,7 +211,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: playingValue,
                             label: 'Playing',
                             icon: Icons.check_circle_rounded,
-                            color: const Color(0xFF27AE60),
+                            color: AppColors.lime500,
                             isCompact: true,
                           ),
                         ),
@@ -220,7 +221,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: reserveValue,
                             label: 'Reserve',
                             icon: Icons.hourglass_top_rounded,
-                            color: const Color(0xFFF39C12),
+                            color: AppColors.amber500,
                             isCompact: true,
                           ),
                         ),
@@ -230,7 +231,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
                             label: 'Guests',
                             icon: Icons.person_add_rounded,
-                            color: Colors.purple,
+                            color: const Color(0xFF8E44AD), // Keeping custom purple but slightly muted, or use dark300
                             isCompact: true,
                           ),
                         ),
@@ -248,7 +249,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '${stats.buggyCount}/$buggyCapacity',
                             label: 'Buggies',
                             icon: Icons.electric_rickshaw_rounded,
-                            color: const Color(0xFF455A64),
+                            color: isDark ? AppColors.dark300 : AppColors.dark600,
                             isCompact: true,
                           ),
                         ),
@@ -258,7 +259,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '${stats.dinnerCount}',
                             label: 'Dinner',
                             icon: Icons.restaurant_rounded,
-                            color: Colors.deepPurple,
+                            color: const Color(0xFF673AB7), // Muted Purple
                             isCompact: true,
                           ),
                         ),
@@ -268,7 +269,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '${stats.waitlistGolfers}',
                             label: 'Waitlist',
                             icon: Icons.priority_high_rounded,
-                            color: const Color(0xFFC0392B),
+                            color: AppColors.coral500,
                             isCompact: true,
                           ),
                         ),
@@ -278,7 +279,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '${stats.breakfastCount}',
                             label: 'Breakfast',
                             icon: Icons.breakfast_dining_rounded,
-                            color: const Color(0xFF795548),
+                            color: const Color(0xFF8D6E63), // Muted Brown
                             isCompact: true,
                           ),
                         ),
@@ -298,7 +299,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '$currency${totalPaidFees.toStringAsFixed(0)}',
                             label: 'Paid',
                             icon: Icons.payments_rounded,
-                            color: const Color(0xFF16A085),
+                            color: AppColors.lime500,
                             isCompact: true,
                           ),
                         ),
@@ -308,7 +309,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
                             label: 'Breakfast',
                             icon: Icons.breakfast_dining_rounded,
-                            color: const Color(0xFF795548),
+                            color: const Color(0xFF8D6E63),
                             isCompact: true,
                           ),
                         ),
@@ -318,7 +319,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '$currency${totalLunchFees.toStringAsFixed(0)}',
                             label: 'Lunch',
                             icon: Icons.lunch_dining_rounded,
-                            color: const Color(0xFFD35400),
+                            color: AppColors.amber500,
                             isCompact: true,
                           ),
                         ),
@@ -328,7 +329,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
                             label: 'Dinner',
                             icon: Icons.restaurant_menu_rounded,
-                            color: const Color(0xFF2980B9),
+                            color: isDark ? AppColors.dark200 : AppColors.dark600,
                             isCompact: true,
                           ),
                         ),
@@ -350,10 +351,12 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                         children: [
                           Text(
                             '${stats.confirmedGolfers}/$capacity spaces',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF2C3E50),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.dark150
+                                  : const Color(0xFF2C3E50),
                             ),
                           ),
                           RegistrationStatusPill(

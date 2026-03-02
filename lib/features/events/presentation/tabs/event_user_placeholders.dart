@@ -91,7 +91,7 @@ class EventGroupingUserTab extends ConsumerWidget {
           actions: const [],
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16), // [FIX] Standardized to 16px
+              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
               sliver: SliverToBoxAdapter(
                 child: _FieldHubToggle(),
               ),
@@ -99,7 +99,7 @@ class EventGroupingUserTab extends ConsumerWidget {
             if (ref.watch(eventFieldTabProvider) == 0) ...[
               // Registrations View
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
                   child: membersAsync.when(
                     data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members),
@@ -111,42 +111,36 @@ class EventGroupingUserTab extends ConsumerWidget {
             ] else ...[
               // Pairings View
               if (!isPublished)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(height: 16),
-                          Text('Grouping not yet published', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8),
-                          Text('The Admin will publish the tee sheet soon.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                           Text('Grouping not yet published', style: AppTypography.body.copyWith(color: AppColors.dark300, fontWeight: FontWeight.bold)),
+                           SizedBox(height: 8),
+                           Text('The Admin will publish the tee sheet soon.', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
                         ],
                     ),
                   ),
                 )
               else 
                 SliverPadding(
-                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                    sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                          (context, index) {
-                            if (index == 0) {
-                              return const Padding(
-                                padding: EdgeInsets.only(top: 12),
-                                child: BoxyArtSectionTitle(title: 'Grouping'),
-                              );
-                            }
-                            final group = groups[index - 1]; // Adjust index
-                            // Prepare data for GroupingCard
-                            final members = membersAsync.value ?? [];
-                            final memberMap = {for (var m in members) m.id: m};
+                             final group = groups[index];
+                             // Prepare data for GroupingCard
+                             final members = membersAsync.value ?? [];
+                             final memberMap = {for (var m in members) m.id: m};
                             // History for variety calculation (same season, previous events)
                             final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
                             final comp = compAsync.value;
                             
                             return Padding(
-                               padding: const EdgeInsets.only(bottom: 16), // [FIX] Standardized to 16px
+                               padding: const EdgeInsets.only(bottom: 20),
                                child: GroupingCard(
                                   group: group,
                                   memberMap: memberMap,
@@ -167,7 +161,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                                ),
                             );
                          },
-                         childCount: groups.length + 1, // Add 1 for title
+                         childCount: groups.length,
                       ),
                    ),
                 ),
@@ -185,102 +179,15 @@ class _FieldHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventFieldTabProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-            width: 1.0,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _ToggleItem(
-              label: 'Entries',
-              icon: Icons.people_outline_rounded,
-              isSelected: selectedTab == 0,
-              onTap: () => ref.read(eventFieldTabProvider.notifier).set(0),
-            ),
-          ),
-          Expanded(
-            child: _ToggleItem(
-              label: 'Groupings',
-              icon: Icons.grid_view_rounded,
-              isSelected: selectedTab == 1,
-              onTap: () => ref.read(eventFieldTabProvider.notifier).set(1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final Color? activeColorOverride;
-  final Color? inactiveColorOverride;
-
-  const _ToggleItem({
-    required this.label,
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-    this.activeColorOverride,
-    this.inactiveColorOverride,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.primaryColor;
-    
-    Color activeColor = activeColorOverride ?? (isDark ? Colors.white : Colors.black);
-    Color inactiveColor = inactiveColorOverride ?? (isDark ? AppColors.dark300 : AppColors.dark400);
-    
-    final color = isSelected ? activeColor : inactiveColor;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? primary : Colors.transparent,
-              width: 2.0,
-            ),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: color,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ModernUnderlinedFilterBar<int>(
+      selectedValue: selectedTab,
+      isExpanded: true,
+      onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
+      tabs: const [
+        ModernFilterTab(label: 'Entries', value: 0),
+        ModernFilterTab(label: 'Groupings', value: 1),
+      ],
     );
   }
 }
@@ -459,44 +366,41 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
                 if (isLocked) {
                   headerBadgeText = "FINAL SCORE";
-                  headerBadgeColor = Colors.green;
+                  headerBadgeColor = AppColors.lime600;
                 } else if (isCompleted) {
                   headerBadgeText = "FINISHED";
-                  headerBadgeColor = Colors.green;
+                  headerBadgeColor = AppColors.lime600;
                 } else if (!isScoringActive) {
                   headerBadgeText = "NOT ACTIVE";
-                  headerBadgeColor = Colors.grey;
+                  headerBadgeColor = AppColors.dark300;
                 } else if (userScorecard != null) {
                   if (userScorecard.status == ScorecardStatus.draft && isCardFull) {
                     headerBadgeText = "SUBMIT";
-                    headerBadgeColor = Colors.green; 
+                    headerBadgeColor = AppColors.amber500; 
                     headerOnBadgeTap = () => _submitScorecard(userScorecard.id);
                   } else {
-                    headerBadgeText = userScorecard.status.name.toUpperCase();
-                    headerBadgeColor = _getStatusColor(userScorecard.status);
                     if (userScorecard.status == ScorecardStatus.submitted) {
-                       headerOnBadgeTap = () => _confirmUnsubmit(userScorecard.id);
+                      headerBadgeText = "SUBMITTED";
+                      headerOnBadgeTap = () => _confirmUnsubmit(userScorecard.id);
+                    } else if (userScorecard.status == ScorecardStatus.reviewed || 
+                               userScorecard.status == ScorecardStatus.finalScore) {
+                      headerBadgeText = "CONFIRMED";
+                    } else {
+                      headerBadgeText = "SCORING";
                     }
+                    headerBadgeColor = _getStatusColor(userScorecard.status);
                   }
                 } else {
                   headerBadgeText = "ACTIVE";
-                  headerBadgeColor = Colors.blue;
+                  headerBadgeColor = AppColors.lime400;
                 }
             }
             // ------------------------------------------
 
             return HeadlessScaffold(
               title: event.title,
-              subtitleWidget: Text(
-                'Live Hub',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              contentPadding: const EdgeInsets.only(top: 120, left: 20, right: 20, bottom: 16), // [FIX] Standardized to 16px
+              subtitle: 'Live Hub',
+              contentPadding: const EdgeInsets.only(top: 120, left: 20, right: 20, bottom: 20),
               showBack: true,
               onBack: () => context.go('/events'),
               actions: [
@@ -533,7 +437,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                                 headerBadgeText,
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: headerOnBadgeTap != null ? Colors.white : headerBadgeColor,
+                                  color: headerOnBadgeTap != null ? AppColors.pureWhite : headerBadgeColor,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.5,
                                 ),
@@ -547,13 +451,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ],
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16), // [FIX] Standardized to 16px
+                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
                   sliver: SliverToBoxAdapter(
                     child: _LiveHubToggle(event: event),
                   ),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverToBoxAdapter(
                     child: _buildTabContent(event, comp, leaderboardEntries, effectiveRules),
                   ),
@@ -977,13 +881,28 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   );
                   teamPhcMap[playerId] = phc;
 
+                  // [NEW] Authoritative Fallback for Fourball
+                  final seededResult = event.results.firstWhere(
+                    (r) => r['playerId'] == playerId,
+                    orElse: () => {},
+                  );
+                  List<int?> scoresToUse = [];
                   if (card != null && card.holeScores.any((s) => s != null)) {
                     final limit = playerHoleLimits[playerId];
-                    List<int?> scoresToUse = card.holeScores;
+                    List<int?> liveScores = card.holeScores;
                     if (limit != null) {
-                      scoresToUse = card.holeScores.take(limit).toList();
+                      liveScores = card.holeScores.take(limit).toList();
                     }
-                    
+                    scoresToUse = List.generate(18, (i) {
+                       final live = i < liveScores.length ? liveScores[i] : null;
+                       final seed = (seededResult['holeScores'] != null && i < seededResult['holeScores'].length) ? seededResult['holeScores'][i] : null;
+                       return live ?? seed;
+                    });
+                  } else if (seededResult.isNotEmpty && seededResult['holeScores'] != null) {
+                    scoresToUse = (seededResult['holeScores'] as List).cast<int?>();
+                  }
+
+                  if (scoresToUse.isNotEmpty && scoresToUse.any((s) => s != null)) {
                     final result = ScoringCalculator.calculate(
                       holeScores: scoresToUse,
                       holes: (playerTeeConfig['holes'] as List).map((h) => Map<String, dynamic>.from(h)).toList(),
@@ -1008,46 +927,61 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   if (pairStart >= groupPlayers.length) continue;
                   
                   final pairPlayers = groupPlayers.sublist(pairStart, pairEnd);
-                  final pairCards = <Scorecard>[];
+                  int bbTotal = 0;
+                  bool hasAny = false;
+
+                  // Pre-resolve merged scores for the pair
+                  final Map<String, List<int?>> pairMergedScores = {};
                   for (var p in pairPlayers) {
                     final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
                     final card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
-                    if (card != null && card.holeScores.any((s) => s != null)) {
-                      pairCards.add(card);
+                    final seededResult = event.results.firstWhere(
+                      (r) => r['playerId'] == pid,
+                      orElse: () => {},
+                    );
+                    
+                    List<int?> liveScores = card?.holeScores ?? [];
+                    final limit = playerHoleLimits[pid];
+                    if (limit != null && liveScores.isNotEmpty) {
+                      liveScores = liveScores.take(limit).toList();
                     }
+
+                    pairMergedScores[pid] = List.generate(18, (i) {
+                       final live = i < liveScores.length ? liveScores[i] : null;
+                       final seed = (seededResult['holeScores'] != null && i < seededResult['holeScores'].length) ? seededResult['holeScores'][i] : null;
+                       return live ?? seed;
+                    });
                   }
-                  
-                  if (pairCards.isEmpty) continue;
-                  
-                  int bbTotal = 0;
-                  bool hasAny = false;
+
                   for (int h = 0; h < 18; h++) {
                     int bestPoints = -1;
                     int bestNetToPar = 999;
-                    for (var card in pairCards) {
-                       final score = card.holeScores.length > h ? card.holeScores[h] : null;
-                       if (score == null) continue;
-                       hasAny = true;
-                       
-                       final p = pairPlayers.firstWhereOrNull((tp) => (tp.isGuest ? '${tp.registrationMemberId}_guest' : tp.registrationMemberId) == card.entryId) ?? pairPlayers.first;
-                        final phc = teamPhcMap[(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId)] ?? 0;
+
+                    for (var p in pairPlayers) {
+                        final pid = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+                        final scoresToUse = pairMergedScores[pid]!;
+                        final score = scoresToUse.length > h ? scoresToUse[h] : null;
+                        if (score == null) continue;
+                        hasAny = true;
+                        
+                        final phc = teamPhcMap[pid] ?? 0;
                         
                         // Use player-specific course config for holes/si/par
-                        final manualTee = teeOverrides[(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId)];
-                        final ptc = _resolvePlayerCourseConfig(p.registrationMemberId, event, membersAsync.value ?? [], manualTeeName: manualTee);
+                        final manualTee = teeOverrides[pid];
+                        final ptc = _resolvePlayerCourseConfig(pid, event, membersAsync.value ?? [], manualTeeName: manualTee);
                         final playerHoles = ptc['holes'] as List? ?? [];
-                       final si = playerHoles.length > h ? (playerHoles[h]['si'] as int? ?? 18) : 18;
-                       final par = playerHoles.length > h ? (playerHoles[h]['par'] as int? ?? 4) : 4;
-                       final freeShots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
+                        final si = playerHoles.length > h ? (playerHoles[h]['si'] as int? ?? 18) : 18;
+                        final par = playerHoles.length > h ? (playerHoles[h]['par'] as int? ?? 4) : 4;
+                        final freeShots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
 
-                       if (rules.format == CompetitionFormat.stableford) {
-                         final net = score - freeShots;
-                         final pts = (par - net + 2).clamp(0, 10);
-                         if (pts > bestPoints) bestPoints = pts;
-                       } else {
-                         final netToPar = (score - freeShots) - par;
-                         if (netToPar < bestNetToPar) bestNetToPar = netToPar;
-                       }
+                        if (rules.format == CompetitionFormat.stableford) {
+                          final net = score - freeShots;
+                          final pts = (par - net + 2).clamp(0, 10);
+                          if (pts > bestPoints) bestPoints = pts;
+                        } else {
+                          final netToPar = (score - freeShots) - par;
+                          if (netToPar < bestNetToPar) bestNetToPar = netToPar;
+                        }
                     }
                     if (rules.format == CompetitionFormat.stableford) {
                        if (bestPoints >= 0) bbTotal += bestPoints;
@@ -1077,18 +1011,38 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   }
                 }
 
-                if (teamCard == null) {
-                  // No fallback to seeding as per user preference
-                  // return scoreMap[playerId] = '-';
+                // [NEW] Authoritative Fallback: Resolve seeded scores for this team/player
+                final String firstPlayerId = team.first.isGuest ? '${team.first.registrationMemberId}_guest' : team.first.registrationMemberId;
+                List<int>? seededScores;
+                final seededResult = event.results.firstWhere(
+                  (r) => r['playerId'] == firstPlayerId,
+                   orElse: () => {},
+                );
+                if (seededResult.isNotEmpty && seededResult['holeScores'] != null) {
+                   seededScores = List<int>.from(seededResult['holeScores']);
                 }
+
+                List<int?> scoresToUse = [];
 
                 if (teamCard != null && teamCard.holeScores.isNotEmpty) {
                     final limit = playerHoleLimits[teamCard.entryId];
-                    List<int?> scoresToUse = teamCard.holeScores;
+                    List<int?> liveScores = teamCard.holeScores;
                     if (limit != null) {
-                      scoresToUse = teamCard.holeScores.take(limit).toList();
+                      liveScores = teamCard.holeScores.take(limit).toList();
                     }
 
+                    // Merge live and seeded data
+                    scoresToUse = List.generate(18, (i) {
+                       final live = i < liveScores.length ? liveScores[i] : null;
+                       final seed = (seededScores != null && i < seededScores.length) ? seededScores[i] : null;
+                       return live ?? seed;
+                    });
+                } else if (seededScores != null) {
+                    // Pull directly from seeded results if no live scorecard exists
+                    scoresToUse = seededScores.cast<int?>();
+                }
+
+                if (scoresToUse.isNotEmpty) {
                     final playerTeeConfig = _resolvePlayerCourseConfig(team.first.registrationMemberId, event, membersAsync.value ?? [], manualTeeName: teeOverrides[team.first.isGuest ? '${team.first.registrationMemberId}_guest' : team.first.registrationMemberId]);
 
                      int effectivePhc = isTeamMode ? teamPhc : HandicapCalculator.calculatePlayingHandicap(
@@ -1111,6 +1065,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
                     displayScore = result.label;
                 }
+
               }
 
               // 5. Apply to all team members (skip fourball — handled above with individual scores)
@@ -1351,12 +1306,10 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 children: [
                   Text(
                     'HC: ${_formatHcp(baseHcp)}', 
-                    style: const TextStyle(
-                      fontSize: 12, 
-                      color: Colors.black, 
+                    style: AppTypography.caption.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: -0.2,
-                    )
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Container(
@@ -1370,12 +1323,10 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   const SizedBox(width: 8),
                   Text(
                     'PHC: $playingHcpValue', 
-                    style: TextStyle(
-                      fontSize: 12, 
-                      color: Theme.of(context).primaryColor, 
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.lime500,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: -0.2,
-                    )
+                    ),
                   ),
                 ],
               ),
@@ -1528,7 +1479,10 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             Text(
               'Scoring will open on ${DateFormat('EEEE, d MMMM').format(event.date)}.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w500),
+              style: AppTypography.caption.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -1541,13 +1495,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   Color _getStatusColor(ScorecardStatus status) {
     switch (status) {
       case ScorecardStatus.draft:
-        return Colors.grey;
+        return AppColors.dark300;
       case ScorecardStatus.submitted:
-        return Colors.blue;
+        return AppColors.amber500;
       case ScorecardStatus.reviewed:
-        return Colors.orange;
       case ScorecardStatus.finalScore:
-        return Colors.green;
+        return AppColors.lime500;
     }
   }
 
@@ -1620,7 +1573,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: false, 
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1653,24 +1606,25 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     const SizedBox(height: 24),
                     Text(
                       'Marker & Tee Selection',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTypography.displayHeading.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     
-                    // 1. SELECT PLAYER SECTION
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                       child: Row(
                         children: [
-                          Icon(Icons.person_search_outlined, size: 18, color: Theme.of(context).primaryColor),
+                          Icon(Icons.person_search_outlined, size: 18, color: Theme.of(context).colorScheme.primary),
                           const SizedBox(width: 8),
                           Text(
                             'SELECT PLAYER TO MARK',
-                            style: TextStyle(
-                              fontSize: 11, 
-                              fontWeight: FontWeight.w900, 
-                              color: Colors.grey.shade600,
-                              letterSpacing: 0.5,
+                            style: AppTypography.label.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
                             ),
                           ),
                         ],
@@ -1678,7 +1632,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     ),
                     
                     // Option 1: Myself
-                    _buildSelectionRow(
+                    buildSelectionRow(
                       context, 
                       ref,
                       isSelected: isSelfMarking,
@@ -1691,6 +1645,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                         // Instead of immediate setState, let the Notifier propagate
                         setState(() { _selectedMarkerTab = MarkerTab.verifier; });
                       },
+                      defaultTeeName: event.selectedTeeName ?? 'White',
                     ),
                     
                     // Option 2: Group Members
@@ -1704,7 +1659,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                        final name = p['name'] ?? 'Unknown';
                        final isSelected = !isSelfMarking && targetEntryId == id;
                         
-                       return _buildSelectionRow(
+                       return buildSelectionRow(
                          context,
                          ref,
                          isSelected: isSelected,
@@ -1717,6 +1672,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                              ref.read(markerSelectionProvider.notifier).selectTarget(id);
                            }
                          },
+                         defaultTeeName: event.selectedTeeName ?? 'White',
                        );
                     }),
 
@@ -1728,17 +1684,22 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.lightbulb_outline, size: 16, color: Theme.of(context).primaryColor),
+                            Icon(Icons.lightbulb_outline, size: 16, color: Theme.of(context).colorScheme.primary),
                             const SizedBox(width: 8),
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Tee overrides update the scorecard immediately for that player.',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black54),
+                                style: AppTypography.caption.copyWith(
+                                  fontSize: 10, 
+                                  fontWeight: FontWeight.w900, 
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                ),
                               ),
                             ),
                           ],
@@ -1980,7 +1941,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     };
   }
 
-  Widget _buildSelectionRow(
+  Widget buildSelectionRow(
     BuildContext context, 
     WidgetRef ref, {
     required bool isSelected,
@@ -1989,6 +1950,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     required List<dynamic> tees,
     required Map<String, String> overrides,
     required VoidCallback onSelect,
+    required String defaultTeeName,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -2008,10 +1970,30 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                          color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                          size: 20,
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected 
+                                  ? Theme.of(context).colorScheme.onSurface 
+                                  : Colors.grey.shade400,
+                              width: isSelected ? 2 : 1.5,
+                            ),
+                          ),
+                          child: isSelected 
+                              ? Center(
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                )
+                              : null,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -2019,10 +2001,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                             name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: AppTypography.caption.copyWith(
                               fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                              color: isSelected ? Colors.black : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                              color: isSelected 
+                                  ? Theme.of(context).colorScheme.onSurface 
+                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                             ),
                           ),
                         ),
@@ -2034,120 +2018,117 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               
               const SizedBox(width: 12),
               
-              // Right Col (Horizontal Tee Picker)
+              // Right Col (Tee Dropdown)
               Expanded(
                 flex: 1,
-                child: _buildHorizontalTeePicker(context, ref, entryId, tees, overrides),
+                child: buildTeeDropdown(context, ref, entryId, tees, overrides, defaultTeeName),
               ),
             ],
           ),
-          const Divider(height: 1, color: Colors.black12),
+          Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
         ],
       ),
     );
   }
 
-  Widget _buildHorizontalTeePicker(BuildContext context, WidgetRef ref, String entryId, List<dynamic> tees, Map<String, String> overrides) {
+  Widget buildTeeDropdown(BuildContext context, WidgetRef ref, String entryId, List<dynamic> tees, Map<String, String> overrides, String defaultTeeName) {
      final String? persistedTee = overrides[entryId];
-     final matchedTee = tees.firstWhereOrNull((t) => 
-       t['name']?.toString().toLowerCase().trim() == persistedTee?.toLowerCase().trim()
-     );
-     final String? currentTee = matchedTee != null ? matchedTee['name']?.toString() : null;
      
-     return SingleChildScrollView(
-       scrollDirection: Axis.horizontal,
-       child: Row(
-         mainAxisSize: MainAxisSize.min,
-         children: [
-           // "Auto" button
-           _buildTeeChip(
-             context, 
-             ref, 
-             entryId: entryId, 
-             name: 'Auto', 
-             color: Colors.grey.shade400, 
-             isSelected: currentTee == null,
-             onTap: () => ref.read(markerSelectionProvider.notifier).clearManualTee(entryId),
-           ),
-           
-           // List of course tees
-           ...tees.map((t) {
-             final name = t['name']?.toString() ?? 'Tee';
-             final isSelected = name == currentTee;
-             return _buildTeeChip(
-               context, 
-               ref, 
-               entryId: entryId, 
-               name: name, 
-               color: _parseTeeColor(name), 
-               isSelected: isSelected,
-               onTap: () => ref.read(markerSelectionProvider.notifier).setManualTee(entryId, name),
-             );
-           }),
-         ],
+     // The current selection could be null (Auto) or a specific tee name.
+     // If the persisted tee matches the default tee, map it to null (Auto)
+     // because the default tee is intentionally excluded from the manual list.
+     String? currentTeeValue = persistedTee;
+     if (currentTeeValue != null && currentTeeValue.toLowerCase().trim() == defaultTeeName.toLowerCase().trim()) {
+       currentTeeValue = null;
+     }
+     
+     return Container(
+       height: 36,
+       padding: const EdgeInsets.symmetric(horizontal: 8),
+       decoration: BoxDecoration(
+         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+         borderRadius: BorderRadius.circular(8),
+         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+       ),
+       child: DropdownButtonHideUnderline(
+         child: DropdownButton<String?>(
+           value: currentTeeValue,
+           isExpanded: true,
+           icon: const Icon(Icons.arrow_drop_down, size: 20),
+           onChanged: (String? newValue) {
+             if (newValue == null) {
+               ref.read(markerSelectionProvider.notifier).clearManualTee(entryId);
+             } else {
+               ref.read(markerSelectionProvider.notifier).setManualTee(entryId, newValue);
+             }
+           },
+           items: [
+             // "Auto" (Default) Option
+             DropdownMenuItem<String?>(
+               value: null,
+               child: Row(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                   Container(
+                     width: 8, height: 8,
+                     decoration: BoxDecoration(
+                       color: _parseTeeColor(defaultTeeName),
+                       shape: BoxShape.circle,
+                     ),
+                   ),
+                   const SizedBox(width: 8),
+                   Expanded(
+                     child: Text(
+                       defaultTeeName,
+                       overflow: TextOverflow.ellipsis,
+                       style: AppTypography.caption.copyWith(
+                         fontSize: 13, 
+                         fontWeight: FontWeight.w900,
+                         color: Theme.of(context).colorScheme.onSurface,
+                       ),
+                     ),
+                   ),
+                 ],
+               ),
+             ),
+             // List of available tees
+             ...tees.where((t) {
+               final name = t['name']?.toString() ?? 'Tee';
+               return name.toLowerCase().trim() != defaultTeeName.toLowerCase().trim();
+             }).map((t) {
+               final name = t['name']?.toString() ?? 'Tee';
+               return DropdownMenuItem<String?>(
+                 value: name,
+                 child: Row(
+                   mainAxisSize: MainAxisSize.min,
+                   children: [
+                     Container(
+                       width: 8, height: 8,
+                       decoration: BoxDecoration(
+                         color: _parseTeeColor(name),
+                         shape: BoxShape.circle,
+                       ),
+                     ),
+                     const SizedBox(width: 8),
+                     Expanded(
+                       child: Text(
+                         name,
+                         overflow: TextOverflow.ellipsis,
+                         style: AppTypography.caption.copyWith(
+                           fontSize: 13, 
+                           fontWeight: FontWeight.w900,
+                           color: Theme.of(context).colorScheme.onSurface,
+                         ),
+                       ),
+                     ),
+                   ],
+                 ),
+               );
+             }),
+           ],
+         ),
        ),
      );
-  }
-
-  Widget _buildTeeChip(BuildContext context, WidgetRef ref, {
-    required String entryId,
-    required String name,
-    required Color color,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: () {
-          debugPrint(' [Tee Selection] Tapped: $name for $entryId');
-          onTap();
-        },
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? color : Colors.black.withValues(alpha: 0.1),
-              width: isSelected ? 3 : 1.5,
-            ),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: color.withValues(alpha: 0.2),
-                blurRadius: 6,
-                spreadRadius: 1,
-                offset: const Offset(0, 2),
-              )
-            ] : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 14, height: 14,
-                decoration: BoxDecoration(
-                  color: color, 
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                  color: isSelected ? Colors.black : Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Color _parseTeeColor(String teeName) {
@@ -2186,11 +2167,9 @@ class EventStatsUserTab extends ConsumerWidget {
           title: event.title,
           subtitleWidget: Text(
             'Advanced Stats',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black,
+            style: AppTypography.caption.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w900,
-              letterSpacing: -0.2,
             ),
           ),
           showBack: true,
@@ -2233,45 +2212,25 @@ class _LiveHubToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(eventDetailsTabProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final tabs = <({String label, int index, IconData icon, Color? activeColor, Color? inactiveColor})>[
-      (label: 'My Score', index: 0, icon: Icons.grid_view_outlined, activeColor: null, inactiveColor: null),
-      (label: 'Group', index: 1, icon: Icons.people_outline, activeColor: null, inactiveColor: null),
-      (label: 'Leaderboard', index: 2, icon: Icons.star_border, activeColor: AppColors.lime500, inactiveColor: AppColors.lime500),
+    final tabs = <ModernFilterTab<int>>[
+      const ModernFilterTab(label: 'My Score', value: 0),
+      const ModernFilterTab(label: 'Group', value: 1),
+      const ModernFilterTab(label: 'Leaderboard', value: 2),
     ];
 
     if (event.matches.isNotEmpty) {
-      tabs.add((label: 'Matches', index: 4, icon: Icons.format_list_bulleted, activeColor: null, inactiveColor: null));
+      tabs.add(const ModernFilterTab(label: 'Matches', value: 4));
     }
     if (event.matches.any((m) => m.bracketId != null)) {
-      tabs.add((label: 'Bracket', index: 5, icon: Icons.account_tree_outlined, activeColor: null, inactiveColor: null));
+      tabs.add(const ModernFilterTab(label: 'Bracket', value: 5));
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-            width: 1.0,
-          ),
-        ),
-      ),
-      child: Row(
-        children: tabs.map((tab) {
-          final isSelected = selectedTab == tab.index;
-          return Expanded(
-            child: _ToggleItem(
-              label: tab.label,
-              icon: tab.icon,
-              isSelected: isSelected,
-              onTap: () => ref.read(eventDetailsTabProvider.notifier).set(tab.index),
-              activeColorOverride: tab.activeColor,
-              inactiveColorOverride: tab.inactiveColor,
-            ),
-          );
-        }).toList(),
-      ),
+    return ModernUnderlinedFilterBar<int>(
+      selectedValue: selectedTab,
+      isExpanded: true,
+      onTabSelected: (val) => ref.read(eventDetailsTabProvider.notifier).set(val),
+      tabs: tabs,
     );
   }
 }

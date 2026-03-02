@@ -18,14 +18,13 @@ class AdminEventsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Events',
+      subtitle: 'Manage society events and calendar',
       showBack: false,
-      actions: [
-        BoxyArtGlassIconButton(
-          icon: Icons.add_rounded,
-          tooltip: 'Create Event',
-          onPressed: () => context.push('/admin/events/new'),
-        ),
-      ],
+      titleSuffix: BoxyArtGlassIconButton(
+        icon: Icons.add_rounded,
+        tooltip: 'Create Event',
+        onPressed: () => context.push('/admin/events/new'),
+      ),
       slivers: [
         eventsAsync.when(
           data: (events) {
@@ -45,7 +44,7 @@ class AdminEventsScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 // Upcoming Section
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
                   child: BoxyArtSectionTitle(title: 'Upcoming Events', ),
                 ),
                 if (upcoming.isEmpty)
@@ -165,13 +164,19 @@ class AdminEventsScreen extends ConsumerWidget {
                   // Bottom Pill Row
                   const SizedBox(height: 12),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildGameTypePill(context, ref, event.id),
-                      if (event.isInvitational) ...[
-                        const SizedBox(width: 8),
-                        _buildInvitationalBadge(),
-                      ],
-                      const Spacer(),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildGameTypePill(context, ref, event.id),
+                            if (event.isInvitational) _buildInvitationalBadge(),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       _buildStatusBadge(event),
                     ],
                   ),
@@ -196,6 +201,7 @@ class AdminEventsScreen extends ConsumerWidget {
           event: event,
           currencySymbol: config.currencySymbol,
           isPreview: true,
+          useScaffold: false,
           onCancel: () => Navigator.pop(dialogContext),
           onEdit: () {
             Navigator.pop(dialogContext);
@@ -206,10 +212,10 @@ class AdminEventsScreen extends ConsumerWidget {
               event.copyWith(status: newStatus),
             );
           },
-          bottomNavigationBar: ModernSubTabBar(
+          bottomNavigationBar: BoxyArtBottomNavBar(
             selectedIndex: 0,
             borderColor: Color(config.primaryColor),
-            onSelected: (index) {
+            onItemSelected: (index) {
               Navigator.pop(dialogContext);
               if (index == 0) return;
               
@@ -223,11 +229,11 @@ class AdminEventsScreen extends ConsumerWidget {
               context.push(routes[index], extra: event);
             },
             items: const [
-              ModernSubTabItem(icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded, label: 'Info'),
-              ModernSubTabItem(icon: Icons.people_outline, activeIcon: Icons.people, label: 'Registration'),
-              ModernSubTabItem(icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_sharp, label: 'Grouping'),
-              ModernSubTabItem(icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events, label: 'Scores'),
-              ModernSubTabItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, label: 'Reports'),
+              BoxyArtBottomNavItem(icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded, label: 'Info'),
+              BoxyArtBottomNavItem(icon: Icons.people_outline, activeIcon: Icons.people, label: 'Registration'),
+              BoxyArtBottomNavItem(icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_sharp, label: 'Grouping'),
+              BoxyArtBottomNavItem(icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events, label: 'Scores'),
+              BoxyArtBottomNavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, label: 'Reports'),
             ],
           ),
         );

@@ -48,21 +48,25 @@ class FirestoreCompetitionsRepository implements CompetitionsRepository {
   }
 
   @override
-  Stream<List<Competition>> watchCompetitions({CompetitionStatus? status}) {
-    var query = _compsRef.where('isTemplate', isEqualTo: false);
-    if (status != null) {
-      query = query.where('status', isEqualTo: status.name);
+  Stream<List<Competition>> watchCompetitions({List<CompetitionStatus>? statuses}) {
+    // Actually, Firestore doesn't allow whereIn and isNotEqualTo on different fields sometimes, 
+    // but here we just want the base query.
+    var baseQuery = _compsRef; 
+    
+    if (statuses != null && statuses.isNotEmpty) {
+      return baseQuery.where('status', whereIn: statuses.map((s) => s.name).toList()).snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) => doc.data()).toList();
+      });
     }
-    return query.snapshots().map((snapshot) {
+    
+    return baseQuery.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => doc.data()).toList();
     });
   }
 
   @override
   Future<List<Competition>> getCompetitions() async {
-    final snapshot = await _compsRef
-        .where('isTemplate', isEqualTo: false)
-        .get();
+    final snapshot = await _compsRef.get();
     return snapshot.docs.map((doc) => doc.data()).toList();
   }
 

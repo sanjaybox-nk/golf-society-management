@@ -1,3 +1,24 @@
+### Admin Design 3.1 Hardening (Phases 13-15) (2026-03-02)
+- **Admin Section Refactor**: Systematically refactored the entire Admin section (Dashboard, Settings, Member Roster, Notifications, Seasons) to match **Boxy Art 3.1** standards.
+- **Legacy Component Elimination**: Replaced generic `ListTile` and `Scaffold` widgets with professional `BoxyArtCard` and `HeadlessScaffold` implementations.
+- **Interactive Notifications**: Upgraded `ComposeNotificationScreen` with a modern segmented target selector and branded form controls.
+- **Typography & Rhythm Audit**: Standardized all spacing and font sizes using `AppSpacing` and `AppTypography` tokens, eliminating ad-hoc overrides.
+- **Zero-Issue Analysis**: Achieved and verified a 0-issue baseline across the entire Admin module with `flutter analyze`.
+
+### Premium Reporting Suite & Executive Hub (2026-03-02)
+- **Executive Reporting Hub**: Transformed the Society Hub into a comprehensive reporting engine with deep metrics for finances, engagement, and competition performance.
+- **Treasury Ledger**: Implemented real-time society balance tracking, including uncollected revenue alerts and markup analysis.
+- **Engagement Analytics**: Added retention rate tracking, "Ever-Present" member recognition, and proactive re-engagement churn alerts.
+- **Professional Exports**: Added native support for **Export to PDF** and **Export to CSV** for all major society reports.
+- **Performance Deep-Dives**: Integrated Course Difficulty Index and Podium Consistency leaderboards for advanced member performance analysis.
+
+### Real-Time Member Stats & UI Hardening (2026-03-02)
+- **Authoritative Member Stats**: Migrated the Member Profile (Locker Room) from mock data to real-time aggregations sourced from Firestore scorecards.
+- **Dynamic Performance Highlights**: Implemented live calculation of Rounds Played, Average Score, and Best Score on the Member Home and Locker Room.
+- **Event Stats Hardening**: Hardened the `EventStatsTab` with robust empty states and loading feedback, ensuring visibility when scoring is in progress or completed.
+- **Admin UI Polish (Design 3.1)**: Upgraded `OrderOfMeritControl` with Boxy Art 3.1 design tokens, including premium input fields and refined spacing.
+- **Repository Optimization**: Enhanced `ScorecardRepository` with cross-competition member query support (`watchMemberScorecards`).
+
 ### Design System Harmonization & Zero-Issue Build (2026-02-27)
 - **Zero-Issue Ecosystem**: Completely eliminated all 45+ `padding` deprecation warnings on `BoxyArtSectionTitle` using robust AST-style multi-line Python scripts, achieving a perfect `0 issues` state across the entire `Golf Society Management` codebase.
 - **Sub-Menu Harmonization**: Upgraded legacy pill-shaped filter chips (e.g., `MembersScreen`, `AdminMembersScreen`) to the sleek, underlined `ModernUnderlinedFilterBar` component to match the v3.1 `LiveHubToggle` standard.

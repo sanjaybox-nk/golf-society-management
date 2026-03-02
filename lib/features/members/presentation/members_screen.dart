@@ -58,10 +58,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
       behavior: HitTestBehavior.opaque,
       child: HeadlessScaffold(
         title: 'Members',
+        subtitle: 'Members Roster',
         backgroundColor: beigeBackground,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Search & Filter Card

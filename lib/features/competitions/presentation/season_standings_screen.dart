@@ -8,16 +8,22 @@ import '../../members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
-class SeasonStandingsScreen extends ConsumerWidget {
+class SeasonStandingsScreen extends ConsumerStatefulWidget {
   final String? seasonId;
 
   const SeasonStandingsScreen({super.key, this.seasonId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SeasonStandingsScreen> createState() => _SeasonStandingsScreenState();
+}
+
+class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
+  String? _selectedLeaderboardId;
+
+  @override
+  Widget build(BuildContext context) {
     final currentUser = ref.watch(effectiveUserProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
-    final primary = Theme.of(context).primaryColor;
     final currentUserId = currentUser.id;
     final activeSeasonAsync = ref.watch(activeSeasonProvider);
 
@@ -39,38 +45,45 @@ class SeasonStandingsScreen extends ConsumerWidget {
            );
         }
 
-        return DefaultTabController(
-          length: season.leaderboards.length,
-          child: Scaffold(
-            backgroundColor: beigeBackground,
-            body: Stack(
-              children: [
-                Column(
-                  children: [
-                    const SizedBox(height: 80),
-                    _buildHeader(context, season),
-                    const SizedBox(height: 12),
-                    TabBar(
-                      isScrollable: true,
-                      indicatorColor: primary,
-                      labelColor: primary,
-                      unselectedLabelColor: Colors.grey.shade400,
-                      dividerColor: Colors.transparent,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-                      tabAlignment: TabAlignment.start,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      tabs: season.leaderboards.map((l) => Tab(text: l.name.toUpperCase())).toList(),
+        if (_selectedLeaderboardId == null || !season.leaderboards.any((l) => l.id == _selectedLeaderboardId)) {
+          // Initialize in next frame to avoid build phase setState equivalent if needed, but it's fine to just fall back
+           _selectedLeaderboardId = season.leaderboards.first.id;
+        }
+
+        final currentId = _selectedLeaderboardId ?? season.leaderboards.first.id;
+
+        return Scaffold(
+          backgroundColor: beigeBackground,
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  const SizedBox(height: 80),
+                  _buildHeader(context, season),
+                  const SizedBox(height: 12),
+                  ModernUnderlinedFilterBar<String>(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    tabs: season.leaderboards.map((l) => ModernFilterTab(
+                      label: l.name.toUpperCase(), 
+                      value: l.id,
+                    )).toList(),
+                    selectedValue: currentId,
+                    onTabSelected: (val) {
+                      setState(() {
+                        _selectedLeaderboardId = val;
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: _LeaderboardTab(
+                      key: ValueKey(currentId),
+                      seasonId: season.id, 
+                      leaderboardId: currentId, 
+                      currentUserId: currentUserId,
                     ),
-                    Expanded(
-                      child: TabBarView(
-                        children: season.leaderboards.map((config) {
-                           return _LeaderboardTab(seasonId: season.id, leaderboardId: config.id, currentUserId: currentUserId);
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
                 
                 // Back Button sticky
                 Positioned(
@@ -107,8 +120,7 @@ class SeasonStandingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-        );
+          );
       },
       loading: () => Scaffold(backgroundColor: beigeBackground, body: const Center(child: CircularProgressIndicator())),
       error: (e, s) => Scaffold(backgroundColor: beigeBackground, body: Center(child: Text('Error: $e'))),
@@ -149,7 +161,7 @@ class _LeaderboardTab extends ConsumerWidget {
   final String leaderboardId;
   final String currentUserId;
 
-  const _LeaderboardTab({required this.seasonId, required this.leaderboardId, required this.currentUserId});
+  const _LeaderboardTab({super.key, required this.seasonId, required this.leaderboardId, required this.currentUserId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -165,7 +177,10 @@ class _LeaderboardTab extends ConsumerWidget {
           slivers: [
             if (standings.length >= 3)
               SliverToBoxAdapter(
-                child: _PodiumHeader(standings: standings.take(3).toList()),
+                child: _PodiumHeader(
+                  standings: standings.take(3).toList(),
+                  config: config,
+                ),
               ),
             
             if (config != null)
@@ -176,21 +191,56 @@ class _LeaderboardTab extends ConsumerWidget {
                 ),
               ),
 
-            SliverPadding(
-              padding: const EdgeInsets.only(bottom: 100),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final standing = standings[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                      child: _StandingRow(standing: standing, rank: index + 1, isMe: standing.memberId == currentUserId),
-                    );
-                  },
-                  childCount: standings.length,
+            if (standings.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.leaderboard_outlined, 
+                        size: 64, 
+                        color: Theme.of(context).brightness == Brightness.dark 
+                           ? AppColors.dark150.withValues(alpha: 0.2) 
+                           : AppColors.dark400.withValues(alpha: 0.2)
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'NO STANDINGS YET', 
+                        style: AppTypography.label.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                          letterSpacing: 1.2,
+                        )
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Standings will appear here once events in this season are published and calculated.', 
+                        textAlign: TextAlign.center, 
+                        style: AppTypography.bodySmall.copyWith(color: Colors.grey)
+                      ),
+                      const SizedBox(height: 100), // Account for bottom padding
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.only(bottom: 100),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final standing = standings[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                        child: _StandingRow(standing: standing, rank: index + 1, isMe: standing.memberId == currentUserId),
+                      );
+                    },
+                    childCount: standings.length,
+                  ),
                 ),
               ),
-            ),
           ],
         );
       },
@@ -259,11 +309,20 @@ class _LeaderboardTab extends ConsumerWidget {
 
 class _PodiumHeader extends StatelessWidget {
   final List<LeaderboardStanding> standings;
+  final LeaderboardConfig? config;
 
-  const _PodiumHeader({required this.standings});
+  const _PodiumHeader({required this.standings, this.config});
 
   @override
   Widget build(BuildContext context) {
+    // Resolve Unit
+    final String unit = config?.map(
+      orderOfMerit: (_) => 'PTS',
+      bestOfSeries: (bos) => bos.metric == BestOfMetric.stableford ? 'PTS' : 'STR',
+      eclectic: (_) => 'STR',
+      markerCounter: (_) => 'BIRDIES',
+    ) ?? 'PTS';
+
     return Container(
       height: 220,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -271,11 +330,11 @@ class _PodiumHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // 2nd Place
-          Expanded(child: _PodiumSpot(standing: standings[1], rank: 2)),
+          Expanded(child: _PodiumSpot(standing: standings[1], rank: 2, unit: unit)),
           // 1st Place
-          Expanded(child: _PodiumSpot(standing: standings[0], rank: 1, isWinner: true)),
+          Expanded(child: _PodiumSpot(standing: standings[0], rank: 1, isWinner: true, unit: unit)),
           // 3rd Place
-          Expanded(child: _PodiumSpot(standing: standings[2], rank: 3)),
+          Expanded(child: _PodiumSpot(standing: standings[2], rank: 3, unit: unit)),
         ],
       ),
     );
@@ -286,8 +345,14 @@ class _PodiumSpot extends StatelessWidget {
   final LeaderboardStanding standing;
   final int rank;
   final bool isWinner;
+  final String unit;
 
-  const _PodiumSpot({required this.standing, required this.rank, this.isWinner = false});
+  const _PodiumSpot({
+    required this.standing, 
+    required this.rank, 
+    this.isWinner = false,
+    required this.unit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -340,8 +405,8 @@ class _PodiumSpot extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         Text(
-          '${standing.points.toStringAsFixed(0)} PTS',
-          style: TextStyle(fontSize: 12, color: primary, fontWeight: FontWeight.bold),
+          '${standing.points.toStringAsFixed(0)} $unit',
+          style: TextStyle(fontSize: 10, color: primary, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Container(

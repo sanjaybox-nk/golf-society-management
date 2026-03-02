@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,12 +21,13 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'package:golf_society/features/competitions/services/leaderboard_invoker_service.dart';
 import 'persistence_service.dart';
 
 /// Unified Seeding Service for both basic and advanced demo data.
 class SeedingService {
   final Ref ref;
-  final Random _random = Random();
+  final Random _random = Random(42); // Fixed seed for consistent demo data
   
   SeedingService(this.ref);
 
@@ -74,7 +76,6 @@ class SeedingService {
       'competitions', 
       'seasons', 
       'members',
-      'leaderboard_templates',
       'notifications'
     ];
     
@@ -137,20 +138,24 @@ class SeedingService {
 
     // 6. Seed Events in Chronological order to apply cuts
     final List<({String title, CompetitionFormat format, bool isInvitational, CompetitionSubtype subtype, DateTime date, EventStatus status, bool isMultiDay, DateTime? endDate})> eventPlan = [
-      (title: 'Season Opener: The Frozen Tee', format: CompetitionFormat.stroke, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 1, 21), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Spring Classic', format: CompetitionFormat.scramble, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 3, 15), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Mid-Summer Open', format: CompetitionFormat.stableford, isInvitational: true, subtype: CompetitionSubtype.fourball, date: DateTime(2025, 7, 15), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Autumn Series #1', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 9, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'October Stableford', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 10, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'November Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 11, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Winter Series #1', format: CompetitionFormat.matchPlay, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 11, 20), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The Post-Christmas Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 28), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'New Year Bowl', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Season Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The Masters Simulation', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 10), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 11)),
-      (title: 'Foursomes Invitational', format: CompetitionFormat.stroke, isInvitational: true, subtype: CompetitionSubtype.foursomes, date: DateTime(2026, 2, 12), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The Penultimate Round', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 18), status: EventStatus.published, isMultiDay: false, endDate: null),
-      (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 21), status: EventStatus.published, isMultiDay: false, endDate: null),
+      // 2025 Historical Events
+      (title: '2025 Season Opener', format: CompetitionFormat.stroke, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 3, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'Spring Classic 25', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 4, 15), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'The Masters Week Sim', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 5, 20), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'Summer Stability Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.fourball, date: DateTime(2025, 7, 12), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'Autumn Match Play', format: CompetitionFormat.matchPlay, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 9, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'The October Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 10, 18), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'Winter Series Final 25', format: CompetitionFormat.stroke, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'Christmas Classic', format: CompetitionFormat.stableford, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 28), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      
+      // 2026 - Current Active Season
+      (title: 'Happy New Year Bowl', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'January Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 25), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'Valentine\'s Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.fourball, date: DateTime(2026, 2, 14), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'The Winter Major', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 28), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 28)),
+      (title: 'St Patricks Day Special', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 17), status: EventStatus.published, isMultiDay: false, endDate: null),
+      (title: 'The April Fools Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 1), status: EventStatus.published, isMultiDay: false, endDate: null),
+      (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 30), status: EventStatus.published, isMultiDay: false, endDate: null),
     ];
 
     for (int i = 0; i < eventPlan.length; i++) {
@@ -186,6 +191,9 @@ class SeedingService {
          }
       }
     }
+
+    // 10. RECALCULATE ALL LEADERBOARDS (Authoritative)
+    await ref.read(leaderboardInvokerServiceProvider).recalculateAll(seasonId);
   }
 
   Future<String> _seedSeason() async {
@@ -204,7 +212,7 @@ class SeedingService {
           name: 'Order of Merit',
           source: OOMSource.position,
           appearancePoints: 2,
-          positionPointsMap: {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1},
+          positionPointsMap: {1: 15, 2: 12, 3: 10, 4: 8, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1},
         ),
         LeaderboardConfig.bestOfSeries(
           id: 'best_5_demo_2026',
@@ -389,48 +397,166 @@ class SeedingService {
         'rating': yellowTee.rating,
       },
       hasBreakfast: true,
+      hasLunch: _random.nextBool(),
       hasDinner: true,
-      maxParticipants: 40,
-      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of $format followed by a group dinner and prize giving ceremony.',
+      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of $format followed by a group dinner and prize giving ceremony. The course is in excellent condition and we look forward to a great turnout!',
       registrationDeadline: date.subtract(const Duration(days: 7)),
-      memberCost: 45.0 + _random.nextInt(20),
-      guestCost: 55.0 + _random.nextInt(20),
+      
+      // Society Costs [NEW]
+      societyGreenFee: 40.0 + _random.nextInt(20),
+      societyBreakfastCost: 10.0,
+      societyLunchCost: 15.0,
+      societyDinnerCost: 25.0,
+      
+      // Retail Pricing (Cost + 10%) [NEW]
+      memberCost: ((40.0 + (_random.nextInt(20))) * 1.10).roundToDouble(),
+      guestCost: (((40.0 + (_random.nextInt(20))) * 1.10) + 10.0).roundToDouble(),
+      breakfastCost: (10.0 * 1.10).roundToDouble(),
+      lunchCost: (15.0 * 1.10).roundToDouble(),
+      dinnerCost: (25.0 * 1.10).roundToDouble(),
+      buggyCost: (15.0 * 1.10).roundToDouble(),
+      availableBuggies: 10 + _random.nextInt(20),
+      dinnerLocation: 'The Clubhouse Restaurant',
+      dressCode: 'Smart Casual / No Jeans',
+      facilities: ['Pro Shop', 'Driving Range', 'Changing Rooms', 'Halfway House'],
+      maxParticipants: 40,
+
+      isGroupingPublished: status != EventStatus.draft, // [FIX] Top-level visibility flag
+      notes: [
+        EventNote(
+          title: 'Welcome Message',
+          content: jsonEncode([
+            {'insert': 'Welcome to the '},
+            {'insert': title, 'attributes': {'bold': true}},
+            {'insert': '!\n\nPlease arrive at least 45 minutes before your tee time for registration and breakfast. We have some fantastic prizes lined up for the winners and runners-up.\n'}
+          ]),
+        ),
+        EventNote(
+          title: 'Course Update',
+          content: jsonEncode([
+            {'insert': 'The greenkeepers have been working hard to prepare the course. The greens are running fast and true. Enjoy your round!\n'}
+          ]),
+          imageUrl: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80',
+        ),
+      ],
+      galleryUrls: [
+        'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=400&q=80',
+        'https://images.unsplash.com/photo-1623912150935-64903328e19e?auto=format&fit=crop&w=400&q=80',
+      ],
     );
 
     // Registration Matrix
     final List<EventRegistration> regs = [];
     final targetRegCount = 30 + _random.nextInt(15);
-    final cardStatus = status == EventStatus.completed ? ScorecardStatus.finalScore : ScorecardStatus.draft;
     
+    final eventMemberCost = event.memberCost ?? 0.0;
+    final eventGuestCost = event.guestCost ?? 0.0;
+    final eventBreakfastCost = event.breakfastCost ?? 0.0;
+    final eventLunchCost = event.lunchCost ?? 0.0;
+    final eventDinnerCost = event.dinnerCost ?? 0.0;
+    final eventBuggyCost = event.buggyCost ?? 0.0;
+
     // Sanjay
     final hero = members.firstWhereOrNull((m) => m.id == 'demo_hero_sanjay');
     if (hero != null) {
+      double totalCost = eventMemberCost;
+      totalCost += eventBreakfastCost; // Always attends breakfast
+      totalCost += eventLunchCost;    // Always attends lunch
+      totalCost += eventDinnerCost;   // Always attends dinner
+      
+      // Hero Sanjay usually takes a buggy
+      const needsBuggy = true;
+      if (needsBuggy) totalCost += eventBuggyCost;
+
       regs.add(EventRegistration(
-        memberId: hero.id, memberName: hero.displayName, attendingGolf: true,
-        attendingBreakfast: true, attendingLunch: true, attendingDinner: true,
-        hasPaid: true, isConfirmed: true, handicap: hero.handicap,
-        registeredAt: date.subtract(const Duration(days: 25)), statusOverride: 'confirmed',
+        memberId: hero.id,
+        memberName: hero.displayName,
+        attendingGolf: true,
+        attendingBreakfast: true,
+        attendingLunch: true,
+        attendingDinner: true,
+        needsBuggy: needsBuggy,
+        hasPaid: true,
+        isConfirmed: true,
+        handicap: hero.handicap,
+        registeredAt: date.subtract(const Duration(days: 25)),
+        statusOverride: 'confirmed',
+        cost: totalCost,
       ));
     }
+
+    final eventHasBreakfast = event.hasBreakfast;
+    final eventHasLunch = event.hasLunch;
+    final eventHasDinner = event.hasDinner;
 
     for (int i = 0; i < targetRegCount; i++) {
         final m = members[i % members.length];
         if (m.id == 'demo_hero_sanjay') continue;
         
-        bool isWithdrawn = _random.nextDouble() < 0.08;
-        bool attendingGolf = !isWithdrawn && regs.length < 40;
+        bool isWithdrawn = _random.nextDouble() < 0.05;
+        bool isConfirmed = !isWithdrawn && regs.length < 40;
         String? regStatus = isWithdrawn ? 'withdrawn' : (regs.length >= 40 ? 'waitlist' : 'confirmed');
+        
+        final attendsBreakfast = eventHasBreakfast && _random.nextDouble() < 0.7;
+        final attendsLunch = eventHasLunch && _random.nextDouble() < 0.3;
+        final attendsDinner = eventHasDinner && _random.nextDouble() < 0.9;
+        final needsBuggy = _random.nextDouble() < 0.25;
+
+        // Guest logic (20% chance)
+        bool hasGuest = !isWithdrawn && _random.nextDouble() < 0.2;
+        String? guestName;
+        if (hasGuest) {
+          final guestLastNames = ['Smith', 'Jones', 'Taylor', 'Brown', 'Williams'];
+          guestName = '${guestLastNames[_random.nextInt(guestLastNames.length)]} (Guest)';
+        }
+
+        // Calculate Cost [NEW]
+        double totalCost = 0;
+        if (isConfirmed) {
+          totalCost += eventMemberCost;
+          if (attendsBreakfast) totalCost += eventBreakfastCost;
+          if (attendsLunch) totalCost += eventLunchCost;
+          if (attendsDinner) totalCost += eventDinnerCost;
+          if (needsBuggy) totalCost += eventBuggyCost;
+
+          if (hasGuest) {
+            totalCost += eventGuestCost;
+            if (attendsBreakfast) totalCost += eventBreakfastCost;
+            if (attendsLunch) totalCost += eventLunchCost;
+            if (attendsDinner) totalCost += eventDinnerCost;
+            if (needsBuggy) totalCost += eventBuggyCost;
+          }
+        }
 
         regs.add(EventRegistration(
-          memberId: m.id, memberName: m.displayName, attendingGolf: attendingGolf,
-          attendingDinner: true, hasPaid: attendingGolf, isConfirmed: regStatus == 'confirmed',
-          handicap: m.handicap, registeredAt: date.subtract(Duration(days: 30 - (i % 20))),
+          memberId: m.id,
+          memberName: m.displayName,
+          attendingGolf: isConfirmed,
+          attendingBreakfast: attendsBreakfast,
+          attendingLunch: attendsLunch,
+          attendingDinner: attendsDinner,
+          needsBuggy: needsBuggy,
+          guestName: guestName,
+          guestHandicap: hasGuest ? (15 + _random.nextInt(15)).toString() : null,
+          guestAttendingBreakfast: hasGuest && attendsBreakfast,
+          guestAttendingLunch: hasGuest && attendsLunch,
+          guestAttendingDinner: hasGuest && attendsDinner,
+          guestNeedsBuggy: hasGuest && needsBuggy,
+          hasPaid: isConfirmed && _random.nextDouble() < 0.8,
+          isConfirmed: isConfirmed,
+          guestIsConfirmed: isConfirmed && hasGuest,
+          handicap: m.handicap,
+          registeredAt: date.subtract(Duration(days: 30 - (i % 20))),
           statusOverride: regStatus,
+          cost: totalCost,
         ));
     }
 
     final updatedEvent = event.copyWith(registrations: regs);
     await eventRepo.addEvent(updatedEvent);
+
+    final cardStatus = status == EventStatus.completed ? ScorecardStatus.finalScore : ScorecardStatus.submitted;
 
     // Competition Rules
     final matchingTemplate = templates.where((t) => t.rules.format == format && t.rules.subtype == subtype).firstOrNull;
@@ -502,6 +628,9 @@ class SeedingService {
               points: isStableford ? pointsTotal : null,
               handicapIndex: index, playingHandicap: phc,
               netTotal: grossTotal - phc.round(),
+              submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) 
+                  ? date.copyWith(hour: 14, minute: _random.nextInt(60)) 
+                  : null,
               createdAt: DateTime.now(), updatedAt: DateTime.now(),
           ));
           results.add({'playerId': entryId, 'playerName': p.name, 'points': isStableford ? pointsTotal : (grossTotal - phc.round()), 'holeScores': holeScores, 'phc': phc});
@@ -509,7 +638,44 @@ class SeedingService {
     }
 
     results.sort((a, b) => (b['points'] as num).compareTo(a['points'] as num));
-    await eventRepo.updateEvent(updatedEvent.copyWith(grouping: {'groups': groups.map((g) => g.toJson()).toList(), 'isPublished': true}, results: status == EventStatus.completed ? results : []));
+    
+    // [PHASE 1] Add sample expenses and awards for the reporting hub [REFINED]
+    final double totalGreenFees = updatedEvent.societyGreenFee! * updatedEvent.playingCount;
+    final double totalBreakfast = (updatedEvent.societyBreakfastCost ?? 0) * updatedEvent.registrations.where((r) => r.attendingBreakfast).length;
+    final double totalLunch = (updatedEvent.societyLunchCost ?? 0) * updatedEvent.registrations.where((r) => r.attendingLunch).length;
+    final double totalDinner = (updatedEvent.societyDinnerCost ?? 0) * updatedEvent.registrations.where((r) => r.attendingDinner).length;
+
+    final List<EventExpense> expenses = [
+      EventExpense(id: 'exp_${updatedEvent.id}_green_fees', label: 'Green Fees', amount: totalGreenFees, category: 'Venue'),
+      EventExpense(id: 'exp_${updatedEvent.id}_catering', label: 'Catering (All Meals)', amount: totalBreakfast + totalLunch + totalDinner, category: 'Food'),
+      EventExpense(id: 'exp_${updatedEvent.id}_prizes_cash', label: 'Cash Prizes', amount: 150.0, category: 'Prize'),
+    ];
+
+    final List<EventAward> awards = [
+      EventAward(
+        id: 'award_${updatedEvent.id}_winner', 
+        label: '1st Place', 
+        type: 'Cup', 
+        value: 0, 
+        winnerId: results.isNotEmpty ? results[0]['playerId'] : null, 
+        winnerName: results.isNotEmpty ? results[0]['playerName'] : null
+      ),
+      EventAward(
+        id: 'award_${updatedEvent.id}_cash_1', 
+        label: '1st Place Cash', 
+        type: 'Cash', 
+        value: 75.0, 
+        winnerId: results.isNotEmpty ? results[0]['playerId'] : null, 
+        winnerName: results.isNotEmpty ? results[0]['playerName'] : null
+      ),
+    ];
+
+    await eventRepo.updateEvent(updatedEvent.copyWith(
+      grouping: {'groups': groups.map((g) => g.toJson()).toList(), 'isPublished': true}, 
+      results: results,
+      expenses: expenses,
+      awards: awards,
+    ));
     
     return results;
   }

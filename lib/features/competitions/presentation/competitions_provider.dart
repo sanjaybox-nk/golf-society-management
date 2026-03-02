@@ -15,8 +15,8 @@ final scorecardRepositoryProvider = Provider<ScorecardRepository>((ref) {
   return FirestoreScorecardRepository();
 });
 
-final competitionsListProvider = StreamProvider.family<List<Competition>, CompetitionStatus?>((ref, status) {
-  return ref.watch(competitionsRepositoryProvider).watchCompetitions(status: status);
+final competitionsByStatusesProvider = StreamProvider.family<List<Competition>, List<CompetitionStatus>>((ref, statuses) {
+  return ref.watch(competitionsRepositoryProvider).watchCompetitions(statuses: statuses);
 });
 
 final templatesListProvider = StreamProvider<List<Competition>>((ref) {

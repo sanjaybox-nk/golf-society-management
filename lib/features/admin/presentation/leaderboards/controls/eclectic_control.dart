@@ -36,9 +36,10 @@ class _EclecticControlState extends State<EclecticControl> {
         children: [
           BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                BoxyArtFormField(
+                BoxyArtInputField(
                   label: 'Name',
                   controller: _nameController,
                   validator: (v) => v!.isEmpty ? 'Required' : null,
@@ -49,10 +50,19 @@ class _EclecticControlState extends State<EclecticControl> {
           const SizedBox(height: 24),
           BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildEnumDropdown('Metric', EclecticMetric.values, _metric, (v) => setState(() => _metric = v!)),
+                BoxyArtDropdownField<EclecticMetric>(
+                  label: 'Metric',
+                  value: _metric,
+                  items: EclecticMetric.values.map((v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(_formatEnum(v.name)),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _metric = v!),
+                ),
                 
                 if (_metric == EclecticMetric.strokes) ...[
                   const SizedBox(height: 24),
@@ -61,38 +71,37 @@ class _EclecticControlState extends State<EclecticControl> {
                     children: [
                       Text(
                         'HANDICAP ALLOWANCE',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold
+                        style: AppTypography.label.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
                         ),
                       ),
                       Text(
                         '${_handicapPercentage.toInt()}%',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
+                        style: AppTypography.bodySmall.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.lime500,
                         ),
                       ),
                     ],
                   ),
-                  Slider(
+                  const SizedBox(height: 8),
+                  BoxyArtSlider(
                     value: _handicapPercentage,
                     min: 0,
                     max: 100,
-                    divisions: 20, // 5% increments? 20 divisions = 5%. 4 divisions = 25%.
-                    // Let's typically do 0, 25, 50, 75, 85, 95, 100...
-                    // Standard divisions:
-                    // 0, 5, 10 ... 100 (20 steps)
+                    divisions: 20,
                     label: '${_handicapPercentage.toInt()}%',
-                    activeColor: Theme.of(context).primaryColor,
                     onChanged: (v) => setState(() => _handicapPercentage = v),
                   ),
                   Text(
                     _handicapPercentage == 0 
                       ? 'Gross Score (No Handicap applied)' 
                       : 'Net Score (Gross - ${_handicapPercentage.toInt()}% of Final Handicap)',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontStyle: FontStyle.italic),
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.dark400,
+                      fontSize: 10,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
 
@@ -112,36 +121,6 @@ class _EclecticControlState extends State<EclecticControl> {
     );
   }
 
-  Widget _buildEnumDropdown<T>(String label, List<T> values, T currentValue, Function(T?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label.toUpperCase(), style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).dividerColor),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<T>(
-              value: currentValue,
-              isExpanded: true,
-              dropdownColor: Theme.of(context).cardColor,
-              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-              onChanged: onChanged,
-              items: values.map((v) => DropdownMenuItem(
-                value: v,
-                child: Text(_formatEnum(v.toString().split('.').last)),
-              )).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   String _formatEnum(String val) {
     final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
@@ -173,7 +152,7 @@ class _EclecticControlState extends State<EclecticControl> {
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor, 
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -196,19 +175,19 @@ class _EclecticControlState extends State<EclecticControl> {
           width: 80, 
           child: Text(
             '$label:', 
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              color: Theme.of(context).primaryColor,
-              fontSize: 13
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w900, 
+              color: AppColors.lime500,
+              fontSize: 11,
             )
           )
         ),
         Expanded(
           child: Text(
             value, 
-            style: TextStyle(
-              fontSize: 13,
-              color: Theme.of(context).textTheme.bodyMedium?.color
+            style: AppTypography.label.copyWith(
+              fontSize: 11,
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )
         ),

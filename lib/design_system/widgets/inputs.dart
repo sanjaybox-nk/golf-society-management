@@ -252,34 +252,91 @@ class BoxyArtSwitchField extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label,
-                style: AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                label.toUpperCase(),
+                style: AppTypography.label.copyWith(
+                  color: isDark ? AppColors.dark150 : const Color(0xFF404040),
                 ),
               ),
-              if (subtitle != null)
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
                 Text(
                   subtitle!,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? AppColors.dark200 : AppColors.dark300,
+                    color: isDark ? AppColors.dark300 : AppColors.dark400,
                   ),
                 ),
+              ],
             ],
           ),
         ),
         Switch(
           value: value,
           onChanged: onChanged,
+          activeThumbColor: AppColors.lime500,
+          activeTrackColor: AppColors.lime500.withValues(alpha: 0.2),
+          inactiveThumbColor: AppColors.dark300,
+          inactiveTrackColor: AppColors.dark500.withValues(alpha: 0.5),
+          trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.selected)) {
               return isDark ? AppColors.lime500 : AppColors.lime700;
             }
-            return null;
+            return isDark ? AppColors.dark150 : AppColors.dark300;
           }),
         ),
       ],
+    );
+  }
+}
+
+/// A standardized branded slider for configuration controls.
+class BoxyArtSlider extends StatelessWidget {
+  final double value;
+  final double min;
+  final double max;
+  final int? divisions;
+  final String? label;
+  final ValueChanged<double> onChanged;
+
+  const BoxyArtSlider({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.min = 0,
+    this.max = 1.0,
+    this.divisions,
+    this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = AppColors.lime500;
+    
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        activeTrackColor: primary,
+        inactiveTrackColor: primary.withValues(alpha: 0.15),
+        thumbColor: primary,
+        overlayColor: primary.withValues(alpha: 0.12),
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+        valueIndicatorColor: primary,
+        valueIndicatorTextStyle: const TextStyle(
+          color: AppColors.actionText, 
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+      child: Slider(
+        value: value.clamp(min, max),
+        min: min,
+        max: max,
+        divisions: divisions,
+        label: label,
+        onChanged: onChanged,
+      ),
     );
   }
 }
@@ -309,7 +366,7 @@ class ModernSwitchRow extends StatelessWidget {
           children: [
             if (icon != null) ...[
               if (icon is IconData)
-                Icon(icon, size: 20, color: Theme.of(context).primaryColor)
+                Icon(icon, size: 20, color: AppColors.lime500)
               else
                 (icon as Widget),
               const SizedBox(width: 12),

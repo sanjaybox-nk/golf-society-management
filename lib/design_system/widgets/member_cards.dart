@@ -61,13 +61,19 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     
     final bool canEdit = isAdmin && isEditing;
 
-    // Force White Layout (Consistent with MemberTile)
-    const textColor = Colors.black87;
+    // Determine Colors from Theme
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.colorScheme.onSurface;
+    final subColor = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
+    final inputFill = isDark ? AppColors.dark600 : AppColors.dark50;
+    final inputBorder = isDark ? AppColors.dark500 : AppColors.dark200;
 
     final society = ref.watch(themeControllerProvider);
     final system = society.handicapSystem;
 
     return BoxyArtCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -91,16 +97,16 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                         ),
                         child: CircleAvatar(
                           radius: 40,
-                          backgroundColor: Colors.grey.shade100,
+                          backgroundColor: isDark ? AppColors.dark600 : AppColors.dark50,
                           backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
                           child: avatarUrl == null
                               ? Text(
                                   (firstName.isNotEmpty ? firstName[0] : '') +
                                   (lastName.isNotEmpty ? lastName[0] : ''),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w900,
-                                    color: Colors.black54,
+                                    color: isDark ? AppColors.dark300 : AppColors.dark400,
                                   ),
                                 )
                               : null,
@@ -121,10 +127,13 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 14,
-                              color: Colors.white,
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -137,14 +146,14 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: subColor,
                         letterSpacing: 0.5,
                       ),
                     ),
                   ],
                 ],
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 24),
               // Name / Stats Section (Top Right)
               Expanded(
                 child: Column(
@@ -152,127 +161,140 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   children: [
                     // Name
                     Text(
-                      firstName.isEmpty && lastName.isEmpty ? 'New Member' : '$firstName $lastName',
-                      style: TextStyle(
+                      '$firstName $lastName'.toUpperCase(),
+                      style: AppTypography.displayHeading.copyWith(
                         fontSize: 22,
-                        fontWeight: FontWeight.w800,
                         color: textColor,
-                        letterSpacing: -0.7,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     
                     // HC / Handicap ID Stats Row (Under Name)
                     if (isEditing)
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                BoxyArtSectionTitle(
-                                  title: 'Handicap',
-                                  isLevel2: true,
-                                ),
-                                const SizedBox(height: 6),
-                                Container(
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF8F9FA),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.black.withValues(alpha: 0.2)),
-                                  ),
-                                  child: TextFormField(
-                                    controller: handicapController,
-                                    focusNode: handicapFocusNode,
-                                    textAlign: TextAlign.center,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    readOnly: !isAdmin,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 10),
-                                    ),
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isAdmin ? Colors.black : Colors.black54),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, bottom: 4),
+                                child: Text(
+                                  'Handicap'.toUpperCase(),
+                                  style: AppTypography.label.copyWith(
+                                    fontSize: 10,
+                                    color: isDark ? AppColors.dark150 : AppColors.dark300,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: inputFill,
+                                  borderRadius: AppShapes.md,
+                                  border: Border.all(color: inputBorder),
+                                ),
+                                child: TextFormField(
+                                  controller: handicapController,
+                                  focusNode: handicapFocusNode,
+                                  textAlign: TextAlign.center,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  readOnly: !isAdmin,
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isAdmin ? textColor : subColor),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                BoxyArtSectionTitle(
-                                  title: system.idLabel,
-                                  isLevel2: true,
-                                ),
-                                const SizedBox(height: 6),
-                                Container(
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF8F9FA),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.black.withValues(alpha: 0.2)),
-                                  ),
-                                  child: TextFormField(
-                                    controller: handicapIdController,
-                                    focusNode: handicapIdFocusNode,
-                                    textAlign: TextAlign.center,
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      border: InputBorder.none,
-                                      hintText: system.hintText,
-                                      hintStyle: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                                    ),
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                          const SizedBox(height: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, bottom: 4),
+                                child: Text(
+                                  system.idLabel.toUpperCase(),
+                                  style: AppTypography.label.copyWith(
+                                    fontSize: 10,
+                                    color: isDark ? AppColors.dark150 : AppColors.dark300,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: inputFill,
+                                  borderRadius: AppShapes.md,
+                                  border: Border.all(color: inputBorder),
+                                ),
+                                child: TextFormField(
+                                  controller: handicapIdController,
+                                  focusNode: handicapIdFocusNode,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    border: InputBorder.none,
+                                    hintText: system.hintText,
+                                    hintStyle: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       )
                     else
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                BoxyArtSectionTitle(
-                                  title: 'Handicap',
-                                  isLevel2: true,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  handicapController?.text ?? '-',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor),
-                                ),
-                              ],
+                          // Handicap Group
+                          Text(
+                            'HANDICAP',
+                            style: AppTypography.caption.copyWith(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? AppColors.dark200 : AppColors.dark300,
+                              letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                BoxyArtSectionTitle(
-                                  title: system.idLabel,
-                                  isLevel2: true,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  handicapIdController?.text ?? '-',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor),
-                                ),
-                              ],
+                          const SizedBox(height: 4),
+                          Text(
+                            handicapController?.text ?? '-',
+                            style: AppTypography.displayMedium.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          // iGolf Group
+                          Text(
+                            system.idLabel.toUpperCase(),
+                            style: AppTypography.caption.copyWith(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? AppColors.dark200 : AppColors.dark300,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            handicapIdController?.text ?? '-',
+                            style: AppTypography.displayMedium.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -285,18 +307,14 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
           const SizedBox(height: 24),
           
           // Row 3: Bottom Row (Status, Fee, Member Badge -> ... -> Society Role)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               // 1. Status Pill (Interactive for Admin)
               if (canEdit && isAdmin)
                 PopupMenuButton<MemberStatus>(
-                  onSelected: onStatusChanged,
-                  color: Colors.white,
-                  surfaceTintColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 8,
-                  offset: const Offset(0, 48),
                   itemBuilder: (context) => MemberStatus.values
                       .where((s) => s != MemberStatus.active)
                       .map((s) => PopupMenuItem(
@@ -324,19 +342,15 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   color: status.color,
                 ),
               
-              const SizedBox(width: 8),
-              
               // 2. Member Role Badge (System Role)
               if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
                 GestureDetector(
                   onTap: canEdit ? onRoleTap : null,
                   child: BoxyArtPill(
                     label: (role?.displayName ?? 'Member').toUpperCase(),
-                    color: Colors.blueGrey,
+                    color: StatusColors.neutral,
                   ),
                 ),
-
-              const Spacer(),
 
               // 3. Fee Pill (Interactive for Admin)
               if (isAdmin) 
@@ -348,20 +362,19 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   ),
                 ),
 
-              const SizedBox(width: 8),
-
-              // 4. Society Role (President etc)
+              // 4. Society Role (President etc) - Standardized with Tokens
               if (onSocietyRoleTap != null && canEdit)
                 GestureDetector(
                   onTap: onSocietyRoleTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(20),
+                      color: primary,
+                      borderRadius: AppShapes.pill,
                       boxShadow: [
                         BoxShadow(
-                          color: primary.withValues(alpha: 0.2),
+                          color: primary.withValues(alpha: 0.25),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -372,32 +385,33 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       children: [
                         Text(
                           (societyRole?.isNotEmpty == true ? societyRole! : 'NO TITLE').toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 10,
+                          style: AppTypography.caption.copyWith(
+                            fontSize: 9,
                             fontWeight: FontWeight.w900,
                             color: AppColors.actionText,
-                            letterSpacing: 0.8,
+                            letterSpacing: 1.0,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.actionText),
+                        const Icon(Icons.keyboard_arrow_down, size: 12, color: AppColors.actionText),
                       ],
                     ),
                   ),
                 )
               else if (societyRole?.isNotEmpty == true)
                 Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(20),
+                    color: primary,
+                    borderRadius: AppShapes.pill,
                   ),
                   child: Text(
                     societyRole!.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 10,
+                    style: AppTypography.caption.copyWith(
+                      fontSize: 9,
                       fontWeight: FontWeight.w900,
                       color: AppColors.actionText,
-                      letterSpacing: 0.8,
+                      letterSpacing: 1.0,
                     ),
                   ),
                 ),
@@ -437,7 +451,7 @@ class ModernMemberCard extends StatelessWidget {
     return BoxyArtCard(
       onTap: onTap,
       backgroundColor: cardBg,
-      borderRadius: 16,
+      borderRadius: AppShapes.rLg,
       child: Row(
         children: [
           // Position badge
@@ -446,7 +460,7 @@ class ModernMemberCard extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppShapes.sm,
             ),
             child: Center(
               child: Text(

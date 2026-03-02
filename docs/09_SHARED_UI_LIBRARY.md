@@ -21,6 +21,12 @@ A specialized horizontal card for informational notes.
 - Includes `title`, `content`, and optional `imageUrl`.
 - Automatically handles vertical spacing and image clipping.
 
+### `CompetitionRulesCard` (Hardened Feature Card)
+A high-integrity card for displaying complex competition rules.
+- **Hardened Architecture**: Standalone implementation with unique background (#151515) and "Alignment Lock" to ensure absolute left-alignment of icons and text regardless of the parent theme.
+- **Features**: Specialized header with large game icon, automatic rule translation text, and integrated `CompetitionBadgeRow`.
+- **Contexts**: Used in the Game Template Gallery, Event Application screens, and Admin Event forms.
+
 ## 2. Forms & Inputs (`inputs.dart`)
 
 ### `BoxyArtInputField`
@@ -68,17 +74,30 @@ Leaderboard rank indicators.
 ## 5. Buttons (`buttons.dart`)
 
 ### `BoxyArtButton`
-Multipurpose action button.
-- **Primary**: Lime 500 background, Dark 950 text.
-- **Secondary**: Outlined/Ghost variants for less critical actions.
-- **Loading State**: Displays a `CircularProgressIndicator` while maintaining size.
+Multipurpose action button targeting v3.1 aesthetics.
+- **Primary**: Lime 700 (Dark Mode) or Lime 500 (Light Mode) background.
+- **Secondary**: Outlined variant with refined borders.
+- **Ghost**: Text-only variant for subtle actions.
+- **Loading State**: Displays a `CircularProgressIndicator` while maintaining layout stability.
+
+### `BoxyArtGlassIconButton`
+A specialized round icon button with a low-opacity glass background.
+- **Context**: Used heavily in Admin headers and grid actions for a premium Feel.
 
 ## 6. Layout Utils (`layout.dart`, `sections.dart`)
 
 ### `BoxyArtSectionTitle`
 Standard uppercase header for grouping content.
 - **Typography**: `AppTypography.label` with increased letter spacing.
+- **Dynamic Counts**: Supports an optional `count` property to display participant totals (e.g., "GUESTS (4)") within the title.
 - **Spacing Guidelines**: The `padding` property is strictly **deprecated**. Global spacing harmony is now enforced at the component level to ensure consistent vertical rhythm across all screens. Do not inject ad-hoc `EdgeInsets`.
+
+### `BoxyArtScorecardTile`
+The universal component for displaying a player's or team's score.
+- **Visuals**: Primary player names are always in `Pure White` (900 weight) for maximum legibility.
+- **Features**: Supports individual avatars or `avatarNames` stacks for Pairs/Teams.
+- **Metadata**: Fixed-width leading section for ranking badges or avatars.
+- **Pro Max Labels**: Optimized for high-density metadata like "THRU 12" or "SUBMITTED 14:15".
 
 ### `ModernMetricStat`
 High-density data widget for displaying counts (e.g. "Playing: 24/32").

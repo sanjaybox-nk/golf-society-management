@@ -1,6 +1,5 @@
 
 import 'package:golf_society/design_system/design_system.dart';
-import '../widgets/admin_bottom_nav_bar.dart';
 import 'compose_notification_screen.dart';
 import 'audience_manager_screen.dart';
 import 'notification_history_screen.dart';
@@ -24,25 +23,26 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
   @override
   Widget build(BuildContext context) {
     return HeadlessScaffold(
+      useScaffold: false,
       title: 'Communications',
       showBack: false,
-      bottomNavigationBar: AdminBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+      bottomNavigationBar: BoxyArtBottomNavBar(
+        selectedIndex: _currentIndex,
+        onItemSelected: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.send_outlined),
-            activeIcon: Icon(Icons.send_rounded),
+          BoxyArtBottomNavItem(
+            icon: Icons.send_outlined,
+            activeIcon: Icons.send_rounded,
             label: 'Compose',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline_rounded),
-            activeIcon: Icon(Icons.people_rounded),
+          BoxyArtBottomNavItem(
+            icon: Icons.people_outline_rounded,
+            activeIcon: Icons.people_rounded,
             label: 'Audience',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_rounded),
-            activeIcon: Icon(Icons.history_toggle_off_rounded),
+          BoxyArtBottomNavItem(
+            icon: Icons.history_rounded,
+            activeIcon: Icons.history_toggle_off_rounded,
             label: 'History',
           ),
         ],

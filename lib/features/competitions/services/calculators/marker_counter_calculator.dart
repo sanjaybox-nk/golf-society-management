@@ -23,13 +23,16 @@ class MarkerCounterCalculator implements LeaderboardCalculator {
       // We'll need a way to find the event. For now, let's assume we have access or fallback to default par 72/pars 4.
       
       // Filter cards for this competition
-      final compCards = scorecards.where((s) => s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok).toList();
+      final compCards = scorecards.where((s) {
+        final isExcluded = comp.rules.oomExcludedRoundIds.contains(s.roundId);
+        return s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok && !isExcluded;
+      }).toList();
 
       for (var card in compCards) {
-        if (!playerStats.containsKey(card.submittedByUserId)) {
-          playerStats[card.submittedByUserId] = _PlayerStats(memberId: card.submittedByUserId);
+        if (!playerStats.containsKey(card.entryId)) {
+          playerStats[card.entryId] = _PlayerStats(memberId: card.entryId);
         }
-        final stats = playerStats[card.submittedByUserId]!;
+        final stats = playerStats[card.entryId]!;
 
         // We calculate stats for this specific round
         double roundScore = 0;

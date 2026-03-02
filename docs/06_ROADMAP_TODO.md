@@ -62,6 +62,14 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Branding Settings Screen**: Live preview, color picker, dark mode policy.
     - [x] **Status Color System**: Semantic palette for consistent status indicators.
     - [x] **Contrast Helper**: Automatic text color calculation for accessibility.
+- [x] **Society Reporting Hub (Premium Suite)**
+    - [x] **Executive Dashboard**: Season progress, society pulse, and treasury overview.
+    - [x] **Financial Tracking**: Treasury ledger with markup analysis and uncollected revenue alerts.
+    - [x] **Engagement Analytics**: Retention rates, churn alerts, and attendance rankings.
+    - [x] **Professional Exports**: Native Export to PDF and CSV support.
+- [x] **Admin Design 3.1 Hardening**
+    - [x] **Full UI Refactor**: Dashboard, Settings, Members, Notifications, and Seasons aligned to Boxy Art 3.1.
+    - [x] **Typography & Rhythm Audit**: Standardized all spacing and font tokens using Design 3.1 primitives.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**

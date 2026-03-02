@@ -8,7 +8,6 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 
 class MemberHomeScreen extends ConsumerWidget {
@@ -16,7 +15,6 @@ class MemberHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
     final effectiveUser = ref.watch(effectiveUserProvider);
     final isPeeking = ref.watch(impersonationProvider) != null;
     
@@ -160,16 +158,9 @@ class MemberHomeScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      actions: [
-                        const AdminShortcutAction(),
-                        if (currentUser.role == MemberRole.superAdmin || currentUser.role == MemberRole.admin) ...[
-                          _buildActionCircle(
-                            context,
-                            Icons.palette_rounded,
-                            () => context.push('/home/design-lab'),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
+                      actions: const [
+                        AdminShortcutAction(),
+                        SizedBox(width: 8),
                       ],
                     ),
           
@@ -258,22 +249,6 @@ class MemberHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionCircle(BuildContext context, IconData icon, VoidCallback onTap) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 20, color: Theme.of(context).iconTheme.color),
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-      ),
-    );
-  }
 }
 
 class _NextMatchCard extends StatelessWidget {
@@ -423,10 +398,31 @@ class _LeaderboardSnippet extends StatelessWidget {
     return BoxyArtCard(
       padding: const EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (topPlayers.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                   Icon(Icons.info_outline_rounded, size: 16, color: Colors.grey.shade400),
+                   const SizedBox(width: 8),
+                   Text(
+                     'No standings recorded yet.',
+                     style: TextStyle(
+                       fontSize: 13,
+                       color: Colors.grey.shade500,
+                       fontWeight: FontWeight.w500,
+                     ),
+                   ),
+                ],
+              ),
+            ),
+
           ...topPlayers.map((player) {
             final position = player['position'] as int;
             final isFirst = position == 1;
+            final isMe = player['name'] == personalStanding?.memberName;
             
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -436,7 +432,9 @@ class _LeaderboardSnippet extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isFirst ? primary.withValues(alpha: 0.15) : Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                      color: isMe 
+                        ? Colors.blue.withValues(alpha: 0.15)
+                        : (isFirst ? primary.withValues(alpha: 0.15) : Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
@@ -447,7 +445,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color,
+                              color: isMe ? Colors.blue : (isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color),
                             ),
                           ),
                     ),
@@ -458,7 +456,8 @@ class _LeaderboardSnippet extends StatelessWidget {
                       player['name'] as String,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: isFirst ? FontWeight.w900 : FontWeight.bold,
+                        fontWeight: (isFirst || isMe) ? FontWeight.w900 : FontWeight.bold,
+                        color: isMe ? Colors.blue : null,
                       ),
                     ),
                   ),
@@ -467,7 +466,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 15,
-                      color: isFirst ? primary : null,
+                      color: isMe ? Colors.blue : (isFirst ? primary : null),
                     ),
                   ),
                 ],
@@ -498,33 +497,35 @@ class _LeaderboardSnippet extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '#${personalStanding!.points.round()}', // Placeholder for rank if we don't have it in standing, wait
+                  '#${personalStanding!.points.round()}',
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: primary),
                 ),
               ],
             ),
           ],
 
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 4),
-          TextButton(
-            onPressed: () => context.push('/locker/standings'),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Full Season Standings',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: primary,
+          if (topPlayers.isNotEmpty || personalStanding != null) ...[
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: () => context.push('/locker/standings'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Full Season Standings',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: primary,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded, size: 16, color: primary),
-              ],
+                  const SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, size: 16, color: primary),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

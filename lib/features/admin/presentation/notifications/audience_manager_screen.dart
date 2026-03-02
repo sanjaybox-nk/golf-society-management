@@ -25,139 +25,143 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
   @override
   Widget build(BuildContext context) {
     final listsAsync = ref.watch(distributionListProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const Text(
-                  'Audience Groups',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -1,
+    final content = CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Audience Groups',
+                        style: AppTypography.displayHeading,
+                      ),
+                      Text(
+                        'Manage custom mailing lists',
+                        style: AppTypography.displayMedium.copyWith(
+                          fontSize: 14,
+                          color: isDark ? AppColors.dark150 : AppColors.dark300,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Text(
-                  'Manage custom mailing lists',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontWeight: FontWeight.w500,
+                  BoxyArtGlassIconButton(
+                    icon: Icons.add_rounded,
+                    onPressed: () => _showCreateListDialog(),
+                    tooltip: 'New Group',
                   ),
-                ),
-                const SizedBox(height: 24),
-                
-                listsAsync.when(
-                  data: (lists) {
-                    if (lists.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(48.0),
-                          child: Column(
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              listsAsync.when(
+                data: (lists) {
+                  if (lists.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(48.0),
+                        child: Column(
+                          children: [
+                            Icon(Icons.group_work_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No custom groups found',
+                              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: lists.map((list) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Dismissible(
+                        key: Key(list.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 24),
+                          child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
+                        ),
+                        confirmDismiss: (direction) async {
+                          return await showBoxyArtDialog<bool>(
+                            context: context,
+                            title: 'Delete Group?',
+                            message: 'Are you sure you want to delete "${list.name}"?',
+                            onCancel: () => Navigator.of(context).pop(false),
+                            onConfirm: () => Navigator.of(context).pop(true),
+                            confirmText: 'Delete',
+                          );
+                        },
+                        onDismissed: (_) {
+                          ref.read(distributionListsRepositoryProvider).deleteList(list.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Deleted ${list.name}')),
+                          );
+                        },
+                        child: BoxyArtCard(
+                          onTap: () => _showCreateListDialog(listToEdit: list),
+                          child: Row(
                             children: [
-                              Icon(Icons.group_work_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No custom groups found',
-                                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: 24),
                               ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      list.name, 
+                                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800),
+                                    ),
+                                    Text(
+                                      '${list.memberIds.length} members', 
+                                      style: AppTypography.label.copyWith(
+                                        color: isDark ? AppColors.dark200 : AppColors.dark400,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(Icons.arrow_forward_ios_rounded, color: isDark ? AppColors.dark300 : AppColors.dark200, size: 12),
                             ],
                           ),
                         ),
-                      );
-                    }
-
-                    return Column(
-                      children: lists.map((list) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Dismissible(
-                          key: Key(list.id),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 24),
-                            child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
-                          ),
-                          confirmDismiss: (direction) async {
-                            return await showBoxyArtDialog<bool>(
-                              context: context,
-                              title: 'Delete Group?',
-                              message: 'Are you sure you want to delete "${list.name}"?',
-                              onCancel: () => Navigator.of(context).pop(false),
-                              onConfirm: () => Navigator.of(context).pop(true),
-                              confirmText: 'Delete',
-                            );
-                          },
-                          onDismissed: (_) {
-                            ref.read(distributionListsRepositoryProvider).deleteList(list.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Deleted ${list.name}')),
-                            );
-                          },
-                          child: BoxyArtCard(
-                            onTap: () => _showCreateListDialog(listToEdit: list),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: 24),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        list.name, 
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-                                      ),
-                                      Text(
-                                        '${list.memberIds.length} members', 
-                                        style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13, fontWeight: FontWeight.w500)
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )).toList(),
-                    );
-                  },
-                  loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-                  error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
-                ),
-                const SizedBox(height: 100),
-              ]),
-            ),
+                      ),
+                    )).toList(),
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+                error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+              ),
+              const SizedBox(height: 100),
+            ]),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateListDialog(),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('New Group', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+        ),
+      ],
     );
+
+    return content;
   }
 }
 
@@ -288,21 +292,11 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   BoxyArtCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _nameController,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                          decoration: InputDecoration(
-                            labelText: 'List Name',
-                            labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 14),
-                            hintText: 'e.g. Committee 2026',
-                            hintStyle: TextStyle(color: theme.dividerColor.withValues(alpha: 0.3)),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ],
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: BoxyArtInputField(
+                      label: 'List Name',
+                      hint: 'e.g. Committee 2026',
+                      controller: _nameController,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -353,14 +347,11 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                   const SizedBox(height: 12),
                   BoxyArtCard(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: TextField(
+                    child: BoxyArtInputField(
+                      label: 'Search Members',
+                      hint: 'Search by name or email...',
                       onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                      decoration: InputDecoration(
-                        hintText: 'Search by name or email...',
-                        hintStyle: TextStyle(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5), fontSize: 14),
-                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                        border: InputBorder.none,
-                      ),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
                     ),
                   ),
                   const SizedBox(height: 12),

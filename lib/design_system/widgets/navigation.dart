@@ -1,150 +1,13 @@
 import 'package:golf_society/design_system/design_system.dart';
 
-/// A high-fidelity tab bar for sub-navigation (e.g. within an event).
-class ModernSubTabBar extends StatelessWidget {
-  final int selectedIndex;
-  final List<ModernSubTabItem> items;
-  final ValueChanged<int> onSelected;
-  final Color? unselectedColor;
-  final Color? borderColor;
-
-  const ModernSubTabBar({
-    super.key,
-    required this.selectedIndex,
-    required this.items,
-    required this.onSelected,
-    this.unselectedColor,
-    this.borderColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
-    
-    // Dock Proportions
-    final availableWidth = screenWidth - 64; // Horizontal margins (32 * 2)
-    final itemWidth = availableWidth / items.length;
-    final indicatorWidth = itemWidth * 0.65;
-    const double indicatorHeight = 36.0;
-    const double dockHeight = 60.0;
-
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(32, 0, 32, 12),
-        height: dockHeight,
-        width: availableWidth,
-        decoration: BoxDecoration(
-          color: (isDark ? AppColors.dark600 : AppColors.pureWhite),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.dark950.withValues(alpha: isDark ? 0.3 : 0.08),
-              blurRadius: 30,
-              offset: const Offset(0, 8),
-            ),
-          ],
-          border: Border.all(
-            color: borderColor ?? (isDark ? AppColors.dark400 : AppColors.dark200), 
-            width: 0.5,
-          ),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Precision Highlight
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeOutQuart,
-              left: (selectedIndex * itemWidth) + (itemWidth - indicatorWidth) / 2,
-              top: 5.0,
-              child: Container(
-                width: indicatorWidth,
-                height: indicatorHeight,
-                decoration: ShapeDecoration(
-                  color: primary.withValues(alpha: 0.12),
-                  shape: ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-            ),
-            
-            // Tab Items
-            Row(
-              children: items.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final isSelected = index == selectedIndex;
-                final Color unselectedItemColor = unselectedColor ?? 
-                    (isDark ? AppColors.dark300 : AppColors.dark400);
-                
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => onSelected(index),
-                    behavior: HitTestBehavior.opaque,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 2),
-                        AnimatedScale(
-                          duration: const Duration(milliseconds: 300),
-                          scale: isSelected ? 1.1 : 1.0,
-                          curve: Curves.easeOutBack,
-                          child: Icon(
-                            isSelected ? item.activeIcon : item.icon,
-                            color: isSelected ? primary : unselectedItemColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.label,
-                          style: AppTypography.caption.copyWith(
-                            fontSize: 10.5,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected ? primary : unselectedItemColor,
-                            letterSpacing: 0.2,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-class ModernSubTabItem {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-
-  const ModernSubTabItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-  });
-}
-
 /// A horizontally scrolling, underlined filter bar used as a sleek alternative to pill chips.
 /// Matches the interaction style of the Event Top Menus.
-class ModernUnderlinedFilterBar<T> extends StatelessWidget {
+class ModernUnderlinedFilterBar<T> extends StatefulWidget {
   final List<ModernFilterTab<T>> tabs;
   final T selectedValue;
   final ValueChanged<T> onTabSelected;
   final EdgeInsetsGeometry padding;
+  final bool isExpanded;
 
   const ModernUnderlinedFilterBar({
     super.key,
@@ -152,35 +15,99 @@ class ModernUnderlinedFilterBar<T> extends StatelessWidget {
     required this.selectedValue,
     required this.onTabSelected,
     this.padding = EdgeInsets.zero,
+    this.isExpanded = false,
   });
+
+  @override
+  State<ModernUnderlinedFilterBar<T>> createState() => _ModernUnderlinedFilterBarState<T>();
+}
+
+class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar<T>> {
+  final Map<T, GlobalKey> _tabKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureKeys();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToSelected(widget.selectedValue, animate: false);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ModernUnderlinedFilterBar<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _ensureKeys();
+    if (oldWidget.selectedValue != widget.selectedValue) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToSelected(widget.selectedValue, animate: true);
+      });
+    }
+  }
+
+  void _ensureKeys() {
+    for (var tab in widget.tabs) {
+      if (!_tabKeys.containsKey(tab.value)) {
+        _tabKeys[tab.value] = GlobalKey();
+      }
+    }
+  }
+
+  void _scrollToSelected(T value, {bool animate = true}) {
+    if (widget.isExpanded) return;
+    final key = _tabKeys[value];
+    if (key != null && key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: animate ? const Duration(milliseconds: 300) : Duration.zero,
+        curve: Curves.easeInOut,
+        alignment: 0.5, // Centers the item in the view
+        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit, // Always force center alignment
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-            width: 1.0,
+    final childRow = Row(
+      mainAxisSize: widget.isExpanded ? MainAxisSize.max : MainAxisSize.min,
+      children: widget.tabs.map((tab) {
+        final isSelected = widget.selectedValue == tab.value;
+        final item = _UnderlinedTabItem(
+          key: _tabKeys[tab.value],
+          label: tab.label,
+          icon: tab.icon,
+          isSelected: isSelected,
+          onTap: () {
+            widget.onTabSelected(tab.value);
+            // Scroll logic is handled by didUpdateWidget when the parent rebuilds and passes the new selectedValue
+          },
+        );
+        return widget.isExpanded ? Expanded(child: item) : item;
+      }).toList(),
+    );
+
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        padding: widget.padding,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+              width: 1.0,
+            ),
           ),
         ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: tabs.map((tab) {
-            final isSelected = selectedValue == tab.value;
-            return _UnderlinedTabItem(
-              label: tab.label,
-              isSelected: isSelected,
-              onTap: () => onTabSelected(tab.value),
-            );
-          }).toList(),
-        ),
+        child: widget.isExpanded 
+            ? childRow 
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: childRow,
+              ),
       ),
     );
   }
@@ -188,21 +115,26 @@ class ModernUnderlinedFilterBar<T> extends StatelessWidget {
 
 class ModernFilterTab<T> {
   final String label;
+  final IconData? icon;
   final T value;
 
   const ModernFilterTab({
     required this.label,
+    this.icon,
     required this.value,
   });
 }
 
 class _UnderlinedTabItem extends StatelessWidget {
   final String label;
+  final IconData? icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _UnderlinedTabItem({
+    super.key,
     required this.label,
+    this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -221,25 +153,41 @@ class _UnderlinedTabItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 48, // Standard touch target
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? theme.primaryColor : Colors.transparent,
-              width: 3.0,
+              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+              width: 2.0, // Thinner, sharper underline
             ),
           ),
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: AppTypography.displayMedium.copyWith(
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected ? activeTextColor : inactiveTextColor,
-              letterSpacing: 0.2,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected ? activeTextColor : inactiveTextColor,
+              ),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                style: AppTypography.displayMedium.copyWith(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? activeTextColor : inactiveTextColor,
+                  letterSpacing: 0.3,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

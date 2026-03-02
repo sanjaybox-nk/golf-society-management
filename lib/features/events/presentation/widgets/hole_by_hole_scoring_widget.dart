@@ -312,11 +312,10 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                         Text(
                           'HOLE $currentHoleNum • PAR $par${si != null ? ' • SI $si' : ''}',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: AppTypography.caption.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w900,
-                            color: Colors.blueGrey.shade900,
-                            letterSpacing: 0.5,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
@@ -372,7 +371,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               children: [
                                 Icon(Icons.bolt, size: 12),
                                 SizedBox(width: 4),
-                                Text('SCORING', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                 Text('ENTER SCORE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                               ],
                             ),
                           ),
@@ -403,15 +402,26 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
 
   Widget _buildTab(BuildContext context, String label, int? score, bool isActive, VoidCallback? onTap, {bool hasConflict = false, Color? activeColor, bool isDisabled = false}) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final activeBg = activeColor ?? (isDark ? AppColors.pureWhite : theme.primaryColor);
+    final activeTextColor = isDark ? AppColors.dark900 : AppColors.pureWhite;
+
     return Expanded(
       child: GestureDetector(
         onTap: isDisabled ? null : onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(2), // Subtle inset for the pill
           decoration: BoxDecoration(
-            color: isActive ? (activeColor ?? theme.primaryColor) : Colors.transparent,
+            color: isActive ? activeBg : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: isActive ? AppShadows.softScale : null,
+            boxShadow: isActive ? [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
+            ] : null,
           ),
           alignment: Alignment.center,
           child: Row(
@@ -419,15 +429,14 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             children: [
               Text(
                 '$label${score != null ? ': $score' : ''}',
-                style: TextStyle(
-                  fontSize: 10,
+                style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
                   color: (hasConflict) 
-                      ? Colors.red 
+                      ? AppColors.coral500 
                       : (isActive 
-                          ? Colors.white 
-                          : (isDisabled ? Colors.grey.withValues(alpha: 0.5) : Colors.black)),
+                          ? activeTextColor 
+                          : (isDisabled ? theme.colorScheme.onSurface.withValues(alpha: 0.2) : theme.colorScheme.onSurface.withValues(alpha: 0.6))),
                 ),
               ),
               if (hasConflict) ...[

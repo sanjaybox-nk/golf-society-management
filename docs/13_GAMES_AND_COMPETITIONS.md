@@ -82,8 +82,15 @@ The event leaderboard provides a real-time view of the field with advanced prese
 - **Logic**: Follows standard R&A countback methods (Back 9, Back 6, etc.) using the player's specific Playing Handicap (PHC) for the course.
 
 ### 4.3 Member/Guest Separation
-- **Split Sections**: Guests are automatically identified (via the `_guest` suffix) and moved to a dedicated "Guest Leaderboard" section below the main field.
-- **Consistency**: Guests retain their "G" badge for easy identification in mixed lists.
+
+- **Automatic Identification**: Guests are automatically identified (via the `_guest` suffix or `isGuest` flag) and categorized in the standings.
+- **Global Control**: Administrators can set a society-wide default for guest visibility and separation in the **General Settings**.
+    - **Include Guests in Standings**: Whether guests appear on leaderboards by default.
+    - **Separate Guest Leaderboard**: Whether guests are moved to their own section or mixed with members.
+- **Event-Level Overrides**: Each competition can override the global defaults for granular control.
+    - **Include Guests**: A specific toggle per event to hide or show guests.
+    - **Separation Strategy**: A 3-way choice: *Auto (Follow Global)*, *Always Separate*, or *Always Mixed (Balanced)*.
+- **Visual Consistency**: Guests retain their "G" badge for easy identification regardless of the separation strategy.
 
 ### 4.4 Unified Scorecard View (Universal Parity)
 All player entries on the leaderboard and admin scoring lists share a unified "Universal Parity" layout:
@@ -92,9 +99,10 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Handicap Context**: Real-time display of the player's Index (HC) and Playing Handicap (PHC). Handicaps use **decimal precision** (e.g., 14.5) for transparency.
     - **Themed Layout**: Player rows on the leaderboard now feature handicaps directly below the name (e.g., `HC: 14.5 • PHC: 12`) with the PHC highlighted in the primary theme color.
     - **Explicit Tee Support**: The UI dynamically resolves Par/SI values based on the player's gender and the event's explicit tee configuration (`selectedFemaleTeeName`).
+    - **Dual Tee Display**: The Event Info Hub (`EventUserDetailsTab`) now displays both male and female tee positions (e.g., "Yellow / Red") when they differ, ensuring absolute clarity for mixed-gender fields.
     - **Header Sync**: Identical title and subtitle typography.
     - **Course Context**: A `CourseInfoCard` showing the tee configuration and performance summaries.
-- **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`TOTAL`, `HOLE`, `SCORES`) to create a premium, authoritative feel.
+- **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`TOTAL`, `HOLE`, `SCORES`) and **player names are consistently rendered in Pure White** for maximum legibility across all scorecard tiles.
 
 ## 5. UI Flow
 
@@ -122,9 +130,16 @@ Admins can select a template and immediately click **CUSTOMIZE RULES**. If the e
 - **Cache Invalidation**: After saving changes in the Competition Builder, the system explicitly invalidates the `competitionDetailProvider` cache to ensure the Event Form reflects the new rules immediately upon return.
 - **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI.
 
-## 5. Rule Visualization (Game Card)
+## 5. Rule Visualization (Hardened Competition Card)
 
-The `EventFormScreen` uses a rich, badge-based visualization to summarize the active game rules at a glance.
+The rules are presented via the `CompetitionRulesCard`, which uses a **Hardened Standalone Architecture** (introduced Feb 2026) to ensure absolute visual parity and visibility across all sections of the app (Template Gallery, Event Detail, and Admin Form).
+
+### Hardened Design Principles
+- **Standalone Integrity**: To prevent theme-level transparency or layout conflicts, the card is built as a standalone `Container` with a deep opaque background (`#151515`). It does NOT inherit from general `BoxyArtCard` logic, ensuring a permanent "Alignment Lock."
+- **Alignment Lock**: All text elements (Title, Subtitle, Rules, Badges) are explicitly anchored using `Align(Alignment.centerLeft)` to prevent accidental centering by parent themes or widgets.
+- **Icon Restoration**: Uses high-contrast, high-alpha icon containers (e.g., Orange for Secondary, Lime for Primary) to ensure the game type is always identifiable.
+- **Visibility Hardening**: The card forces a `double.infinity` width and uses standard `Material` wrappers to guarantee correct font rendering and shadow depth.
+- **Fallback Protection**: If no dynamic competition data is found for an event, the card automatically renders a generic "SETUP COMPETITION..." template version, ensuring it never disappears or leaves a gap in the UI.
 
 ### Visual Components
 - **Identity Badge**: [STABLEFORD] or [TEXAS SCRAMBLE] – Always shown in bold to identify the base format on both the event card and rules summary.
@@ -188,8 +203,10 @@ Core scoring logic is verified via a comprehensive test suite covering:
 -   **4BBB**: Partner-based better-ball selection logic.
 -   **Tee Mapping**: Gender-aware tee resolution (e.g., Red for Women) for mixed field equity.
 
-### 9.4 Authoritative Tee Resolution
-To prevent scoring discrepancies, the system enforces a strict synchronization pattern:
-- **Map-Based Sync**: The `ScoringCalculator` must receive a reconstructed `holes` map where Par and SI values are derived directly from the player's selected tee. 
-- **State Overrides**: Manual tee selections (via the Marker Sheet) take priority over event-level defaults, with independent state management ensuring all views (Group/Leaderboard/Hero) reflect the same data on the same frame.
-- **Guest Support**: Normalization of guest player IDs ensures resolution parity for non-member entries.
+### 9.5 Executive Performance Analytics
+
+Introduced in Phase 11, the **Society Hub** provides advanced cross-event analytics to identify performance trends:
+- **Course Difficulty Index**: Automatically ranks society courses by average Stableford points/Net strokes per round, identifying the toughest challenges for the membership.
+- **Podium Consistency**: A specialized leaderboard tracking members with the highest frequency of Top 3 finishes.
+- **Participation & Loyalty**: Deep engagement metrics identifying "Ever-Presents" and members requiring re-engagement based on missed event streaks.
+- **Prize Allocation Ledger**: Detailed logging of cash, cups, and vouchers distributed across the season.

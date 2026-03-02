@@ -15,6 +15,8 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   double _allowance = 1.0;
   int _handicapCap = 28;
   TieBreakMethod _tieBreak = TieBreakMethod.playoff;
+  bool _includeGuests = true;
+  bool? _separateGuests;
 
   @override
   CompetitionFormat get format => CompetitionFormat.matchPlay;
@@ -34,6 +36,8 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       _allowance = widget.competition!.rules.handicapAllowance;
       _handicapCap = widget.competition!.rules.handicapCap;
       _tieBreak = widget.competition!.rules.tieBreak;
+      _includeGuests = widget.competition!.rules.includeGuests;
+      _separateGuests = widget.competition!.rules.separateGuests;
     } else {
       _updateDefaultAllowance();
     }
@@ -129,6 +133,18 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
           onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
         ),
         buildInfoBubble('Match Play normally ends before 18 holes — a playoff is the standard resolution for all-square matches.'),
+
+        const SizedBox(height: 24),
+        const Divider(height: 1),
+        const SizedBox(height: 24),
+
+        // ── GUEST SETTINGS ────────────────────────────────────
+        buildGuestSettings(
+          includeGuests: _includeGuests,
+          separateGuests: _separateGuests,
+          onIncludeChanged: (val) => setState(() => _includeGuests = val),
+          onSeparateChanged: (val) => setState(() => _separateGuests = val),
+        ),
       ],
     );
   }
@@ -181,6 +197,8 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       handicapCap: _handicapCap,
       tieBreak: _tieBreak,
       holeByHoleRequired: true,
+      includeGuests: _includeGuests,
+      separateGuests: _separateGuests,
     );
   }
 

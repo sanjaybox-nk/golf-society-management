@@ -17,8 +17,33 @@ abstract class EventNote with _$EventNote {
   }) = _EventNote;
 
   factory EventNote.fromJson(Map<String, dynamic> json) => _$EventNoteFromJson(json);
-  @override
-  Map<String, dynamic> toJson();
+}
+
+@freezed
+abstract class EventExpense with _$EventExpense {
+  const factory EventExpense({
+    required String id,
+    required String label,
+    required double amount,
+    @Default('Misc') String category, // Venue, Food, Prize, Misc
+    @OptionalTimestampConverter() DateTime? date,
+  }) = _EventExpense;
+
+  factory EventExpense.fromJson(Map<String, dynamic> json) => _$EventExpenseFromJson(json);
+}
+
+@freezed
+abstract class EventAward with _$EventAward {
+  const factory EventAward({
+    required String id,
+    required String label,
+    @Default('Cash') String type, // Cup, Cash, Voucher
+    @Default(0.0) double value,
+    String? winnerId,
+    String? winnerName,
+  }) = _EventAward;
+
+  factory EventAward.fromJson(Map<String, dynamic> json) => _$EventAwardFromJson(json);
 }
 
 @freezed
@@ -53,6 +78,10 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(false) bool hasLunch,
     @Default(true) bool hasDinner,
     String? dinnerLocation,
+    double? societyGreenFee,
+    double? societyBreakfastCost,
+    double? societyLunchCost,
+    double? societyDinnerCost,
     @Default([]) List<EventNote> notes,
     @Default([]) List<String> galleryUrls,
     @Default(true) bool showRegistrationButton,
@@ -77,6 +106,9 @@ abstract class GolfEvent with _$GolfEvent {
     String? secondaryTemplateId, // Reference for Match Play overlay
     @Default(false) bool isInvitational,
     @Default(EventStatus.draft) EventStatus status,
+    @Default([]) List<EventExpense> expenses,
+    @Default(true) bool showAwards,
+    @Default([]) List<EventAward> awards,
   }) = _GolfEvent;
 
   bool get isRegistrationClosed {

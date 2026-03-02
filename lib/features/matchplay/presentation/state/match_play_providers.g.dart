@@ -52,7 +52,7 @@ final class CurrentMatchControllerProvider
 }
 
 String _$currentMatchControllerHash() =>
-    r'560d184628841e7a07f8435588d82c7b4b57700f';
+    r'e3958268891b5924e620f48fae541feda6778c98';
 
 final class CurrentMatchControllerFamily extends $Family
     with

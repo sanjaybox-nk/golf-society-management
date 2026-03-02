@@ -1,5 +1,4 @@
 import 'package:golf_society/design_system/design_system.dart';
-import '../widgets/admin_bottom_nav_bar.dart';
 import 'tabs/event_dashboard_tab.dart';
 
 
@@ -33,28 +32,28 @@ class _EventAdminScaffoldState extends State<EventAdminScaffold> {
     return HeadlessScaffold(
       title: _titles[_currentIndex],
       showBack: true,
-      bottomNavigationBar: AdminBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+      bottomNavigationBar: BoxyArtBottomNavBar(
+        selectedIndex: _currentIndex,
+        onItemSelected: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
+          BoxyArtBottomNavItem(
+            icon: Icons.dashboard_outlined,
+            activeIcon: Icons.dashboard,
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            activeIcon: Icon(Icons.calendar_month),
+          BoxyArtBottomNavItem(
+            icon: Icons.calendar_month_outlined,
+            activeIcon: Icons.calendar_month,
             label: 'Events',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events_outlined),
-            activeIcon: Icon(Icons.emoji_events),
+          BoxyArtBottomNavItem(
+            icon: Icons.emoji_events_outlined,
+            activeIcon: Icons.emoji_events,
             label: 'Results',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
+          BoxyArtBottomNavItem(
+            icon: Icons.settings_outlined,
+            activeIcon: Icons.settings,
             label: 'Settings',
           ),
         ],

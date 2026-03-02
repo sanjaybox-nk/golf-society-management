@@ -179,7 +179,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     String hint = "Fraction of each player's course handicap used in scoring.",
     bool disabled = false,
   }) {
-    final primary = Theme.of(context).primaryColor;
+    final primary = AppColors.lime500;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pct = (allowance * 100).round();
 
@@ -190,12 +190,9 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-                color: isDark ? Colors.white70 : Colors.black87,
+              label.toUpperCase(),
+              style: AppTypography.label.copyWith(
+                color: isDark ? AppColors.dark150 : AppColors.dark300,
               ),
             ),
             Container(
@@ -206,44 +203,29 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               ),
               child: Text(
                 pct == 0 ? 'None' : '$pct%',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primary),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: primary),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         AbsorbPointer(
           absorbing: disabled,
           child: Opacity(
-            opacity: disabled ? 0.4 : 1.0,
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                activeTrackColor: primary,
-                inactiveTrackColor: primary.withValues(alpha: 0.15),
-                thumbColor: primary,
-                overlayColor: primary.withValues(alpha: 0.12),
-                trackHeight: 4,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-                valueIndicatorColor: primary,
-                valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              child: Slider(
-                value: allowance.clamp(0.0, 1.0),
-                min: 0,
-                max: 1.0,
-                divisions: 20,
-                label: '$pct%',
-                onChanged: onChanged,
-              ),
+            opacity: disabled ? 0.3 : 1.0,
+            child: BoxyArtSlider(
+              value: allowance,
+              divisions: 20,
+              label: '$pct%',
+              onChanged: onChanged,
             ),
           ),
         ),
         Row(
           children: [
-            Text('0%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+            Text('MIN', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
             const Spacer(),
-            Text('100%', style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w600)),
+            Text('MAX', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
           ],
         ),
         if (hint.isNotEmpty) buildInfoBubble(hint),
@@ -274,7 +256,9 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     required int divisions,
     required ValueChanged<double> onChanged,
   }) {
-    final primaryColor = Theme.of(context).primaryColor;
+    final primaryColor = AppColors.lime500;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -282,17 +266,16 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+              label.toUpperCase(),
+              style: AppTypography.label.copyWith(
+                color: isDark ? AppColors.dark150 : AppColors.dark300,
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 valueLabel,
@@ -301,16 +284,13 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             ),
           ],
         ),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: primaryColor,
-            inactiveTrackColor: primaryColor.withValues(alpha: 0.15),
-            thumbColor: primaryColor,
-            overlayColor: primaryColor.withValues(alpha: 0.12),
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-          ),
-          child: Slider(value: value, min: min, max: max, divisions: divisions, onChanged: onChanged),
+        const SizedBox(height: 8),
+        BoxyArtSlider(
+          value: value,
+          min: min,
+          max: max,
+          divisions: divisions,
+          onChanged: onChanged,
         ),
       ],
     );
@@ -322,7 +302,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     child: Text(
       text,
       style: TextStyle(
-        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.75),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400,
         fontSize: 11.5,
         fontStyle: FontStyle.italic,
         height: 1.4,
@@ -373,6 +353,60 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  /// Guest inclusion and separation toggles.
+  Widget buildGuestSettings({
+    required bool includeGuests,
+    required bool? separateGuests,
+    required ValueChanged<bool> onIncludeChanged,
+    required ValueChanged<bool?> onSeparateChanged,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const BoxyArtSectionTitle(title: 'GUEST VISIBILITY'),
+        const SizedBox(height: 16),
+        BoxyArtSwitchField(
+          label: 'Include Guests in Standings',
+          subtitle: 'Choose whether guests appear on the leaderboard for this event.',
+          value: includeGuests,
+          onChanged: onIncludeChanged,
+        ),
+        if (includeGuests) ...[
+          const SizedBox(height: 16),
+          BoxyArtDropdownField<bool?>(
+            label: 'Guest Separation Strategy',
+            value: separateGuests,
+            items: [
+              DropdownMenuItem(
+                value: null, 
+                child: Text(
+                  'AUTO (FOLLOW SOCIETY)', 
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0, color: theme.colorScheme.primary),
+                ),
+              ),
+              DropdownMenuItem(
+                value: true, 
+                child: const Text(
+                  'ALWAYS SEPARATE', 
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
+                ),
+              ),
+              DropdownMenuItem(
+                value: false, 
+                child: const Text(
+                  'ALWAYS MIXED', 
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
+                ),
+              ),
+            ],
+            onChanged: onSeparateChanged,
+          ),
+        ],
       ],
     );
   }

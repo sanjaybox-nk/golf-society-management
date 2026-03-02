@@ -8,12 +8,13 @@ class ScoringTypeDistributionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final types = ['EAGLE', 'BIRDIE', 'PAR', 'BOGEY', 'BLOB'];
+    final types = ['EAGLE', 'BIRDIE', 'PAR', 'BOGEY', 'DBL BOGEY', 'BLOB'];
     final colors = {
       'EAGLE': Colors.purple,
       'BIRDIE': Colors.blue,
       'PAR': Colors.green,
       'BOGEY': Colors.orange,
+      'DBL BOGEY': Colors.deepOrange,
       'BLOB': Colors.red,
     };
     
@@ -542,17 +543,23 @@ class AchievementTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxyArtCard(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          border: Border(left: BorderSide(color: color, width: 4)),
+        ),
         child: Row(
           children: [
+            // Premium Icon Container
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+                color: color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: color.withValues(alpha: 0.15)),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -564,29 +571,32 @@ class AchievementTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: color,
-                      letterSpacing: 1.0,
+                      color: color.withValues(alpha: 0.7),
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    playerName.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    playerName.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  Text(
                     value,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.dark300,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
+            Icon(Icons.chevron_right_rounded, color: AppColors.dark100, size: 20),
           ],
         ),
       ),
@@ -611,56 +621,67 @@ class FieldEclecticCard extends StatelessWidget {
     final vsPar = totalStrokes - parTotal;
 
     return BoxyArtCard(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.dark600, AppColors.dark800],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'SOCIETY\'S BEST ROUND',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                        letterSpacing: 1.2,
-                        color: Colors.grey,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        color: AppColors.dark60.withValues(alpha: 0.6),
                       ),
                     ),
-                    Text(
+                    const Text(
                       'FIELD ECLECTIC',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 20,
+                        fontSize: 22,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   child: Column(
                     children: [
                       Text(
                         totalStrokes.toString(),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontSize: 24,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       Text(
                         vsPar == 0 ? 'PAR' : (vsPar > 0 ? '+$vsPar' : '$vsPar'),
                         style: TextStyle(
-                          color: vsPar <= 0 ? Colors.green : Colors.red,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          color: vsPar < 0 ? AppColors.lime500 : (vsPar > 0 ? AppColors.coral500 : Colors.white),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
@@ -669,9 +690,24 @@ class FieldEclecticCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            const Text(
-              'A "perfect round" constructed from the best score made on each hole by any player today.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.flash_on_rounded, color: AppColors.lime400, size: 16),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'A "perfect round" constructed from every player\'s best scores today.',
+                      style: TextStyle(fontSize: 12, color: AppColors.dark60, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -696,67 +732,122 @@ class SocietyRecapSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final secondary = Theme.of(context).colorScheme.secondary;
+
     return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      backgroundColor: Colors.transparent, // Let gradient handle it
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primaryContainer,
+              primary,
+              primary.withValues(alpha: 0.8),
+              secondary.withValues(alpha: 0.6),
             ],
+            stops: const [0.0, 0.6, 1.0],
           ),
         ),
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
         child: Column(
           children: [
-            const Icon(Icons.flag_circle, color: Colors.white, size: 48),
-            const SizedBox(height: 16),
-            const Text(
+            // Top Icon with Subtle Glow
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.flag_rounded, color: Colors.white, size: 40),
+            ),
+            const SizedBox(height: 24),
+            
+            // Header
+            Text(
               'SOCIETY RECAP COMPLETE',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.white.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w900,
                 fontSize: 12,
-                letterSpacing: 2.0,
+                letterSpacing: 3.0,
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              '$totalPlayers PLAYERS · $totalHolesPlayed HOLES',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                'Toughest Test: $topHoleName (+${topHoleDiff.toStringAsFixed(1)})',
+            
+            // Main Stat
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontFamily: 'Inter', // Ensuring premium typography
+                  fontWeight: FontWeight.w900,
+                  fontSize: 28,
                 ),
+                children: [
+                  TextSpan(text: '$totalPlayers'),
+                  TextSpan(
+                    text: ' PLAYERS  •  ',
+                    style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.7)),
+                  ),
+                  TextSpan(text: '$totalHolesPlayed'),
+                  TextSpan(
+                    text: ' HOLES',
+                    style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.7)),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            
+            // Glass Chip for Toughest Test
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.show_chart_rounded, color: Colors.white, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Toughest Test: $topHoleName (+${topHoleDiff.toStringAsFixed(1)})',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            
+            // Footer Text
+            Text(
               'What a day for the society! See you at the 19th hole. 🍻',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 15,
                 fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.w500,
+                letterSpacing: 0.2,
               ),
             ),
           ],

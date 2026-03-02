@@ -62,9 +62,10 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                BoxyArtFormField(
+                BoxyArtInputField(
                   label: 'Name',
                   controller: _nameController,
                   validator: (v) => v!.isEmpty ? 'Required' : null,
@@ -75,16 +76,29 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           const SizedBox(height: 24),
           const BoxyArtSectionTitle(title: 'SCORING RULES'),
           BoxyArtCard(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildEnumDropdown('Metric', OOMRankingBasis.values, _metric, (v) => setState(() => _metric = v!)),
+                BoxyArtDropdownField<OOMRankingBasis>(
+                  label: 'Metric',
+                  value: _metric,
+                  items: OOMRankingBasis.values.map((v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(_formatEnum(v.name)),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _metric = v!),
+                ),
                 const SizedBox(height: 16),
-                _buildEnumDropdown('Scoring Type', ScoringType.values, _scoringType, (v) => setState(() => _scoringType = v!)),
-                
-                if (_scoringType == ScoringType.position) ...[
-                   // Moved to Points Distribution
-                ],
+                BoxyArtDropdownField<ScoringType>(
+                  label: 'Scoring Type',
+                  value: _scoringType,
+                  items: ScoringType.values.map((v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(_formatEnum(v.name)),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _scoringType = v!),
+                ),
                 _buildRuleDescription(),
               ],
             ),
@@ -94,23 +108,24 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
             const SizedBox(height: 24),
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  BoxyArtFormField(
+                  BoxyArtInputField(
                     label: 'Appearance Points (Bonus per event)',
                     controller: _appearancePointsController,
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
-                  const Divider(),
+                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                   const SizedBox(height: 16),
-                  ..._positionPoints.entries.map((e) => _buildPointRow(e.key, e.value)),
+                  ...(_positionPoints.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => _buildPointRow(e.key, e.value)),
                   const SizedBox(height: 16),
                   Center(
-                    child: TextButton.icon(
-                      onPressed: _addNextPosition,
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('ADD NEXT POSITION', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: BoxyArtButton(
+                      title: 'ADD NEXT POSITION',
+                      onTap: _addNextPosition,
+                      isSecondary: true,
                     ),
                   ),
                 ],
@@ -131,17 +146,18 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
   }
 
   Widget _buildPointRow(int position, int points) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              '${_ordinal(position)} Place',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+              '${_ordinal(position)} Place'.toUpperCase(),
+              style: AppTypography.label.copyWith(
+                color: isDark ? AppColors.dark150 : AppColors.dark400,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -151,10 +167,20 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
               initialValue: points.toString(),
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: isDark ? AppColors.dark500 : AppColors.dark100),
+                ),
               ),
               onChanged: (val) {
                 final newValue = int.tryParse(val);
@@ -166,11 +192,11 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
               },
             ),
           ),
-          const SizedBox(width: 8),
-          Text('pts', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          const SizedBox(width: 12),
+          Text('PTS', style: AppTypography.label.copyWith(fontSize: 10, color: AppColors.lime500, fontWeight: FontWeight.w900)),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.close, size: 16, color: Colors.grey),
+            icon: const Icon(Icons.close, size: 18, color: Colors.redAccent),
             onPressed: () => setState(() => _positionPoints.remove(position)),
             visualDensity: VisualDensity.compact,
           )
@@ -237,7 +263,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor, 
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -262,19 +288,19 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           width: 80, 
           child: Text(
             '$label:', 
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              color: Theme.of(context).primaryColor,
-              fontSize: 13
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w900, 
+              color: AppColors.lime500,
+              fontSize: 11,
             )
           )
         ),
         Expanded(
           child: Text(
             value, 
-            style: TextStyle(
-              fontSize: 13,
-              color: Theme.of(context).textTheme.bodyMedium?.color
+            style: AppTypography.label.copyWith(
+              fontSize: 11,
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )
         ),
@@ -282,36 +308,6 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
     );
   }
 
-  Widget _buildEnumDropdown<T>(String label, List<T> values, T currentValue, Function(T?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label.toUpperCase(), style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).dividerColor),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<T>(
-              value: currentValue,
-              isExpanded: true,
-              dropdownColor: Theme.of(context).cardColor,
-              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-              onChanged: onChanged,
-              items: values.map((v) => DropdownMenuItem(
-                value: v,
-                child: Text(_formatEnum(v.toString().split('.').last)),
-              )).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   String _formatEnum(String val) {
     final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');

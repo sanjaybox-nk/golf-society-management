@@ -24,7 +24,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: typeName,
-      subtitle: 'Choose a template or start blank',
+      subtitle: isPicker ? 'Choose a template to add to your season' : 'Choose a template or start blank',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -32,24 +32,21 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Start Blank Card
-              _buildGalleryCard(
-                context,
-                title: 'Start Blank',
-                subtitle: 'Create a new $typeName from scratch',
-                icon: Icons.add_circle_outline_rounded,
-                isPrimary: true,
-                onTap: () async {
-                  if (isPicker) {
-                    final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
-                    if (result != null && context.mounted) {
-                      context.pop(result);
-                    }
-                  } else {
-                    context.push('/admin/settings/leaderboards/create/${type.name}/builder');
-                  }
-                },
-              ),
+              // Start Blank Card (Only available when editing templates in settings)
+              if (!isPicker)
+                _buildGalleryCard(
+                  context,
+                  title: 'Start Blank',
+                  subtitle: 'Create a new $typeName from scratch',
+                  icon: Icons.add_circle_outline_rounded,
+                  isPrimary: true,
+                  onTap: () {
+                    context.push('/admin/settings/leaderboards/create/${type.name}');
+                  },
+                ),
+
+              if (!isPicker)
+                const SizedBox(height: 16),
 
               StreamBuilder<List<LeaderboardConfig>>(
                 stream: templatesAsync,
@@ -79,26 +76,6 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                 },
               ),
 
-              const SizedBox(height: 32),
-              const BoxyArtSectionTitle(title: 'System Presets', ),
-              const SizedBox(height: 12),
-              _buildGalleryCard(
-                context,
-                title: 'Standard $typeName',
-                subtitle: 'The traditional configuration',
-                icon: Icons.auto_awesome_rounded,
-                onTap: () async {
-                  if (isPicker) {
-                    final result = await context.push<LeaderboardConfig>('/admin/seasons/leaderboards/create/${type.name}/builder');
-                    if (result != null && context.mounted) context.pop(result);
-                  } else {
-                    context.push('/admin/settings/leaderboards/create/${type.name}/builder');
-                  }
-                },
-                badges: [
-                  const _RuleBadge(label: 'STANDARD'),
-                ],
-              ),
               const SizedBox(height: 100),
             ]),
           ),
@@ -149,18 +126,13 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
         title: template.name.toUpperCase(),
         subtitle: 'Custom Template', // Could add more details here based on config type
         icon: _getFormatIcon(type),
+        iconColor: _getFormatColor(type),
         onTap: () {
           if (isPicker) {
-             // PICKER MODE: Use this template to create a NEW valid config
-             // We pass a copy with a NEW ID so it doesn't conflict
+             // PICKER MODE: Instantly return this template to be added to the season.
+             // We pass a copy with a NEW ID so it doesn't conflict with the master template.
              final newConfig = template.copyWith(id: const Uuid().v4());
-             
-             context.push<LeaderboardConfig>(
-               '/admin/seasons/leaderboards/create/${type.name}/builder', 
-               extra: newConfig 
-             ).then((result) {
-               if (result != null && context.mounted) context.pop(result);
-             });
+             context.pop(newConfig);
           } else {
             // TEMPLATE MODE: Edit the template itself
             context.push(
@@ -184,10 +156,19 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   
   IconData _getFormatIcon(LeaderboardType type) {
     switch (type) {
-      case LeaderboardType.orderOfMerit: return Icons.format_list_numbered;
-      case LeaderboardType.bestOfSeries: return Icons.emoji_events;
-      case LeaderboardType.eclectic: return Icons.filter_hdr;
-      case LeaderboardType.markerCounter: return Icons.flag;
+      case LeaderboardType.orderOfMerit: return Icons.emoji_events_rounded;
+      case LeaderboardType.bestOfSeries: return Icons.list_alt_rounded;
+      case LeaderboardType.eclectic: return Icons.grid_on_rounded;
+      case LeaderboardType.markerCounter: return Icons.park_rounded;
+    }
+  }
+
+  Color _getFormatColor(LeaderboardType type) {
+    switch (type) {
+      case LeaderboardType.orderOfMerit: return Colors.amber;
+      case LeaderboardType.bestOfSeries: return Colors.blue;
+      case LeaderboardType.eclectic: return Colors.purple;
+      case LeaderboardType.markerCounter: return Colors.green;
     }
   }
 
@@ -214,9 +195,14 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     required VoidCallback onTap,
     VoidCallback? onChevronTap,
     bool isPrimary = false,
+    Color? iconColor,
     List<Widget>? badges,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final effectiveColor = iconColor ?? (isPrimary ? AppColors.lime500 : (isDark ? AppColors.dark300 : AppColors.dark400));
+    final effectiveBg = iconColor?.withValues(alpha: 0.1) ?? (isPrimary ? AppColors.lime500.withValues(alpha: 0.1) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
     
     return BoxyArtCard(
       onTap: onTap,
@@ -226,17 +212,16 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: isPrimary 
-                      ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                      : theme.dividerColor.withValues(alpha: 0.05),
+                  color: effectiveBg,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon, 
-                  color: isPrimary ? theme.colorScheme.primary : Colors.grey,
-                  size: 24,
+                  color: effectiveColor,
+                  size: 28,
                 ),
               ),
               const SizedBox(width: 16),
@@ -246,31 +231,27 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: AppTypography.label.copyWith(
                         fontSize: 12,
-                        color: theme.textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
+                        color: isDark ? AppColors.dark300 : AppColors.dark400,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (onChevronTap != null)
-                IconButton(
-                  onPressed: onChevronTap,
-                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                )
-              else
-                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
+              Icon(
+                Icons.arrow_forward_ios_rounded, 
+                color: isDark ? AppColors.dark400 : AppColors.dark300, 
+                size: 20,
+              ),
             ],
           ),
           if (badges != null && badges.isNotEmpty) ...[
@@ -283,28 +264,3 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
   }
 }
 
-class _RuleBadge extends StatelessWidget {
-  final String label;
-  const _RuleBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
-    );
-  }
-}

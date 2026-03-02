@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/features/competitions/utils/competition_rule_translator.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
+import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 
 class CompetitionTemplateGalleryScreen extends ConsumerWidget {
   final String typeStr;
@@ -41,12 +41,13 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Start Blank Card
-              _buildGalleryCard(
-                context,
+              _BlankTemplateCard(
                 title: 'Start Blank',
                 subtitle: 'Create a new $gameName from scratch',
-                icon: Icons.add_circle_outline_rounded,
-                isPrimary: true,
+                icon: CompetitionRules(
+                  format: format,
+                  subtype: subtype ?? CompetitionSubtype.none,
+                ).gameIcon,
                 onTap: () async {
                   if (isPicker) {
                       final result = await context.push<String>('/admin/events/competitions/new/create/$typeStr');
@@ -141,201 +142,88 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
           const SnackBar(content: Text("Template deleted"), duration: Duration(seconds: 2)),
         );
       },
-      child: _buildGalleryCard(
-        context,
-        title: (template.name != null && template.name!.isNotEmpty) 
-            ? template.name!.toUpperCase() 
-            : template.rules.gameName,
-        subtitle: '${template.rules.modeLabel} • ${template.rules.roundsCount} ROUND',
-        description: CompetitionRuleTranslator.translate(template.rules),
-        icon: _getFormatIcon(template.rules.format),
-        onTap: () {
-          if (isPicker) {
-             // RETURN TO EVENT FORM WITH TEMPLATE ID
-             context.pop(template.id);
-          } else {
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: CompetitionRulesCard(
+          eventId: template.id,
+          competition: template, // Pass the object directly!
+          title: '', // No section title needed for gallery items
+          showChevron: true,
+          onTap: () {
+            if (isPicker) {
+               context.pop(template.id);
+            } else {
+              context.push('/admin/settings/templates/edit/${template.id}');
+            }
+          },
+          onChevronTap: () {
             context.push('/admin/settings/templates/edit/${template.id}');
-          }
-        },
-        onChevronTap: () {
-          context.push('/admin/settings/templates/edit/${template.id}');
-        },
-        badges: [
-          // MODE BADGE (SINGLES/PAIRS/TEAMS)
-          _RuleBadge(label: template.rules.modeLabel),
-          
-          // GROSS/NET
-          if (template.rules.handicapAllowance == 0 || template.rules.subtype == CompetitionSubtype.grossStableford)
-            const _RuleBadge(label: 'GROSS')
-          else
-            const _RuleBadge(label: 'NET'),
-
-          // ALLOWANCE
-          if (template.rules.format == CompetitionFormat.scramble && template.rules.useWHSScrambleAllowance)
-            const _RuleBadge(label: 'WHS ALLOWANCE')
-          else if (template.rules.handicapAllowance > 0)
-            _RuleBadge(label: '${(template.rules.handicapAllowance * 100).toInt()}% HCP'),
-
-          // HCP MODE
-          if (template.rules.handicapMode != HandicapMode.whs)
-            _RuleBadge(label: '${template.rules.handicapMode.name.toUpperCase()} HCP'),
-
-          // CAP
-          if (template.rules.handicapCap != 28)
-            _RuleBadge(label: 'CAP: ${template.rules.handicapCap}'),
-
-          // MAX SCORE
-          if (template.rules.format == CompetitionFormat.maxScore && template.rules.maxScoreConfig != null)
-             _RuleBadge(
-               label: template.rules.maxScoreConfig!.type == MaxScoreType.fixed 
-                 ? 'MAX ${template.rules.maxScoreConfig!.value}' 
-                 : 'MAX PAR+${template.rules.maxScoreConfig!.value}'
-             ),
-
-          // SERIES/MULTI-ROUND
-          if (template.rules.roundsCount > 1) ...[
-            _RuleBadge(label: '${template.rules.roundsCount} ROUNDS'),
-            _RuleBadge(
-              label: template.rules.aggregation == AggregationMethod.singleBest 
-                ? 'BEST ROUND' 
-                : 'CUMULATIVE'
-            ),
-          ],
-
-          // SCRAMBLE DRIVES
-          if (template.rules.format == CompetitionFormat.scramble && template.rules.minDrivesPerPlayer > 0)
-            _RuleBadge(label: 'MIN ${template.rules.minDrivesPerPlayer} DRIVES'),
-
-          // TIE-BREAK
-          _RuleBadge(label: template.rules.tieBreak.name.toUpperCase()),
-        ],
-      ),
-    );
-  }
-
-  IconData _getFormatIcon(CompetitionFormat format) {
-    switch (format) {
-      case CompetitionFormat.stableford: return Icons.format_list_numbered;
-      case CompetitionFormat.stroke: return Icons.golf_course;
-      case CompetitionFormat.maxScore: return Icons.vertical_align_top;
-      case CompetitionFormat.matchPlay: return Icons.compare_arrows;
-      case CompetitionFormat.scramble: return Icons.group_work;
-    }
-  }
-
-  Widget _buildGalleryCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    String? description,
-    required IconData icon,
-    required VoidCallback onTap,
-    VoidCallback? onChevronTap,
-    bool isPrimary = false,
-    List<Widget>? badges,
-  }) {
-    final theme = Theme.of(context);
-    
-    return BoxyArtCard(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isPrimary 
-                      ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                      : theme.dividerColor.withValues(alpha: 0.05),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon, 
-                  color: isPrimary ? theme.colorScheme.primary : Colors.grey,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.textTheme.bodySmall?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (onChevronTap != null)
-                IconButton(
-                  onPressed: onChevronTap,
-                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                )
-              else
-                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-            ],
-          ),
-
-          if (description != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 13,
-                color: theme.textTheme.bodyMedium?.color,
-                fontStyle: FontStyle.italic,
-                height: 1.4,
-              ),
-            ),
-          ],
-
-          if (badges != null && badges.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Wrap(spacing: 0, runSpacing: 8, children: badges),
-          ],
-        ],
+          },
+        ),
       ),
     );
   }
 }
 
-class _RuleBadge extends StatelessWidget {
-  final String label;
-  const _RuleBadge({required this.label});
+class _BlankTemplateCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _BlankTemplateCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+    final theme = Theme.of(context);
+    
+    return BoxyArtCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+            ),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.textTheme.bodySmall?.color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.add_rounded, color: Colors.grey, size: 20),
+        ],
       ),
     );
   }

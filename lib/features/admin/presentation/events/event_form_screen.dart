@@ -71,6 +71,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   late TextEditingController _dinnerCostController;
   late TextEditingController _dinnerLocationController;
   late TextEditingController _buggyCostController;
+  late TextEditingController _societyGreenFeeController;
+  late TextEditingController _societyBreakfastCostController;
+  late TextEditingController _societyLunchCostController;
+  late TextEditingController _societyDinnerCostController;
   late TextEditingController _intervalController;
   
   late List<NoteItemController> _notesControllers = [];
@@ -106,6 +110,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   Competition? _secondaryCompetition;
   bool _isSecondaryCustomized = false;
   bool _isInvitational = false;
+  bool _showAwards = true;
+  List<String> _oomExcludedRoundIds = [];
 
   // Hole Configuration
   late List<TextEditingController> _holeParsControllers;
@@ -121,6 +127,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   String? _mensTeeName;
   String? _ladiesTeeName;
   List<TeeConfig> _availableTees = [];
+  List<EventAward> _awards = [];
 
   @override
   void initState() {
@@ -153,8 +160,18 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _breakfastCostController = TextEditingController();
     _lunchCostController = TextEditingController();
     _dinnerCostController = TextEditingController();
+    _societyGreenFeeController = TextEditingController();
+    _societyBreakfastCostController = TextEditingController();
+    _societyLunchCostController = TextEditingController();
+    _societyDinnerCostController = TextEditingController();
     _dinnerLocationController = TextEditingController();
     _buggyCostController = TextEditingController();
+
+    // Auto-calculate "Retail" price (Cost + 10%) [NEW]
+    _societyGreenFeeController.addListener(() => _calculateRetailPrice(_societyGreenFeeController, _memberCostController, isGuest: false));
+    _societyBreakfastCostController.addListener(() => _calculateRetailPrice(_societyBreakfastCostController, _breakfastCostController));
+    _societyLunchCostController.addListener(() => _calculateRetailPrice(_societyLunchCostController, _lunchCostController));
+    _societyDinnerCostController.addListener(() => _calculateRetailPrice(_societyDinnerCostController, _dinnerCostController));
     _intervalController = TextEditingController(text: '10');
     _facilitiesControllers = [TextEditingController()];
     
@@ -171,6 +188,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _mensTeeName = null;
     _ladiesTeeName = null;
     _availableTees = [];
+    _awards = [
+      const EventAward(id: 'prize_1', label: '1st Place', type: 'Cup'),
+      const EventAward(id: 'prize_2', label: '2nd Place', type: 'Cup'),
+      const EventAward(id: 'prize_3', label: '3rd Place', type: 'Cup'),
+    ];
+    _showAwards = true;
     
     // Set default selected season if available in provider (handled in build via listen)
   }
@@ -207,6 +230,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           _initialTemplateId = comp.templateId;
           // Detection: if computeVersion > 0, it means it was edited in the builder
           _isCustomized = comp.computeVersion != null && comp.computeVersion! > 0;
+          _oomExcludedRoundIds = List<String>.from(comp.rules.oomExcludedRoundIds);
         });
         _fetchSecondaryCompetition(eventId);
       }
@@ -246,6 +270,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _breakfastCostController = TextEditingController(text: e.breakfastCost?.toString() ?? '');
     _lunchCostController = TextEditingController(text: e.lunchCost?.toString() ?? '');
     _dinnerCostController = TextEditingController(text: e.dinnerCost?.toString() ?? '');
+    _societyGreenFeeController = TextEditingController(text: e.societyGreenFee?.toString() ?? '');
+    _societyBreakfastCostController = TextEditingController(text: e.societyBreakfastCost?.toString() ?? '');
+    _societyLunchCostController = TextEditingController(text: e.societyLunchCost?.toString() ?? '');
+    _societyDinnerCostController = TextEditingController(text: e.societyDinnerCost?.toString() ?? '');
     _dinnerLocationController = TextEditingController(text: e.dinnerLocation);
     _buggyCostController = TextEditingController(text: e.buggyCost?.toString() ?? '');
     _intervalController = TextEditingController(text: e.teeOffInterval.toString());
@@ -305,6 +333,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _endDate = e.endDate;
     _secondaryTemplateId = e.secondaryTemplateId;
     _isInvitational = e.isInvitational;
+    _awards = List<EventAward>.from(e.awards);
+    _showAwards = e.showAwards;
 
     // Fetch secondary competition if exists
     if (e.id.isNotEmpty && _secondaryTemplateId != null) {
@@ -372,6 +402,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _breakfastCostController.dispose();
     _lunchCostController.dispose();
     _dinnerCostController.dispose();
+    _societyGreenFeeController.dispose();
+    _societyBreakfastCostController.dispose();
+    _societyLunchCostController.dispose();
+    _societyDinnerCostController.dispose();
     _dinnerLocationController.dispose();
     _buggyCostController.dispose();
     _intervalController.dispose();
@@ -395,6 +429,21 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _calculateRetailPrice(TextEditingController costController, TextEditingController retailController, {bool isGuest = false}) {
+    final cost = double.tryParse(costController.text);
+    if (cost == null) return;
+    
+    final retail = (cost * 1.10).roundToDouble();
+    
+    setState(() {
+      retailController.text = retail.toStringAsFixed(0);
+      if (isGuest == false && costController == _societyGreenFeeController) {
+        // Automatically set guest cost to member cost + 10
+        _guestCostController.text = (retail + 10).toStringAsFixed(0);
+      }
+    });
   }
 
   Future<void> _pickDate() async {
@@ -548,6 +597,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           final updatedComp = _eventCompetition!.copyWith(
              startDate: newEvent.date,
              endDate: _isMultiDay && _endDate != null ? _endDate! : newEvent.date,
+             rules: _eventCompetition!.rules.copyWith(
+               oomExcludedRoundIds: _oomExcludedRoundIds,
+             ),
           );
           await compRepo.updateCompetition(updatedComp);
       } else if (!hasTemplate && _eventCompetition == null) {
@@ -660,6 +712,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
         ),
       ),
       actions: [
+        BoxyArtGlassIconButton(
+          icon: Icons.visibility_rounded,
+          iconSize: 22,
+          onPressed: _showPreview,
+          tooltip: 'Preview',
+        ),
+        const SizedBox(width: 8),
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: _isSaving 
@@ -678,19 +737,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 icon: Icons.check_rounded,
                 iconSize: 22,
                 onPressed: _save,
+                tooltip: 'Save',
               ),
         ),
       ],
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80), // Lift above bottom menu
-        child: FloatingActionButton(
-          onPressed: _showPreview,
-          backgroundColor: Theme.of(context).primaryColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.visibility, color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
@@ -712,7 +762,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         controller: _titleController,
                         validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       BoxyArtFormField(
                         key: const ValueKey('event_description'),
                         label: 'Description',
@@ -734,14 +784,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         value: DateFormat.yMMMd().format(_selectedDate),
                         onTap: _pickDate,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       BoxyArtSwitchField(
                         label: 'Multi-Day Event', 
                         value: _isMultiDay, 
                         onChanged: (v) => setState(() => _isMultiDay = v),
                       ),
                       if (_isMultiDay) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                          BoxyArtDatePickerField(
                           label: 'End Date',
                           value: _endDate != null ? DateFormat.yMMMd().format(_endDate!) : 'Select End Date',
@@ -757,7 +807,6 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         ),
                       ],
                       const Divider(height: 32),
-                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -777,13 +826,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       BoxyArtFormField(
                         label: 'Group Tee-off Interval (minutes)',
                         controller: _intervalController,
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       BoxyArtDatePickerField(
                         label: 'Registration Deadline',
                         value: (_deadlineDate == null || _deadlineTime == null) 
@@ -791,14 +840,14 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                             : '${DateFormat.yMMMd().format(_deadlineDate!)} @ ${_deadlineTime!.format(context)}',
                         onTap: _pickDeadline,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       BoxyArtSwitchField(
                         label: 'Show Registration Button',
                         value: _showRegistrationButton,
                         onChanged: (v) => setState(() => _showRegistrationButton = v),
                       ),
-                      const SizedBox(height: 16),
-                      ModernSwitchRow(
+                      const SizedBox(height: 24),
+                      BoxyArtSwitchField(
                         label: 'Invitational / Non-Scoring',
                         subtitle: "Exclude this event's scores from all season leaderboards.",
                         value: _isInvitational,
@@ -936,7 +985,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       const SizedBox(height: 16),
                       if (_availableTees.isNotEmpty) ...[
                         BoxyArtDropdownField<String>(
-                          label: 'Baseline Tee (for Handicap Math)',
+                          label: 'Starting Tee (Men)',
                           value: _selectedTeeName,
                           items: _availableTees.map((t) => DropdownMenuItem(
                             value: t.name,
@@ -951,7 +1000,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         ),
                         const SizedBox(height: 16),
                         BoxyArtDropdownField<String>(
-                          label: 'Female Tee Position',
+                          label: 'Starting Tee (Ladies)',
                           value: _selectedFemaleTeeName,
                           items: _availableTees.map((t) => DropdownMenuItem(
                             value: t.name,
@@ -959,35 +1008,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           )).toList(),
                           onChanged: (val) => setState(() => _selectedFemaleTeeName = val),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BoxyArtDropdownField<String>(
-                                label: "Men's Default Tee",
-                                value: _mensTeeName,
-                                items: _availableTees.map((t) => DropdownMenuItem(
-                                  value: t.name,
-                                  child: Text(t.name),
-                                )).toList(),
-                                onChanged: (val) => setState(() => _mensTeeName = val),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: BoxyArtDropdownField<String>(
-                                label: "Ladies' Default Tee",
-                                value: _ladiesTeeName,
-                                items: _availableTees.map((t) => DropdownMenuItem(
-                                  value: t.name,
-                                  child: Text(t.name),
-                                )).toList(),
-                                onChanged: (val) => setState(() => _ladiesTeeName = val),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ] else if (_selectedTeeName != null || _courseNameController.text.isNotEmpty)
+                      ] else if (_selectedTeeName != null || _courseNameController.text.isNotEmpty) ...[
                         BoxyArtFormField(
                           label: 'Tee Position (Manual)',
                           controller: TextEditingController(text: _selectedTeeName),
@@ -999,6 +1020,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           controller: TextEditingController(text: _selectedFemaleTeeName),
                           onChanged: (val) => _selectedFemaleTeeName = val,
                         ),
+                      ],
                       const SizedBox(height: 16),
                       BoxyArtFormField(
                         key: const ValueKey('event_dress_code'),
@@ -1044,211 +1066,184 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                const BoxyArtSectionTitle(
-                  title: 'COMPETITION RULES',),
+                const BoxyArtSectionTitle(title: 'COMPETITION RULES'),
                 const SizedBox(height: 12),
-                BoxyArtCard(child: Consumer(
-                    builder: (context, ref, child) {
-                            final templatesAsync = ref.watch(templatesListProvider);
-                            final templates = templatesAsync.value ?? [];
-                            final selectedTemplate = templates.where((t) => t.id == _selectedTemplateId).firstOrNull;
-                            
-                            // Source of truth: We have a game if a template is selected OR we already have an event competition
-                            final hasGame = _selectedTemplateId != null || _eventCompetition != null;
-                            final displayComp = _eventCompetition ?? selectedTemplate;
+                Consumer(
+                  builder: (context, ref, child) {
+                    final templatesAsync = ref.watch(templatesListProvider);
+                    final templates = templatesAsync.value ?? [];
+                    final selectedTemplate = templates.where((t) => t.id == _selectedTemplateId).firstOrNull;
+                    
+                    final hasGame = _selectedTemplateId != null || _eventCompetition != null;
+                    final displayComp = _eventCompetition ?? selectedTemplate;
 
-                            if (!hasGame || displayComp == null) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'NO RULES APPLIED',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Center(
-                                    child: BoxyArtButton(
-                                      title: 'ADD GAME FORMAT',
-                                      onTap: () async {
-                                        final result = await context.push<String>('/admin/events/competitions/new');
-                                        if (result != null) {
-                                          setState(() {
-                                            _selectedTemplateId = result;
-                                            _isCustomized = false;
-                                            _eventCompetition = null;
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              );
+                    if (!hasGame || displayComp == null) {
+                      return BoxyArtCard(
+                        child: Column(
+                          children: [
+                            const Text("NO RULES APPLIED", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            Center(
+                              child: BoxyArtButton(
+                                title: "ADD GAME FORMAT",
+                                onTap: () async {
+                                  final result = await context.push<String>("/admin/events/competitions/new");
+                                  if (result != null) {
+                                    setState(() {
+                                      _selectedTemplateId = result;
+                                      _isCustomized = false;
+                                      _eventCompetition = null;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CompetitionRulesCard(
+                          competition: displayComp,
+                          eventId: _editingEvent?.id ?? widget.event?.id ?? "",
+                          title: "",
+                          onTap: () async {
+                            String? eventId = _editingEvent?.id ?? widget.event?.id;
+                            if (eventId != null) {
+                              context.push("/admin/events/competitions/edit/${Uri.encodeComponent(eventId)}");
                             }
-
-                            return Column(
-                              children: [
-                                Row(
+                          },
+                          // onRemove handled below
+                        ),
+                        if (_isMultiDay && displayComp.rules.roundsCount > 1) ...[
+                          const SizedBox(height: 16),
+                          const Text(
+                            'SEASON STANDINGS (OOM/ECLECTIC)',
+                            style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          BoxyArtCard(
+                            child: Column(
+                              children: List.generate(displayComp.rules.roundsCount, (index) {
+                                final roundId = 'round_${index + 1}';
+                                final isExcluded = _oomExcludedRoundIds.contains(roundId);
+                                return Column(
                                   children: [
-                                    Expanded(
-                                      child: InkWell(
-                                        onTap: () async {
-                                           String? eventId = _editingEvent?.id ?? widget.event?.id;
-                                           if (eventId != null) {
-                                               context.push('/admin/events/competitions/edit/${Uri.encodeComponent(eventId)}');
-                                           }
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                CircleAvatar(
-                                                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                                  child: Icon(Icons.golf_course, color: Theme.of(context).primaryColor),
-                                                ),
-                                                const SizedBox(width: 16),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        (_isCustomized && _eventCompetition?.name != null && _eventCompetition!.name!.isNotEmpty)
-                                                            ? _eventCompetition!.name!.toUpperCase()
-                                                            : (displayComp.name?.toUpperCase() ?? displayComp.rules.gameName.toUpperCase()),
-                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                      ),
-                                                      if (_isCustomized || (displayComp.name != null && displayComp.name!.isNotEmpty))
-                                                        Text(
-                                                          displayComp.rules.gameName,
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Theme.of(context).textTheme.bodySmall?.color,
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                IconButton(
-                                                  onPressed: () => setState(() {
-                                                    _selectedTemplateId = null;
-                                                    _isCustomized = false;
-                                                    _eventCompetition = null;
-                                                  }),
-                                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 16),
-                                            const Divider(),
-                                            const SizedBox(height: 16),
-                                            CompetitionRuleDescription(
-                                              rules: displayComp.rules,
-                                              style: const TextStyle(fontSize: 13, height: 1.4),
-                                            ),
-                                            const SizedBox(height: 16),
-                                            CompetitionBadgeRow(
-                                              rules: displayComp.rules,
-                                              eventId: widget.event?.id ?? widget.eventId,
-                                              baseColor: Theme.of(context).primaryColor,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                const Divider(height: 1),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    TextButton.icon(
-                                      onPressed: () async {
-                                        // Ensure we have an event ID (save if needed)
-                                        String? eventId = _editingEvent?.id ?? widget.event?.id;
-                                        
-                                        if (eventId == null) {
-                                          // New event - must save first to get an ID
-                                          bool? proceed = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text("Save Event First?"),
-                                              content: const Text("To customize rules, we need to save the basic event details first."),
-                                              actions: [
-                                                TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
-                                                TextButton(
-                                                  onPressed: () => context.pop(true), 
-                                                  child: const Text("Save & Customize"),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                          if (proceed != true) return;
-                                          await _save(shouldPop: false);
-                                          if (!context.mounted) return;
-                                          eventId = _editingEvent?.id ?? widget.event?.id;
-                                          if (eventId == null) return; // Still no ID, abort
-                                        }
-
-                                        // Create competition on-the-fly if template is selected but competition doesn't exist
-                                        final compRepo = ref.read(competitionsRepositoryProvider);
-                                        if (_selectedTemplateId != null && _eventCompetition == null) {
-                                          final templates = ref.read(templatesListProvider).value;
-                                          final template = templates?.firstWhere(
-                                            (t) => t.id == _selectedTemplateId, 
-                                            orElse: () => throw Exception("Template not found")
-                                          );
-                                          
-                                          if (template != null) {
-                                            final newComp = Competition(
-                                              id: eventId, 
-                                              templateId: _selectedTemplateId, 
-                                              type: CompetitionType.event,
-                                              status: CompetitionStatus.draft,
-                                              rules: template.rules, 
-                                              startDate: _selectedDate,
-                                              endDate: _isMultiDay && _endDate != null ? _endDate! : _selectedDate,
-                                              publishSettings: {},
-                                              isDirty: true,
-                                            );
-                                            await compRepo.addCompetition(newComp);
-                                            if (mounted) {
-                                              setState(() {
-                                                _eventCompetition = newComp;
-                                                _initialTemplateId = _selectedTemplateId; // Mark template as applied
-                                              });
+                                    BoxyArtSwitchField(
+                                      label: 'Include Round ${index + 1}',
+                                      value: !isExcluded,
+                                      onChanged: (v) {
+                                        setState(() {
+                                          if (v) {
+                                            _oomExcludedRoundIds.remove(roundId);
+                                          } else {
+                                            if (!_oomExcludedRoundIds.contains(roundId)) {
+                                              _oomExcludedRoundIds.add(roundId);
                                             }
                                           }
-                                        }
-                                        
-                                        if (!context.mounted) return;
-
-                                        // Navigate to competition editor
-                                        // ignore: use_build_context_synchronously
-                                        final router = GoRouter.of(context);
-                                        await router.push('/admin/events/competitions/edit/$eventId');
-                                        if (mounted) _fetchCompetition(eventId);
+                                        });
                                       },
-                                      icon: Icon(_isCustomized ? Icons.edit_note : Icons.tune, size: 18),
-                                      label: Text(_isCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES'),
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        side: BorderSide(color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                        minimumSize: const Size(0, 36),
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
                                     ),
+                                    if (index < displayComp.rules.roundsCount - 1) const Divider(height: 24),
                                   ],
-                                ),
-                              ],
-                            );
-                    },
-                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () async {
+                                String? eventId = _editingEvent?.id ?? widget.event?.id;
+                                
+                                if (eventId == null) {
+                                  bool? proceed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text("Save Event First?"),
+                                      content: const Text("To customize rules, we need to save the basic event details first."),
+                                      actions: [
+                                        TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
+                                        TextButton(
+                                          onPressed: () => context.pop(true), 
+                                          child: const Text("Save & Customize"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (proceed != true) return;
+                                  await _save(shouldPop: false);
+                                  if (!context.mounted) return;
+                                  eventId = _editingEvent?.id ?? widget.event?.id;
+                                  if (eventId == null) return;
+                                }
+
+                                final compRepo = ref.read(competitionsRepositoryProvider);
+                                if (_selectedTemplateId != null && _eventCompetition == null) {
+                                  final templates = ref.read(templatesListProvider).value;
+                                  final template = templates?.firstWhere(
+                                    (t) => t.id == _selectedTemplateId, 
+                                    orElse: () => throw Exception("Template not found")
+                                  );
+                                  
+                                  if (template != null) {
+                                    final newComp = Competition(
+                                      id: eventId, 
+                                      templateId: _selectedTemplateId, 
+                                      type: CompetitionType.event,
+                                      status: CompetitionStatus.draft,
+                                      rules: template.rules, 
+                                      startDate: _selectedDate,
+                                      endDate: _isMultiDay && _endDate != null ? _endDate! : _selectedDate,
+                                      publishSettings: {},
+                                      isDirty: true,
+                                    );
+                                    await compRepo.addCompetition(newComp);
+                                    if (mounted) {
+                                      setState(() {
+                                        _eventCompetition = newComp;
+                                        _initialTemplateId = _selectedTemplateId;
+                                      });
+                                    }
+                                  }
+                                }
+                                
+                                if (!context.mounted) return;
+                                final router = GoRouter.of(context);
+                                await router.push("/admin/events/competitions/edit/$eventId");
+                                if (mounted) _fetchCompetition(eventId);
+                              },
+                              icon: Icon(_isCustomized ? Icons.edit_note : Icons.tune, size: 18),
+                              label: Text(_isCustomized ? "CUSTOMIZED" : "CUSTOMIZE RULES"),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                side: BorderSide(color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                minimumSize: const Size(0, 36),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              onPressed: () => setState(() {
+                                _selectedTemplateId = null;
+                                _isCustomized = false;
+                                _eventCompetition = null;
+                              }),
+                              icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
+                              label: const Text("REMOVE", style: TextStyle(color: Colors.grey)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 
                 // SECONDARY GAME (MATCH PLAY OVERLAY)
@@ -1442,17 +1437,36 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         children: [
                           Expanded(
                             child: BoxyArtFormField(
-                              label: 'Member Cost ($currency)',
+                              label: 'Society Green Fee ($currency)',
+                              controller: _societyGreenFeeController,
+                              keyboardType: TextInputType.number,
+                              hintText: 'Cost Basis',
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                             child: Container(), // Placeholder
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: BoxyArtFormField(
+                              label: 'Member Charge ($currency)',
                               controller: _memberCostController,
                               keyboardType: TextInputType.number,
+                              hintText: 'Society + 10%',
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: BoxyArtFormField(
-                              label: 'Guest Cost ($currency)',
+                              label: 'Guest Charge ($currency)',
                               controller: _guestCostController,
                               keyboardType: TextInputType.number,
+                              hintText: 'Member + £10',
                             ),
                           ),
                         ],
@@ -1475,9 +1489,17 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       if (_hasBreakfast) ...[
                         const SizedBox(height: 16),
                         BoxyArtFormField(
-                          label: 'Breakfast Cost ($currency)',
+                          label: 'Society Breakfast Cost ($currency)',
+                          controller: _societyBreakfastCostController,
+                          keyboardType: TextInputType.number,
+                          hintText: 'Cost Basis',
+                        ),
+                        const SizedBox(height: 12),
+                        BoxyArtFormField(
+                          label: 'Member Charge ($currency)',
                           controller: _breakfastCostController,
                           keyboardType: TextInputType.number,
+                          hintText: 'Society + 10%',
                         ),
                       ],
                       const Divider(height: 32),
@@ -1489,9 +1511,17 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       if (_hasLunch) ...[
                         const SizedBox(height: 16),
                         BoxyArtFormField(
-                          label: 'Lunch Cost ($currency)',
+                          label: 'Society Lunch Cost ($currency)',
+                          controller: _societyLunchCostController,
+                          keyboardType: TextInputType.number,
+                          hintText: 'Cost Basis',
+                        ),
+                        const SizedBox(height: 12),
+                        BoxyArtFormField(
+                          label: 'Member Charge ($currency)',
                           controller: _lunchCostController,
                           keyboardType: TextInputType.number,
+                          hintText: 'Society + 10%',
                         ),
                       ],
                       const Divider(height: 32),
@@ -1503,9 +1533,17 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       if (_hasDinner) ...[
                         const SizedBox(height: 16),
                         BoxyArtFormField(
-                          label: 'Dinner Cost ($currency)',
+                          label: 'Society Dinner Cost ($currency)',
+                          controller: _societyDinnerCostController,
+                          keyboardType: TextInputType.number,
+                          hintText: 'Cost Basis',
+                        ),
+                        const SizedBox(height: 12),
+                        BoxyArtFormField(
+                          label: 'Member Charge ($currency)',
                           controller: _dinnerCostController,
                           keyboardType: TextInputType.number,
+                          hintText: 'Society + 10%',
                         ),
                       ],
                     ],
@@ -1527,6 +1565,89 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: AppTheme.cardSpacing),
 
+                const BoxyArtSectionTitle(title: 'Prizes & Awards'),
+                const SizedBox(height: AppTheme.sectionSpacing),
+                BoxyArtCard(
+                  child: Column(
+                    children: [
+                      BoxyArtSwitchField(
+                        label: 'Enable Prize Table',
+                        value: _showAwards,
+                        onChanged: (v) => setState(() => _showAwards = v),
+                      ),
+                      if (_showAwards) ...[
+                        const Divider(height: 32),
+                        ..._awards.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final award = entry.value;
+                        return Column(
+                          children: [
+                            if (index > 0) const Divider(height: 32),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: BoxyArtFormField(
+                                    label: 'Award Label',
+                                    controller: TextEditingController(text: award.label),
+                                    onChanged: (v) {
+                                      _awards[index] = award.copyWith(label: v);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  flex: 1,
+                                  child: BoxyArtFormField(
+                                    label: 'Value ($currency)',
+                                    controller: TextEditingController(text: award.value == 0 ? '' : award.value.toString()),
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    onChanged: (v) {
+                                      _awards[index] = award.copyWith(value: double.tryParse(v) ?? 0.0);
+                                    },
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+                                  onPressed: () => setState(() => _awards.removeAt(index)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            // Award Type Selector
+                            Row(
+                              children: ['Cup', 'Cash', 'Voucher'].map((type) {
+                                final isSelected = award.type.toLowerCase() == type.toLowerCase();
+                                return Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    child: SizedBox(
+                                      height: 32,
+                                      child: BoxyArtButton(
+                                        title: type.toUpperCase(),
+                                        onTap: () => setState(() => _awards[index] = award.copyWith(type: type)),
+                                        isGhost: !isSelected,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        );
+                      }),
+                      const SizedBox(height: 16),
+                      BoxyArtButton(
+                        title: 'ADD AWARD',
+                        onTap: () => setState(() => _awards.add(EventAward(id: 'award_${DateTime.now().millisecondsSinceEpoch}', label: '', type: 'Cup'))),
+                        isGhost: true,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+                const SizedBox(height: AppTheme.cardSpacing),
+
                 const BoxyArtSectionTitle(title: 'Facilities'),
                 const SizedBox(height: AppTheme.sectionSpacing),
                 BoxyArtCard(
@@ -1542,8 +1663,16 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                       const SizedBox(height: 8),
                       TextButton.icon(
                         onPressed: _addFacility,
-                        icon: const Icon(Icons.add, color: Colors.black),
-                        label: const Text('Add Facility', style: TextStyle(color: Colors.black)),
+                        icon: const Icon(Icons.add, color: Colors.grey, size: 18),
+                        label: const Text(
+                          'Add Facility', 
+                          style: TextStyle(
+                            color: Colors.grey, 
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -1562,19 +1691,29 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                   children: [
                     TextButton.icon(
                       onPressed: _addNote,
-                      icon: const Icon(Icons.add_comment_outlined, color: Colors.black, size: 20),
+                      icon: const Icon(Icons.add_comment_outlined, color: Colors.grey, size: 18),
                       label: const Text(
                         'Add Note',
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.grey, 
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 24),
+                    const SizedBox(width: 32),
                     TextButton.icon(
                       onPressed: _addNoteWithPhoto,
-                      icon: const Icon(Icons.add_a_photo_outlined, color: Colors.black, size: 20),
+                      icon: const Icon(Icons.add_a_photo_outlined, color: Colors.grey, size: 18),
                       label: const Text(
                         'Add Photo',
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.grey, 
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -1761,6 +1900,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       breakfastCost: double.tryParse(_breakfastCostController.text),
       lunchCost: double.tryParse(_lunchCostController.text),
       dinnerCost: double.tryParse(_dinnerCostController.text),
+      societyGreenFee: double.tryParse(_societyGreenFeeController.text),
+      societyBreakfastCost: double.tryParse(_societyBreakfastCostController.text),
+      societyLunchCost: double.tryParse(_societyLunchCostController.text),
+      societyDinnerCost: double.tryParse(_societyDinnerCostController.text),
       buggyCost: double.tryParse(_buggyCostController.text),
       hasBreakfast: _hasBreakfast,
       hasLunch: _hasLunch,
@@ -1772,6 +1915,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       isMultiDay: _isMultiDay,
       endDate: _isMultiDay ? _endDate : null,
       isInvitational: _isInvitational,
+      showAwards: _showAwards,
+      awards: _awards,
+      expenses: _editingEvent?.expenses ?? [],
       facilities: _facilitiesControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
       status: _editingEvent?.status ?? widget.event?.status ?? EventStatus.draft,
       registrations: _editingEvent?.registrations ?? widget.event?.registrations ?? [], // Preserve existing registrations!

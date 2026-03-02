@@ -6,6 +6,7 @@ import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/features/events/domain/registration_logic.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/grouping/grouping_service.dart';
@@ -158,25 +159,28 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
        }
     } else {
       // Individual Leaderboard
-      for (var reg in widget.event.registrations) {
-        if (!reg.attendingGolf) continue;
-        
-        final id = reg.memberId;
-        final isGuest = reg.isGuest;
-        final regId = isGuest ? '${id}_guest' : id;
+      // Use RegistrationLogic to get participants who are actually playing (Confirmed or Reserved)
+      // This ensures nested guests are correctly discovered and flattened.
+      final golfers = RegistrationLogic.getPlayingParticipants(widget.event);
 
-        if (mergedData.containsKey(regId)) {
+      for (var item in golfers) {
+        if (!effectiveRules.includeGuests && item.isGuest) continue; // [NEW] Filter guests
+        
+        final reg = item.registration;
+        final id = item.isGuest ? '${reg.memberId}_guest' : reg.memberId;
+
+        if (mergedData.containsKey(id)) {
           finalEntries.add(_buildEntry(
-            id: regId,
+            id: id,
             reg: reg,
-            source: mergedData[regId]!,
+            source: mergedData[id]!,
             event: widget.event,
             effectiveRules: effectiveRules,
             membersList: widget.membersList,
             currentFormat: currentFormat,
-            holeLimit: widget.playerHoleLimits[regId],
-            teamIndex: getGroupIndex(regId),
-            manualTeeName: widget.teeOverrides?[regId],
+            holeLimit: widget.playerHoleLimits[id],
+            teamIndex: getGroupIndex(id),
+            manualTeeName: widget.teeOverrides?[id],
           ));
         }
       }
@@ -184,9 +188,17 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       // Fallback for dangling data (e.g. pure mock/seeded without reg)
       if (finalEntries.isEmpty && mergedData.isNotEmpty) {
         mergedData.forEach((key, value) {
+          final isGuestKey = key.endsWith('_guest');
+          final memberId = key.replaceAll('_guest', '');
+          
           finalEntries.add(_buildEntry(
             id: key,
-            reg: EventRegistration(memberId: key, memberName: value['data']['playerName'] ?? 'Unknown', attendingGolf: true),
+            reg: EventRegistration(
+              memberId: memberId, 
+              memberName: value['data']?['playerName'] ?? 'Unknown', 
+              attendingGolf: true,
+              isGuest: isGuestKey,
+            ),
             source: value,
             event: widget.event,
             effectiveRules: effectiveRules,
@@ -254,21 +266,53 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       });
     }
 
-    final members = finalizedEntries.where((e) => !e.isGuest).toList();
-    final guests = finalizedEntries.where((e) => e.isGuest).toList();
+    final config = ref.watch(themeControllerProvider);
+    final separateGuests = effectiveRules.separateGuests ?? config.separateGuestLeaderboard;
+    
+    // Split into Members and Guests if separation is active
+    final guestEntries = separateGuests
+        ? finalizedEntries.where((e) => e.isGuest).toList()
+        : <LeaderboardEntry>[];
+    
+    final memberEntries = separateGuests
+        ? finalizedEntries.where((e) => !e.isGuest).toList()
+        : finalizedEntries;
+
+    if (memberEntries.isEmpty && guestEntries.isEmpty) {
+      return const Center(child: Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Text('Standings will appear once scoring starts.', style: TextStyle(color: Colors.grey)),
+      ));
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LeaderboardWidget(
-          entries: members,
-          format: currentFormat,
-          onPlayerTap: widget.onPlayerTap,
-        ),
-        if (guests.isNotEmpty) ...[
-          const SizedBox(height: 24),
+        if (memberEntries.isNotEmpty) ...[
+          if (widget.showTitles) ...[
+            BoxyArtSectionTitle(
+              title: separateGuests ? 'SOCIETY MEMBERS' : 'LIVE STANDINGS',
+              count: separateGuests ? memberEntries.length : null,
+            ),
+            const SizedBox(height: 12),
+          ],
           LeaderboardWidget(
-            entries: guests,
+            entries: memberEntries,
+            format: currentFormat,
+            onPlayerTap: widget.onPlayerTap,
+          ),
+        ],
+        if (guestEntries.isNotEmpty) ...[
+          const SizedBox(height: 32),
+          if (widget.showTitles) ...[
+            BoxyArtSectionTitle(
+              title: 'GUESTS',
+              count: guestEntries.length,
+            ),
+            const SizedBox(height: 12),
+          ],
+          LeaderboardWidget(
+            entries: guestEntries,
             format: currentFormat,
             onPlayerTap: widget.onPlayerTap,
           ),
@@ -294,6 +338,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
   }) {
      final names = teamPlayers.map((p) => p.name).toList();
      final ids = teamPlayers.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList(); // [NEW] Track IDs
+     final isGuestTeam = teamPlayers.every((p) => p.isGuest);
      
      // [FIX] Detect Fourball (Better Ball) vs Scramble
      final isFourball = effectiveRules.subtype == CompetitionSubtype.fourball;
@@ -441,6 +486,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
            }).toList(),
            individualPlayingHandicaps: ids.map((id) => playerPhcs[id] ?? 0).toList(),
            holesPlayed: maxHolesPlayed,
+           isGuest: isGuestTeam,
            mode: CompetitionMode.pairs,
            // holeScores for pairs is complex (best ball), let the modal reconstruct from individual cards
          );
@@ -532,6 +578,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         playingHandicap: teamPHC,
         individualHandicaps: teamHaps,
         holesPlayed: result.holesPlayed,
+        isGuest: isGuestTeam,
         mode: CompetitionMode.teams,
         adjustedGrossScore: result.adjustedGrossScore,
         holeScores: teamScores,
@@ -552,11 +599,15 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     String? manualTeeName, 
   }) {
     final data = source['data'];
-    final isGuest = reg.memberId.contains('_guest') || reg.isGuest;
+    final isGuest = id.contains('_guest') || reg.isGuest;
     
     double handicapIndex;
     if (isGuest) {
-      handicapIndex = double.tryParse(reg.guestHandicap ?? '18') ?? 18.0;
+      if (id.contains('_guest')) {
+        handicapIndex = double.tryParse(reg.guestHandicap ?? '18') ?? 18.0;
+      } else {
+        handicapIndex = reg.handicap ?? 18.0;
+      }
     } else {
       final member = membersList.firstWhereOrNull((m) => m.id == reg.memberId);
       handicapIndex = member?.handicap ?? 18.0;
@@ -613,7 +664,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     return LeaderboardEntry(
       entryId: id,
-      playerName: isGuest ? (reg.guestName ?? 'Guest') : reg.memberName,
+      playerName: isGuest 
+          ? (id.contains('_guest') ? (reg.guestName ?? 'Guest') : reg.memberName)
+          : reg.memberName,
       secondaryPlayerName: !isGuest && reg.guestName != null ? reg.guestName : null,
       score: result.score,
       scoreLabel: result.label,

@@ -30,6 +30,8 @@ class GroupingPlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bool hasProfilePic = member?.avatarUrl != null && !player.isGuest;
 
     Color borderColor = Colors.transparent;
@@ -46,13 +48,13 @@ class GroupingPlayerAvatar extends StatelessWidget {
         history!,
       );
       if (matches == 0) {
-        borderColor = Colors.green;
+        borderColor = AppColors.lime600;
         varietyTooltip = 'Good slot variety';
       } else if (matches == 1) {
-        borderColor = Colors.amber;
+        borderColor = AppColors.amber500;
         varietyTooltip = 'Played in this slot in 1 of last 3 events';
       } else {
-        borderColor = Colors.red;
+        borderColor = AppColors.coral500;
         varietyTooltip = 'Played in this slot in $matches of last 3 events';
       }
     }
@@ -69,8 +71,8 @@ class GroupingPlayerAvatar extends StatelessWidget {
         child: CircleAvatar(
           radius: size / 2,
           backgroundColor: player.isCaptain
-              ? Colors.orange
-              : Colors.grey.shade200,
+              ? AppColors.amber500
+              : (isDark ? AppColors.dark600 : AppColors.dark60),
           backgroundImage: hasProfilePic
               ? NetworkImage(member!.avatarUrl!)
               : null,
@@ -78,7 +80,9 @@ class GroupingPlayerAvatar extends StatelessWidget {
               ? Text(
                   player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
                   style: TextStyle(
-                    color: player.isCaptain ? Colors.white : Colors.black54,
+                    color: player.isCaptain 
+                        ? Colors.white 
+                        : (isDark ? AppColors.dark100 : AppColors.dark900),
                     fontWeight: FontWeight.w900,
                     fontSize: size * 0.4,
                   ),
@@ -135,7 +139,9 @@ class GroupingPlayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.primaryColor;
 
     // Single Source of Truth: PHC comes from stored grouping data.
     // The admin "Recalculate PHCs" button is the ONLY place PHCs are calculated.
@@ -158,7 +164,7 @@ class GroupingPlayerTile extends StatelessWidget {
                         width: 1.5,
                       )
                     : Border.all(
-                        color: Colors.black.withValues(alpha: 0.03),
+                        color: isDark ? AppColors.dark500 : AppColors.lightBorder,
                         width: 1,
                       )),
         ),
@@ -213,12 +219,12 @@ class GroupingPlayerTile extends StatelessWidget {
                               Icon(
                                 Icons.exit_to_app,
                                 size: 18,
-                                color: Colors.red,
+                                color: AppColors.coral500,
                               ),
                               SizedBox(width: 12),
                               Text(
                                 'Withdraw Member',
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(color: AppColors.coral500),
                               ),
                             ],
                           ),
@@ -257,9 +263,8 @@ class GroupingPlayerTile extends StatelessWidget {
                     children: [
                       Text(
                         'HC: ${player.handicapIndex.toStringAsFixed(1)}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.black,
+                        style: AppTypography.caption.copyWith(
+                          color: isDark ? AppColors.dark150 : AppColors.dark400,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -268,16 +273,15 @@ class GroupingPlayerTile extends StatelessWidget {
                         width: 3,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.3),
+                          color: isDark ? AppColors.dark500 : AppColors.dark200.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         'PHC: $displayPhc',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: primaryColor,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.lime500,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -287,7 +291,7 @@ class GroupingPlayerTile extends StatelessWidget {
                           width: 3,
                           height: 3,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.3),
+                            color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -309,114 +313,114 @@ class GroupingPlayerTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (isScoreMode)
-              Container(
-                width: 52,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: primaryColor.withValues(alpha: 0.3),
-                    width: 0.8,
-                  ),
-                ),
-                child: Text(
-                  scoreDisplay ?? '-',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: primaryColor,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              )
-            else
-            // Guest Indicator (Consistent across all modes)
-            if (player.isGuest || (isScoreMode && player.isGuest))
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: BoxyArtSquareBadge(
-                  child: const Text(
-                    'G',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.orange,
-                    ),
-                  ),
-                ),
-              ),
-
-            // Winner Trophy
-            if (isScoreMode && isWinner)
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: BoxyArtSquareBadge(
-                  child: const Icon(
-                    Icons.emoji_events_rounded,
-                    size: 14,
-                    color: Colors.orange,
-                  ),
-                ),
-              ),
-
-            if (!isScoreMode) ...[
-              // Member's Guest Marker
-              if (hasGuest)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: BoxyArtSquareBadge(
-                    child: const Icon(
-                      Icons.person_add,
-                      color: Colors.deepPurple,
-                      size: 14,
-                    ),
-                  ),
-                ),
-
-              // Buggy Marker/Toggle
-              if (player.needsBuggy || isAdmin)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: BoxyArtSquareBadge(
-                    child: InkWell(
-                      onTap: isAdmin
-                          ? () => onAction?.call('buggy', player, group)
-                          : null,
-                      borderRadius: BorderRadius.circular(8),
-                      child: _buildBuggyIcon(
-                        player.needsBuggy
-                            ? player.buggyStatus
-                            : RegistrationStatus.none,
-                        size: 14,
+            
+            // 3. Trailing Section (Badges + Score)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Guest Indicator
+                if (player.isGuest)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: BoxyArtSquareBadge(
+                      child: Text(
+                        'G',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.amber500,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-              // Captain Marker/Toggle
-              if (player.isCaptain || isAdmin)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: BoxyArtSquareBadge(
-                    child: InkWell(
-                      onTap: isAdmin
-                          ? () => onAction?.call('captain', player, group)
-                          : null,
-                      borderRadius: BorderRadius.circular(8),
+                // Winner Trophy
+                if (isScoreMode && isWinner)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: BoxyArtSquareBadge(
                       child: Icon(
-                        player.isCaptain ? Icons.shield : Icons.shield_outlined,
-                        color: player.isCaptain
-                            ? Colors.orange
-                            : Colors.grey.shade300,
+                        Icons.emoji_events_rounded,
                         size: 14,
+                        color: AppColors.amber500,
                       ),
                     ),
                   ),
-                ),
-            ],
+
+                if (!isScoreMode) ...[
+                  // Member's Guest Marker
+                  if (hasGuest)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 4),
+                      child: BoxyArtSquareBadge(
+                        child: Icon(
+                          Icons.person_add,
+                          color: AppColors.lime500,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+
+                  // Buggy Marker/Toggle
+                  if (player.needsBuggy || isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: BoxyArtSquareBadge(
+                        child: InkWell(
+                          onTap: isAdmin
+                              ? () => onAction?.call('buggy', player, group)
+                              : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: _buildBuggyIcon(
+                            player.needsBuggy
+                                ? player.buggyStatus
+                                : RegistrationStatus.none,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Captain Marker/Toggle
+                  if (player.isCaptain || isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: BoxyArtSquareBadge(
+                        child: InkWell(
+                          onTap: isAdmin
+                              ? () => onAction?.call('captain', player, group)
+                              : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Icon(
+                            player.isCaptain ? Icons.shield : Icons.shield_outlined,
+                            color: player.isCaptain
+                                ? AppColors.amber500
+                                : (isDark ? AppColors.dark400 : AppColors.dark100),
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+
+                // Score Display (Aligned to far right)
+                if (isScoreMode)
+                  Container(
+                    width: 44, // Fixed width for alignment
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      (scoreDisplay == null || scoreDisplay!.isEmpty) ? '-' : scoreDisplay!,
+                      style: AppTypography.displayHeading.copyWith(
+                        fontSize: 20, // Matches BoxyArtScorecardTile standard
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.pureWhite,
+                        height: 1.0,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
@@ -628,7 +632,7 @@ class GroupingCard extends StatelessWidget {
         ? Map.from(winnerMap!)
         : {};
 
-    if (isScoreMode && scoreMap != null && winnerMap == null) {
+    if (isScoreMode && scoreMap != null) {
       final List<MapEntry<String, int>> playerScores = [];
 
       int parseScore(String text) {
@@ -756,13 +760,11 @@ class GroupingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    BoxyArtPill(
-                      label: 'Group ${group.index + 1}',
-                      color: Colors.grey.shade700,
-                    ),
-                  ],
+                BoxyArtPill(
+                  label: 'GROUP ${group.index + 1}',
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.dark150
+                      : AppColors.dark300,
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -774,11 +776,9 @@ class GroupingCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -787,7 +787,7 @@ class GroupingCard extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.access_time_filled_rounded,
-                        size: 12,
+                        size: 14,
                         color: Colors.white,
                       ),
                       const SizedBox(width: 6),
@@ -797,6 +797,7 @@ class GroupingCard extends StatelessWidget {
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
                           fontSize: 13,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
@@ -1028,8 +1029,8 @@ class GroupingCard extends StatelessWidget {
               ),
               Text(
                 matchStatus.toUpperCase(),
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
+                style: const TextStyle(
+                  color: AppColors.lime500,
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.2,
@@ -1178,7 +1179,7 @@ class GroupingCard extends StatelessWidget {
           ? 'Team Score: ${formatScore(groupTotal)}'
           : 'Group Total (Best $bestX): ${formatScore(groupTotal)}',
       style: TextStyle(
-        color: Theme.of(context).primaryColor,
+        color: isStableford ? AppColors.pureWhite : AppColors.lime500,
         fontSize: 12,
         fontWeight: FontWeight.w900,
       ),

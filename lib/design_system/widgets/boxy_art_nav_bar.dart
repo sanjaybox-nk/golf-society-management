@@ -1,4 +1,5 @@
 import "package:golf_society/design_system/design_system.dart";
+import "dart:ui";
 class BoxyArtBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
@@ -19,7 +20,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     this.borderColor,
   });
 
-@override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = activeColor ?? theme.primaryColor;
@@ -28,102 +29,98 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     
     // Dock Proportions
     final availableWidth = screenWidth - 64; // Horizontal margins (32 * 2)
-    final itemWidth = availableWidth / items.length;
-    final indicatorWidth = itemWidth * 0.65; // Narrower highlight
-    const double indicatorHeight = 36.0;
     const double dockHeight = 60.0;
     
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(32, 0, 32, 12),
+        margin: const EdgeInsets.fromLTRB(32, 0, 32, 16),
         height: dockHeight,
         width: availableWidth,
         decoration: BoxDecoration(
-          color: backgroundColor ?? (isDark 
-              ? const Color(0xFF1A1C1E) // Deep dark card
-              : Colors.white),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.25),
-            width: 0.5,
-          ),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 30,
-              offset: const Offset(0, 12),
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
+              blurRadius: 32,
+              offset: const Offset(0, 16),
             ),
           ],
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Selection Island (Dock Background Behind Icon)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 450),
-              curve: Curves.easeOutQuart,
-              left: (selectedIndex * itemWidth) + (itemWidth - indicatorWidth) / 2,
-              top: 5.0, // Tighter alignment for slim dock
-              child: Container(
-                width: indicatorWidth,
-                height: indicatorHeight,
-                decoration: ShapeDecoration(
-                  color: primaryColor.withValues(alpha: 0.12),
-                  shape: ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.circular(22),
-                  ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor ?? (isDark 
+                    ? AppColors.dark700.withValues(alpha: 0.8) 
+                    : Colors.white.withValues(alpha: 0.85)),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark 
+                      ? Colors.white.withValues(alpha: 0.12) 
+                      : AppColors.dark700.withValues(alpha: 0.08),
+                  width: 1.0,
                 ),
               ),
-            ),
-                  
-            // Interaction Row
-            Row(
-              children: items.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final isSelected = selectedIndex == index;
-                final Color unselectedItemColor = unselectedColor?.withValues(alpha: 0.4) ?? 
-                    (isDark ? Colors.white54 : Colors.black38);
-  
-                return Expanded(
-                  child: GestureDetector(
-                        onTap: () => onItemSelected(index),
-                        behavior: HitTestBehavior.opaque,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 2),
-                            AnimatedScale(
-                              duration: const Duration(milliseconds: 300),
-                              scale: isSelected ? 1.1 : 1.0,
-                              curve: Curves.easeOutBack,
-                              child: Icon(
-                                isSelected ? item.activeIcon : item.icon,
-                                color: isSelected ? primaryColor : unselectedItemColor,
-                                size: 20,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Interaction Row
+                  Row(
+                    children: items.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final isSelected = selectedIndex == index;
+                      final Color unselectedItemColor = unselectedColor ?? 
+                          (isDark ? AppColors.dark150 : AppColors.dark300);
+        
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => onItemSelected(index),
+                          behavior: HitTestBehavior.opaque,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 2),
+                              AnimatedScale(
+                                duration: const Duration(milliseconds: 300),
+                                scale: isSelected ? 1.1 : 1.0,
+                                curve: Curves.easeOutBack,
+                                child: Icon(
+                                  isSelected ? item.activeIcon : item.icon,
+                                  color: isSelected 
+                                    ? (isDark ? AppColors.pureWhite : primaryColor) 
+                                    : unselectedItemColor,
+                                  size: 20,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.label,
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                color: isSelected ? primaryColor : unselectedItemColor,
-                                letterSpacing: 0.2,
+                              const SizedBox(height: 4),
+                              Text(
+                                item.label,
+                                style: AppTypography.caption.copyWith(
+                                  fontSize: 10.5,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                  color: isSelected 
+                                      ? (isDark ? AppColors.pureWhite : primaryColor) 
+                                      : unselectedItemColor,
+                                  letterSpacing: 0.2,
+                                ),
+                                maxLines: 1,
                               ),
-                              maxLines: 1,
-                            ),
-                            const SizedBox(height: 2),
-                          ],
+                              const SizedBox(height: 2),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
+          ),
+        ),
       ),
     );
   }

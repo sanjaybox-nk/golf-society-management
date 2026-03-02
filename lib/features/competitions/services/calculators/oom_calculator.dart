@@ -19,7 +19,10 @@ class OOMCalculator implements LeaderboardCalculator {
 
     // Process each competition
     for (var comp in competitions) {
-      final compCards = scorecards.where((s) => s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok).toList();
+      final compCards = scorecards.where((s) {
+        final isExcluded = comp.rules.oomExcludedRoundIds.contains(s.roundId);
+        return s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok && !isExcluded;
+      }).toList();
       
       // Sort for position if needed
       if (oomConfig.source == OOMSource.position) {
@@ -53,10 +56,11 @@ class OOMCalculator implements LeaderboardCalculator {
           if (teamData != null && teamData['members'] is List) {
             memberIds = List<String>.from(teamData['members']);
           } else {
-            memberIds = [card.submittedByUserId];
+            // Log warning or fallback
+            memberIds = [card.entryId];
           }
         } else {
-          memberIds = [card.submittedByUserId];
+          memberIds = [card.entryId];
         }
 
         // Calculate Points

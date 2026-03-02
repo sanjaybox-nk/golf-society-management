@@ -176,48 +176,61 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       _selectedEventId = null;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final totalRecipients = membersAsync.value?.length ?? 0;
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
-      backgroundColor: widget.isTabbed ? Colors.transparent : beigeBackground,
-      appBar: widget.isTabbed ? null : BoxyArtAppBar(title: 'Compose'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const BoxyArtSectionTitle(title: 'Target Audience', ),
-              const SizedBox(height: 12),
-              _buildTargetSelector(totalRecipients),
-              const SizedBox(height: 32),
-              
-              const BoxyArtSectionTitle(title: 'Message Content', ),
-              const SizedBox(height: 12),
-              _buildMessageForm(),
-              const SizedBox(height: 32),
-              
-              const BoxyArtSectionTitle(title: 'Interaction', ),
-              const SizedBox(height: 12),
-              _buildDeepLinkSelector(),
-              const SizedBox(height: 48),
-              
-              BoxyArtButton(
-                title: 'Send Notification',
-                onTap: _handleSend,
-                fullWidth: true,
-              ),
-              const SizedBox(height: 40),
-            ],
+    final content = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(title: 'Target Audience'),
+          const SizedBox(height: AppSpacing.md),
+          _buildTargetSelector(totalRecipients),
+          const SizedBox(height: AppSpacing.x3l),
+          
+          const BoxyArtSectionTitle(title: 'Message Content'),
+          const SizedBox(height: AppSpacing.md),
+          _buildMessageForm(),
+          const SizedBox(height: AppSpacing.x3l),
+          
+          const BoxyArtSectionTitle(title: 'Interaction'),
+          const SizedBox(height: AppSpacing.md),
+          _buildDeepLinkSelector(),
+          const SizedBox(height: AppSpacing.x4l),
+          
+          BoxyArtButton(
+            title: 'Send Notification',
+            onTap: _handleSend,
+            fullWidth: true,
+          ),
+          const SizedBox(height: AppSpacing.x3l),
+        ],
+      ),
+    );
+
+    if (widget.isTabbed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        child: content,
+      );
+    }
+
+    return HeadlessScaffold(
+      title: 'Compose',
+      subtitle: 'Push Notification',
+      showBack: true,
+      onBack: () => context.pop(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          sliver: SliverToBoxAdapter(
+            child: content,
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -229,14 +242,17 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
     final theme = Theme.of(context);
 
     return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Design 3.1 Segmented Control
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(AppSpacing.xs),
             decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(14),
+              color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(AppSpacing.lg),
+              border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
             ),
             child: Row(
               children: _targetOptions.map((opt) {
@@ -247,16 +263,23 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? theme.primaryColor : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
+                        color: isSelected ? AppColors.lime500 : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppSpacing.md),
+                        boxShadow: isSelected ? [
+                          BoxShadow(
+                            color: AppColors.lime500.withValues(alpha: 0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          )
+                        ] : null,
                       ),
                       child: Text(
                         opt,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: AppTypography.label.copyWith(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                          color: isSelected ? AppColors.actionText : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                         ),
                       ),
                     ),
@@ -265,30 +288,33 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
               }).toList(),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           
           if (_targetType == 'All Members') 
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.05),
+                color: AppColors.lime500.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
+                border: Border.all(color: AppColors.lime500.withValues(alpha: 0.1)),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
+                      color: AppColors.lime500.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.people_rounded, size: 16, color: Colors.green),
+                    child: const Icon(Icons.people_rounded, size: 16, color: AppColors.lime500),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'Reach: approx. $totalCount members',
-                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.lime500,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
@@ -296,39 +322,30 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             
           if (_targetType == 'Groups')
             if (customLists.isEmpty)
-              Container(
-                 padding: const EdgeInsets.all(20),
-                 width: double.infinity,
-                 decoration: BoxDecoration(
-                   color: theme.dividerColor.withValues(alpha: 0.05),
-                   borderRadius: BorderRadius.circular(16),
-                   border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
-                 ),
-                 child: Column(
-                   children: [
-                     Icon(Icons.group_off_rounded, size: 32, color: theme.dividerColor.withValues(alpha: 0.3)),
-                     const SizedBox(height: 12),
-                     const Text(
-                       'No audience groups found',
-                       style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500),
-                     ),
-                   ],
-                 ),
-              )
-            else
-              DropdownButtonFormField<DistributionList>(
-              initialValue: _selectedCustomList,
-                hint: const Text('Select Audience Group'),
-                decoration: InputDecoration(
-                  labelText: 'Target Group',
-                  labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
-                  filled: true,
-                  fillColor: theme.dividerColor.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(
+            Container(
+                  padding: const EdgeInsets.all(20),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: theme.dividerColor.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                    border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
                   ),
-                ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.group_off_rounded, size: 32, color: theme.dividerColor.withValues(alpha: 0.3)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No audience groups found',
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.dark300),
+                      ),
+                    ],
+                  ),
+               )
+            else
+              BoxyArtDropdownField<DistributionList>(
+                label: 'Target Group',
+                value: _selectedCustomList,
+                hint: 'Select Audience Group',
                 items: customLists.map((l) => DropdownMenuItem(value: l, child: Text(l.name))).toList(),
                 onChanged: (v) => setState(() => _selectedCustomList = v),
               ),
@@ -342,21 +359,12 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                   },
                   onSelected: (Member s) => setState(() => _selectedMember = s),
                   fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                    return TextField(
+                    return BoxyArtInputField(
+                      label: 'Search Member',
+                      hint: 'Start typing name...',
                       controller: controller,
                       focusNode: focusNode,
-                      decoration: InputDecoration(
-                        labelText: 'Search Member',
-                        labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
-                        hintText: 'Start typing name...',
-                        prefixIcon: const Icon(Icons.person_search_rounded, size: 20),
-                        filled: true,
-                        fillColor: theme.dividerColor.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
+                      prefixIcon: const Icon(Icons.person_search_rounded, size: 20),
                     );
                   },
                 ),
@@ -366,46 +374,26 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   }
 
   Widget _buildMessageForm() {
-    final theme = Theme.of(context);
     return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         children: [
-          TextField(
+          BoxyArtInputField(
+            label: 'Subject',
+            hint: 'Short summary...',
             controller: _titleController,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            decoration: InputDecoration(
-              labelText: 'Subject',
-              labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 14),
-              hintText: 'Short summary...',
-              hintStyle: TextStyle(color: theme.dividerColor.withValues(alpha: 0.3)),
-              border: InputBorder.none,
-            ),
           ),
-          const Divider(),
-          TextField(
+          const SizedBox(height: 20),
+          BoxyArtInputField(
+            label: 'Message Body',
+            hint: 'Compose your message details...',
             controller: _bodyController,
             maxLines: 5,
-            decoration: InputDecoration(
-              labelText: 'Message Body',
-              labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 14),
-              hintText: 'Compose your message details...',
-              hintStyle: TextStyle(color: theme.dividerColor.withValues(alpha: 0.3)),
-              border: InputBorder.none,
-            ),
           ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            decoration: InputDecoration(
-              labelText: 'Category',
-              labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
-              filled: true,
-              fillColor: theme.dividerColor.withValues(alpha: 0.05),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-            ),
+          const SizedBox(height: 20),
+          BoxyArtDropdownField<String>(
+            label: 'Category',
+            value: _category,
             items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
             onChanged: (v) => setState(() => _category = v!),
           ),
@@ -415,38 +403,22 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   }
 
   Widget _buildDeepLinkSelector() {
-    final theme = Theme.of(context);
     return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         children: [
-          DropdownButtonFormField<String>(
-            initialValue: _deepLinkAction,
-            decoration: InputDecoration(
-              labelText: 'Action on Tap',
-              labelStyle: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
-              filled: true,
-              fillColor: theme.dividerColor.withValues(alpha: 0.05),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-            ),
+          BoxyArtDropdownField<String>(
+            label: 'Action on Tap',
+            value: _deepLinkAction,
             items: _deepLinkOptions.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
             onChanged: (v) => setState(() => _deepLinkAction = v!),
           ),
           if (_deepLinkAction == 'Event Details') ...[
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedEventId,
-              hint: const Text('Select Upcoming Event'),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: theme.dividerColor.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+            const SizedBox(height: 20),
+            BoxyArtDropdownField<String>(
+              label: 'Select Event',
+              value: _selectedEventId,
+              hint: 'Select Upcoming Event',
               items: [
                 const DropdownMenuItem(value: '1', child: Text('Monthly Medal - Augusta')),
                 const DropdownMenuItem(value: '2', child: Text('Captain Day - Sunningdale')),

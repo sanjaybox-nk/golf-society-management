@@ -1,10 +1,9 @@
 import "package:flutter/material.dart";
-
-
+import "package:golf_society/theme/app_colors.dart";
 
 class StatusColors {
-  static const Color positive = Color(0xFF4CAF50); // Green
-  static const Color warning = Color(0xFFFF9800);  // Orange
-  static const Color negative = Color(0xFFE53935); // Red
-  static const Color neutral = Colors.grey;        // Grey
+  static const Color positive = AppColors.lime500;
+  static const Color warning = AppColors.amber500;
+  static const Color negative = AppColors.coral500;
+  static const Color neutral = AppColors.dark400;
 }

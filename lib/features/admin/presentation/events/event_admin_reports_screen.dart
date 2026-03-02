@@ -19,7 +19,6 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
     return eventAsync.when(
       data: (event) {
-        final primary = Theme.of(context).primaryColor;
         return HeadlessScaffold(
           title: 'Manage Reports',
           subtitle: event.title,
@@ -28,7 +27,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
           onBack: () => context.go('/admin/events'),
           slivers: [
             SliverToBoxAdapter(
-              child: _buildReport(context, ref, event, currency, primary),
+              child: _buildReport(context, ref, event, currency),
             ),
           ],
         );
@@ -38,7 +37,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildReport(BuildContext context, WidgetRef ref, GolfEvent event, String currency, Color primary) {
+  Widget _buildReport(BuildContext context, WidgetRef ref, GolfEvent event, String currency) {
     final maxParticipants = event.maxParticipants ?? 0;
     final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
     
@@ -131,30 +130,40 @@ class EventAdminReportsScreen extends ConsumerWidget {
     final dinners = stats.dinnerCount;
 
     return Container(
-      color: Colors.grey[50], // Keep the light grey background if desired
+      color: AppColors.dark800,
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           // HEADER SUMMARY
           BoxyArtCard(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                Text(event.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('${event.courseName} • ${DateFormat('EEE, d MMM yyyy').format(event.date)}', 
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 20),
-                Row(
+                Text(
+                  event.title, 
+                  textAlign: TextAlign.center,
+                  style: AppTypography.displayHeading.copyWith(
+                    color: AppColors.pureWhite,
+                    fontSize: 22,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${event.courseName} • ${DateFormat('EEE, d MMM yyyy').format(event.date)}', 
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.dark200),
+                ),
+                const SizedBox(height: 24),
+                const Divider(color: AppColors.dark500),
+                const SizedBox(height: 24),
+                ModernMetricBar(
                   children: [
                     Expanded(
                       child: ModernMetricStat(
                         value: '${stats.confirmedGolfers}',
                         label: 'Confirmed',
-                        color: const Color(0xFF27AE60),
+                        color: AppColors.lime600,
                         isCompact: true,
+                        isSolid: true,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -162,8 +171,9 @@ class EventAdminReportsScreen extends ConsumerWidget {
                       child: ModernMetricStat(
                         value: '${stats.reserveGolfers}',
                         label: 'Reserved',
-                        color: const Color(0xFFE67E22),
+                        color: AppColors.amber500,
                         isCompact: true,
+                        isSolid: true,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -171,8 +181,9 @@ class EventAdminReportsScreen extends ConsumerWidget {
                       child: ModernMetricStat(
                         value: '$maxParticipants',
                         label: 'Capacity',
-                        color: primary,
+                        color: AppColors.dark300,
                         isCompact: true,
+                        isSolid: false,
                       ),
                     ),
                   ],
@@ -188,12 +199,12 @@ class EventAdminReportsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Column(
               children: [
-                  _buildReportRow(context, Icons.groups_rounded, 'Members Playing', '${stats.confirmedMembers}'),
-                  _buildReportRow(context, Icons.person_add_rounded, 'Guests Playing', '${stats.confirmedGuests}'),
-                  _buildReportRow(context, Icons.restaurant_rounded, 'Dinner Only', '${stats.dinnerOnlyCount}'),
-                  _buildReportRow(context, Icons.history_rounded, 'Withdrawn (Total)', '${stats.withdrawnCount}', color: Colors.grey),
-                  if (stats.withdrawnConfirmedCount > 0)
-                    _buildReportRow(context, Icons.warning_amber_rounded, 'Confirmed but Withdrawn', '${stats.withdrawnConfirmedCount}', color: const Color(0xFFC0392B)),
+                _buildReportRow(context, Icons.groups_rounded, 'Members Playing', '${stats.confirmedMembers}'),
+                _buildReportRow(context, Icons.person_add_rounded, 'Guests Playing', '${stats.confirmedGuests}'),
+                _buildReportRow(context, Icons.restaurant_rounded, 'Dinner Only', '${stats.dinnerOnlyCount}'),
+                _buildReportRow(context, Icons.history_rounded, 'Withdrawn (Total)', '${stats.withdrawnCount}', color: AppColors.dark300),
+                if (stats.withdrawnConfirmedCount > 0)
+                  _buildReportRow(context, Icons.warning_amber_rounded, 'Confirmed but Withdrawn', '${stats.withdrawnConfirmedCount}', color: AppColors.coral500),
               ],
             ),
           ),
@@ -220,21 +231,23 @@ class EventAdminReportsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                _buildReportRow(context, Icons.check_circle_rounded, 'Fees Collected (Paid)', '$currency${confirmedPaid.toStringAsFixed(0)}', color: const Color(0xFF27AE60)),
-                _buildReportRow(context, Icons.pending_rounded, 'Fees Outstanding (Due)', '$currency${confirmedDue.toStringAsFixed(0)}', color: const Color(0xFFE67E22)),
+                _buildReportRow(context, Icons.check_circle_rounded, 'Fees Collected (Paid)', '$currency${confirmedPaid.toStringAsFixed(0)}', color: AppColors.lime500),
+                _buildReportRow(context, Icons.pending_rounded, 'Fees Outstanding (Due)', '$currency${confirmedDue.toStringAsFixed(0)}', color: AppColors.amber500),
                 if (unconfirmedPaid > 0)
-                  _buildReportRow(context, Icons.undo_rounded, 'Possible Reimbursements', '$currency${unconfirmedPaid.toStringAsFixed(0)}', color: const Color(0xFFC0392B)),
+                  _buildReportRow(context, Icons.undo_rounded, 'Possible Reimbursements', '$currency${unconfirmedPaid.toStringAsFixed(0)}', color: AppColors.coral500),
                 
-                const Divider(height: 32),
+                const Divider(height: 32, color: AppColors.dark400),
                 _buildMinorRow('Golf Total', '$currency${golfTotal.toStringAsFixed(0)}'),
                 _buildMinorRow('Buggies Total', '$currency${buggyTotal.toStringAsFixed(0)}'),
                 _buildMinorRow('Catering Total', '$currency${foodTotal.toStringAsFixed(0)}'),
-                const Divider(height: 32),
+                const Divider(height: 32, color: AppColors.dark400),
                 
                 _buildReportRow(context, Icons.account_balance_wallet_rounded, 'Potential Event Income', '$currency${totalPotentialRevenue.toStringAsFixed(0)}', isBold: true),
-                const SizedBox(height: 4),
-                Text('Calculated based on confirmed participants.', 
-                    style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Colors.grey[500])),
+                const SizedBox(height: 8),
+                Text(
+                  'Calculated based on confirmed participants.', 
+                  style: AppTypography.caption.copyWith(color: AppColors.dark300, fontStyle: FontStyle.italic),
+                ),
               ],
             ),
           ),
@@ -272,37 +285,52 @@ class EventAdminReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildReportRow(BuildContext context, IconData icon, String label, String value, {Color? color, bool isBold = false}) {
-    final primary = Theme.of(context).primaryColor;
-    final iconColor = color ?? primary;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final iconColor = color ?? AppColors.lime500;
     
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: isDark 
+                  ? AppColors.dark700.withValues(alpha: 0.8) 
+                  : iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.12) 
+                    : iconColor.withValues(alpha: 0.15),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, size: 18, color: iconColor),
+            child: Icon(
+              icon, 
+              size: 20, 
+              color: isDark ? (color ?? AppColors.pureWhite) : iconColor,
+            ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               label, 
-              style: TextStyle(
-                fontSize: 15, 
-                color: const Color(0xFF2C3E50), 
-                fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.dark100 : AppColors.dark950, 
+                fontWeight: isBold ? FontWeight.w900 : FontWeight.w600,
               ),
             ),
           ),
-          Text(value, style: TextStyle(
-            fontSize: 16, 
-            fontWeight: FontWeight.w800,
-            color: color ?? const Color(0xFF2C3E50),
-          )),
+          Text(
+            value, 
+            style: AppTypography.displayHeading.copyWith(
+              fontSize: 16, 
+              color: color ?? (isDark ? AppColors.pureWhite : AppColors.dark950),
+            ),
+          ),
         ],
       ),
     );
@@ -310,12 +338,24 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
   Widget _buildMinorRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       child: Row(
         children: [
-          Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+          Text(
+            label, 
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.dark100, 
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const Spacer(),
-          Text(value, style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+          Text(
+            value, 
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.pureWhite, 
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ],
       ),
     );
