@@ -180,6 +180,7 @@ class _LeaderboardTab extends ConsumerWidget {
                 child: _PodiumHeader(
                   standings: standings.take(3).toList(),
                   config: config,
+                  currentUserId: currentUserId,
                 ),
               ),
             
@@ -284,7 +285,7 @@ class _LeaderboardTab extends ConsumerWidget {
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
-                'Your best theoretical score across all season rounds.',
+                'Your ultimate scorecard combining your best score on each hole across the season.',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
               ),
             ),
@@ -310,8 +311,9 @@ class _LeaderboardTab extends ConsumerWidget {
 class _PodiumHeader extends StatelessWidget {
   final List<LeaderboardStanding> standings;
   final LeaderboardConfig? config;
+  final String currentUserId;
 
-  const _PodiumHeader({required this.standings, this.config});
+  const _PodiumHeader({required this.standings, this.config, required this.currentUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -324,17 +326,17 @@ class _PodiumHeader extends StatelessWidget {
     ) ?? 'PTS';
 
     return Container(
-      height: 220,
+      height: 240,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // 2nd Place
-          Expanded(child: _PodiumSpot(standing: standings[1], rank: 2, unit: unit)),
+          Expanded(child: _PodiumSpot(standing: standings[1], rank: 2, unit: unit, isMe: standings[1].memberId == currentUserId)),
           // 1st Place
-          Expanded(child: _PodiumSpot(standing: standings[0], rank: 1, isWinner: true, unit: unit)),
+          Expanded(child: _PodiumSpot(standing: standings[0], rank: 1, isWinner: true, unit: unit, isMe: standings[0].memberId == currentUserId)),
           // 3rd Place
-          Expanded(child: _PodiumSpot(standing: standings[2], rank: 3, unit: unit)),
+          Expanded(child: _PodiumSpot(standing: standings[2], rank: 3, unit: unit, isMe: standings[2].memberId == currentUserId)),
         ],
       ),
     );
@@ -346,12 +348,14 @@ class _PodiumSpot extends StatelessWidget {
   final int rank;
   final bool isWinner;
   final String unit;
+  final bool isMe;
 
   const _PodiumSpot({
     required this.standing, 
     required this.rank, 
     this.isWinner = false,
     required this.unit,
+    this.isMe = false,
   });
 
   @override
@@ -372,15 +376,26 @@ class _PodiumSpot extends StatelessWidget {
                 height: isWinner ? 80 : 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: rankColor, width: isWinner ? 3 : 2),
+                  border: Border.all(
+                    color: isMe ? primary : rankColor, 
+                    width: isWinner ? 3 : 2,
+                  ),
                   boxShadow: [
-                    BoxShadow(color: rankColor.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: 2),
+                    BoxShadow(
+                      color: (isMe ? primary : rankColor).withValues(alpha: 0.2), 
+                      blurRadius: 15, 
+                      spreadRadius: 2,
+                    ),
                   ],
                 ),
                 child: Center(
                   child: Text(
                     standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
-                    style: TextStyle(fontSize: isWinner ? 32 : 24, fontWeight: FontWeight.bold, color: rankColor),
+                    style: TextStyle(
+                      fontSize: isWinner ? 32 : 24, 
+                      fontWeight: FontWeight.bold, 
+                      color: isMe ? primary : rankColor,
+                    ),
                   ),
                 ),
               ),
@@ -400,8 +415,15 @@ class _PodiumSpot extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          standing.memberName.split(' ').first,
-          style: TextStyle(fontWeight: isWinner ? FontWeight.w900 : FontWeight.bold, fontSize: isWinner ? 15 : 13),
+          standing.memberName,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: isMe ? FontWeight.w900 : (isWinner ? FontWeight.w900 : FontWeight.bold), 
+            fontSize: isWinner ? 14 : 12,
+            color: isMe ? primary : null,
+            letterSpacing: -0.2,
+          ),
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         Text(
@@ -433,7 +455,7 @@ class _StandingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: isMe ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor)) : null,
+      border: isMe ? Border.fromBorderSide(const BorderSide(color: AppColors.amber500, width: 2)) : null,
       onTap: () => _showDetails(context),
       child: Row(
         children: [
@@ -443,30 +465,31 @@ class _StandingRow extends StatelessWidget {
               '$rank',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
-                color: isMe ? Theme.of(context).primaryColor : Colors.grey,
+                color: isMe ? AppColors.amber500 : Colors.grey,
               ),
             ),
           ),
           const SizedBox(width: 12),
           CircleAvatar(
             radius: 14,
-            backgroundColor: isMe ? Theme.of(context).primaryColor.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
+            backgroundColor: isMe ? AppColors.amber500.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
             child: Text(
-              standing.memberName[0].toUpperCase(),
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isMe ? Theme.of(context).primaryColor : Colors.grey),
+              standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isMe ? AppColors.amber500 : Colors.grey),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               standing.memberName,
+              textAlign: TextAlign.left,
               style: TextStyle(fontWeight: isMe ? FontWeight.w900 : FontWeight.bold, fontSize: 14),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
             standing.points.toStringAsFixed(0),
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: isMe ? Theme.of(context).primaryColor : null),
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: isMe ? AppColors.amber500 : null),
           ),
         ],
       ),

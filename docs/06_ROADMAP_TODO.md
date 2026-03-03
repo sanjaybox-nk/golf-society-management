@@ -38,20 +38,30 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Live Leaderboard**: Real-time ranking with dynamic support for Stableford/Medal.
     - [x] **Order of Merit (OoM) Points**: Industry standard point conversion (25, 18, 15, 12).
     - [x] **Best N Selection**: Automatically count only the top $N$ rounds for season standings.
+    - [x] **Dynamic Member Standings**: Live season rank and performance statistics on member profiles.
     - [x] **Team Attribution**: Individual credit for team/pairs events.
     - [x] **Matchplay Engine**: Independent knockouts and event-layered head-to-head.
         - [x] **Secondary Overlays**: Run matchplay alongside Stableford/Medal.
         - [x] **Interactive Grouping**: Tap-to-Swap pairing logic on the tee sheet.
     - [x] **Unified Scorecard View**: Consistent `ScorecardModal` across member/admin leaderboards.
     - [x] **Admin Scoring Controls**: Manual 'Force Active' and 'Score Lock' lifecycle management.
+    - [x] **Manual Society Cuts**: Per-event handicap adjustments with automated group sync.
     - [x] **Stability Hardening**: Resolved null safety errors in scorecard state syncing.
     - [ ] **Result Verification**: Admin approval workflow.
+- [ ] **Divisions & Groups**
+    - [ ] **Categorization**: Support for both fixed (Strict), tagged (Flexible), and handicap-based (Dynamic) groupings.
+    - [ ] **Management UI**: Dedicated Admin screen for defining society-wide divisions.
+    - [ ] **Member Assignment**: Easy allocation of members to one or more divisions.
+    - [ ] **Per-Division Leaderboards**: Filterable OOM and Eclectic reports targeting specific player categories.
 - [ ] **Locker Room (Profile)**
     - [x] **Edit Profile**: Form to update handicap, phone, etc.
     - [x] **Profile Input Stability**: ListenableBuilder refactor to prevent cursor jumping.
     - [x] **Photo Upload**: Profile picture management (5MB limit).
     - [x] **Stats Engine**: Rich Stats Dashboard with Society & Personal comparative views (WHS Net Differential calculation).
 - [x] **Communications & Notifications**
+    - [x] **Event Broadcast CMS**: Unified `EventFeedItem` model replacing legacy notes/flash updates.
+    - [x] **CMS Configurator**: Admin interface for creating/managing event broadcasts (Drafts, Pinned).
+    - [x] **Dynamic Member Feed**: Event Home tab rebuilt to dynamically render broadcast cards.
     - [x] **Dynamic Home Notifications**: Real-time alerts on Member Home.
     - [x] **Notification Inbox**: History view for all society alerts.
     - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.

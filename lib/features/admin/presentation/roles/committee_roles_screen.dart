@@ -23,8 +23,9 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final membersAsync = ref.watch(allMembersProvider);
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+    final beigeBackground = theme.scaffoldBackgroundColor;
 
     return HeadlessScaffold(
       title: 'Committee Roles',
@@ -49,11 +50,12 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  const BoxyArtSectionTitle(title: 'SOCIETY TITLES'),
                   ...allRoles.map((role) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: _buildRoleCard(context, role),
                   )),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
                   _buildCreateButton(context),
                   const SizedBox(height: 100),
                 ]),
@@ -68,69 +70,78 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
   }
 
   Widget _buildRoleCard(BuildContext context, String role) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
+    const identityColor = Colors.cyan; 
+    final bgColor = identityColor.withValues(alpha: 0.1);
 
     return BoxyArtCard(
       onTap: () {
         context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(role)}');
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Circular Icon Container (56x56)
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: bgColor,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
               child: Icon(
-                icon,
-                color: Theme.of(context).primaryColor,
+                icon, 
+                color: identityColor, 
                 size: 24,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    role,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (description.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Row(
+          ),
+          const SizedBox(width: 16),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.grey),
-                  onPressed: () => _showEditRoleDialog(role),
+                Text(
+                  role.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                  ),
                 ),
-                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? AppColors.dark300 : AppColors.dark400,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          // Actions
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            color: isDark ? AppColors.dark400 : AppColors.dark200,
+            onPressed: () => _showEditRoleDialog(role),
+          ),
+          Icon(
+            Icons.chevron_right_rounded, 
+            color: isDark ? AppColors.dark400 : AppColors.dark300, 
+            size: 20,
+          ),
+        ],
       ),
     );
   }
@@ -138,8 +149,8 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
   Widget _buildCreateButton(BuildContext context) {
     return BoxyArtButton(
       title: 'Create Custom Role',
-      icon: Icons.add_circle_outline,
-      isSecondary: true,
+      icon: Icons.add_circle_outline_rounded,
+      isPrimary: false,
       onTap: () => _showCreateRoleDialog(),
     );
   }

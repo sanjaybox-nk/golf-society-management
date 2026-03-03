@@ -422,7 +422,42 @@ class EventAnalysisEngine {
     addAward('SNIPER', sniperPlayer, getPlayerId(sniperPlayer, event), maxBirdsPlayer);
     addAward('ROLLERCOASTER', rollercoasterPlayer, getPlayerId(rollercoasterPlayer, event), maxVariance);
 
-    // 4. Course Insights
+    // 4. Results List (Sorted for Leaderboard/Stats)
+    final List<Map<String, dynamic>> results = [];
+    final sortedByPoints = List<Scorecard>.from(mergedScorecards);
+    
+    if (isStableford) {
+      sortedByPoints.sort((a, b) => (b.points ?? 0).compareTo(a.points ?? 0));
+    } else {
+      sortedByPoints.sort((a, b) => (a.netTotal ?? 999).compareTo(b.netTotal ?? 999));
+    }
+
+    for (int i = 0; i < sortedByPoints.length; i++) {
+      final s = sortedByPoints[i];
+      int position = i + 1;
+      
+      // Handle ties
+      if (i > 0) {
+        final prev = sortedByPoints[i - 1];
+        if (isStableford) {
+          if (s.points == prev.points) position = results[i - 1]['position'];
+        } else {
+          if (s.netTotal == prev.netTotal) position = results[i - 1]['position'];
+        }
+      }
+
+      results.add({
+        'memberId': s.entryId.replaceFirst('_guest', ''),
+        'memberName': event.registrations.firstWhereOrNull((r) => r.memberId == s.entryId.replaceFirst('_guest', ''))?.memberName ?? 'Unknown',
+        'points': s.points,
+        'netTotal': s.netTotal,
+        'position': position,
+        'isGuest': s.entryId.endsWith('_guest'),
+        'holeScores': s.holeScores,
+      });
+    }
+
+    // 5. Course Insights
     final Map<String, dynamic> courseInsights = {
       'toughestHole': toughestIdx,
       'toughestName': 'Hole ${toughestIdx + 1}',
@@ -433,6 +468,7 @@ class EventAnalysisEngine {
     };
 
     return {
+      'results': results,
       'scoringDistribution': scoringDistribution,
       'performanceTrends': performanceTrends,
       'difficultyHeatmap': holeAverages,

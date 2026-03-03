@@ -13,15 +13,17 @@ import '../features/members/presentation/members_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/events/admin_events_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
+import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
+import 'package:golf_society/features/admin/presentation/events/feed_item_editor_screen.dart';
 import '../features/admin/presentation/members/admin_members_screen.dart';
 import '../features/admin/presentation/settings/admin_settings_screen.dart';
 import '../features/admin/presentation/roles/roles_settings_screen.dart';
 import '../features/admin/presentation/settings/branding_settings_screen.dart';
-import '../features/admin/presentation/settings/general_settings_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
 import '../features/admin/presentation/settings/grouping_strategy_selection_screen.dart';
 import '../features/admin/presentation/settings/handicap_system_selection_screen.dart';
 import '../features/admin/presentation/settings/society_cuts_settings_screen.dart';
+import '../features/admin/presentation/events/event_manual_cuts_screen.dart';
 import '../features/admin/presentation/roles/role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
@@ -53,6 +55,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart'; // Ensure t
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';
 import '../features/events/presentation/tabs/event_user_details_tab.dart';
+import '../features/events/presentation/tabs/event_user_home_tab.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/events/presentation/tabs/event_gallery_user_tab.dart';
 import '../features/competitions/presentation/season_standings_screen.dart';
@@ -166,7 +169,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   child: AdminDashboardScreen(),
                 ),
                 routes: [
-                  // Settings - Integrated into Dashboard branch for persistent menu
+                  GoRoute(
+                    path: 'leaderboards/create/picker',
+                    builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
+                    routes: [
+                      GoRoute(
+                        path: 'gallery/:type',
+                        builder: (context, state) {
+                          final typeStr = state.pathParameters['type']!;
+                          final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                          return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
+                        },
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'leaderboards/create/:type',
+                    builder: (context, state) {
+                      final typeStr = state.pathParameters['type']!;
+                      final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                      return LeaderboardBuilderScreen(type: type, isTemplate: false);
+                    },
+                  ),
                   GoRoute(
                     path: 'settings',
                     builder: (context, state) => const AdminSettingsScreen(),
@@ -176,26 +200,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         builder: (context, state) => const BrandingSettingsScreen(),
                       ),
                       GoRoute(
-                        path: 'general',
-                        builder: (context, state) => const GeneralSettingsScreen(),
-                        routes: [
-                          GoRoute(
-                            path: 'currency',
-                            builder: (context, state) => const CurrencySelectionScreen(),
-                          ),
-                          GoRoute(
-                            path: 'grouping-strategy',
-                            builder: (context, state) => const GroupingStrategySelectionScreen(),
-                          ),
-                          GoRoute(
-                            path: 'handicap-system',
-                            builder: (context, state) => const HandicapSystemSelectionScreen(),
-                          ),
-                          GoRoute(
-                            path: 'society-cuts', // NEW
-                            builder: (context, state) => const SocietyCutsSettingsScreen(),
-                          ),
-                        ],
+                        path: 'currency',
+                        builder: (context, state) => const CurrencySelectionScreen(),
+                      ),
+                      GoRoute(
+                        path: 'grouping-strategy',
+                        builder: (context, state) => const GroupingStrategySelectionScreen(),
+                      ),
+                      GoRoute(
+                        path: 'handicap-system',
+                        builder: (context, state) => const HandicapSystemSelectionScreen(),
+                      ),
+                      GoRoute(
+                        path: 'society-cuts', 
+                        builder: (context, state) => const SocietyCutsSettingsScreen(),
                       ),
                       GoRoute(
                         path: 'roles',
@@ -249,27 +267,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           GoRoute(
                             path: 'gallery/:type',
                             builder: (context, state) {
-                               final typeStr = state.pathParameters['type']!;
-                               return CompetitionTemplateGalleryScreen(typeStr: typeStr, isTemplate: true);
+                              final typeStr = state.pathParameters['type']!;
+                              return CompetitionTemplateGalleryScreen(typeStr: typeStr, isTemplate: true);
                             },
                           ),
                           GoRoute(
                             path: 'create/:type',
                             builder: (context, state) {
-                               final typeStr = state.pathParameters['type']!;
-                               
-                               // Try matching Subtype (for Pairs)
-                               final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
-                               if (subtype != null) {
-                                 return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
-                               }
-
-                               // Match string to enum
-                               final format = CompetitionFormat.values.firstWhere(
-                                 (e) => e.name == typeStr,
-                                 orElse: () => CompetitionFormat.stableford, // Fallback
-                               );
-                               return CompetitionBuilderScreen(format: format, isTemplate: true);
+                              final typeStr = state.pathParameters['type']!;
+                              final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
+                              if (subtype != null) {
+                                return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
+                              }
+                              final format = CompetitionFormat.values.firstWhere(
+                                (e) => e.name == typeStr,
+                                orElse: () => CompetitionFormat.stableford,
+                              );
+                              return CompetitionBuilderScreen(format: format, isTemplate: true);
                             },
                           ),
                           GoRoute(
@@ -282,26 +296,73 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         ],
                       ),
                       GoRoute(
-                        path: 'leaderboards/create/picker',
-                        builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
+                        path: 'leaderboards',
+                        builder: (context, state) => const LeaderboardTypeSelectionScreen(isTemplate: true),
                         routes: [
                           GoRoute(
                             path: 'gallery/:type',
                             builder: (context, state) {
-                               final typeStr = state.pathParameters['type']!;
-                               final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                               return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
+                              final typeStr = state.pathParameters['type']!;
+                              final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                              return LeaderboardTemplateGalleryScreen(type: type, isTemplate: true);
+                            },
+                          ),
+                          GoRoute(
+                            path: 'create/picker',
+                            builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
+                            routes: [
+                              GoRoute(
+                                path: 'gallery/:type',
+                                builder: (context, state) {
+                                  final typeStr = state.pathParameters['type']!;
+                                  final type = LeaderboardType.values.firstWhere(
+                                    (e) => e.name == typeStr,
+                                    orElse: () => LeaderboardType.orderOfMerit,
+                                  );
+                                  return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
+                                },
+                              ),
+                            ],
+                          ),
+                          GoRoute(
+                            path: 'create/:type',
+                            builder: (context, state) {
+                              final typeStr = state.pathParameters['type']!;
+                              final type = LeaderboardType.values.firstWhere(
+                                (e) => e.name == typeStr,
+                                orElse: () => LeaderboardType.orderOfMerit,
+                              );
+                              return LeaderboardBuilderScreen(
+                                type: type, 
+                                isTemplate: true,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'create/:type/builder',
+                            builder: (context, state) {
+                              final typeStr = state.pathParameters['type']!;
+                              final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                              final config = state.extra as LeaderboardConfig?;
+                              return LeaderboardBuilderScreen(
+                                type: type, 
+                                isTemplate: true,
+                                existingConfig: config,
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'edit/:id',
+                            builder: (context, state) {
+                              final config = state.extra as LeaderboardConfig;
+                              return LeaderboardBuilderScreen(
+                                type: _getTypeFromConfig(config),
+                                existingConfig: config,
+                                isTemplate: true
+                              );
                             },
                           ),
                         ],
-                      ),
-                      GoRoute(
-                        path: 'leaderboards/create/:type',
-                        builder: (context, state) {
-                           final typeStr = state.pathParameters['type']!;
-                           final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                           return LeaderboardBuilderScreen(type: type, isTemplate: false); 
-                        },
                       ),
                     ],
                   ),
@@ -361,6 +422,30 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       final id = state.pathParameters['id']!;
                       return CompetitionBuilderScreen(competitionId: id, isTemplate: false);
                     },
+                  ),
+                  GoRoute(
+                    path: ':id/broadcast',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return EventBroadcastScreen(eventId: id);
+                    },
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (context, state) {
+                          final eventId = state.pathParameters['id']!;
+                          return FeedItemEditorScreen(eventId: eventId);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'edit/:itemId',
+                        builder: (context, state) {
+                          final eventId = state.pathParameters['id']!;
+                          final item = state.extra as EventFeedItem?;
+                          return FeedItemEditorScreen(eventId: eventId, existingItem: item);
+                        },
+                      ),
+                    ],
                   ),
                   ShellRoute(
                     pageBuilder: (context, state, child) {
@@ -447,6 +532,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           );
                         },
                       ),
+                      GoRoute(
+                        path: 'manage/:id/manual-cuts',
+                        pageBuilder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return NoTransitionPage(
+                            child: EventManualCutsScreen(eventId: id),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -511,50 +605,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // 5. Leaderboard Templates (New Settings Branch)
-          StatefulShellBranch(
-             navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'leaderboardTemplates'),
-             routes: [
-               GoRoute(
-                 path: '/admin/settings/leaderboards', // Using dedicated path
-                 builder: (context, state) => const LeaderboardTypeSelectionScreen(isTemplate: true),
-                 routes: [
-                   GoRoute(
-                     path: 'gallery/:type',
-                     builder: (context, state) {
-                       final typeStr = state.pathParameters['type']!;
-                       final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                       return LeaderboardTemplateGalleryScreen(type: type, isTemplate: true);
-                     },
-                   ),
-                   GoRoute(
-                     path: 'create/:type/builder',
-                     builder: (context, state) {
-                       final typeStr = state.pathParameters['type']!;
-                       final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                       final config = state.extra as LeaderboardConfig?;
-                       return LeaderboardBuilderScreen(
-                         type: type, 
-                         isTemplate: true,
-                         existingConfig: config,
-                       );
-                     },
-                   ),
-                   GoRoute(
-                     path: 'edit/:id',
-                     builder: (context, state) {
-                       final config = state.extra as LeaderboardConfig;
-                       return LeaderboardBuilderScreen(
-                         type: _getTypeFromConfig(config),
-                         existingConfig: config,
-                         isTemplate: true
-                       );
-                     },
-                   ),
-                 ],
-               ),
-             ],
-          ),
         ],
       ),
       GoRoute(
@@ -563,7 +613,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id'];
           if (state.uri.pathSegments.length == 2) {
             final query = state.uri.query;
-            return '/events/$id/details${query.isNotEmpty ? '?$query' : ''}';
+            return '/events/$id/home${query.isNotEmpty ? '?$query' : ''}';
           }
           return null;
         },
@@ -582,11 +632,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             ),
             routes: [
               GoRoute(
-                path: 'details',
-                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/info',
+                path: 'home',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: EventUserHomeTab(eventId: state.pathParameters['id']!),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
               ),
               GoRoute(
-                path: 'info',
+                path: 'details',
                 pageBuilder: (context, state) => CustomTransitionPage(
                   key: state.pageKey,
                   child: EventUserDetailsTab(eventId: state.pathParameters['id']!),

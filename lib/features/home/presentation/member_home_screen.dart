@@ -229,7 +229,8 @@ class MemberHomeScreen extends ConsumerWidget {
                         child: topPlayers.when(
                           data: (players) => _LeaderboardSnippet(
                             topPlayers: players,
-                            personalStanding: personalStanding.value,
+                            personalStanding: personalStanding.value?['standing'] as LeaderboardStanding?,
+                            personalRank: personalStanding.value?['rank'] as int?,
                           ),
                           loading: () => const Center(child: CircularProgressIndicator()),
                           error: (err, stack) => Text('Error loading standings: $err'),
@@ -387,13 +388,14 @@ class _NextMatchCard extends StatelessWidget {
 class _LeaderboardSnippet extends StatelessWidget {
   final List<Map<String, dynamic>> topPlayers;
   final LeaderboardStanding? personalStanding;
+  final int? personalRank;
 
-  const _LeaderboardSnippet({required this.topPlayers, this.personalStanding});
+  const _LeaderboardSnippet({required this.topPlayers, this.personalStanding, this.personalRank});
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).primaryColor;
-    final isPersonalInTop3 = topPlayers.any((p) => p['name'] == personalStanding?.memberName);
+    final isPersonalInSnippet = topPlayers.any((p) => p['name'] == personalStanding?.memberName);
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(20),
@@ -423,50 +425,55 @@ class _LeaderboardSnippet extends StatelessWidget {
             final position = player['position'] as int;
             final isFirst = position == 1;
             final isMe = player['name'] == personalStanding?.memberName;
+            final name = player['name'] as String;
             
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
+                  BoxyArtNumberBadge(
+                    number: position,
+                    size: 28,
+                    textColor: isMe ? Colors.blue : null,
+                  ),
+                  const SizedBox(width: 12),
+                  // Standard Avatar
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: isMe 
-                        ? Colors.blue.withValues(alpha: 0.15)
-                        : (isFirst ? primary.withValues(alpha: 0.15) : Theme.of(context).dividerColor.withValues(alpha: 0.05)),
-                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.circle,
+                      color: AppColors.dark600,
+                      border: Border.all(color: AppColors.dark900, width: 2.0),
                     ),
                     child: Center(
-                      child: isFirst 
-                        ? Icon(Icons.emoji_events_rounded, color: primary, size: 18)
-                        : Text(
-                            '$position',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: isMe ? Colors.blue : (isFirst ? primary : Theme.of(context).textTheme.bodySmall?.color),
-                            ),
-                          ),
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: AppTypography.displayHeading.copyWith(
+                          color: AppColors.dark300,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      player['name'] as String,
-                      style: TextStyle(
+                      name,
+                      style: AppTypography.displayHeading.copyWith(
                         fontSize: 15,
-                        fontWeight: (isFirst || isMe) ? FontWeight.w900 : FontWeight.bold,
-                        color: isMe ? Colors.blue : null,
+                        color: isMe ? Colors.blue : AppColors.pureWhite,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
                   Text(
                     '${player['points']}',
-                    style: TextStyle(
+                    style: AppTypography.displayHeading.copyWith(
+                      fontSize: 18,
+                      color: isMe ? Colors.blue : (isFirst ? AppColors.lime500 : AppColors.pureWhite),
                       fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                      color: isMe ? Colors.blue : (isFirst ? primary : null),
                     ),
                   ),
                 ],
@@ -474,39 +481,62 @@ class _LeaderboardSnippet extends StatelessWidget {
             );
           }),
           
-          if (!isPersonalInTop3 && personalStanding != null) ...[
-            const Divider(height: 24),
+          if (!isPersonalInSnippet && personalStanding != null) ...[
+            const Divider(height: 24, color: AppColors.dark600),
             Row(
               children: [
+                BoxyArtNumberBadge(
+                  number: personalRank ?? 0,
+                  size: 28,
+                  textColor: Colors.blue,
+                  color: Colors.blue.withValues(alpha: 0.15),
+                ),
+                const SizedBox(width: 12),
                 Container(
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    shape: BoxShape.circle,
+                    color: AppColors.dark600,
+                    border: Border.all(color: AppColors.dark900, width: 2.0),
                   ),
                   child: Center(
-                    child: const Icon(Icons.person_outline_rounded, size: 16, color: Colors.blue),
+                    child: Text(
+                      (personalStanding!.memberName.isNotEmpty) ? personalStanding!.memberName[0].toUpperCase() : '?',
+                      style: AppTypography.displayHeading.copyWith(
+                        color: AppColors.dark300,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                const Expanded(
+                const SizedBox(width: 12),
+                Expanded(
                   child: Text(
-                    'Your Rank',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    'Your Standing',
+                    style: AppTypography.displayHeading.copyWith(
+                      fontSize: 15, 
+                      fontWeight: FontWeight.w900, 
+                      color: Colors.blue,
+                    ),
                   ),
                 ),
                 Text(
-                  '#${personalStanding!.points.round()}',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: primary),
+                  '${personalStanding?.points.toInt()}',
+                  style: AppTypography.displayHeading.copyWith(
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 18, 
+                    color: Colors.blue,
+                  ),
                 ),
               ],
             ),
           ],
 
           if (topPlayers.isNotEmpty || personalStanding != null) ...[
-            const SizedBox(height: 8),
-            const Divider(),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: AppColors.dark600),
             const SizedBox(height: 4),
             TextButton(
               onPressed: () => context.push('/locker/standings'),
@@ -515,13 +545,12 @@ class _LeaderboardSnippet extends StatelessWidget {
                 children: [
                   Text(
                     'Full Season Standings',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: primary,
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.lime500,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, size: 16, color: primary),
+                  Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.lime500),
                 ],
               ),
             ),

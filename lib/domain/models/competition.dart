@@ -61,8 +61,7 @@ abstract class CompetitionRules with _$CompetitionRules {
     @Default(4) int teamSize,
     @Default(false) bool useMixedTeeAdjustment, // [NEW] C.R. - Par adjustment
     @Default(TeamHandicapMethod.whs) TeamHandicapMethod teamHandicapMethod, // [NEW] Scramble method
-    @Default(true) bool includeGuests, // [NEW] Event-level toggle for guest leaderboard inclusion
-    bool? separateGuests, // [NEW] Event-level override for guest separation (null = use global)
+    bool? separateGuests, // [UPDATED] Single override: null = follow society, true = separate, false = hidden
     @Default([]) List<String> oomExcludedRoundIds, // [NEW] Rounds to skip in season standings
   }) = _CompetitionRules;
 

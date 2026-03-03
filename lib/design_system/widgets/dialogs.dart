@@ -151,3 +151,94 @@ class BoxyArtConfirmDialog extends StatelessWidget {
     );
   }
 }
+
+/// A high-security confirmation dialog that requires typing a specific string to confirm.
+class BoxyArtDeleteConfirmationDialog extends StatefulWidget {
+  final String title;
+  final String message;
+  final String requiredText;
+  final String confirmLabel;
+  final String cancelLabel;
+  final bool isDestructive;
+
+  const BoxyArtDeleteConfirmationDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    this.requiredText = 'DELETE',
+    this.confirmLabel = 'CONFIRM DELETE',
+    this.cancelLabel = 'Cancel',
+    this.isDestructive = true,
+  });
+
+  @override
+  State<BoxyArtDeleteConfirmationDialog> createState() => _BoxyArtDeleteConfirmationDialogState();
+}
+
+class _BoxyArtDeleteConfirmationDialogState extends State<BoxyArtDeleteConfirmationDialog> {
+  final TextEditingController _controller = TextEditingController();
+  bool _isMatch = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return BoxyArtDialog(
+      title: widget.title,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.message,
+            style: AppTypography.body.copyWith(
+              color: theme.brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Type "${widget.requiredText}" to confirm:',
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.bold,
+              color: widget.isDestructive ? theme.colorScheme.error : null,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            onChanged: (val) {
+              setState(() {
+                _isMatch = val.trim().toUpperCase() == widget.requiredText.toUpperCase();
+              });
+            },
+            decoration: InputDecoration(
+              hintText: widget.requiredText,
+              errorText: (_controller.text.isNotEmpty && !_isMatch) ? 'Text must match exactly' : null,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(widget.cancelLabel),
+        ),
+        ElevatedButton(
+          onPressed: _isMatch ? () => Navigator.of(context).pop(true) : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: widget.isDestructive ? theme.colorScheme.error : null,
+            foregroundColor: Colors.white,
+          ),
+          child: Text(widget.confirmLabel),
+        ),
+      ],
+    );
+  }
+}

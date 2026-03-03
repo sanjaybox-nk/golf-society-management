@@ -74,4 +74,26 @@ class TeeGroupParticipant {
       orElse: () => RegistrationStatus.confirmed,
     ),
   );
+
+  TeeGroupParticipant copyWith({
+    String? registrationMemberId,
+    String? name,
+    bool? isGuest,
+    double? handicapIndex,
+    double? playingHandicap,
+    bool? needsBuggy,
+    RegistrationStatus? buggyStatus,
+    bool? isCaptain,
+    RegistrationStatus? status,
+  }) => TeeGroupParticipant(
+    registrationMemberId: registrationMemberId ?? this.registrationMemberId,
+    name: name ?? this.name,
+    isGuest: isGuest ?? this.isGuest,
+    handicapIndex: handicapIndex ?? this.handicapIndex,
+    playingHandicap: playingHandicap ?? this.playingHandicap,
+    needsBuggy: needsBuggy ?? this.needsBuggy,
+    buggyStatus: buggyStatus ?? this.buggyStatus,
+    isCaptain: isCaptain ?? this.isCaptain,
+    status: status ?? this.status,
+  );
 }

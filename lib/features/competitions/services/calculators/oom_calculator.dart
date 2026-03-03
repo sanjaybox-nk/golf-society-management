@@ -90,6 +90,9 @@ class OOMCalculator implements LeaderboardCalculator {
       }
     }
 
+    // [NEW] Filter out guest players - Season Standings are for Society Members only
+    memberScores.removeWhere((id, _) => id.endsWith('_guest'));
+
     // Convert scores to Standings, applying Best N rule
     final List<LeaderboardStanding> standings = [];
     for (var entry in memberScores.entries) {
@@ -107,7 +110,7 @@ class OOMCalculator implements LeaderboardCalculator {
       standings.add(LeaderboardStanding(
         leaderboardId: config.id,
         memberId: mId,
-        memberName: 'Member $mId', // In real use, this would be updated with actual name
+        memberName: mId, // Default to ID, will be updated with real name in service
         currentHandicap: 0.0,
         points: totalPoints,
         roundsPlayed: roundsPlayed,

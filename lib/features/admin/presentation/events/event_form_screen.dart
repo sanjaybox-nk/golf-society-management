@@ -1,26 +1,25 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:collection/collection.dart';
-import '../../../events/presentation/tabs/event_user_details_tab.dart';
-
-
-import '../../../events/presentation/events_provider.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/domain/models/season.dart';
-import 'package:golf_society/services/storage_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+
+import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/domain/models/course.dart';
+import 'package:golf_society/services/storage_service.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../events/presentation/tabs/event_user_details_tab.dart';
+import '../../../events/presentation/events_provider.dart';
+import '../../../courses/presentation/courses_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
-import 'package:golf_society/domain/models/course.dart';
-import 'package:golf_society/domain/models/competition.dart';
-import '../../../courses/presentation/courses_provider.dart';
-
-
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event; // Null = New Event
   final String? eventId; // Used if event object is missing (e.g. deep link)
@@ -79,6 +78,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   
   late List<NoteItemController> _notesControllers = [];
   late List<TextEditingController> _facilitiesControllers = [];
+  late List<TextEditingController> _flashUpdatesControllers = [];
   
   // Default values
   late DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
@@ -174,6 +174,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _societyDinnerCostController.addListener(() => _calculateRetailPrice(_societyDinnerCostController, _dinnerCostController));
     _intervalController = TextEditingController(text: '10');
     _facilitiesControllers = [TextEditingController()];
+    _flashUpdatesControllers = [];
     
     _holeParsControllers = List.generate(18, (i) => TextEditingController(text: '4'));
     _holeSIsControllers = List.generate(18, (i) => TextEditingController(text: (i + 1).toString()));
@@ -284,6 +285,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       imageUrl: n.imageUrl,
     )).toList();
     _facilitiesControllers = (e.facilities).map((f) => TextEditingController(text: f)).toList();
+    _flashUpdatesControllers = (e.flashUpdates).map((f) => TextEditingController(text: f)).toList();
 
       if (e.courseConfig['holes'] != null) {
         final List<dynamic> holes = e.courseConfig['holes'];
@@ -428,6 +430,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     for (var controller in _facilitiesControllers) {
       controller.dispose();
     }
+    for (var controller in _flashUpdatesControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -520,23 +525,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     }
   }
 
-  void _addNote() {
-    setState(() => _notesControllers.add(NoteItemController()));
-  }
-
-  void _addNoteWithPhoto() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-       setState(() => _notesControllers.add(NoteItemController(imageUrl: picked.path)));
-    } else {
-       setState(() => _notesControllers.add(NoteItemController()));
-    }
-  }
-
   void _addFacility() {
     setState(() => _facilitiesControllers.add(TextEditingController()));
   }
+
 
   Future<void> _save({bool shouldPop = true}) async {
     if (!_formKey.currentState!.validate()) return;
@@ -1686,38 +1678,6 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 }),
                 
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton.icon(
-                      onPressed: _addNote,
-                      icon: const Icon(Icons.add_comment_outlined, color: Colors.grey, size: 18),
-                      label: const Text(
-                        'Add Note',
-                        style: TextStyle(
-                          color: Colors.grey, 
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    TextButton.icon(
-                      onPressed: _addNoteWithPhoto,
-                      icon: const Icon(Icons.add_a_photo_outlined, color: Colors.grey, size: 18),
-                      label: const Text(
-                        'Add Photo',
-                        style: TextStyle(
-                          color: Colors.grey, 
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 ],
               ),
             ),
@@ -1860,27 +1820,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       );
     }
 
-    final storage = ref.read(storageServiceProvider);
-    final List<EventNote> finalizeNotes = [];
-
-    for (var n in _notesControllers) {
-      String? finalUrl = n.imageUrl;
-      // If it's a local file, upload it
-      if (n.imageUrl != null && n.imageUrl!.startsWith('/')) {
-         finalUrl = await storage.uploadImage(
-           path: 'events/notes',
-           file: File(n.imageUrl!),
-         );
-      }
-
-      final content = jsonEncode(n.quillController.document.toDelta().toJson());
-      finalizeNotes.add(EventNote(
-        title: n.titleController.text.trim(),
-        content: content,
-        imageUrl: finalUrl,
-      ));
-    }
-
+    // Notes & Flash Updates have been migrated to the dedicated Broadcast CMS.
+    // They are no longer processed here.
     return GolfEvent(
       id: _editingEvent?.id ?? widget.event?.id ?? '', 
       title: _titleController.text.trim(),
@@ -1911,7 +1852,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       dinnerLocation: _dinnerLocationController.text.trim(),
       teeOffInterval: int.tryParse(_intervalController.text) ?? 10,
       showRegistrationButton: _showRegistrationButton,
-      notes: finalizeNotes,
+      notes: _editingEvent?.notes ?? widget.event?.notes ?? [],
       isMultiDay: _isMultiDay,
       endDate: _isMultiDay ? _endDate : null,
       isInvitational: _isInvitational,

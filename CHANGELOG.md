@@ -1,3 +1,28 @@
+### Event Broadcast CMS Integration & Feed Architecture (2026-03-03)
+- **Unified Communications Model**: Decoupled "Event Logistics" from "Event Communications" by introducing the polymorphic `EventFeedItem` model, unifying ad-hoc Flash Updates and rich-text Newsletters into a timeline array (`GolfEvent.feedItems`).
+- **Dedicated Broadcast CMS**: Built a standalone administrative configurator (`EventBroadcastScreen` and `FeedItemEditorScreen`) allowing administrators to Draft, Publish, Pin, and visually Reorder (drag-and-drop) event announcements.
+- **Dynamic Member Feed**: Rebuilt the Member's `EventUserHomeTab` to seamlessly aggregate and render BoxyArt 3.1 compliant components (`EventHeadlineCard`, `EventFlashUpdate`, `EventNoteCard`, `GallerySnippetCard`) based on the event's live status and sorted feed queue.
+- **Legacy UI Deprecation**: Cleanly deprecated and stripped legacy `notes` and `flashUpdates` inline editing capabilities from `EventFormScreen` to funnel all admin actions through the robust CMS.
+- **Result & Podium Highlighting**: Implemented `PodiumSummaryCard` contextual rendering that appears at the top of the feed automatically when an event reaches the `completed` lifecycle state.
+
+### Leaderboard Visibility Hardening (2026-03-03)
+- **Current User Highlight**: Resolved a UI discrepancy in `SeasonStandingsScreen` where the current logged-in user's entry appeared blank in dark mode. Replaced the generic `Theme.of(context).primaryColor` highlight with a guaranteed high-contrast `AppColors.amber500` treatment for the rank, avatar, border, and score elements to ensure the user can always easily find their standing in the list.
+
+### Manual Society Cuts & Enhanced Scoring Engine (2026-03-02)
+- **Design 3.1 Settings Hardening**: Standardized all administrative settings rows (navigation and toggles) using new `BoxyArtNavTile` and `BoxyArtSwitchTile` components. Eliminated visual misalignment and redundant local implementations across `AdminSettingsScreen`, `GeneralSettingsScreen`, and `SocietyCutsSettingsScreen`.
+- **Manual Handicap Cuts**: Implemented per-event player handicap adjustments (`manualCuts`), allowing administrators to apply society-specific cuts without affecting global handicap indices.
+- **Dynamic PHC Recalculation**: Integrated `recalculateGroupHandicaps` into the grouping engine, ensuring snapshotted playing handicaps are updated instantly when manual cuts are modified in the Admin UI.
+- **Scoring Engine Refactor**: Updated `ScoringCalculator` and `EventLeaderboard` to architecturally support manual cuts in all net and point-based calculations.
+- **Admin Management UI**: Created a dedicated `EventManualCutsScreen` with a streamlined adjustment interface, integrated directly into the event administration shell.
+- **Zero-Issue Analysis Recovery**: Resolved a regression in `StablefordControl` involving missing state variables (`_isGross`, `_applyCapToIndex`) and hardened `GroupingService` imports.
+
+### Dynamic Season Standings & Result Persistence (2026-03-02)
+- **Authoritative Result Persistence**: Updated `EventAnalysisEngine` to generate detailed player leaderboards (points, position, memberId) and persist them directly to the `GolfEvent.results` field upon finalization.
+- **Season Standing Integration**: Refactored `memberPerformanceProvider` to integrate actual the official society **Order of Merit** rank, pulling live standings from the season's primary leaderboard.
+- **Dynamic Profile Highlights**: Linked the "Season Standing" section in `MemberDetailsModal` to authoritative performance metrics (Starts, Best Score, Rank).
+- **Hardened Seeder**: Updated `SeedingService` to assign positions and formatted results for all completed demo events, ensuring immediate dashboard population.
+- **Improved Performance Logic**: Optimized result processing in `members_provider.dart` to calculate historical wins and top-5 finishes from official persisted event results.
+
 ### Admin Design 3.1 Hardening (Phases 13-15) (2026-03-02)
 - **Admin Section Refactor**: Systematically refactored the entire Admin section (Dashboard, Settings, Member Roster, Notifications, Seasons) to match **Boxy Art 3.1** standards.
 - **Legacy Component Elimination**: Replaced generic `ListTile` and `Scaffold` widgets with professional `BoxyArtCard` and `HeadlessScaffold` implementations.

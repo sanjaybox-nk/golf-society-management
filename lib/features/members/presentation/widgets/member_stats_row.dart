@@ -72,7 +72,7 @@ class _StatItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             color: Colors.grey.shade500,
             letterSpacing: 1.0,

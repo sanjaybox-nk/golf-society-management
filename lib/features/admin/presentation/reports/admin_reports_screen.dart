@@ -136,9 +136,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
               Text(
                 'SEASON PROGRESS', 
                 style: AppTypography.label.copyWith(
-                  fontSize: 10, 
+                  fontSize: 12, 
                   color: theme.textTheme.bodySmall?.color, 
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.5,
                 ),
               ),
               Text(
@@ -163,7 +163,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           const SizedBox(height: 8),
           Text(
             '${stats.completedCount} of ${stats.totalCount} Events Completed',
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            style: const TextStyle(fontSize: 13, color: Colors.grey),
           ),
         ],
       ),
@@ -186,8 +186,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(event.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-                Text(DateFormat.yMMMMd().format(event.date), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(event.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                Text(DateFormat.yMMMMd().format(event.date), style: const TextStyle(fontSize: 14, color: Colors.grey)),
               ],
             ),
           ),
@@ -310,8 +310,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
-                    Text('${entry.value} Events', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.lime500)),
+                    Expanded(child: Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600))),
+                    Text('${entry.value} Events', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.lime500)),
                   ],
                 ),
               );
@@ -453,8 +453,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(event.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text(DateFormat.yMMMd().format(event.date), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                Text(event.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                Text(DateFormat.yMMMd().format(event.date), style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
             const Divider(height: 24),
@@ -468,10 +468,10 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                     color: award.type == 'Cup' ? Colors.amber : Colors.blueAccent,
                   ),
                   const SizedBox(width: 8),
-                  Text(award.label, style: const TextStyle(fontSize: 12)),
+                  Text(award.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                   const Spacer(),
                   if (award.value > 0)
-                    Text('£${award.value.toStringAsFixed(0)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('£${award.value.toStringAsFixed(0)}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
                 ],
               ),
             )),
@@ -598,8 +598,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(event.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text(DateFormat.yMMMd().format(event.date), style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text(event.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                          Text(DateFormat.yMMMd().format(event.date), style: const TextStyle(fontSize: 13, color: Colors.grey)),
                         ],
                       ),
                       const Spacer(),
@@ -633,9 +633,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w600)),
+        Text(label, style: const TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w500)),
         const Spacer(),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
       ],
     );
   }
@@ -658,8 +658,8 @@ class _HubMetricSmall extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: color),
           const SizedBox(height: 12),
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -1)),
-          Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 0.5)),
+          Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -1)),
+          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 0.8)),
         ],
       ),
     );
@@ -695,7 +695,7 @@ class _PrizeCircle extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(count.toString(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-        Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey)),
+        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.0)),
       ],
     );
   }

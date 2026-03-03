@@ -212,7 +212,7 @@ class SeedingService {
           name: 'Order of Merit',
           source: OOMSource.position,
           appearancePoints: 2,
-          positionPointsMap: {1: 15, 2: 12, 3: 10, 4: 8, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1},
+          positionPointsMap: {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1},
         ),
         LeaderboardConfig.bestOfSeries(
           id: 'best_5_demo_2026',
@@ -638,6 +638,16 @@ class SeedingService {
     }
 
     results.sort((a, b) => (b['points'] as num).compareTo(a['points'] as num));
+    
+    // Assign Positions [NEW]
+    for (int i = 0; i < results.length; i++) {
+      int position = i + 1;
+      if (i > 0 && results[i]['points'] == results[i-1]['points']) {
+        position = results[i-1]['position'];
+      }
+      results[i]['position'] = position;
+      results[i]['memberId'] = results[i]['playerId']; // Ensure memberId is present
+    }
     
     // [PHASE 1] Add sample expenses and awards for the reporting hub [REFINED]
     final double totalGreenFees = updatedEvent.societyGreenFee! * updatedEvent.playingCount;

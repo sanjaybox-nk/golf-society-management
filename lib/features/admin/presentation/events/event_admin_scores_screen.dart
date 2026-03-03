@@ -228,7 +228,10 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
     );
 
     await ref.read(eventsRepositoryProvider).updateEvent(
-      event.copyWith(finalizedStats: stats),
+      event.copyWith(
+        finalizedStats: stats,
+        results: (stats['results'] as List?)?.cast<Map<String, dynamic>>() ?? event.results,
+      ),
     );
 
     if (mounted) {

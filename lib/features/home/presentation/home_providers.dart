@@ -4,7 +4,6 @@ import 'package:golf_society/domain/models/notification.dart';
 import '../../notifications/data/notifications_repository.dart';
 import '../../notifications/data/firestore_notifications_repository.dart';
 import '../../members/presentation/profile_provider.dart';
-import 'package:collection/collection.dart';
 
 // Mock data provider for Next Match
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
@@ -86,7 +85,7 @@ final homeSeasonLeaderboardProvider = Provider<AsyncValue<List<Map<String, dynam
 });
 
 // Member's personal standing for the primary seasonal competition
-final homeMemberStandingProvider = Provider<AsyncValue<LeaderboardStanding?>>((ref) {
+final homeMemberStandingProvider = Provider<AsyncValue<Map<String, dynamic>?>>((ref) {
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
   
   if (activeSeasonAsync is AsyncLoading) return const AsyncValue.loading();
@@ -104,7 +103,13 @@ final homeMemberStandingProvider = Provider<AsyncValue<LeaderboardStanding?>>((r
   final currentMember = ref.watch(effectiveUserProvider);
 
   return standingsAsync.whenData((standings) {
-    return standings.firstWhereOrNull((s) => s.memberId == currentMember.id);
+    final index = standings.indexWhere((s) => s.memberId == currentMember.id);
+    if (index == -1) return null;
+    
+    return {
+      'standing': standings[index],
+      'rank': index + 1,
+    };
   });
 });
 
@@ -115,14 +120,12 @@ final homeSeasonStakesProvider = Provider<AsyncValue<String?>>((ref) {
   if (nextMatchAsync is AsyncLoading || memberStandingAsync is AsyncLoading) return const AsyncValue.loading();
   
   final nextMatch = nextMatchAsync.value;
-  final standing = memberStandingAsync.value;
+  final standingData = memberStandingAsync.value;
   
-  if (nextMatch == null || standing == null) return const AsyncValue.data(null);
+  if (nextMatch == null || standingData == null) return const AsyncValue.data(null);
   
   // Logic: "A Top 5 finish at [Course] could move you into the Top [N]!"
   // For demo purposes, we'll calculate a potential jump.
-  // Actually, standing should ideally have its rank. 
-  // Let's just use a representative string.
   
   return AsyncValue.data(
     "A win at ${nextMatch.courseName ?? 'the next course'} could move you into the Top 10 of the Order of Merit!"

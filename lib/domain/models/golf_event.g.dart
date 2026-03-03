@@ -56,6 +56,38 @@ Map<String, dynamic> _$EventAwardToJson(_EventAward instance) =>
       'winnerName': instance.winnerName,
     };
 
+_EventFeedItem _$EventFeedItemFromJson(Map<String, dynamic> json) =>
+    _EventFeedItem(
+      id: json['id'] as String,
+      type: $enumDecode(_$FeedItemTypeEnumMap, json['type']),
+      title: json['title'] as String?,
+      content: json['content'] as String? ?? '',
+      imageUrl: json['imageUrl'] as String?,
+      isPinned: json['isPinned'] as bool? ?? false,
+      isPublished: json['isPublished'] as bool? ?? false,
+      sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+
+Map<String, dynamic> _$EventFeedItemToJson(_EventFeedItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': _$FeedItemTypeEnumMap[instance.type]!,
+      'title': instance.title,
+      'content': instance.content,
+      'imageUrl': instance.imageUrl,
+      'isPinned': instance.isPinned,
+      'isPublished': instance.isPublished,
+      'sortOrder': instance.sortOrder,
+      'createdAt': instance.createdAt.toIso8601String(),
+    };
+
+const _$FeedItemTypeEnumMap = {
+  FeedItemType.flash: 'flash',
+  FeedItemType.newsletter: 'newsletter',
+  FeedItemType.gallery: 'gallery',
+};
+
 _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
   id: json['id'] as String,
   title: json['title'] as String,
@@ -127,6 +159,11 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  feedItems:
+      (json['feedItems'] as List<dynamic>?)
+          ?.map((e) => EventFeedItem.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   isScoringLocked: json['isScoringLocked'] as bool? ?? false,
   isStatsReleased: json['isStatsReleased'] as bool? ?? false,
   finalizedStats: json['finalizedStats'] as Map<String, dynamic>? ?? const {},
@@ -146,6 +183,11 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           ?.map((e) => EventAward.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  manualCuts:
+      (json['manualCuts'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toDouble()),
+      ) ??
+      const {},
 );
 
 Map<String, dynamic> _$GolfEventToJson(
@@ -197,6 +239,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'selectedTeeName': instance.selectedTeeName,
   'selectedFemaleTeeName': instance.selectedFemaleTeeName,
   'flashUpdates': instance.flashUpdates,
+  'feedItems': instance.feedItems.map((e) => e.toJson()).toList(),
   'isScoringLocked': instance.isScoringLocked,
   'isStatsReleased': instance.isStatsReleased,
   'finalizedStats': instance.finalizedStats,
@@ -206,6 +249,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'expenses': instance.expenses.map((e) => e.toJson()).toList(),
   'showAwards': instance.showAwards,
   'awards': instance.awards.map((e) => e.toJson()).toList(),
+  'manualCuts': instance.manualCuts,
 };
 
 const _$EventStatusEnumMap = {

@@ -75,7 +75,6 @@ _CompetitionRules _$CompetitionRulesFromJson(
         json['teamHandicapMethod'],
       ) ??
       TeamHandicapMethod.whs,
-  includeGuests: json['includeGuests'] as bool? ?? true,
   separateGuests: json['separateGuests'] as bool?,
   oomExcludedRoundIds:
       (json['oomExcludedRoundIds'] as List<dynamic>?)
@@ -110,7 +109,6 @@ Map<String, dynamic> _$CompetitionRulesToJson(
   'useMixedTeeAdjustment': instance.useMixedTeeAdjustment,
   'teamHandicapMethod':
       _$TeamHandicapMethodEnumMap[instance.teamHandicapMethod]!,
-  'includeGuests': instance.includeGuests,
   'separateGuests': instance.separateGuests,
   'oomExcludedRoundIds': instance.oomExcludedRoundIds,
 };

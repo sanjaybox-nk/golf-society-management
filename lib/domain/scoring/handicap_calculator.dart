@@ -14,6 +14,7 @@ class HandicapCalculator {
     bool useWhs = true,
     String? teeColor,
     double? baseRating,
+    double societyCut = 0.0, // [NEW] Manual adjustment from event
   }) {
     double baseHandicap = handicapIndex;
     
@@ -47,6 +48,9 @@ class HandicapCalculator {
 
     // 3. Rounding (Standard .5 rounds up)
     int rounded = playingHandicap.round();
+    
+    // Apply manual adjustment (Society Cut)
+    rounded = (rounded - societyCut).round();
 
     // 4. Apply Mixed Tee Equity Adjustment (CR - BaseRating) 
     if (useWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {

@@ -359,9 +359,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
 
   /// Guest inclusion and separation toggles.
   Widget buildGuestSettings({
-    required bool includeGuests,
     required bool? separateGuests,
-    required ValueChanged<bool> onIncludeChanged,
     required ValueChanged<bool?> onSeparateChanged,
   }) {
     final theme = Theme.of(context);
@@ -370,43 +368,34 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       children: [
         const BoxyArtSectionTitle(title: 'GUEST VISIBILITY'),
         const SizedBox(height: 16),
-        BoxyArtSwitchField(
-          label: 'Include Guests in Standings',
-          subtitle: 'Choose whether guests appear on the leaderboard for this event.',
-          value: includeGuests,
-          onChanged: onIncludeChanged,
+        BoxyArtDropdownField<bool?>(
+          label: 'Leaderboard Strategy',
+          value: separateGuests,
+          items: [
+            DropdownMenuItem(
+              value: null, 
+              child: Text(
+                'AUTO (FOLLOW SOCIETY)', 
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0, color: theme.colorScheme.primary),
+              ),
+            ),
+            DropdownMenuItem(
+              value: true, 
+              child: const Text(
+                'SEPARATE SECTION', 
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
+              ),
+            ),
+            DropdownMenuItem(
+              value: false, 
+              child: const Text(
+                'HIDDEN (NO GUESTS)', 
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
+              ),
+            ),
+          ],
+          onChanged: onSeparateChanged,
         ),
-        if (includeGuests) ...[
-          const SizedBox(height: 16),
-          BoxyArtDropdownField<bool?>(
-            label: 'Guest Separation Strategy',
-            value: separateGuests,
-            items: [
-              DropdownMenuItem(
-                value: null, 
-                child: Text(
-                  'AUTO (FOLLOW SOCIETY)', 
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0, color: theme.colorScheme.primary),
-                ),
-              ),
-              DropdownMenuItem(
-                value: true, 
-                child: const Text(
-                  'ALWAYS SEPARATE', 
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
-                ),
-              ),
-              DropdownMenuItem(
-                value: false, 
-                child: const Text(
-                  'ALWAYS MIXED', 
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0),
-                ),
-              ),
-            ],
-            onChanged: onSeparateChanged,
-          ),
-        ],
       ],
     );
   }

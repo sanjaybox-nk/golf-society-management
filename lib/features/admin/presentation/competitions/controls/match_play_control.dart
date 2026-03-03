@@ -15,7 +15,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
   double _allowance = 1.0;
   int _handicapCap = 28;
   TieBreakMethod _tieBreak = TieBreakMethod.playoff;
-  bool _includeGuests = true;
   bool? _separateGuests;
 
   @override
@@ -36,7 +35,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       _allowance = widget.competition!.rules.handicapAllowance;
       _handicapCap = widget.competition!.rules.handicapCap;
       _tieBreak = widget.competition!.rules.tieBreak;
-      _includeGuests = widget.competition!.rules.includeGuests;
       _separateGuests = widget.competition!.rules.separateGuests;
     } else {
       _updateDefaultAllowance();
@@ -140,9 +138,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(
-          includeGuests: _includeGuests,
           separateGuests: _separateGuests,
-          onIncludeChanged: (val) => setState(() => _includeGuests = val),
           onSeparateChanged: (val) => setState(() => _separateGuests = val),
         ),
       ],
@@ -197,7 +193,6 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       handicapCap: _handicapCap,
       tieBreak: _tieBreak,
       holeByHoleRequired: true,
-      includeGuests: _includeGuests,
       separateGuests: _separateGuests,
     );
   }

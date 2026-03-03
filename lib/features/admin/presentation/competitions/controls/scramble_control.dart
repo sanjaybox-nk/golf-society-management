@@ -20,7 +20,6 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
   int _minDrives = 4;
   TeamHandicapMethod _teamHandicapMethod = TeamHandicapMethod.whs;
   bool _trackShotAttributions = true;
-  bool _includeGuests = true;
   bool? _separateGuests;
 
   @override
@@ -43,7 +42,6 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       _underlyingFormat = widget.competition!.rules.underlyingFormat;
       _teamCap = widget.competition!.rules.teamHandicapCap ?? 0;
       _trackShotAttributions = widget.competition!.rules.trackShotAttributions;
-      _includeGuests = widget.competition!.rules.includeGuests;
       _separateGuests = widget.competition!.rules.separateGuests;
     }
   }
@@ -183,9 +181,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(
-          includeGuests: _includeGuests,
           separateGuests: _separateGuests,
-          onIncludeChanged: (val) => setState(() => _includeGuests = val),
           onSeparateChanged: (val) => setState(() => _separateGuests = val),
         ),
       ],
@@ -240,7 +236,6 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       underlyingFormat: _underlyingFormat,
       teamHandicapCap: _teamCap == 0 ? null : _teamCap,
       trackShotAttributions: _trackShotAttributions,
-      includeGuests: _includeGuests,
       separateGuests: _separateGuests,
     );
   }

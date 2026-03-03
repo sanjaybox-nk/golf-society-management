@@ -45,6 +45,9 @@ class EclecticCalculator implements LeaderboardCalculator {
       }
     }
 
+    // [NEW] Filter out guest players - Season Standings are for Society Members only
+    playerHoleScores.removeWhere((id, _) => id.endsWith('_guest'));
+
     // 2. Create Standings
     List<LeaderboardStanding> standings = [];
     playerHoleScores.forEach((memberId, holes) {
@@ -60,7 +63,7 @@ class EclecticCalculator implements LeaderboardCalculator {
       standings.add(LeaderboardStanding(
         leaderboardId: config.id,
         memberId: memberId,
-        memberName: 'Unknown',
+        memberName: memberId,
         currentHandicap: 0,
         points: total, // Total Strokes
         roundsPlayed: 0, // Not perfectly applicable for Eclectic, could be rounds processed

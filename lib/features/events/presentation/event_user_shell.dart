@@ -16,13 +16,13 @@ class EventUserShell extends ConsumerWidget {
     int currentIndex = 0;
     
     // Determine index based on current route
-    if (location.contains('/field')) {
+    if (location.contains('/details')) {
       currentIndex = 1;
-    } else if (location.contains('/live')) {
+    } else if (location.contains('/field')) {
       currentIndex = 2;
-    } else if (location.contains('/stats')) {
+    } else if (location.contains('/live')) {
       currentIndex = 3;
-    } else if (location.contains('/photos')) {
+    } else if (location.contains('/stats')) {
       currentIndex = 4;
     }
 
@@ -34,9 +34,14 @@ class EventUserShell extends ConsumerWidget {
         onItemSelected: (index) => _onTap(context, index),
         items: const [
           BoxyArtBottomNavItem(
+            icon: Icons.home_outlined,
+            activeIcon: Icons.home_rounded,
+            label: 'Home',
+          ),
+          BoxyArtBottomNavItem(
             icon: Icons.info_outline_rounded,
             activeIcon: Icons.info_rounded,
-            label: 'Info',
+            label: 'Details',
           ),
           BoxyArtBottomNavItem(
             icon: Icons.grid_view_rounded,
@@ -52,11 +57,6 @@ class EventUserShell extends ConsumerWidget {
             icon: Icons.analytics_outlined,
             activeIcon: Icons.analytics_rounded,
             label: 'Stats',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.photo_library_outlined,
-            activeIcon: Icons.photo_library_rounded,
-            label: 'Photos',
           ),
         ],
       ),
@@ -79,13 +79,13 @@ class EventUserShell extends ConsumerWidget {
     
     // Determine current index to detect if tapping same tab
     int currentIndex = 0;
-    if (location.endsWith('/field')) {
+    if (location.endsWith('/details')) {
       currentIndex = 1;
-    } else if (location.endsWith('/live')) {
+    } else if (location.endsWith('/field')) {
       currentIndex = 2;
-    } else if (location.endsWith('/stats')) {
+    } else if (location.endsWith('/live')) {
       currentIndex = 3;
-    } else if (location.endsWith('/photos')) {
+    } else if (location.endsWith('/stats')) {
       currentIndex = 4;
     }
 
@@ -97,7 +97,7 @@ class EventUserShell extends ConsumerWidget {
 
     switch (index) {
       case 0:
-        // If already on Event details tab, go back to events list
+        // If already on Home tab, go back to events list
         if (currentIndex == 0) {
           context.go('/events');
         } else {
@@ -105,16 +105,16 @@ class EventUserShell extends ConsumerWidget {
         }
         break;
       case 1:
-        context.go('/events/$encodedId/field$suffix');
+        context.go('/events/$encodedId/details$suffix');
         break;
       case 2:
-        context.go('/events/$encodedId/live$suffix');
+        context.go('/events/$encodedId/field$suffix');
         break;
       case 3:
-        context.go('/events/$encodedId/stats$suffix');
+        context.go('/events/$encodedId/live$suffix');
         break;
       case 4:
-        context.go('/events/$encodedId/photos$suffix');
+        context.go('/events/$encodedId/stats$suffix');
         break;
     }
   }

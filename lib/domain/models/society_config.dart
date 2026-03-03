@@ -4,6 +4,12 @@ import 'handicap_system.dart';
 part 'society_config.freezed.dart';
 part 'society_config.g.dart';
 
+enum SocietyCutMode {
+  off,
+  global,
+  manual,
+}
+
 @freezed
 abstract class SocietyConfig with _$SocietyConfig {
   const factory SocietyConfig({
@@ -21,9 +27,8 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('yards') String distanceUnit, // 'yards' or 'meters'
     @Default(HandicapSystem.igolf) HandicapSystem handicapSystem, // Global provider
     String? selectedPaletteName, // Selected Modern Card palette name
-    @Default(true) bool includeGuestsInLeaderboard, // [NEW] Global default for guest leaderboard inclusion
-    @Default(false) bool separateGuestLeaderboard, // Separate Guests from Members in Standings
-    @Default(false) bool enableSocietyCuts,
+    @Default(true) bool separateGuestLeaderboard, // [UPDATED] Single toggle: ON = Separate, OFF = Hidden
+    @Default(SocietyCutMode.off) SocietyCutMode societyCutMode,
     @Default({
       '1st': 2.0,
       '2nd': 1.0,

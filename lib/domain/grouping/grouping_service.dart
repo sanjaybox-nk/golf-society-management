@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:golf_society/domain/models/member.dart';
 import '../../features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
@@ -38,6 +39,7 @@ class GroupingService {
       rules: rules,
       courseConfig: event.courseConfig,
       useWhs: useWhs,
+      manualCuts: event.manualCuts,
     );
 
     for (int i = 0; i < participants.length; i++) {
@@ -253,11 +255,15 @@ class GroupingService {
 
     double finalHandicap = rawHandicap;
     if (hcConfig != null && hcConfig.rules != null) {
+       final memberId = item.registration.memberId;
+       final societyCut = hcConfig.manualCuts[memberId] ?? 0.0;
+       
        final playing = HandicapCalculator.calculatePlayingHandicap(
          handicapIndex: rawHandicap, 
          rules: hcConfig.rules!, 
          courseConfig: hcConfig.courseConfig,
          useWhs: hcConfig.useWhs,
+         societyCut: societyCut,
        );
        finalHandicap = playing.toDouble();
     }
@@ -287,13 +293,60 @@ class GroupingService {
           : RegistrationStatus.confirmed,
     );
   }
+
+  /// Recalculates all snapshotted playing handicaps in a grouping based on current event conditions.
+  static Map<String, dynamic> recalculateGroupHandicaps({
+    required GolfEvent event,
+    required List<Member> members,
+    CompetitionRules? rules,
+    bool useWhs = true,
+  }) {
+    final groupsData = event.grouping['groups'] as List?;
+    if (groupsData == null) return event.grouping;
+
+    final memberMap = {for (var m in members) m.id: m};
+    final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g as Map<String, dynamic>)).toList();
+
+    for (var group in groups) {
+      for (int i = 0; i < group.players.length; i++) {
+        final p = group.players[i];
+        final memberId = p.registrationMemberId;
+        final member = memberMap[memberId];
+        
+        double rawHandicap = p.handicapIndex; 
+        if (member != null && !p.isGuest) {
+          rawHandicap = member.handicap;
+        }
+
+        final societyCut = event.manualCuts[memberId] ?? 0.0;
+        final playing = HandicapCalculator.calculatePlayingHandicap(
+           handicapIndex: rawHandicap, 
+           rules: rules ?? const CompetitionRules(), 
+           courseConfig: event.courseConfig,
+           useWhs: useWhs,
+           societyCut: societyCut,
+        );
+
+        group.players[i] = p.copyWith(
+          handicapIndex: rawHandicap,
+          playingHandicap: playing.toDouble(),
+        );
+      }
+    }
+
+    return {
+      ...event.grouping,
+      'groups': groups.map((g) => g.toJson()).toList(),
+    };
+  }
 }
 
 class _HandicapContext {
   final CompetitionRules? rules;
   final Map<String, dynamic> courseConfig;
   final bool useWhs;
-  _HandicapContext({this.rules, required this.courseConfig, required this.useWhs});
+  final Map<String, double> manualCuts;
+  _HandicapContext({this.rules, required this.courseConfig, required this.useWhs, required this.manualCuts});
 }
 
 class _TeeSlot {

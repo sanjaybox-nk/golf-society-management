@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/theme/app_colors.dart';
-import 'package:golf_society/theme/app_typography.dart';
-import 'package:golf_society/theme/app_shapes.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// Standard branded input field for Fairway v3.1.
 class BoxyArtInputField extends StatelessWidget {
@@ -336,6 +333,173 @@ class BoxyArtSlider extends StatelessWidget {
         divisions: divisions,
         label: label,
         onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+/// A standardized 3.1 settings row with a boxed icon and a switch.
+class BoxyArtSwitchTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final bool value;
+  final Color iconColor;
+  final ValueChanged<bool> onChanged;
+
+  const BoxyArtSwitchTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.subtitle,
+    required this.value,
+    required this.iconColor,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          // Boxed Icon (Standard 44x44)
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          const SizedBox(width: 16),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.label.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 16,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Switch
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.lime500,
+            activeTrackColor: AppColors.lime500.withValues(alpha: 0.2),
+            inactiveThumbColor: AppColors.dark300,
+            inactiveTrackColor: AppColors.dark500.withValues(alpha: 0.5),
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+            thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return isDark ? AppColors.lime500 : AppColors.lime700;
+              }
+              return isDark ? AppColors.dark150 : AppColors.dark300;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A standardized 3.1 settings row with a boxed icon that navigates.
+class BoxyArtNavTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const BoxyArtNavTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            // Boxed Icon (Standard 44x44)
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 16),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.label.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 16,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios_rounded, 
+              color: isDark ? AppColors.dark400 : AppColors.dark200, 
+              size: 14,
+            ),
+          ],
+        ),
       ),
     );
   }

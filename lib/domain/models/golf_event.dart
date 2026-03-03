@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'event_registration.dart';
 
 import 'package:golf_society/utils/json_converters.dart';
-
 part 'golf_event.freezed.dart';
 part 'golf_event.g.dart';
 
@@ -46,6 +45,29 @@ abstract class EventAward with _$EventAward {
   factory EventAward.fromJson(Map<String, dynamic> json) => _$EventAwardFromJson(json);
 }
 
+enum FeedItemType {
+  flash,
+  newsletter,
+  gallery,
+}
+
+@freezed
+abstract class EventFeedItem with _$EventFeedItem {
+  const factory EventFeedItem({
+    required String id,
+    required FeedItemType type,
+    String? title,
+    @Default('') String content,
+    String? imageUrl,
+    @Default(false) bool isPinned,
+    @Default(false) bool isPublished,
+    @Default(0) int sortOrder,
+    required DateTime createdAt,
+  }) = _EventFeedItem;
+
+  factory EventFeedItem.fromJson(Map<String, dynamic> json) => _$EventFeedItemFromJson(json);
+}
+
 @freezed
 abstract class GolfEvent with _$GolfEvent {
   const GolfEvent._();
@@ -82,7 +104,7 @@ abstract class GolfEvent with _$GolfEvent {
     double? societyBreakfastCost,
     double? societyLunchCost,
     double? societyDinnerCost,
-    @Default([]) List<EventNote> notes,
+    @Default([]) List<EventNote> notes, // DEPRECATED: Moving to feedItems
     @Default([]) List<String> galleryUrls,
     @Default(true) bool showRegistrationButton,
     @Default(10) int teeOffInterval,
@@ -100,6 +122,7 @@ abstract class GolfEvent with _$GolfEvent {
     String? selectedTeeName,
     String? selectedFemaleTeeName, // [NEW] Explicit mapping for female players
     @Default([]) List<String> flashUpdates,
+    @Default([]) List<EventFeedItem> feedItems,
     @Default(false) bool isScoringLocked,
     @Default(false) bool isStatsReleased,
     @Default({}) Map<String, dynamic> finalizedStats,
@@ -109,6 +132,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<EventExpense> expenses,
     @Default(true) bool showAwards,
     @Default([]) List<EventAward> awards,
+    @Default({}) Map<String, double> manualCuts, // [NEW] Per-event player handicap adjustments
   }) = _GolfEvent;
 
   bool get isRegistrationClosed {

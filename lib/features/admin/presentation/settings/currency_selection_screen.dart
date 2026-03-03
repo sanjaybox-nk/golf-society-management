@@ -41,8 +41,9 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
   @override
   Widget build(BuildContext context) {
     final societyConfig = ref.watch(themeControllerProvider);
-    final controller = ref.read(themeControllerProvider.notifier);
-    final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final beigeBackground = theme.scaffoldBackgroundColor;
 
     // Popular currencies for quick access
     final popularCodes = ['GBP', 'USD', 'EUR', 'JPY', 'AUD', 'CAD'];
@@ -59,105 +60,106 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Search Bar
-              BoxyArtCard(
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _filterCurrencies,
-                  decoration: InputDecoration(
-                    hintText: 'Search by name, code or symbol...',
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                      fontSize: 14,
-                    ),
-                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
+              // Search Bar standardized with BoxyArtInputField
+              BoxyArtInputField(
+                label: 'Search Currencies',
+                hint: 'Name, code or symbol...',
+                controller: _searchController,
+                onChanged: _filterCurrencies,
+                prefixIcon: const Icon(Icons.search_rounded, size: 20),
               ),
               const SizedBox(height: 32),
 
               if (_searchController.text.isEmpty) ...[
                 const BoxyArtSectionTitle(title: 'Popular Currencies', ),
-                const SizedBox(height: 12),
                 _buildPopularGrid(popularCurrencies, societyConfig.currencyCode, (c) {
-                  controller.setCurrency(c.symbol, c.code);
+                  ref.read(themeControllerProvider.notifier).setCurrency(c.symbol, c.code);
                   context.pop();
                 }),
                 const SizedBox(height: 32),
                 const BoxyArtSectionTitle(title: 'All Currencies', ),
-                const SizedBox(height: 12),
               ],
               
               ..._filteredCurrencies.map((c) {
                 final isSelected = c.code == societyConfig.currencyCode;
+                const identityColor = Colors.green;
+                
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: BoxyArtCard(
+                    padding: const EdgeInsets.all(16),
                     onTap: () {
-                      controller.setCurrency(c.symbol, c.code);
+                      ref.read(themeControllerProvider.notifier).setCurrency(c.symbol, c.code);
                       context.pop();
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignment: Alignment.center,
+                    child: Row(
+                      children: [
+                        // Circular Icon Container (56x56)
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
                             child: Text(
-                              _getEmoji(c),
-                              style: const TextStyle(fontSize: 22),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  c.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Text(
-                                  c.code,
-                                  style: TextStyle(
-                                    color: Theme.of(context).textTheme.bodySmall?.color,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            c.symbol,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Theme.of(context).primaryColor : null,
-                            ),
-                          ),
-                          if (isSelected)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 12),
-                              child: Icon(
-                                Icons.check_circle_rounded,
-                                color: Theme.of(context).primaryColor,
-                                size: 20,
+                              c.symbol,
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                        ],
-                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                c.name.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                c.code,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              c.symbol,
+                              style: AppTypography.label.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected ? identityColor : null,
+                              ),
+                            ),
+                            if (isSelected)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  color: identityColor,
+                                  size: 24,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -173,7 +175,9 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                         const SizedBox(height: 16),
                         Text(
                           'No currencies found',
-                          style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+                          style: AppTypography.body.copyWith(
+                            color: isDark ? AppColors.dark300 : AppColors.dark400,
+                          ),
                         ),
                       ],
                     ),
@@ -190,12 +194,13 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
   Widget _buildPopularGrid(List<Currency> currencies, String currentCode, Function(Currency) onSelect) {
     return GridView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1.1,
+        childAspectRatio: 1.05,
       ),
       itemCount: currencies.length,
       itemBuilder: (context, index) {
@@ -204,20 +209,33 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
         
         return BoxyArtCard(
           onTap: () => onSelect(c),
+          padding: EdgeInsets.zero, // Use padding in column to prevent overflow
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _getEmoji(c),
-                style: const TextStyle(fontSize: 24),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: (isSelected ? AppColors.lime500 : Colors.green).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    _getEmoji(c),
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
                 c.code,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                style: AppTypography.label.copyWith(
                   fontSize: 13,
-                  color: isSelected ? Theme.of(context).primaryColor : null,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: isSelected ? AppColors.lime500 : null,
                 ),
               ),
             ],

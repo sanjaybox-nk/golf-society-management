@@ -64,11 +64,15 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       showBack: true,
       onBack: () => context.pop(),
       actions: [
-        TextButton(
-          onPressed: _isSaving ? null : _save,
-          child: _isSaving 
-            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-            : Text('SAVE', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0, top: 4.0),
+          child: BoxyArtButton(
+            title: 'SAVE',
+            isGhost: true,
+            isLoading: _isSaving,
+            textColor: AppColors.lime500,
+            onTap: _save,
+          ),
         ),
       ],
       slivers: [
@@ -362,6 +366,16 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       await repo.addSeason(season);
     } else {
       await repo.updateSeason(season);
+      
+      // Auto-recalculate standings for existing seasons so new leaderboards populate immediately
+      try {
+        await ref.read(leaderboardInvokerServiceProvider).recalculateAll(
+          season.id,
+          overrideConfigs: _leaderboards,
+        );
+      } catch (_) {
+        // Silently continue if math fails so we don't block the UI pop
+      }
     }
 
     if (_isCurrent) {

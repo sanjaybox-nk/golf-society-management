@@ -104,7 +104,9 @@ class ScoringCalculator {
     required double playingHandicap,
     required CompetitionFormat format,
     MaxScoreConfig? maxScoreConfig,
+    double societyCut = 0.0,
   }) {
+    final effectivePhc = playingHandicap - societyCut;
     final int holesPlayed = holeScores.where((s) => s != null).length;
     
     if (holesPlayed == 0) {
@@ -129,7 +131,7 @@ class ScoringCalculator {
         final int si = hole['si'] as int? ?? 18;
 
         // Calculate strokes for this hole
-        final double strokes = playingHandicap;
+        final double strokes = effectivePhc;
         final int freeShots = (strokes ~/ 18) + (si <= (strokes % 18) ? 1 : 0);
         
         // 1. Adjusted Gross (WHS Net Double Bogey Cap)
@@ -143,14 +145,14 @@ class ScoringCalculator {
             grossScore: scoreCounted,
             par: par,
             si: si,
-            playingHandicap: playingHandicap,
+            playingHandicap: effectivePhc,
           );
         } else {
           int compScore = applyMaxScoreCap(
             grossScore: scoreCounted,
             par: par,
             si: si,
-            playingHandicap: playingHandicap,
+            playingHandicap: effectivePhc,
             format: format,
             maxScoreConfig: maxScoreConfig,
           );
@@ -170,7 +172,7 @@ class ScoringCalculator {
     } else {
       // Stroke / Max Score / Scramble logic: Relative to Par
       // IMPORTANT: Scaling PHC to holes played to avoid -83 jump
-      final double scaledPhc = (playingHandicap * (holesPlayed / 18));
+      final double scaledPhc = (effectivePhc * (holesPlayed / 18));
       final double netScoreToPar = (totalGross - scaledPhc) - parOfHolesPlayed;
       final int roundedScore = netScoreToPar.round();
       

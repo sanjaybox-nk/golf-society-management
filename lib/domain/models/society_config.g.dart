@@ -29,10 +29,10 @@ _SocietyConfig _$SocietyConfigFromJson(
       $enumDecodeNullable(_$HandicapSystemEnumMap, json['handicapSystem']) ??
       HandicapSystem.igolf,
   selectedPaletteName: json['selectedPaletteName'] as String?,
-  includeGuestsInLeaderboard:
-      json['includeGuestsInLeaderboard'] as bool? ?? true,
-  separateGuestLeaderboard: json['separateGuestLeaderboard'] as bool? ?? false,
-  enableSocietyCuts: json['enableSocietyCuts'] as bool? ?? false,
+  separateGuestLeaderboard: json['separateGuestLeaderboard'] as bool? ?? true,
+  societyCutMode:
+      $enumDecodeNullable(_$SocietyCutModeEnumMap, json['societyCutMode']) ??
+      SocietyCutMode.off,
   societyCutRules:
       (json['societyCutRules'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, (e as num).toDouble()),
@@ -56,9 +56,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'distanceUnit': instance.distanceUnit,
       'handicapSystem': _$HandicapSystemEnumMap[instance.handicapSystem]!,
       'selectedPaletteName': instance.selectedPaletteName,
-      'includeGuestsInLeaderboard': instance.includeGuestsInLeaderboard,
       'separateGuestLeaderboard': instance.separateGuestLeaderboard,
-      'enableSocietyCuts': instance.enableSocietyCuts,
+      'societyCutMode': _$SocietyCutModeEnumMap[instance.societyCutMode]!,
       'societyCutRules': instance.societyCutRules,
     };
 
@@ -68,4 +67,10 @@ const _$HandicapSystemEnumMap = {
   HandicapSystem.golfIreland: 'golfIreland',
   HandicapSystem.golfLink: 'golfLink',
   HandicapSystem.whs: 'whs',
+};
+
+const _$SocietyCutModeEnumMap = {
+  SocietyCutMode.off: 'off',
+  SocietyCutMode.global: 'global',
+  SocietyCutMode.manual: 'manual',
 };

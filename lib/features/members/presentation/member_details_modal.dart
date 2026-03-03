@@ -417,35 +417,44 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     if (!_isNewMember && widget.member != null) ...[
                       const BoxyArtSectionTitle(title: 'Season Standing'),
                       const SizedBox(height: 12),
-                      BoxyArtCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _buildHighlightRow(
-                              context,
-                              icon: Icons.emoji_events_rounded,
-                              color: Colors.amber,
-                              label: 'Order of Merit',
-                              value: 'Rank #6', // Mock for now, linked to logic later
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
+                          return statsAsync.when(
+                            data: (stats) => BoxyArtCard(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  _buildHighlightRow(
+                                    context,
+                                    icon: Icons.emoji_events_rounded,
+                                    color: Colors.amber,
+                                    label: 'Order of Merit',
+                                    value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
+                                  ),
+                                  const Divider(height: 24, indent: 48),
+                                  _buildHighlightRow(
+                                    context,
+                                    icon: Icons.grid_view_rounded,
+                                    color: Colors.blue,
+                                    label: 'Starts',
+                                    value: '${stats.starts} Matches',
+                                  ),
+                                  const Divider(height: 24, indent: 48),
+                                  _buildHighlightRow(
+                                    context,
+                                    icon: Icons.park_rounded,
+                                    color: Colors.green,
+                                    label: 'Best Score',
+                                    value: stats.bestPts > 0 ? '${stats.bestPts} Pts' : '-',
+                                  ),
+                                ],
+                              ),
                             ),
-                            const Divider(height: 24, indent: 48),
-                            _buildHighlightRow(
-                              context,
-                              icon: Icons.grid_view_rounded,
-                              color: Colors.blue,
-                              label: 'Season Eclectic',
-                              value: '68 Gross',
-                            ),
-                            const Divider(height: 24, indent: 48),
-                            _buildHighlightRow(
-                              context,
-                              icon: Icons.park_rounded,
-                              color: Colors.green,
-                              label: 'Birdie Tree',
-                              value: '12 Birdies',
-                            ),
-                          ],
-                        ),
+                            loading: () => const SizedBox(height: 160), // Consistent height
+                            error: (e, s) => const SizedBox.shrink(),
+                          );
+                        },
                       ),
                       SizedBox(height: AppTheme.cardSpacing),
                     ],
@@ -548,14 +557,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
         Text(
           value,
           style: TextStyle(
             fontWeight: FontWeight.w900,
-            fontSize: 14,
+            fontSize: 16,
             color: color == Colors.amber ? Theme.of(context).primaryColor : color,
           ),
         ),

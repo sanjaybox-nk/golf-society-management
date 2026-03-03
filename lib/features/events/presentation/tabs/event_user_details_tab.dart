@@ -116,7 +116,7 @@ class EventDetailsContent extends ConsumerWidget {
             onPressed: onEdit,
             tooltip: 'Edit Event Settings',
           )
-        else if (isAdmin)
+        else if (isAdmin) ...[
           BoxyArtGlassIconButton(
             icon: Icons.app_registration_rounded,
             iconSize: 24,
@@ -126,6 +126,15 @@ class EventDetailsContent extends ConsumerWidget {
             },
             tooltip: 'Edit Event Settings',
           ),
+          BoxyArtGlassIconButton(
+            icon: Icons.edit_attributes_rounded,
+            iconSize: 24,
+            onPressed: () {
+               context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/manual-cuts');
+            },
+            tooltip: 'Manual Handicap Cuts',
+          ),
+        ],
       ],
       bottomNavigationBar: bottomNavigationBar,
       slivers: [

@@ -75,6 +75,9 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
       }
     }
 
+    // [NEW] Filter out guest players - Season Standings are for Society Members only
+    playerScores.removeWhere((id, _) => id.endsWith('_guest'));
+
     // 2. Aggregate
     List<LeaderboardStanding> standings = [];
     
@@ -104,7 +107,7 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
       standings.add(LeaderboardStanding(
         leaderboardId: config.id,
         memberId: memberId,
-        memberName: 'Unknown', 
+        memberName: memberId, 
         currentHandicap: 0,
         points: totalPoints,
         roundsPlayed: scores.length,

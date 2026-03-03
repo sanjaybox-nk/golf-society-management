@@ -103,6 +103,10 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Header Sync**: Identical title and subtitle typography.
     - **Course Context**: A `CourseInfoCard` showing the tee configuration and performance summaries.
 - **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`TOTAL`, `HOLE`, `SCORES`) and **player names are consistently rendered in Pure White** for maximum legibility across all scorecard tiles.
+- **Manual Society Cuts (Ad-Hoc Adjustments)**: Administrators can apply individual shot adjustments for a specific event via the **Manual Handicap Cuts** interface.
+    - **Persistence**: These cuts are stored in the `manualCuts` registry within the `GolfEvent`.
+    - **Scoring Impact**: Cuts are subtracted from the player's calculated Playing Handicap (PHC) across all supported formats (Stableford, Medal, etc.).
+    - **Dynamic Sync**: Saving cuts automatically triggers a recalculation of any snapshotted group handicaps on the tee sheet to maintain absolute data consistency.
 
 ## 5. UI Flow
 

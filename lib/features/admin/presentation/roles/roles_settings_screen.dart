@@ -23,6 +23,7 @@ class RolesSettingsScreen extends ConsumerWidget {
       title: 'System Roles',
       subtitle: 'View available administrative roles',
       showBack: true,
+      autoPrefix: false,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
@@ -32,54 +33,62 @@ class RolesSettingsScreen extends ConsumerWidget {
               ...roles.map((role) {
                 if (role == MemberRole.member) return const SizedBox.shrink();
                 final description = roleDescriptions[role] ?? '';
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                const identityColor = Colors.purple;
                 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: BoxyArtCard(
                     onTap: () => context.push('/admin/settings/roles/members/${role.index}'),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _getRoleColor(role).withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _getRoleIcon(role),
-                              color: _getRoleColor(role),
-                              size: 24,
-                            ),
+                    padding: const EdgeInsets.all(18),
+                    child: Row(
+                      children: [
+                        // High Impact Circular Icon Container (56x56)
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: identityColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getRoleDisplayName(role),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  description,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).textTheme.bodySmall?.color,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          child: Icon(
+                            _getRoleIcon(role),
+                            color: identityColor,
+                            size: 28,
                           ),
-                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 14),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getRoleDisplayName(role).toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                  color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                description,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppColors.dark300 : AppColors.dark400,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded, 
+                          color: isDark ? AppColors.dark400 : AppColors.dark300,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -108,16 +117,6 @@ class RolesSettingsScreen extends ConsumerWidget {
       case MemberRole.restrictedAdmin: return Icons.build_circle_outlined;
       case MemberRole.viewer: return Icons.visibility_outlined;
       case MemberRole.member: return Icons.person_outline;
-    }
-  }
-
-  Color _getRoleColor(MemberRole role) {
-    switch (role) {
-      case MemberRole.superAdmin: return Colors.deepPurple;
-      case MemberRole.admin: return Colors.blue;
-      case MemberRole.restrictedAdmin: return Colors.orange;
-      case MemberRole.viewer: return Colors.teal;
-      case MemberRole.member: return Colors.grey;
     }
   }
 }

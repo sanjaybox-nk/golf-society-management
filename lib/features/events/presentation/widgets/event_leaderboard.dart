@@ -50,6 +50,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     final currentFormat = widget.comp?.rules.format ?? CompetitionFormat.stableford;
     final effectiveRules = widget.comp?.rules ?? const CompetitionRules();
+    final config = ref.watch(themeControllerProvider);
+    final isGuestLeaderboardActive = effectiveRules.separateGuests ?? config.separateGuestLeaderboard;
 
     // 2. Merge Live Scorecards with Seeded Results
     final Map<String, dynamic> mergedData = {};
@@ -100,71 +102,65 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                              effectiveRules.effectiveMode == CompetitionMode.pairs;
     
     if (isTeamCompetition) {
-       final groupsData = widget.event.grouping['groups'] as List?;
-       if (groupsData != null) {
-          final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
-          
-          for (var group in groups) {
-             // Identify partners (usually 1+2 and 3+4 in a 4-ball group)
-             if (effectiveRules.effectiveMode == CompetitionMode.pairs) {
-                // Pair A (1 & 2)
-                final pairA = group.players.take(2).toList();
-                if (pairA.isNotEmpty && pairA.any((p) => mergedData.containsKey(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId))) {
-                  finalEntries.add(_buildTeamEntry(
-                    teamPlayers: pairA,
-                    teamIndex: group.index, // [NEW] Pass group index
-                    event: widget.event,
-                    mergedData: mergedData,
-                    effectiveRules: effectiveRules,
-                    membersList: widget.membersList,
-                    currentFormat: currentFormat,
-                    holeLimit: null,
-                    teeOverrides: widget.teeOverrides,
-                  ));
-                }
-                
-                // Pair B (3 & 4)
-                final pairB = group.players.skip(2).take(2).toList();
-                if (pairB.isNotEmpty && pairB.any((p) => mergedData.containsKey(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId))) {
-                   finalEntries.add(_buildTeamEntry(
-                    teamPlayers: pairB,
-                    teamIndex: group.index, // [NEW] Pass group index
-                    event: widget.event,
-                    mergedData: mergedData,
-                    effectiveRules: effectiveRules,
-                    membersList: widget.membersList,
-                    currentFormat: currentFormat,
-                    holeLimit: null,
-                    teeOverrides: widget.teeOverrides,
-                  ));
-                }
-             } else {
-               // Full Team (Scramble)
-               final team = group.players;
-               if (team.isNotEmpty) {
-                  finalEntries.add(_buildTeamEntry(
-                    teamPlayers: team,
-                    teamIndex: group.index, // [NEW] Pass group index
-                    event: widget.event,
-                    mergedData: mergedData,
-                    effectiveRules: effectiveRules,
-                    membersList: widget.membersList,
-                    currentFormat: currentFormat,
-                    holeLimit: null,
-                    teeOverrides: widget.teeOverrides,
-                  ));
-               }
-              }
+      final groupsData = widget.event.grouping['groups'] as List?;
+      if (groupsData != null) {
+        final List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
+        
+        for (var group in groups) {
+          if (effectiveRules.effectiveMode == CompetitionMode.pairs) {
+            final pairA = group.players.take(2).toList();
+            if (pairA.isNotEmpty && pairA.any((p) => mergedData.containsKey(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId))) {
+              finalEntries.add(_buildTeamEntry(
+                teamPlayers: pairA,
+                teamIndex: group.index,
+                event: widget.event,
+                mergedData: mergedData,
+                effectiveRules: effectiveRules,
+                membersList: widget.membersList,
+                currentFormat: currentFormat,
+                holeLimit: null,
+                teeOverrides: widget.teeOverrides,
+              ));
+            }
+            
+            final pairB = group.players.skip(2).take(2).toList();
+            if (pairB.isNotEmpty && pairB.any((p) => mergedData.containsKey(p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId))) {
+               finalEntries.add(_buildTeamEntry(
+                teamPlayers: pairB,
+                teamIndex: group.index,
+                event: widget.event,
+                mergedData: mergedData,
+                effectiveRules: effectiveRules,
+                membersList: widget.membersList,
+                currentFormat: currentFormat,
+                holeLimit: null,
+                teeOverrides: widget.teeOverrides,
+              ));
+            }
+          } else {
+            final team = group.players;
+            if (team.isNotEmpty) {
+              finalEntries.add(_buildTeamEntry(
+                teamPlayers: team,
+                teamIndex: group.index,
+                event: widget.event,
+                mergedData: mergedData,
+                effectiveRules: effectiveRules,
+                membersList: widget.membersList,
+                currentFormat: currentFormat,
+                holeLimit: null,
+                teeOverrides: widget.teeOverrides,
+              ));
+            }
           }
-       }
+        }
+      }
     } else {
       // Individual Leaderboard
-      // Use RegistrationLogic to get participants who are actually playing (Confirmed or Reserved)
-      // This ensures nested guests are correctly discovered and flattened.
       final golfers = RegistrationLogic.getPlayingParticipants(widget.event);
 
       for (var item in golfers) {
-        if (!effectiveRules.includeGuests && item.isGuest) continue; // [NEW] Filter guests
+        if (!isGuestLeaderboardActive && item.isGuest) continue;
         
         final reg = item.registration;
         final id = item.isGuest ? '${reg.memberId}_guest' : reg.memberId;
@@ -185,7 +181,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         }
       }
 
-      // Fallback for dangling data (e.g. pure mock/seeded without reg)
+      // Fallback
       if (finalEntries.isEmpty && mergedData.isNotEmpty) {
         mergedData.forEach((key, value) {
           final isGuestKey = key.endsWith('_guest');
@@ -266,15 +262,12 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       });
     }
 
-    final config = ref.watch(themeControllerProvider);
-    final separateGuests = effectiveRules.separateGuests ?? config.separateGuestLeaderboard;
-    
     // Split into Members and Guests if separation is active
-    final guestEntries = separateGuests
+    final guestEntries = isGuestLeaderboardActive
         ? finalizedEntries.where((e) => e.isGuest).toList()
         : <LeaderboardEntry>[];
     
-    final memberEntries = separateGuests
+    final memberEntries = isGuestLeaderboardActive
         ? finalizedEntries.where((e) => !e.isGuest).toList()
         : finalizedEntries;
 
@@ -291,8 +284,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         if (memberEntries.isNotEmpty) ...[
           if (widget.showTitles) ...[
             BoxyArtSectionTitle(
-              title: separateGuests ? 'SOCIETY MEMBERS' : 'LIVE STANDINGS',
-              count: separateGuests ? memberEntries.length : null,
+              title: isGuestLeaderboardActive ? 'SOCIETY MEMBERS' : 'LIVE STANDINGS',
+              count: isGuestLeaderboardActive ? memberEntries.length : null,
             ),
             const SizedBox(height: 12),
           ],
@@ -424,13 +417,17 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
    
                   // Calculate hole net/points
                   final int freeShots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
-                  final net = rawVal - freeShots;
-                  final points = (par - net + 2).clamp(0, 10);
+                  
+                  // Apply Society Cut (pro-rata for pairs is complex, but we apply to individual net)
+                  final societyCut = event.manualCuts[pid] ?? 0.0;
+                  final double net = rawVal - freeShots + (societyCut / 18); // Rough approximation for hole-by-hole
+                  
+                  final int points = (par - net + 2).clamp(0, 10).toInt();
    
                   if (isStableford) {
                      if (holeBestScore == null || points > holeBestScore) holeBestScore = points;
                   } else {
-                     if (holeBestScore == null || net < holeBestScore) holeBestScore = net;
+                     if (holeBestScore == null || net.round() < holeBestScore) holeBestScore = net.round();
                   }
                   someValid = true;
                }
@@ -660,6 +657,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       playingHandicap: phc.toDouble(), 
       format: currentFormat,
       maxScoreConfig: effectiveRules.maxScoreConfig,
+      societyCut: event.manualCuts[id] ?? 0.0,
     );
 
     return LeaderboardEntry(
