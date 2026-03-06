@@ -140,10 +140,8 @@ class BoxyArtSettingsCard extends StatelessWidget {
           padding: const EdgeInsets.only(left: 12, bottom: 12),
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+            style: AppTypography.displaySection.copyWith(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ),
@@ -190,13 +188,13 @@ class ModernNoteCard extends StatelessWidget {
           if (title != null && title!.isNotEmpty) ...[
             Text(
               title!,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
           ],
           Text(
             content,
-            style: const TextStyle(fontSize: 14, height: 1.4),
+            style: AppTypography.bodySmall.copyWith(height: 1.4),
           ),
           if (imageUrl != null && imageUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),

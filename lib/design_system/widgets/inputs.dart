@@ -299,8 +299,7 @@ class BoxyArtSwitchField extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle!,
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: AppTypography.helper.copyWith(
                     color: isDark ? AppColors.dark300 : AppColors.dark400,
                   ),
                 ),

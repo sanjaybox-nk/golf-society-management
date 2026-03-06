@@ -319,8 +319,8 @@ class BoxyArtDateBadge extends StatelessWidget {
           ),
           Text(
             DateFormat('yyyy').format(date),
-            style: AppTypography.caption.copyWith(
-              fontSize: 9,
+            style: AppTypography.micro.copyWith(
+              fontSize: 9, // Keeping 9 for specialized multi-day logic but using micro as base
               color: isDark ? AppColors.dark300 : AppColors.dark400,
               fontWeight: FontWeight.w600,
             ),

@@ -97,12 +97,7 @@ class HeadlessScaffold extends StatelessWidget {
                           
                           return Text(
                             displayTitle,
-                            style: const TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1.8, // Tighter for editorial feel
-                              height: 1.0,
-                            ),
+                            style: AppTypography.displayPage,
                           );
                         },
                       ),
@@ -120,8 +115,7 @@ class HeadlessScaffold extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     subtitle!,
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: AppTypography.bodySmall.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5,

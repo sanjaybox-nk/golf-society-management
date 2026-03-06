@@ -99,19 +99,19 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Choose a structural tone for your society. This adjusts corner rounding and depth.',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Use Shadows', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                              Text('Adds depth to cards and buttons', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400)),
+                              Text('Use Shadows', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                              Text('Adds depth to cards and buttons', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w400)),
                             ],
                           ),
                         ),
@@ -125,12 +125,12 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     ),
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Use Borders', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                              Text('Hardens card and field edges', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400)),
+                              Text('Use Borders', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                              Text('Hardens card and field edges', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w400)),
                             ],
                           ),
                         ),
@@ -146,7 +146,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          const Text('Border', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                          Text('Border', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w700)),
                           Expanded(
                             child: Slider(
                               value: config.borderWidth,
@@ -158,14 +158,14 @@ class BrandingSettingsScreen extends ConsumerWidget {
                               onChanged: (v) => controller.setBorderWidth(v),
                             ),
                           ),
-                          Text(config.borderWidth.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                          Text(config.borderWidth.toStringAsFixed(1), style: AppTypography.helper.copyWith(fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ],
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Text('Pills', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text('Pills', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w700)),
                         Expanded(
                           child: Slider(
                             value: config.pillRadius,
@@ -177,12 +177,12 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             onChanged: (v) => controller.setPillRadius(v),
                           ),
                         ),
-                        Text(config.pillRadius.toStringAsFixed(0), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                        Text(config.pillRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: FontWeight.w900)),
                       ],
                     ),
                     Row(
                       children: [
-                        const Text('Buttons', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text('Buttons', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w700)),
                         Expanded(
                           child: Slider(
                             value: config.buttonRadius,
@@ -194,7 +194,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             onChanged: (v) => controller.setButtonRadius(v),
                           ),
                         ),
-                        Text(config.buttonRadius.toStringAsFixed(0), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                        Text(config.buttonRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: FontWeight.w900)),
                       ],
                     ),
                     const SizedBox(height: 10),
