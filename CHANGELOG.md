@@ -2,6 +2,7 @@
 - **Multi-Tenant Product Roadmap**: Established a comprehensive vision for the platform's evolution, including Divisional functionality, Season-long Match Play, Admin Web Portal, and Locker Room 2.0. Documented in `product_roadmap.md` and synced with `docs/06_ROADMAP_TODO.md`.
 - **`Freezed` Model Standardization**: Hardened `AuditActivity`, `CourseConfig`, `CourseHole`, `TeeConfig`, and `EventFormState` for Dart 3 by adding the `abstract` keyword to ensure compatibility with mixin strictness.
 - **Design 3.1 Hardening**:
+    - **Dynamic Backgrounds**: Introduced `SocietyConfig.backgroundColor`, allowing for custom brand-aligned page backgrounds (integrated into `AppTheme` and `ThemeController`).
     - **Header Spacing**: Standardized `BoxyArtAppBar` horizontal padding to 20px (leading/trailing) for visual consistency.
     - **Placeholder Alignment**: Standardized placeholder text size across `BoxyArtInputField`, `BoxyArtRichEditor`, and `BoxyArtRichNoteEditor` to match body text.
     - **FormField Versatility**: Converted `BoxyArtFormField` to a `StatefulWidget` to robustly support `initialValue` injections.

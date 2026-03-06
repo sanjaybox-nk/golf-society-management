@@ -12,6 +12,9 @@ _SocietyConfig _$SocietyConfigFromJson(
   societyName: json['societyName'] as String? ?? 'Golf Society',
   logoUrl: json['logoUrl'] as String?,
   primaryColor: (json['primaryColor'] as num?)?.toInt() ?? 0xFFF7D354,
+  secondaryColor: (json['secondaryColor'] as num?)?.toInt() ?? 0xFF4ADE80,
+  backgroundColor: (json['backgroundColor'] as num?)?.toInt() ?? 0xFFEFEFED,
+  brandingStyle: json['brandingStyle'] as String? ?? 'boxy',
   themeMode: json['themeMode'] as String? ?? 'system',
   customColors:
       (json['customColors'] as List<dynamic>?)
@@ -48,6 +51,9 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'societyName': instance.societyName,
       'logoUrl': instance.logoUrl,
       'primaryColor': instance.primaryColor,
+      'secondaryColor': instance.secondaryColor,
+      'backgroundColor': instance.backgroundColor,
+      'brandingStyle': instance.brandingStyle,
       'themeMode': instance.themeMode,
       'customColors': instance.customColors,
       'cardTintIntensity': instance.cardTintIntensity,

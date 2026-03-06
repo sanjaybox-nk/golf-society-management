@@ -17,6 +17,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     String? logoUrl,
     @Default(0xFFF7D354) int primaryColor, // Default: BoxyArt Yellow
     @Default(0xFF4ADE80) int secondaryColor, // Default: Emerald Green (Action)
+    @Default(0xFFEFEFED) int backgroundColor, // Default: Light Gray/Neutral
     @Default('boxy') String brandingStyle, // 'classic', 'boxy', 'modern'
     @Default('system') String themeMode, // 'system', 'light', 'dark'
     @Default([]) List<int> customColors, // User-created custom colors (up to 5)

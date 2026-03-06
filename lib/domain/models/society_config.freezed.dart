@@ -16,18 +16,19 @@ T _$identity<T>(T value) => value;
 mixin _$SocietyConfig {
 
  String get societyName; String? get logoUrl; int get primaryColor;// Default: BoxyArt Yellow
+ int get secondaryColor;// Default: Emerald Green (Action)
+ int get backgroundColor;// Default: Light Gray/Neutral
+ String get brandingStyle;// 'classic', 'boxy', 'modern'
  String get themeMode;// 'system', 'light', 'dark'
  List<int> get customColors;// User-created custom colors (up to 5)
  double get cardTintIntensity;// Card background tint intensity (0.0 to 1.0)
- bool get useCardGradient;// Whether to use gradient on cards
- String get currencySymbol;// Default currency symbol
+ bool get useCardGradient; String get currencySymbol;// Default currency symbol
  String get currencyCode;// Default currency code
  String get groupingStrategy;// 'balanced', 'progressive', 'similar', 'random'
  bool get useWhsHandicaps;// Default: Use WHS (Slope/Rating)
  String get distanceUnit;// 'yards' or 'meters'
  HandicapSystem get handicapSystem;// Global provider
- String? get selectedPaletteName;// Selected Modern Card palette name
- bool get separateGuestLeaderboard;// [UPDATED] Single toggle: ON = Separate, OFF = Hidden
+ String? get selectedPaletteName; bool get separateGuestLeaderboard;// Single toggle: ON = Separate, OFF = Hidden
  SocietyCutMode get societyCutMode; Map<String, double> get societyCutRules; double get globalMarkupPercentage;// Default: 10%
  double get guestMarkupExtra;
 /// Create a copy of SocietyConfig
@@ -42,16 +43,16 @@ $SocietyConfigCopyWith<SocietyConfig> get copyWith => _$SocietyConfigCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other.customColors, customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy)&&(identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem)&&(identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName)&&(identical(other.separateGuestLeaderboard, separateGuestLeaderboard) || other.separateGuestLeaderboard == separateGuestLeaderboard)&&(identical(other.societyCutMode, societyCutMode) || other.societyCutMode == societyCutMode)&&const DeepCollectionEquality().equals(other.societyCutRules, societyCutRules)&&(identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage)&&(identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.brandingStyle, brandingStyle) || other.brandingStyle == brandingStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other.customColors, customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy)&&(identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem)&&(identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName)&&(identical(other.separateGuestLeaderboard, separateGuestLeaderboard) || other.separateGuestLeaderboard == separateGuestLeaderboard)&&(identical(other.societyCutMode, societyCutMode) || other.societyCutMode == societyCutMode)&&const DeepCollectionEquality().equals(other.societyCutRules, societyCutRules)&&(identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage)&&(identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,societyName,logoUrl,primaryColor,themeMode,const DeepCollectionEquality().hash(customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy,useWhsHandicaps,distanceUnit,handicapSystem,selectedPaletteName,separateGuestLeaderboard,societyCutMode,const DeepCollectionEquality().hash(societyCutRules),globalMarkupPercentage,guestMarkupExtra]);
+int get hashCode => Object.hashAll([runtimeType,societyName,logoUrl,primaryColor,secondaryColor,backgroundColor,brandingStyle,themeMode,const DeepCollectionEquality().hash(customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy,useWhsHandicaps,distanceUnit,handicapSystem,selectedPaletteName,separateGuestLeaderboard,societyCutMode,const DeepCollectionEquality().hash(societyCutRules),globalMarkupPercentage,guestMarkupExtra]);
 
 @override
 String toString() {
-  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra)';
+  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, brandingStyle: $brandingStyle, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra)';
 }
 
 
@@ -62,7 +63,7 @@ abstract mixin class $SocietyConfigCopyWith<$Res>  {
   factory $SocietyConfigCopyWith(SocietyConfig value, $Res Function(SocietyConfig) _then) = _$SocietyConfigCopyWithImpl;
 @useResult
 $Res call({
- String societyName, String? logoUrl, int primaryColor, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy, bool useWhsHandicaps, String distanceUnit, HandicapSystem handicapSystem, String? selectedPaletteName, bool separateGuestLeaderboard, SocietyCutMode societyCutMode, Map<String, double> societyCutRules, double globalMarkupPercentage, double guestMarkupExtra
+ String societyName, String? logoUrl, int primaryColor, int secondaryColor, int backgroundColor, String brandingStyle, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy, bool useWhsHandicaps, String distanceUnit, HandicapSystem handicapSystem, String? selectedPaletteName, bool separateGuestLeaderboard, SocietyCutMode societyCutMode, Map<String, double> societyCutRules, double globalMarkupPercentage, double guestMarkupExtra
 });
 
 
@@ -79,12 +80,15 @@ class _$SocietyConfigCopyWithImpl<$Res>
 
 /// Create a copy of SocietyConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,Object? useWhsHandicaps = null,Object? distanceUnit = null,Object? handicapSystem = null,Object? selectedPaletteName = freezed,Object? separateGuestLeaderboard = null,Object? societyCutMode = null,Object? societyCutRules = null,Object? globalMarkupPercentage = null,Object? guestMarkupExtra = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? secondaryColor = null,Object? backgroundColor = null,Object? brandingStyle = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,Object? useWhsHandicaps = null,Object? distanceUnit = null,Object? handicapSystem = null,Object? selectedPaletteName = freezed,Object? separateGuestLeaderboard = null,Object? societyCutMode = null,Object? societyCutRules = null,Object? globalMarkupPercentage = null,Object? guestMarkupExtra = null,}) {
   return _then(_self.copyWith(
 societyName: null == societyName ? _self.societyName : societyName // ignore: cast_nullable_to_non_nullable
 as String,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
 as String?,primaryColor: null == primaryColor ? _self.primaryColor : primaryColor // ignore: cast_nullable_to_non_nullable
-as int,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
+as int,secondaryColor: null == secondaryColor ? _self.secondaryColor : secondaryColor // ignore: cast_nullable_to_non_nullable
+as int,backgroundColor: null == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
+as int,brandingStyle: null == brandingStyle ? _self.brandingStyle : brandingStyle // ignore: cast_nullable_to_non_nullable
+as String,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
 as String,customColors: null == customColors ? _self.customColors : customColors // ignore: cast_nullable_to_non_nullable
 as List<int>,cardTintIntensity: null == cardTintIntensity ? _self.cardTintIntensity : cardTintIntensity // ignore: cast_nullable_to_non_nullable
 as double,useCardGradient: null == useCardGradient ? _self.useCardGradient : useCardGradient // ignore: cast_nullable_to_non_nullable
@@ -185,10 +189,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps,  String distanceUnit,  HandicapSystem handicapSystem,  String? selectedPaletteName,  bool separateGuestLeaderboard,  SocietyCutMode societyCutMode,  Map<String, double> societyCutRules,  double globalMarkupPercentage,  double guestMarkupExtra)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  int secondaryColor,  int backgroundColor,  String brandingStyle,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps,  String distanceUnit,  HandicapSystem handicapSystem,  String? selectedPaletteName,  bool separateGuestLeaderboard,  SocietyCutMode societyCutMode,  Map<String, double> societyCutRules,  double globalMarkupPercentage,  double guestMarkupExtra)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SocietyConfig() when $default != null:
-return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps,_that.distanceUnit,_that.handicapSystem,_that.selectedPaletteName,_that.separateGuestLeaderboard,_that.societyCutMode,_that.societyCutRules,_that.globalMarkupPercentage,_that.guestMarkupExtra);case _:
+return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.brandingStyle,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps,_that.distanceUnit,_that.handicapSystem,_that.selectedPaletteName,_that.separateGuestLeaderboard,_that.societyCutMode,_that.societyCutRules,_that.globalMarkupPercentage,_that.guestMarkupExtra);case _:
   return orElse();
 
 }
@@ -206,10 +210,10 @@ return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps,  String distanceUnit,  HandicapSystem handicapSystem,  String? selectedPaletteName,  bool separateGuestLeaderboard,  SocietyCutMode societyCutMode,  Map<String, double> societyCutRules,  double globalMarkupPercentage,  double guestMarkupExtra)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String societyName,  String? logoUrl,  int primaryColor,  int secondaryColor,  int backgroundColor,  String brandingStyle,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps,  String distanceUnit,  HandicapSystem handicapSystem,  String? selectedPaletteName,  bool separateGuestLeaderboard,  SocietyCutMode societyCutMode,  Map<String, double> societyCutRules,  double globalMarkupPercentage,  double guestMarkupExtra)  $default,) {final _that = this;
 switch (_that) {
 case _SocietyConfig():
-return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps,_that.distanceUnit,_that.handicapSystem,_that.selectedPaletteName,_that.separateGuestLeaderboard,_that.societyCutMode,_that.societyCutRules,_that.globalMarkupPercentage,_that.guestMarkupExtra);case _:
+return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.brandingStyle,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps,_that.distanceUnit,_that.handicapSystem,_that.selectedPaletteName,_that.separateGuestLeaderboard,_that.societyCutMode,_that.societyCutRules,_that.globalMarkupPercentage,_that.guestMarkupExtra);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -226,10 +230,10 @@ return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String societyName,  String? logoUrl,  int primaryColor,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps,  String distanceUnit,  HandicapSystem handicapSystem,  String? selectedPaletteName,  bool separateGuestLeaderboard,  SocietyCutMode societyCutMode,  Map<String, double> societyCutRules,  double globalMarkupPercentage,  double guestMarkupExtra)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String societyName,  String? logoUrl,  int primaryColor,  int secondaryColor,  int backgroundColor,  String brandingStyle,  String themeMode,  List<int> customColors,  double cardTintIntensity,  bool useCardGradient,  String currencySymbol,  String currencyCode,  String groupingStrategy,  bool useWhsHandicaps,  String distanceUnit,  HandicapSystem handicapSystem,  String? selectedPaletteName,  bool separateGuestLeaderboard,  SocietyCutMode societyCutMode,  Map<String, double> societyCutRules,  double globalMarkupPercentage,  double guestMarkupExtra)?  $default,) {final _that = this;
 switch (_that) {
 case _SocietyConfig() when $default != null:
-return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps,_that.distanceUnit,_that.handicapSystem,_that.selectedPaletteName,_that.separateGuestLeaderboard,_that.societyCutMode,_that.societyCutRules,_that.globalMarkupPercentage,_that.guestMarkupExtra);case _:
+return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.brandingStyle,_that.themeMode,_that.customColors,_that.cardTintIntensity,_that.useCardGradient,_that.currencySymbol,_that.currencyCode,_that.groupingStrategy,_that.useWhsHandicaps,_that.distanceUnit,_that.handicapSystem,_that.selectedPaletteName,_that.separateGuestLeaderboard,_that.societyCutMode,_that.societyCutRules,_that.globalMarkupPercentage,_that.guestMarkupExtra);case _:
   return null;
 
 }
@@ -241,13 +245,19 @@ return $default(_that.societyName,_that.logoUrl,_that.primaryColor,_that.themeMo
 @JsonSerializable()
 
 class _SocietyConfig implements SocietyConfig {
-  const _SocietyConfig({this.societyName = 'Golf Society', this.logoUrl, this.primaryColor = 0xFFF7D354, this.themeMode = 'system', final  List<int> customColors = const [], this.cardTintIntensity = 0.1, this.useCardGradient = true, this.currencySymbol = '£', this.currencyCode = 'GBP', this.groupingStrategy = 'balanced', this.useWhsHandicaps = true, this.distanceUnit = 'yards', this.handicapSystem = HandicapSystem.igolf, this.selectedPaletteName, this.separateGuestLeaderboard = true, this.societyCutMode = SocietyCutMode.off, final  Map<String, double> societyCutRules = const {'1st' : 2.0, '2nd' : 1.0, '3rd' : 0.5}, this.globalMarkupPercentage = 0.10, this.guestMarkupExtra = 10.0}): _customColors = customColors,_societyCutRules = societyCutRules;
+  const _SocietyConfig({this.societyName = 'Golf Society', this.logoUrl, this.primaryColor = 0xFFF7D354, this.secondaryColor = 0xFF4ADE80, this.backgroundColor = 0xFFEFEFED, this.brandingStyle = 'boxy', this.themeMode = 'system', final  List<int> customColors = const [], this.cardTintIntensity = 0.1, this.useCardGradient = true, this.currencySymbol = '£', this.currencyCode = 'GBP', this.groupingStrategy = 'balanced', this.useWhsHandicaps = true, this.distanceUnit = 'yards', this.handicapSystem = HandicapSystem.igolf, this.selectedPaletteName, this.separateGuestLeaderboard = true, this.societyCutMode = SocietyCutMode.off, final  Map<String, double> societyCutRules = const {'1st' : 2.0, '2nd' : 1.0, '3rd' : 0.5}, this.globalMarkupPercentage = 0.10, this.guestMarkupExtra = 10.0}): _customColors = customColors,_societyCutRules = societyCutRules;
   factory _SocietyConfig.fromJson(Map<String, dynamic> json) => _$SocietyConfigFromJson(json);
 
 @override@JsonKey() final  String societyName;
 @override final  String? logoUrl;
 @override@JsonKey() final  int primaryColor;
 // Default: BoxyArt Yellow
+@override@JsonKey() final  int secondaryColor;
+// Default: Emerald Green (Action)
+@override@JsonKey() final  int backgroundColor;
+// Default: Light Gray/Neutral
+@override@JsonKey() final  String brandingStyle;
+// 'classic', 'boxy', 'modern'
 @override@JsonKey() final  String themeMode;
 // 'system', 'light', 'dark'
  final  List<int> _customColors;
@@ -262,7 +272,6 @@ class _SocietyConfig implements SocietyConfig {
 @override@JsonKey() final  double cardTintIntensity;
 // Card background tint intensity (0.0 to 1.0)
 @override@JsonKey() final  bool useCardGradient;
-// Whether to use gradient on cards
 @override@JsonKey() final  String currencySymbol;
 // Default currency symbol
 @override@JsonKey() final  String currencyCode;
@@ -276,9 +285,8 @@ class _SocietyConfig implements SocietyConfig {
 @override@JsonKey() final  HandicapSystem handicapSystem;
 // Global provider
 @override final  String? selectedPaletteName;
-// Selected Modern Card palette name
 @override@JsonKey() final  bool separateGuestLeaderboard;
-// [UPDATED] Single toggle: ON = Separate, OFF = Hidden
+// Single toggle: ON = Separate, OFF = Hidden
 @override@JsonKey() final  SocietyCutMode societyCutMode;
  final  Map<String, double> _societyCutRules;
 @override@JsonKey() Map<String, double> get societyCutRules {
@@ -304,16 +312,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other._customColors, _customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy)&&(identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem)&&(identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName)&&(identical(other.separateGuestLeaderboard, separateGuestLeaderboard) || other.separateGuestLeaderboard == separateGuestLeaderboard)&&(identical(other.societyCutMode, societyCutMode) || other.societyCutMode == societyCutMode)&&const DeepCollectionEquality().equals(other._societyCutRules, _societyCutRules)&&(identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage)&&(identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SocietyConfig&&(identical(other.societyName, societyName) || other.societyName == societyName)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.brandingStyle, brandingStyle) || other.brandingStyle == brandingStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&const DeepCollectionEquality().equals(other._customColors, _customColors)&&(identical(other.cardTintIntensity, cardTintIntensity) || other.cardTintIntensity == cardTintIntensity)&&(identical(other.useCardGradient, useCardGradient) || other.useCardGradient == useCardGradient)&&(identical(other.currencySymbol, currencySymbol) || other.currencySymbol == currencySymbol)&&(identical(other.currencyCode, currencyCode) || other.currencyCode == currencyCode)&&(identical(other.groupingStrategy, groupingStrategy) || other.groupingStrategy == groupingStrategy)&&(identical(other.useWhsHandicaps, useWhsHandicaps) || other.useWhsHandicaps == useWhsHandicaps)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.handicapSystem, handicapSystem) || other.handicapSystem == handicapSystem)&&(identical(other.selectedPaletteName, selectedPaletteName) || other.selectedPaletteName == selectedPaletteName)&&(identical(other.separateGuestLeaderboard, separateGuestLeaderboard) || other.separateGuestLeaderboard == separateGuestLeaderboard)&&(identical(other.societyCutMode, societyCutMode) || other.societyCutMode == societyCutMode)&&const DeepCollectionEquality().equals(other._societyCutRules, _societyCutRules)&&(identical(other.globalMarkupPercentage, globalMarkupPercentage) || other.globalMarkupPercentage == globalMarkupPercentage)&&(identical(other.guestMarkupExtra, guestMarkupExtra) || other.guestMarkupExtra == guestMarkupExtra));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,societyName,logoUrl,primaryColor,themeMode,const DeepCollectionEquality().hash(_customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy,useWhsHandicaps,distanceUnit,handicapSystem,selectedPaletteName,separateGuestLeaderboard,societyCutMode,const DeepCollectionEquality().hash(_societyCutRules),globalMarkupPercentage,guestMarkupExtra]);
+int get hashCode => Object.hashAll([runtimeType,societyName,logoUrl,primaryColor,secondaryColor,backgroundColor,brandingStyle,themeMode,const DeepCollectionEquality().hash(_customColors),cardTintIntensity,useCardGradient,currencySymbol,currencyCode,groupingStrategy,useWhsHandicaps,distanceUnit,handicapSystem,selectedPaletteName,separateGuestLeaderboard,societyCutMode,const DeepCollectionEquality().hash(_societyCutRules),globalMarkupPercentage,guestMarkupExtra]);
 
 @override
 String toString() {
-  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra)';
+  return 'SocietyConfig(societyName: $societyName, logoUrl: $logoUrl, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, brandingStyle: $brandingStyle, themeMode: $themeMode, customColors: $customColors, cardTintIntensity: $cardTintIntensity, useCardGradient: $useCardGradient, currencySymbol: $currencySymbol, currencyCode: $currencyCode, groupingStrategy: $groupingStrategy, useWhsHandicaps: $useWhsHandicaps, distanceUnit: $distanceUnit, handicapSystem: $handicapSystem, selectedPaletteName: $selectedPaletteName, separateGuestLeaderboard: $separateGuestLeaderboard, societyCutMode: $societyCutMode, societyCutRules: $societyCutRules, globalMarkupPercentage: $globalMarkupPercentage, guestMarkupExtra: $guestMarkupExtra)';
 }
 
 
@@ -324,7 +332,7 @@ abstract mixin class _$SocietyConfigCopyWith<$Res> implements $SocietyConfigCopy
   factory _$SocietyConfigCopyWith(_SocietyConfig value, $Res Function(_SocietyConfig) _then) = __$SocietyConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String societyName, String? logoUrl, int primaryColor, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy, bool useWhsHandicaps, String distanceUnit, HandicapSystem handicapSystem, String? selectedPaletteName, bool separateGuestLeaderboard, SocietyCutMode societyCutMode, Map<String, double> societyCutRules, double globalMarkupPercentage, double guestMarkupExtra
+ String societyName, String? logoUrl, int primaryColor, int secondaryColor, int backgroundColor, String brandingStyle, String themeMode, List<int> customColors, double cardTintIntensity, bool useCardGradient, String currencySymbol, String currencyCode, String groupingStrategy, bool useWhsHandicaps, String distanceUnit, HandicapSystem handicapSystem, String? selectedPaletteName, bool separateGuestLeaderboard, SocietyCutMode societyCutMode, Map<String, double> societyCutRules, double globalMarkupPercentage, double guestMarkupExtra
 });
 
 
@@ -341,12 +349,15 @@ class __$SocietyConfigCopyWithImpl<$Res>
 
 /// Create a copy of SocietyConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,Object? useWhsHandicaps = null,Object? distanceUnit = null,Object? handicapSystem = null,Object? selectedPaletteName = freezed,Object? separateGuestLeaderboard = null,Object? societyCutMode = null,Object? societyCutRules = null,Object? globalMarkupPercentage = null,Object? guestMarkupExtra = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? societyName = null,Object? logoUrl = freezed,Object? primaryColor = null,Object? secondaryColor = null,Object? backgroundColor = null,Object? brandingStyle = null,Object? themeMode = null,Object? customColors = null,Object? cardTintIntensity = null,Object? useCardGradient = null,Object? currencySymbol = null,Object? currencyCode = null,Object? groupingStrategy = null,Object? useWhsHandicaps = null,Object? distanceUnit = null,Object? handicapSystem = null,Object? selectedPaletteName = freezed,Object? separateGuestLeaderboard = null,Object? societyCutMode = null,Object? societyCutRules = null,Object? globalMarkupPercentage = null,Object? guestMarkupExtra = null,}) {
   return _then(_SocietyConfig(
 societyName: null == societyName ? _self.societyName : societyName // ignore: cast_nullable_to_non_nullable
 as String,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
 as String?,primaryColor: null == primaryColor ? _self.primaryColor : primaryColor // ignore: cast_nullable_to_non_nullable
-as int,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
+as int,secondaryColor: null == secondaryColor ? _self.secondaryColor : secondaryColor // ignore: cast_nullable_to_non_nullable
+as int,backgroundColor: null == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
+as int,brandingStyle: null == brandingStyle ? _self.brandingStyle : brandingStyle // ignore: cast_nullable_to_non_nullable
+as String,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
 as String,customColors: null == customColors ? _self._customColors : customColors // ignore: cast_nullable_to_non_nullable
 as List<int>,cardTintIntensity: null == cardTintIntensity ? _self.cardTintIntensity : cardTintIntensity // ignore: cast_nullable_to_non_nullable
 as double,useCardGradient: null == useCardGradient ? _self.useCardGradient : useCardGradient // ignore: cast_nullable_to_non_nullable

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
-import 'app_shapes.dart';
+import '../../domain/models/society_config.dart';
 
 /// Fairway Design System v3.1 Theme Composition
 class AppTheme {
@@ -17,9 +17,34 @@ class AppTheme {
   static const Color primaryBlack = Color(0xFF000000);
   static const Color surfaceWhite = Color(0xFFFFFFFF);
 
-  static ThemeData dark() {
-    final colorScheme = AppColors.darkScheme();
+  static ThemeData dark(SocietyConfig config) {
+    // Dynamic Color Setup
+    final primaryColor = Color(config.primaryColor);
+    final secondaryColor = Color(config.secondaryColor);
+    
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.dark,
+      primary: primaryColor,
+      secondary: secondaryColor,
+      surface: AppColors.dark700,
+      error: AppColors.coral500,
+    ).copyWith(
+      surfaceContainer: AppColors.dark900,
+      onSurface: AppColors.dark60,
+    );
+
     final textTheme = AppTypography.createTextTheme();
+
+    // Style Presets
+    double radius;
+    switch (config.brandingStyle) {
+      case 'classic': radius = 8.0; break;
+      case 'modern':  radius = 28.0; break;
+      case 'boxy':
+      default:        radius = 18.0; break;
+    }
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius));
 
     return ThemeData(
       useMaterial3: true,
@@ -40,6 +65,8 @@ class AppTheme {
         titleTextStyle: AppTypography.displayMedium.copyWith(
           fontSize: 20,
           color: AppColors.dark60,
+          letterSpacing: -1.0,
+          fontWeight: FontWeight.w900,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
@@ -47,7 +74,7 @@ class AppTheme {
       // Components - Cards
       cardTheme: CardThemeData(
         color: AppColors.dark700,
-        shape: AppShapes.cardShape,
+        shape: shape,
         elevation: 0,
         margin: EdgeInsets.zero,
       ),
@@ -55,10 +82,10 @@ class AppTheme {
       // Components - Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.lime500,
+          backgroundColor: secondaryColor,
           foregroundColor: AppColors.actionText,
           textStyle: AppTypography.label,
-          shape: AppShapes.pillShape,
+          shape: const StadiumBorder(),
           elevation: 0,
         ),
       ),
@@ -68,15 +95,15 @@ class AppTheme {
           foregroundColor: AppColors.dark60,
           side: const BorderSide(color: AppColors.dark500, width: 1.5),
           textStyle: AppTypography.label,
-          shape: AppShapes.pillShape,
+          shape: const StadiumBorder(),
         ),
       ),
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.lime400,
+          foregroundColor: secondaryColor,
           textStyle: AppTypography.label,
-          shape: AppShapes.pillShape,
+          shape: const StadiumBorder(),
         ),
       ),
 
@@ -86,19 +113,19 @@ class AppTheme {
         fillColor: AppColors.dark600,
         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
+          borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
+          borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
-          borderSide: const BorderSide(color: AppColors.lime500, width: 2),
+          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
+          borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: const BorderSide(color: AppColors.coral500, width: 1),
         ),
         hintStyle: AppTypography.helper.copyWith(color: AppColors.dark300),
@@ -108,7 +135,7 @@ class AppTheme {
       // Components - Navigation
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.dark900,
-        indicatorColor: AppColors.lime500,
+        indicatorColor: secondaryColor,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return AppTypography.caption.copyWith(color: AppColors.dark60);
@@ -119,7 +146,7 @@ class AppTheme {
 
       // Components - Tabs
       tabBarTheme: TabBarThemeData(
-        indicatorColor: AppColors.lime500,
+        indicatorColor: secondaryColor,
         labelColor: AppColors.dark60,
         unselectedLabelColor: AppColors.dark300,
         labelStyle: AppTypography.label,
@@ -131,9 +158,9 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.dark600,
         labelStyle: AppTypography.helper.copyWith(color: AppColors.dark60),
-        secondaryLabelStyle: AppTypography.helper.copyWith(color: AppColors.lime500),
+        secondaryLabelStyle: AppTypography.helper.copyWith(color: secondaryColor),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        shape: const StadiumBorder(side: BorderSide(color: AppColors.dark500)),
+        shape: StadiumBorder(side: const BorderSide(color: AppColors.dark500)),
       ),
 
       // Components - Divider
@@ -146,22 +173,47 @@ class AppTheme {
       // Components - Dialog
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.dark700,
-        shape: RoundedRectangleBorder(borderRadius: AppShapes.x2l),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius * 1.5)),
         titleTextStyle: AppTypography.displayMedium.copyWith(fontSize: 22, color: AppColors.dark60),
         contentTextStyle: AppTypography.body.copyWith(color: AppColors.dark150),
       ),
     );
   }
 
-  static ThemeData light() {
-    final colorScheme = AppColors.lightScheme();
+  static ThemeData light(SocietyConfig config) {
+    // Dynamic Color Setup
+    final primaryColor = Color(config.primaryColor);
+    final secondaryColor = Color(config.secondaryColor);
+
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.light,
+      primary: primaryColor,
+      secondary: secondaryColor,
+      surface: AppColors.lightSurface,
+      error: AppColors.coral500,
+    ).copyWith(
+      surfaceContainer: Color(config.backgroundColor), // Page Background
+      onSurface: const Color(0xFF1A1A1A),
+    );
+
     final textTheme = AppTypography.createTextTheme();
+
+    // Style Presets
+    double radius;
+    switch (config.brandingStyle) {
+      case 'classic': radius = 8.0; break;
+      case 'modern':  radius = 28.0; break;
+      case 'boxy':
+      default:        radius = 18.0; break;
+    }
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius));
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: const Color(0xFFEFEFED),
+      scaffoldBackgroundColor: Color(config.backgroundColor),
       fontFamily: AppTypography.uiFont,
       textTheme: textTheme,
       extensions: [
@@ -176,6 +228,8 @@ class AppTheme {
         titleTextStyle: AppTypography.displayMedium.copyWith(
           fontSize: 20,
           color: const Color(0xFF1A1A1A),
+          letterSpacing: -1.0,
+          fontWeight: FontWeight.w900,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
@@ -183,17 +237,17 @@ class AppTheme {
       // Components - Cards
       cardTheme: CardThemeData(
         color: AppColors.lightSurface,
-        shape: AppShapes.cardShape,
+        shape: shape,
         elevation: 0,
       ),
 
       // Components - Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.lime700,
+          backgroundColor: secondaryColor,
           foregroundColor: AppColors.pureWhite,
           textStyle: AppTypography.label,
-          shape: AppShapes.pillShape,
+          shape: const StadiumBorder(),
           elevation: 0,
         ),
       ),
@@ -204,16 +258,16 @@ class AppTheme {
         fillColor: AppColors.lightHeader,
         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
+          borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: const BorderSide(color: AppColors.lightBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
+          borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: const BorderSide(color: AppColors.lightBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppShapes.lg,
-          borderSide: const BorderSide(color: AppColors.lime700, width: 2),
+          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         hintStyle: AppTypography.helper.copyWith(color: const Color(0xFF888880)),
         labelStyle: AppTypography.label.copyWith(color: const Color(0xFF3A3A3A)),
@@ -221,7 +275,7 @@ class AppTheme {
 
       // Components - Tabs
       tabBarTheme: TabBarThemeData(
-        indicatorColor: AppColors.lime700,
+        indicatorColor: secondaryColor,
         labelColor: const Color(0xFF1A1A1A),
         unselectedLabelColor: const Color(0xFF888880),
         labelStyle: AppTypography.label.copyWith(fontSize: 12),

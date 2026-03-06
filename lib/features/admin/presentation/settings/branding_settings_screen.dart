@@ -13,7 +13,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
     final controller = ref.read(themeControllerProvider.notifier);
-    final currentColor = Theme.of(context).primaryColor;
 
     return HeadlessScaffold(
       title: 'Branding',
@@ -46,20 +45,65 @@ class BrandingSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               
-              const BoxyArtSectionTitle(title: 'Design Palettes', ),
+              const BoxyArtSectionTitle(title: 'Style Preference', ),
               const SizedBox(height: 12),
               BoxyArtCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Select a preset design palette to instantly modernize your app.',
+                      'Choose a structural tone for your society. This adjusts corner rounding and depth.',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 20),
-                    _PaletteSelector(
-                      selectedPaletteName: config.selectedPaletteName,
-                      onPaletteSelected: (name) => controller.setSelectedPaletteName(name),
+                    _StyleSelector(
+                      currentStyle: config.brandingStyle,
+                      onStyleChanged: (v) => controller.setBrandingStyle(v),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'App Identity Colors', ),
+              const SizedBox(height: 12),
+              BoxyArtCard(
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Primary Accent',
+                            color: Color(config.primaryColor),
+                            onTap: () => _pickColor(context, 'Primary', Color(config.primaryColor), (c) => controller.setPrimaryColor(c)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Action Color',
+                            color: Color(config.secondaryColor),
+                            onTap: () => _pickColor(context, 'Action', Color(config.secondaryColor), (c) => controller.setSecondaryColor(c)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _CompactColorPicker(
+                      label: 'Page Background (Light Mode)',
+                      color: Color(config.backgroundColor),
+                      onTap: () => _pickColor(context, 'Background', Color(config.backgroundColor), (c) => controller.setBackgroundColor(c)),
+                    ),
+                    const SizedBox(height: 20),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+                    _ColorPalette(
+                      selectedColor: Color(config.primaryColor),
+                      customColors: config.customColors,
+                      onColorSelected: (c) => controller.setPrimaryColor(c),
+                      onAddCustomColor: (c) => controller.addCustomColor(c),
+                      onUpdateCustomColor: (index, c) => controller.updateCustomColor(index, c),
                     ),
                   ],
                 ),
@@ -68,99 +112,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
               const BoxyArtSectionTitle(title: 'Live Preview', ),
               const SizedBox(height: 12),
-              _buildPreviewCard(currentColor, config.themeMode),
+              _buildPreviewCard(config.primaryColor, config.secondaryColor, config.themeMode, config.brandingStyle),
               const SizedBox(height: 32),
-
-              const BoxyArtSectionTitle(title: 'Primary Color', ),
-              const SizedBox(height: 12),
-              BoxyArtCard(
-                child: _ColorPalette(
-                  selectedColor: currentColor,
-                  customColors: config.customColors,
-                  onColorSelected: (c) => controller.setPrimaryColor(c),
-                  onAddCustomColor: (c) => controller.addCustomColor(c),
-                  onUpdateCustomColor: (index, c) => controller.updateCustomColor(index, c),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              const BoxyArtSectionTitle(title: 'Card Appearance', ),
-              const SizedBox(height: 12),
-              BoxyArtCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ModernSwitchRow(
-                      label: 'Use Gradient',
-                      value: config.useCardGradient,
-                      icon: Icons.gradient_rounded,
-                      onChanged: (value) => controller.setUseCardGradient(value),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(height: 1),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Card Tint Intensity',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '${(config.cardTintIntensity * 100).round()}%',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Slider(
-                      value: config.cardTintIntensity,
-                      min: 0.0,
-                      max: 1.0,
-                      divisions: 20,
-                      activeColor: Theme.of(context).primaryColor,
-                      onChanged: (value) => controller.setCardTintIntensity(value),
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            currentColor.withValues(alpha: config.cardTintIntensity * 0.5),
-                            currentColor.withValues(alpha: config.cardTintIntensity),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Card Preview',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                            color: ContrastHelper.getContrastingText(
-                              Color.alphaBlend(
-                                currentColor.withValues(alpha: config.cardTintIntensity * 0.75),
-                                Theme.of(context).cardColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 32),
 
               const BoxyArtSectionTitle(title: 'App Appearance', ),
@@ -202,10 +155,41 @@ class BrandingSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPreviewCard(Color primary, String themeMode) {
+  Future<void> _pickColor(BuildContext context, String title, Color current, Function(Color) onPicked) async {
+    final result = await showColorPickerDialog(
+      context,
+      current,
+      title: Text('$title Color', style: Theme.of(context).textTheme.titleLarge),
+      width: 40,
+      height: 40,
+      spacing: 8,
+      runSpacing: 8,
+      borderRadius: 12,
+      wheelDiameter: 180,
+      enableOpacity: false,
+      pickersEnabled: const {
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: false,
+        ColorPickerType.wheel: true,
+      },
+    );
+    onPicked(result);
+  }
+
+  Widget _buildPreviewCard(int primaryInt, int secondaryInt, String themeMode, String style) {
+    final primary = Color(primaryInt);
+    final secondary = Color(secondaryInt);
     final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
     final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black;
+
+    double radius;
+    switch (style) {
+      case 'classic': radius = 8.0; break;
+      case 'modern':  radius = 28.0; break;
+      default:        radius = 18.0; break;
+    }
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(20),
@@ -213,20 +197,27 @@ class BrandingSettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(radius),
           border: Border.all(color: textColor.withValues(alpha: 0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: style == 'modern' ? 30 : 15,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Row(
               children: [
-                CircleAvatar(backgroundColor: Colors.grey.shade300, radius: 24, child: const Icon(Icons.person, color: Colors.white)),
+                CircleAvatar(backgroundColor: primary.withValues(alpha: 0.2), radius: 24, child: Icon(Icons.person, color: primary)),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('John Doe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor, letterSpacing: -0.3)),
-                    Text('Handicap: 14.2', style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w500)),
+                    Text('John Doe', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: textColor, letterSpacing: -0.5)),
+                    Text('Handicap: 14.2', style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ],
@@ -237,16 +228,141 @@ class BrandingSettingsScreen extends ConsumerWidget {
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primary,
-                  foregroundColor: ContrastHelper.getContrastingText(primary),
+                  backgroundColor: secondary,
+                  foregroundColor: ContrastHelper.getContrastingText(secondary),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: const StadiumBorder(),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('View Profile', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                child: const Text('Action Button', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.2)),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactColorPicker extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _CompactColorPicker({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.08)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: -0.2)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '#${color.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StyleSelector extends StatelessWidget {
+  final String currentStyle;
+  final ValueChanged<String> onStyleChanged;
+
+  const _StyleSelector({
+    required this.currentStyle,
+    required this.onStyleChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          Expanded(child: _StyleItem(label: 'Classic', value: 'classic', groupValue: currentStyle, onTap: onStyleChanged)),
+          Expanded(child: _StyleItem(label: 'Boxy', value: 'boxy', groupValue: currentStyle, onTap: onStyleChanged)),
+          Expanded(child: _StyleItem(label: 'Modern', value: 'modern', groupValue: currentStyle, onTap: onStyleChanged)),
+        ],
+      ),
+    );
+  }
+}
+
+class _StyleItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final String groupValue;
+  final ValueChanged<String> onTap;
+
+  const _StyleItem({
+    required this.label,
+    required this.value,
+    required this.groupValue,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == groupValue;
+    final primary = Theme.of(context).primaryColor;
+
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+            color: isSelected ? primary : Theme.of(context).textTheme.bodySmall?.color,
+          ),
         ),
       ),
     );
@@ -503,142 +619,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
   }
 }
 
-class _PaletteSelector extends StatelessWidget {
-  final String? selectedPaletteName;
-  final ValueChanged<String?> onPaletteSelected;
 
-  const _PaletteSelector({
-    required this.selectedPaletteName,
-    required this.onPaletteSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 120,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            scrollDirection: Axis.horizontal,
-            itemCount: AppPalette.presets.length + 1,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                // Custom option
-                final isSelected = selectedPaletteName == null;
-                return _buildPaletteItem(
-                  context,
-                  name: 'Custom',
-                  isSelected: isSelected,
-                  onTap: () => onPaletteSelected(null),
-                  previewColors: [Theme.of(context).primaryColor, Colors.white],
-                );
-              }
-              
-              final palette = AppPalette.presets[index - 1];
-              final isSelected = selectedPaletteName == palette.name;
-              return _buildPaletteItem(
-                context,
-                name: palette.name,
-                isSelected: isSelected,
-                onTap: () => onPaletteSelected(palette.name),
-                previewColors: [palette.background, palette.cardBg, palette.textPrimary],
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaletteItem(
-    BuildContext context, {
-    required String name,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required List<Color> previewColors,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade300,
-                width: isSelected ? 3 : 1,
-              ),
-              color: previewColors[0],
-            ),
-            child: Stack(
-              children: [
-                if (previewColors.length > 1)
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: previewColors[1],
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: previewColors.length > 2
-                          ? Center(
-                              child: Container(
-                                width: 20,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: previewColors[2].withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            )
-                          : null,
-                    ),
-                  ),
-                if (isSelected)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.check, color: Colors.white, size: 12),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            name,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Theme.of(context).primaryColor : Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _LogoPicker extends ConsumerStatefulWidget {
   final String? currentUrl;

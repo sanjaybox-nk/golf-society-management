@@ -55,8 +55,8 @@ class GolfSocietyApp extends ConsumerWidget {
     return BoxyArtErrorHandler(
       child: MaterialApp.router(
         title: 'Golf Society',
-        theme: v3.AppTheme.light(),
-        darkTheme: v3.AppTheme.dark(),
+        theme: v3.AppTheme.light(societyConfig),
+        darkTheme: v3.AppTheme.dark(societyConfig),
         themeMode: mode,
         routerConfig: router,
         localizationsDelegates: const [

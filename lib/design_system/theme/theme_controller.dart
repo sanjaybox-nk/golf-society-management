@@ -44,6 +44,26 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setSecondaryColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(secondaryColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setBackgroundColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(backgroundColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setBrandingStyle(String style) async {
+    final newConfig = state.copyWith(brandingStyle: style);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setThemeMode(String mode) async {
     final newConfig = state.copyWith(themeMode: mode);
     state = newConfig; // Optimistic update
@@ -86,19 +106,7 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
-  Future<void> setCardTintIntensity(double intensity) async {
-    // Clamp intensity between 0.0 and 1.0
-    final clampedIntensity = intensity.clamp(0.0, 1.0);
-    final newConfig = state.copyWith(cardTintIntensity: clampedIntensity);
-    state = newConfig; // Optimistic update
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
 
-  Future<void> setUseCardGradient(bool useGradient) async {
-    final newConfig = state.copyWith(useCardGradient: useGradient);
-    state = newConfig; // Optimistic update
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
 
   Future<void> setCurrency(String symbol, String code) async {
     final newConfig = state.copyWith(currencySymbol: symbol, currencyCode: code);
@@ -118,11 +126,7 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
-  Future<void> setSelectedPaletteName(String? name) async {
-    final newConfig = state.copyWith(selectedPaletteName: name);
-    state = newConfig;
-    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
-  }
+
 
   Future<void> setHandicapSystem(HandicapSystem system) async {
     final newConfig = state.copyWith(handicapSystem: system);

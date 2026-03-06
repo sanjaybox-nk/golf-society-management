@@ -16,7 +16,7 @@ class AppTypography {
     fontFamily: 'Syne',
     fontSize: 40,
     fontWeight: FontWeight.w800,
-    letterSpacing: -1.0,
+    letterSpacing: -1.8, // Tighter for editorial feel
     height: 1.0,
   );
 
@@ -24,7 +24,7 @@ class AppTypography {
     fontFamily: 'Syne',
     fontSize: 28,
     fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
+    letterSpacing: -1.0, // Tighter
     height: 1.0,
   );
 
