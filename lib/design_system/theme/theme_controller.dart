@@ -76,6 +76,18 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setPillRadius(double radius) async {
+    final newConfig = state.copyWith(pillRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setButtonRadius(double radius) async {
+    final newConfig = state.copyWith(buttonRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setBrandingStyle(String style) async {
     final newConfig = state.copyWith(brandingStyle: style);
     state = newConfig;

@@ -22,6 +22,8 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(true) bool useShadows, // [NEW] Toggle Shadows
     @Default(true) bool useBorders, // [NEW] Toggle Borders
     @Default(1.5) double borderWidth, // [NEW] Granular Border Width
+    @Default(30.0) double pillRadius, // [NEW] Granular Pill Radius
+    @Default(30.0) double buttonRadius, // [NEW] Granular Button Radius
     @Default('system') String themeMode, // 'system', 'light', 'dark'
     @Default([]) List<int> customColors, // User-created custom colors (up to 5)
     @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)

@@ -4,6 +4,8 @@ import 'package:golf_society/theme/app_colors.dart';
 import 'package:golf_society/theme/app_typography.dart';
 import 'package:golf_society/theme/app_shapes.dart';
 import 'package:golf_society/theme/app_spacing.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:golf_society/design_system/theme/theme_controller.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
 class BoxyArtIconBadge extends StatelessWidget {
@@ -100,7 +102,7 @@ class BoxyArtNumberBadge extends StatelessWidget {
 }
 
 /// A standardized pill for status badges and tags (v3.1 3-family taxonomy).
-class BoxyArtPill extends StatelessWidget {
+class BoxyArtPill extends ConsumerWidget {
   final String label;
   final Color color;
   final IconData? icon;
@@ -200,7 +202,7 @@ class BoxyArtPill extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
@@ -213,11 +215,13 @@ class BoxyArtPill extends StatelessWidget {
       effectiveTextColor = hsl.withLightness((hsl.lightness - 0.4).clamp(0.0, 1.0)).toColor();
     }
 
+    final config = ref.watch(themeControllerProvider);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: backgroundColor ?? color.withValues(alpha: isDark ? 0.08 : 0.12),
-        borderRadius: AppShapes.pill,
+        borderRadius: BorderRadius.circular(config.pillRadius),
         border: Border.all(
           color: borderColor ?? color.withValues(alpha: isDark ? 0.18 : 0.25),
           width: 1,

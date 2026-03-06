@@ -42,7 +42,7 @@ class BoxyArtButton extends ConsumerWidget {
       style = TextButton.styleFrom(
         foregroundColor: isDark ? AppColors.dark200 : AppColors.dark300,
         textStyle: AppTypography.label,
-        shape: AppShapes.pillShape,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius)),
       );
     } else if (isSecondary) {
       style = OutlinedButton.styleFrom(
@@ -54,7 +54,7 @@ class BoxyArtButton extends ConsumerWidget {
               )
             : BorderSide.none,
         textStyle: AppTypography.label,
-        shape: AppShapes.pillShape,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius)),
       );
     } else {
       // Primary Action
@@ -63,12 +63,15 @@ class BoxyArtButton extends ConsumerWidget {
         backgroundColor: actionColor,
         foregroundColor: textColor ?? ContrastHelper.getContrastingText(actionColor),
         textStyle: AppTypography.label,
-        shape: config.useBorders 
-            ? StadiumBorder(side: BorderSide(
-                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-                width: config.borderWidth,
-              ))
-            : AppShapes.pillShape,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(config.buttonRadius),
+          side: config.useBorders 
+              ? BorderSide(
+                  color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                  width: config.borderWidth,
+                )
+              : BorderSide.none,
+        ),
         elevation: config.useShadows ? 2 : 0,
         shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.1),
       );

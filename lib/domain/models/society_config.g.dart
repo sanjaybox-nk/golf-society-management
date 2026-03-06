@@ -18,6 +18,8 @@ _SocietyConfig _$SocietyConfigFromJson(
   useShadows: json['useShadows'] as bool? ?? true,
   useBorders: json['useBorders'] as bool? ?? true,
   borderWidth: (json['borderWidth'] as num?)?.toDouble() ?? 1.5,
+  pillRadius: (json['pillRadius'] as num?)?.toDouble() ?? 30.0,
+  buttonRadius: (json['buttonRadius'] as num?)?.toDouble() ?? 30.0,
   themeMode: json['themeMode'] as String? ?? 'system',
   customColors:
       (json['customColors'] as List<dynamic>?)
@@ -60,6 +62,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'useShadows': instance.useShadows,
       'useBorders': instance.useBorders,
       'borderWidth': instance.borderWidth,
+      'pillRadius': instance.pillRadius,
+      'buttonRadius': instance.buttonRadius,
       'themeMode': instance.themeMode,
       'customColors': instance.customColors,
       'cardTintIntensity': instance.cardTintIntensity,
