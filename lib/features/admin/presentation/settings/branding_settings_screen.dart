@@ -26,7 +26,17 @@ class BrandingSettingsScreen extends ConsumerWidget {
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'Live Preview', ),
               const SizedBox(height: 12),
-              _buildPreviewCard(config.primaryColor, config.secondaryColor, config.themeMode, config.brandingStyle, config.useShadows, config.useBorders, config.borderWidth),
+              _buildPreviewCard(
+                config.primaryColor, 
+                config.secondaryColor, 
+                config.themeMode, 
+                config.brandingStyle, 
+                config.useShadows, 
+                config.useBorders, 
+                config.borderWidth,
+                config.pillRadius,
+                config.buttonRadius,
+              ),
               const SizedBox(height: 32),
 
               const BoxyArtSectionTitle(title: 'App Appearance', ),
@@ -136,7 +146,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          const Text('Width', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                          const Text('Border', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                           Expanded(
                             child: Slider(
                               value: config.borderWidth,
@@ -152,6 +162,41 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ],
                       ),
                     ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Text('Pills', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        Expanded(
+                          child: Slider(
+                            value: config.pillRadius,
+                            min: 0.0,
+                            max: 30.0,
+                            divisions: 15,
+                            label: config.pillRadius.toStringAsFixed(0),
+                            activeColor: Color(config.secondaryColor),
+                            onChanged: (v) => controller.setPillRadius(v),
+                          ),
+                        ),
+                        Text(config.pillRadius.toStringAsFixed(0), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text('Buttons', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        Expanded(
+                          child: Slider(
+                            value: config.buttonRadius,
+                            min: 0.0,
+                            max: 30.0,
+                            divisions: 15,
+                            label: config.buttonRadius.toStringAsFixed(0),
+                            activeColor: Color(config.secondaryColor),
+                            onChanged: (v) => controller.setButtonRadius(v),
+                          ),
+                        ),
+                        Text(config.buttonRadius.toStringAsFixed(0), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                      ],
+                    ),
                     const SizedBox(height: 10),
                     _StyleSelector(
                       currentStyle: config.brandingStyle,
@@ -242,7 +287,17 @@ class BrandingSettingsScreen extends ConsumerWidget {
     onPicked(result);
   }
 
-  Widget _buildPreviewCard(int primaryInt, int secondaryInt, String themeMode, String style, bool useShadows, bool useBorders, double borderWidth) {
+  Widget _buildPreviewCard(
+    int primaryInt, 
+    int secondaryInt, 
+    String themeMode, 
+    String style, 
+    bool useShadows, 
+    bool useBorders, 
+    double borderWidth,
+    double pillRadius,
+    double buttonRadius,
+  ) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
     final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
@@ -297,11 +352,22 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   backgroundColor: secondary,
                   foregroundColor: ContrastHelper.getContrastingText(secondary),
                   elevation: 0,
-                  shape: const StadiumBorder(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(buttonRadius),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: const Text('Action Button', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.2)),
               ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                BoxyArtPill(label: 'Preview Pill', color: secondary),
+                const SizedBox(width: 8),
+                BoxyArtPill(label: 'Secondary', color: primary),
+              ],
             ),
           ],
         ),
