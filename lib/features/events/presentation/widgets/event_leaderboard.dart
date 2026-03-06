@@ -9,6 +9,7 @@ import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
+import '../../../../domain/models/course_config.dart';
 import '../../../../domain/grouping/grouping_service.dart';
 
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
@@ -407,10 +408,15 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                final scores = pScores[pid]!;
                if (i < scores.length && scores[i] != null) {
                   final manualTee = teeOverrides?[pid];
-                  final playerTeeConfig = _resolvePlayerCourseConfig(pid, event, membersList, manualTeeName: manualTee);
-                  final playerHoles = playerTeeConfig['holes'] as List? ?? [];
-                  final si = playerHoles.length > i ? (playerHoles[i]['si'] as int? ?? 18) : 18;
-                  final par = playerHoles.length > i ? (playerHoles[i]['par'] as int? ?? 4) : 4;
+                  final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                    memberId: pid, 
+                    event: event, 
+                    membersList: membersList, 
+                    manualTeeName: manualTee,
+                  );
+                  final playerHoles = playerTeeConfig.holes;
+                  final si = playerHoles.length > i ? playerHoles[i].si : 18;
+                  final par = playerHoles.length > i ? playerHoles[i].par : 4;
    
                   final int rawVal = scores[i]!;
                   final phc = playerPhcs[pid] ?? 0;
@@ -436,9 +442,14 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
                teamScore += (holeBestScore ?? 0);
                // Baseline Par for team aggregate (using first player's tee config)
                final firstId = teamPlayers.first.registrationMemberId;
-               final firstConfig = _resolvePlayerCourseConfig(firstId, event, membersList, manualTeeName: teeOverrides?[firstId]);
-               final firstHoles = firstConfig['holes'] as List? ?? [];
-               teamPar += (firstHoles.length > i ? (firstHoles[i]['par'] as int? ?? 4) : 4);
+               final firstConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                 memberId: firstId, 
+                 event: event, 
+                 membersList: membersList, 
+                 manualTeeName: teeOverrides?[firstId],
+               );
+               final firstHoles = firstConfig.holes;
+               teamPar += (firstHoles.length > i ? firstHoles[i].par : 4);
                maxHolesPlayed = i + 1;
             }
          } // closing for i loop
@@ -553,8 +564,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
      );
 
      // Use ScoringCalculator for Scramble
-     final rawHoles = event.courseConfig['holes'] as List? ?? [];
-     final List<Map<String, dynamic>> holesData = rawHoles.map((h) => Map<String, dynamic>.from(h)).toList();
+     final holesData = event.courseConfig.holes;
 
      final result = ScoringCalculator.calculate(
        holeScores: teamScores, 
@@ -611,7 +621,12 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
 
     // Course config is still needed for hole data and tie-break calculations
-    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList, manualTeeName: manualTeeName);
+    final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+      memberId: id, 
+      event: event, 
+      membersList: membersList, 
+      manualTeeName: manualTeeName,
+    );
 
 
     // Single Source of Truth: Scorecard snapshot → Grouping data
@@ -648,12 +663,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     // Removed unused holesPlayed and holes
 
     // Use ScoringCalculator for individual entries
-    final rawHoles = playerTeeConfig['holes'] as List? ?? [];
-    final List<Map<String, dynamic>> holesData = rawHoles.map((h) => Map<String, dynamic>.from(h)).toList();
-
     final result = ScoringCalculator.calculate(
       holeScores: scoresToCalculate, 
-      holes: holesData, 
+      holes: playerTeeConfig.holes, 
       playingHandicap: phc.toDouble(), 
       format: currentFormat,
       maxScoreConfig: effectiveRules.maxScoreConfig,
@@ -681,21 +693,20 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     );
   }
 
-  String? _calculateTieBreakDetails(List<int?> holeScores, CompetitionRules rules, Map<String, dynamic> courseConfig, int phc) {
+  String? _calculateTieBreakDetails(List<int?> holeScores, CompetitionRules rules, CourseConfig courseConfig, int phc) {
     if (holeScores.every((hole) => hole == null) || holeScores.where((hole) => hole != null).length < 18) {
       return null;
     }
-    final holes = courseConfig['holes'] as List?;
-    if (holes == null || holes.length < 18) return null;
+    final holes = courseConfig.holes;
 
     int back9Points = 0;
     int back9Gross = 0;
     for (int i = 9; i < 18; i++) {
        final score = holeScores[i];
        if (score == null) continue;
-       final hole = holes[i] as Map<String, dynamic>;
-       final par = hole['par'] as int? ?? 4;
-       final si = hole['si'] as int? ?? 18;
+       final hole = holes[i];
+       final par = hole.par;
+       final si = hole.si;
        final strokesReceived = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
        final netScore = score - strokesReceived;
        final points = (par - netScore + 2).clamp(0, 10);
@@ -708,7 +719,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     } else {
       int back9Par = 0;
       for (int i = 9; i < 18; i++) {
-        back9Par += (holes[i]['par'] as int? ?? 4);
+        back9Par += holes[i].par;
       }
       final diff = back9Gross - (phc ~/ 2) - back9Par;
       final label = diff == 0 ? "E" : (diff > 0 ? "+$diff" : "$diff");
@@ -716,10 +727,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
   }
 
-  List<int>? _calculateTieBreakMetrics(List<int?> holeScores, CompetitionRules rules, Map<String, dynamic> courseConfig, int phc) {
+  List<int>? _calculateTieBreakMetrics(List<int?> holeScores, CompetitionRules rules, CourseConfig courseConfig, int phc) {
     if (holeScores.where((h) => h != null).length < 18) return null;
-    final holes = courseConfig['holes'] as List?;
-    if (holes == null || holes.length < 18) return null;
+    final holes = courseConfig.holes;
 
     final isStableford = rules.format == CompetitionFormat.stableford;
     
@@ -732,9 +742,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       for (int i = startIdx; i < 18; i++) {
         final score = holeScores[i];
         if (score == null) continue;
-        final hole = holes[i] as Map<String, dynamic>;
-        final par = hole['par'] as int? ?? 4;
-        final si = hole['si'] as int? ?? 18;
+        final hole = holes[i];
+        final par = hole.par;
+        final si = hole.si;
         final strokesReceived = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
         final netScore = score - strokesReceived;
 
@@ -781,10 +791,16 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       // 1. Build Virtual Match Definition
       // 1. Resolve relative strokes for the match (Centralized)
       final Map<String, double> playerIndices = {};
-      final Map<String, Map<String, dynamic>> courseConfigs = {};
+      final Map<String, CourseConfig> courseConfigs = {};
       
       for (final pid in myGroupIds) {
-          courseConfigs[pid] = _resolvePlayerCourseConfig(pid, event, membersList, manualTeeName: teeOverrides?[pid]);
+          final manualTee = teeOverrides?[pid];
+          courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+            memberId: pid, 
+            event: event, 
+            membersList: membersList, 
+            manualTeeName: manualTee,
+          );
           final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
           if (pid.contains('_guest')) {
               final baseId = pid.replaceAll('_guest', '');
@@ -795,7 +811,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
           }
       }
 
-      final baseRating = _parseValue(event.courseConfig['rating'] ?? 72.0);
+      final baseRating = event.courseConfig.rating ?? 72.0;
       final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
         playerIds: myGroupIds,
         playerIndices: playerIndices,
@@ -836,12 +852,12 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       }
 
       // 3. Calculate via Authoritative Engine
-      final result = MatchPlayCalculator.calculate(
-        match: virtualMatch,
-        scorecards: sourceCards,
-        courseConfig: event.courseConfig,
-        holesToPlay: event.courseConfig['holes']?.length ?? 18,
-      );
+                                         final result = MatchPlayCalculator.calculate(
+                                           match: virtualMatch,
+                                           scorecards: sourceCards,
+                                           courseConfig: event.courseConfig,
+                                           holesToPlay: event.courseConfig.holes.length,
+                                         );
 
       // 4. Map back to Leaderboard Expectation
       String label = result.status;
@@ -866,69 +882,5 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       // E.g., if +1, it says "1 UP". Wait, if it's "4 & 3", the string `label` becomes "WIN 4 & 3".
 
       return {'score': result.score, 'label': label};
-  }
-
-  // Helper to resolve course config per player (gender + event defaults + manual override)
-  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList, {String? manualTeeName}) {
-    // 1. If courseConfig has no tees list, just return it as is (legacy/flat)
-    final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.courseConfig;
-
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-    
-    Map<String, dynamic>? selectedTee;
-
-    // 2. Manual Override logic (Matches HoleByHoleScoringWidget logic)
-    if (manualTeeName != null) {
-      selectedTee = (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase() == manualTeeName.toLowerCase()
-      ) as Map<String, dynamic>?);
-    }
-
-    if (selectedTee == null) {
-      if (gender == 'female') {
-        // A) Explicit selection priority
-        if (event.selectedFemaleTeeName != null) {
-          selectedTee = (tees.firstWhereOrNull((t) => 
-            (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
-          ) as Map<String, dynamic>?);
-        }
-        
-        // B) Heuristic fallback
-        selectedTee ??= (tees.firstWhereOrNull((t) => 
-          (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-          (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-          (t['name'] ?? '').toString().toLowerCase().contains('female')
-        ) as Map<String, dynamic>?);
-      }
-      
-      // Fallback or default choice
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
-      ) as Map<String, dynamic>?);
-
-      // Final fallback: First tee
-      selectedTee ??= (tees.first as Map<String, dynamic>);
-    }
-
-    // Merge tee data into a clean config for the calculator
-    return {
-       ...event.courseConfig,
-       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
-       'rating': selectedTee['rating'] ?? 72.0,
-       'slope': selectedTee['slope'] ?? 113,
-       'holes': List.generate(18, (i) => {
-          'hole': i + 1,
-          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
-          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
-       }),
-    };
-  }
-
-  static double _parseValue(dynamic val) {
-    if (val is num) return val.toDouble();
-    if (val is String) return double.tryParse(val) ?? 0.0;
-    return 0.0;
   }
 }

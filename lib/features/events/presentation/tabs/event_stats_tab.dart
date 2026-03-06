@@ -1,3 +1,4 @@
+import 'package:golf_society/domain/models/course_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -91,7 +92,7 @@ class EventStatsTab extends ConsumerWidget {
       );
     }
 
-    final holes = event.courseConfig['holes'] as List? ?? [];
+    final holes = event.courseConfig.holes;
     final totalPlayers = scorecards.length;
 
     // --- Stats Calculation (Same logic as before, just in build for now) ---
@@ -362,7 +363,7 @@ class EventStatsTab extends ConsumerWidget {
     required Scorecard myScorecard, 
     required Map<int, double> fieldHoleAvgs, 
     required Map<int, double> fieldParTypeAvgs, 
-    required Map<String, dynamic> courseConfig, 
+    required CourseConfig courseConfig, 
     required CompetitionRules? rules,
     required double fieldAvgVariance,
     required double fieldAvgNet,
@@ -371,7 +372,7 @@ class EventStatsTab extends ConsumerWidget {
     required Map<String, String> awardWinners,
     required List<EventRegistration> registrations,
   }) {
-    final holes = courseConfig['holes'] as List? ?? [];
+    final holes = courseConfig.holes;
     final reg = registrations.firstWhere(
       (r) => r.memberId == myScorecard.entryId.replaceFirst('_guest', ''),
       orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
@@ -389,7 +390,7 @@ class EventStatsTab extends ConsumerWidget {
     for (int i = 0; i < 18; i++) {
         final score = myScorecard.holeScores.length > i ? myScorecard.holeScores[i] : null;
         if (score != null) {
-            final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
+            final par = holes.length > i ? holes[i].par : 4;
             final diff = (score - par).toDouble();
             myParTypeSums[par] = (myParTypeSums[par] ?? 0) + diff;
             myParTypeCounts[par] = (myParTypeCounts[par] ?? 0) + 1;
@@ -398,7 +399,7 @@ class EventStatsTab extends ConsumerWidget {
             if (i > 0) {
               final prevScore = myScorecard.holeScores.length > i-1 ? myScorecard.holeScores[i-1] : null;
               if (prevScore != null) {
-                final prevPar = holes.length > i-1 ? (holes[i-1]['par'] as int? ?? 4) : 4;
+                final prevPar = holes.length > i-1 ? holes[i-1].par : 4;
                 if (prevScore > prevPar) { myOpportunities++; if (score <= par) myBounceBacks++; }
               }
             }
@@ -419,7 +420,7 @@ class EventStatsTab extends ConsumerWidget {
     List<String> myAwards = [];
     awardWinners.forEach((title, winner) { if (winner == myName) myAwards.add(title); });
 
-    final fieldHardestHoleDiff = fieldHoleAvgs[fieldToughestHoleIdx] != null ? fieldHoleAvgs[fieldToughestHoleIdx]! - (holes[fieldToughestHoleIdx]['par'] as int? ?? 4).toDouble() : 0.0;
+    final fieldHardestHoleDiff = fieldHoleAvgs[fieldToughestHoleIdx] != null ? fieldHoleAvgs[fieldToughestHoleIdx]! - holes[fieldToughestHoleIdx].par.toDouble() : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

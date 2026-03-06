@@ -20,6 +20,7 @@ The registration system in Golf Society Management follows a **Fair Play, Confir
 | **Waitlist** | Red | Triggered when the confirmed player count meets the event's max capacity. |
 | **Dinner Only**| Blue | The member is attending the dinner portion only, not playing golf. |
 | **Withdrawn** | Grey | The participant has cancelled their registration. |
+| **Social Event** | N/A | For non-golf events, statuses focus on attendance and payment rather than tee-off eligibility. |
 
 ---
 
@@ -32,6 +33,7 @@ The system automatically calculates a participant's status based on the followin
 3.  **Event Open**: Use **Reserved** status.
 4.  **Capacity Check**: If the event is full (Confirmed Count >= Capacity), the status becomes **Waitlist**.
 5.  **Withdrawn**: If the user withdraws, they become **Withdrawn**.
+6.  **Social Events**: For Social events, the logic considers anyone registered and confirmed as "Attending" without the need for golf-specific slots.
 
 ### Strict Promotion Rules
 To ensure groupings are accurate and stable:
@@ -53,13 +55,16 @@ The Registration Card dynamically adjusts to the event's state and the user's st
 | **New Member / Event Full** | "Registration Closed" | "Event Full" | Disabled |
 | **Already Registered** | *Shows Registration Status* | "Edit My Registration" | Active |
 | **Past Deadline (Registered)** | "Registration Closed" | "Edit Registration" (Disabled) | Read-Only |
+| **Draft / Cancelled** | **HIDDEN** | - | Hidden |
 | **Past Deadline (Not Reg)** | **HIDDEN** | - | Hidden |
 | **InPlay / Completed** | **HIDDEN** | - | Hidden |
 
-### Dynamic Lifecycle Visibility
-To prioritize active competition once play begins:
+### Dynamic Lifecycle & Status Visibility
+To prioritize transparency and active competition:
 - **Automatic Auto-Hide (Non-registrants)**: The registration card is entirely hidden from members who haven't registered once the registration deadline passes.
-- **Global Suppression (Live/Completed)**: Once an event is marked as `InPlay` or `Completed`, the registration card is hidden for all users (including registrants) to reclaim screen space for the interactive Leaderboard and Scorecards.
+- **Global Suppression (Live/Completed)**: Once an event is marked as `InPlay` or `Completed`, the registration card is hidden for all users.
+- **Cancelled/Draft Suppression**: Registration is automatically suppressed for any event not in a `Published` or `Live` state.
+- **Cancelled Awareness**: For events in the `Cancelled` state, a high-impact red banner and status badge are displayed in the Event Details screen to provide immediate administrative feedback to members.
 
 ### Data Resilience
 - **Event Edits**: The system is designed to preserve all participant registrations even if an admin modifies the event's date, time, cost, or description.

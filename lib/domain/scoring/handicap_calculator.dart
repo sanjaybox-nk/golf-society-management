@@ -1,4 +1,5 @@
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 class HandicapCalculator {
   
@@ -10,7 +11,7 @@ class HandicapCalculator {
   static int calculatePlayingHandicap({
     required double handicapIndex,
     required CompetitionRules rules,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
     bool useWhs = true,
     String? teeColor,
     double? baseRating,
@@ -29,9 +30,9 @@ class HandicapCalculator {
        // WHS Formula: Index * (Slope / 113) + (Rating - Par)
        // Strictly data-driven: If course data is empty/null, we cannot calculate accurately.
        // We use 0.0 as the 'ignore' value but avoid hidden hardcoding in the formula.
-       final slope = parseValue(courseConfig['slope']);
-       final rating = parseValue(courseConfig['rating']);
-       final par = parseValue(courseConfig['par']);
+        final slope = (courseConfig.slope ?? 0).toDouble();
+        final rating = courseConfig.rating ?? 0.0;
+        final par = (courseConfig.par ?? 0).toDouble();
 
        if (slope > 0) {
          courseHandicap = baseHandicap * (slope / 113) + (rating - par);
@@ -54,7 +55,7 @@ class HandicapCalculator {
 
     // 4. Apply Mixed Tee Equity Adjustment (CR - BaseRating) 
     if (useWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {
-      final rating = parseValue(courseConfig['rating']);
+      final rating = courseConfig.rating ?? 0.0;
       if (rating > 0) {
         final adjustment = (rating - baseRating).round();
         rounded += adjustment;
@@ -73,7 +74,7 @@ class HandicapCalculator {
   static int calculateTeamHandicap({
     required List<double> individualIndices,
     required CompetitionRules rules,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
   }) {
     if (individualIndices.isEmpty) return 0;
 
@@ -156,10 +157,10 @@ class HandicapCalculator {
 
   static double calculateDifferential({
     required int grossScore,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
   }) {
-    final slope = parseValue(courseConfig['slope'] ?? 113);
-    final rating = parseValue(courseConfig['rating'] ?? 72);
+    final slope = (courseConfig.slope ?? 113).toDouble();
+    final rating = courseConfig.rating ?? 72.0;
     
     // Differential = (113 / Slope) * (Gross Score - Rating)
     if (slope == 0) return 0.0;

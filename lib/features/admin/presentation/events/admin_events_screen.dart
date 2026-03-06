@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../events/presentation/events_provider.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import '../../../events/presentation/tabs/event_user_details_tab.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/domain/models/competition.dart';
 
@@ -20,6 +19,13 @@ class AdminEventsScreen extends ConsumerWidget {
       title: 'Events',
       subtitle: 'Manage society events and calendar',
       showBack: false,
+      leading: Center(
+        child: BoxyArtGlassIconButton(
+          icon: Icons.home_rounded,
+          onPressed: () => context.go('/home'),
+          tooltip: 'App Home',
+        ),
+      ),
       titleSuffix: BoxyArtGlassIconButton(
         icon: Icons.add_rounded,
         tooltip: 'Create Event',
@@ -30,7 +36,11 @@ class AdminEventsScreen extends ConsumerWidget {
           data: (events) {
             if (events.isEmpty) {
               return const SliverFillRemaining(
-                child: Center(child: Text('No events found.')),
+                child: BoxyArtEmptyState(
+                  title: 'No Events Found',
+                  message: 'Your society hasn\'t created any events yet. Start by creating your first event.',
+                  icon: Icons.event_busy_rounded,
+                ),
               );
             }
 
@@ -44,33 +54,37 @@ class AdminEventsScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 // Upcoming Section
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.md),
                   child: BoxyArtSectionTitle(title: 'Upcoming Events', ),
                 ),
                 if (upcoming.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('No upcoming events scheduled')),
+                  const BoxyArtEmptyState(
+                    title: 'No Upcoming Events',
+                    message: 'There are no future events scheduled on the calendar.',
+                    icon: Icons.calendar_today_rounded,
+                    isCompact: true,
                   )
                 else
                   ...upcoming.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg, left: AppSpacing.xl, right: AppSpacing.xl),
                     child: _buildEventRow(context, ref, e),
                   )),
 
                 // Past Section
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x3l, AppSpacing.xl, AppSpacing.md),
                   child: BoxyArtSectionTitle(title: 'Past Events', ),
                 ),
                 if (past.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('No past events this season')),
+                  const BoxyArtEmptyState(
+                    title: 'No Past Events',
+                    message: 'No events have been completed in this season archive.',
+                    icon: Icons.history_rounded,
+                    isCompact: true,
                   )
                 else
                   ...past.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg, left: AppSpacing.xl, right: AppSpacing.xl),
                     child: _buildEventRow(context, ref, e),
                   )),
 
@@ -82,7 +96,11 @@ class AdminEventsScreen extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (err, stack) => SliverFillRemaining(
-            child: Center(child: Text('Error: $err')),
+            child: BoxyArtEmptyState(
+              title: 'Unexpected Error',
+              message: err.toString(),
+              icon: Icons.warning_amber_rounded,
+            ),
           ),
         ),
       ],
@@ -124,12 +142,16 @@ class AdminEventsScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted "${event.title}"')));
       },
       child: BoxyArtCard(
-        onTap: () => _showEventDetailsDialog(context, ref, event),
+        onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/home'),
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
             // Date Badge
-            BoxyArtDateBadge(date: event.date, endDate: event.endDate),
+            BoxyArtDateBadge(
+              date: event.date, 
+              endDate: event.endDate,
+              highlightColor: event.eventType == EventType.social ? AppColors.coral500 : null,
+            ),
             const SizedBox(width: 14),
 
             // Event Info
@@ -171,6 +193,8 @@ class AdminEventsScreen extends ConsumerWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
+                            if (event.eventType == EventType.social) 
+                              BoxyArtPill(label: 'SOCIAL', color: AppColors.coral500),
                             _buildGameTypePill(context, ref, event.id),
                             if (event.isInvitational) _buildInvitationalBadge(),
                           ],
@@ -189,57 +213,6 @@ class AdminEventsScreen extends ConsumerWidget {
     );
   }
 
-  void _showEventDetailsDialog(BuildContext context, WidgetRef ref, GolfEvent event) {
-    final config = ref.read(themeControllerProvider);
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (dialogContext, anim1, anim2) {
-        return EventDetailsContent(
-          event: event,
-          currencySymbol: config.currencySymbol,
-          isPreview: true,
-          useScaffold: false,
-          onCancel: () => Navigator.pop(dialogContext),
-          onEdit: () {
-            Navigator.pop(dialogContext);
-            context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event/edit', extra: event);
-          },
-          onStatusChanged: (newStatus) {
-            ref.read(eventsRepositoryProvider).updateEvent(
-              event.copyWith(status: newStatus),
-            );
-          },
-          bottomNavigationBar: BoxyArtBottomNavBar(
-            selectedIndex: 0,
-            borderColor: Color(config.primaryColor),
-            onItemSelected: (index) {
-              Navigator.pop(dialogContext);
-              if (index == 0) return;
-              
-              final routes = [
-                '/admin/events/manage/${Uri.encodeComponent(event.id)}/event',
-                '/admin/events/manage/${Uri.encodeComponent(event.id)}/registrations',
-                '/admin/events/manage/${Uri.encodeComponent(event.id)}/grouping',
-                '/admin/events/manage/${Uri.encodeComponent(event.id)}/scores',
-                '/admin/events/manage/${Uri.encodeComponent(event.id)}/reports',
-              ];
-              context.push(routes[index], extra: event);
-            },
-            items: const [
-              BoxyArtBottomNavItem(icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded, label: 'Info'),
-              BoxyArtBottomNavItem(icon: Icons.people_outline, activeIcon: Icons.people, label: 'Registration'),
-              BoxyArtBottomNavItem(icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_sharp, label: 'Grouping'),
-              BoxyArtBottomNavItem(icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events, label: 'Scores'),
-              BoxyArtBottomNavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, label: 'Reports'),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
 
   Widget _buildInvitationalBadge() {

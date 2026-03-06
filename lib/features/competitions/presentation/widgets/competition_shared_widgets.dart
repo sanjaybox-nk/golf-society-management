@@ -126,6 +126,7 @@ class CompetitionRulesCard extends ConsumerWidget {
     if (competition != null) return _buildContent(context, competition!);
 
     // Watch the dynamic provider
+    if (eventId.isEmpty) return _buildFallbackContent(context);
     final compsAsync = ref.watch(competitionDetailProvider(eventId));
     
     return compsAsync.when(

@@ -2,13 +2,14 @@ import '../domain/match_definition.dart';
 import '../domain/match_play_calculator.dart';
 import '../domain/match_standings_calculator.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 class MatchProgressionLogic {
   
   static List<MatchDefinition> promoteFromGroups({
     required List<MatchDefinition> allMatches,
     required List<Scorecard> scorecards,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
     required MatchRoundType targetRound,
     required int qualifiersPerGroup,
   }) {
@@ -70,7 +71,7 @@ class MatchProgressionLogic {
   static List<MatchDefinition> promoteWinners({
     required List<MatchDefinition> allMatches,
     required List<Scorecard> scorecards,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
   }) {
     final updatedMatches = List<MatchDefinition>.from(allMatches);
     
@@ -114,7 +115,7 @@ class MatchProgressionLogic {
     required List<MatchDefinition> updatedMatches,
     required List<MatchDefinition> allMatches,
     required List<Scorecard> scorecards,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
   }) {
     final currentMatches = allMatches.where((m) => m.round == currentRound).toList();
     final nextMatches = allMatches.where((m) => m.round == nextRound).toList();

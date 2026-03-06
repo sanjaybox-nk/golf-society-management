@@ -200,13 +200,25 @@ class BoxyArtPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Derived text color for better contrast in light mode
+    Color effectiveTextColor = textColor ?? color;
+    if (!isDark && textColor == null) {
+      // If it's light mode and no explicit text color, darken the theme color
+      // Simple heuristic: darken by 40%
+      final hsl = HSLColor.fromColor(color);
+      effectiveTextColor = hsl.withLightness((hsl.lightness - 0.4).clamp(0.0, 1.0)).toColor();
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: backgroundColor ?? color.withValues(alpha: 0.08),
+        color: backgroundColor ?? color.withValues(alpha: isDark ? 0.08 : 0.12),
         borderRadius: AppShapes.pill,
         border: Border.all(
-          color: borderColor ?? color.withValues(alpha: 0.18),
+          color: borderColor ?? color.withValues(alpha: isDark ? 0.18 : 0.25),
           width: 1,
         ),
       ),
@@ -214,14 +226,14 @@ class BoxyArtPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 10, color: color),
+            Icon(icon, size: 10, color: effectiveTextColor),
             SizedBox(width: AppSpacing.xs),
           ] else ...[
             Container(
               width: 5,
               height: 5,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.6), 
+                color: effectiveTextColor.withValues(alpha: 0.6), 
                 shape: BoxShape.circle,
               ),
             ),
@@ -230,7 +242,8 @@ class BoxyArtPill extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: AppTypography.caption.copyWith(
-              color: textColor ?? color,
+              color: effectiveTextColor,
+              fontWeight: isDark ? FontWeight.w600 : FontWeight.w800,
             ),
           ),
         ],
@@ -243,26 +256,38 @@ class BoxyArtPill extends StatelessWidget {
 class BoxyArtDateBadge extends StatelessWidget {
   final DateTime date;
   final DateTime? endDate;
+  final Color? highlightColor;
 
   const BoxyArtDateBadge({
     super.key, 
     required this.date,
     this.endDate,
+    this.highlightColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isMultiDay = endDate != null && !DateUtils.isSameDay(date, endDate);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // In light mode, we need much darker accent colors for text legibility
+    Color accentColor = highlightColor ?? AppColors.lime500;
+    Color effectiveLabelColor = accentColor;
+    
+    if (!isDark) {
+      final hsl = HSLColor.fromColor(accentColor);
+      effectiveLabelColor = hsl.withLightness((hsl.lightness - 0.45).clamp(0.0, 1.0)).toColor();
+    }
 
     return Container(
       width: 52,
       constraints: const BoxConstraints(minHeight: 62),
       decoration: BoxDecoration(
-        color: AppColors.lime500.withValues(alpha: 0.07),
+        color: accentColor.withValues(alpha: isDark ? 0.07 : 0.1),
         borderRadius: AppShapes.sm,
         border: Border.all(
-          color: AppColors.lime500.withValues(alpha: 0.14),
-          width: 1,
+          color: accentColor.withValues(alpha: highlightColor != null ? 0.4 : (isDark ? 0.14 : 0.25)),
+          width: highlightColor != null ? 1.5 : 1,
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -273,7 +298,8 @@ class BoxyArtDateBadge extends StatelessWidget {
             DateFormat('MMM').format(date).toUpperCase(),
             style: AppTypography.caption.copyWith(
               fontSize: 9,
-              color: AppColors.lime500,
+              color: effectiveLabelColor,
+              fontWeight: FontWeight.w900,
             ),
           ),
           Text(
@@ -283,13 +309,15 @@ class BoxyArtDateBadge extends StatelessWidget {
             style: AppTypography.displayHero.copyWith(
               fontSize: isMultiDay ? 18 : 28,
               height: 1.0,
+              color: isDark ? AppColors.pureWhite : AppColors.dark900,
             ),
           ),
           Text(
             DateFormat('yyyy').format(date),
             style: AppTypography.caption.copyWith(
               fontSize: 9,
-              color: AppColors.dark300,
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

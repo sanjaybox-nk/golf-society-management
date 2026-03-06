@@ -1,8 +1,10 @@
 
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'compose_notification_screen.dart';
 import 'audience_manager_screen.dart';
 import 'notification_history_screen.dart';
+import 'survey_manager_screen.dart';
 
 class NotificationAdminScaffold extends StatefulWidget {
   const NotificationAdminScaffold({super.key});
@@ -15,9 +17,10 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
   int _currentIndex = 0;
 
   final List<Widget> _tabs = [
+    const NotificationHistoryScreen(),
     const ComposeNotificationScreen(isTabbed: true),
     const AudienceManagerScreen(),
-    const NotificationHistoryScreen(),
+    const SurveyManagerScreen(),
   ];
 
   @override
@@ -25,11 +28,30 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
     return HeadlessScaffold(
       useScaffold: false,
       title: 'Communications',
-      showBack: false,
+      actions: [
+        if (_currentIndex == 0)
+          BoxyArtGlassIconButton(
+            icon: Icons.add_rounded,
+            onPressed: () => setState(() => _currentIndex = 1),
+            tooltip: 'New Notification',
+          ),
+      ],
+      leading: Center(
+        child: BoxyArtGlassIconButton(
+          icon: Icons.home_rounded,
+          onPressed: () => context.go('/home'),
+          tooltip: 'App Home',
+        ),
+      ),
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: _currentIndex,
         onItemSelected: (index) => setState(() => _currentIndex = index),
         items: const [
+          BoxyArtBottomNavItem(
+            icon: Icons.history_rounded,
+            activeIcon: Icons.history_toggle_off_rounded,
+            label: 'History',
+          ),
           BoxyArtBottomNavItem(
             icon: Icons.send_outlined,
             activeIcon: Icons.send_rounded,
@@ -41,9 +63,9 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
             label: 'Audience',
           ),
           BoxyArtBottomNavItem(
-            icon: Icons.history_rounded,
-            activeIcon: Icons.history_toggle_off_rounded,
-            label: 'History',
+            icon: Icons.assignment_outlined,
+            activeIcon: Icons.assignment_rounded,
+            label: 'Surveys',
           ),
         ],
       ),

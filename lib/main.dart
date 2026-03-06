@@ -52,22 +52,24 @@ class GolfSocietyApp extends ConsumerWidget {
     if (themeModeStr == 'light') mode = ThemeMode.light;
     if (themeModeStr == 'dark') mode = ThemeMode.dark;
 
-    return MaterialApp.router(
-      title: 'Golf Society',
-      theme: v3.AppTheme.light(),
-      darkTheme: v3.AppTheme.dark(),
-      themeMode: mode,
-      routerConfig: router,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        FlutterQuillLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('en', 'GB'),
-      ],
+    return BoxyArtErrorHandler(
+      child: MaterialApp.router(
+        title: 'Golf Society',
+        theme: v3.AppTheme.light(),
+        darkTheme: v3.AppTheme.dark(),
+        themeMode: mode,
+        routerConfig: router,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          FlutterQuillLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'),
+          Locale('en', 'GB'),
+        ],
+      ),
     );
   }
 }

@@ -13,6 +13,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool centerTitle;
   final bool showBack;
   final VoidCallback? onBack;
+  final IconData? backIcon;
   final PreferredSizeWidget? bottom;
   final bool transparent;
   final bool showLeading;
@@ -29,6 +30,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitle = true,
     this.showBack = false,
     this.onBack,
+    this.backIcon,
     this.bottom,
     this.transparent = false,
     this.showLeading = false,
@@ -62,11 +64,14 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
         ],
       ),
-      actions: actions,
+      actions: actions != null ? [
+        ...actions!,
+        const SizedBox(width: 8), // Reaches 20px total (12 default + 8)
+      ] : null,
       leading: leading ?? (showBack 
         ? Center(
             child: BoxyArtGlassIconButton(
-              icon: Icons.arrow_back_rounded,
+              icon: backIcon ?? Icons.arrow_back_rounded,
               onPressed: onBack ?? () => Navigator.of(context).maybePop(),
               tooltip: 'Back',
             ),
@@ -80,7 +85,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               )
             : null)),
-      leadingWidth: leadingWidth ?? 72,
+      leadingWidth: leadingWidth ?? 80,
       centerTitle: centerTitle,
       elevation: 0,
       backgroundColor: backgroundColor ?? (transparent ? Colors.transparent : null),

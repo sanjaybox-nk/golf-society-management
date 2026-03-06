@@ -62,6 +62,9 @@ class BoxyArtInputField extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: AppTypography.body.copyWith(
+              color: isDark ? AppColors.dark400 : AppColors.dark300,
+            ),
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
           ),
@@ -72,8 +75,9 @@ class BoxyArtInputField extends StatelessWidget {
 }
 
 /// Legacy alias for BoxyArtInputField.
-class BoxyArtFormField extends StatelessWidget {
+class BoxyArtFormField extends StatefulWidget {
   final String label;
+  final String? initialValue;
   final String? hintText;
   final TextEditingController? controller;
   final bool obscureText;
@@ -89,6 +93,7 @@ class BoxyArtFormField extends StatelessWidget {
   const BoxyArtFormField({
     super.key,
     required this.label,
+    this.initialValue,
     this.hintText,
     this.controller,
     this.obscureText = false,
@@ -103,20 +108,49 @@ class BoxyArtFormField extends StatelessWidget {
   });
 
   @override
+  State<BoxyArtFormField> createState() => _BoxyArtFormFieldState();
+}
+
+class _BoxyArtFormFieldState extends State<BoxyArtFormField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(BoxyArtFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller == null && oldWidget.initialValue != widget.initialValue && widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BoxyArtInputField(
-      label: label,
-      hint: hintText,
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      prefixIcon: prefixIcon is IconData ? Icon(prefixIcon) : (prefixIcon as Widget?),
-      suffixIcon: suffixIcon is IconData ? Icon(suffixIcon) : (suffixIcon as Widget?),
-      onChanged: onChanged,
-      validator: validator,
-      maxLines: maxLines,
-      focusNode: focusNode,
-      readOnly: readOnly,
+      label: widget.label,
+      hint: widget.hintText,
+      controller: _controller,
+      obscureText: widget.obscureText,
+      keyboardType: widget.keyboardType,
+      prefixIcon: widget.prefixIcon is IconData ? Icon(widget.prefixIcon) : (widget.prefixIcon as Widget?),
+      suffixIcon: widget.suffixIcon is IconData ? Icon(widget.suffixIcon) : (widget.suffixIcon as Widget?),
+      onChanged: widget.onChanged,
+      validator: widget.validator,
+      maxLines: widget.maxLines,
+      focusNode: widget.focusNode,
+      readOnly: widget.readOnly,
     );
   }
 }

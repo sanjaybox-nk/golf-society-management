@@ -154,7 +154,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                 loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
                 error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: 130),
             ]),
           ),
         ),

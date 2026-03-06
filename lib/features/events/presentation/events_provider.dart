@@ -60,8 +60,13 @@ final eventsProvider = StreamProvider<List<GolfEvent>>((ref) {
   return activeSeasonAsync.when(
     data: (activeSeason) {
       if (activeSeason == null) return Stream.value([]);
-      // Show published and completed events (exclude drafts and cancelled)
-      return repository.watchEvents(seasonId: activeSeason.id);
+      // Show published, live and completed events (exclude drafts and cancelled)
+      return repository.watchEvents(seasonId: activeSeason.id).map((events) {
+        return events.where((e) => 
+          e.status != EventStatus.draft && 
+          e.status != EventStatus.cancelled
+        ).toList();
+      });
     },
     loading: () => Stream.value([]),
     error: (err, stack) => Stream.value([]),

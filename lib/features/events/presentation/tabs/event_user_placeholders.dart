@@ -2,12 +2,11 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
-import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
+import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/grouping/grouping_service.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import '../../../members/presentation/members_provider.dart';
@@ -72,7 +71,19 @@ class EventGroupingUserTab extends ConsumerWidget {
       data: (events) {
         final event = events.firstWhereOrNull((e) => e.id == eventId);
         if (event == null) {
-          return const Scaffold(body: Center(child: Text('Event not found')));
+          return const HeadlessScaffold(
+            title: 'Not Found',
+            showBack: true,
+            slivers: [
+              SliverFillRemaining(
+                child: BoxyArtEmptyState(
+                  title: 'Event Not Found',
+                  message: 'The requested event could not be located.',
+                  icon: Icons.error_outline_rounded,
+                ),
+              ),
+            ],
+          );
         }
         
         var effectiveEvent = event;
@@ -104,25 +115,24 @@ class EventGroupingUserTab extends ConsumerWidget {
                   child: membersAsync.when(
                     data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members),
                     loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stackTrace) => const Text('Error loading member registrations'),
+                    error: (error, stackTrace) => BoxyArtEmptyState(
+                      title: 'Loading Error',
+                      message: 'Error loading member registrations: $error',
+                      icon: Icons.error_outline_rounded,
+                      isCompact: true,
+                    ),
                   ),
                 ),
               ),
             ] else ...[
               // Pairings View
               if (!isPublished)
-                SliverFillRemaining(
+                const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(height: 16),
-                           Text('Grouping not yet published', style: AppTypography.body.copyWith(color: AppColors.dark300, fontWeight: FontWeight.bold)),
-                           SizedBox(height: 8),
-                           Text('The Admin will publish the tee sheet soon.', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
-                        ],
-                    ),
+                  child: BoxyArtEmptyState(
+                    title: 'Grouping Not Published',
+                    message: 'The Admin will publish the tee sheet soon. Contact your society secretary if you believe this is an error.',
+                    icon: Icons.unarchive_rounded,
                   ),
                 )
               else 
@@ -132,10 +142,8 @@ class EventGroupingUserTab extends ConsumerWidget {
                       delegate: SliverChildBuilderDelegate(
                          (context, index) {
                              final group = groups[index];
-                             // Prepare data for GroupingCard
                              final members = membersAsync.value ?? [];
                              final memberMap = {for (var m in members) m.id: m};
-                            // History for variety calculation (same season, previous events)
                             final history = events.where((e) => e.seasonId == event.seasonId && e.date.isBefore(event.date)).toList();
                             final comp = compAsync.value;
                             
@@ -169,8 +177,27 @@ class EventGroupingUserTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const HeadlessScaffold(
+        title: 'Loading...',
+        slivers: [
+          SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      ),
+      error: (err, stack) => HeadlessScaffold(
+        title: 'Error',
+        showBack: true,
+        slivers: [
+          SliverFillRemaining(
+            child: BoxyArtEmptyState(
+              title: 'Unexpected Error',
+              message: err.toString(),
+              icon: Icons.warning_amber_rounded,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -224,7 +251,19 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       data: (events) {
         final baseEvent = events.firstWhereOrNull((e) => e.id == widget.eventId);
         if (baseEvent == null) {
-          return const Scaffold(body: Center(child: Text('Event not found')));
+          return const HeadlessScaffold(
+            title: 'Not Found',
+            showBack: true,
+            slivers: [
+              SliverFillRemaining(
+                child: BoxyArtEmptyState(
+                  title: 'Event Not Found',
+                  message: 'The requested event could not be located.',
+                  icon: Icons.error_outline_rounded,
+                ),
+              ),
+            ],
+          );
         }
         
         var event = baseEvent;
@@ -245,7 +284,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final isStableford = currentFormat == CompetitionFormat.stableford;
             final results = event.results;
             
-            final int coursePar = (event.courseConfig['par'] as num?)?.toInt() ?? 72;
+            final int coursePar = event.courseConfig.par ?? 72;
             
             final List<LeaderboardEntry> leaderboardEntries = [];
             
@@ -872,7 +911,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   final card = scorecards.firstWhereOrNull((s) => s.entryId == playerId);
                   // 1. Resolve robust Course Config for this player
                   final manualTee = teeOverrides[playerId];
-                  final playerTeeConfig = _resolvePlayerCourseConfig(playerId, event, membersAsync.value ?? [], manualTeeName: manualTee);
+                  final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                    memberId: playerId, 
+                    event: event, 
+                    membersList: membersAsync.value ?? [], 
+                    manualTeeName: manualTee,
+                  );
                   final member = membersAsync.value?.firstWhereOrNull((m) => m.id == p.registrationMemberId);
                   final phc = teamPhcMap[playerId] ?? HandicapCalculator.calculatePlayingHandicap(
                     handicapIndex: member?.handicap ?? p.handicapIndex,
@@ -905,7 +949,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   if (scoresToUse.isNotEmpty && scoresToUse.any((s) => s != null)) {
                     final result = ScoringCalculator.calculate(
                       holeScores: scoresToUse,
-                      holes: (playerTeeConfig['holes'] as List).map((h) => Map<String, dynamic>.from(h)).toList(),
+                      holes: playerTeeConfig.holes,
                       playingHandicap: phc.toDouble(),
                       format: rules.format,
                       maxScoreConfig: rules.maxScoreConfig,
@@ -968,10 +1012,15 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                         
                         // Use player-specific course config for holes/si/par
                         final manualTee = teeOverrides[pid];
-                        final ptc = _resolvePlayerCourseConfig(pid, event, membersAsync.value ?? [], manualTeeName: manualTee);
-                        final playerHoles = ptc['holes'] as List? ?? [];
-                        final si = playerHoles.length > h ? (playerHoles[h]['si'] as int? ?? 18) : 18;
-                        final par = playerHoles.length > h ? (playerHoles[h]['par'] as int? ?? 4) : 4;
+                        final ptc = ScoringCalculator.resolvePlayerCourseConfig(
+                          memberId: pid, 
+                          event: event, 
+                          membersList: membersAsync.value ?? [], 
+                          manualTeeName: manualTee,
+                        );
+                        final playerHoles = ptc.holes;
+                        final si = playerHoles.length > h ? playerHoles[h].si : 18;
+                        final par = playerHoles.length > h ? playerHoles[h].par : 4;
                         final freeShots = (phc ~/ 18) + (si <= (phc % 18) ? 1 : 0);
 
                         if (rules.format == CompetitionFormat.stableford) {
@@ -1043,7 +1092,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 }
 
                 if (scoresToUse.isNotEmpty) {
-                    final playerTeeConfig = _resolvePlayerCourseConfig(team.first.registrationMemberId, event, membersAsync.value ?? [], manualTeeName: teeOverrides[team.first.isGuest ? '${team.first.registrationMemberId}_guest' : team.first.registrationMemberId]);
+                    final targetMemberId = team.first.isGuest ? '${team.first.registrationMemberId}_guest' : team.first.registrationMemberId;
+                    final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                      memberId: team.first.registrationMemberId, 
+                      event: event, 
+                      membersList: membersAsync.value ?? [], 
+                      manualTeeName: teeOverrides[targetMemberId],
+                    );
 
                      int effectivePhc = isTeamMode ? teamPhc : HandicapCalculator.calculatePlayingHandicap(
                        handicapIndex: membersAsync.value?.firstWhereOrNull((m) => m.id == team.first.registrationMemberId)?.handicap ?? team.first.handicapIndex,
@@ -1057,7 +1112,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
                     final result = ScoringCalculator.calculate(
                       holeScores: scoresToUse, 
-                      holes: (playerTeeConfig['holes'] as List).map((h) => Map<String, dynamic>.from(h)).toList(), 
+                      holes: playerTeeConfig.holes, 
                       playingHandicap: effectivePhc.toDouble(), 
                       format: rules.format,
                       maxScoreConfig: rules.maxScoreConfig,
@@ -1167,7 +1222,12 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     // [NEW] Lift data resolution out of the widget tree to prevent IIFE related crashes
     final members = ref.watch(allMembersProvider).value ?? [];
     final manualTee = markerSelection.teeOverrides[targetId];
-    final playerTeeConfig = _resolvePlayerCourseConfig(targetId, event, members, manualTeeName: manualTee);
+    final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+      memberId: targetId, 
+      event: event, 
+      membersList: members, 
+      manualTeeName: manualTee,
+    );
     
     // Resolve the display name for the tee
     final memberProfile = members.firstWhereOrNull((m) => m.id == targetId);
@@ -1585,7 +1645,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final String? targetEntryId = markerSelection.targetEntryId;
 
             // Get available tees
-            final tees = event.courseConfig['tees'] as List? ?? [];
+            final tees = event.courseConfig.tees;
 
             return Container(
               padding: const EdgeInsets.only(bottom: 24), 
@@ -1868,78 +1928,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     }
   }
 
-  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList, {String? manualTeeName}) {
-    final tees = event.courseConfig['tees'] as List?;
-    debugPrint(' [DEBUG-TEE] Resolving for: $memberId');
-    debugPrint(' [DEBUG-TEE] Manual Override: $manualTeeName');
-    debugPrint(' [DEBUG-TEE] Event Default: ${event.selectedTeeName}');
-    
-    if (tees == null || tees.isEmpty) {
-      debugPrint(' [DEBUG-TEE] WARNING: No tees found in event.courseConfig');
-      return event.courseConfig;
-    }
-
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-    debugPrint(' [DEBUG-TEE] Resolved Gender: $gender');
-    
-    Map<String, dynamic>? selectedTee;
-
-    // 1. Manual Override logic
-    if (manualTeeName != null) {
-      selectedTee = (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase().trim() == manualTeeName.toLowerCase().trim()
-      ) as Map<String, dynamic>?);
-      if (selectedTee != null) debugPrint(' [DEBUG-TEE] Manual Match Found: ${selectedTee['name']}');
-    }
-
-    // 2. Original Fallback Logic
-    if (selectedTee == null) {
-      if (gender == 'female') {
-         if (event.selectedFemaleTeeName != null) {
-           selectedTee = (tees.firstWhereOrNull((t) => 
-             (t['name'] ?? '').toString().toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
-           ) as Map<String, dynamic>?);
-         }
-         selectedTee ??= (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-           (t['name'] ?? '').toString().toLowerCase().contains('female')
-         ) as Map<String, dynamic>?);
-      }
-      
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
-      ) as Map<String, dynamic>?);
-  
-      selectedTee ??= (tees.first as Map<String, dynamic>);
-    debugPrint(' [DEBUG-TEE] Fallback to: ${selectedTee['name']}');
-    }
-
-    debugPrint(' [DEBUG-TEE] FINAL SELECTED TEE: ${selectedTee['name']}');
-    debugPrint(' [DEBUG-TEE] PARS: ${selectedTee['holePars']}');
-    debugPrint(' [DEBUG-TEE] SIS: ${selectedTee['holeSIs']}');
-
-    // [CRITICAL FIX] ScoringCalculator expects a 'holes' list of maps with 'par' and 'si' keys.
-    // If we only update the top-level 'rating'/'slope' but leave the original 'holes' list,
-    // the actual scoring logic will use the WRONG pars/SIs for the overridden tee.
-    final List<int> pars = List<int>.from(selectedTee['holePars'] ?? []);
-    final List<int> sis = List<int>.from(selectedTee['holeSIs'] ?? []);
-    
-    final List<Map<String, dynamic>> reconstructedHoles = List.generate(pars.length, (i) => {
-      'hole': i + 1,
-      'par': pars[i],
-      'si': sis[i],
-    });
-
-    return {
-       ...event.courseConfig,
-       'rating': (selectedTee['rating'] as num?)?.toDouble() ?? (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
-       'slope': (selectedTee['slope'] as num?)?.toInt() ?? (event.courseConfig['slope'] as num?)?.toInt() ?? 113,
-       'par': pars.isEmpty ? (event.courseConfig['par'] as num?)?.toInt() ?? 72 : pars.fold(0, (a, b) => a + b),
-       'holes': reconstructedHoles.isNotEmpty ? reconstructedHoles : (event.courseConfig['holes'] as List?),
-    };
-  }
+  // Resolution logic removed. Using ScoringCalculator.resolvePlayerCourseConfig instead.
 
   Widget buildSelectionRow(
     BuildContext context, 

@@ -33,54 +33,26 @@ class LockerScreen extends ConsumerWidget {
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: primary.withValues(alpha: 0.1), width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: user.avatarUrl != null 
-                            ? Image.network(user.avatarUrl!, fit: BoxFit.cover)
-                            : Container(
-                                color: Colors.white,
-                                child: Center(
-                                  child: Text(
-                                    '${user.firstName[0]}${user.lastName[0]}',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: primary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                      ),
+                    BoxyArtAvatar(
+                      url: user.avatarUrl,
+                      initials: '${user.firstName[0]}${user.lastName[0]}',
+                      radius: 50,
+                      isCircle: true,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.md),
                     Text(
                       '${user.firstName} ${user.lastName}',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                      style: AppTypography.displayHero.copyWith(
+                        fontSize: 24,
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: AppSpacing.xs),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.lime500.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppShapes.rPill),
                       ),
                       child: Consumer(
                         builder: (context, ref, child) {
@@ -88,10 +60,9 @@ class LockerScreen extends ConsumerWidget {
                           final system = society.handicapSystem;
                           return Text(
                             '${system.shortName}: ${user.handicapId ?? "N/A"}',
-                            style: TextStyle(
+                            style: AppTypography.label.copyWith(
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: primary,
+                              color: AppColors.lime500,
                             ),
                           );
                         },
@@ -229,31 +200,32 @@ class LockerScreen extends ConsumerWidget {
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    _buildModernSettingsTile(
-                      context,
+                    BoxyArtNavTile(
                       icon: Icons.person_outline_rounded,
                       title: 'Personal Information',
+                      subtitle: 'Edit your profile and data',
+                      iconColor: AppColors.lime500,
                       onTap: () {},
                     ),
-                    const Divider(height: 1, indent: 60),
-                    _buildModernSettingsTile(
-                      context,
+                    BoxyArtNavTile(
                       icon: Icons.notifications_none_rounded,
                       title: 'Notifications',
+                      subtitle: 'Set your alert preferences',
+                      iconColor: AppColors.amber500,
                       onTap: () {},
                     ),
-                    const Divider(height: 1, indent: 60),
-                    _buildModernSettingsTile(
-                      context,
+                    BoxyArtNavTile(
                       icon: Icons.shield_outlined,
                       title: 'Privacy & Security',
+                      subtitle: 'Manage your security settings',
+                      iconColor: Colors.cyan,
                       onTap: () {},
                     ),
-                    const Divider(height: 1, indent: 60),
-                    _buildModernSettingsTile(
-                      context,
+                    BoxyArtNavTile(
                       icon: Icons.help_outline_rounded,
                       title: 'Help & Support',
+                      subtitle: 'FAQs and support chat',
+                      iconColor: Colors.purple,
                       onTap: () {},
                     ),
                   ],
@@ -284,32 +256,7 @@ class LockerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernSettingsTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.grey.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, size: 20, color: Colors.grey.shade700),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      trailing: Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey.shade400),
-      onTap: onTap,
-    );
-  }
+  // Removed _buildModernSettingsTile as it is replaced by BoxyArtNavTile
 }
 
 

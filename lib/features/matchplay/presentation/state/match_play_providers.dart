@@ -1,4 +1,5 @@
 
+import 'package:golf_society/domain/models/course_config.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:collection/collection.dart';
 import '../../domain/match_definition.dart';
@@ -63,7 +64,7 @@ class CurrentMatchController extends _$CurrentMatchController {
                    }).toList();
 
                     final Map<String, double> indices = {};
-                    final Map<String, Map<String, dynamic>> configs = {};
+                    final Map<String, CourseConfig> configs = {};
 
                     for (var pid in pIds) {
                       final baseId = pid.replaceFirst('_guest', '');
@@ -89,7 +90,7 @@ class CurrentMatchController extends _$CurrentMatchController {
                       playerIndices: indices, 
                       courseConfigs: configs, 
                       rules: comp?.rules ?? const CompetitionRules(),
-                      baseRating: (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
+                      baseRating: event.courseConfig.rating ?? 72.0,
                     );
 
                    final t1 = pIds.take(2).toList();
@@ -114,7 +115,7 @@ class CurrentMatchController extends _$CurrentMatchController {
                    }).toList();
 
                    final Map<String, double> indices = {};
-                   final Map<String, Map<String, dynamic>> configs = {};
+                   final Map<String, CourseConfig> configs = {};
 
                    for (var pid in pIds) {
                       final baseId = pid.replaceFirst('_guest', '');
@@ -140,7 +141,7 @@ class CurrentMatchController extends _$CurrentMatchController {
                       playerIndices: indices, 
                       courseConfigs: configs, 
                       rules: comp?.rules ?? const CompetitionRules(),
-                      baseRating: (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
+                      baseRating: event.courseConfig.rating ?? 72.0,
                    );
 
                    final userIndex = pIds.indexOf(user.id);
@@ -187,7 +188,7 @@ class CurrentMatchController extends _$CurrentMatchController {
               match: userMatch, 
               scorecards: scorecards, 
               courseConfig: event.courseConfig, 
-              holesToPlay: event.courseConfig['holes']?.length ?? 18
+              holesToPlay: event.courseConfig.holes.length
             );
             return MatchData(match: userMatch, result: result);
           },

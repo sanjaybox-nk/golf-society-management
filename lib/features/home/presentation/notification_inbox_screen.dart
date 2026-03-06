@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/notification.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'dart:convert';
 import 'home_providers.dart';
 
 class NotificationInboxScreen extends ConsumerWidget {
@@ -51,7 +53,38 @@ class NotificationInboxScreen extends ConsumerWidget {
                                 children: notifications.map((notification) {
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 12),
-                                    child: _InboxNotificationCard(notification: notification),
+                                    child: Dismissible(
+                                      key: Key('inbox_notif_${notification.id}'),
+                                      direction: DismissDirection.endToStart,
+                                      onDismissed: (direction) {
+                                        ref.read(notificationsRepositoryProvider).deleteNotification(notification.id);
+                                      },
+                                      background: Container(
+                                        alignment: Alignment.centerRight,
+                                        padding: const EdgeInsets.only(right: 24),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE74C3C),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: const Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 28),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              'DELETE',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1.2,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      child: _InboxNotificationCard(notification: notification),
+                                    ),
                                   );
                                 }).toList(),
                               );
@@ -143,14 +176,7 @@ class _InboxNotificationCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  notification.message,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontSize: 14,
-                    height: 1.3,
-                  ),
-                ),
+                _buildMessageContent(context),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -169,6 +195,38 @@ class _InboxNotificationCard extends StatelessWidget {
       ),
     );
   }
+  Widget _buildMessageContent(BuildContext context) {
+    try {
+      final List<dynamic> deltaJson = jsonDecode(notification.message);
+      final controller = quill.QuillController(
+        document: quill.Document.fromJson(deltaJson),
+        selection: const TextSelection.collapsed(offset: 0),
+        readOnly: true,
+      );
+
+      return quill.QuillEditor.basic(
+        controller: controller,
+        config: const quill.QuillEditorConfig(
+          scrollable: false,
+          autoFocus: false,
+          expands: false,
+          padding: EdgeInsets.zero,
+          showCursor: false,
+          enableInteractiveSelection: false,
+        ),
+      );
+    } catch (_) {
+      return Text(
+        notification.message,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodySmall?.color,
+          fontSize: 14,
+          height: 1.3,
+        ),
+      );
+    }
+  }
+
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);

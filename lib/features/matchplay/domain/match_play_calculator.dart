@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import '../../../domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 import 'match_definition.dart';
 
 class MatchPlayCalculator {
@@ -10,7 +11,7 @@ class MatchPlayCalculator {
   static Map<String, int> calculateRelativeStrokes({
     required List<String> playerIds,
     required Map<String, double> playerIndices,
-    required Map<String, Map<String, dynamic>> courseConfigs,
+    required Map<String, CourseConfig> courseConfigs,
     required CompetitionRules rules,
     double? baseRating,
   }) {
@@ -21,7 +22,7 @@ class MatchPlayCalculator {
       final phc = HandicapCalculator.calculatePlayingHandicap(
         handicapIndex: playerIndices[id] ?? 0.0,
         rules: rules,
-        courseConfig: courseConfigs[id] ?? {},
+        courseConfig: courseConfigs[id] ?? const CourseConfig(),
         baseRating: baseRating,
       );
       phcs[id] = phc;
@@ -36,7 +37,7 @@ class MatchPlayCalculator {
   static MatchResult calculate({
     required MatchDefinition match,
     required List<Scorecard> scorecards, // Must contain cards for all participants
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
     required int holesToPlay, // Usually 18
   }) {
     int currentScore = 0; // + for T1, - for T2
@@ -46,7 +47,7 @@ class MatchPlayCalculator {
     String finalStatus = 'A/S';
     int winner = -1; // -1 Draw, 0 Team 1, 1 Team 2
 
-    final holes = courseConfig['holes'] as List? ?? [];
+    final holes = courseConfig.holes;
     if (holes.isEmpty) {
         return MatchResult(matchId: match.id, winningTeamIndex: -1, status: 'Error', score: 0, holeResults: [], holesPlayed: 0);
     }
@@ -69,8 +70,8 @@ class MatchPlayCalculator {
     for (int i = 0; i < holesToPlay; i++) {
       if (i >= holes.length) break;
       
-      final holePar = holes[i]['par'] as int? ?? 4;
-      final holeSi = holes[i]['si'] as int? ?? 18;
+      final holePar = holes[i].par;
+      final holeSi = holes[i].si;
 
       // Calculate Best Net Score for Team 1
       int? t1Score = _getBestTeamScore(t1Cards, i, match.strokesReceived, holePar, holeSi);

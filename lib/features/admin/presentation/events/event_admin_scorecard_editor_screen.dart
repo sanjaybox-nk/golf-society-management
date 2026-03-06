@@ -4,7 +4,6 @@ import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
 
 import '../../../events/presentation/events_provider.dart';
@@ -14,6 +13,7 @@ import '../../../members/presentation/members_provider.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import 'widgets/admin_scorecard_keypad.dart';
+import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 
 // Local provider for the current hole being edited
 class AdminEditorHoleNotifier extends Notifier<int> {
@@ -71,14 +71,18 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                     ? (double.tryParse(reg.guestHandicap ?? '18.0') ?? 18.0)
                     : (reg.handicap ?? 18.0); 
                     
-                  final playerTeeConfig = _resolvePlayerCourseConfig(reg.memberId, event, members);
+                  final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                    memberId: reg.memberId, 
+                    event: event, 
+                    membersList: members,
+                  );
                   final playerTeeName = (members.firstWhereOrNull((m) => m.id == reg.memberId)?.gender?.toLowerCase() == 'female')
                       ? (event.selectedFemaleTeeName ?? 'Red')
                       : (event.selectedTeeName ?? 'Yellow');
 
                   final int phc = HandicapCalculator.calculatePlayingHandicap(
                     handicapIndex: baseHcp,
-                    rules: comp?.rules ?? CompetitionRules(),
+                    rules: comp?.rules ?? const CompetitionRules(),
                     courseConfig: playerTeeConfig,
                   );
 
@@ -214,38 +218,5 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     return Colors.grey;
   }
 
-  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
-    final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.courseConfig;
-
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-    
-    Map<String, dynamic>? selectedTee;
-    if (gender == 'female') {
-       if (event.selectedFemaleTeeName != null) {
-         selectedTee = (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
-         ) as Map<String, dynamic>?);
-       }
-    }
-    
-    selectedTee ??= (tees.firstWhereOrNull((t) => 
-       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
-    ) as Map<String, dynamic>?);
-
-    selectedTee ??= (tees.first as Map<String, dynamic>);
-
-    return {
-       ...event.courseConfig,
-       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
-       'rating': selectedTee['rating'] ?? 72.0,
-       'slope': selectedTee['slope'] ?? 113,
-       'holes': List.generate(18, (i) => {
-          'hole': i + 1,
-          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
-          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
-       }),
-    };
-  }
+  // _resolvePlayerCourseConfig removed as we now use ScoringCalculator
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -57,6 +58,13 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
       child: HeadlessScaffold(
         title: 'Members',
         subtitle: 'Society Roster',
+        leading: Center(
+          child: BoxyArtGlassIconButton(
+            icon: Icons.home_rounded,
+            onPressed: () => context.go('/home'),
+            tooltip: 'App Home',
+          ),
+        ),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),

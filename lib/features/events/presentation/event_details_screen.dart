@@ -50,6 +50,37 @@ class _EventDetailsContent extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              if (event.status == EventStatus.cancelled)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.cancel_outlined, color: Colors.red),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'EVENT CANCELLED',
+                              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                            ),
+                            Text(
+                              'This event has been cancelled by the administrative team.',
+                              style: TextStyle(color: Colors.red.withValues(alpha: 0.8), fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               _buildStatusBadge(context),
               const SizedBox(height: 24),
               

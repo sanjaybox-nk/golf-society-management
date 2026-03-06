@@ -1,0 +1,223 @@
+Analyzing Golf Society Management...                            
+
+   info • The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:golf_society/design_system/design_system.dart' • lib/design_system/widgets/error_handler.dart:2:8 • unnecessary_import
+  error • The argument type 'CourseConfig' can't be assigned to the parameter type 'Map<String, dynamic>'.  • lib/domain/grouping/grouping_service.dart:40:21 • argument_type_not_assignable
+  error • The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'CourseConfig'.  • lib/domain/grouping/grouping_service.dart:264:24 • argument_type_not_assignable
+  error • Missing concrete implementations of 'getter mixin _$AuditActivity on Object.id', 'getter mixin _$AuditActivity on Object.message', 'getter mixin _$AuditActivity on Object.relatedId', 'getter mixin _$AuditActivity on Object.timestamp', and 4 more • lib/domain/models/audit_activity.dart:11:7 • non_abstract_class_inherits_abstract_member
+  error • Missing concrete implementations of 'getter mixin _$TeeConfig on Object.holePars', 'getter mixin _$TeeConfig on Object.holeSIs', 'getter mixin _$TeeConfig on Object.name', 'getter mixin _$TeeConfig on Object.rating', and 3 more • lib/domain/models/course_config.dart:7:7 • non_abstract_class_inherits_abstract_member
+  error • Missing concrete implementations of 'getter mixin _$CourseHole on Object.hole', 'getter mixin _$CourseHole on Object.par', 'getter mixin _$CourseHole on Object.si', 'getter mixin _$CourseHole on Object.yardage', and 1 more • lib/domain/models/course_config.dart:21:7 • non_abstract_class_inherits_abstract_member
+  error • Missing concrete implementations of 'getter mixin _$CourseConfig on Object.address', 'getter mixin _$CourseConfig on Object.holes', 'getter mixin _$CourseConfig on Object.isGlobal', 'getter mixin _$CourseConfig on Object.name', and 6 more • lib/domain/models/course_config.dart:33:7 • non_abstract_class_inherits_abstract_member
+warning • The '!' will have no effect because the receiver can't be null • lib/domain/scoring/scoring_calculator.dart:88:62 • unnecessary_non_null_assertion
+  error • The operator '+' can't be unconditionally invoked because the receiver can be 'null' • lib/domain/scoring/scoring_calculator.dart:94:86 • unchecked_use_of_nullable_value
+  error • Directives must appear before any declarations • lib/features/admin/presentation/admin_dashboard_screen.dart:185:1 • directive_after_declaration
+  error • Directives must appear before any declarations • lib/features/admin/presentation/admin_dashboard_screen.dart:186:1 • directive_after_declaration
+  error • Directives must appear before any declarations • lib/features/admin/presentation/admin_dashboard_screen.dart:187:1 • directive_after_declaration
+   info • The imported package 'timeago' isn't a dependency of the importing package • lib/features/admin/presentation/admin_dashboard_screen.dart:187:8 • depend_on_referenced_packages
+  error • Target of URI doesn't exist: 'package:timeago/timeago.dart' • lib/features/admin/presentation/admin_dashboard_screen.dart:187:8 • uri_does_not_exist
+   info • Unnecessary 'const' keyword • lib/features/admin/presentation/events/admin_events_screen.dart:57:28 • unnecessary_const
+   info • Unnecessary 'const' keyword • lib/features/admin/presentation/events/admin_events_screen.dart:75:28 • unnecessary_const
+  error • The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'CourseConfig'.  • lib/features/admin/presentation/events/event_admin_scorecard_editor_screen.dart:82:35 • argument_type_not_assignable
+  error • The operator '[]' isn't defined for the type 'CourseConfig' • lib/features/admin/presentation/events/event_admin_scorecard_editor_screen.dart:218:36 • undefined_operator
+  error • A value of type 'CourseConfig' can't be returned from the method '_resolvePlayerCourseConfig' because it has a return type of 'Map<String, dynamic>' • lib/features/admin/presentation/events/event_admin_scorecard_editor_screen.dart:219:46 • return_of_invalid_type
+  error • Spread elements in map literals must implement 'Map' • lib/features/admin/presentation/events/event_admin_scorecard_editor_screen.dart:240:11 • not_map_spread
+  error • Classes can only extend other classes • lib/features/admin/presentation/events/event_form_notifier.dart:15:33 • extends_non_class
+warning • The method doesn't override an inherited method • lib/features/admin/presentation/events/event_form_notifier.dart:17:26 • override_on_non_overriding_member
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:26:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:31:9 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/admin/presentation/events/event_form_notifier.dart:34:22 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:38:11 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:42:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:44:7 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/admin/presentation/events/event_form_notifier.dart:50:22 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:113:33 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:113:51 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:114:39 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:114:57 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:115:37 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:115:55 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:116:40 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:116:58 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:117:34 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:117:52 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:120:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:120:25 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:122:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:122:25 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:126:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:126:23 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:128:34 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:128:52 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:129:38 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:129:56 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:130:39 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:130:57 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:131:48 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:131:66 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:132:40 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:132:58 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:135:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:135:23 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:152:44 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:152:62 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:153:44 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:153:62 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:154:50 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:154:68 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:155:37 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:155:55 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:156:42 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:156:60 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:157:38 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:157:56 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:158:41 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:158:59 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:160:39 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:160:57 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:161:48 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:161:66 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:163:15 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:170:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:178:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:178:25 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:184:15 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:187:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:194:38 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:194:56 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:195:39 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:195:57 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:196:38 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:196:56 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:198:38 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:198:56 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:199:34 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:199:52 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:200:35 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:200:53 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:202:48 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:202:66 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:203:41 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:203:59 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:204:44 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:204:62 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:205:37 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:205:55 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:206:45 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:206:63 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:207:38 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:207:56 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:208:42 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:208:60 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:211:36 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:211:54 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:213:15 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:216:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:219:15 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:222:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:225:15 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:228:5 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:232:44 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:232:62 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:233:42 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:233:60 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:237:15 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:239:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:243:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:247:5 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/admin/presentation/events/event_form_notifier.dart:250:20 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:266:7 • undefined_identifier
+  error • Undefined name 'state' • lib/features/admin/presentation/events/event_form_notifier.dart:271:56 • undefined_identifier
+warning • The value of the local variable 'now' isn't used • lib/features/admin/presentation/events/event_form_notifier.dart:274:11 • unused_local_variable
+  error • Undefined name 'ref' • lib/features/admin/presentation/events/event_form_notifier.dart:322:22 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/admin/presentation/events/event_form_notifier.dart:328:25 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/admin/presentation/events/event_form_notifier.dart:362:27 • undefined_identifier
+  error • 'EventFormNotifier' doesn't conform to the bound 'AsyncNotifier<EventFormState>' of the type parameter 'NotifierT' • lib/features/admin/presentation/events/event_form_notifier.dart:391:69 • type_argument_not_matching_bounds
+  error • The expression doesn't evaluate to a function, so it can't be invoked • lib/features/admin/presentation/events/event_form_screen.dart:124:31 • invocation_of_non_function_expression
+  error • Undefined name 'event' • lib/features/admin/presentation/events/event_form_screen.dart:124:58 • undefined_identifier
+  error • Undefined name 'eventId' • lib/features/admin/presentation/events/event_form_screen.dart:124:65 • undefined_identifier
+  error • Missing concrete implementations of 'getter mixin _$EventFormState on Object.availableBuggies', 'getter mixin _$EventFormState on Object.awards', 'getter mixin _$EventFormState on Object.breakfastCost', 'getter mixin _$EventFormState on Object.buggyCost', and 52 more • lib/features/admin/presentation/events/event_form_state.dart:10:7 • non_abstract_class_inherits_abstract_member
+  error • Undefined name 'ScoringCalculator' • lib/features/admin/presentation/events/widgets/admin_scorecard_list.dart:124:29 • undefined_identifier
+  error • Undefined name 'ScoringCalculator' • lib/features/admin/presentation/events/widgets/admin_scorecard_list.dart:312:29 • undefined_identifier
+  error • Undefined name 'QuillToolbar' • lib/features/admin/presentation/events/widgets/boxy_art_rich_note_editor.dart:77:17 • undefined_identifier
+  error • The method 'QuillSimpleToolbarConfigurations' isn't defined for the type 'BoxyArtRichNoteEditor' • lib/features/admin/presentation/events/widgets/boxy_art_rich_note_editor.dart:78:35 • undefined_method
+  error • The named parameter 'controller' is required, but there's no corresponding argument • lib/features/admin/presentation/events/widgets/boxy_art_rich_note_editor.dart:100:28 • missing_required_argument
+  error • The named parameter 'configurations' isn't defined • lib/features/admin/presentation/events/widgets/boxy_art_rich_note_editor.dart:101:23 • undefined_named_parameter
+  error • The method 'QuillEditorConfigurations' isn't defined for the type 'BoxyArtRichNoteEditor' • lib/features/admin/presentation/events/widgets/boxy_art_rich_note_editor.dart:101:39 • undefined_method
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_awards_section.dart:20:32 • undefined_identifier
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_awards_section.dart:49:35 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_awards_section.dart:58:35 • undefined_named_parameter
+  error • The name 'EventType' isn't a type, so it can't be used as a type argument • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:23:37 • non_type_as_type_argument
+  error • The argument type 'Object?' can't be assigned to the parameter type 'EventType'.  • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:25:99 • argument_type_not_assignable
+  error • Invalid constant value • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:28:53 • invalid_constant
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:28:53 • undefined_identifier
+  error • Invalid constant value • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:29:55 • invalid_constant
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:29:55 • undefined_identifier
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:94:19 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_basic_info_section.dart:101:19 • undefined_named_parameter
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_competition_section.dart:22:32 • undefined_identifier
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_content_section.dart:31:23 • undefined_named_parameter
+  error • The name 'EventNote' isn't a type, so it can't be used as a type argument • lib/features/admin/presentation/events/widgets/form_sections/event_content_section.dart:63:36 • non_type_as_type_argument
+  error • The name 'EventNote' isn't a type, so it can't be used as a type argument • lib/features/admin/presentation/events/widgets/form_sections/event_content_section.dart:72:33 • non_type_as_type_argument
+  error • The name 'EventNote' isn't a class • lib/features/admin/presentation/events/widgets/form_sections/event_content_section.dart:72:73 • creation_with_non_type
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:22:32 • undefined_identifier
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:68:21 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:76:21 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:82:21 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:91:27 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:100:27 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_course_section.dart:110:21 • undefined_named_parameter
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_logistics_section.dart:43:40 • undefined_identifier
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_logistics_section.dart:86:44 • undefined_identifier
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_logistics_section.dart:106:40 • undefined_identifier
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_logistics_section.dart:110:21 • undefined_named_parameter
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_logistics_section.dart:151:40 • undefined_identifier
+  error • Undefined name 'EventType' • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:27:40 • undefined_identifier
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:30:21 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:40:27 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:55:27 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:64:27 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:102:21 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:135:13 • undefined_named_parameter
+  error • The named parameter 'initialValue' isn't defined • lib/features/admin/presentation/events/widgets/form_sections/event_pricing_section.dart:142:13 • undefined_named_parameter
+warning • The value of the local variable 'par' isn't used • lib/features/events/logic/event_analysis_engine.dart:16:11 • unused_local_variable
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:81:51 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:127:51 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:164:51 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:184:52 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:185:66 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:203:33 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:204:32 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:231:51 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:273:51 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:292:54 • undefined_operator
+  error • The operator '[]' isn't defined for the type 'CourseHole' • lib/features/events/logic/event_analysis_engine.dart:293:62 • undefined_operator
+  error • The argument type 'CourseConfig' can't be assigned to the parameter type 'Map<String, dynamic>'.  • lib/features/events/presentation/tabs/event_stats_tab.dart:337:29 • argument_type_not_assignable
+  error • The getter 'holes' isn't defined for the type 'Map<String, dynamic>' • lib/features/events/presentation/tabs/event_stats_tab.dart:374:32 • undefined_getter
+  error • The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'CourseConfig'.  • lib/features/events/presentation/tabs/event_stats_tab.dart:417:97 • argument_type_not_assignable
+  error • The operator '<=' can't be unconditionally invoked because the receiver can be 'null' • lib/features/events/presentation/tabs/event_user_details_tab.dart:575:34 • unchecked_use_of_nullable_value
+  error • The operator '<=' can't be unconditionally invoked because the receiver can be 'null' • lib/features/events/presentation/tabs/event_user_details_tab.dart:575:49 • unchecked_use_of_nullable_value
+  error • The operator '<=' can't be unconditionally invoked because the receiver can be 'null' • lib/features/events/presentation/tabs/event_user_details_tab.dart:575:61 • unchecked_use_of_nullable_value
+  error • The argument type 'num' can't be assigned to the parameter type 'int?'.  • lib/features/events/presentation/tabs/event_user_details_tab.dart:655:23 • argument_type_not_assignable
+  error • The argument type 'num' can't be assigned to the parameter type 'int?'.  • lib/features/events/presentation/tabs/event_user_details_tab.dart:657:21 • argument_type_not_assignable
+  error • Undefined name 'markerTeeOverrides' • lib/features/events/presentation/tabs/event_user_placeholders.dart:915:37 • undefined_identifier
+  error • Undefined name 'markerTeeOverrides' • lib/features/events/presentation/tabs/event_user_placeholders.dart:1016:43 • undefined_identifier
+  error • Undefined name 'markerTeeOverrides' • lib/features/events/presentation/tabs/event_user_placeholders.dart:1102:38 • undefined_identifier
+  error • The argument type 'List<Map<String, dynamic>>' can't be assigned to the parameter type 'List<CourseHole>'.  • lib/features/events/presentation/tabs/event_user_placeholders.dart:1117:30 • argument_type_not_assignable
+  error • The operator '[]' isn't defined for the type 'CourseConfig' • lib/features/events/presentation/tabs/event_user_placeholders.dart:1117:46 • undefined_operator
+warning • The value of the local variable 'par' isn't used • lib/features/events/presentation/tabs/event_user_placeholders.dart:1650:19 • unused_local_variable
+  error • Undefined name 'tees' • lib/features/events/presentation/tabs/event_user_placeholders.dart:1703:29 • undefined_identifier
+  error • Undefined name 'tees' • lib/features/events/presentation/tabs/event_user_placeholders.dart:1730:32 • undefined_identifier
+  error • The operator '[]' isn't defined for the type 'CourseConfig' • lib/features/events/presentation/widgets/event_leaderboard.dart:666:37 • undefined_operator
+  error • The argument type 'List<Map<String, dynamic>>' can't be assigned to the parameter type 'List<CourseHole>'.  • lib/features/events/presentation/widgets/event_leaderboard.dart:671:14 • argument_type_not_assignable
+warning • Dead code • lib/features/events/presentation/widgets/event_leaderboard.dart:711:29 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/features/events/presentation/widgets/event_leaderboard.dart:711:32 • dead_null_aware_expression
+warning • The left operand can't be null, so the right operand is never executed • lib/features/events/presentation/widgets/event_leaderboard.dart:712:30 • dead_null_aware_expression
+warning • Dead code • lib/features/events/presentation/widgets/event_leaderboard.dart:725:35 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/features/events/presentation/widgets/event_leaderboard.dart:725:38 • dead_null_aware_expression
+warning • Dead code • lib/features/events/presentation/widgets/event_leaderboard.dart:749:30 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/features/events/presentation/widgets/event_leaderboard.dart:749:33 • dead_null_aware_expression
+warning • The left operand can't be null, so the right operand is never executed • lib/features/events/presentation/widgets/event_leaderboard.dart:750:31 • dead_null_aware_expression
+warning • The declaration '_parseValue' isn't referenced • lib/features/events/presentation/widgets/event_leaderboard.dart:891:17 • unused_element
+warning • Unnecessary cast • lib/features/events/presentation/widgets/grouping_widgets.dart:612:27 • unnecessary_cast
+warning • The declaration '_parseValue' isn't referenced • lib/features/events/presentation/widgets/scorecard_modal.dart:896:14 • unused_element
+
+219 issues found. (ran in 6.5s)

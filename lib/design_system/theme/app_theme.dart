@@ -51,7 +51,7 @@ class AppTheme {
         bodyColor: textPrimary,
         displayColor: textPrimary,
       ),
-      0.8,
+      -0.2, // Tighter base spacing for modern look
     );
 
     return ThemeData(
@@ -81,7 +81,7 @@ class AppTheme {
           fontSize: 22,
           fontWeight: FontWeight.w900,
           color: isDark ? Colors.white : primaryBlack,
-          letterSpacing: 0.8,
+          letterSpacing: -1.0, // Tightened
         ),
         iconTheme: IconThemeData(
           color: isDark ? Colors.white : primaryBlack,
@@ -224,21 +224,21 @@ class AppTheme {
   
   static TextTheme _applyLetterSpacing(TextTheme theme, double spacing) {
     return theme.copyWith(
-      displayLarge: theme.displayLarge?.copyWith(letterSpacing: spacing),
-      displayMedium: theme.displayMedium?.copyWith(letterSpacing: spacing),
-      displaySmall: theme.displaySmall?.copyWith(letterSpacing: spacing),
-      headlineLarge: theme.headlineLarge?.copyWith(letterSpacing: spacing),
-      headlineMedium: theme.headlineMedium?.copyWith(letterSpacing: spacing),
-      headlineSmall: theme.headlineSmall?.copyWith(letterSpacing: spacing),
-      titleLarge: theme.titleLarge?.copyWith(letterSpacing: spacing),
-      titleMedium: theme.titleMedium?.copyWith(letterSpacing: spacing),
-      titleSmall: theme.titleSmall?.copyWith(letterSpacing: spacing),
+      displayLarge: theme.displayLarge?.copyWith(letterSpacing: -1.5, fontWeight: FontWeight.w900),
+      displayMedium: theme.displayMedium?.copyWith(letterSpacing: -1.2, fontWeight: FontWeight.w800),
+      displaySmall: theme.displaySmall?.copyWith(letterSpacing: -1.0, fontWeight: FontWeight.w800),
+      headlineLarge: theme.headlineLarge?.copyWith(letterSpacing: -1.0, fontWeight: FontWeight.w800),
+      headlineMedium: theme.headlineMedium?.copyWith(letterSpacing: -0.8, fontWeight: FontWeight.w700),
+      headlineSmall: theme.headlineSmall?.copyWith(letterSpacing: -0.5, fontWeight: FontWeight.w700),
+      titleLarge: theme.titleLarge?.copyWith(letterSpacing: -0.5, fontWeight: FontWeight.w700),
+      titleMedium: theme.titleMedium?.copyWith(letterSpacing: -0.2, fontWeight: FontWeight.w600),
+      titleSmall: theme.titleSmall?.copyWith(letterSpacing: 0.0, fontWeight: FontWeight.w600),
       bodyLarge: theme.bodyLarge?.copyWith(letterSpacing: spacing),
       bodyMedium: theme.bodyMedium?.copyWith(letterSpacing: spacing),
       bodySmall: theme.bodySmall?.copyWith(letterSpacing: spacing),
-      labelLarge: theme.labelLarge?.copyWith(letterSpacing: spacing),
-      labelMedium: theme.labelMedium?.copyWith(letterSpacing: spacing),
-      labelSmall: theme.labelSmall?.copyWith(letterSpacing: spacing),
+      labelLarge: theme.labelLarge?.copyWith(letterSpacing: 0.5, fontWeight: FontWeight.bold),
+      labelMedium: theme.labelMedium?.copyWith(letterSpacing: 0.5, fontWeight: FontWeight.bold),
+      labelSmall: theme.labelSmall?.copyWith(letterSpacing: 0.5, fontWeight: FontWeight.bold),
     );
   }
 }

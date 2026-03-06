@@ -1,8 +1,9 @@
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 class CourseInfoCard extends StatelessWidget {
-  final Map<String, dynamic> courseConfig;
+  final dynamic courseConfig;
   final String? selectedTeeName;
   final String distanceUnit;
   final bool isStableford;
@@ -46,18 +47,20 @@ class CourseInfoCard extends StatelessWidget {
     List<dynamic> holePars;
     List<dynamic> holeSIs;
     
-    // Check if using new format (holes array)
-    if (courseConfig['holes'] != null) {
+    if (courseConfig is CourseConfig) {
+      holePars = courseConfig.holes.map((h) => h.par).toList();
+      holeSIs = courseConfig.holes.map((h) => h.si).toList();
+    } else if (courseConfig is Map && courseConfig['holes'] != null) {
       final holes = courseConfig['holes'] as List<dynamic>;
       holePars = holes.map((h) => h['par'] ?? 4).toList();
       holeSIs = holes.map((h) => h['si'] ?? 0).toList();
-    } else {
+    } else if (courseConfig is Map) {
       // Legacy format
       holePars = courseConfig['holePars'] as List<dynamic>? ?? List.filled(18, 4);
       holeSIs = courseConfig['holeSIs'] as List<dynamic>? ?? List.generate(18, (i) => i + 1);
-      
-      // Get yardage for selected tee (default to first tee if not specified)
-      // Yardage logic can be restored if needed
+    } else {
+      holePars = List.filled(18, 4);
+      holeSIs = List.generate(18, (i) => i + 1);
     }
     
     // Calculate totals

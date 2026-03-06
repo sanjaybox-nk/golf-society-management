@@ -27,8 +27,8 @@ class AdminShell extends StatelessWidget {
       extendBody: true,
       body: navigationShell,
       bottomNavigationBar: BoxyArtBottomNavBar(
-        selectedIndex: navigationShell.currentIndex,
-        onItemSelected: (index) => navigationShell.goBranch(index),
+        selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
+        onItemSelected: (index) => navigationShell.goBranch(_mapUiIndexToBranch(index)),
         borderColor: Theme.of(context).primaryColor,
         items: const [
           BoxyArtBottomNavItem(
@@ -66,8 +66,8 @@ class AdminShell extends StatelessWidget {
       body: Row(
         children: [
           NavigationRail(
-            selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (index) => navigationShell.goBranch(index),
+            selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
+            onDestinationSelected: (index) => navigationShell.goBranch(_mapUiIndexToBranch(index)),
             labelType: NavigationRailLabelType.all,
             backgroundColor: Colors.black,
             selectedIconTheme: IconThemeData(color: Theme.of(context).primaryColor),
@@ -85,6 +85,19 @@ class AdminShell extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  int _mapUiIndexToBranch(int index) {
+    // UI: Dashboard(0), Events(1), Members(2), Comms(3), Reporting(4)
+    // Branches: Dashboard(0), Events(1), Members(2), Comms(3), Surveys(4), Reporting(5)
+    if (index >= 4) return index + 1; // Skip Surveys (index 4)
+    return index;
+  }
+
+  int _mapBranchToUiIndex(int index) {
+    if (index == 4) return 0; // Surveys (as a fallback, show dashboard active)
+    if (index == 5) return 4; // Reporting
+    return index;
   }
 
   List<BottomNavigationBarItem> _navItems() {

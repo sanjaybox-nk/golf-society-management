@@ -31,6 +31,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
       title: 'Society Hub',
       subtitle: 'Operations & Insights',
       showBack: false,
+      leading: Center(
+        child: BoxyArtGlassIconButton(
+          icon: Icons.home_rounded,
+          onPressed: () => context.go('/home'),
+          tooltip: 'App Home',
+        ),
+      ),
       actions: [
         BoxyArtGlassIconButton(
           icon: Icons.picture_as_pdf_outlined,

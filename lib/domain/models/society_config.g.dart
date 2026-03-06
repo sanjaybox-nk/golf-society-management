@@ -38,6 +38,9 @@ _SocietyConfig _$SocietyConfigFromJson(
         (k, e) => MapEntry(k, (e as num).toDouble()),
       ) ??
       const {'1st': 2.0, '2nd': 1.0, '3rd': 0.5},
+  globalMarkupPercentage:
+      (json['globalMarkupPercentage'] as num?)?.toDouble() ?? 0.10,
+  guestMarkupExtra: (json['guestMarkupExtra'] as num?)?.toDouble() ?? 10.0,
 );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -59,6 +62,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'separateGuestLeaderboard': instance.separateGuestLeaderboard,
       'societyCutMode': _$SocietyCutModeEnumMap[instance.societyCutMode]!,
       'societyCutRules': instance.societyCutRules,
+      'globalMarkupPercentage': instance.globalMarkupPercentage,
+      'guestMarkupExtra': instance.guestMarkupExtra,
     };
 
 const _$HandicapSystemEnumMap = {

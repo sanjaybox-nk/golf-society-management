@@ -12,14 +12,15 @@ import '../../members/presentation/members_provider.dart';
 import '../../members/presentation/profile_provider.dart';
 import 'widgets/hole_by_hole_scoring_widget.dart'; // For MarkerTab
 import 'state/marker_selection_provider.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 class HeroScoringScreen extends ConsumerStatefulWidget {
   final GolfEvent event;
   final Map<int, int> initialPlayerScores;
   final Map<int, int> initialVerifierScores;
   final int initialHole;
-  final List<dynamic> holes;
-  final Map<String, dynamic> effectivePtc;
+  final List<CourseHole> holes;
+  final CourseConfig effectivePtc;
   final MarkerTab initialTab;
   final String? activeEntryId;
   final Function(int hole, int score, bool isVerifier) onSetScore;

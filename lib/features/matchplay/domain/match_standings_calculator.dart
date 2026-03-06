@@ -2,6 +2,7 @@
 import 'match_definition.dart';
 import 'match_play_calculator.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 class MatchGroupEntry {
   final String playerId;
@@ -45,7 +46,7 @@ class MatchStandingsCalculator {
   static List<MatchGroupEntry> calculateStandings({
     required List<MatchDefinition> matches,
     required List<Scorecard> scorecards,
-    required Map<String, dynamic> courseConfig,
+    required CourseConfig courseConfig,
   }) {
     final Map<String, MatchGroupEntry> entries = {};
 
@@ -56,7 +57,7 @@ class MatchStandingsCalculator {
         match: m,
         scorecards: scorecards,
         courseConfig: courseConfig,
-        holesToPlay: courseConfig['holes']?.length ?? 18,
+        holesToPlay: courseConfig.holes.length,
       );
 
       // Only count final results

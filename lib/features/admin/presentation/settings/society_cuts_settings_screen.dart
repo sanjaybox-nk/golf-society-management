@@ -184,7 +184,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                           child: BoxyArtNavTile(
                             title: event.title.toUpperCase(),
                             subtitle: 'TAP TO APPLY INDIVIDUAL CUTS',
-                            icon: Icons.edit_attributes_rounded,
+                            icon: Icons.tune_rounded,
                             iconColor: AppColors.lime500,
                             onTap: () => context.push('/admin/events/manage/${event.id}/manual-cuts'),
                           ),

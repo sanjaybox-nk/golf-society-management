@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../events/presentation/events_provider.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:collection/collection.dart';
 import '../../providers/admin_ui_providers.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
 import './event_admin_grouping_screen.dart'; // For GroupingExitAction
 
 class EventAdminShell extends ConsumerWidget {
@@ -15,84 +17,89 @@ class EventAdminShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final location = GoRouterState.of(context).uri.toString();
-    int currentIndex = 0;
-    
-    if (location.endsWith('/registrations')) {
-      currentIndex = 1;
-    } else if (location.endsWith('/grouping')) {
-      currentIndex = 2;
-    } else if (location.endsWith('/scores')) {
-      currentIndex = 3;
-    } else if (location.endsWith('/financials')) {
-      currentIndex = 4;
-    } else if (location.endsWith('/reports')) {
-      currentIndex = 5;
+    final segments = GoRouterState.of(context).uri.pathSegments;
+    // Extract ID from path parameters: /admin/events/manage/:id/...
+    String? id = GoRouterState.of(context).pathParameters['id'];
+    if (id == null) {
+      final manageIndex = segments.indexOf('manage');
+      if (manageIndex != -1 && manageIndex < segments.length - 1) {
+        id = segments[manageIndex + 1];
+      }
     }
+
+    final eventsAsync = ref.watch(adminEventsProvider);
+    final event = eventsAsync.value?.firstWhereOrNull((e) => e.id == id);
+    final isGolfEvent = event == null || event.eventType == EventType.golf;
+
+    final List<_AdminTab> tabs = [
+      const _AdminTab(
+        path: 'home',
+        icon: Icons.home_filled,
+        activeIcon: Icons.home,
+        label: 'Home',
+      ),
+      const _AdminTab(
+        path: 'event',
+        icon: Icons.info_outline_rounded,
+        activeIcon: Icons.info_rounded,
+        label: 'Details',
+      ),
+      const _AdminTab(
+        path: 'registrations',
+        icon: Icons.people_outline,
+        activeIcon: Icons.people,
+        label: 'Registration',
+      ),
+      if (isGolfEvent) ...[
+        const _AdminTab(
+          path: 'grouping',
+          icon: Icons.grid_view_rounded,
+          activeIcon: Icons.grid_view_sharp,
+          label: 'Groups',
+        ),
+        const _AdminTab(
+          path: 'scores',
+          icon: Icons.emoji_events_outlined,
+          activeIcon: Icons.emoji_events,
+          label: 'Scores',
+        ),
+      ],
+      const _AdminTab(
+        path: 'reporting',
+        icon: Icons.bar_chart_outlined,
+        activeIcon: Icons.bar_chart,
+        label: 'Reports',
+      ),
+    ];
+
+    int currentIndex = tabs.indexWhere((t) => segments.contains(t.path));
+    if (currentIndex == -1) currentIndex = 0;
 
     return Scaffold(
       extendBody: true,
       body: child,
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
-        onItemSelected: (index) => _onTap(context, ref, index, currentIndex),
+        onItemSelected: (index) => _onTap(context, ref, index, currentIndex, tabs, id),
         activeColor: AppColors.lime500,
         borderColor: AppColors.lime500,
-        items: const [
-          BoxyArtBottomNavItem(
-            icon: Icons.info_outline_rounded,
-            activeIcon: Icons.info_rounded,
-            label: 'Info',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.people_outline,
-            activeIcon: Icons.people,
-            label: 'Registration',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.grid_view_rounded,
-            activeIcon: Icons.grid_view_sharp,
-            label: 'Grouping',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.emoji_events_outlined,
-            activeIcon: Icons.emoji_events,
-            label: 'Scores',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.account_balance_wallet_outlined,
-            activeIcon: Icons.account_balance_wallet_rounded,
-            label: 'Financials',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.bar_chart_outlined,
-            activeIcon: Icons.bar_chart,
-            label: 'Reports',
-          ),
-        ],
+        items: tabs.map((t) => BoxyArtBottomNavItem(
+          icon: t.icon,
+          activeIcon: t.activeIcon,
+          label: t.label,
+        )).toList(),
       ),
     );
   }
 
-  void _onTap(BuildContext context, WidgetRef ref, int index, int currentIndex) async {
-    if (index == currentIndex) return;
-
-    // Extract ID from path parameters: /admin/events/manage/:id/...
-    // Fallback: If pathParameters is empty (common in ShellRoute), parse from URI segments
-    String? id = GoRouterState.of(context).pathParameters['id'];
-    if (id == null) {
-      final segments = GoRouterState.of(context).uri.pathSegments;
-      final manageIndex = segments.indexOf('manage');
-      if (manageIndex != -1 && manageIndex < segments.length - 1) {
-        id = segments[manageIndex + 1];
-      }
-    }
+  void _onTap(BuildContext context, WidgetRef ref, int index, int currentIndex, List<_AdminTab> tabs, String? id) async {
+    if (index == currentIndex || id == null) return;
     
-    if (id == null) return;
+    final currentTab = tabs[currentIndex];
+    final nextTab = tabs[index];
 
     // Check if grouping is dirty before leaving it
-    // currentIndex 2 = Grouping tab
-    if (currentIndex == 2) {
+    if (currentTab.path == 'grouping') {
       final isDirty = ref.read(groupingDirtyProvider);
       if (isDirty) {
         final action = await _showExitConfirmation(context);
@@ -127,27 +134,8 @@ class EventAdminShell extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-      final encodedId = Uri.encodeComponent(id);
-      switch (index) {
-        case 0:
-          context.go('/admin/events/manage/$encodedId/event');
-          break;
-        case 1:
-          context.go('/admin/events/manage/$encodedId/registrations');
-          break;
-        case 2:
-          context.go('/admin/events/manage/$encodedId/grouping');
-          break;
-        case 3:
-          context.go('/admin/events/manage/$encodedId/scores');
-          break;
-        case 4:
-          context.go('/admin/events/manage/$encodedId/financials');
-          break;
-        case 5:
-          context.go('/admin/events/manage/$encodedId/reports');
-          break;
-      }
+    final encodedId = Uri.encodeComponent(id);
+    context.go('/admin/events/manage/$encodedId/${nextTab.path}');
   }
 
   Future<GroupingExitAction> _showExitConfirmation(BuildContext context) async {
@@ -176,4 +164,18 @@ class EventAdminShell extends ConsumerWidget {
     );
     return result ?? GroupingExitAction.stay;
   }
+}
+
+class _AdminTab {
+  final String path;
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+
+  const _AdminTab({
+    required this.path,
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+  });
 }

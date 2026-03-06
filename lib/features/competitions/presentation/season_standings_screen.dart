@@ -472,7 +472,7 @@ class _StandingRow extends StatelessWidget {
           const SizedBox(width: 12),
           CircleAvatar(
             radius: 14,
-            backgroundColor: isMe ? AppColors.amber500.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+            backgroundColor: isMe ? AppColors.amber500.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
             child: Text(
               standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isMe ? AppColors.amber500 : Colors.grey),

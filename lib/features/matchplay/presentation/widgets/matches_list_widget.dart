@@ -41,7 +41,7 @@ class MatchesListWidget extends ConsumerWidget {
                   match: match,
                   scorecards: scorecards,
                   courseConfig: event.courseConfig,
-                  holesToPlay: event.courseConfig['holes']?.length ?? 18,
+                  holesToPlay: event.courseConfig.holes.length,
                 );
 
                 return _MatchTile(match: match, result: result);

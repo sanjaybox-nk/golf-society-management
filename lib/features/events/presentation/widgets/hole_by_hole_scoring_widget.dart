@@ -14,6 +14,7 @@ import '../../../matchplay/presentation/widgets/match_status_header.dart';
 import '../../../matchplay/presentation/state/match_play_providers.dart';
 import '../hero_scoring_screen.dart';
 import '../state/marker_selection_provider.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 // events_provider.dart removed as it was unused
 enum MarkerTab { player, verifier }
 
@@ -266,7 +267,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       membersList: members, 
       manualTeeName: manualTee,
     );
-    final holes = resolvedPtc['holes'] as List? ?? [];
+    final holes = resolvedPtc.holes;
     
     // Watch for active match status
     final matchResultAsync = ref.watch(currentMatchControllerProvider(widget.event.id));
@@ -278,8 +279,8 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     int? si;
     if (holes.length >= currentHoleNum) {
       final hData = holes[_currentHoleIndex];
-      par = (hData['par'] as num?)?.toInt() ?? 4;
-      si = (hData['si'] as num?)?.toInt();
+      par = hData.par;
+      si = hData.si;
     }
 
     return GestureDetector(
@@ -450,7 +451,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     );
   }
 
-  void _openHeroScoring(List<dynamic> holes, Map<String, dynamic> ptc) {
+  void _openHeroScoring(List<CourseHole> holes, CourseConfig ptc) {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => HeroScoringScreen(
@@ -501,9 +502,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             membersList: members, 
             manualTeeName: manualTee,
           );
-          final holeData = (pConfig['holes'] as List?)?.elementAtOrNull(holeNum - 1);
-          final par = (holeData?['par'] as num?)?.toInt() ?? 4;
-          final si = (holeData?['si'] as num?)?.toInt() ?? 18;
+          final holeData = pConfig.holes.elementAtOrNull(holeNum - 1);
+          final par = holeData?.par ?? 4;
+          final si = holeData?.si ?? 18;
           cap = _calculateMaxScoreCap(holeNum, par, si, comp!.rules);
       }
 

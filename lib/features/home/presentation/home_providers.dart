@@ -27,9 +27,8 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) 
 // Real-time Notifications Stream
 final homeNotificationsProvider = StreamProvider<List<AppNotification>>((ref) {
   final repository = ref.watch(notificationsRepositoryProvider);
-  // TODO: Replace with actual logged-in user ID when Auth is implemented
-  const currentUserId = 'current_user_id'; 
-  return repository.watchNotifications(currentUserId);
+  final user = ref.watch(effectiveUserProvider);
+  return repository.watchNotifications(user.id);
 });
 
 // Active Leaderboard Standings for Home (e.g., top 3 of the main OOM)

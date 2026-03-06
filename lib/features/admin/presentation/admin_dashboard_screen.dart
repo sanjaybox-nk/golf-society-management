@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:golf_society/features/admin/presentation/audit_provider.dart';
+import 'package:golf_society/domain/models/audit_activity.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -49,7 +52,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   if (nextEvent != null) {
                     return DashboardHeroCard(
                       event: nextEvent,
-                      onTap: () => context.push('/admin/events/edit/${nextEvent.id}', extra: nextEvent),
+                      onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(nextEvent.id)}/home'),
                     );
                   }
                   return const SizedBox.shrink();
@@ -92,17 +95,17 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
-                        icon: Icons.bar_chart_rounded,
-                        title: 'Reports',
-                        color: Colors.purple,
-                        onTap: () => context.push('/admin/reports'),
-                      ),
-                      _FeatureGridItem(
-                        width: cardWidth,
                         icon: Icons.settings_suggest_rounded,
                         title: 'Settings',
                         color: Colors.orange,
                         onTap: () => context.push('/admin/settings'),
+                      ),
+                      _FeatureGridItem(
+                        width: cardWidth,
+                        icon: Icons.poll_rounded,
+                        title: 'Surveys',
+                        color: Colors.amber,
+                        onTap: () => context.go('/admin/surveys'),
                       ),
                     ],
                   );
@@ -182,69 +185,92 @@ class _FeatureGridItem extends StatelessWidget {
   }
 }
 
-class _ActivityFeed extends StatelessWidget {
+
+
+class _ActivityFeed extends ConsumerWidget {
   const _ActivityFeed();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    
-    // Mock activity items for now
-    final activities = [
-      ('John Doe registered for The Open', '2 mins ago', Icons.person_add_rounded, Colors.blue),
-      ('Scorecard submitted for Sunset Classic', '15 mins ago', Icons.sports_score_rounded, Colors.green),
-      ('Payment confirmed for Mike Smith', '1 hour ago', Icons.payments_rounded, Colors.orange),
-      ('New event "Spring Scramble" published', '3 hours ago', Icons.campaign_rounded, Colors.purple),
-    ];
+    final activitiesAsync = ref.watch(auditActivitiesProvider(5));
 
-    return BoxyArtCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: activities.mapIndexed((index, item) {
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: item.$4.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppSpacing.sm),
-                      ),
-                      child: Icon(item.$3, color: item.$4, size: 18),
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.$1,
-                            style: AppTypography.label.copyWith(fontSize: 13),
-                          ),
-                          Text(
-                            item.$2,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: theme.textTheme.bodySmall?.color,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+    return activitiesAsync.when(
+      data: (activities) {
+        if (activities.isEmpty) {
+          return const BoxyArtCard(
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.xl),
+              child: Center(
+                child: Text('No recent activity', style: TextStyle(color: Colors.grey)),
               ),
-              if (index < activities.length - 1)
-                Divider(
-                  height: 1, 
-                  indent: 64, 
-                  color: theme.dividerColor.withValues(alpha: 0.05),
-                ),
-            ],
+            ),
           );
-        }).toList(),
+        }
+
+        return BoxyArtCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: activities.mapIndexed((index, activity) {
+              final appearance = AuditActivity.getAppearance(activity.type);
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: appearance.$2.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppSpacing.sm),
+                          ),
+                          child: Icon(appearance.$1, color: appearance.$2, size: 18),
+                        ),
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                activity.message,
+                                style: AppTypography.label.copyWith(fontSize: 13),
+                              ),
+                              Text(
+                                timeago.format(activity.timestamp),
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: theme.textTheme.bodySmall?.color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (index < activities.length - 1)
+                    Divider(
+                      height: 1, 
+                      indent: 64, 
+                      color: theme.dividerColor.withValues(alpha: 0.05),
+                    ),
+                ],
+              );
+            }).toList(),
+          ),
+        );
+      },
+      loading: () => const BoxyArtCard(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.xl),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (e, _) => BoxyArtCard(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.xl),
+          child: Center(child: Text('Error: $e')),
+        ),
       ),
     );
   }
@@ -313,7 +339,7 @@ class _BroadcastEventPicker extends StatelessWidget {
                       child: ListTile(
                         onTap: () {
                           Navigator.pop(context);
-                          context.push('/admin/events/${event.id}/broadcast');
+                          context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/broadcast/new');
                         },
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         title: Text(

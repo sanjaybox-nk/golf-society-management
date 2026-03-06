@@ -67,6 +67,7 @@ _EventFeedItem _$EventFeedItemFromJson(Map<String, dynamic> json) =>
       isPublished: json['isPublished'] as bool? ?? false,
       sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      pollData: json['pollData'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$EventFeedItemToJson(_EventFeedItem instance) =>
@@ -80,12 +81,18 @@ Map<String, dynamic> _$EventFeedItemToJson(_EventFeedItem instance) =>
       'isPublished': instance.isPublished,
       'sortOrder': instance.sortOrder,
       'createdAt': instance.createdAt.toIso8601String(),
+      'pollData': instance.pollData,
     };
 
 const _$FeedItemTypeEnumMap = {
   FeedItemType.flash: 'flash',
   FeedItemType.newsletter: 'newsletter',
   FeedItemType.gallery: 'gallery',
+  FeedItemType.headline: 'headline',
+  FeedItemType.registration: 'registration',
+  FeedItemType.podium: 'podium',
+  FeedItemType.gallerySnippet: 'gallerySnippet',
+  FeedItemType.poll: 'poll',
 };
 
 _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
@@ -151,7 +158,9 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           .toList() ??
       const [],
   courseId: json['courseId'] as String?,
-  courseConfig: json['courseConfig'] as Map<String, dynamic>? ?? const {},
+  courseConfig: json['courseConfig'] == null
+      ? const CourseConfig()
+      : CourseConfig.fromJson(json['courseConfig'] as Map<String, dynamic>),
   selectedTeeName: json['selectedTeeName'] as String?,
   selectedFemaleTeeName: json['selectedFemaleTeeName'] as String?,
   flashUpdates:
@@ -183,11 +192,15 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
           ?.map((e) => EventAward.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  eventType:
+      $enumDecodeNullable(_$EventTypeEnumMap, json['eventType']) ??
+      EventType.golf,
   manualCuts:
       (json['manualCuts'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, (e as num).toDouble()),
       ) ??
       const {},
+  eventCost: (json['eventCost'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$GolfEventToJson(
@@ -235,7 +248,7 @@ Map<String, dynamic> _$GolfEventToJson(
   'grouping': instance.grouping,
   'results': instance.results,
   'courseId': instance.courseId,
-  'courseConfig': instance.courseConfig,
+  'courseConfig': instance.courseConfig.toJson(),
   'selectedTeeName': instance.selectedTeeName,
   'selectedFemaleTeeName': instance.selectedFemaleTeeName,
   'flashUpdates': instance.flashUpdates,
@@ -249,7 +262,9 @@ Map<String, dynamic> _$GolfEventToJson(
   'expenses': instance.expenses.map((e) => e.toJson()).toList(),
   'showAwards': instance.showAwards,
   'awards': instance.awards.map((e) => e.toJson()).toList(),
+  'eventType': _$EventTypeEnumMap[instance.eventType]!,
   'manualCuts': instance.manualCuts,
+  'eventCost': instance.eventCost,
 };
 
 const _$EventStatusEnumMap = {
@@ -260,3 +275,5 @@ const _$EventStatusEnumMap = {
   EventStatus.cancelled: 'cancelled',
   EventStatus.suspended: 'suspended',
 };
+
+const _$EventTypeEnumMap = {EventType.golf: 'golf', EventType.social: 'social'};

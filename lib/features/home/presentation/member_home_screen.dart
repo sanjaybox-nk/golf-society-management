@@ -8,13 +8,29 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
+import '../../surveys/presentation/surveys_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
+import 'package:golf_society/domain/models/survey.dart';
+
+/// Track dismissed survey IDs for the current session to keep the home screen clean.
+class DismissedSurveysNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void dismiss(String surveyId) {
+    state = {...state, surveyId};
+  }
+}
+
+final dismissedSurveyIdsProvider = NotifierProvider<DismissedSurveysNotifier, Set<String>>(DismissedSurveysNotifier.new);
 
 class MemberHomeScreen extends ConsumerWidget {
   const MemberHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final effectiveUser = ref.watch(effectiveUserProvider);
     final isPeeking = ref.watch(impersonationProvider) != null;
     
@@ -25,6 +41,7 @@ class MemberHomeScreen extends ConsumerWidget {
     final topPlayers = ref.watch(homeSeasonLeaderboardProvider);
     final personalStanding = ref.watch(homeMemberStandingProvider);
     final societyConfig = ref.watch(themeControllerProvider);
+    final surveysAsync = ref.watch(activeSurveysProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Match provided aesthetic
@@ -178,10 +195,17 @@ class MemberHomeScreen extends ConsumerWidget {
                                   title: 'Notifications',
                                   isPeeking: isPeeking,
                                 ),
-                                TextButton(
-                                  onPressed: () => context.push('/home/notifications'),
-                                  child: const Text('View All', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                                ),
+                                  TextButton(
+                                    onPressed: () => context.push('/home/notifications'),
+                                    child: Text(
+                                      'View All', 
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        color: isDark ? AppColors.lime400 : AppColors.lime700,
+                                        fontWeight: FontWeight.bold,
+                                        inherit: true, // Fix for TextStyle interpolation crash
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -191,6 +215,42 @@ class MemberHomeScreen extends ConsumerWidget {
                             )),
                             const SizedBox(height: 24),
                           ],
+
+                          // Society Surveys
+                          ...surveysAsync.when(
+                            data: (surveys) {
+                              final dismissedIds = ref.watch(dismissedSurveyIdsProvider);
+                              final now = DateTime.now();
+                              
+                              final visibleSurveys = surveys.where((s) {
+                                // 1. Filter by dismissal
+                                if (dismissedIds.contains(s.id)) return false;
+                                
+                                // 2. Filter by deadline
+                                if (s.deadline != null && now.isAfter(s.deadline!)) return false;
+                                
+                                return true;
+                              }).toList();
+                              
+                              if (visibleSurveys.isEmpty) return [const SizedBox.shrink()];
+                              return [
+                                BoxyArtSectionTitle(
+                                  title: 'Society Surveys',
+                                  isPeeking: isPeeking,
+                                ),
+                                const SizedBox(height: 12),
+                                ...visibleSurveys.map((survey) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 24),
+                                  child: _SurveyInteractiveCard(
+                                    key: ValueKey('survey_${survey.id}'),
+                                    survey: survey,
+                                  ),
+                                )),
+                              ];
+                            },
+                            loading: () => [const SizedBox.shrink()],
+                            error: (_, _) => [const SizedBox.shrink()],
+                          ),
           
                           // Next Match Hero Card
                           BoxyArtSectionTitle(
@@ -394,7 +454,6 @@ class _LeaderboardSnippet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
     final isPersonalInSnippet = topPlayers.any((p) => p['name'] == personalStanding?.memberName);
 
     return BoxyArtCard(
@@ -566,4 +625,299 @@ String _getGreeting() {
   if (hour < 12) return 'Ready for the green,';
   if (hour < 17) return 'Perfect day for a round,';
   return 'Fore! Welcome back,';
+}
+
+class _SurveyInteractiveCard extends ConsumerStatefulWidget {
+  final Survey survey;
+
+  const _SurveyInteractiveCard({super.key, required this.survey});
+
+  @override
+  ConsumerState<_SurveyInteractiveCard> createState() => _SurveyInteractiveCardState();
+}
+
+class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> {
+  final Map<String, dynamic> _localAnswers = {};
+  final Map<String, TextEditingController> _textControllers = {};
+  bool _isSubmitting = false;
+  bool _isExpanded = false; // Collapsed by default to reduce clutter
+
+  @override
+  void dispose() {
+    for (final c in _textControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(effectiveUserProvider);
+    final userResponse = widget.survey.responses[user.id] as Map<String, dynamic>?;
+    final hasVoted = userResponse != null;
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header / Toggle
+          GestureDetector(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SOCIETY SURVEY',
+                        style: AppTypography.label.copyWith(
+                          color: AppColors.lime500,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.survey.title,
+                        style: AppTypography.displayHeading.copyWith(fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasVoted) ...[
+                  BoxyArtButton(
+                    title: 'Dismiss',
+                    isSecondary: true,
+                    onTap: () {
+                      ref.read(dismissedSurveyIdsProvider.notifier).dismiss(widget.survey.id);
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Icon(
+                  _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: SizedBox(
+                height: _isExpanded ? null : 0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.survey.description != null && widget.survey.description!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.survey.description!,
+                        style: AppTypography.bodySmall,
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Column(
+                        children: widget.survey.questions.map((q) => _buildQuestion(q, userResponse?[q.id], hasVoted)).toList(),
+                      ),
+                    ),
+                    
+                    if (!hasVoted) ...[
+                      const SizedBox(height: 12),
+                      BoxyArtButton(
+                        title: _isSubmitting ? 'Submitting...' : 'Submit Response',
+                        isPrimary: true,
+                        fullWidth: true,
+                        onTap: _isSubmitting ? null : _submitAll,
+                      ),
+                    ] else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
+                        child: Text(
+                          'Thank you for your feedback!',
+                          style: AppTypography.label.copyWith(color: AppColors.lime500, fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestion(SurveyQuestion q, dynamic answer, bool hasVoted) {
+    var currentAnswer = hasVoted ? answer : _localAnswers[q.id];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            q.question.toUpperCase(),
+            style: AppTypography.label.copyWith(
+              color: AppColors.pureWhite,
+              fontSize: 13,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (q.type == SurveyQuestionType.text)
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.dark600,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: hasVoted && currentAnswer != null ? AppColors.lime500 : AppColors.dark500,
+                  width: hasVoted && currentAnswer != null ? 1.5 : 1.0,
+                ),
+              ),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  inputDecorationTheme: const InputDecorationTheme(
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                child: TextField(
+                  controller: _getTextController(q.id, currentAnswer?.toString()),
+                  readOnly: hasVoted,
+                  onChanged: hasVoted ? null : (v) => setState(() => _localAnswers[q.id] = v),
+                  style: TextStyle(
+                    color: hasVoted && currentAnswer != null ? AppColors.lime500 : Colors.white,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Type your response...',
+                    hintStyle: TextStyle(color: AppColors.dark300, fontSize: 14),
+                    suffixIcon: (hasVoted && currentAnswer != null) 
+                        ? const Icon(Icons.check_circle_rounded, color: AppColors.lime500, size: 20)
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+          if (q.type != SurveyQuestionType.text)
+            ...q.options.map((option) {
+              bool isSelected;
+              if (q.type == SurveyQuestionType.multipleChoice) {
+                final list = (currentAnswer as List<dynamic>?)?.cast<String>() ?? [];
+                isSelected = list.contains(option);
+              } else {
+                isSelected = currentAnswer == option;
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: hasVoted ? null : () {
+                    setState(() {
+                      if (q.type == SurveyQuestionType.multipleChoice) {
+                        final list = List<String>.from((_localAnswers[q.id] as List<dynamic>?)?.cast<String>() ?? []);
+                        if (list.contains(option)) {
+                          list.remove(option);
+                        } else {
+                          list.add(option);
+                        }
+                        _localAnswers[q.id] = list;
+                      } else {
+                        _localAnswers[q.id] = option;
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.lime500.withValues(alpha: 0.1) : AppColors.dark600,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? AppColors.lime500 : AppColors.dark500,
+                        width: isSelected ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            option,
+                            style: TextStyle(
+                              color: isSelected ? AppColors.lime500 : Colors.white.withValues(alpha: 0.9),
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          isSelected 
+                            ? (q.type == SurveyQuestionType.multipleChoice 
+                                ? Icons.check_box_rounded 
+                                : Icons.check_circle_rounded)
+                            : (q.type == SurveyQuestionType.multipleChoice 
+                                ? Icons.check_box_outline_blank_rounded 
+                                : Icons.radio_button_off_rounded), 
+                          color: isSelected ? AppColors.lime500 : AppColors.dark400, 
+                          size: 20
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  TextEditingController _getTextController(String questionId, String? initialValue) {
+    if (!_textControllers.containsKey(questionId)) {
+      _textControllers[questionId] = TextEditingController(text: initialValue);
+    }
+    return _textControllers[questionId]!;
+  }
+
+  Future<void> _submitAll() async {
+    if (_localAnswers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please answer at least one question.')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final user = ref.read(effectiveUserProvider);
+      await ref.read(surveysRepositoryProvider).submitResponse(widget.survey.id, user.id, _localAnswers);
+      if (mounted) {
+        setState(() {
+          _isExpanded = false;
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Response submitted. Thank you!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
 }

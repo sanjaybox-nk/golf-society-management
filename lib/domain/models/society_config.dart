@@ -34,6 +34,8 @@ abstract class SocietyConfig with _$SocietyConfig {
       '2nd': 1.0,
       '3rd': 0.5,
     }) Map<String, double> societyCutRules,
+    @Default(0.10) double globalMarkupPercentage, // Default: 10%
+    @Default(10.0) double guestMarkupExtra, // Default: £10 extra for guests
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>

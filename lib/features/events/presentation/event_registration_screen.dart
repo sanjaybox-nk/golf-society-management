@@ -61,18 +61,26 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       const memberName = 'Current Member';
 
       double totalCost = 0;
-      if (_attendingGolf) totalCost += event.memberCost ?? 0.0;
+      if (event.eventType == EventType.social) {
+        totalCost += event.eventCost ?? 0.0;
+      } else {
+        if (_attendingGolf) totalCost += event.memberCost ?? 0.0;
+        if (_needsBuggy) totalCost += event.buggyCost ?? 0.0;
+      }
       if (_attendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
       if (_attendingLunch) totalCost += event.lunchCost ?? 0.0;
       if (_attendingDinner) totalCost += event.dinnerCost ?? 0.0;
-      if (_needsBuggy) totalCost += event.buggyCost ?? 0.0;
 
       if (_registerGuest) {
-        totalCost += event.guestCost ?? 0.0;
+        if (event.eventType == EventType.social) {
+          totalCost += event.eventCost ?? 0.0;
+        } else {
+          totalCost += event.guestCost ?? 0.0;
+          if (_guestNeedsBuggy) totalCost += event.buggyCost ?? 0.0;
+        }
         if (_guestAttendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
         if (_guestAttendingLunch) totalCost += event.lunchCost ?? 0.0;
         if (_guestAttendingDinner) totalCost += event.dinnerCost ?? 0.0;
-        if (_guestNeedsBuggy) totalCost += event.buggyCost ?? 0.0;
       }
 
       final newList = List<EventRegistration>.from(event.registrations);
@@ -141,18 +149,26 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
 
   double _calculateTotal(GolfEvent event) {
     double total = 0;
-    if (_attendingGolf) total += event.memberCost ?? 0.0;
+    if (event.eventType == EventType.social) {
+      total += event.eventCost ?? 0.0;
+    } else {
+      if (_attendingGolf) total += event.memberCost ?? 0.0;
+      if (_needsBuggy) total += event.buggyCost ?? 0.0;
+    }
     if (_attendingBreakfast) total += event.breakfastCost ?? 0.0;
     if (_attendingLunch) total += event.lunchCost ?? 0.0;
     if (_attendingDinner) total += event.dinnerCost ?? 0.0;
-    if (_needsBuggy) total += event.buggyCost ?? 0.0;
 
     if (_registerGuest) {
-      total += event.guestCost ?? 0.0;
+      if (event.eventType == EventType.social) {
+        total += event.eventCost ?? 0.0;
+      } else {
+        total += event.guestCost ?? 0.0;
+        if (_guestNeedsBuggy) total += event.buggyCost ?? 0.0;
+      }
       if (_guestAttendingBreakfast) total += event.breakfastCost ?? 0.0;
       if (_guestAttendingLunch) total += event.lunchCost ?? 0.0;
       if (_guestAttendingDinner) total += event.dinnerCost ?? 0.0;
-      if (_guestNeedsBuggy) total += event.buggyCost ?? 0.0;
     }
     return total;
   }
@@ -165,18 +181,26 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   Widget _buildPriceBreakdownRow(BuildContext context, GolfEvent event) {
     return Column(
       children: [
-        if (_attendingGolf) _buildMiniCostRow('Member Golf', event.memberCost),
+        if (event.eventType == EventType.social) 
+          _buildMiniCostRow('Event Entry', event.eventCost)
+        else ...[
+          if (_attendingGolf) _buildMiniCostRow('Member Golf', event.memberCost),
+          if (_needsBuggy) _buildMiniCostRow('Buggy', event.buggyCost),
+        ],
         if (_attendingBreakfast) _buildMiniCostRow('Breakfast', event.breakfastCost),
         if (_attendingLunch) _buildMiniCostRow('Lunch', event.lunchCost),
         if (_attendingDinner) _buildMiniCostRow('Dinner', event.dinnerCost),
-        if (_needsBuggy) _buildMiniCostRow('Buggy', event.buggyCost),
         if (_registerGuest) ...[
           const Divider(height: 16),
-          _buildMiniCostRow('Guest Golf', event.guestCost, isGuest: true),
+          if (event.eventType == EventType.social)
+            _buildMiniCostRow('Guest Entry', event.eventCost, isGuest: true)
+          else ...[
+            _buildMiniCostRow('Guest Golf', event.guestCost, isGuest: true),
+            if (_guestNeedsBuggy) _buildMiniCostRow('Guest Buggy', event.buggyCost, isGuest: true),
+          ],
           if (_guestAttendingBreakfast) _buildMiniCostRow('Guest Breakfast', event.breakfastCost, isGuest: true),
           if (_guestAttendingLunch) _buildMiniCostRow('Guest Lunch', event.lunchCost, isGuest: true),
           if (_guestAttendingDinner) _buildMiniCostRow('Guest Dinner', event.dinnerCost, isGuest: true),
-          if (_guestNeedsBuggy) _buildMiniCostRow('Guest Buggy', event.buggyCost, isGuest: true),
         ],
       ],
     );
@@ -257,58 +281,53 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       const BoxyArtSectionTitle(title: 'Your Attendance'),
                       const SizedBox(height: 12),
                       BoxyArtCard(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Column(
                           children: [
-                            _buildModernSwitchRow(
-                              context,
-                              'Playing Golf',
-                              _attendingGolf,
-                              (val) => setState(() => _attendingGolf = val),
-                              icon: Icons.golf_course_rounded,
-                            ),
-                            if (_attendingGolf) ...[
-                              const Divider(height: 24),
-                              _buildModernSwitchRow(
-                                context,
-                                'Buggy Needed',
-                                _needsBuggy,
-                                (val) => setState(() => _needsBuggy = val),
-                                icon: Icons.electric_rickshaw_rounded,
+                            if (event.eventType == EventType.golf) ...[
+                              BoxyArtSwitchTile(
+                                icon: Icons.golf_course_rounded,
+                                label: 'Playing Golf',
+                                value: _attendingGolf,
+                                iconColor: AppColors.lime500,
+                                onChanged: (val) => setState(() => _attendingGolf = val),
                               ),
+                              if (_attendingGolf)
+                                BoxyArtSwitchTile(
+                                  icon: Icons.electric_rickshaw_rounded,
+                                  label: 'Buggy Needed',
+                                  value: _needsBuggy,
+                                  iconColor: AppColors.coral500,
+                                  onChanged: (val) => setState(() => _needsBuggy = val),
+                                ),
                             ],
-                            if (event.hasBreakfast == true && event.breakfastCost != null) ...[
-                              const Divider(height: 24),
-                              _buildModernSwitchRow(
-                                context,
-                                'Attending Breakfast',
-                                _attendingBreakfast,
-                                (val) => setState(() => _attendingBreakfast = val),
-                                subtitle: event.breakfastCost == 0 ? 'Included' : null,
+                            if (event.hasBreakfast == true && event.breakfastCost != null)
+                              BoxyArtSwitchTile(
                                 icon: Icons.breakfast_dining_rounded,
+                                label: 'Attending Breakfast',
+                                subtitle: event.breakfastCost == 0 ? 'Included' : null,
+                                value: _attendingBreakfast,
+                                iconColor: AppColors.amber500,
+                                onChanged: (val) => setState(() => _attendingBreakfast = val),
                               ),
-                            ],
-                            if (event.hasLunch == true && event.lunchCost != null) ...[
-                              const Divider(height: 24),
-                              _buildModernSwitchRow(
-                                context,
-                                'Attending Lunch',
-                                _attendingLunch,
-                                (val) => setState(() => _attendingLunch = val),
-                                subtitle: event.lunchCost == 0 ? 'Included' : null,
+                            if (event.hasLunch == true && event.lunchCost != null)
+                              BoxyArtSwitchTile(
                                 icon: Icons.lunch_dining_rounded,
+                                label: 'Attending Lunch',
+                                subtitle: event.lunchCost == 0 ? 'Included' : null,
+                                value: _attendingLunch,
+                                iconColor: AppColors.amber500,
+                                onChanged: (val) => setState(() => _attendingLunch = val),
                               ),
-                            ],
-                            if (event.hasDinner == true && event.dinnerCost != null) ...[
-                              const Divider(height: 24),
-                              _buildModernSwitchRow(
-                                context,
-                                'Attending Dinner',
-                                _attendingDinner,
-                                (val) => setState(() => _attendingDinner = val),
-                                subtitle: event.dinnerCost == 0 ? 'Included' : null,
+                            if (event.hasDinner == true && event.dinnerCost != null)
+                              BoxyArtSwitchTile(
                                 icon: Icons.restaurant_rounded,
+                                label: 'Attending Dinner',
+                                subtitle: event.dinnerCost == 0 ? 'Included' : null,
+                                value: _attendingDinner,
+                                iconColor: AppColors.coral500,
+                                onChanged: (val) => setState(() => _attendingDinner = val),
                               ),
-                            ],
                           ],
                         ),
                       ),
@@ -317,49 +336,52 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       const BoxyArtSectionTitle(title: 'Guest Registration'),
                       const SizedBox(height: 12),
                       BoxyArtCard(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Column(
                           children: [
-                            _buildModernSwitchRow(
-                              context,
-                              'Add a Guest',
-                              _registerGuest,
-                              (val) => setState(() => _registerGuest = val),
+                            BoxyArtSwitchTile(
                               icon: Icons.person_add_rounded,
+                              label: 'Add a Guest',
+                              value: _registerGuest,
+                              iconColor: AppColors.lime500,
+                              onChanged: (val) => setState(() => _registerGuest = val),
                             ),
                             if (_registerGuest) ...[
-                              const SizedBox(height: 24),
-                              _buildModernTextField(
-                                label: 'Guest Name',
-                                controller: _guestNameController,
-                                hintText: 'Full name',
-                                icon: Icons.badge_outlined,
-                                validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
-                              ),
-                              const SizedBox(height: 20),
-                              _buildModernTextField(
-                                label: 'Guest Handicap',
-                                controller: _guestHandicapController,
-                                hintText: 'e.g. 18',
-                                icon: Icons.calculate_outlined,
-                              ),
-                              const Divider(height: 48),
-                              _buildModernSwitchRow(
-                                context,
-                                'Guest Buggy',
-                                _guestNeedsBuggy,
-                                (val) => setState(() => _guestNeedsBuggy = val),
-                                icon: Icons.electric_rickshaw_rounded,
-                              ),
-                              if (event.hasBreakfast == true && event.breakfastCost != null) ...[
-                                const Divider(height: 24),
-                                _buildModernSwitchRow(
-                                  context,
-                                  'Guest Breakfast',
-                                  _guestAttendingBreakfast,
-                                  (val) => setState(() => _guestAttendingBreakfast = val),
-                                  icon: Icons.breakfast_dining_rounded,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: BoxyArtInputField(
+                                  label: 'Guest Name',
+                                  controller: _guestNameController,
+                                  hint: 'Full name',
+                                  prefixIcon: const Icon(Icons.badge_outlined),
+                                  validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
                                 ),
-                              ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: BoxyArtInputField(
+                                  label: 'Guest Handicap',
+                                  controller: _guestHandicapController,
+                                  hint: 'e.g. 18',
+                                  prefixIcon: const Icon(Icons.calculate_outlined),
+                                ),
+                              ),
+                              if (event.eventType == EventType.golf)
+                                BoxyArtSwitchTile(
+                                  icon: Icons.electric_rickshaw_rounded,
+                                  label: 'Guest Buggy',
+                                  value: _guestNeedsBuggy,
+                                  iconColor: AppColors.coral500,
+                                  onChanged: (val) => setState(() => _guestNeedsBuggy = val),
+                                ),
+                              if (event.hasBreakfast == true && event.breakfastCost != null)
+                                BoxyArtSwitchTile(
+                                  icon: Icons.breakfast_dining_rounded,
+                                  label: 'Guest Breakfast',
+                                  value: _guestAttendingBreakfast,
+                                  iconColor: AppColors.amber500,
+                                  onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
+                                ),
                             ],
                           ],
                         ),
@@ -369,21 +391,22 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       const BoxyArtSectionTitle(title: 'Notes & Requirements'),
                       const SizedBox(height: 12),
                       BoxyArtCard(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         child: Column(
                           children: [
-                            _buildModernTextField(
+                            BoxyArtInputField(
                               label: 'Dietary Requirements',
                               controller: _dietaryController,
-                              hintText: 'Allergies, preferences...',
-                              icon: Icons.set_meal_rounded,
+                              hint: 'Allergies, preferences...',
+                              prefixIcon: const Icon(Icons.set_meal_rounded),
                               maxLines: 2,
                             ),
                             const SizedBox(height: 20),
-                            _buildModernTextField(
+                            BoxyArtInputField(
                               label: 'Other Requests',
                               controller: _specialNeedsController,
-                              hintText: 'Transportation, pairing requests...',
-                              icon: Icons.more_horiz_rounded,
+                              hint: 'Transportation, pairing requests...',
+                              prefixIcon: const Icon(Icons.more_horiz_rounded),
                               maxLines: 2,
                             ),
                           ],
@@ -441,115 +464,5 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
     );
   }
-
-  Widget _buildModernSwitchRow(
-    BuildContext context,
-    String label,
-    bool value,
-    ValueChanged<bool> onChanged, {
-    String? subtitle,
-    IconData? icon,
-  }) {
-    return InkWell(
-      onTap: () => onChanged(!value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),
-              ),
-              const SizedBox(width: 16),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Switch.adaptive(
-              value: value,
-              onChanged: onChanged,
-              activeTrackColor: Theme.of(context).primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModernTextField({
-    required String label,
-    required TextEditingController controller,
-    String? hintText,
-    IconData? icon,
-    String? Function(String?)? validator,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16, color: Theme.of(context).textTheme.bodySmall?.color),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          validator: validator,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-              fontSize: 15,
-              fontWeight: FontWeight.normal,
-            ),
-            filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.grey.withValues(alpha: 0.05),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-      ],
-    );
-  }
 }
+

@@ -6,6 +6,8 @@ import 'package:golf_society/domain/models/member.dart';
 import 'distribution_list_provider.dart';
 import 'package:golf_society/domain/models/distribution_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'dart:convert';
 
 class ComposeNotificationScreen extends ConsumerStatefulWidget {
   final bool isTabbed;
@@ -25,21 +27,16 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   
   // Message
   final _titleController = TextEditingController();
-  final _bodyController = TextEditingController();
+  final quill.QuillController _quillController = quill.QuillController.basic();
   String _category = 'Urgent';
   
-  // Deep Link
-  String _deepLinkAction = 'None (Just Read)';
-  String? _selectedEventId;
-
   final List<String> _targetOptions = ['All Members', 'Groups', 'Individual'];
   final List<String> _categories = ['Urgent', 'Event', 'News', 'Committee Business'];
-  final List<String> _deepLinkOptions = ['None (Just Read)', 'Event Details', 'Fee Payment', 'Member Profile'];
 
   @override
   void dispose() {
     _titleController.dispose();
-    _bodyController.dispose();
+    _quillController.dispose();
     super.dispose();
   }
 
@@ -107,17 +104,17 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           // 2. Create Campaign Doc (The "Blast" Record)
           final campaignRef = firestore.collection('campaigns').doc();
           final timestamp = FieldValue.serverTimestamp();
+          final messageContent = jsonEncode(_quillController.document.toDelta().toJson());
           
           final campaignData = {
               'id': campaignRef.id,
               'title': _titleController.text,
-              'message': _bodyController.text,
+              'message': messageContent,
               'category': _category,
               'targetType': _targetType,
               'targetDescription': targetDesc,
               'recipientCount': recipientIds.length,
               'timestamp': timestamp,
-              'actionUrl': _deepLinkAction,
               'sentByUserId': 'admin_console', // Placeholder until Auth
           };
           batch.set(campaignRef, campaignData);
@@ -130,11 +127,10 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                  'recipientId': userId,
                  'campaignId': campaignRef.id, // Link back to campaign
                  'title': _titleController.text,
-                 'message': _bodyController.text,
+                 'message': messageContent,
                  'category': _category,
                  'timestamp': timestamp,
                  'isRead': false,
-                 'actionUrl': _deepLinkAction,
              });
           }
 
@@ -167,13 +163,11 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
   void _resetForm() {
     setState(() {
       _titleController.clear();
-      _bodyController.clear();
+      _quillController.document = quill.Document();
       _targetType = 'All Members';
       _selectedCustomList = null;
       _selectedMember = null;
       _category = 'Urgent';
-      _deepLinkAction = 'None (Just Read)';
-      _selectedEventId = null;
     });
   }
   @override
@@ -194,11 +188,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           const BoxyArtSectionTitle(title: 'Message Content'),
           const SizedBox(height: AppSpacing.md),
           _buildMessageForm(),
-          const SizedBox(height: AppSpacing.x3l),
-          
-          const BoxyArtSectionTitle(title: 'Interaction'),
-          const SizedBox(height: AppSpacing.md),
-          _buildDeepLinkSelector(),
           const SizedBox(height: AppSpacing.x4l),
           
           BoxyArtButton(
@@ -206,14 +195,14 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             onTap: _handleSend,
             fullWidth: true,
           ),
-          const SizedBox(height: AppSpacing.x3l),
+          const SizedBox(height: 150),
         ],
       ),
     );
 
     if (widget.isTabbed) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
         child: content,
       );
     }
@@ -377,18 +366,36 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BoxyArtInputField(
-            label: 'Subject',
-            hint: 'Short summary...',
-            controller: _titleController,
+          Row(
+             children: [
+               Expanded(
+                 child: BoxyArtInputField(
+                   label: 'Subject',
+                   hint: 'Subject...',
+                   controller: _titleController,
+                 ),
+               ),
+               const SizedBox(width: 8),
+               IconButton(
+                 icon: const Icon(Icons.add_a_photo_rounded, color: AppColors.lime500),
+                 onPressed: () {
+                   // In a real app, this would use image_picker and insert into Quill
+                 },
+               ),
+               IconButton(
+                 icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                 onPressed: _resetForm,
+               ),
+             ],
           ),
           const SizedBox(height: 20),
-          BoxyArtInputField(
-            label: 'Message Body',
-            hint: 'Compose your message details...',
-            controller: _bodyController,
-            maxLines: 5,
+          const BoxyArtSectionTitle(title: 'CONTENT'),
+          const SizedBox(height: 12),
+          BoxyArtRichEditor(
+            controller: _quillController,
+            placeholder: 'Message content...',
           ),
           const SizedBox(height: 20),
           BoxyArtDropdownField<String>(
@@ -397,35 +404,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
             onChanged: (v) => setState(() => _category = v!),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeepLinkSelector() {
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        children: [
-          BoxyArtDropdownField<String>(
-            label: 'Action on Tap',
-            value: _deepLinkAction,
-            items: _deepLinkOptions.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
-            onChanged: (v) => setState(() => _deepLinkAction = v!),
-          ),
-          if (_deepLinkAction == 'Event Details') ...[
-            const SizedBox(height: 20),
-            BoxyArtDropdownField<String>(
-              label: 'Select Event',
-              value: _selectedEventId,
-              hint: 'Select Upcoming Event',
-              items: [
-                const DropdownMenuItem(value: '1', child: Text('Monthly Medal - Augusta')),
-                const DropdownMenuItem(value: '2', child: Text('Captain Day - Sunningdale')),
-              ],
-              onChanged: (v) => setState(() => _selectedEventId = v),
-            ),
-          ],
         ],
       ),
     );

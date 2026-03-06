@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import '../scoring/handicap_calculator.dart';
 import 'tee_group.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 import 'logic/grouping_optimizer.dart';
 
 export 'tee_group.dart';
@@ -343,7 +344,7 @@ class GroupingService {
 
 class _HandicapContext {
   final CompetitionRules? rules;
-  final Map<String, dynamic> courseConfig;
+  final CourseConfig courseConfig;
   final bool useWhs;
   final Map<String, double> manualCuts;
   _HandicapContext({this.rules, required this.courseConfig, required this.useWhs, required this.manualCuts});

@@ -75,11 +75,17 @@ class BoxyArtCard extends ConsumerWidget {
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 )
-              ] : AppShadows.softScale))
+              ] : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                )
+              ]))
             : null,
         border: border ?? Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-          width: 1,
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.12),
+          width: isDark ? 1 : 1.5,
         ),
       ),
       child: ClipRRect(

@@ -102,3 +102,20 @@ The universal component for displaying a player's or team's score.
 ### `ModernMetricStat`
 High-density data widget for displaying counts (e.g. "Playing: 24/32").
 - Supports compact and full-width modes.
+
+## 7. Motion & Transitions (`app_router.dart`)
+
+The BoxyArt system uses unified motion patterns to maintain professional stability and premium feedback.
+
+### `fadePage` (Shell Navigation)
+Used for top-level navigation swaps (tabs, major shells).
+- **Effect**: Clean cross-fade.
+- **Duration**: `AppAnimations.fast` (200ms).
+- **Rationale**: Minimal distraction during foundational navigation.
+
+### `boxyPage` (Leaf & Form Navigation)
+Used for all sub-screens, detail views, and edit forms.
+- **Effect**: Fade + Subtle Slide Up.
+- **Duration**: `AppAnimations.medium` (400ms).
+- **Curve**: `AppAnimations.entranceCurve`.
+- **Rationale**: Matches the `StaggeredEntrance` logic for a premium "opening" feel.

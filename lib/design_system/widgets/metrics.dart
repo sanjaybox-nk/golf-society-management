@@ -128,8 +128,11 @@ class ModernMetricStat extends StatelessWidget {
               value,
               style: AppTypography.displayHeading.copyWith(
                 fontSize: 18,
-                color: isSolid ? Colors.white : color,
-                letterSpacing: -0.5,
+                color: isSolid 
+                    ? Colors.white 
+                    : (isDark ? color : AppColors.dark900),
+                letterSpacing: -0.8,
+                fontWeight: FontWeight.w900,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,

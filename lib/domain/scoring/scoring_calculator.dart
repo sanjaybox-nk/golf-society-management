@@ -1,5 +1,6 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:collection/collection.dart';
 
@@ -32,75 +33,75 @@ class ScoringCalculator {
 
   /// Resolves the correct course configuration (pars, SIs, rating, slope) for a specific player
   /// based on their gender and the event's tee settings.
-  static Map<String, dynamic> resolvePlayerCourseConfig({
+  static CourseConfig resolvePlayerCourseConfig({
     required String memberId,
     required GolfEvent event,
     required List<Member> membersList,
     String? manualTeeName,
   }) {
-    final tees = event.courseConfig['tees'] as List?;
+    final tees = event.courseConfig.tees;
     
-    if (tees == null || tees.isEmpty) {
+    if (tees.isEmpty) {
       return event.courseConfig;
     }
 
     final member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
     final gender = member?.gender?.toLowerCase() ?? 'male';
     
-    Map<String, dynamic>? selectedTee;
+    TeeConfig? selectedTee;
     
     // 1. Manual Override logic
     if (manualTeeName != null) {
-      selectedTee = (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase().trim() == manualTeeName.toLowerCase().trim()
-      ) as Map<String, dynamic>?);
+      selectedTee = tees.firstWhereOrNull((t) => 
+        t.name.toLowerCase().trim() == manualTeeName.toLowerCase().trim()
+      );
     }
 
     if (selectedTee == null) {
       if (gender == 'female') {
          if (event.selectedFemaleTeeName != null) {
-           selectedTee = (tees.firstWhereOrNull((t) => 
-             (t['name'] ?? '').toString().toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
-           ) as Map<String, dynamic>?);
+           selectedTee = tees.firstWhereOrNull((t) => 
+             t.name.toLowerCase().trim() == event.selectedFemaleTeeName!.toLowerCase().trim()
+           );
          }
-         selectedTee ??= (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-           (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-           (t['name'] ?? '').toString().toLowerCase().contains('female')
-         ) as Map<String, dynamic>?);
+         selectedTee ??= tees.firstWhereOrNull((t) => 
+           t.name.toLowerCase().contains('red') || 
+           t.name.toLowerCase().contains('lady') ||
+           t.name.toLowerCase().contains('female')
+         );
       }
       
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
-      ) as Map<String, dynamic>?);
+      selectedTee ??= tees.firstWhereOrNull((t) => 
+         t.name.toLowerCase().trim() == (event.selectedTeeName ?? 'white').toLowerCase().trim()
+      );
   
-      selectedTee ??= (tees.first as Map<String, dynamic>);
+      selectedTee ??= tees.first;
     }
+    final TeeConfig nonNullTee = selectedTee;
+    final pars = nonNullTee.holePars;
+    final sis = nonNullTee.holeSIs;
     
-    final List<int> pars = List<int>.from(selectedTee['holePars'] ?? []);
-    final List<int> sis = List<int>.from(selectedTee['holeSIs'] ?? []);
-    
-    final List<Map<String, dynamic>> reconstructedHoles = List.generate(pars.length, (i) => {
-      'hole': i + 1,
-      'par': pars[i],
-      'si': sis[i],
-    });
+    final reconstructedHoles = List.generate(pars.length, (i) => CourseHole(
+      hole: i + 1,
+      par: pars[i],
+      si: sis[i],
+      yardage: nonNullTee.yardages.length > i ? nonNullTee.yardages[i] : null,
+    ));
 
-    return {
-       ...event.courseConfig,
-       'rating': (selectedTee['rating'] as num?)?.toDouble() ?? (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0,
-       'slope': (selectedTee['slope'] as num?)?.toInt() ?? (event.courseConfig['slope'] as num?)?.toInt() ?? 113,
-       'par': pars.isEmpty ? (event.courseConfig['par'] as num?)?.toInt() ?? 72 : pars.fold(0, (a, b) => a + b),
-       'holes': reconstructedHoles.isNotEmpty ? reconstructedHoles : (event.courseConfig['holes'] as List?),
-       'selectedTeeName': selectedTee['name'],
-    };
+    return event.courseConfig.copyWith(
+       rating: nonNullTee.rating,
+       slope: nonNullTee.slope,
+       par: pars.isEmpty ? (event.courseConfig.par ?? 72) : pars.fold<int>(0, (a, b) => a + b),
+       holes: reconstructedHoles.isNotEmpty ? reconstructedHoles : event.courseConfig.holes,
+       selectedTeeName: nonNullTee.name,
+    );
   }
 
   /// Calculates "Score to Par" (Net) or Stableford Points.
   /// Handles partial rounds by scaling par and handicap correctly.
   static ScoringResult calculate({
     required List<int?> holeScores,
-    required List<Map<String, dynamic>> holes,
+    required List<CourseHole> holes,
     required double playingHandicap,
     required CompetitionFormat format,
     MaxScoreConfig? maxScoreConfig,
@@ -127,8 +128,8 @@ class ScoringCalculator {
       final scoreCounted = holeScores[i];
       if (scoreCounted != null && i < holes.length) {
         final hole = holes[i];
-        final int par = hole['par'] as int? ?? 4;
-        final int si = hole['si'] as int? ?? 18;
+        final int par = hole.par;
+        final int si = hole.si;
 
         // Calculate strokes for this hole
         final double strokes = effectivePhc;

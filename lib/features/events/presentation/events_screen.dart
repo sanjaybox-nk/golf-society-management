@@ -33,7 +33,7 @@ class EventsScreen extends ConsumerWidget {
       slivers: [
         // Upcoming Section
         const SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
           sliver: SliverToBoxAdapter(
             child: BoxyArtSectionTitle(title: 'Upcoming Events'),
           ),
@@ -42,9 +42,11 @@ class EventsScreen extends ConsumerWidget {
           data: (events) {
             if (events.isEmpty) {
               return const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: Text('No upcoming events scheduled')),
+                child: BoxyArtEmptyState(
+                  title: 'No Upcoming Events',
+                  message: 'There are no upcoming events scheduled for this season yet.',
+                  icon: Icons.calendar_today_rounded,
+                  isCompact: true,
                 ),
               );
             }
@@ -73,7 +75,7 @@ class EventsScreen extends ConsumerWidget {
 
         // Past Section
         const SliverPadding(
-          padding: EdgeInsets.fromLTRB(20, 32, 20, 8),
+          padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x3l, AppSpacing.xl, AppSpacing.sm),
           sliver: SliverToBoxAdapter(
             child: BoxyArtSectionTitle(title: 'Past Events'),
           ),
@@ -82,9 +84,11 @@ class EventsScreen extends ConsumerWidget {
           data: (events) {
             if (events.isEmpty) {
               return const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: Text('No past events this season')),
+                child: BoxyArtEmptyState(
+                  title: 'No Past Events',
+                  message: 'You haven\'t participated in any events this season yet.',
+                  icon: Icons.history_rounded,
+                  isCompact: true,
                 ),
               );
             }
@@ -96,7 +100,7 @@ class EventsScreen extends ConsumerWidget {
                     return StaggeredEntrance(
                       index: index + 5, // Offset stagger for past events
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: _EventCard(event: events[index], isHighlighted: false),
                       ),
                     );
@@ -136,7 +140,11 @@ class _EventCard extends ConsumerWidget {
       child: Row(
         children: [
           // Date Badge
-          BoxyArtDateBadge(date: event.date, endDate: event.endDate),
+          BoxyArtDateBadge(
+            date: event.date, 
+            endDate: event.endDate,
+            highlightColor: event.eventType == EventType.social ? AppColors.coral500 : null,
+          ),
           const SizedBox(width: 14),
 
           // Event Info
@@ -199,6 +207,13 @@ class _EventCard extends ConsumerWidget {
                   runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
+                    if (event.eventType == EventType.social)
+                      BoxyArtPill(
+                        label: 'SOCIAL',
+                        color: AppColors.coral500,
+                        backgroundColor: AppColors.coral500.withValues(alpha: 0.1),
+                        borderColor: AppColors.coral500.withValues(alpha: 0.2),
+                      ),
                     _buildGameTypePill(context, ref, event.id),
                     if (event.isInvitational)
                       BoxyArtPill.type(

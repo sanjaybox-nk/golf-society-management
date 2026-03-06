@@ -78,7 +78,9 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       data: (events) {
         // Wait for competition rules to be loaded
         if (competitionAsync.isLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         final members = membersAsync.value ?? [];
@@ -238,30 +240,31 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       );
     },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
+      error: (err, _) => HeadlessScaffold(
+        title: 'Error',
+        showBack: true,
+        slivers: [
+          SliverFillRemaining(
+            child: BoxyArtEmptyState(
+              title: 'Unexpected Error',
+              message: err.toString(),
+              icon: Icons.warning_amber_rounded,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildEmptyState(GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap) {
     final isClosed = event.isRegistrationClosed;
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.grid_view_rounded, size: 64, color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
-          const SizedBox(height: 16),
-          const Text('No grouping generated yet.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 24),
-          Opacity(
-            opacity: isClosed ? 1.0 : 0.5,
-            child: BoxyArtButton(
-              title: isClosed ? 'Auto-Generate Grouping' : 'Event still open',
-              onTap: isClosed ? () => _showRegenerationOptions(event, allEvents, handicapMap) : null,
-            ),
-          ),
-        ],
-      ),
+    return BoxyArtEmptyState(
+      title: 'No Grouping Generated',
+      message: 'Your squad hasn\'t been sorted into groups yet. Once registration is closed, you can auto-generate the tee sheet.',
+      icon: Icons.grid_view_rounded,
+      actionLabel: isClosed ? 'Auto-Generate Grouping' : null,
+      onAction: isClosed ? () => _showRegenerationOptions(event, allEvents, handicapMap) : null,
     );
   }
 

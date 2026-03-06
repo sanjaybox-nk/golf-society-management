@@ -4,6 +4,7 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/grouping/grouping_service.dart';
 import '../../domain/registration_logic.dart';
@@ -101,7 +102,7 @@ class GroupingPlayerTile extends StatelessWidget {
   final List<GolfEvent> history;
   final int totalGroups;
   final CompetitionRules? rules;
-  final Map<String, dynamic>? courseConfig;
+  final CourseConfig? courseConfig;
   final bool useWhs;
   final bool isAdmin;
   final Function(String action, TeeGroupParticipant p, TeeGroup g)? onAction;
@@ -453,7 +454,7 @@ class GroupingCard extends StatelessWidget {
   final List<GolfEvent> history;
   final int totalGroups;
   final CompetitionRules? rules;
-  final Map<String, dynamic>? courseConfig;
+  final CourseConfig? courseConfig;
   final bool useWhs;
   final bool isAdmin;
   final bool isLocked;
@@ -523,7 +524,7 @@ class GroupingCard extends StatelessWidget {
         displayTotalHandicap = HandicapCalculator.calculateTeamHandicap(
           individualIndices: indices,
           rules: rules!,
-          courseConfig: courseConfig ?? {},
+          courseConfig: courseConfig ?? const CourseConfig(),
         ).toDouble();
       } else {
         // Individual Sum (Singles, Fourball, etc.)
@@ -554,12 +555,12 @@ class GroupingCard extends StatelessWidget {
       final Map<String, double> playerIndices = { for (var p in group.players) (p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId) : p.handicapIndex };
       
       // GroupingCard already has access to courseConfig and rules
-      final baseRating = HandicapCalculator.parseValue(courseConfig?['rating'] ?? 72.0);
+      final baseRating = courseConfig?.rating ?? 72.0;
       
       final Map<String, int> centralizedStrokes = MatchPlayCalculator.calculateRelativeStrokes(
         playerIds: playerIds,
         playerIndices: playerIndices,
-        courseConfigs: { for (var id in playerIds) id : courseConfig ?? {} }, // Assuming same config for all in this simplified view
+        courseConfigs: { for (var id in playerIds) id : courseConfig ?? const CourseConfig() }, // Assuming same config for all in this simplified view
         rules: rules!,
         baseRating: baseRating,
       );
@@ -608,7 +609,7 @@ class GroupingCard extends StatelessWidget {
           matchResult = MatchPlayCalculator.calculate(
             match: virtualMatch,
             scorecards: groupCards,
-            courseConfig: courseConfig ?? {},
+            courseConfig: courseConfig ?? const CourseConfig(),
             holesToPlay: 18,
           );
           matchStatus = matchResult.status;

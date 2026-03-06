@@ -158,7 +158,7 @@ class _RoundColumn extends StatelessWidget {
               match: m,
               scorecards: scorecards,
               courseConfig: event.courseConfig,
-              holesToPlay: event.courseConfig['holes']?.length ?? 18,
+              holesToPlay: event.courseConfig.holes.length,
             );
             return _BracketMatchTile(match: m, result: result);
           }),

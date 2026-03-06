@@ -12,6 +12,7 @@ import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 
 class EventUserDetailsTab extends ConsumerWidget {
@@ -27,6 +28,9 @@ class EventUserDetailsTab extends ConsumerWidget {
     return eventAsync.when(
       data: (event) {
         final config = ref.watch(themeControllerProvider);
+        final user = ref.watch(effectiveUserProvider);
+        final isAdmin = user.role != MemberRole.member;
+
         // Check for preview mode
         bool isPreview = false;
         try {
@@ -34,12 +38,17 @@ class EventUserDetailsTab extends ConsumerWidget {
         } catch (_) {
           isPreview = false;
         }
-        
+
         return EventDetailsContent(
           event: event, 
           currencySymbol: config.currencySymbol,
           isPreview: isPreview,
           useScaffold: useScaffold,
+          onStatusChanged: isAdmin ? (newStatus) {
+            ref.read(eventsRepositoryProvider).updateEvent(
+              event.copyWith(status: newStatus),
+            );
+          } : null,
         );
       },
       loading: () => useScaffold 
@@ -61,6 +70,7 @@ class EventDetailsContent extends ConsumerWidget {
   final ValueChanged<EventStatus>? onStatusChanged;
   final Widget? bottomNavigationBar;
   final bool useScaffold;
+  final Competition? competition; // Optional direct competition object for previewing
 
   const EventDetailsContent({
     super.key,
@@ -72,6 +82,7 @@ class EventDetailsContent extends ConsumerWidget {
     this.onStatusChanged,
     this.bottomNavigationBar,
     this.useScaffold = true,
+    this.competition,
   });
 
   @override
@@ -109,31 +120,34 @@ class EventDetailsContent extends ConsumerWidget {
         }
       },
       actions: [
-        if (onEdit != null)
-          BoxyArtGlassIconButton(
-            icon: Icons.edit_outlined,
-            iconSize: 24,
-            onPressed: onEdit,
-            tooltip: 'Edit Event Settings',
-          )
-        else if (isAdmin) ...[
-          BoxyArtGlassIconButton(
-            icon: Icons.app_registration_rounded,
-            iconSize: 24,
-            onPressed: () {
-               final id = event.id;
-               context.push('/admin/events/manage/${Uri.encodeComponent(id)}/event/edit', extra: event);
-            },
-            tooltip: 'Edit Event Settings',
-          ),
-          BoxyArtGlassIconButton(
-            icon: Icons.edit_attributes_rounded,
-            iconSize: 24,
-            onPressed: () {
-               context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/manual-cuts');
-            },
-            tooltip: 'Manual Handicap Cuts',
-          ),
+        if (!isPreview) ...[
+          if (onEdit != null)
+            BoxyArtGlassIconButton(
+              icon: Icons.edit_rounded,
+              iconSize: 24,
+              onPressed: onEdit,
+              tooltip: 'Edit Event Settings',
+            )
+          else if (isAdmin) ...[
+            BoxyArtGlassIconButton(
+              icon: Icons.edit_rounded,
+              iconSize: 24,
+              onPressed: () {
+                final id = event.id;
+                context.push('/admin/events/manage/${Uri.encodeComponent(id)}/event/edit', extra: event);
+              },
+              tooltip: 'Edit Event Settings',
+            ),
+            if (event.eventType == EventType.golf)
+              BoxyArtGlassIconButton(
+                icon: Icons.tune_rounded,
+                iconSize: 24,
+                onPressed: () {
+                  context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/manual-cuts');
+                },
+                tooltip: 'Manual Handicap Cuts',
+              ),
+          ],
         ],
       ],
       bottomNavigationBar: bottomNavigationBar,
@@ -156,11 +170,19 @@ class EventDetailsContent extends ConsumerWidget {
                 SizedBox(height: AppTheme.cardSpacing),
               _buildDateTimeSection(context),
               SizedBox(height: AppTheme.cardSpacing),
-              _buildCourseSelectionSection(context),
-              _buildCourseDataHardeningSection(context),
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildCompetitionRulesSection(context),
-              if (event.secondaryTemplateId != null) ...[
+              if (event.eventType == EventType.golf) ...[
+                _buildCourseSelectionSection(context),
+                _buildCourseDataHardeningSection(context),
+                SizedBox(height: AppTheme.cardSpacing),
+              ],
+              if (event.eventType == EventType.golf) ...[
+                CompetitionRulesCard(
+                  eventId: event.id,
+                  title: 'Competition Rules',
+                  competition: competition,
+                ),
+              ],
+              if (event.eventType == EventType.golf && event.secondaryTemplateId != null) ...[
                 SizedBox(height: AppTheme.cardSpacing),
                 _buildSecondaryRulesSection(context),
               ],
@@ -383,12 +405,14 @@ class EventDetailsContent extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: AppTheme.cardSpacing),
-              ModernInfoRow(
-                label: 'Tee-off',
-                value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
-                icon: Icons.schedule_rounded,
-              ),
-              const SizedBox(height: AppTheme.cardSpacing),
+              if (event.eventType == EventType.golf) ...[
+                ModernInfoRow(
+                  label: 'Tee-off',
+                  value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+                  icon: Icons.schedule_rounded,
+                ),
+                const SizedBox(height: AppTheme.cardSpacing),
+              ],
               ModernInfoRow(
                 label: 'Registration',
                 value: event.regTime != null 
@@ -454,7 +478,7 @@ class EventDetailsContent extends ConsumerWidget {
                   ),
                 ),
               ],
-              if (event.selectedTeeName != null || event.selectedFemaleTeeName != null) ...[
+              if (event.eventType == EventType.golf && (event.selectedTeeName != null || event.selectedFemaleTeeName != null)) ...[
                 const SizedBox(height: AppTheme.cardSpacing),
                 Builder(
                   builder: (context) {
@@ -499,7 +523,7 @@ class EventDetailsContent extends ConsumerWidget {
                 value: event.dressCode ?? 'Standard Golf Attire',
                 icon: Icons.checkroom_rounded,
               ),
-              if (event.availableBuggies != null) ...[
+              if (event.eventType == EventType.golf && event.availableBuggies != null) ...[
                 const SizedBox(height: AppTheme.cardSpacing),
                 ModernInfoRow(
                   label: 'Buggies',
@@ -541,14 +565,14 @@ class EventDetailsContent extends ConsumerWidget {
 
   Widget _buildCourseDataHardeningSection(BuildContext context) {
     // Only show for Admins (based on presence of onStatusChanged callback)
-    if (onStatusChanged == null) return const SizedBox.shrink();
+    if (onStatusChanged == null || event.eventType == EventType.social) return const SizedBox.shrink();
 
     final config = event.courseConfig;
-    final slope = double.tryParse(config['slope']?.toString() ?? '0') ?? 0;
-    final rating = double.tryParse(config['rating']?.toString() ?? '0') ?? 0;
-    final par = double.tryParse(config['par']?.toString() ?? '0') ?? 0;
+    final slope = config.slope;
+    final rating = config.rating;
+    final par = config.par;
 
-    final bool isMissing = slope <= 0 || rating <= 0 || par <= 0;
+    final bool isMissing = (slope ?? 0) <= 0 || (rating ?? 0) <= 0 || (par ?? 0) <= 0;
     if (!isMissing) return const SizedBox.shrink();
 
     return Consumer(
@@ -600,10 +624,10 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildManualDataFixer(BuildContext context, WidgetRef ref) {
-    final Map<String, dynamic> localConfig = Map.from(event.courseConfig);
-    final slopeController = TextEditingController(text: localConfig['slope']?.toString() ?? '');
-    final ratingController = TextEditingController(text: localConfig['rating']?.toString() ?? '');
-    final parController = TextEditingController(text: localConfig['par']?.toString() ?? '');
+    final config = event.courseConfig;
+    final slopeController = TextEditingController(text: config.slope.toString());
+    final ratingController = TextEditingController(text: config.rating.toString());
+    final parController = TextEditingController(text: config.par.toString());
 
     return Column(
       children: [
@@ -627,10 +651,11 @@ class EventDetailsContent extends ConsumerWidget {
           title: 'Apply Course Updates',
           isPrimary: true,
           onTap: () async {
-             final updatedConfig = Map<String, dynamic>.from(event.courseConfig);
-             updatedConfig['slope'] = slopeController.text;
-             updatedConfig['rating'] = ratingController.text;
-             updatedConfig['par'] = parController.text;
+             final updatedConfig = event.courseConfig.copyWith(
+               slope: (double.tryParse(slopeController.text) ?? 113).toInt(),
+               rating: double.tryParse(ratingController.text) ?? 72.0,
+               par: (double.tryParse(parController.text) ?? 72).toInt(),
+             );
 
              final updatedEvent = event.copyWith(courseConfig: updatedConfig);
              await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
@@ -679,12 +704,13 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildRegistrationCard(BuildContext context) {
-    // Hide if registration button is disabled or event is in a terminal/live state
     if (!event.showRegistrationButton || 
-        event.displayStatus == EventStatus.draft || 
-        event.displayStatus == EventStatus.cancelled ||
-        event.displayStatus == EventStatus.completed ||
-        event.displayStatus == EventStatus.inPlay) {
+        (!isPreview && (
+          event.displayStatus == EventStatus.draft || 
+          event.displayStatus == EventStatus.cancelled ||
+          event.displayStatus == EventStatus.completed ||
+          event.displayStatus == EventStatus.inPlay
+        ))) {
       return const SizedBox.shrink();
     }
 
@@ -840,12 +866,7 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
 
-  Widget _buildCompetitionRulesSection(BuildContext context) {
-    return CompetitionRulesCard(
-      eventId: event.id,
-      title: 'Competition Rules',
-    );
-  }
+
 
   Widget _buildSecondaryRulesSection(BuildContext context) {
     return CompetitionRulesCard(
@@ -857,6 +878,22 @@ class EventDetailsContent extends ConsumerWidget {
 
 
   Widget _buildPlayingCostsSection(BuildContext context) {
+    if (event.eventType == EventType.social) {
+      if (event.eventCost == null || event.eventCost == 0) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(title: 'Event Cost'),
+          BoxyArtCard(
+            child: ModernCostRow(
+              label: 'Per Person', 
+              amount: '$currencySymbol${event.eventCost!.toStringAsFixed(2)}',
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1084,7 +1121,7 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildAwardsSection(BuildContext context, WidgetRef ref) {
-    if (!event.showAwards || event.awards.isEmpty) return const SizedBox.shrink();
+    if (event.eventType == EventType.social || !event.showAwards || event.awards.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

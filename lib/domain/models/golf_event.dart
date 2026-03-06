@@ -2,10 +2,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'event_registration.dart';
 
 import 'package:golf_society/utils/json_converters.dart';
+import 'course_config.dart';
 part 'golf_event.freezed.dart';
 part 'golf_event.g.dart';
 
 enum EventStatus { draft, published, inPlay, completed, cancelled, suspended }
+enum EventType { golf, social }
 
 @freezed
 abstract class EventNote with _$EventNote {
@@ -49,6 +51,13 @@ enum FeedItemType {
   flash,
   newsletter,
   gallery,
+  
+  // System Blocks
+  headline,
+  registration,
+  podium,
+  gallerySnippet,
+  poll,
 }
 
 @freezed
@@ -63,6 +72,7 @@ abstract class EventFeedItem with _$EventFeedItem {
     @Default(false) bool isPublished,
     @Default(0) int sortOrder,
     required DateTime createdAt,
+    @Default({}) Map<String, dynamic> pollData,
   }) = _EventFeedItem;
 
   factory EventFeedItem.fromJson(Map<String, dynamic> json) => _$EventFeedItemFromJson(json);
@@ -118,7 +128,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<Map<String, dynamic>> results,
     // Course configuration (Par, SI, holes)
     String? courseId,
-    @Default({}) Map<String, dynamic> courseConfig,
+    @Default(CourseConfig()) CourseConfig courseConfig,
     String? selectedTeeName,
     String? selectedFemaleTeeName, // [NEW] Explicit mapping for female players
     @Default([]) List<String> flashUpdates,
@@ -132,12 +142,40 @@ abstract class GolfEvent with _$GolfEvent {
     @Default([]) List<EventExpense> expenses,
     @Default(true) bool showAwards,
     @Default([]) List<EventAward> awards,
+    @Default(EventType.golf) EventType eventType,
     @Default({}) Map<String, double> manualCuts, // [NEW] Per-event player handicap adjustments
+    double? eventCost,
   }) = _GolfEvent;
 
   bool get isRegistrationClosed {
     if (registrationDeadline == null) return false;
     return DateTime.now().isAfter(registrationDeadline!);
+  }
+
+  /// Synthesizes missing system blocks so older events automatically gain them natively
+  /// for dynamic reordering and positioning.
+  List<EventFeedItem> get effectiveFeedItems {
+    final List<EventFeedItem> result = List.from(feedItems);
+    
+    void ensureSystemItem(FeedItemType type, int defaultSortOrder) {
+      if (!result.any((item) => item.type == type)) {
+        result.add(EventFeedItem(
+          id: 'system_${type.name}',
+          type: type,
+          isPublished: true, // System items always published; hidden by internal logic if not applicable
+          sortOrder: defaultSortOrder,
+          createdAt: date,
+        ));
+      }
+    }
+
+    // Default top-down order for initial synthesis:
+    ensureSystemItem(FeedItemType.headline, -100);
+    ensureSystemItem(FeedItemType.podium, -90);
+    ensureSystemItem(FeedItemType.registration, -80);
+    ensureSystemItem(FeedItemType.gallerySnippet, -70);
+
+    return result;
   }
 
   /// Returns the display status, ensuring future events are never shown as completed

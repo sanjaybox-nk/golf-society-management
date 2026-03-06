@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:collection/collection.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'dart:convert';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/features/events/data/events_repository.dart';
+import 'package:golf_society/features/events/presentation/widgets/event_structural_cards.dart';
 
 class EventBroadcastScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -19,30 +18,33 @@ class EventBroadcastScreen extends ConsumerStatefulWidget {
 }
 
 class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
-  bool _isSaving = false;
-
   void _onReorder(GolfEvent event, int oldIndex, int newIndex) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
     
-    // Create mutable list
-    final List<EventFeedItem> items = List.from(event.feedItems);
+    // Get the visual list that the user is actually reordering
+    final items = event.effectiveFeedItems;
+    items.sort((a, b) {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return a.sortOrder.compareTo(b.sortOrder);
+    });
     
-    // Perform swap
+    // Perform swap on visual items
     final EventFeedItem item = items.removeAt(oldIndex);
     items.insert(newIndex, item);
 
-    // Update sortOrder for all items based on new index
-    final updatedItems = items.asMap().entries.map((e) {
+    // Build map of updated sort orders and apply to the sorted visual list
+    // By saving `items` instead of just updating `event.feedItems`, 
+    // we ensure synthesized system blocks (like Headline, Registration) 
+    // are permanently saved to the DB with their user-defined layout positions.
+    final updatedFeedItems = items.asMap().entries.map((e) {
       return e.value.copyWith(sortOrder: e.key);
     }).toList();
 
-    final updatedEvent = event.copyWith(feedItems: updatedItems);
-
-    setState(() => _isSaving = true);
+    final updatedEvent = event.copyWith(feedItems: updatedFeedItems);
     await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
-    if (mounted) setState(() => _isSaving = false);
   }
 
   @override
@@ -58,7 +60,12 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
       slivers: [
         eventAsync.when(
           data: (event) {
-            final items = event.feedItems.sortedBy<num>((e) => e.sortOrder).toList();
+            final items = event.effectiveFeedItems;
+            items.sort((a, b) {
+              if (a.isPinned && !b.isPinned) return -1;
+              if (!a.isPinned && b.isPinned) return 1;
+              return a.sortOrder.compareTo(b.sortOrder);
+            });
             
             return SliverPadding(
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100, top: 20),
@@ -69,15 +76,6 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
           error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
         ),
       ],
-      floatingActionButton: eventAsync.value != null 
-        ? FloatingActionButton.extended(
-            onPressed: () => context.push('/admin/events/${widget.eventId}/broadcast/new'),
-            backgroundColor: Theme.of(context).primaryColor,
-            foregroundColor: Colors.white,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Create Post', style: TextStyle(fontWeight: FontWeight.bold)),
-          )
-        : null,
     );
   }
 
@@ -104,7 +102,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Create newsletters and flash updates to keep members informed.',
+                'To create a new post, visit the Admin Home and use the "Broadcast" trigger.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
               ),
@@ -117,100 +115,184 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
 
   Widget _buildReorderableList(GolfEvent event, List<EventFeedItem> items) {
     return SliverToBoxAdapter(
-      child: BoxyArtCard(
-        padding: EdgeInsets.zero,
-        child: ReorderableListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          onReorder: (oldIndex, newIndex) => _onReorder(event, oldIndex, newIndex),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return Material(
-              key: ValueKey(item.id),
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    onTap: () => context.push('/admin/events/${event.id}/broadcast/edit/${item.id}', extra: item),
-                    leading: _buildTypeIcon(item.type),
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title ?? (item.type == FeedItemType.flash ? 'Flash Update' : 'Newsletter'),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (item.isPinned) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.push_pin_rounded, size: 16, color: Colors.blue),
-                        ],
-                      ],
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: [
-                          if (!item.isPublished) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text('DRAFT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange)),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(DateFormat('MMM d').format(item.createdAt), style: const TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    trailing: ReorderableDragStartListener(
-                      index: index,
-                      child: const _DragHandle(),
-                    ),
+      child: ReorderableListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: items.length,
+        onReorder: (oldIndex, newIndex) => _onReorder(event, oldIndex, newIndex),
+        proxyDecorator: (child, index, animation) {
+          return Material(
+            color: Colors.transparent,
+            elevation: 8,
+            shadowColor: Colors.black45,
+            child: child,
+          );
+        },
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Container(
+            key: ValueKey(item.id),
+            margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+            child: Stack(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (item.type == FeedItemType.flash || item.type == FeedItemType.newsletter) {
+                      context.push('/admin/events/manage/${event.id}/broadcast/edit/${item.id}', extra: item);
+                    }
+                  },
+                  // Render the actual WYSIWYG card
+                  child: AbsorbPointer( // Prevent clicks on internal elements from swallowing the tap
+                    child: _buildAdminFeedItemCard(context, item, event),
                   ),
-                  if (index < items.length - 1)
-                    Divider(height: 1, indent: 64, color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+                
+                // Top Right Action Buttons Overlaid
+                Positioned(
+                  top: item.type == FeedItemType.flash ? 12 : 20,
+                  right: item.type == FeedItemType.flash ? 12 : 20,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!item.isPublished) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('DRAFT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange)),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (item.isPinned) ...[
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.push_pin_rounded, size: 16, color: Colors.blue),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: const _DragHandle(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTypeIcon(FeedItemType type) {
-    IconData icon;
-    Color color;
-    switch (type) {
-      case FeedItemType.flash:
-        icon = Icons.warning_amber_rounded;
-        color = Colors.orange;
-        break;
-      case FeedItemType.newsletter:
-        icon = Icons.article_rounded;
-        color = Colors.blue;
-        break;
-      case FeedItemType.gallery:
-        icon = Icons.photo_library_rounded;
-        color = Colors.purple;
-        break;
+  Widget _buildAdminFeedItemCard(BuildContext context, EventFeedItem item, GolfEvent event) {
+    if (item.type == FeedItemType.headline) {
+      return EventHeadlineCard(event: event);
+    } else if (item.type == FeedItemType.podium) {
+      return EventPodiumCard(event: event, isManagement: true);
+    } else if (item.type == FeedItemType.registration) {
+      return EventRegistrationCard(event: event, isManagement: true);
+    } else if (item.type == FeedItemType.gallerySnippet) {
+      return EventGalleryCard(event: event, isManagement: true);
+    } else if (item.type == FeedItemType.flash) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.campaign_rounded, color: Colors.orange),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 140), // Room for draft + pin + drag handle
+                child: Text(
+                  item.content,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.orange,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (item.type == FeedItemType.newsletter) {
+      QuillController? quillController;
+      try {
+        if (item.content.isNotEmpty) {
+          quillController = QuillController(
+            document: Document.fromJson(jsonDecode(item.content)),
+            selection: const TextSelection.collapsed(offset: 0),
+            readOnly: true,
+          );
+        }
+      } catch (_) {}
+
+      return BoxyArtCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.title != null && item.title!.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(right: 140), // Room for draft + pin + drag handle
+                child: Text(
+                  item.title!,
+                  style: AppTypography.displayHeading.copyWith(
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: AppTheme.cardSpacing),
+            ],
+            if (item.imageUrl != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  item.imageUrl!,
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  errorBuilder: (_, _, _) => Container(
+                    height: 150,
+                    width: double.infinity,
+                    color: Theme.of(context).cardColor,
+                    child: const Icon(Icons.image, color: Colors.grey),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.cardSpacing),
+            ],
+            if (quillController != null)
+              QuillEditor.basic(
+                controller: quillController,
+                config: const QuillEditorConfig(
+                  padding: EdgeInsets.zero,
+                  autoFocus: false,
+                  expands: false,
+                ),
+              ),
+          ],
+        ),
+      );
     }
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Icon(icon, color: color, size: 20),
-    );
+    
+    return const SizedBox.shrink();
   }
 }
 
@@ -226,7 +308,7 @@ class _DragHandle extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

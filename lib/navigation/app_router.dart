@@ -11,6 +11,7 @@ import '../features/home/presentation/member_home_screen.dart';
 import '../features/members/presentation/locker_screen.dart';
 import '../features/members/presentation/members_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
+import '../features/events/presentation/event_feed_detail_screen.dart';
 import '../features/admin/presentation/events/admin_events_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
@@ -37,20 +38,20 @@ import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
-import '../features/admin/presentation/events/event_admin_financials_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
-// import '../features/admin/presentation/competitions/admin_competitions_screen.dart'; // Removed
+import '../features/admin/presentation/surveys/admin_surveys_screen.dart';
+import '../features/admin/presentation/surveys/survey_editor_screen.dart';
+import '../features/admin/presentation/surveys/survey_results_screen.dart';
 import '../features/admin/presentation/competitions/competition_builder_screen.dart';
-// import '../features/admin/presentation/competitions/scoring_review_queue_screen.dart'; // Removed
-import '../features/admin/presentation/competitions/competition_type_selection_screen.dart'; // Added
-import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart'; // Added
-import 'package:golf_society/domain/models/competition.dart'; // Added for enum
+import '../features/admin/presentation/competitions/competition_type_selection_screen.dart'; 
+import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart'; 
+import 'package:golf_society/domain/models/competition.dart'; 
 import '../features/admin/presentation/seasons/season_form_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_type_selection_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_builder_screen.dart';
-import '../features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart'; // Added
-import 'package:golf_society/domain/models/leaderboard_config.dart'; // Ensure this is imported
+import '../features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart'; 
+import 'package:golf_society/domain/models/leaderboard_config.dart'; 
 
 // Private navigators
 import '../features/events/presentation/event_user_shell.dart';
@@ -73,6 +74,55 @@ final _adminEventsKey = GlobalKey<NavigatorState>(debugLabel: 'adminEvents');
 final _adminLeaderboardsKey = GlobalKey<NavigatorState>(debugLabel: 'adminLeaderboards');
 final _adminMembersKey = GlobalKey<NavigatorState>(debugLabel: 'adminMembers');
 final _adminCommsKey = GlobalKey<NavigatorState>(debugLabel: 'adminComms');
+final _adminSurveysKey = GlobalKey<NavigatorState>(debugLabel: 'adminSurveys');
+
+/// Standardized Fade Transition for Shells
+CustomTransitionPage fadePage({
+  required LocalKey key,
+  required Widget child,
+}) {
+  return CustomTransitionPage(
+    key: key,
+    child: child,
+    transitionDuration: AppAnimations.fast,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
+
+/// Standardized Boxy Art Transition (Fade + Subtle Slide Up) for Leaf Routes
+CustomTransitionPage boxyPage({
+  required LocalKey key,
+  required Widget child,
+}) {
+  return CustomTransitionPage(
+    key: key,
+    child: child,
+    transitionDuration: AppAnimations.medium,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final fade = CurvedAnimation(
+        parent: animation,
+        curve: AppAnimations.entranceCurve,
+      );
+      final slide = Tween<Offset>(
+        begin: AppAnimations.slideUp,
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: AppAnimations.entranceCurve,
+      ));
+
+      return FadeTransition(
+        opacity: fade,
+        child: SlideTransition(
+          position: slide,
+          child: child,
+        ),
+      );
+    },
+  );
+}
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -90,13 +140,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/home',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: MemberHomeScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const MemberHomeScreen(),
                 ),
                 routes: [
                   GoRoute(
                     path: 'notifications',
-                    builder: (context, state) => const NotificationInboxScreen(),
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: const NotificationInboxScreen(),
+                    ),
                   ),
                 ],
               ),
@@ -107,19 +161,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/events',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: EventsScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const EventsScreen(),
                 ),
-                  ),
-                ],
               ),
+            ],
+          ),
           StatefulShellBranch(
             navigatorKey: _membersNavigatorKey,
             routes: [
               GoRoute(
                 path: '/members',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: MembersScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const MembersScreen(),
                 ),
               ),
             ],
@@ -129,13 +185,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/locker',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: LockerScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const LockerScreen(),
                 ),
                 routes: [
                   GoRoute(
                     path: 'standings',
-                    builder: (context, state) => const SeasonStandingsScreen(),
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: const SeasonStandingsScreen(),
+                    ),
                   ),
                 ],
               ),
@@ -146,8 +206,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/archive',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: ArchiveScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const ArchiveScreen(),
                 ),
               ),
             ],
@@ -165,202 +226,284 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: AdminDashboardScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const AdminDashboardScreen(),
                 ),
                 routes: [
                   GoRoute(
                     path: 'leaderboards/create/picker',
-                    builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: const LeaderboardTypeSelectionScreen(isPicker: true),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'gallery/:type',
-                        builder: (context, state) {
-                          final typeStr = state.pathParameters['type']!;
-                          final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                          return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
-                        },
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: Builder(builder: (context) {
+                            final typeStr = state.pathParameters['type']!;
+                            final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                            return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
+                          }),
+                        ),
                       ),
                     ],
                   ),
                   GoRoute(
                     path: 'leaderboards/create/:type',
-                    builder: (context, state) {
-                      final typeStr = state.pathParameters['type']!;
-                      final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                      return LeaderboardBuilderScreen(type: type, isTemplate: false);
-                    },
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: Builder(builder: (context) {
+                        final typeStr = state.pathParameters['type']!;
+                        final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                        return LeaderboardBuilderScreen(type: type, isTemplate: false);
+                      }),
+                    ),
                   ),
                   GoRoute(
                     path: 'settings',
-                    builder: (context, state) => const AdminSettingsScreen(),
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: const AdminSettingsScreen(),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'branding',
-                        builder: (context, state) => const BrandingSettingsScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const BrandingSettingsScreen(),
+                        ),
                       ),
                       GoRoute(
                         path: 'currency',
-                        builder: (context, state) => const CurrencySelectionScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const CurrencySelectionScreen(),
+                        ),
                       ),
                       GoRoute(
                         path: 'grouping-strategy',
-                        builder: (context, state) => const GroupingStrategySelectionScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const GroupingStrategySelectionScreen(),
+                        ),
                       ),
                       GoRoute(
                         path: 'handicap-system',
-                        builder: (context, state) => const HandicapSystemSelectionScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const HandicapSystemSelectionScreen(),
+                        ),
                       ),
                       GoRoute(
                         path: 'society-cuts', 
-                        builder: (context, state) => const SocietyCutsSettingsScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const SocietyCutsSettingsScreen(),
+                        ),
                       ),
                       GoRoute(
                         path: 'roles',
-                        builder: (context, state) => const RolesSettingsScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const RolesSettingsScreen(),
+                        ),
                         routes: [
                           GoRoute(
                             path: 'members/:roleIndex',
-                            builder: (context, state) {
-                              final roleIndex = int.parse(state.pathParameters['roleIndex']!);
-                              final role = MemberRole.values[roleIndex];
-                              return RoleMembersScreen(role: role);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final roleIndex = int.parse(state.pathParameters['roleIndex']!);
+                                final role = MemberRole.values[roleIndex];
+                                return RoleMembersScreen(role: role);
+                              }),
+                            ),
                           ),
                         ],
                       ),
                       GoRoute(
                         path: 'committee-roles',
-                        builder: (context, state) => const CommitteeRolesScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const CommitteeRolesScreen(),
+                        ),
                         routes: [
                           GoRoute(
                             path: 'members/:roleName',
-                            builder: (context, state) {
-                              final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
-                              return CommitteeRoleMembersScreen(role: roleName);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final roleName = Uri.decodeComponent(state.pathParameters['roleName']!);
+                                return CommitteeRoleMembersScreen(role: roleName);
+                              }),
+                            ),
                           ),
                         ],
                       ),
                       GoRoute(
                         path: 'seasons',
-                        builder: (context, state) => const AdminSeasonsScreen(),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const AdminSeasonsScreen(),
+                        ),
                         routes: [
                           GoRoute(
                             path: 'new',
-                            builder: (context, state) => const SeasonFormScreen(),
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: const SeasonFormScreen(),
+                            ),
                           ),
                           GoRoute(
                             path: 'edit/:id',
-                            builder: (context, state) {
-                              final season = state.extra as Season?;
-                              final id = state.pathParameters['id']!;
-                              return SeasonFormScreen(season: season, seasonId: id);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final season = state.extra as Season?;
+                                final id = state.pathParameters['id']!;
+                                return SeasonFormScreen(season: season, seasonId: id);
+                              }),
+                            ),
                           ),
                         ],
                       ),
                       GoRoute(
                         path: 'templates',
-                        builder: (context, state) => const CompetitionTypeSelectionScreen(isTemplate: true),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const CompetitionTypeSelectionScreen(isTemplate: true),
+                        ),
                         routes: [
                           GoRoute(
                             path: 'gallery/:type',
-                            builder: (context, state) {
-                              final typeStr = state.pathParameters['type']!;
-                              return CompetitionTemplateGalleryScreen(typeStr: typeStr, isTemplate: true);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final typeStr = state.pathParameters['type']!;
+                                return CompetitionTemplateGalleryScreen(typeStr: typeStr, isTemplate: true);
+                              }),
+                            ),
                           ),
                           GoRoute(
                             path: 'create/:type',
-                            builder: (context, state) {
-                              final typeStr = state.pathParameters['type']!;
-                              final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
-                              if (subtype != null) {
-                                return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
-                              }
-                              final format = CompetitionFormat.values.firstWhere(
-                                (e) => e.name == typeStr,
-                                orElse: () => CompetitionFormat.stableford,
-                              );
-                              return CompetitionBuilderScreen(format: format, isTemplate: true);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final typeStr = state.pathParameters['type']!;
+                                final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
+                                if (subtype != null) {
+                                  return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
+                                }
+                                final format = CompetitionFormat.values.firstWhere(
+                                  (e) => e.name == typeStr,
+                                  orElse: () => CompetitionFormat.stableford,
+                                );
+                                return CompetitionBuilderScreen(format: format, isTemplate: true);
+                              }),
+                            ),
                           ),
                           GoRoute(
                             path: 'edit/:id',
-                            builder: (context, state) {
-                              final id = state.pathParameters['id']!;
-                              return CompetitionBuilderScreen(competitionId: id, isTemplate: true);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final id = state.pathParameters['id']!;
+                                return CompetitionBuilderScreen(competitionId: id, isTemplate: true);
+                              }),
+                            ),
                           ),
                         ],
                       ),
                       GoRoute(
                         path: 'leaderboards',
-                        builder: (context, state) => const LeaderboardTypeSelectionScreen(isTemplate: true),
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: const LeaderboardTypeSelectionScreen(isTemplate: true),
+                        ),
                         routes: [
                           GoRoute(
                             path: 'gallery/:type',
-                            builder: (context, state) {
-                              final typeStr = state.pathParameters['type']!;
-                              final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                              return LeaderboardTemplateGalleryScreen(type: type, isTemplate: true);
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final typeStr = state.pathParameters['type']!;
+                                final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                                return LeaderboardTemplateGalleryScreen(type: type, isTemplate: true);
+                              }),
+                            ),
                           ),
                           GoRoute(
                             path: 'create/picker',
-                            builder: (context, state) => const LeaderboardTypeSelectionScreen(isPicker: true),
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: const LeaderboardTypeSelectionScreen(isPicker: true),
+                            ),
                             routes: [
                               GoRoute(
                                 path: 'gallery/:type',
-                                builder: (context, state) {
-                                  final typeStr = state.pathParameters['type']!;
-                                  final type = LeaderboardType.values.firstWhere(
-                                    (e) => e.name == typeStr,
-                                    orElse: () => LeaderboardType.orderOfMerit,
-                                  );
-                                  return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
-                                },
+                                pageBuilder: (context, state) => boxyPage(
+                                  key: state.pageKey,
+                                  child: Builder(builder: (context) {
+                                    final typeStr = state.pathParameters['type']!;
+                                    final type = LeaderboardType.values.firstWhere(
+                                      (e) => e.name == typeStr,
+                                      orElse: () => LeaderboardType.orderOfMerit,
+                                    );
+                                    return LeaderboardTemplateGalleryScreen(type: type, isPicker: true);
+                                  }),
+                                ),
                               ),
                             ],
                           ),
                           GoRoute(
                             path: 'create/:type',
-                            builder: (context, state) {
-                              final typeStr = state.pathParameters['type']!;
-                              final type = LeaderboardType.values.firstWhere(
-                                (e) => e.name == typeStr,
-                                orElse: () => LeaderboardType.orderOfMerit,
-                              );
-                              return LeaderboardBuilderScreen(
-                                type: type, 
-                                isTemplate: true,
-                              );
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final typeStr = state.pathParameters['type']!;
+                                final type = LeaderboardType.values.firstWhere(
+                                  (e) => e.name == typeStr,
+                                  orElse: () => LeaderboardType.orderOfMerit,
+                                );
+                                return LeaderboardBuilderScreen(
+                                  type: type, 
+                                  isTemplate: true,
+                                );
+                              }),
+                            ),
                           ),
                           GoRoute(
                             path: 'create/:type/builder',
-                            builder: (context, state) {
-                              final typeStr = state.pathParameters['type']!;
-                              final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
-                              final config = state.extra as LeaderboardConfig?;
-                              return LeaderboardBuilderScreen(
-                                type: type, 
-                                isTemplate: true,
-                                existingConfig: config,
-                              );
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final typeStr = state.pathParameters['type']!;
+                                final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
+                                final config = state.extra as LeaderboardConfig?;
+                                return LeaderboardBuilderScreen(
+                                  type: type, 
+                                  isTemplate: true,
+                                  existingConfig: config,
+                                );
+                              }),
+                            ),
                           ),
                           GoRoute(
                             path: 'edit/:id',
-                            builder: (context, state) {
-                              final config = state.extra as LeaderboardConfig;
-                              return LeaderboardBuilderScreen(
-                                type: _getTypeFromConfig(config),
-                                existingConfig: config,
-                                isTemplate: true
-                              );
-                            },
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final config = state.extra as LeaderboardConfig;
+                                return LeaderboardBuilderScreen(
+                                  type: _getTypeFromConfig(config),
+                                  existingConfig: config,
+                                  isTemplate: true
+                                );
+                              }),
+                            ),
                           ),
                         ],
                       ),
@@ -376,170 +519,227 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/events',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: AdminEventsScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const AdminEventsScreen(),
                 ),
                 routes: [
                   GoRoute(
                     path: 'new',
-                    builder: (context, state) => const EventFormScreen(),
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: const EventFormScreen(),
+                    ),
                   ),
-                  // Competition Picker - Integrated into Events branch
                   GoRoute(
                     path: 'competitions/new',
-                    builder: (context, state) {
-                      final format = state.uri.queryParameters['format'];
-                      return CompetitionTypeSelectionScreen(isPicker: true, formatFilter: format);
-                    },
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: Builder(builder: (context) {
+                        final format = state.uri.queryParameters['format'];
+                        return CompetitionTypeSelectionScreen(isPicker: true, formatFilter: format);
+                      }),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'gallery/:type',
-                        builder: (context, state) {
-                           final typeStr = state.pathParameters['type']!;
-                           return CompetitionTemplateGalleryScreen(typeStr: typeStr, isPicker: true);
-                        },
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: Builder(builder: (context) {
+                            final typeStr = state.pathParameters['type']!;
+                            return CompetitionTemplateGalleryScreen(typeStr: typeStr, isPicker: true);
+                          }),
+                        ),
                       ),
                       GoRoute(
                         path: 'create/:type',
-                        builder: (context, state) {
-                           final typeStr = state.pathParameters['type']!;
-                           final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
-                           if (subtype != null) {
-                             return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
-                           }
-                           final format = CompetitionFormat.values.firstWhere(
-                             (e) => e.name == typeStr,
-                             orElse: () => CompetitionFormat.stableford,
-                           );
-                           return CompetitionBuilderScreen(format: format, isTemplate: true);
-                        },
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: Builder(builder: (context) {
+                            final typeStr = state.pathParameters['type']!;
+                            final subtype = CompetitionSubtype.values.where((e) => e.name == typeStr).firstOrNull;
+                            if (subtype != null) {
+                              return CompetitionBuilderScreen(subtype: subtype, isTemplate: true);
+                            }
+                            final format = CompetitionFormat.values.firstWhere(
+                              (e) => e.name == typeStr,
+                              orElse: () => CompetitionFormat.stableford,
+                            );
+                            return CompetitionBuilderScreen(format: format, isTemplate: true);
+                          }),
+                        ),
                       ),
                     ],
                   ),
                   GoRoute(
                     path: 'competitions/edit/:id',
-                    builder: (context, state) {
-                      final id = state.pathParameters['id']!;
-                      return CompetitionBuilderScreen(competitionId: id, isTemplate: false);
-                    },
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: Builder(builder: (context) {
+                        final id = state.pathParameters['id']!;
+                        return CompetitionBuilderScreen(competitionId: id, isTemplate: false);
+                      }),
+                    ),
                   ),
                   GoRoute(
-                    path: ':id/broadcast',
-                    builder: (context, state) {
+                    path: 'manage/:id',
+                    redirect: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return EventBroadcastScreen(eventId: id);
+                      final path = state.uri.path;
+                      if (path.endsWith('manage/$id') || path.endsWith('manage/$id/')) {
+                        return '/admin/events/manage/$id/home';
+                      }
+                      return null;
                     },
                     routes: [
                       GoRoute(
-                        path: 'new',
-                        builder: (context, state) {
-                          final eventId = state.pathParameters['id']!;
-                          return FeedItemEditorScreen(eventId: eventId);
-                        },
-                      ),
-                      GoRoute(
-                        path: 'edit/:itemId',
-                        builder: (context, state) {
-                          final eventId = state.pathParameters['id']!;
-                          final item = state.extra as EventFeedItem?;
-                          return FeedItemEditorScreen(eventId: eventId, existingItem: item);
-                        },
-                      ),
-                    ],
-                  ),
-                  ShellRoute(
-                    pageBuilder: (context, state, child) {
-                      return NoTransitionPage(
-                        child: EventAdminShell(child: child),
-                      );
-                    },
-                    routes: [
-                      GoRoute(
-                        path: 'manage/:id/event',
-                        pageBuilder: (context, state) {
-                          final eventId = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventUserDetailsTab(eventId: eventId, useScaffold: false),
-                          );
-                        },
+                        path: 'broadcast',
+                        pageBuilder: (context, state) => boxyPage(
+                          key: state.pageKey,
+                          child: Builder(builder: (context) {
+                            final id = state.pathParameters['id']!;
+                            return EventBroadcastScreen(eventId: id);
+                          }),
+                        ),
                         routes: [
                           GoRoute(
-                            path: 'edit',
-                            pageBuilder: (context, state) {
-                              final event = state.extra as GolfEvent?;
-                              final eventId = state.pathParameters['id'];
-                              return NoTransitionPage(
-                                child: EventFormScreen(event: event, eventId: eventId),
-                              );
-                            },
+                            path: 'new',
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final eventId = state.pathParameters['id']!;
+                                return FeedItemEditorScreen(eventId: eventId);
+                              }),
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'edit/:itemId',
+                            pageBuilder: (context, state) => boxyPage(
+                              key: state.pageKey,
+                              child: Builder(builder: (context) {
+                                final eventId = state.pathParameters['id']!;
+                                final item = state.extra as EventFeedItem?;
+                                return FeedItemEditorScreen(eventId: eventId, existingItem: item);
+                              }),
+                            ),
                           ),
                         ],
                       ),
                       GoRoute(
-                        path: 'manage/:id/registrations',
+                        path: 'feed/:itemId',
                         pageBuilder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventRegistrationsAdminScreen(eventId: id),
+                          final item = state.extra as EventFeedItem;
+                          return boxyPage(
+                            key: state.pageKey,
+                            child: EventFeedDetailScreen(item: item),
                           );
                         },
                       ),
-                      GoRoute(
-                        path: 'manage/:id/grouping',
-                        pageBuilder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventAdminGroupingScreen(eventId: id),
-                          );
-                        },
-                      ),
-                      GoRoute(
-                        path: 'manage/:id/scores',
-                        pageBuilder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventAdminScoresScreen(eventId: id),
+                      ShellRoute(
+                        pageBuilder: (context, state, child) {
+                          return fadePage(
+                            key: state.pageKey,
+                            child: EventAdminShell(child: child),
                           );
                         },
                         routes: [
                           GoRoute(
-                            path: ':playerId',
+                            path: 'home',
+                            pageBuilder: (context, state) {
+                              final eventId = state.pathParameters['id']!;
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventUserHomeTab(eventId: eventId),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'event',
+                            pageBuilder: (context, state) {
+                              final eventId = state.pathParameters['id']!;
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventUserDetailsTab(eventId: eventId, useScaffold: false),
+                              );
+                            },
+                            routes: [
+                              GoRoute(
+                                path: 'edit',
+                                pageBuilder: (context, state) {
+                                  final event = state.extra as GolfEvent?;
+                                  final eventId = state.pathParameters['id'];
+                                  return boxyPage(
+                                    key: state.pageKey,
+                                    child: EventFormScreen(event: event, eventId: eventId),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          GoRoute(
+                            path: 'registrations',
                             pageBuilder: (context, state) {
                               final id = state.pathParameters['id']!;
-                              final playerId = state.pathParameters['playerId']!;
-                              return NoTransitionPage(
-                                child: EventAdminScorecardEditorScreen(eventId: id, playerId: playerId),
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventRegistrationsAdminScreen(eventId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'grouping',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventAdminGroupingScreen(eventId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'scores',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventAdminScoresScreen(eventId: id),
+                              );
+                            },
+                            routes: [
+                              GoRoute(
+                                path: ':playerId',
+                                pageBuilder: (context, state) {
+                                  final id = state.pathParameters['id']!;
+                                  final playerId = state.pathParameters['playerId']!;
+                                  return boxyPage(
+                                    key: state.pageKey,
+                                    child: EventAdminScorecardEditorScreen(eventId: id, playerId: playerId),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          GoRoute(
+                            path: 'reporting',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventAdminReportsScreen(eventId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'manual-cuts',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              return fadePage(
+                                key: state.pageKey,
+                                child: EventManualCutsScreen(eventId: id),
                               );
                             },
                           ),
                         ],
-                      ),
-                      GoRoute(
-                        path: 'manage/:id/financials',
-                        pageBuilder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventAdminFinancialsScreen(eventId: id),
-                          );
-                        },
-                      ),
-                      GoRoute(
-                        path: 'manage/:id/reports',
-                        pageBuilder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventAdminReportsScreen(eventId: id),
-                          );
-                        },
-                      ),
-                      GoRoute(
-                        path: 'manage/:id/manual-cuts',
-                        pageBuilder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return NoTransitionPage(
-                            child: EventManualCutsScreen(eventId: id),
-                          );
-                        },
                       ),
                     ],
                   ),
@@ -553,8 +753,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/members',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: AdminMembersScreen(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const AdminMembersScreen(),
                 ),
               ),
             ],
@@ -565,7 +766,48 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/communications',
-                builder: (context, state) => const NotificationAdminScaffold(),
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const NotificationAdminScaffold(),
+                ),
+              ),
+            ],
+          ),
+          // 3.5 Surveys
+          StatefulShellBranch(
+            navigatorKey: _adminSurveysKey,
+            routes: [
+              GoRoute(
+                path: '/admin/surveys',
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const AdminSurveysScreen(),
+                ),
+              ),
+              GoRoute(
+                path: '/admin/surveys/new',
+                pageBuilder: (context, state) => boxyPage(
+                  key: state.pageKey,
+                  child: const SurveyEditorScreen(),
+                ),
+              ),
+              GoRoute(
+                path: '/admin/surveys/edit/:surveyId',
+                pageBuilder: (context, state) => boxyPage(
+                  key: state.pageKey,
+                  child: SurveyEditorScreen(
+                    surveyId: state.pathParameters['surveyId'],
+                  ),
+                ),
+              ),
+              GoRoute(
+                path: '/admin/surveys/results/:surveyId',
+                pageBuilder: (context, state) => boxyPage(
+                  key: state.pageKey,
+                  child: SurveyResultsScreen(
+                    surveyId: state.pathParameters['surveyId']!,
+                  ),
+                ),
               ),
             ],
           ),
@@ -575,31 +817,35 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/reports',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: AdminReportsScreen(), 
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: const AdminReportsScreen(), 
                 ),
                 routes: [
                   GoRoute(
                     path: 'manage/:id',
-                    builder: (context, state) {
-                      final id = state.pathParameters['id']!;
-                      final config = state.extra as LeaderboardConfig?;
-                      
-                      if (config != null) {
-                        return LeaderboardBuilderScreen(
-                          type: _getTypeFromConfig(config),
-                          existingConfig: config,
-                          isTemplate: false,
+                    pageBuilder: (context, state) => boxyPage(
+                      key: state.pageKey,
+                      child: Builder(builder: (context) {
+                        final id = state.pathParameters['id']!;
+                        final config = state.extra as LeaderboardConfig?;
+                        
+                        if (config != null) {
+                          return LeaderboardBuilderScreen(
+                            type: _getTypeFromConfig(config),
+                            existingConfig: config,
+                            isTemplate: false,
+                          );
+                        }
+                        
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('Admin Debug')),
+                          body: Center(
+                            child: Text('Leaderboard ID: $id\nNo Config Passed!'),
+                          ),
                         );
-                      }
-                      
-                      return Scaffold(
-                        appBar: AppBar(title: const Text('Admin Debug')),
-                        body: Center(
-                          child: Text('Leaderboard ID: $id\nNo Config Passed!'),
-                        ),
-                      );
-                    },
+                      }),
+                    ),
                   ),
                 ],
               ),
@@ -621,74 +867,70 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: 'register-form', 
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return EventRegistrationScreen(eventId: id);
+            pageBuilder: (context, state) => boxyPage(
+              key: state.pageKey,
+              child: Builder(builder: (context) {
+                final id = state.pathParameters['id']!;
+                return EventRegistrationScreen(eventId: id);
+              }),
+            ),
+          ),
+          GoRoute(
+            path: 'feed/:itemId',
+            pageBuilder: (context, state) {
+              final item = state.extra as EventFeedItem;
+              return boxyPage(
+                key: state.pageKey,
+                child: EventFeedDetailScreen(item: item),
+              );
             },
           ),
           ShellRoute(
-            pageBuilder: (context, state, child) => NoTransitionPage(
+            pageBuilder: (context, state, child) => fadePage(
+              key: state.pageKey,
               child: EventUserShell(child: child),
             ),
             routes: [
               GoRoute(
                 path: 'home',
-                pageBuilder: (context, state) => CustomTransitionPage(
+                pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventUserHomeTab(eventId: state.pathParameters['id']!),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
                 ),
               ),
               GoRoute(
                 path: 'details',
-                pageBuilder: (context, state) => CustomTransitionPage(
+                pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventUserDetailsTab(eventId: state.pathParameters['id']!),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
                 ),
               ),
               GoRoute(
                 path: 'field',
-                pageBuilder: (context, state) => CustomTransitionPage(
+                pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventGroupingUserTab(eventId: state.pathParameters['id']!),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
                 ),
               ),
               GoRoute(
                 path: 'live',
-                pageBuilder: (context, state) => CustomTransitionPage(
+                pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventScoresUserTab(eventId: state.pathParameters['id']!),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
                 ),
               ),
               GoRoute(
                 path: 'stats',
-                pageBuilder: (context, state) => CustomTransitionPage(
+                pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventStatsUserTab(eventId: state.pathParameters['id']!),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
                 ),
               ),
               GoRoute(
                 path: 'photos',
-                pageBuilder: (context, state) => CustomTransitionPage(
+                pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventGalleryUserTab(eventId: state.pathParameters['id']!),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
                 ),
               ),
               // Old path redirects for backward compatibility

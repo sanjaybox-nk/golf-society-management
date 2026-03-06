@@ -12,7 +12,8 @@ class EventAnalysisEngine {
     required Competition? competition,
     bool isStableford = true,
   }) {
-    final holes = event.courseConfig['holes'] as List? ?? [];
+    final holes = event.courseConfig.holes;
+
     // 0. Merge live scorecards with archived results
     final List<Scorecard> mergedScorecards = List.from(scorecards);
     final existingIds = scorecards.map((s) => s.entryId).toSet();
@@ -77,7 +78,7 @@ class EventAnalysisEngine {
           holeAverages[idxStr] = (holeAverages[idxStr] ?? 0) + score;
           holeCounts[idxStr] = (holeCounts[idxStr] ?? 0) + 1;
 
-          final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
+          final par = holes.length > i ? (holes[i].par) : 4;
           final diff = score - par;
           if (diff <= -2) {
             fieldEagles++;
@@ -123,7 +124,7 @@ class EventAnalysisEngine {
     double maxDiff = -999;
     holeAverages.forEach((idxStr, avg) {
       final idx = int.parse(idxStr);
-      final par = holes.length > idx ? (holes[idx]['par'] as int? ?? 4).toDouble() : 4.0;
+      final par = holes.length > idx ? holes[idx].par.toDouble() : 4.0;
       final diff = avg - par;
       if (diff > maxDiff) {
         maxDiff = diff;
@@ -160,7 +161,7 @@ class EventAnalysisEngine {
       for (int i = 0; i < 18; i++) {
         final score = s.holeScores.length > i ? s.holeScores[i] : null;
         if (score != null) {
-          final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
+          final par = holes.length > i ? (holes[i].par) : 4;
           if (score <= par) {
             currentStreak++;
             playerMaxStreak = math.max(playerMaxStreak, currentStreak);
@@ -180,8 +181,8 @@ class EventAnalysisEngine {
         final score = s.holeScores.length > i ? s.holeScores[i] : null;
         final prevScore = s.holeScores.length > (i - 1) ? s.holeScores[i - 1] : null;
         if (score != null && prevScore != null) {
-           final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
-           final prevPar = holes.length > (i - 1) ? (holes[i - 1]['par'] as int? ?? 4) : 4;
+           final par = holes.length > i ? (holes[i].par) : 4;
+           final prevPar = holes.length > (i - 1) ? (holes[i - 1].par) : 4;
            if (prevScore > prevPar && score <= par) {
              playerBounceBacks++;
            }
@@ -199,8 +200,8 @@ class EventAnalysisEngine {
           final phc = reg.playingHandicap ?? 0;
           for (int i = 15; i < 18; i++) {
             final score = s.holeScores[i]!;
-            final par = holes[i]['par'] as int? ?? 4;
-            final si = holes[i]['si'] as int? ?? 18;
+            final par = holes[i].par;
+            final si = holes[i].si;
             int shots = (phc ~/ 18);
             if (si <= (phc % 18)) shots++;
             final netScore = score - shots;
@@ -227,7 +228,7 @@ class EventAnalysisEngine {
       for (int i = 0; i < 18; i++) {
         final score = s.holeScores.length > i ? s.holeScores[i] : null;
         if (score != null) {
-          final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
+          final par = holes.length > i ? (holes[i].par) : 4;
           final diff = score - par;
           if (diff >= 3) playerBlobs++;
           if (diff == 0) playerPars++;
@@ -269,7 +270,7 @@ class EventAnalysisEngine {
       for (int i = 0; i < 18; i++) {
         final score = s.holeScores.length > i ? s.holeScores[i] : null;
         if (score != null) {
-          final par = holes.length > i ? (holes[i]['par'] as int? ?? 4) : 4;
+          final par = holes.length > i ? (holes[i].par) : 4;
           diffs.add((score - par).toDouble());
         }
       }
@@ -288,8 +289,8 @@ class EventAnalysisEngine {
         final s1 = s.holeScores.length > i ? s.holeScores[i] : null;
         final s0 = s.holeScores.length > (i - 1) ? s.holeScores[i - 1] : null;
         if (s1 != null && s0 != null) {
-          final par1 = (holes.length > i) ? (holes[i]['par'] as int? ?? 4) : 4;
-          final par0 = (holes.length > i - 1) ? (holes[i - 1]['par'] as int? ?? 4) : 4;
+          final par1 = (holes.length > i) ? (holes[i].par) : 4;
+          final par0 = (holes.length > i - 1) ? (holes[i - 1].par) : 4;
           if (s0 > par0) {
             pOpportunities++;
             if (s1 <= par1) pBB++;

@@ -8,6 +8,8 @@ import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
+import '../../../../domain/scoring/scoring_calculator.dart';
+import '../../../../domain/models/course_config.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
 import '../../../matchplay/domain/match_definition.dart';
 import 'course_info_card.dart';
@@ -260,10 +262,13 @@ class ScorecardModal {
                                 ? (entry.teamMemberIds?.first ?? entry.entryId) 
                                 : focusedPlayerId;
                             final manualTee = teeOverrides?[effectiveFocusId];
-                            final playerTeeConfig = _resolvePlayerCourseConfig(effectiveFocusId, event, membersList, manualTeeName: manualTee);
-                            final teeName = manualTee ?? (playerTeeConfig['gender'] == 'female'
-                                ? (event.selectedFemaleTeeName ?? 'Red')
-                                : (event.selectedTeeName ?? 'Yellow'));
+                            final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                              memberId: effectiveFocusId, 
+                              event: event, 
+                              membersList: membersList, 
+                              manualTeeName: manualTee,
+                            );
+                            final teeName = manualTee ?? (playerTeeConfig.selectedTeeName ?? (event.selectedTeeName ?? 'Yellow'));
                             final teeColor = _getTeeColor(teeName);
 
                             return Wrap(
@@ -362,7 +367,12 @@ class ScorecardModal {
                                 }
 
                                  final manualTee = teeOverrides?[id];
-                                 final playerConfig = _resolvePlayerCourseConfig(id, event, membersList, manualTeeName: manualTee);
+                                 final playerConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                                   memberId: id, 
+                                   event: event, 
+                                   membersList: membersList, 
+                                   manualTeeName: manualTee,
+                                 );
                                  final member = membersList.firstWhereOrNull((m) => m.id == id);
                                 final playerPhc = HandicapCalculator.calculatePlayingHandicap(
                                   handicapIndex: member?.handicap ?? 18.0,
@@ -381,12 +391,12 @@ class ScorecardModal {
 
                                 // Calculate contribution to Best Ball points
                                 if (isStableford && bestBallPoints != null) {
-                                  final playerHoles = playerConfig['holes'] as List? ?? [];
+                                  final playerHoles = playerConfig.holes;
                                   for (int h = 0; h < 18; h++) {
                                     final score = card.holeScores.length > h ? card.holeScores[h] : null;
                                     if (score != null) {
-                                      final par = playerHoles.length > h ? (playerHoles[h]['par'] as int? ?? 4) : 4;
-                                      final si = playerHoles.length > h ? (playerHoles[h]['si'] as int? ?? 18) : 18;
+                                      final par = playerHoles.length > h ? playerHoles[h].par : 4;
+                                      final si = playerHoles.length > h ? playerHoles[h].si : 18;
                                       
                                       int shots = (playerPhc / 18).floor();
                                       if (playerPhc % 18 >= si) shots++;
@@ -407,14 +417,19 @@ class ScorecardModal {
                              // Use first member's tee context as baseline for team points
                              final firstId = entry.teamMemberIds?.first ?? '';
                              final teamManualTee = teeOverrides?[firstId];
-                             final teamTeeConfig = _resolvePlayerCourseConfig(firstId, event, membersList, manualTeeName: teamManualTee);
-                             final teamHoles = teamTeeConfig['holes'] as List? ?? [];
+                             final teamTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                               memberId: firstId, 
+                               event: event, 
+                               membersList: membersList, 
+                               manualTeeName: teamManualTee,
+                             );
+                             final teamHoles = teamTeeConfig.holes;
                             
                             for (int h = 0; h < 18; h++) {
                               final score = actualScorecard.holeScores.length > h ? actualScorecard.holeScores[h] : null;
                               if (score != null) {
-                                final par = teamHoles.length > h ? (teamHoles[h]['par'] as int? ?? 4) : 4;
-                                final si = teamHoles.length > h ? (teamHoles[h]['si'] as int? ?? 18) : 18;
+                                final par = teamHoles.length > h ? teamHoles[h].par : 4;
+                                final si = teamHoles.length > h ? teamHoles[h].si : 18;
                                 
                                 int shots = (teamPhc / 18).floor();
                                 if (teamPhc % 18 >= si) shots++;
@@ -440,11 +455,13 @@ class ScorecardModal {
                                  : focusedPlayerId;
 
                              final manualTee = teeOverrides?[effectiveFocusId];
-                             final playerTeeConfig = _resolvePlayerCourseConfig(effectiveFocusId, event, membersList, manualTeeName: manualTee);
-                             final isFemale = playerTeeConfig['gender'] == 'female';
-                             final playerTeeName = manualTee ?? (isFemale
-                                 ? (event.selectedFemaleTeeName ?? 'Red')
-                                 : (event.selectedTeeName ?? 'Yellow'));
+                             final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+                               memberId: effectiveFocusId, 
+                               event: event, 
+                               membersList: membersList, 
+                               manualTeeName: manualTee,
+                             );
+                             final playerTeeName = manualTee ?? (playerTeeConfig.selectedTeeName ?? (event.selectedTeeName ?? 'Yellow'));
 
                              final focusedName = focusedPlayerId == 'team' 
                                  ? 'TEAM'
@@ -505,7 +522,6 @@ class ScorecardModal {
                                  CourseInfoCard(
                                    courseConfig: playerTeeConfig,
                                    selectedTeeName: playerTeeName,
-                                   distanceUnit: event.courseConfig['distanceUnit'] ?? 'yards',
                                    isStableford: isStableford,
                                    isNet: comp?.rules.scoringType != 'GROSS',
                                    format: currentFormat,
@@ -545,22 +561,27 @@ class ScorecardModal {
                                         // 1. Resolve relative strokes for the match
                                         // 1. Resolve relative strokes for the match (Centralized)
                                         final Map<String, double> playerIndices = {};
-                                        final Map<String, Map<String, dynamic>> courseConfigs = {};
-                                        
-                                        for (final pid in myGroupIds) {
-                                             final manualTee = teeOverrides?[pid];
-                                             courseConfigs[pid] = _resolvePlayerCourseConfig(pid, event, membersList, manualTeeName: manualTee);
-                                             final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
-                                             if (pid.contains('_guest')) {
-                                                final baseId = pid.replaceAll('_guest', '');
-                                                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
-                                                playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
-                                            } else {
-                                                playerIndices[pid] = member?.handicap ?? 18.0;
-                                            }
-                                        }
-
-                                        final baseRating = _parseValue(event.courseConfig['rating'] ?? 72.0);
+                                         final Map<String, CourseConfig> courseConfigs = {};
+                                         
+                                         for (final pid in myGroupIds) {
+                                              final manualTee = teeOverrides?[pid];
+                                              courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+                                                memberId: pid, 
+                                                event: event, 
+                                                membersList: membersList, 
+                                                manualTeeName: manualTee,
+                                              );
+                                              final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
+                                              if (pid.contains('_guest')) {
+                                                 final baseId = pid.replaceAll('_guest', '');
+                                                 final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+                                                 playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+                                             } else {
+                                                 playerIndices[pid] = member?.handicap ?? 18.0;
+                                             }
+                                         }
+ 
+                                         final baseRating = event.courseConfig.rating ?? 72.0;
                                         final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
                                           playerIds: myGroupIds,
                                           playerIndices: playerIndices,
@@ -599,11 +620,11 @@ class ScorecardModal {
 
                                         // 4. Calculate via Authoritative Engine
                                         final result = MatchPlayCalculator.calculate(
-                                          match: virtualMatch,
-                                          scorecards: sourceCards,
-                                          courseConfig: event.courseConfig,
-                                          holesToPlay: event.courseConfig['holes']?.length ?? 18,
-                                        );
+                                           match: virtualMatch,
+                                           scorecards: sourceCards,
+                                           courseConfig: event.courseConfig,
+                                           holesToPlay: event.courseConfig.holes.length,
+                                         );
 
                                         // 5. Map to UI expectations
                                         matchPlayResults = result.holeResults.map((r) {
@@ -872,82 +893,6 @@ class ScorecardModal {
     );
   }
 
-  static Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList, {String? manualTeeName}) {
-    final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.courseConfig;
-
-    var member = membersList.firstWhereOrNull((m) => m.id == memberId.replaceFirst('_guest', ''));
-    
-    // Fallback: check registrations if not in members list (e.g. for Guests)
-    String? gender = member?.gender?.toLowerCase();
-    if (gender == null) {
-      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == memberId);
-      if (reg != null) {
-        final name = (reg.displayName).toLowerCase();
-        // Simple heuristic for demo/guest data
-        if (name.contains('lady') || 
-            name.contains('sarah') || 
-            name.contains('betty') || 
-            name.contains('jane') || 
-            name.contains('mary') ||
-            name.contains('margaret') ||
-            name.contains('female')) {
-          gender = 'female';
-        }
-      }
-    }
-    
-    final effectiveGender = gender ?? 'male';
-    
-    Map<String, dynamic>? selectedTee;
-    
-    // 1. Manual Override logic (Matches HoleByHoleScoringWidget logic)
-    if (manualTeeName != null) {
-      selectedTee = (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase() == manualTeeName.toLowerCase()
-      ) as Map<String, dynamic>?);
-    }
-
-    if (selectedTee == null) {
-      if (effectiveGender == 'female') {
-        if (event.selectedFemaleTeeName != null) {
-          selectedTee = (tees.firstWhereOrNull((t) => 
-            (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
-          ) as Map<String, dynamic>?);
-        }
-        selectedTee ??= (tees.firstWhereOrNull((t) => 
-          (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-          (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-          (t['name'] ?? '').toString().toLowerCase().contains('female')
-        ) as Map<String, dynamic>?);
-      }
-      
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'Yellow').toLowerCase()
-      ) as Map<String, dynamic>?);
-
-      // Final fallback to white if Yellow not found (common in some configs)
-      selectedTee ??= (tees.firstWhereOrNull((t) => 
-        (t['name'] ?? '').toString().toLowerCase() == 'white'
-      ) as Map<String, dynamic>?);
-
-      // Final fallback: First tee
-      selectedTee ??= (tees.first as Map<String, dynamic>);
-    }
-
-    return {
-       ...event.courseConfig,
-       'gender': effectiveGender,
-       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
-       'rating': selectedTee['rating'] ?? 72.0,
-       'slope': selectedTee['slope'] ?? 113,
-       'holes': List.generate(18, (i) => {
-          'hole': i + 1,
-          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
-          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
-       }),
-    };
-  }
 
   static Widget _buildHeaderPill({
     required BuildContext context,
@@ -1006,11 +951,5 @@ class ScorecardModal {
     if (name.contains('blue')) return const Color(0xFF1E90FF);
     if (name.contains('black')) return const Color(0xFF2F2F2F);
     return Colors.grey;
-  }
-
-  static double _parseValue(dynamic val) {
-    if (val is num) return val.toDouble();
-    if (val is String) return double.tryParse(val) ?? 0.0;
-    return 0.0;
   }
 }

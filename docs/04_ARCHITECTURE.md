@@ -33,6 +33,7 @@ We use `riverpod_generator` (`@riverpod` annotation) which auto-generates provid
     - `FirestoreMembersRepository`
     - `FirestoreCompetitionsRepository`
     - `FirestoreSeasonsRepository`
+    - `FirestoreAuditRepository` (Real-time activity tracking)
 - **Services**: 
     - `AuthService` (Firebase Auth)
     - `StorageService` (Firebase Storage - Image Uploads)
@@ -52,6 +53,12 @@ Complex business rules are encapsulated in standalone logic classes within the `
     - Pattern: **Calculate Once, Display Everywhere**. Views must NOT implement their own scoring logic.
 - **RegistrationLogic**: Centralized helper for calculating FCFS positions, status pills, and buggy allocations.
 
+## Complex Form Architecture
+For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modular decomposition strategy:
+- **State Management**: A centralized `AsyncNotifier` (e.g., `EventFormNotifier`) manages a composite `Freezed` state.
+- **Sub-Widgets**: The monolithic form is broken into functional sections (e.g., `EventLogisticsSection`, `EventCourseSection`) that consume the central notifier.
+- **Persistence Orchestration**: The notifier's `save()` method handles complex multi-repository synchronization (e.g., updating both an Event and its associated Competitions) within a single logical unit.
+
 ## Navigation (GoRouter)
 The app uses `StatefulShellRoute` to implement the persistent bottom navigation bar.
 -   **Shell**: `ScaffoldWithNavBar` wraps the 5 main tabs.
@@ -68,7 +75,8 @@ Models are immutable and generated using `freezed`.
     -   `Competition`: Scoring rules, formats, and configurations.
 ## Code Quality & Hardening
 The project maintains a strict standard for code quality and reliability:
-- **Strict Linting**: Powered by `analysis_options.yaml`. The project maintains a "Zero Error" policy where `flutter analyze` must return no issues.
+- **Zero-Warning Static Analysis**: Powered by `analysis_options.yaml`. The project maintains a "Zero Error" policy where `flutter analyze` must return no issues.
+- **Global Resilience**: The app is wrapped in `BoxyArtErrorHandler` which uses `PlatformDispatcher.instance.onError` to catch both build-time "red screens" and asynchronous runtime exceptions globally.
 - **Async Safety**: Use of `mounted` guards and localized navigator state ensures `BuildContext` is never used invalidly across async gaps (standardized in Feb 2026).
 - **Type Safety**: Heavy reliance on `freezed` for immutable models and `riverpod_generator` for type-safe state management.
 - **Import Hygiene**: Strict policing of redundant imports. The project uses a centralized `package:golf_society/design_system/design_system.dart` export for all UI components, drastically reducing import noise.

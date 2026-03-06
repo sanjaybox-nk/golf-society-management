@@ -13,6 +13,7 @@ import 'package:golf_society/domain/models/course.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:golf_society/domain/models/course_config.dart' as cfg;
 
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/courses/presentation/courses_provider.dart';
@@ -382,20 +383,26 @@ class SeedingService {
       courseName: course.name,
       selectedTeeName: 'Yellow',
       selectedFemaleTeeName: 'Red',
-      courseConfig: {
-        'tees': course.tees.map((t) => t.toMap()).toList(),
-        'mensTeeName': 'Yellow',
-        'ladiesTeeName': 'Red',
-        'holes': yellowTee.holePars.asMap().entries.map((e) => {
-          'hole': e.key + 1,
-          'par': e.value,
-          'si': yellowTee.holeSIs[e.key],
-          'yardage': yellowTee.yardages[e.key],
-        }).toList(),
-        'par': yellowTee.holePars.fold(0, (a, b) => a + b),
-        'slope': yellowTee.slope,
-        'rating': yellowTee.rating,
-      },
+      courseConfig: cfg.CourseConfig(
+        tees: course.tees.map((t) => cfg.TeeConfig(
+          name: t.name,
+          rating: t.rating,
+          slope: t.slope,
+          holePars: t.holePars,
+          holeSIs: t.holeSIs,
+          yardages: t.yardages,
+        )).toList(),
+        selectedTeeName: 'Yellow',
+        holes: yellowTee.holePars.asMap().entries.map((e) => cfg.CourseHole(
+          hole: e.key + 1,
+          par: e.value,
+          si: yellowTee.holeSIs[e.key],
+          yardage: yellowTee.yardages[e.key],
+        )).toList(),
+        par: yellowTee.holePars.fold<int>(0, (a, b) => a + b),
+        slope: yellowTee.slope,
+        rating: yellowTee.rating,
+      ),
       hasBreakfast: true,
       hasLunch: _random.nextBool(),
       hasDinner: true,
@@ -600,7 +607,12 @@ class SeedingService {
           
           final phc = HandicapCalculator.calculatePlayingHandicap(
               handicapIndex: index, rules: rules, 
-              courseConfig: {'rating': tee.rating, 'slope': tee.slope, 'par': tee.holePars.fold(0, (a, b) => a + b), 'holes': tee.holePars.asMap().entries.map((e) => {'hole': e.key + 1, 'par': e.value, 'si': tee.holeSIs[e.key]}).toList()},
+              courseConfig: cfg.CourseConfig(
+                rating: tee.rating, 
+                slope: tee.slope, 
+                par: tee.holePars.fold<int>(0, (a, b) => a + b), 
+                holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
+              ),
           );
 
           final holeScores = <int?>[];

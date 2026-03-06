@@ -18,6 +18,7 @@ class HeadlessScaffold extends StatelessWidget {
   final bool showBack;
   final bool showMenu;
   final VoidCallback? onBack;
+  final IconData? backIcon;
   final List<Widget>? actions;
   final Widget? leading;
   final PreferredSizeWidget? bottom;
@@ -40,6 +41,7 @@ class HeadlessScaffold extends StatelessWidget {
     this.showBack = false,
     this.showMenu = false,
     this.onBack,
+    this.backIcon,
     this.actions,
     this.leading,
     this.leadingWidth,
@@ -56,6 +58,7 @@ class HeadlessScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bg = backgroundColor ?? theme.scaffoldBackgroundColor;
     
     // Calculate top padding: Standard AppBar (56) + Dynamic Gap (64) = 120
@@ -95,10 +98,10 @@ class HeadlessScaffold extends StatelessWidget {
                           return Text(
                             displayTitle,
                             style: const TextStyle(
-                              fontSize: 32,
+                              fontSize: 34,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: -1.2,
-                              height: 1.1,
+                              letterSpacing: -1.8, // Tighter for editorial feel
+                              height: 1.0,
                             ),
                           );
                         },
@@ -119,9 +122,9 @@ class HeadlessScaffold extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: 14,
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      color: isDark ? AppColors.dark200 : AppColors.dark400,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
+                      letterSpacing: -0.5,
                     ),
                   ),
                 ],
@@ -156,6 +159,7 @@ class HeadlessScaffold extends StatelessWidget {
               showBack: showBack,
               showLeading: showMenu && !showBack,
               onBack: onBack,
+              backIcon: backIcon,
               actions: actions,
               leading: leading,
               leadingWidth: leadingWidth,
@@ -203,6 +207,7 @@ class HeadlessScaffold extends StatelessWidget {
         showBack: showBack,
         showLeading: showMenu && !showBack, // Standard logic: Menu if no Back
         onBack: onBack,
+        backIcon: backIcon,
         actions: actions,
         leading: leading,
         leadingWidth: leadingWidth,

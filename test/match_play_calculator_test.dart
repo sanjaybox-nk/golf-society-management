@@ -3,12 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:golf_society/features/matchplay/domain/match_definition.dart';
 import 'package:golf_society/features/matchplay/domain/match_play_calculator.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 void main() {
   group('MatchPlayCalculator Tests', () {
-    final courseConfig = {
-      'holes': List.generate(18, (i) => {'par': 4, 'si': i + 1})
-    };
+    final courseConfig = CourseConfig(
+      holes: List.generate(18, (i) => CourseHole(hole: i + 1, par: 4, si: i + 1))
+    );
 
     test('All Square Match - 18 Holes Halved', () {
       final match = MatchDefinition(

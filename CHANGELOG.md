@@ -1,3 +1,41 @@
+### Phase 5: Production Hardening & Multi-Tenant Roadmap (2026-03-06)
+- **Multi-Tenant Product Roadmap**: Established a comprehensive vision for the platform's evolution, including Divisional functionality, Season-long Match Play, Admin Web Portal, and Locker Room 2.0. Documented in `product_roadmap.md` and synced with `docs/06_ROADMAP_TODO.md`.
+- **`Freezed` Model Standardization**: Hardened `AuditActivity`, `CourseConfig`, `CourseHole`, `TeeConfig`, and `EventFormState` for Dart 3 by adding the `abstract` keyword to ensure compatibility with mixin strictness.
+- **Design 3.1 Hardening**:
+    - **Header Spacing**: Standardized `BoxyArtAppBar` horizontal padding to 20px (leading/trailing) for visual consistency.
+    - **Placeholder Alignment**: Standardized placeholder text size across `BoxyArtInputField`, `BoxyArtRichEditor`, and `BoxyArtRichNoteEditor` to match body text.
+    - **FormField Versatility**: Converted `BoxyArtFormField` to a `StatefulWidget` to robustly support `initialValue` injections.
+- **Critical Bug Fixes**:
+    - **Navigation Crash**: Resolved a critical failure in `AdminShell` desktop navigation where selecting the "Reporting" menu caused a state assertion error due to index mismatch.
+    - **Null Safety**: Fixed unconditional nullable access in `ScoringCalculator` that was causing analyzer errors in scoring resolution.
+    - **Export Stability**: Fixed missing exports in `design_system.dart` and resolved undefined identifiers in `headless_scaffold.dart`.
+- **Static Analysis**: Achieved a 100% clean `flutter analyze` state with zero errors and zero blocking warnings.
+
+- **Modular Event Form Architecture (Phase 3)**: Successfully decomposed the monolithic `EventFormScreen` into a suite of 9+ specialized, reusable sub-widgets (Logistics, Course, Pricing, Awards, etc.).
+- **Centralized Form Management**: Introduced `EventFormNotifier` (Riverpod `AsyncNotifier`) and `EventFormState` (Freezed) to manage complex multi-repository persistence logic for Events, Competitions, and Matchplay sync.
+- **Global Error Sovereignty (Phase 4)**: Implemented `BoxyArtErrorHandler`, a robust global error boundary that captures both build-time and asynchronous exceptions, replacing standard crashes with a premium branded recovery UX.
+- **Real-time Audit Pulse**: Established the `FirestoreAuditStream` and `AuditRepository`, replacing mock metrics on the Admin Dashboard with a live feed of society-wide activity (registrations, scoring, etc.).
+- **Status Visibility & Integrity**: Standardized the display of "Draft" and "Cancelled" states across the application with prominent UI banners and badges. Integrated strict field-level validation into the event saving workflow.
+- **Rich-Text Content Control**: Integrated the `BoxyArtRichNoteEditor` into the Event Form for professional-grade formatting of event notes and facilities lists.
+
+### Standalone Surveys Module & Feedback Engine (2026-03-05)
+- **Standalone Survey Architecture**: Introduced a decoupled `Survey` model and `SurveysRepository` (Firestore) allowing for society-wide engagement independent of specific golf events.
+- **Dynamic Question Engine**: Implemented support for multiple question types—Single Choice, Multiple Choice, and Open-Ended Text—with a flexible dynamic response mapping system.
+- **Admin Management Suite**: Built a comprehensive administrative interface (`AdminSurveysScreen` and `SurveyEditorScreen`) for creating, publishing, and monitoring survey engagement. Included a "Surveys" tile in the main Admin Dashboard.
+- **Input UX Hardening**: Resolved a critical "backwards typing" cursor bug in the Survey Editor by implementing a persistent mapping system for `TextEditingControllers`, ensuring smooth multi-question editing.
+- **Member Home Integration**: Integrated active, published surveys directly into the `MemberHomeScreen` feed. Surveys appear as interactive cards that track response counts and enforcement of deadlines.
+- **Admin Navigation Refinement**: Optimized the Admin navigation workflow by removing "Surveys" from the primary bottom menu (keeping it as a focused dashboard tile) and removing the "Reports" tile from the dashboard (keeping it as a permanent authoritative "Reporting" menu item).
+- **Zero-Warning Static Analysis**: Hardened exactly 100% of the new Survey code against the latest project lints, resolving all deprecated API usage and ensuring strict adherence to the Boxy Art 3.1 design system.
+
+### Social Event Workflow Refinement & Cost Consolidation (2026-03-04)
+- **Consolidated Social Model**: Stripped the redundant `agm` event type from `EventType`, establishing "Social" as the definitive unified format for all non-golf gatherings (AGMs, Dinners, Parties).
+- **Consolidated Event Cost**: Introduced `GolfEvent.eventCost`, a single authoritative field that replaces green fees and member/guest charges for social events, simplifying the fee structure for both admins and members.
+- **Simplified Admin Form**: Refactored `EventFormScreen` to hide golf-specific sections (Course Choice, Playing Costs, Prizes) for social events, creating a focused "Registration & General Info" workflow. Included a **50/50 tab layout** for event type selection for balanced visual weighting.
+- **Dynamic Member Details & Preview**: Updated the member's event detail view and the admin **Preview** engine to hide Tee Times, golf rules, course data warnings, and golf-specific cost rows when viewing social events. The **Course** card is now entirely omitted for social events, creating a focused experience for non-golf gatherings. Hardened the preview engine to avoid "Invalid document path" errors for unsaved events and polished the UI by hiding admin "Edit" and "Adjustments" icons while in preview mode.
+- **Registration Logic Hardening**: Updated `RegistrationLogic` and `EventRegistrationScreen` to treat social registrations as simple attendance fees, ensuring guests and members are billed correctly using the consolidated `eventCost`.
+- **Interactive Status Badges**: Enabled administrative control for event lifecycle states directly from the Info Hub. Admins can now tap the status badge (Draft, Published, etc.) to reveal a status selector, allowing for quick transitions like publishing or suspending an event.
+- **Admin Icon Standardization**: Replaced ambiguous material icons with intuitive standard icons—`Icons.edit_rounded` (Pencil) for settings and `Icons.tune_rounded` (Slider) for manual handicap adjustments—across the Event and Society Settings modules.
+
 ### Event Broadcast CMS Integration & Feed Architecture (2026-03-03)
 - **Unified Communications Model**: Decoupled "Event Logistics" from "Event Communications" by introducing the polymorphic `EventFeedItem` model, unifying ad-hoc Flash Updates and rich-text Newsletters into a timeline array (`GolfEvent.feedItems`).
 - **Dedicated Broadcast CMS**: Built a standalone administrative configurator (`EventBroadcastScreen` and `FeedItemEditorScreen`) allowing administrators to Draft, Publish, Pin, and visually Reorder (drag-and-drop) event announcements.

@@ -20,10 +20,10 @@ class RegistrationLogic {
     final flattenedItems = <RegistrationItem>[];
     
     for (var r in event.registrations) {
-      // Add Member (If attending golf OR withdrawn)
-      final bool isWithdrawn = r.statusOverride == 'withdrawn' || (!r.attendingGolf && !r.attendingDinner);
+      final bool isSocial = event.eventType == EventType.social;
+      final bool isWithdrawn = r.statusOverride == 'withdrawn' || (!isSocial && !r.attendingGolf && !r.attendingDinner);
       
-      if (r.attendingGolf || (includeWithdrawn && isWithdrawn)) {
+      if (isSocial || r.attendingGolf || (includeWithdrawn && isWithdrawn)) {
         flattenedItems.add(RegistrationItem(
           registration: r,
           isGuest: false,
@@ -38,8 +38,8 @@ class RegistrationLogic {
         ));
       }
       
-      // Add Guest (If host attending golf OR host withdrawn)
-      if ((r.attendingGolf || (includeWithdrawn && isWithdrawn)) && r.guestName != null && r.guestName!.isNotEmpty) {
+      // Add Guest (If host attending golf OR host withdrawn OR social event)
+      if ((isSocial || r.attendingGolf || (includeWithdrawn && isWithdrawn)) && r.guestName != null && r.guestName!.isNotEmpty) {
         flattenedItems.add(RegistrationItem(
           registration: r,
           isGuest: true,
@@ -281,8 +281,8 @@ class RegistrationLogic {
     for (var r in event.registrations) {
       if (r.statusOverride == 'withdrawn') continue;
 
-      // Member confirmed and playing golf
-      if (r.attendingGolf) {
+      // Member confirmed and playing golf (or attending social)
+      if (event.eventType == EventType.social || r.attendingGolf) {
         if (r.isConfirmed) count++;
         
         // Guest confirmed (Only counted if member is playing, per getSortedItems logic)

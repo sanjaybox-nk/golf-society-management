@@ -1,3 +1,4 @@
+import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
@@ -121,8 +122,12 @@ class AdminScorecardList extends ConsumerWidget {
     final double baseHcp = item.isGuest 
       ? (double.tryParse(item.registration.guestHandicap ?? '18.0') ?? 18.0)
       : (member?.handicap ?? 18.0);
-    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
-    final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+    final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+      memberId: id, 
+      event: event, 
+      membersList: membersList,
+    );
+    final baseRating = event.courseConfig.rating;
     final phc = HandicapCalculator.calculatePlayingHandicap(
       handicapIndex: baseHcp,
       rules: comp?.rules ?? const CompetitionRules(),
@@ -305,8 +310,12 @@ class AdminScorecardList extends ConsumerWidget {
       ? (double.tryParse(item.registration.guestHandicap ?? '18.0') ?? 18.0)
       : (member?.handicap ?? 18.0); 
     
-    final playerTeeConfig = _resolvePlayerCourseConfig(id, event, membersList);
-    final baseRating = (event.courseConfig['rating'] as num?)?.toDouble() ?? 72.0;
+    final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+      memberId: id, 
+      event: event, 
+      membersList: membersList,
+    );
+    final baseRating = event.courseConfig.rating;
 
     final phc = HandicapCalculator.calculatePlayingHandicap(
       handicapIndex: baseHcp,
@@ -352,45 +361,7 @@ class AdminScorecardList extends ConsumerWidget {
     }
   }
 
-  Map<String, dynamic> _resolvePlayerCourseConfig(String memberId, GolfEvent event, List<Member> membersList) {
-    final tees = event.courseConfig['tees'] as List?;
-    if (tees == null || tees.isEmpty) return event.courseConfig;
-
-    final member = membersList.firstWhereOrNull((m) => m.id == memberId);
-    final gender = member?.gender?.toLowerCase() ?? 'male';
-    
-    Map<String, dynamic>? selectedTee;
-    if (gender == 'female') {
-       if (event.selectedFemaleTeeName != null) {
-         selectedTee = (tees.firstWhereOrNull((t) => 
-           (t['name'] ?? '').toString().toLowerCase() == event.selectedFemaleTeeName!.toLowerCase()
-         ) as Map<String, dynamic>?);
-       }
-       selectedTee ??= (tees.firstWhereOrNull((t) => 
-         (t['name'] ?? '').toString().toLowerCase().contains('red') || 
-         (t['name'] ?? '').toString().toLowerCase().contains('lady') ||
-         (t['name'] ?? '').toString().toLowerCase().contains('female')
-       ) as Map<String, dynamic>?);
-    }
-    
-    selectedTee ??= (tees.firstWhereOrNull((t) => 
-       (t['name'] ?? '').toString().toLowerCase() == (event.selectedTeeName ?? 'white').toLowerCase()
-    ) as Map<String, dynamic>?);
-
-    selectedTee ??= (tees.first as Map<String, dynamic>);
-
-    return {
-       ...event.courseConfig,
-       'par': selectedTee['par'] ?? selectedTee['holePars']?.fold(0, (a, b) => (a as int) + (b as int)) ?? 72,
-       'rating': selectedTee['rating'] ?? 72.0,
-       'slope': selectedTee['slope'] ?? 113,
-       'holes': List.generate(18, (i) => {
-          'hole': i + 1,
-          'par': (selectedTee!['holePars'] as List?)?.elementAt(i) ?? 4,
-          'si': (selectedTee['holeSIs'] as List?)?.elementAt(i) ?? 18,
-       }),
-    };
-  }
+  // _resolvePlayerCourseConfig removed as we now use ScoringCalculator
 
   Scorecard? _getScorecard({RegistrationItem? item, EventRegistration? reg}) {
     if (item != null) {

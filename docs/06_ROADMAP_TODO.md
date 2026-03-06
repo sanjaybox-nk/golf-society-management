@@ -1,6 +1,9 @@
 # Launch Roadmap & ToDo
 
-This document tracks the remaining work required to take **Golf Society Management (BoxyArt)** from prototype to production.
+This document tracks the remaining work required to take **Golf Society Management (BoxyArt)** from prototype to production and beyond into a multi-tenant SaaS platform.
+
+> [!NOTE]
+> For the long-term strategic vision (Divisions, SaaS Architecture, Payments), see the authoritative [Product Roadmap](file:///Users/sanjaypatel/.gemini/antigravity/brain/f128c89b-0d2d-44f8-9635-ae6310603889/product_roadmap.md).
 
 ## 1. Backend & Infrastructure
 - [ ] **Firebase Setup (Production)**
@@ -26,6 +29,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Data Resilience**: Protection against registration data loss during event updates.
     - [x] **Event Form Stability**: TextEditingController & FocusNode refactor for Course Config.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
+    - [x] **Social & AGM Support**: Tailored admin UI and models for non-golf events.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
 - [ ] **Scorecard & Results**
     - [x] **Competition Setup**: Define rules, formats, and handicap allowances.
@@ -67,6 +71,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.
     - [x] **Audience Manager**: Custom distribution list creation and management.
     - [x] **Notification History (Admin)**: Searchable archive of sent society alerts.
+- [x] **Society Surveys**: Multi-question survey system with dedicated admin manager.
+- [x] **Interactive Polls**: Live event-room polls with real-time member voting results.
 - [x] **Society Branding & Theme System**
     - [x] **Dynamic Theme Engine**: Configurable seed color with automatic contrast calculation.
     - [x] **Branding Settings Screen**: Live preview, color picker, dark mode policy.
