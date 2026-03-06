@@ -176,11 +176,12 @@ class BoxyArtPill extends StatelessWidget {
 
   /// Factory for Playing Handicap (PHC)
   factory BoxyArtPill.phc({
+    required BuildContext context,
     required String label,
   }) {
     return BoxyArtPill(
       label: 'PHC: $label',
-      color: AppColors.lime500,
+      color: Theme.of(context).primaryColor,
       icon: Icons.flash_on_rounded,
     );
   }

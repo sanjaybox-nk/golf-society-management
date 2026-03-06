@@ -24,6 +24,44 @@ class BrandingSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              const BoxyArtSectionTitle(title: 'Live Preview', ),
+              const SizedBox(height: 12),
+              _buildPreviewCard(config.primaryColor, config.secondaryColor, config.themeMode, config.brandingStyle, config.useShadows, config.useBorders, config.borderWidth),
+              const SizedBox(height: 32),
+
+              const BoxyArtSectionTitle(title: 'App Appearance', ),
+              const SizedBox(height: 12),
+              BoxyArtCard(
+                child: Column(
+                  children: [
+                    _ThemeModeTile(
+                      title: 'System Default',
+                      value: 'system',
+                      groupValue: config.themeMode,
+                      icon: Icons.brightness_auto_rounded,
+                      onChanged: (v) => controller.setThemeMode(v!),
+                    ),
+                    const Divider(height: 1),
+                    _ThemeModeTile(
+                      title: 'Always Light',
+                      value: 'light',
+                      groupValue: config.themeMode,
+                      icon: Icons.light_mode_rounded,
+                      onChanged: (v) => controller.setThemeMode(v!),
+                    ),
+                    const Divider(height: 1),
+                    _ThemeModeTile(
+                      title: 'Always Dark',
+                      value: 'dark',
+                      groupValue: config.themeMode,
+                      icon: Icons.dark_mode_rounded,
+                      onChanged: (v) => controller.setThemeMode(v!),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
               const BoxyArtSectionTitle(title: 'Society Identity', ),
               const SizedBox(height: 12),
               BoxyArtCard(
@@ -56,6 +94,65 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Use Shadows', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                              Text('Adds depth to cards and buttons', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400)),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: config.useShadows,
+                          onChanged: (v) => controller.setUseShadows(v),
+                          activeThumbColor: Color(config.secondaryColor),
+                          activeTrackColor: Color(config.secondaryColor).withValues(alpha: 0.2),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Use Borders', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                              Text('Hardens card and field edges', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400)),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: config.useBorders,
+                          onChanged: (v) => controller.setUseBorders(v),
+                          activeThumbColor: Color(config.secondaryColor),
+                          activeTrackColor: Color(config.secondaryColor).withValues(alpha: 0.2),
+                        ),
+                      ],
+                    ),
+                    if (config.useBorders) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Text('Width', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                          Expanded(
+                            child: Slider(
+                              value: config.borderWidth,
+                              min: 0.5,
+                              max: 4.0,
+                              divisions: 7,
+                              label: config.borderWidth.toStringAsFixed(1),
+                              activeColor: Color(config.secondaryColor),
+                              onChanged: (v) => controller.setBorderWidth(v),
+                            ),
+                          ),
+                          Text(config.borderWidth.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 10),
                     _StyleSelector(
                       currentStyle: config.brandingStyle,
                       onStyleChanged: (v) => controller.setBrandingStyle(v),
@@ -110,43 +207,9 @@ class BrandingSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'Live Preview', ),
-              const SizedBox(height: 12),
-              _buildPreviewCard(config.primaryColor, config.secondaryColor, config.themeMode, config.brandingStyle),
-              const SizedBox(height: 32),
-              const SizedBox(height: 32),
 
-              const BoxyArtSectionTitle(title: 'App Appearance', ),
-              const SizedBox(height: 12),
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    _ThemeModeTile(
-                      title: 'System Default',
-                      value: 'system',
-                      groupValue: config.themeMode,
-                      icon: Icons.brightness_auto_rounded,
-                      onChanged: (v) => controller.setThemeMode(v!),
-                    ),
-                    const Divider(height: 1),
-                    _ThemeModeTile(
-                      title: 'Always Light',
-                      value: 'light',
-                      groupValue: config.themeMode,
-                      icon: Icons.light_mode_rounded,
-                      onChanged: (v) => controller.setThemeMode(v!),
-                    ),
-                    const Divider(height: 1),
-                    _ThemeModeTile(
-                      title: 'Always Dark',
-                      value: 'dark',
-                      groupValue: config.themeMode,
-                      icon: Icons.dark_mode_rounded,
-                      onChanged: (v) => controller.setThemeMode(v!),
-                    ),
-                  ],
-                ),
-              ),
+
+
               const SizedBox(height: 60),
             ]),
           ),
@@ -167,6 +230,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
       borderRadius: 12,
       wheelDiameter: 180,
       enableOpacity: false,
+      showColorCode: true,
+      colorCodeHasColor: true,
       pickersEnabled: const {
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
@@ -177,7 +242,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
     onPicked(result);
   }
 
-  Widget _buildPreviewCard(int primaryInt, int secondaryInt, String themeMode, String style) {
+  Widget _buildPreviewCard(int primaryInt, int secondaryInt, String themeMode, String style, bool useShadows, bool useBorders, double borderWidth) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
     final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
@@ -193,19 +258,20 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(20),
+      showShadow: useShadows,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: textColor.withValues(alpha: 0.1)),
-          boxShadow: [
+          border: useBorders ? Border.all(color: textColor.withValues(alpha: 0.1), width: borderWidth) : null,
+          boxShadow: useShadows ? [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
               blurRadius: style == 'modern' ? 30 : 15,
               offset: const Offset(0, 4),
             ),
-          ],
+          ] : null,
         ),
         child: Column(
           children: [
@@ -573,6 +639,8 @@ class _ColorPaletteState extends State<_ColorPalette> {
       runSpacing: 8,
       borderRadius: 8,
       elevation: 4,
+      showColorCode: true,
+      colorCodeHasColor: true,
       pickersEnabled: const {
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
@@ -601,6 +669,8 @@ class _ColorPaletteState extends State<_ColorPalette> {
       runSpacing: 8,
       borderRadius: 8,
       elevation: 4,
+      showColorCode: true,
+      colorCodeHasColor: true,
       pickersEnabled: const {
         ColorPickerType.both: false,
         ColorPickerType.primary: true,

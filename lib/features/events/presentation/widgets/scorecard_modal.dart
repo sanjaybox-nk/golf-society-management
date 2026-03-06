@@ -277,7 +277,7 @@ class ScorecardModal {
                               children: [
                                 BoxyArtPill.hc(label: '${entry.handicap}'),
                                 if (entry.playingHandicap != null)
-                                  BoxyArtPill.phc(label: '${entry.playingHandicap}'),
+                                  BoxyArtPill.phc(context: context, label: '${entry.playingHandicap}'),
                                 BoxyArtPill.tee(label: teeName, teeColor: teeColor),
                               ],
                             );

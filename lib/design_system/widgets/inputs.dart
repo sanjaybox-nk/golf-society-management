@@ -1,4 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Standard branded input field for Fairway v3.1.
 class BoxyArtInputField extends StatelessWidget {
@@ -191,7 +192,7 @@ class ModernTextField extends StatelessWidget {
 }
 
 /// A labeled date picker field wrapper.
-class BoxyArtDatePickerField extends StatelessWidget {
+class BoxyArtDatePickerField extends ConsumerWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
@@ -206,7 +207,8 @@ class BoxyArtDatePickerField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -230,7 +232,12 @@ class BoxyArtDatePickerField extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark ? AppColors.dark600 : AppColors.lightHeader,
               borderRadius: BorderRadius.circular(AppShapes.rLg),
-              border: isDark ? null : Border.all(color: AppColors.lightBorder),
+              border: config.useBorders 
+                  ? Border.all(
+                      color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
+                      width: config.borderWidth,
+                    )
+                  : null,
             ),
             child: Row(
               children: [
@@ -585,7 +592,7 @@ class ModernSwitchRow extends StatelessWidget {
 }
 
 /// A labeled dropdown field for selecting from a list of options.
-class BoxyArtDropdownField<T> extends StatelessWidget {
+class BoxyArtDropdownField<T> extends ConsumerWidget {
   final String label;
   final T? value;
   final List<DropdownMenuItem<T>> items;
@@ -602,7 +609,8 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -623,7 +631,12 @@ class BoxyArtDropdownField<T> extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark ? AppColors.dark600 : AppColors.lightHeader,
             borderRadius: BorderRadius.circular(AppShapes.rLg),
-            border: isDark ? null : Border.all(color: AppColors.lightBorder),
+            border: config.useBorders 
+                ? Border.all(
+                    color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
+                    width: config.borderWidth,
+                  )
+                : null,
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<T>(

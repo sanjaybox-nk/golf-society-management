@@ -1,7 +1,8 @@
 import "package:golf_society/design_system/design_system.dart";
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// A standard BoxyArt themed button updated for Fairway v3.1.
-class BoxyArtButton extends StatelessWidget {
+class BoxyArtButton extends ConsumerWidget {
   final String title;
   final VoidCallback? onTap;
   final bool isPrimary;
@@ -28,9 +29,11 @@ class BoxyArtButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    final config = ref.watch(themeControllerProvider);
 
     // Map legacy variants to new v3.1 styles
     ButtonStyle style;
@@ -44,21 +47,30 @@ class BoxyArtButton extends StatelessWidget {
     } else if (isSecondary) {
       style = OutlinedButton.styleFrom(
         foregroundColor: isDark ? AppColors.dark60 : const Color(0xFF1A1A1A),
-        side: BorderSide(
-          color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-          width: 1.5,
-        ),
+        side: config.useBorders 
+            ? BorderSide(
+                color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                width: config.borderWidth,
+              )
+            : BorderSide.none,
         textStyle: AppTypography.label,
         shape: AppShapes.pillShape,
       );
     } else {
-      // Primary
+      // Primary Action
+      final actionColor = backgroundColor ?? theme.colorScheme.secondary;
       style = ElevatedButton.styleFrom(
-        backgroundColor: isDark ? AppColors.lime500 : AppColors.lime700,
-        foregroundColor: isDark ? AppColors.actionText : AppColors.pureWhite,
+        backgroundColor: actionColor,
+        foregroundColor: textColor ?? ContrastHelper.getContrastingText(actionColor),
         textStyle: AppTypography.label,
-        shape: AppShapes.pillShape,
-        elevation: 0,
+        shape: config.useBorders 
+            ? StadiumBorder(side: BorderSide(
+                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                width: config.borderWidth,
+              ))
+            : AppShapes.pillShape,
+        elevation: config.useShadows ? 2 : 0,
+        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.1),
       );
     }
 

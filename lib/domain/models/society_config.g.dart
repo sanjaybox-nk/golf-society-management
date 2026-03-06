@@ -15,6 +15,9 @@ _SocietyConfig _$SocietyConfigFromJson(
   secondaryColor: (json['secondaryColor'] as num?)?.toInt() ?? 0xFF4ADE80,
   backgroundColor: (json['backgroundColor'] as num?)?.toInt() ?? 0xFFEFEFED,
   brandingStyle: json['brandingStyle'] as String? ?? 'boxy',
+  useShadows: json['useShadows'] as bool? ?? true,
+  useBorders: json['useBorders'] as bool? ?? true,
+  borderWidth: (json['borderWidth'] as num?)?.toDouble() ?? 1.5,
   themeMode: json['themeMode'] as String? ?? 'system',
   customColors:
       (json['customColors'] as List<dynamic>?)
@@ -54,6 +57,9 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'secondaryColor': instance.secondaryColor,
       'backgroundColor': instance.backgroundColor,
       'brandingStyle': instance.brandingStyle,
+      'useShadows': instance.useShadows,
+      'useBorders': instance.useBorders,
+      'borderWidth': instance.borderWidth,
       'themeMode': instance.themeMode,
       'customColors': instance.customColors,
       'cardTintIntensity': instance.cardTintIntensity,

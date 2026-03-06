@@ -58,6 +58,24 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setUseShadows(bool use) async {
+    final newConfig = state.copyWith(useShadows: use);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setUseBorders(bool use) async {
+    final newConfig = state.copyWith(useBorders: use);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setBorderWidth(double width) async {
+    final newConfig = state.copyWith(borderWidth: width);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setBrandingStyle(String style) async {
     final newConfig = state.copyWith(brandingStyle: style);
     state = newConfig;

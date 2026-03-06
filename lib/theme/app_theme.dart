@@ -118,15 +118,20 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
-          borderSide: BorderSide.none,
+          borderSide: config.useBorders 
+              ? BorderSide(
+                  color: AppColors.dark400, 
+                  width: config.borderWidth,
+                )
+              : BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
-          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide(color: primaryColor, width: config.useBorders ? config.borderWidth.clamp(2.0, 4.0) : 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
-          borderSide: const BorderSide(color: AppColors.coral500, width: 1),
+          borderSide: BorderSide(color: AppColors.coral500, width: config.useBorders ? config.borderWidth : 1.0),
         ),
         hintStyle: AppTypography.helper.copyWith(color: AppColors.dark300),
         labelStyle: AppTypography.label.copyWith(color: AppColors.dark150),
@@ -263,11 +268,17 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
+          borderSide: config.useBorders 
+              ? BorderSide(color: AppColors.lightBorder, width: config.borderWidth)
+              : BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
-          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide(color: primaryColor, width: config.useBorders ? config.borderWidth.clamp(2.0, 4.0) : 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderSide: BorderSide(color: AppColors.coral500, width: config.useBorders ? config.borderWidth : 1.0),
         ),
         hintStyle: AppTypography.helper.copyWith(color: const Color(0xFF888880)),
         labelStyle: AppTypography.label.copyWith(color: const Color(0xFF3A3A3A)),

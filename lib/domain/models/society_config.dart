@@ -19,6 +19,9 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(0xFF4ADE80) int secondaryColor, // Default: Emerald Green (Action)
     @Default(0xFFEFEFED) int backgroundColor, // Default: Light Gray/Neutral
     @Default('boxy') String brandingStyle, // 'classic', 'boxy', 'modern'
+    @Default(true) bool useShadows, // [NEW] Toggle Shadows
+    @Default(true) bool useBorders, // [NEW] Toggle Borders
+    @Default(1.5) double borderWidth, // [NEW] Granular Border Width
     @Default('system') String themeMode, // 'system', 'light', 'dark'
     @Default([]) List<int> customColors, // User-created custom colors (up to 5)
     @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)

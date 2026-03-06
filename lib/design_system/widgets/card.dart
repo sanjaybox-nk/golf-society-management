@@ -37,7 +37,17 @@ class BoxyArtCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final radius = borderRadius ?? AppTheme.fieldRadius;
+    
+    // Style Presets Mapping
+    double defaultRadius;
+    switch (config.brandingStyle) {
+      case 'classic': defaultRadius = 8.0; break;
+      case 'modern':  defaultRadius = 28.0; break;
+      case 'boxy':
+      default:        defaultRadius = 18.0; break;
+    }
+    
+    final radius = borderRadius ?? defaultRadius;
     
     // Calculate themed background
     final primary = Theme.of(context).primaryColor;
@@ -50,6 +60,8 @@ class BoxyArtCard extends ConsumerWidget {
             primary.withValues(alpha: config.cardTintIntensity * (isDark ? 0.15 : 0.05)),
             baseColor,
           );
+
+    final effectivelyShowShadow = showShadow && config.useShadows;
 
     return Container(
       width: width,
@@ -68,7 +80,7 @@ class BoxyArtCard extends ConsumerWidget {
               ) 
             : null,
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: showShadow 
+        boxShadow: effectivelyShowShadow 
             ? (customShadows ?? (isDark ? [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.4),
@@ -83,10 +95,12 @@ class BoxyArtCard extends ConsumerWidget {
                 )
               ]))
             : null,
-        border: border ?? Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.12),
-          width: isDark ? 1 : 1.5,
-        ),
+        border: config.useBorders 
+            ? (border ?? Border.all(
+                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.12),
+                width: config.borderWidth,
+              ))
+            : null,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),

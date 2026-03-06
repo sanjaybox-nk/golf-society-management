@@ -258,7 +258,7 @@ class EventRegistrationCard extends ConsumerWidget {
                       Icons.electric_rickshaw_rounded, 
                       true, 
                       'Buggy',
-                      AppColors.coral500,
+                      Theme.of(context).primaryColor,
                     ),
                   ],
                 ],
@@ -482,9 +482,9 @@ class EventPodiumCard extends StatelessWidget {
                    
                    return ListTile(
                      contentPadding: EdgeInsets.zero,
-                     leading: BoxyArtNumberBadge(number: rank, size: 36, color: rank == 1 ? AppColors.lime500 : null),
+                     leading: BoxyArtNumberBadge(number: rank, size: 36, color: rank == 1 ? Theme.of(context).primaryColor : null),
                      title: Text(memberName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                     trailing: Text('$score pts', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.lime500)),
+                     trailing: Text('$score pts', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).primaryColor)),
                    );
                 }),
                 const SizedBox(height: 12),
