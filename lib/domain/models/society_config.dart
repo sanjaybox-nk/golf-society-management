@@ -16,18 +16,20 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('Golf Society') String societyName,
     String? logoUrl,
     @Default(0xFFF7D354) int primaryColor, // Default: BoxyArt Yellow
+    @Default(0xFF4ADE80) int secondaryColor, // Default: Emerald Green (Action)
+    @Default('boxy') String brandingStyle, // 'classic', 'boxy', 'modern'
     @Default('system') String themeMode, // 'system', 'light', 'dark'
     @Default([]) List<int> customColors, // User-created custom colors (up to 5)
     @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)
-    @Default(true) bool useCardGradient, // Whether to use gradient on cards
+    @Default(true) bool useCardGradient,
     @Default('£') String currencySymbol, // Default currency symbol
     @Default('GBP') String currencyCode, // Default currency code
     @Default('balanced') String groupingStrategy, // 'balanced', 'progressive', 'similar', 'random'
     @Default(true) bool useWhsHandicaps, // Default: Use WHS (Slope/Rating)
     @Default('yards') String distanceUnit, // 'yards' or 'meters'
     @Default(HandicapSystem.igolf) HandicapSystem handicapSystem, // Global provider
-    String? selectedPaletteName, // Selected Modern Card palette name
-    @Default(true) bool separateGuestLeaderboard, // [UPDATED] Single toggle: ON = Separate, OFF = Hidden
+    String? selectedPaletteName,
+    @Default(true) bool separateGuestLeaderboard, // Single toggle: ON = Separate, OFF = Hidden
     @Default(SocietyCutMode.off) SocietyCutMode societyCutMode,
     @Default({
       '1st': 2.0,
