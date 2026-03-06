@@ -42,10 +42,7 @@ class LockerScreen extends ConsumerWidget {
                     SizedBox(height: AppSpacing.md),
                     Text(
                       '${user.firstName} ${user.lastName}',
-                      style: AppTypography.displayHero.copyWith(
-                        fontSize: 24,
-                        letterSpacing: -0.5,
-                      ),
+                      style: AppTypography.displayLocker,
                     ),
                     SizedBox(height: AppSpacing.xs),
                     Container(
@@ -58,13 +55,12 @@ class LockerScreen extends ConsumerWidget {
                         builder: (context, ref, child) {
                           final society = ref.watch(themeControllerProvider);
                           final system = society.handicapSystem;
-                          return Text(
-                            '${system.shortName}: ${user.handicapId ?? "N/A"}',
-                            style: AppTypography.label.copyWith(
-                              fontSize: 12,
-                              color: AppColors.lime500,
-                            ),
-                          );
+                            return Text(
+                              '${system.shortName}: ${user.handicapId ?? "N/A"}',
+                              style: AppTypography.label.copyWith(
+                                color: AppColors.lime500,
+                              ),
+                            );
                         },
                       ),
                     ),
@@ -80,11 +76,8 @@ class LockerScreen extends ConsumerWidget {
                     const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
                     Text(
                       user.handicap.toStringAsFixed(1),
-                      style: TextStyle(
-                        fontSize: 64,
-                        fontWeight: FontWeight.w900,
+                      style: AppTypography.displayHero.copyWith(
                         color: primary,
-                        letterSpacing: -2,
                       ),
                     ),
                   ],
@@ -121,21 +114,12 @@ class LockerScreen extends ConsumerWidget {
                                   children: [
                                     const Text(
                                       'SEASON STAKES',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2,
-                                        color: Colors.amber,
-                                      ),
+                                      style: AppTypography.micro,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       stakes,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.3,
-                                      ),
+                                      style: AppTypography.labelStrong,
                                     ),
                                   ],
                                 ),

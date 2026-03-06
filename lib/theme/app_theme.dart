@@ -62,10 +62,8 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTypography.displayMedium.copyWith(
-          fontSize: 20,
+        titleTextStyle: AppTypography.displaySection.copyWith(
           color: AppColors.dark60,
-          letterSpacing: -1.0,
           fontWeight: FontWeight.w900,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -179,7 +177,7 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.dark700,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius * 1.5)),
-        titleTextStyle: AppTypography.displayMedium.copyWith(fontSize: 22, color: AppColors.dark60),
+        titleTextStyle: AppTypography.displaySubPage.copyWith(color: AppColors.dark60),
         contentTextStyle: AppTypography.body.copyWith(color: AppColors.dark150),
       ),
     );
@@ -230,10 +228,8 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTypography.displayMedium.copyWith(
-          fontSize: 20,
+        titleTextStyle: AppTypography.displaySection.copyWith(
           color: const Color(0xFF1A1A1A),
-          letterSpacing: -1.0,
           fontWeight: FontWeight.w900,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -289,8 +285,8 @@ class AppTheme {
         indicatorColor: secondaryColor,
         labelColor: const Color(0xFF1A1A1A),
         unselectedLabelColor: const Color(0xFF888880),
-        labelStyle: AppTypography.label.copyWith(fontSize: 12),
-        unselectedLabelStyle: AppTypography.label.copyWith(fontSize: 12),
+        labelStyle: AppTypography.label,
+        unselectedLabelStyle: AppTypography.label,
         indicatorSize: TabBarIndicatorSize.label,
       ),
 

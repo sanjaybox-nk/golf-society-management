@@ -103,9 +103,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               ? Text(
                                   (firstName.isNotEmpty ? firstName[0] : '') +
                                   (lastName.isNotEmpty ? lastName[0] : ''),
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
+                                  style: AppTypography.displayLocker.copyWith(
                                     color: isDark ? AppColors.dark300 : AppColors.dark400,
                                   ),
                                 )
@@ -143,11 +141,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Since ${joinedDate!.year}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                      style: AppTypography.microSmall.copyWith(
                         color: subColor,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -162,8 +157,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     // Name
                     Text(
                       '$firstName $lastName'.toUpperCase(),
-                      style: AppTypography.displayHeading.copyWith(
-                        fontSize: 22,
+                      style: AppTypography.displaySubPage.copyWith(
                         color: textColor,
                       ),
                       maxLines: 2,
@@ -184,8 +178,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                 padding: const EdgeInsets.only(left: 4, bottom: 4),
                                 child: Text(
                                   'Handicap'.toUpperCase(),
-                                  style: AppTypography.label.copyWith(
-                                    fontSize: 10,
+                                  style: AppTypography.micro.copyWith(
                                     color: isDark ? AppColors.dark150 : AppColors.dark300,
                                   ),
                                 ),
@@ -208,7 +201,9 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(vertical: 10),
                                   ),
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isAdmin ? textColor : subColor),
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: isAdmin ? textColor : subColor,
+                                  ),
                                 ),
                               ),
                             ],
@@ -221,8 +216,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                 padding: const EdgeInsets.only(left: 4, bottom: 4),
                                 child: Text(
                                   system.idLabel.toUpperCase(),
-                                  style: AppTypography.label.copyWith(
-                                    fontSize: 10,
+                                  style: AppTypography.micro.copyWith(
                                     color: isDark ? AppColors.dark150 : AppColors.dark300,
                                   ),
                                 ),
@@ -242,10 +236,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                     isDense: true,
                                     border: InputBorder.none,
                                     hintText: system.hintText,
-                                    hintStyle: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                                    hintStyle: AppTypography.micro.copyWith(color: Colors.grey.shade400),
                                     contentPadding: const EdgeInsets.symmetric(vertical: 10),
                                   ),
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                                  style: AppTypography.bodySmall,
                                 ),
                               ),
                             ],
@@ -259,19 +253,15 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           // Handicap Group
                           Text(
                             'HANDICAP',
-                            style: AppTypography.caption.copyWith(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
+                            style: AppTypography.microSmall.copyWith(
                               color: isDark ? AppColors.dark200 : AppColors.dark300,
-                              letterSpacing: 1.0,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             handicapController?.text ?? '-',
-                            style: AppTypography.displayMedium.copyWith(
+                            style: AppTypography.displayLargeBody.copyWith(
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
                               color: textColor,
                             ),
                           ),
@@ -279,19 +269,15 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           // iGolf Group
                           Text(
                             system.idLabel.toUpperCase(),
-                            style: AppTypography.caption.copyWith(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
+                            style: AppTypography.microSmall.copyWith(
                               color: isDark ? AppColors.dark200 : AppColors.dark300,
-                              letterSpacing: 1.0,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             handicapIdController?.text ?? '-',
-                            style: AppTypography.displayMedium.copyWith(
+                            style: AppTypography.displayLargeBody.copyWith(
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
                               color: textColor,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -385,11 +371,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       children: [
                         Text(
                           (societyRole?.isNotEmpty == true ? societyRole! : 'NO TITLE').toUpperCase(),
-                          style: AppTypography.caption.copyWith(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
+                          style: AppTypography.microSmall.copyWith(
                             color: AppColors.actionText,
-                            letterSpacing: 1.0,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -407,11 +390,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   ),
                   child: Text(
                     societyRole!.toUpperCase(),
-                    style: AppTypography.caption.copyWith(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
+                    style: AppTypography.microSmall.copyWith(
                       color: AppColors.actionText,
-                      letterSpacing: 1.0,
                     ),
                   ),
                 ),
@@ -465,8 +445,7 @@ class ModernMemberCard extends StatelessWidget {
             child: Center(
               child: Text(
                 '$position',
-                style: AppTypography.displayMedium.copyWith(
-                  fontSize: 13,
+                style: AppTypography.labelStrong.copyWith(
                   color: statusColor,
                 ),
               ),
@@ -481,16 +460,14 @@ class ModernMemberCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: AppTypography.displayMedium.copyWith(
-                    fontSize: 15,
+                  style: AppTypography.button.copyWith(
                     color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   status,
-                  style: AppTypography.caption.copyWith(
-                    fontSize: 11,
+                  style: AppTypography.microSmall.copyWith(
                     color: statusColor,
                   ),
                 ),

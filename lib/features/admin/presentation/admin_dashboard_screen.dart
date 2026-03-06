@@ -175,7 +175,7 @@ class _FeatureGridItem extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               title,
-              style: AppTypography.label.copyWith(fontSize: 13),
+              style: AppTypography.labelStrong,
               textAlign: TextAlign.center,
             ),
           ],
@@ -198,11 +198,14 @@ class _ActivityFeed extends ConsumerWidget {
     return activitiesAsync.when(
       data: (activities) {
         if (activities.isEmpty) {
-          return const BoxyArtCard(
+          return BoxyArtCard(
             child: Padding(
-              padding: EdgeInsets.all(AppSpacing.xl),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Center(
-                child: Text('No recent activity', style: TextStyle(color: Colors.grey)),
+                child: Text(
+                  'No recent activity', 
+                  style: AppTypography.label.copyWith(color: Colors.grey),
+                ),
               ),
             ),
           );
@@ -234,7 +237,7 @@ class _ActivityFeed extends ConsumerWidget {
                             children: [
                               Text(
                                 activity.message,
-                                style: AppTypography.label.copyWith(fontSize: 13),
+                                style: AppTypography.labelStrong,
                               ),
                               Text(
                                 timeago.format(activity.timestamp),
@@ -310,7 +313,7 @@ class _BroadcastEventPicker extends StatelessWidget {
               children: [
                 Text(
                   'Select Event',
-                  style: AppTypography.displayHeading.copyWith(fontSize: 24),
+                  style: AppTypography.displayLocker,
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -344,7 +347,9 @@ class _BroadcastEventPicker extends StatelessWidget {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         title: Text(
                           event.title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: AppTypography.displayLargeBody.copyWith(
+                            fontSize: 16,
+                          ),
                         ),
                         subtitle: Text(
                           DateFormat('MMM d, yyyy').format(event.date),

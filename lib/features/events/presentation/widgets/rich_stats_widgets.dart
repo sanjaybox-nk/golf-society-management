@@ -26,9 +26,12 @@ class ScoringTypeDistributionChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'SCORING BREAKDOWN',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
+              style: AppTypography.label.copyWith(
+                color: Colors.grey,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -44,7 +47,9 @@ class ScoringTypeDistributionChart extends StatelessWidget {
                     children: [
                       Text(
                         count.toString(),
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: color),
+                        style: AppTypography.label.copyWith(
+                          color: color,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -62,7 +67,9 @@ class ScoringTypeDistributionChart extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         t,
-                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey),
+                        style: AppTypography.nano.copyWith(
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -70,9 +77,9 @@ class ScoringTypeDistributionChart extends StatelessWidget {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'A breakdown of every score recorded across the entire field.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -97,9 +104,12 @@ class StablefordDistributionChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'STABLEFORD DISTRIBUTION',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
+              style: AppTypography.label.copyWith(
+                color: Colors.grey,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -114,7 +124,7 @@ class StablefordDistributionChart extends StatelessWidget {
                     children: [
                       Text(
                         count.toString(),
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                        style: AppTypography.label,
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -135,7 +145,9 @@ class StablefordDistributionChart extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         b,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+                        style: AppTypography.micro.copyWith(
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -143,9 +155,9 @@ class StablefordDistributionChart extends StatelessWidget {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Counts how many players finished within each point range.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -178,9 +190,12 @@ class SplitPerformanceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'FRONT vs BACK PERFORMANCE',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
+              style: AppTypography.label.copyWith(
+                color: Colors.grey,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 20),
             Row(
@@ -210,9 +225,7 @@ class SplitPerformanceCard extends StatelessWidget {
                            isColapse 
                             ? 'The field faded on the Back 9 today.' 
                             : 'Strong finish! The field improved on the Back 9.',
-                           style: TextStyle(
-                             fontWeight: FontWeight.bold,
-                             fontSize: 13,
+                           style: AppTypography.labelStrong.copyWith(
                              color: isColapse ? Theme.of(context).colorScheme.onErrorContainer : Theme.of(context).colorScheme.onPrimaryContainer,
                            ),
                          ),
@@ -221,9 +234,9 @@ class SplitPerformanceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Compares total points or strokes between the first and last 9 holes.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: AppTypography.label.copyWith(color: Colors.grey),
                 ),
               ],
             ),
@@ -236,7 +249,7 @@ class SplitPerformanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+          Text(title, style: AppTypography.micro.copyWith(color: Colors.grey)),
           const SizedBox(height: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -244,10 +257,10 @@ class SplitPerformanceCard extends StatelessWidget {
             children: [
               Text(
                 val.toStringAsFixed(1),
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: color),
+                style: AppTypography.displayLocker.copyWith(color: color),
               ),
               const SizedBox(width: 4),
-              Text(unit, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+              Text(unit, style: AppTypography.label.copyWith(color: Colors.grey)),
             ],
           ),
         ],
@@ -269,9 +282,12 @@ class ParTypeBreakdown extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'PERFORMANCE BY HOLE TYPE',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
+              style: AppTypography.label.copyWith(
+                color: Colors.grey,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 20),
             Row(
@@ -282,9 +298,9 @@ class ParTypeBreakdown extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Breaks down performance averages against par for different hole lengths.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -299,7 +315,7 @@ class ParTypeBreakdown extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey)),
+          Text(label, style: AppTypography.micro.copyWith(color: Colors.grey)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -309,15 +325,13 @@ class ParTypeBreakdown extends StatelessWidget {
             ),
             child: Text(
               '${vsPar ? "+" : ""}${avg.toStringAsFixed(1)}',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
+              style: AppTypography.displayLargeBody.copyWith(
                 color: color,
-                fontSize: 18,
               ),
             ),
           ),
           const SizedBox(height: 4),
-          const Text('AVG VS PAR', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey)),
+          Text('AVG VS PAR', style: AppTypography.nano),
         ],
       ),
     );
@@ -338,9 +352,12 @@ class DifficultyHeatmap extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'HOLE-BY-HOLE HEATMAP',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
+              style: AppTypography.label.copyWith(
+                color: Colors.grey,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -351,9 +368,9 @@ class DifficultyHeatmap extends StatelessWidget {
               children: List.generate(9, (i) => Expanded(child: _buildHoleBubble(i + 9))),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'A visual guide to course difficulty: Red shades indicate harder (over-par) holes, while green indicates easier ones.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -391,7 +408,7 @@ class DifficultyHeatmap extends StatelessWidget {
         children: [
           Text(
             '${i + 1}',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11),
+            style: AppTypography.microSmall.copyWith(color: Colors.white),
           ),
           Text(
             '${diff > 0 ? "+" : ""}${diff.toStringAsFixed(1)}',
@@ -435,7 +452,7 @@ class HoleDifficultyChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'TOUGHEST TEST (AVG VS PAR)',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
@@ -513,9 +530,9 @@ class HoleDifficultyChart extends StatelessWidget {
               );
             }),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Identifies the most challenging holes based on average relative to par.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -568,9 +585,7 @@ class AchievementTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+                    style: AppTypography.micro.copyWith(
                       color: color.withValues(alpha: 0.7),
                       letterSpacing: 1.5,
                     ),
@@ -578,19 +593,13 @@ class AchievementTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     playerName.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
+                    style: AppTypography.displayLargeBody,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: AppTypography.label.copyWith(
                       color: AppColors.dark300,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -641,21 +650,14 @@ class FieldEclecticCard extends StatelessWidget {
                   children: [
                     Text(
                       'SOCIETY\'S BEST ROUND',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 10,
-                        letterSpacing: 1.5,
+                      style: AppTypography.micro.copyWith(
                         color: AppColors.dark60.withValues(alpha: 0.6),
+                        letterSpacing: 1.5,
                       ),
                     ),
-                    const Text(
+                    Text(
                       'FIELD ECLECTIC',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
-                      ),
+                      style: AppTypography.displaySubPage,
                     ),
                   ],
                 ),
@@ -670,18 +672,15 @@ class FieldEclecticCard extends StatelessWidget {
                     children: [
                       Text(
                         totalStrokes.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: AppTypography.displaySubPage.copyWith(
                           fontSize: 28,
-                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
                         ),
                       ),
                       Text(
                         vsPar == 0 ? 'PAR' : (vsPar > 0 ? '+$vsPar' : '$vsPar'),
-                        style: TextStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           color: vsPar < 0 ? AppColors.lime500 : (vsPar > 0 ? AppColors.coral500 : Colors.white),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
@@ -700,10 +699,12 @@ class FieldEclecticCard extends StatelessWidget {
                 children: [
                   const Icon(Icons.flash_on_rounded, color: AppColors.lime400, size: 16),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'A "perfect round" constructed from every player\'s best scores today.',
-                      style: TextStyle(fontSize: 12, color: AppColors.dark60, fontWeight: FontWeight.w500),
+                      'Every birdie, par, and bogey counts towards the collective best possible score.',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark60,
+                      ),
                     ),
                   ),
                 ],
@@ -776,10 +777,8 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             // Header
             Text(
               'SOCIETY RECAP COMPLETE',
-              style: TextStyle(
+              style: AppTypography.label.copyWith(
                 color: Colors.white.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w900,
-                fontSize: 12,
                 letterSpacing: 3.0,
               ),
             ),
@@ -789,22 +788,24 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Inter', // Ensuring premium typography
-                  fontWeight: FontWeight.w900,
-                  fontSize: 28,
-                ),
+                  style: AppTypography.displaySubPage.copyWith(
+                    fontSize: 28,
+                    color: Colors.white,
+                  ),
                 children: [
                   TextSpan(text: '$totalPlayers'),
                   TextSpan(
                     text: ' PLAYERS  •  ',
-                    style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.7)),
+                    style: AppTypography.displayLargeBody.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
                   ),
                   TextSpan(text: '$totalHolesPlayed'),
                   TextSpan(
                     text: ' HOLES',
-                    style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.7)),
+                    style: AppTypography.displayLargeBody.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
                   ),
                 ],
               ),
@@ -875,7 +876,7 @@ class PersonalBenchmarkingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'YOU VS THE FIELD',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
             ),
@@ -888,9 +889,9 @@ class PersonalBenchmarkingCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Compares your average performance relative to par against the rest of the field.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -965,7 +966,7 @@ class HoleComparisonHeatmap extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'WHERE YOU BEAT THE FIELD',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.grey, letterSpacing: 1.2),
             ),
@@ -978,9 +979,9 @@ class HoleComparisonHeatmap extends StatelessWidget {
               children: List.generate(9, (i) => Expanded(child: _buildComparisonBubble(i + 9))),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Gold holes are where you personally beat the field average. Grey holes are where the field got the better of you.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: AppTypography.label.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -1045,7 +1046,7 @@ class ConsistencyStatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'CONSISTENCY (ROUND VARIANCE)',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: Colors.grey, letterSpacing: 1.2),
             ),
@@ -1108,7 +1109,7 @@ class NetComparisonCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'NET VS FIELD AVG',
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: Colors.grey, letterSpacing: 1.2),
                   ),
@@ -1174,7 +1175,7 @@ class HoleNemesisComparison extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'TOUGHEST TEST (NEMESIS)',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: Colors.grey, letterSpacing: 1.2),
             ),
@@ -1195,7 +1196,7 @@ class HoleNemesisComparison extends StatelessWidget {
                   color: Colors.amber.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   '🤝 You struggled where everyone else did!',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber),
@@ -1259,7 +1260,7 @@ class BounceBackStatCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'BOUNCE BACK RATE',
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: Colors.grey, letterSpacing: 1.2),
                   ),
@@ -1274,7 +1275,7 @@ class BounceBackStatCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text(
+                Text(
                   'FIELD AVG',
                   style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey),
                 ),

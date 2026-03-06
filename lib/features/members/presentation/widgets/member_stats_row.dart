@@ -58,10 +58,7 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
+          style: AppTypography.displaySection.copyWith(
             color: isHighlight ? const Color(0xFFFFD700) : Theme.of(context).colorScheme.onSurface, // Gold for wins
             shadows: isHighlight ? [
               Shadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: Offset(0, 2))
@@ -71,11 +68,8 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+          style: AppTypography.label.copyWith(
             color: Colors.grey.shade500,
-            letterSpacing: 1.0,
           ),
         ),
       ],

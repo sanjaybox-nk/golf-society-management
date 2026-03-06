@@ -138,10 +138,10 @@ class PersonalDetailsForm extends StatelessWidget {
                                 child: DropdownButton<String>(
                                   value: gender,
                                   isExpanded: true,
-                                  hint: const Text('Select', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                                  hint: Text('Select', style: AppTypography.bodySmall.copyWith(color: Colors.grey)),
                                   items: const [
-                                    DropdownMenuItem(value: 'Male', child: Text('Male', style: TextStyle(fontSize: 14))),
-                                    DropdownMenuItem(value: 'Female', child: Text('Female', style: TextStyle(fontSize: 14))),
+                                    DropdownMenuItem(value: 'Male', child: Text('Male', style: AppTypography.bodySmall)),
+                                    DropdownMenuItem(value: 'Female', child: Text('Female', style: AppTypography.bodySmall)),
                                   ],
                                   onChanged: onGenderChanged,
                                   dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : Colors.white,
@@ -305,20 +305,18 @@ class PersonalDetailsForm extends StatelessWidget {
                                           children: [
                                             Text(
                                               option['flag'] ?? '',
-                                              style: const TextStyle(fontSize: 18),
+                                              style: AppTypography.displayLargeBody,
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
                                               option['code']!,
-                                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                              style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
                                             ),
                                             const SizedBox(width: 8),
                                             Expanded(
                                                 child: Text(
                                                   option['name']!,
-                                                  style: TextStyle(
-                                                    fontSize: 13, 
-                                                    fontWeight: FontWeight.w600, 
+                                                  style: AppTypography.labelStrong.copyWith(
                                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                                                   ),
                                                   overflow: TextOverflow.ellipsis,
@@ -344,8 +342,7 @@ class PersonalDetailsForm extends StatelessWidget {
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          style: AppTypography.body.copyWith(
-                            fontSize: 14,
+                          style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : const Color(0xFF1A1A1A),
                           ),

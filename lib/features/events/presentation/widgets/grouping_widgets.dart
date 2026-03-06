@@ -250,8 +250,7 @@ class GroupingPlayerTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           player.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w900,
+                          style: AppTypography.displayLargeBody.copyWith(
                             fontSize: 16,
                             letterSpacing: -0.4,
                           ),
@@ -299,13 +298,10 @@ class GroupingPlayerTile extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           'SIDE $matchSide',
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: AppTypography.micro.copyWith(
                             color: matchSide == 'A'
                                 ? Colors.orange
                                 : Colors.blue,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -321,14 +317,12 @@ class GroupingPlayerTile extends StatelessWidget {
               children: [
                 // Guest Indicator
                 if (player.isGuest)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
                     child: BoxyArtSquareBadge(
                       child: Text(
                         'G',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
+                        style: AppTypography.micro.copyWith(
                           color: AppColors.amber500,
                         ),
                       ),
@@ -411,9 +405,7 @@ class GroupingPlayerTile extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: Text(
                       (scoreDisplay == null || scoreDisplay!.isEmpty) ? '-' : scoreDisplay!,
-                      style: AppTypography.displayHeading.copyWith(
-                        fontSize: 20, // Matches BoxyArtScorecardTile standard
-                        fontWeight: FontWeight.w900,
+                      style: AppTypography.displaySection.copyWith(
                         color: AppColors.pureWhite,
                         height: 1.0,
                         letterSpacing: -0.5,

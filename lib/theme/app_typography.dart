@@ -40,13 +40,49 @@ class AppTypography {
     height: 1.0,
   );
 
-  // Usage: Secondary headers or prominent card titles.
+  // Usage: Specialized locker room or large numeric headers (24px).
+  static const TextStyle displayLocker = TextStyle(
+    fontFamily: 'Syne',
+    fontSize: 24,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.8,
+    height: 1.1,
+  );
+
+  // Usage: Secondary page titles or deep-linked headers (22px).
+  static const TextStyle displaySubPage = TextStyle(
+    fontFamily: 'Syne',
+    fontSize: 22,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.6,
+    height: 1.1,
+  );
+
+  // Usage: Standard section headers or prominent card titles (20px).
   static const TextStyle displaySection = TextStyle(
     fontFamily: 'Syne',
     fontSize: 20,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.5,
     height: 1.1,
+  );
+
+  // Usage: High-emphasis prominence body or prominent numeric labels (18px).
+  static const TextStyle displayLargeBody = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.2,
+    height: 1.2,
+  );
+
+  // Usage: Specialized tactical UI headers (17px).
+  static const TextStyle displayUI = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 17,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.2,
+    height: 1.2,
   );
 
   // 2. Body (Plus Jakarta Sans - Functional)
@@ -59,7 +95,7 @@ class AppTypography {
     height: 1.5,
   );
 
-  // Usage: Secondary text, descriptions, and list items.
+  // Usage: Secondary text, descriptions, and list items (14px).
   static const TextStyle bodySmall = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
@@ -68,8 +104,17 @@ class AppTypography {
     height: 1.5,
   );
 
-  // 3. Label & UI (Inter / Plus Jakarta Sans - Precise)
-  // Usage: Input labels, navigation items, and small tactical markers.
+  // 3. Label & UI (Plus Jakarta Sans - Precise)
+  // Usage: Emphasis metadata, bolded list items (13px).
+  static const TextStyle labelStrong = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0,
+    height: 1.2,
+  );
+
+  // Usage: Input labels, navigation items, and small tactical markers (12px).
   static const TextStyle label = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
@@ -97,7 +142,16 @@ class AppTypography {
     height: 1.0,
   );
 
-  // Usage: Captions, small badge text, and copyright info.
+  // Usage: Prominent specialized micro-copy (11px).
+  static const TextStyle captionStrong = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.2,
+    height: 1.1,
+  );
+
+  // Usage: Captions, small badge text, and copyright info (10px).
   static const TextStyle caption = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 10,
@@ -114,7 +168,7 @@ class AppTypography {
     height: 1.0,
   );
 
-  // Usage: Extreme small text (v3.1 legacy support or dense data).
+  // Usage: Extreme small text (v3.1 legacy support or dense data) (9px).
   static const TextStyle microSmall = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 9,
@@ -122,7 +176,15 @@ class AppTypography {
     height: 1.0,
   );
 
-  // Usage: Primary and secondary button text.
+  // Usage: Tactical markers for dense scoring grids (8px).
+  static const TextStyle nano = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 8,
+    fontWeight: FontWeight.w800,
+    height: 1.0,
+  );
+
+  // Usage: Primary and secondary button text (15px).
   static const TextStyle button = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,

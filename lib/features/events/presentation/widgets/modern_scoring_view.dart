@@ -157,9 +157,8 @@ class ModernScoringView extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Par $par${si != null ? ' • SI $si' : ''}',
-                style: AppTypography.displayHeading.copyWith(
+                style: AppTypography.displaySection.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 20, // Manual override to keep it compact
                 ),
               ),
               const SizedBox(height: 10),
@@ -183,8 +182,9 @@ class ModernScoringView extends StatelessWidget {
                 ),
                 child: Text(
                   cap != null && score >= cap ? 'MAX' : '$score',
-                  style: AppTypography.displayHero.copyWith(
-                    fontSize: cap != null && score >= cap ? 44 : 64,
+                  style: (cap != null && score >= cap 
+                      ? AppTypography.displayTitle.copyWith(fontSize: 44) 
+                      : AppTypography.displayHero).copyWith(
                     color: cap != null && score >= cap ? AppColors.coral500 : AppColors.lime500,
                   ),
                 ),
@@ -324,11 +324,10 @@ class ModernScoringView extends StatelessWidget {
         child: Center(
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
-            style: AppTypography.displayHeading.copyWith(
+            style: (isSelected ? AppTypography.displayLocker : AppTypography.displayLargeBody).copyWith(
               color: isSelected 
                   ? (isDark ? AppColors.pureWhite : AppColors.dark900) 
                   : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              fontSize: isSelected ? 24 : 18,
             ),
             child: Text(label),
           ),
@@ -439,11 +438,8 @@ class ModernScoringView extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             teeName,
-            style: AppTypography.caption.copyWith(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
+            style: AppTypography.micro.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
-              letterSpacing: 0.5,
             ),
           ),
         ],

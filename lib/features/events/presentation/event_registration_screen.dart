@@ -215,14 +215,13 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 14, 
+            style: AppTypography.bodySmall.copyWith(
               color: Colors.grey,
             ),
           ),
           Text(
             amount == null ? 'TBA' : '$currency${amount.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: AppTypography.bodySmall,
           ),
         ],
       ),
@@ -424,15 +423,15 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Total to Pay',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                ),
+                                  Text(
+                                    'Total to Pay',
+                                    style: AppTypography.displayLargeBody.copyWith(
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 Text(
                                   _formatPrice(_calculateTotal(event), ref),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold, 
-                                    fontSize: 20,
+                                  style: AppTypography.displaySection.copyWith(
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),

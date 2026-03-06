@@ -57,8 +57,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
               children: [
                 Text(
                   playerName,
-                  style: AppTypography.displayHeading.copyWith(
-                    fontSize: 14,
+                  style: AppTypography.bodySmall.copyWith(
                     color: AppColors.pureWhite,
                     fontWeight: FontWeight.w900,
                   ),
@@ -70,11 +69,10 @@ class BoxyArtScorecardTile extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       secondaryPlayerName!,
-                      style: AppTypography.displayHeading.copyWith(
-                        fontSize: 14,
-                        color: AppColors.pureWhite,
-                        fontWeight: FontWeight.w900,
-                      ),
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.pureWhite,
+                          fontWeight: FontWeight.w900,
+                        ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -96,13 +94,11 @@ class BoxyArtScorecardTile extends StatelessWidget {
               if (score != null)
                 Text(
                   score!,
-                  style: AppTypography.displayHeading.copyWith(
-                    fontSize: 20,
+                  style: AppTypography.displaySection.copyWith(
                     color: isConfirmed 
                         ? AppColors.lime500 
                         : AppColors.pureWhite,
                     height: 1.0,
-                    fontWeight: FontWeight.w900,
                   ),
                 ),
               

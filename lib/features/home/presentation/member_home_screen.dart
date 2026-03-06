@@ -61,11 +61,8 @@ class MemberHomeScreen extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         'Peeking as ${effectiveUser.displayName}',
-                        style: const TextStyle(
+                        style: AppTypography.label.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
@@ -77,12 +74,10 @@ class MemberHomeScreen extends ConsumerWidget {
                           color: Colors.black.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
+                        child: Text(
                           'EXIT PEEK',
-                          style: TextStyle(
+                          style: AppTypography.microSmall.copyWith(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 9,
                           ),
                         ),
                       ),
@@ -155,18 +150,13 @@ class MemberHomeScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     _getGreeting(),
-                                    style: TextStyle(
-                                      fontSize: 13,
+                                    style: AppTypography.labelStrong.copyWith(
                                       color: Theme.of(context).textTheme.bodySmall?.color,
-                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   Text(
                                     effectiveUser.firstName,
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: AppTypography.displaySubPage,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
@@ -369,11 +359,8 @@ class _NextMatchCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           DateFormat('d MMM').format(event.date),
-                          style: const TextStyle(
+                          style: AppTypography.micro.copyWith(
                             color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.2,
                           ),
                         ),
                       ],
@@ -392,11 +379,7 @@ class _NextMatchCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         event.title,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                        ),
+                        style: AppTypography.displayLocker,
                       ),
                     ),
                     if (event.registrations.any((r) => r.memberId == 'current-user-id'))
@@ -406,13 +389,10 @@ class _NextMatchCard extends StatelessWidget {
                           color: const Color(0xFF27AE60).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Playing',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF27AE60),
-                            letterSpacing: 0.2,
+                          style: AppTypography.micro.copyWith(
+                            color: const Color(0xFF27AE60),
                           ),
                         ),
                       ),
@@ -470,10 +450,8 @@ class _LeaderboardSnippet extends StatelessWidget {
                    const SizedBox(width: 8),
                    Text(
                      'No standings recorded yet.',
-                     style: TextStyle(
-                       fontSize: 13,
+                     style: AppTypography.labelStrong.copyWith(
                        color: Colors.grey.shade500,
-                       fontWeight: FontWeight.w500,
                      ),
                    ),
                 ],
@@ -508,10 +486,9 @@ class _LeaderboardSnippet extends StatelessWidget {
                     child: Center(
                       child: Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: AppTypography.displayHeading.copyWith(
+                        style: AppTypography.bodySmall.copyWith(
                           color: AppColors.dark300,
                           fontWeight: FontWeight.w900,
-                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -520,8 +497,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                   Expanded(
                     child: Text(
                       name,
-                      style: AppTypography.displayHeading.copyWith(
-                        fontSize: 15,
+                      style: AppTypography.button.copyWith(
                         color: isMe ? Colors.blue : AppColors.pureWhite,
                         fontWeight: FontWeight.w900,
                       ),
@@ -529,8 +505,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                   ),
                   Text(
                     '${player['points']}',
-                    style: AppTypography.displayHeading.copyWith(
-                      fontSize: 18,
+                    style: AppTypography.displayLargeBody.copyWith(
                       color: isMe ? Colors.blue : (isFirst ? AppColors.lime500 : AppColors.pureWhite),
                       fontWeight: FontWeight.w900,
                     ),
@@ -562,10 +537,9 @@ class _LeaderboardSnippet extends StatelessWidget {
                   child: Center(
                     child: Text(
                       (personalStanding!.memberName.isNotEmpty) ? personalStanding!.memberName[0].toUpperCase() : '?',
-                      style: AppTypography.displayHeading.copyWith(
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.dark300,
                         fontWeight: FontWeight.w900,
-                        fontSize: 14,
                       ),
                     ),
                   ),
@@ -583,9 +557,8 @@ class _LeaderboardSnippet extends StatelessWidget {
                 ),
                 Text(
                   '${personalStanding?.points.toInt()}',
-                  style: AppTypography.displayHeading.copyWith(
+                  style: AppTypography.displayLargeBody.copyWith(
                     fontWeight: FontWeight.w900, 
-                    fontSize: 18, 
                     color: Colors.blue,
                   ),
                 ),
@@ -744,7 +717,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                         padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
                         child: Text(
                           'Thank you for your feedback!',
-                          style: AppTypography.label.copyWith(color: AppColors.lime500, fontSize: 12),
+                          style: AppTypography.label.copyWith(color: AppColors.lime500),
                         ),
                       ),
                   ],
@@ -767,10 +740,8 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
         children: [
           Text(
             q.question.toUpperCase(),
-            style: AppTypography.label.copyWith(
+            style: AppTypography.labelStrong.copyWith(
               color: AppColors.pureWhite,
-              fontSize: 13,
-              letterSpacing: 0.5,
               fontWeight: FontWeight.w900,
             ),
           ),

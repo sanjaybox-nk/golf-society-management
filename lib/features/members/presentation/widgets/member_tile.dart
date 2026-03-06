@@ -61,10 +61,8 @@ class MemberTile extends ConsumerWidget {
                               child: Center(
                                 child: Text(
                                   '${member.firstName[0]}${member.lastName[0]}',
-                                  style: TextStyle(
+                                  style: AppTypography.displaySection.copyWith(
                                     color: primary,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 20,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
@@ -77,9 +75,7 @@ class MemberTile extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Since ${member.joinedDate!.year}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.caption.copyWith(
                         color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                       ),
                     ),
@@ -95,12 +91,7 @@ class MemberTile extends ConsumerWidget {
                   children: [
                     Text(
                       member.displayName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                        letterSpacing: -0.6,
-                        height: 1.1,
-                      ),
+                      style: AppTypography.displaySubPage,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
@@ -172,20 +163,15 @@ class MemberTile extends ConsumerWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.8,
+          style: AppTypography.microSmall.copyWith(
             color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 18,
+          style: AppTypography.displayLargeBody.copyWith(
             fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
           ),
         ),
       ],
@@ -202,11 +188,8 @@ class MemberTile extends ConsumerWidget {
       ),
       child: Text(
         text.toUpperCase(),
-        style: TextStyle(
+        style: AppTypography.micro.copyWith(
           color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.4,
         ),
       ),
     );

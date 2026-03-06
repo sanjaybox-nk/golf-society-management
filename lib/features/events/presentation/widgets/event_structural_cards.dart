@@ -43,7 +43,7 @@ class EventHeadlineCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           DateFormat('EEEE, d MMM yyyy').format(event.date),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -56,7 +56,7 @@ class EventHeadlineCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           event.courseName ?? 'Location TBA',
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -153,9 +153,8 @@ class EventRegistrationCard extends ConsumerWidget {
                 children: [
                   Text(
                     isFull ? 'Event Full' : 'Secure your spot',
-                    style: const TextStyle(
+                    style: AppTypography.displayLargeBody.copyWith(
                       fontWeight: FontWeight.w900,
-                      fontSize: 18,
                       letterSpacing: 0.5,
                     ),
                     textAlign: TextAlign.center,
@@ -164,9 +163,8 @@ class EventRegistrationCard extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
-                      style: TextStyle(
+                      style: AppTypography.labelStrong.copyWith(
                         color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8), 
-                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.2,
                       ),
@@ -176,7 +174,9 @@ class EventRegistrationCard extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       isFull ? 'Join the waitlist below' : 'Register below to join the event',
-                      style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
+                      style: AppTypography.labelStrong.copyWith(
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -204,9 +204,8 @@ class EventRegistrationCard extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Text(
                     myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
-                    style: const TextStyle(
+                    style: AppTypography.displayLargeBody.copyWith(
                       fontWeight: FontWeight.w900,
-                      fontSize: 18,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -326,8 +325,7 @@ class EventRegistrationCard extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 10,
+          style: AppTypography.micro.copyWith(
             fontWeight: active ? FontWeight.bold : FontWeight.normal,
             color: color,
           ),
@@ -355,7 +353,7 @@ class EventRegistrationCard extends ConsumerWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            style: AppTypography.labelStrong.copyWith(fontWeight: FontWeight.w500),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -449,11 +447,10 @@ class EventPodiumCard extends StatelessWidget {
                   child: Text(
                     'Podium Results Block\n(Visible when event completed)',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                    ),
+                      style: AppTypography.labelStrong.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
                   ),
                 ),
               ),
@@ -483,8 +480,8 @@ class EventPodiumCard extends StatelessWidget {
                    return ListTile(
                      contentPadding: EdgeInsets.zero,
                      leading: BoxyArtNumberBadge(number: rank, size: 36, color: rank == 1 ? Theme.of(context).primaryColor : null),
-                     title: Text(memberName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                     trailing: Text('$score pts', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).primaryColor)),
+                     title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: FontWeight.bold)),
+                     trailing: Text('$score pts', style: AppTypography.displayLargeBody.copyWith(fontWeight: FontWeight.w900, color: Theme.of(context).primaryColor)),
                    );
                 }),
                 const SizedBox(height: 12),

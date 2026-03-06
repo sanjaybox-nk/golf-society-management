@@ -61,10 +61,8 @@ class DashboardHeroCard extends StatelessWidget {
                         ),
                         child: Text(
                           'NEXT EVENT',
-                          style: AppTypography.label.copyWith(
+                          style: AppTypography.micro.copyWith(
                             color: Colors.white,
-                            fontSize: 10,
-                            letterSpacing: 1.2,
                           ),
                         ),
                       ),
@@ -74,11 +72,8 @@ class DashboardHeroCard extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     event.title,
-                    style: const TextStyle(
+                    style: AppTypography.displaySubPage.copyWith(
                       color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -88,9 +83,8 @@ class DashboardHeroCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         DateFormat('EEEE, d MMMM').format(event.date),
-                        style: TextStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -104,9 +98,8 @@ class DashboardHeroCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           event.courseName!,
-                          style: TextStyle(
+                          style: AppTypography.bodySmall.copyWith(
                             color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -146,10 +139,8 @@ class DashboardHeroCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTypography.label.copyWith(
+          style: AppTypography.microSmall.copyWith(
             color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 9,
-            letterSpacing: 1.0,
           ),
         ),
         const SizedBox(height: 2),
@@ -159,18 +150,15 @@ class DashboardHeroCard extends StatelessWidget {
           children: [
             Text(
               value,
-              style: const TextStyle(
+              style: AppTypography.displaySection.copyWith(
                 color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
               ),
             ),
             if (total.isNotEmpty)
               Text(
                 total,
-                style: TextStyle(
+                style: AppTypography.label.copyWith(
                   color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
