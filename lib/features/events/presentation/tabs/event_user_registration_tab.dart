@@ -7,7 +7,6 @@ import '../events_provider.dart';
 
 import '../../domain/registration_logic.dart';
 import '../widgets/registration_card.dart';
-import '../widgets/registration_status_pill.dart';
 
 // ... (existing imports)
 
@@ -299,11 +298,12 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      RegistrationStatusPill(
-                        type: isClosed 
-                            ? RegistrationStatusType.closed 
-                            : RegistrationStatusType.open,
-                        labelOverride: isClosed ? null : 'Closing Soon',
+                      BoxyArtPill.status(
+                        label: isClosed ? 'Registration Closed' : (isClosed ? 'Registration Closed' : 'Closing Soon'),
+                        color: isClosed 
+                            ? (Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark400)
+                            : AppColors.coral400,
+                        icon: isClosed ? Icons.lock_outline_rounded : Icons.hourglass_bottom_rounded,
                       ),
                     ],
                   ),

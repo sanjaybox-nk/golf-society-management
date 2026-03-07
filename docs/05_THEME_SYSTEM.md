@@ -1,4 +1,4 @@
-# Theme System (BoxyArt v3.1)
+# Theme System (BoxyArt v3.7 - True Minimal)
 
 - **Location**: `lib/theme/`
 
@@ -37,13 +37,19 @@ The system has transitioned to a **Vivid Emerald** (Lime) primary palette with a
 -   **Inter**: Switched to **Inter** as the primary typeface for all `body`, `label`, and `caption` styles to ensure a clean, professional, and readable interface.
 -   **Weight**: Headers use `FontWeight.w900` with `letterSpacing: -0.8` for a contemporary feel.
 
-## Tag System Taxonomy (BoxyArtPill)
+## Legend System Taxonomy (BoxyArtPill)
 
-v3.1 introduces a 3-family taxonomy for all tags and pills:
+v3.7 introduces the **True Minimal** Legend system, replacing background-filled "pills" with a cleaner Dot + Text format.
 
-1.  **Format Tags**: `.format()` factory. Used for competition formats (Stableford, Matchplay). Emerald/Lime styling.
-2.  **Type Tags**: `.type()` factory. Used for entity classification (Invitational, Player Badge). Dark/Neutral styling.
-3.  **Status Tags**: `.status(color: ...)` factory. Used for lifecycle and registration states. Semantic color mapping.
+1.  **Format Legend**: `.format()` factory. Used for competition formats (Stableford, Matchplay). Emerald/Lime styling.
+2.  **Type Legend**: `.type()` factory. Used for entity classification (Invitational, Player Badge). Dark/Neutral styling.
+3.  **Status Legend**: `.status(color: ...)` factory. Used for lifecycle and registration states. Semantic color mapping.
+
+## Universal Title Case Policy
+
+As of v3.7, **ALL CAPS are strictly deprecated** across the entire application interface. 
+- All labels, headers (`BoxyArtSectionTitle`), and dynamic status text must use clean **Title Case**.
+- This improves legibility and reinforces the premium "True Minimal" aesthetic.
 
 ## Component Implementation Pattern
 

@@ -28,9 +28,11 @@ For deep dives into specific system logic, see:
 -   [Games & Competitions](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/13_GAMES_AND_COMPETITIONS.md)
 -   [Demo Data & Seeding](file:///Users/sanjaypatel/Documents/Projects/Golf%20Society%20Management/docs/14_DEMO_DATA_AND_SEEDING.md)
 
-## Visual Identity ("BoxyArt")
+## Visual Identity ("BoxyArt True Minimal")
 The app uses a centralized design system called **BoxyArt**:
 -   **Primary Color**: Configurable seed color (e.g., Mustard Yellow `#F7D354`, Navy, Indigo).
 -   **Secondary Color**: Solid Black (`#000000`)
--   **Shapes**: High border radius (`30px` for cards, `100px` stadium for buttons).
+-   **True Minimal Legend**: Minimalist dot + text indicators (No background pills).
+-   **Universal Title Case**: 100% adherence to Title Case for all labels and headers.
+-   **Shapes**: High border radius (`16px` for cards, `AppShapes.rLg`).
 -   **Shadows**: Custom "Soft Scale" and "Floating Alt" shadows (no default elevation).

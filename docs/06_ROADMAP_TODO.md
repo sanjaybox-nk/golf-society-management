@@ -86,6 +86,13 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [x] **Admin Design 3.1 Hardening**
     - [x] **Full UI Refactor**: Dashboard, Settings, Members, Notifications, and Seasons aligned to Boxy Art 3.1.
     - [x] **Typography & Rhythm Audit**: Standardized all spacing and font tokens using Design 3.1 primitives.
+- [x] **True Minimal v3.7 Redesign**
+    - [x] **Universal Title Case**: Elimination of all-caps across entire app interface.
+    - [x] **Pill-to-Legend Shift**: Converted badge components to minimalist dot + text indicators.
+    - [x] **Member Card Refinement**: Relocated status legends for cleaner data hierarchy.
+- [x] **Codebase Hardening & Audit**
+    - [x] **Duplicate Elimination**: Deleted legacy `ModernMemberCard` and feature-specific pills.
+    - [x] **Library Standardized**: Cleaned up `metrics.dart` and standardized `BoxyArtPill` as single source of truth.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**

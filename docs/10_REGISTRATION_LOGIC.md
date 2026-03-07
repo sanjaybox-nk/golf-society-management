@@ -52,12 +52,12 @@ The Registration Card dynamically adjusts to the event's state and the user's st
 | Scene | Header Text | Button Title | State |
 | :--- | :--- | :--- | :--- |
 | **New Member / Space Available** | "Secure your spot" | "Register Now" | Active |
-| **New Member / Event Full** | "Registration Closed" | "Event Full" | Disabled |
-| **Already Registered** | *Shows Registration Status* | "Edit My Registration" | Active |
-| **Past Deadline (Registered)** | "Registration Closed" | "Edit Registration" (Disabled) | Read-Only |
-| **Draft / Cancelled** | **HIDDEN** | - | Hidden |
-| **Past Deadline (Not Reg)** | **HIDDEN** | - | Hidden |
-| **InPlay / Completed** | **HIDDEN** | - | Hidden |
+| **New Member / Event Full** | "Registration closed" | "Event full" | Disabled |
+| **Already Registered** | *Shows registration status* | "Edit my registration" | Active |
+| **Past Deadline (Registered)** | "Registration closed" | "Edit registration" (Disabled) | Read-Only |
+| **Draft / Cancelled** | **Hidden** | - | Hidden |
+| **Past Deadline (Not Reg)** | **Hidden** | - | Hidden |
+| **In-play / Completed** | **Hidden** | - | Hidden |
 
 ### Dynamic Lifecycle & Status Visibility
 To prioritize transparency and active competition:

@@ -102,7 +102,7 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Dual Tee Display**: The Event Info Hub (`EventUserDetailsTab`) now displays both male and female tee positions (e.g., "Yellow / Red") when they differ, ensuring absolute clarity for mixed-gender fields.
     - **Header Sync**: Identical title and subtitle typography.
     - **Course Context**: A `CourseInfoCard` showing the tee configuration and performance summaries.
-- **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`TOTAL`, `HOLE`, `SCORES`) and **player names are consistently rendered in Pure White** for maximum legibility across all scorecard tiles.
+- **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`Total`, `Hole`, `Scores`) and **player names are consistently rendered in Pure White** for maximum legibility across all scorecard tiles.
 - **Manual Society Cuts (Ad-Hoc Adjustments)**: Administrators can apply individual shot adjustments for a specific event via the **Manual Handicap Cuts** interface.
     - **Persistence**: These cuts are stored in the `manualCuts` registry within the `GolfEvent`.
     - **Scoring Impact**: Cuts are subtracted from the player's calculated Playing Handicap (PHC) across all supported formats (Stableford, Medal, etc.).
@@ -146,12 +146,12 @@ The rules are presented via the `CompetitionRulesCard`, which uses a **Hardened 
 - **Fallback Protection**: If no dynamic competition data is found for an event, the card automatically renders a generic "SETUP COMPETITION..." template version, ensuring it never disappears or leaves a gap in the UI.
 
 ### Visual Components
-- **Identity Badge**: [STABLEFORD] or [TEXAS SCRAMBLE] – Always shown in bold to identify the base format on both the event card and rules summary.
-- **Scoring Type**: [GROSS] (Red) or [NET] (Teal).
-- **Allowance**: [XX% HCP] or [100% DIFF].
-- **Mode**: [SINGLES], [PAIRS], or [TEAMS].
-- **Duration**: [MULTI-DAY] (Teal) – Shown if the event spans multiple days.
-- **Specifics**: Only shown if non-default (e.g., [4 DRIVES], [CAP: 18], [SINGLE BEST], [STABLEFORD BASE]).
+- **Identity Badge**: [Stableford] or [Texas Scramble] – Always shown in bold to identify the base format on both the event card and rules summary.
+- **Scoring Type**: [Gross] (Red) or [Net] (Teal).
+- **Allowance**: [XX% Hcp] or [100% Diff].
+- **Mode**: [Singles], [Pairs], or [Teams].
+- **Duration**: [Multi-day] (Teal) – Shown if the event spans multiple days.
+- **Specifics**: Only shown if non-default (e.g., [4 Drives], [Cap: 18], [Single Best], [Stableford Base]).
 
 ## 6. Matchplay Engine
 
@@ -194,7 +194,7 @@ The scoring engine is hardened against edge cases to ensure 100% accuracy and ab
 ### 9.2 Universal Visual Parity
 
 Starting in Feb 2026, all competitive UI components follow a unified "Pro Max" standard:
--   **Typography**: Functional labels (`TOTAL`, `HOLE`, `SCORES`) use `FontWeight.w900` and `letterSpacing: 2.0`.
+-   **Typography**: Functional labels (`Total`, `Hole`, `Scores`) use `FontWeight.w900` and `letterSpacing: 2.0`.
 -   **Administrative Alignment**: Admin scorecard editors and competition configuration cards are visually synchronized with member views to ensure a cohesive mental model between players and committees.
 -   **Actionable Cards**: Competition config cards include centered, bordered customize buttons and refined vertical spacing for better visual hierarchy.
 

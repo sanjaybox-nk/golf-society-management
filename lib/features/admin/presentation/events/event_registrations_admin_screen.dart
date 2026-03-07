@@ -8,7 +8,6 @@ import '../../../members/presentation/members_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
-import '../../../events/presentation/widgets/registration_status_pill.dart';
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
   final String eventId;
@@ -359,10 +358,12 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                                   : const Color(0xFF2C3E50),
                             ),
                           ),
-                          RegistrationStatusPill(
-                            type: isClosed 
-                                ? RegistrationStatusType.closed 
-                                : RegistrationStatusType.open,
+                          BoxyArtPill.status(
+                            label: isClosed ? 'Registration Closed' : 'Registration Open',
+                            color: isClosed 
+                                ? (Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark400)
+                                : AppColors.lime500,
+                            icon: isClosed ? Icons.lock_outline_rounded : Icons.timer_outlined,
                           ),
                         ],
                       ),

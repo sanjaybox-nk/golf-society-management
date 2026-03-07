@@ -28,8 +28,9 @@ The scheduled start time for a match or specific flight.
 The custom visual language of the app. Characterized by:
 -   **Dynamic Branding**: Configurable primary color (default: Mustard Yellow) with automatic contrast calculation.
 -   **Soft Shadows**: Custom shadows (`softScale`) that create a floating effect on cards.
--   **Rounded Shapes**: Cards use `BorderRadius.circular(25-30)`, inputs and buttons use `BorderRadius.circular(12)`.
--   **Semantic Status Colors**: Consistent color palette for status indicators (Positive/Green, Warning/Orange, Negative/Red, Neutral/Grey).
+-   **Rounded Shapes**: Cards use `BorderRadius.circular(16)` (`AppShapes.rLg`), inputs and buttons use `AppShapes.pill`.
+-   **True Minimal Legends**: Minimalist dot + text indicators that eliminate background "pills" for a cleaner, high-density look.
+-   **Universal Title Case**: Absolute prohibition of all-caps. All UI labels and headers use clean Title Case.
 -   **Accessibility**: Automatic text color calculation ensures readability on any background.
 
 **Locker Room**
@@ -59,8 +60,8 @@ A specialized search bar found in the **Members Directory**. Instead of sitting 
 **Admin Sub-grouping**
 To improve management efficiency, the Member List (Admin View) automatically sub-groups "Other" members by their specific status (Pending, Suspended, etc.) with clearly labeled section headers.
 
-**Status Pill**
-A small, pill-shaped indicator used throughout the app to show status (e.g., "Active", "Paid", "Due"). Uses semantic colors from `StatusColors` and automatically adapts to light/dark mode. Also known as `BoxyArtStatusPill`.
+**Status Legend**
+A minimalist dot + text indicator used throughout the app to show state (e.g., "Active", "Paid", "Due"). Uses semantic colors from `StatusColors`. Also known as `BoxyArtPill.status` (implementing the Legend taxonomy).
 
 **Notification Badge**
 A small yellow circle indicating unread items (e.g., messages, new events).

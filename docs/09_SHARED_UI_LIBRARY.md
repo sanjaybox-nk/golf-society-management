@@ -1,4 +1,4 @@
-# Shared UI Library (BoxyArt v3.1)
+# Shared UI Library (BoxyArt v3.7 - True Minimal)
 
 The BoxyArt UI Library is the source of truth for all visual components in the Golf Society Management ecosystem. It is optimized for a premium, high-density "Pro" aesthetic.
 
@@ -31,7 +31,7 @@ A high-integrity card for displaying complex competition rules.
 
 ### `BoxyArtInputField`
 The unified design-first input.
-- **Visuals**: Uppercase labels in `AppTypography.label`, filled background variants for dark mode, and integrated icon support.
+- **Visuals**: Title Case labels (No All-Caps), filled background variants for dark mode, and integrated icon support.
 
 ### Legacy Aliases (Backward Compatibility)
 - `BoxyArtFormField`: Maps to `BoxyArtInputField`. Supports `IconData` or `Widget` for icons.
@@ -54,13 +54,14 @@ The preferred layout for core screens.
 
 ## 4. Badges & Indicators (`badges.dart`)
 
-### `BoxyArtPill`
-The standard for highlighting status, format, or type classification. Implements the **v3.1 Tag Taxonomy**.
+### `BoxyArtPill` (Legacy) / `BoxyArtLegend` (New)
+The standard for highlighting status, format, or type classification. Implements the **v3.7 Legend Taxonomy**.
+- **The Shift**: v3.7 introduces the "True Minimal" legend—a minimalist **Dot + Text** format that eliminates background "pills" for a cleaner, high-density look.
 - **Factories**:
   - `BoxyArtPill.format(label)`: Competition formats (Stableford, Matchplay).
   - `BoxyArtPill.type(label)`: Entity classification (Invitational, Player Role).
   - `BoxyArtPill.status(label, color)`: Lifecycle and registration states.
-- **Visuals**: Uses high-opacity labels on low-opacity backgrounds (0.08) with subtle borders (0.18) for a glass-glass look.
+- **Visuals**: No background opacity. Uses a vibrant status color for the indicator dot and matching Title Case text.
 
 ### `BoxyArtDateBadge`
 Vertical date display for event cards.
@@ -87,9 +88,9 @@ A specialized round icon button with a low-opacity glass background.
 ## 6. Layout Utils (`layout.dart`, `sections.dart`)
 
 ### `BoxyArtSectionTitle`
-Standard uppercase header for grouping content.
-- **Typography**: `AppTypography.label` with increased letter spacing.
-- **Dynamic Counts**: Supports an optional `count` property to display participant totals (e.g., "GUESTS (4)") within the title.
+Standard Title Case header for grouping content.
+- **Typography**: `AppTypography.label` with increased letter spacing, strictly **Title Case**.
+- **Dynamic Counts**: Supports an optional `count` property to display participant totals (e.g., "Guests (4)") within the title.
 - **Spacing Guidelines**: The `padding` property is strictly **deprecated**. Global spacing harmony is now enforced at the component level to ensure consistent vertical rhythm across all screens. Do not inject ad-hoc `EdgeInsets`.
 
 ### `BoxyArtScorecardTile`

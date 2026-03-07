@@ -1,7 +1,7 @@
 # Fairway Design System
-**v3.1 — Dark-first · Sport-forward · Modern Golf**
+**v3.7 — True Minimal · Sport-forward · Modern Golf**
 
-Syne (display) + Plus Jakarta Sans (UI) · `#4ADE80` Vivid Emerald · 4 sections
+Fredoka (Display) + Inter (UI/Body) · `#4ADE80` Vivid Emerald
 
 ---
 
@@ -12,6 +12,7 @@ Three principles that every decision is tested against:
 1. **Golf, not golf club** — the app is for the person holding the club, not the committee posting notices on the board
 2. **Score is ceremony** — the moment a player sees their total is emotional; the design has to match that weight
 3. **Earned simplicity** — every element pays rent; nothing decorates
+4. **True Minimal** — eliminate background containers (pills) for legends; elevate data hierarchy through pure layout.
 
 ---
 
@@ -104,61 +105,52 @@ Six states, clean contrast on dark surfaces. Every stroke means something.
 | Double | `rgba(255,85,51,0.2)` | `#FF5533` | `#FECDC0` | `#9A3412` |
 | Triple+ | `rgba(255,51,51,0.22)` | `#FF3333` | `#FDB8B0` | `#7F1D1D` |
 
-### Tag Taxonomy — 3 families only
+### Legend Taxonomy — 3 families only
 
-Replaces the previous 8-colour arbitrary system. Every tag belongs to one family.
+v3.7 introduces the **True Minimal Legend** system, replacing background-filled "pills" with a cleaner Dot + Text format.
 
-**Format tags** — what type of competition
-- Background: `rgba(74,222,128,0.08)` / Border: `rgba(74,222,128,0.18)` / Text: `--lime-400`
+**Format Legend** — what type of competition
+- Visual: Lime indicator dot + Title Case text.
 - Examples: Stableford, Strokeplay, Foursomes, Betterball, Matchplay
 
-**Type tags** — character of the event
-- Background: `--bg-elevated` / Border: `--border` / Text: `--dark-100`
+**Type Legend** — character of the event
+- Visual: Dark indicator dot + Title Case text.
 - Examples: Invitational, Multi-day, Members Only
 
-**Status tags** — lifecycle state
-- Published: lime tint
-- Completed: muted neutral
-- Closing Soon / Waitlist: coral `rgba(255,85,51,0.1)` / `--coral-400`
-- Featured: amber tint
+**Status Legend** — lifecycle state
+- Published: Lime dot
+- Completed: Muted neutral dot
+- Closing Soon / Waitlist: Coral dot
+- Featured: Amber dot
 
 ---
 
 ## 02 · Typography
 
-**Two fonts. Zero serifs.**
+**Two fonts. Zero serifs. Absolute Title Case.**
 
-### Syne — display & score moments
-Variable geometric grotesque by Bonjour Monde. Extraordinary character at weight 800. Used for all display-size text, score totals, headings, and numeric data.
-
-```
-Google Fonts: Syne:wght@400;500;600;700;800
-```
+### Fredoka — display & score moments
+Rounded, friendly yet premium. Used for all display-size text, score totals, and hero headings.
 
 | Role | Size | Weight | Letter-spacing |
 |------|------|--------|----------------|
-| display-hero | 80–88pt | 800 | −0.06em |
-| display-lg | 48–52pt | 800 | −0.04em |
-| display-md | 32pt | 700 | −0.03em |
-| display-sm | 22pt | 700 | −0.02em |
-| score-data | 22–28pt | 800 | −0.02em + `tnum` |
+| display-hero | 80–88pt | 900 | −0.06em |
+| display-lg | 48–52pt | 900 | −0.04em |
+| display-md | 32pt | 800 | −0.03em |
 
-### Plus Jakarta Sans — UI & body
-Humanist grotesque. Warm without being soft. Used for all interface text, labels, body copy, navigation, and metadata.
-
-```
-Google Fonts: Plus+Jakarta+Sans:wght@400;500;600;700
-```
+### Inter — UI & body
+The industry standard for clarity. Used for all interface text, labels, body copy, navigation, and metadata.
 
 | Role | Size | Weight | Notes |
 |------|------|--------|-------|
-| heading | 16pt | 600 | — |
+| heading | 16–20pt | 900 | **No All-Caps** |
 | body | 14pt | 400 | line-height 1.65 |
-| label | 11pt | 700 | 0.1em tracking, uppercase |
+| label | 11pt | 800 | 0.08em tracking, **Title Case** |
 | caption | 10–11pt | 600 | — |
-| micro | 9–10pt | 700 | 0.12em tracking, uppercase |
 
-**Numeric rule:** All score data and statistics use `font-variant-numeric: tabular-nums` + `font-feature-settings: "tnum"` — columns align without a separate monospace face.
+**The "No All-Caps" Mandate**: As of v3.7, all caps are strictly prohibited throughout the interface. Headers, buttons, and status labels must use clean, legible **Title Case**.
+
+**Numeric rule:** All score data and statistics use tabular nums — columns align without a separate monospace face.
 
 ---
 

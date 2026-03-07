@@ -1,4 +1,5 @@
 import '../design_system.dart';
+import '../../utils/string_utils.dart';
 
 /// A standardized avatar for the Boxy Art design system.
 class BoxyArtAvatar extends StatelessWidget {
@@ -51,7 +52,7 @@ class BoxyArtAvatar extends StatelessWidget {
   Widget _buildInitials(Color color) {
     return Center(
       child: Text(
-        initials.toUpperCase(),
+        toTitleCase(initials),
         style: TextStyle(
           color: color,
           fontWeight: AppTypography.weightBlack,

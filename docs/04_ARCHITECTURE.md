@@ -7,8 +7,8 @@ The project follows a **Feature-First** architecture combined with Riverpod for 
 lib/
 ├── design_system/          # Clean UI system (Atoms, Widgets, Theme)
 │   ├── atoms/              # Base components (Buttons, Inputs)
-│   ├── widgets/            # Complex layouts (AppBars, Cards)
-│   ├── theme/              # AppTheme, Shadows, Palettes
+│   ├── widgets/            # Complex layouts (AppBars, True Minimal Indicators)
+│   ├── theme/              # AppTheme, Shadows, Palettes (True Minimal v3.7)
 │   └── design_system.dart  # Central export layer
 ├── features/               # Domain-specific features
 │   ├── home/               # Dashboard
@@ -51,7 +51,7 @@ Complex business rules are encapsulated in standalone logic classes within the `
     - `MatchPlayCalculator`: Authoritative engine for Match Play (Net Match Play, Relative PHC, Fourball/Foursomes status).
     - `ScoringCalculator`: Authoritative engine for Stroke, Stableford, and Max Score capping logic.
     - Pattern: **Calculate Once, Display Everywhere**. Views must NOT implement their own scoring logic.
-- **RegistrationLogic**: Centralized helper for calculating FCFS positions, status pills, and buggy allocations.
+- **RegistrationLogic**: Centralized helper for calculating FCFS positions, status legends, and buggy allocations.
 
 ## Complex Form Architecture
 For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modular decomposition strategy:
