@@ -30,7 +30,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
     final content = CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               Row(
@@ -46,7 +46,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                       Text(
                         'Manage custom mailing lists',
                         style: AppTypography.displayMedium.copyWith(
-                          fontSize: 14,
+                          fontSize: AppTypography.sizeBodySmall,
                           color: isDark ? AppColors.dark150 : AppColors.dark300,
                         ),
                       ),
@@ -59,18 +59,18 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
               
               listsAsync.when(
                 data: (lists) {
                   if (lists.isEmpty) {
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(48.0),
+                        padding: const EdgeInsets.all(AppSpacing.x5l),
                         child: Column(
                           children: [
-                            Icon(Icons.group_work_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                            const SizedBox(height: 16),
+                            Icon(Icons.group_work_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
+                            const SizedBox(height: AppSpacing.lg),
                             Text(
                               'No custom groups found',
                               style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
@@ -83,18 +83,18 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
 
                   return Column(
                     children: lists.map((list) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                       child: Dismissible(
                         key: Key(list.id),
                         direction: DismissDirection.endToStart,
                         background: Container(
                           decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(16),
+                              color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh),
+                            borderRadius: AppShapes.lg,
                           ),
                           alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 24),
-                          child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
+                          padding: const EdgeInsets.only(right: AppSpacing.x2l),
+                          child: const Icon(Icons.delete_outline_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
                         ),
                         confirmDismiss: (direction) async {
                           return await showBoxyArtDialog<bool>(
@@ -117,33 +117,33 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(AppSpacing.md),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                  color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: 24),
+                                child: Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconLg),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: AppSpacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       list.name, 
-                                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800),
+                                      style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightExtraBold),
                                     ),
                                     Text(
                                       '${list.memberIds.length} members', 
                                       style: AppTypography.label.copyWith(
                                         color: isDark ? AppColors.dark200 : AppColors.dark400,
-                                        fontSize: 11,
+                                        fontSize: AppTypography.sizeCaptionStrong,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(Icons.arrow_forward_ios_rounded, color: isDark ? AppColors.dark300 : AppColors.dark200, size: 12),
+                              Icon(Icons.arrow_forward_ios_rounded, color: isDark ? AppColors.dark300 : AppColors.dark200, size: AppShapes.iconXs),
                             ],
                           ),
                         ),
@@ -237,7 +237,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
       await repo.createList(newList);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Distribution list created!'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Distribution list created!'), backgroundColor: AppColors.lime500),
       );
     }
     
@@ -254,7 +254,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,17 +267,17 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
               children: [
                 Text(
                   isEditing ? 'Edit Audience' : 'New Audience', 
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)
+                  style: const TextStyle(fontSize: AppTypography.sizeDisplaySubPage, fontWeight: AppTypography.weightBold, letterSpacing: -0.5)
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: theme.dividerColor.withValues(alpha: 0.05),
+                      color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close_rounded, color: Colors.black54, size: 20),
+                    child: Icon(Icons.close_rounded, color: Colors.black.withValues(alpha: 0.54), size: AppShapes.iconMd),
                   ),
                 ),
               ],
@@ -287,7 +287,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
           // Form Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -299,10 +299,10 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                       controller: _nameController,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   
                   const BoxyArtSectionTitle(title: 'Selected Members', ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   if (_selectedMemberIds.isNotEmpty)
                     membersAsync.when(
                       data: (members) {
@@ -312,13 +312,13 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                           runSpacing: 8,
                           children: selectedMembers.map((m) {
                             return Chip(
-                              label: Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                              backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
-                              deleteIcon: Icon(Icons.close_rounded, size: 16, color: theme.primaryColor),
+                              label: Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightSemibold)),
+                              backgroundColor: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
+                              deleteIcon: Icon(Icons.close_rounded, size: AppShapes.iconSm, color: theme.primaryColor),
                               onDeleted: () => _toggleMember(m.id),
                               side: BorderSide.none,
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 0),
+                              shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
                             );
                           }).toList(),
                         );
@@ -328,33 +328,33 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                     )
                   else
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: theme.dividerColor.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+                        color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                        borderRadius: AppShapes.lg,
+                        border: Border.all(color: theme.dividerColor.withValues(alpha: AppColors.opacityLow)),
                       ),
                       child: Text(
                         'No members selected yet',
-                        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13, fontWeight: FontWeight.w500),
+                        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightMedium),
                         textAlign: TextAlign.center,
                       ),
                     ),
                   
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   const BoxyArtSectionTitle(title: 'Add Members', ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   BoxyArtCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
                     child: BoxyArtInputField(
                       label: 'Search Members',
                       hint: 'Search by name or email...',
                       onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                      prefixIcon: const Icon(Icons.search_rounded, size: AppShapes.iconMd),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   
                   membersAsync.when(
                     data: (members) {
@@ -371,39 +371,39 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                       if (filtered.isEmpty && _searchQuery.isNotEmpty) {
                         return Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Text('No matching members found', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13)),
+                            padding: const EdgeInsets.all(AppSpacing.x2l),
+                            child: Text('No matching members found', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: AppTypography.sizeLabelStrong)),
                           ),
                         );
                       }
 
                       return Column(
                         children: filtered.map((m) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                           child: BoxyArtCard(
                             onTap: () => _toggleMember(m.id),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(AppSpacing.sm),
                                   decoration: BoxDecoration(
-                                    color: theme.dividerColor.withValues(alpha: 0.05),
+                                    color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.person_add_rounded, size: 18, color: Colors.grey),
+                                  child: const Icon(Icons.person_add_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: AppSpacing.md),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                      Text(m.email, style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w500)),
+                                      Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBodySmall)),
+                                      Text(m.email, style: TextStyle(fontSize: AppTypography.sizeLabel, color: theme.textTheme.bodySmall?.color, fontWeight: AppTypography.weightMedium)),
                                     ],
                                   ),
                                 ),
-                                Icon(Icons.add_circle_outline_rounded, color: theme.primaryColor, size: 20),
+                                Icon(Icons.add_circle_outline_rounded, color: theme.primaryColor, size: AppShapes.iconMd),
                               ],
                             ),
                           ),
@@ -413,7 +413,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Center(child: Text('Error: $e')),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: AppSpacing.x4l),
                 ],
               ),
             ),
@@ -424,18 +424,12 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
             decoration: BoxDecoration(
               color: theme.scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
+              boxShadow: AppShadows.softScale,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 BoxyArtButton(
                   title: isEditing ? 'Save Changes' : 'Create Audience',
                   onTap: _save,

@@ -50,34 +50,34 @@ class MemberHomeScreen extends ConsumerWidget {
           if (isPeeking)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              color: Colors.amber.shade700,
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.lg),
+              color: AppColors.amber500,
               child: SafeArea(
                 bottom: false,
                 child: Row(
                   children: [
-                    const Icon(Icons.visibility, color: Colors.white, size: 16),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.visibility, color: AppColors.pureWhite, size: AppShapes.iconSm),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         'Peeking as ${effectiveUser.displayName}',
                         style: AppTypography.label.copyWith(
-                          color: Colors.white,
+                          color: AppColors.pureWhite,
                         ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () => ref.read(impersonationProvider.notifier).clear(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.black.withValues(alpha: AppColors.opacityMedium),
+                          borderRadius: AppShapes.xs,
                         ),
                         child: Text(
                           'EXIT PEEK',
                           style: AppTypography.microSmall.copyWith(
-                            color: Colors.white,
+                            color: AppColors.pureWhite,
                           ),
                         ),
                       ),
@@ -104,7 +104,7 @@ class MemberHomeScreen extends ConsumerWidget {
                     SliverAppBar(
                       floating: true,
                       pinned: true, // Keep it pinned for a premium feel
-                      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: AppColors.opacityStrong),
                       surfaceTintColor: Colors.transparent,
                       elevation: 0,
                       centerTitle: false,
@@ -116,23 +116,17 @@ class MemberHomeScreen extends ConsumerWidget {
                         ),
                       ),
                       title: Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
                         child: Row(
                           children: [
                             if (societyConfig.logoUrl != null) ...[
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                                  borderRadius: AppShapes.md,
+                                  boxShadow: AppShadows.softScale,
                                 ),
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: AppShapes.md,
                                   child: Image.network(
                                     societyConfig.logoUrl!,
                                     height: 48,
@@ -142,7 +136,7 @@ class MemberHomeScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: AppSpacing.lg),
                             ],
                             Expanded(
                               child: Column(
@@ -167,13 +161,13 @@ class MemberHomeScreen extends ConsumerWidget {
                       ),
                       actions: const [
                         AdminShortcutAction(),
-                        SizedBox(width: 8),
+                        SizedBox(width: AppSpacing.sm),
                       ],
                     ),
           
                     // Content
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
                           // Notifications Section (Dynamic)
@@ -191,19 +185,19 @@ class MemberHomeScreen extends ConsumerWidget {
                                       'View All', 
                                       style: theme.textTheme.labelLarge?.copyWith(
                                         color: isDark ? AppColors.lime400 : AppColors.lime700,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: AppTypography.weightBold,
                                         inherit: true, // Fix for TextStyle interpolation crash
                                       ),
                                     ),
                                   ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                             ...homeNotifications.asMap().entries.map((entry) => StaggeredEntrance(
                               index: entry.key,
                               child: HomeNotificationCard(notification: entry.value),
                             )),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: AppSpacing.x2l),
                           ],
 
                           // Society Surveys
@@ -228,9 +222,9 @@ class MemberHomeScreen extends ConsumerWidget {
                                   title: 'Society Surveys',
                                   isPeeking: isPeeking,
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: AppSpacing.md),
                                 ...visibleSurveys.map((survey) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 24),
+                                  padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                                   child: _SurveyInteractiveCard(
                                     key: ValueKey('survey_${survey.id}'),
                                     survey: survey,
@@ -247,7 +241,7 @@ class MemberHomeScreen extends ConsumerWidget {
                             title: 'Next Match',
                             isPeeking: isPeeking,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           StaggeredEntrance(
                             index: homeNotifications.length, // Stagger after notifications
                             child: nextMatch.when(
@@ -255,7 +249,7 @@ class MemberHomeScreen extends ConsumerWidget {
                                 if (event == null) {
                                   return const Card(
                                     child: Padding(
-                                      padding: EdgeInsets.all(16),
+                                      padding: EdgeInsets.all(AppSpacing.lg),
                                       child: Text('No upcoming matches scheduled.'),
                                     ),
                                   );
@@ -266,14 +260,14 @@ class MemberHomeScreen extends ConsumerWidget {
                               error: (err, stack) => Text('Error: $err'),
                             ),
                           ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.x2l),
 
                       // Leaderboard Snippet
                       BoxyArtSectionTitle(
                         title: 'Order of Merit',
                         isPeeking: isPeeking,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       StaggeredEntrance(
                         index: homeNotifications.length + 1, // Stagger after match card
                         child: topPlayers.when(
@@ -286,7 +280,7 @@ class MemberHomeScreen extends ConsumerWidget {
                           error: (err, stack) => Text('Error loading standings: $err'),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: AppSpacing.x4l),
                     ]),
                   ),
                 ),
@@ -321,7 +315,7 @@ class _NextMatchCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rXl)),
                   child: Image.network(
                     event.imageUrl!,
                     height: 180,
@@ -332,35 +326,28 @@ class _NextMatchCard extends StatelessWidget {
                 Container(
                   height: 180,
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.4),
-                      ],
-                    ),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rXl)),
+                    gradient: AppGradients.scrim(),
                   ),
                 ),
                 Positioned(
-                  top: 16,
-                  left: 16,
+                  top: AppSpacing.lg,
+                  left: AppSpacing.lg,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white24),
+                      color: Colors.black.withValues(alpha: AppColors.opacityHalf),
+                      borderRadius: AppShapes.sm,
+                      border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.24)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 12),
+                        const Icon(Icons.calendar_month_rounded, color: AppColors.pureWhite, size: AppShapes.iconXs),
                         const SizedBox(width: 6),
                         Text(
                           DateFormat('d MMM').format(event.date),
                           style: AppTypography.micro.copyWith(
-                            color: Colors.white,
+                            color: AppColors.pureWhite,
                           ),
                         ),
                       ],
@@ -370,7 +357,7 @@ class _NextMatchCard extends StatelessWidget {
               ],
             ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -384,10 +371,10 @@ class _NextMatchCard extends StatelessWidget {
                     ),
                     if (event.registrations.any((r) => r.memberId == 'current-user-id'))
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF27AE60).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Color(0xFF27AE60).withValues(alpha: AppColors.opacityLow),
+                          borderRadius: AppShapes.md,
                         ),
                         child: Text(
                           'Playing',
@@ -398,19 +385,19 @@ class _NextMatchCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 ModernInfoRow(
                   label: 'Course',
                   value: event.courseName ?? 'TBA',
                   icon: Icons.location_on_rounded,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 ModernInfoRow(
                   label: 'Tee Off',
                   value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
                   icon: Icons.schedule_rounded,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.xl),
                 BoxyArtButton(
                   title: 'View Details',
                   isPrimary: true,
@@ -437,21 +424,21 @@ class _LeaderboardSnippet extends StatelessWidget {
     final isPersonalInSnippet = topPlayers.any((p) => p['name'] == personalStanding?.memberName);
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (topPlayers.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               child: Row(
                 children: [
-                   Icon(Icons.info_outline_rounded, size: 16, color: Colors.grey.shade400),
-                   const SizedBox(width: 8),
+                   Icon(Icons.info_outline_rounded, size: AppShapes.iconSm, color: AppColors.dark400),
+                   const SizedBox(width: AppSpacing.sm),
                    Text(
                      'No standings recorded yet.',
                      style: AppTypography.labelStrong.copyWith(
-                       color: Colors.grey.shade500,
+                       color: AppColors.dark500,
                      ),
                    ),
                 ],
@@ -465,49 +452,49 @@ class _LeaderboardSnippet extends StatelessWidget {
             final name = player['name'] as String;
             
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Row(
                 children: [
                   BoxyArtNumberBadge(
                     number: position,
-                    size: 28,
-                    textColor: isMe ? Colors.blue : null,
+                    size: AppShapes.iconLg,
+                    textColor: isMe ? AppColors.teamA : null,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   // Standard Avatar
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: AppSpacing.x3l,
+                    height: AppSpacing.x3l,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.dark600,
-                      border: Border.all(color: AppColors.dark900, width: 2.0),
+                      border: Border.all(color: AppColors.dark900, width: AppShapes.borderMedium),
                     ),
                     child: Center(
                       child: Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.dark300,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppTypography.weightBlack,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       name,
                       style: AppTypography.button.copyWith(
-                        color: isMe ? Colors.blue : AppColors.pureWhite,
-                        fontWeight: FontWeight.w900,
+                        color: isMe ? AppColors.teamA : AppColors.pureWhite,
+                        fontWeight: AppTypography.weightBlack,
                       ),
                     ),
                   ),
                   Text(
                     '${player['points']}',
                     style: AppTypography.displayLargeBody.copyWith(
-                      color: isMe ? Colors.blue : (isFirst ? AppColors.lime500 : AppColors.pureWhite),
-                      fontWeight: FontWeight.w900,
+                      color: isMe ? AppColors.teamA : (isFirst ? AppColors.lime500 : AppColors.pureWhite),
+                      fontWeight: AppTypography.weightBlack,
                     ),
                   ),
                 ],
@@ -516,50 +503,50 @@ class _LeaderboardSnippet extends StatelessWidget {
           }),
           
           if (!isPersonalInSnippet && personalStanding != null) ...[
-            const Divider(height: 24, color: AppColors.dark600),
+            const Divider(height: AppSpacing.x2l, color: AppColors.dark600),
             Row(
               children: [
                 BoxyArtNumberBadge(
                   number: personalRank ?? 0,
-                  size: 28,
-                  textColor: Colors.blue,
-                  color: Colors.blue.withValues(alpha: 0.15),
+                  size: AppShapes.iconLg,
+                  textColor: AppColors.teamA,
+                  color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: AppSpacing.x3l,
+                  height: AppSpacing.x3l,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.dark600,
-                    border: Border.all(color: AppColors.dark900, width: 2.0),
+                    border: Border.all(color: AppColors.dark900, width: AppShapes.borderMedium),
                   ),
                   child: Center(
                     child: Text(
                       (personalStanding!.memberName.isNotEmpty) ? personalStanding!.memberName[0].toUpperCase() : '?',
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.dark300,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppTypography.weightBlack,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
                     'Your Standing',
                     style: AppTypography.displayHeading.copyWith(
-                      fontSize: 15, 
-                      fontWeight: FontWeight.w900, 
-                      color: Colors.blue,
+                      fontSize: AppTypography.sizeButton, 
+                      fontWeight: AppTypography.weightBlack, 
+                      color: AppColors.teamA,
                     ),
                   ),
                 ),
                 Text(
                   '${personalStanding?.points.toInt()}',
                   style: AppTypography.displayLargeBody.copyWith(
-                    fontWeight: FontWeight.w900, 
-                    color: Colors.blue,
+                    fontWeight: AppTypography.weightBlack, 
+                    color: AppColors.teamA,
                   ),
                 ),
               ],
@@ -567,9 +554,9 @@ class _LeaderboardSnippet extends StatelessWidget {
           ],
 
           if (topPlayers.isNotEmpty || personalStanding != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             const Divider(height: 1, color: AppColors.dark600),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             TextButton(
               onPressed: () => context.push('/locker/standings'),
               child: Row(
@@ -581,8 +568,8 @@ class _LeaderboardSnippet extends StatelessWidget {
                       color: AppColors.lime500,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.lime500),
+                  const SizedBox(width: AppSpacing.sm),
+                  Icon(Icons.arrow_forward_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
                 ],
               ),
             ),
@@ -630,7 +617,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
     final hasVoted = userResponse != null;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -640,8 +627,8 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: 20),
-                const SizedBox(width: 8),
+                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: AppShapes.iconMd),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -653,10 +640,10 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         widget.survey.title,
-                        style: AppTypography.displayHeading.copyWith(fontSize: 18),
+                        style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
                       ),
                     ],
                   ),
@@ -669,12 +656,12 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                       ref.read(dismissedSurveyIdsProvider.notifier).dismiss(widget.survey.id);
                     },
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                 ],
                 Icon(
                   _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                  color: Colors.grey,
-                  size: 20,
+                  color: AppColors.textSecondary,
+                  size: AppShapes.iconMd,
                 ),
               ],
             ),
@@ -682,7 +669,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
 
           ClipRect(
             child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
+              duration: AppAnimations.medium,
               curve: Curves.easeInOut,
               child: SizedBox(
                 height: _isExpanded ? null : 0,
@@ -690,22 +677,22 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (widget.survey.description != null && widget.survey.description!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         widget.survey.description!,
                         style: AppTypography.bodySmall,
                       ),
                     ],
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                       child: Column(
                         children: widget.survey.questions.map((q) => _buildQuestion(q, userResponse?[q.id], hasVoted)).toList(),
                       ),
                     ),
                     
                     if (!hasVoted) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       BoxyArtButton(
                         title: _isSubmitting ? 'Submitting...' : 'Submit Response',
                         isPrimary: true,
@@ -714,7 +701,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                       ),
                     ] else
                       Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
+                        padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm, left: AppSpacing.xs),
                         child: Text(
                           'Thank you for your feedback!',
                           style: AppTypography.label.copyWith(color: AppColors.lime500),
@@ -734,7 +721,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
     var currentAnswer = hasVoted ? answer : _localAnswers[q.id];
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -742,15 +729,15 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
             q.question.toUpperCase(),
             style: AppTypography.labelStrong.copyWith(
               color: AppColors.pureWhite,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppTypography.weightBlack,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           if (q.type == SurveyQuestionType.text)
             Container(
               decoration: BoxDecoration(
                 color: AppColors.dark600,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppShapes.md,
                 border: Border.all(
                   color: hasVoted && currentAnswer != null ? AppColors.lime500 : AppColors.dark500,
                   width: hasVoted && currentAnswer != null ? 1.5 : 1.0,
@@ -762,7 +749,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                   ),
                 ),
                 child: TextField(
@@ -770,14 +757,14 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                   readOnly: hasVoted,
                   onChanged: hasVoted ? null : (v) => setState(() => _localAnswers[q.id] = v),
                   style: TextStyle(
-                    color: hasVoted && currentAnswer != null ? AppColors.lime500 : Colors.white,
-                    fontSize: 14,
+                    color: hasVoted && currentAnswer != null ? AppColors.lime500 : AppColors.pureWhite,
+                    fontSize: AppTypography.sizeBodySmall,
                   ),
                   decoration: InputDecoration(
                     hintText: 'Type your response...',
-                    hintStyle: TextStyle(color: AppColors.dark300, fontSize: 14),
+                    hintStyle: TextStyle(color: AppColors.dark300, fontSize: AppTypography.sizeBodySmall),
                     suffixIcon: (hasVoted && currentAnswer != null) 
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.lime500, size: 20)
+                        ? const Icon(Icons.check_circle_rounded, color: AppColors.lime500, size: AppShapes.iconMd)
                         : null,
                   ),
                 ),
@@ -794,7 +781,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
               }
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: hasVoted ? null : () {
@@ -813,10 +800,10 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.lime500.withValues(alpha: 0.1) : AppColors.dark600,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : AppColors.dark600,
+                      borderRadius: AppShapes.md,
                       border: Border.all(
                         color: isSelected ? AppColors.lime500 : AppColors.dark500,
                         width: isSelected ? 1.5 : 1.0,
@@ -828,8 +815,8 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                           child: Text(
                             option,
                             style: TextStyle(
-                              color: isSelected ? AppColors.lime500 : Colors.white.withValues(alpha: 0.9),
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppColors.lime500 : AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
+                              fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightRegular,
                             ),
                           ),
                         ),
@@ -842,7 +829,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                                 ? Icons.check_box_outline_blank_rounded 
                                 : Icons.radio_button_off_rounded), 
                           color: isSelected ? AppColors.lime500 : AppColors.dark400, 
-                          size: 20
+                          size: AppShapes.iconMd
                         ),
                       ],
                     ),
@@ -850,7 +837,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                 ),
               );
             }),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
         ],
       ),
     );

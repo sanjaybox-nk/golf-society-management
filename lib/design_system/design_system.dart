@@ -50,3 +50,4 @@ export 'theme/theme_controller.dart';
 export 'theme/status_colors.dart';
 export 'theme/contrast_helper.dart';
 export 'theme/animation_constants.dart';
+export 'package:golf_society/theme/app_gradients.dart';

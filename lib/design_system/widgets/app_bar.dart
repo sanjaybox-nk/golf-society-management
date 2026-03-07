@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/theme/app_typography.dart';
-import 'package:golf_society/theme/app_colors.dart';
-import 'package:golf_society/design_system/atoms/buttons/boxy_art_icon_buttons.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// The standard app bar for the Fairway v3.1 branding.
 /// Maintains legacy parameters while enforcing new design tokens.
@@ -57,7 +54,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
             Text(
               subtitle!,
               style: AppTypography.body.copyWith(
-                fontSize: 12,
+                fontSize: AppTypography.sizeLabel,
                 color: isDark ? AppColors.dark200 : AppColors.dark300,
                 height: 1.1,
               ),
@@ -66,7 +63,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: actions != null ? [
         ...actions!,
-        const SizedBox(width: 8), // Reaches 20px total (12 default + 8)
+        const SizedBox(width: AppSpacing.sm), // Reaches 20px total (12 default + 8)
       ] : null,
       leading: leading ?? (showBack 
         ? Center(

@@ -56,25 +56,25 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Mode Selector
               const BoxyArtSectionTitle(title: 'Selection Mode'),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
                   children: [
                     _buildModeOption(context, SocietyCutMode.off, 'OFF', Icons.power_settings_new_rounded),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     _buildModeOption(context, SocietyCutMode.global, 'GLOBAL', Icons.auto_graph_rounded),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     _buildModeOption(context, SocietyCutMode.manual, 'MANUAL', Icons.touch_app_rounded),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
 
               if (currentMode == SocietyCutMode.off)
                 Padding(
@@ -86,23 +86,23 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: theme.dividerColor.withValues(alpha: 0.05),
+                            color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.shield_outlined, size: 40, color: theme.dividerColor.withValues(alpha: 0.3)),
+                          child: Icon(Icons.shield_outlined, size: AppShapes.iconXl, color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSpacing.x2l),
                         Text(
                           'SOCIETY CUTS DISABLED',
                           style: AppTypography.label.copyWith(
-                            color: theme.dividerColor.withValues(alpha: 0.5),
+                            color: theme.dividerColor.withValues(alpha: AppColors.opacityHalf),
                             letterSpacing: 2,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Select a mode above to begin',
-                          style: AppTypography.caption.copyWith(color: theme.dividerColor.withValues(alpha: 0.3)),
+                          style: AppTypography.caption.copyWith(color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
                         ),
                       ],
                     ),
@@ -111,23 +111,23 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
 
               if (currentMode == SocietyCutMode.global) ...[
                 const BoxyArtSectionTitle(title: 'Cut Rules (Shots)'),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 BoxyArtCard(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   child: Column(
                     children: config.societyCutRules.entries.map((entry) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: Row(
                           children: [
                             Expanded(child: Text(entry.key, style: AppTypography.label)),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: AppSpacing.lg),
                             SizedBox(
                               width: 80,
                               child: TextField(
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontWeight: FontWeight.w900),
+                                style: const TextStyle(fontWeight: AppTypography.weightBlack),
                                 decoration: const InputDecoration(
                                   suffixText: 'pt',
                                   isDense: true,
@@ -145,9 +145,9 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                     }).toList(),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                   child: Text(
                     'In Global mode, cuts are applied automatically based on 1st/2nd/3rd finishers of previous season events.',
                     style: AppTypography.caption.copyWith(color: AppColors.dark300, fontStyle: FontStyle.italic),
@@ -157,9 +157,9 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
 
               if (currentMode == SocietyCutMode.manual) ...[
                 const BoxyArtSectionTitle(title: 'Manual Overrides'),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                   child: Text(
                     'Select an upcoming event to apply specific shot adjustments for individual players.',
                     style: AppTypography.caption.copyWith(color: AppColors.dark300),
@@ -171,7 +171,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                   data: (events) {
                     if (events.isEmpty) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.x4l),
                         child: Center(
                           child: Text('No upcoming events found', style: AppTypography.label.copyWith(color: theme.dividerColor)),
                         ),
@@ -180,7 +180,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                     return Column(
                       children: events.map((event) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: BoxyArtNavTile(
                             title: event.title.toUpperCase(),
                             subtitle: 'TAP TO APPLY INDIVIDUAL CUTS',
@@ -212,17 +212,17 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
       child: GestureDetector(
         onTap: () => ref.read(themeControllerProvider.notifier).setSocietyCutMode(mode),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
+          duration: AppAnimations.medium,
           curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           decoration: BoxDecoration(
             color: isSelected 
-                ? theme.colorScheme.primary.withValues(alpha: 0.05) 
+                ? theme.colorScheme.primary.withValues(alpha: AppColors.opacitySubtle) 
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppShapes.lg,
             border: Border.all(
-              color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.2) : Colors.transparent,
-              width: 1,
+              color: isSelected ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium) : Colors.transparent,
+              width: AppShapes.borderThin,
             ),
           ),
           child: Column(
@@ -233,28 +233,28 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                 height: 44,
                 decoration: BoxDecoration(
                   color: isSelected 
-                      ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                      ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow)
                       : (isDark ? AppColors.dark800 : AppColors.dark50),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppShapes.md,
                 ),
                 child: Icon(
                   icon, 
-                  size: 20,
+                  size: AppShapes.iconMd,
                   color: isSelected 
                       ? theme.colorScheme.primary 
                       : (isDark ? AppColors.dark400 : AppColors.dark300),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 label,
                 style: AppTypography.label.copyWith(
-                  fontSize: 11,
+                  fontSize: AppTypography.sizeCaptionStrong,
                   letterSpacing: 1,
                   color: isSelected 
                       ? theme.colorScheme.primary 
                       : (isDark ? AppColors.dark400 : AppColors.dark300),
-                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+                  fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightMedium,
                 ),
               ),
             ],

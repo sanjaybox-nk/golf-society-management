@@ -27,12 +27,12 @@ class BoxyArtAvatar extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: primary.withValues(alpha: 0.15),
+        color: primary.withValues(alpha: AppColors.opacityLow),
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: isCircle ? null : BorderRadius.circular(AppShapes.rMd),
         border: Border.all(
-          color: primary.withValues(alpha: 0.2),
-          width: 1.5,
+          color: primary.withValues(alpha: AppColors.opacityMedium),
+          width: AppShapes.borderLight,
         ),
       ),
       child: ClipRRect(
@@ -54,7 +54,7 @@ class BoxyArtAvatar extends StatelessWidget {
         initials.toUpperCase(),
         style: TextStyle(
           color: color,
-          fontWeight: FontWeight.w900,
+          fontWeight: AppTypography.weightBlack,
           fontSize: radius * 0.7,
         ),
       ),

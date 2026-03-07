@@ -51,7 +51,7 @@ class PersonalDetailsForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxyArtCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.x2l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -68,7 +68,7 @@ class PersonalDetailsForm extends StatelessWidget {
               focusNode: bioFocusNode,
               maxLines: 2,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 Expanded(
@@ -79,7 +79,7 @@ class PersonalDetailsForm extends StatelessWidget {
                     validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: BoxyArtFormField(
                     label: 'Last Name *',
@@ -90,7 +90,7 @@ class PersonalDetailsForm extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 Expanded(
@@ -101,13 +101,13 @@ class PersonalDetailsForm extends StatelessWidget {
                   ),
                 ),
                 // [NEW] Gender Dropdown
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 12, bottom: 4),
+                        padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.xs),
                         child: Text(
                           'Gender'.toUpperCase(),
                           style: AppTypography.label.copyWith(
@@ -116,10 +116,10 @@ class PersonalDetailsForm extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : const Color(0xFFF5F5F5),
-                          borderRadius: BorderRadius.circular(100),
+                          borderRadius: AppShapes.pill,
                           boxShadow: AppShadows.inputSoft,
                           border: Theme.of(context).brightness == Brightness.dark 
                               ? null 
@@ -129,22 +129,22 @@ class PersonalDetailsForm extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.wc_outlined,
-                              size: 18,
+                              size: AppShapes.iconSm,
                               color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark300,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   value: gender,
                                   isExpanded: true,
-                                  hint: Text('Select', style: AppTypography.bodySmall.copyWith(color: Colors.grey)),
+                                  hint: Text('Select', style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
                                   items: const [
                                     DropdownMenuItem(value: 'Male', child: Text('Male', style: AppTypography.bodySmall)),
                                     DropdownMenuItem(value: 'Female', child: Text('Female', style: AppTypography.bodySmall)),
                                   ],
                                   onChanged: onGenderChanged,
-                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : Colors.white,
+                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
                                   style: AppTypography.body.copyWith(
                                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : const Color(0xFF1A1A1A),
                                   ),
@@ -159,19 +159,19 @@ class PersonalDetailsForm extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             BoxyArtFormField(
               label: 'Email *',
               controller: emailController,
               focusNode: emailFocusNode,
               validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
              Row(
                crossAxisAlignment: CrossAxisAlignment.start,
                children: [
                  _buildCountryCodePicker(context),
-                 const SizedBox(width: 12),
+                 const SizedBox(width: AppSpacing.md),
                  Expanded(
                    child: BoxyArtFormField(
                      label: 'Phone *',
@@ -182,7 +182,7 @@ class PersonalDetailsForm extends StatelessWidget {
                  ),
                ],
              ),
-             const SizedBox(height: 16),
+             const SizedBox(height: AppSpacing.lg),
              BoxyArtFormField(
                label: 'Address *',
                controller: addressController,
@@ -190,7 +190,7 @@ class PersonalDetailsForm extends StatelessWidget {
                maxLines: 2,
                validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
              ),
-             const SizedBox(height: 16),
+             const SizedBox(height: AppSpacing.lg),
              BoxyArtDatePickerField(
                label: 'Member Since',
                value: joinedDate != null 
@@ -202,21 +202,21 @@ class PersonalDetailsForm extends StatelessWidget {
             // View Mode
             if (nicknameController.text.isNotEmpty) ...[
                _buildInfoRow(Icons.short_text_rounded, 'NICKNAME', nicknameController.text),
-               const SizedBox(height: 16),
+               const SizedBox(height: AppSpacing.lg),
             ],
             _buildInfoRow(Icons.email_outlined, 'EMAIL', emailController.text),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             _buildInfoRow(Icons.phone_outlined, 'PHONE', '${countryCodeController.text}${phoneController.text}'),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             _buildInfoRow(Icons.location_on_outlined, 'ADDRESS', addressController.text),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             _buildInfoRow(
               Icons.calendar_today_outlined, 
               'MEMBER SINCE', 
               joinedDate != null ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' : '-'
             ),
             if (gender != null) ...[
-               const SizedBox(height: 16),
+               const SizedBox(height: AppSpacing.lg),
                _buildInfoRow(Icons.wc_outlined, 'GENDER', gender!),
             ],
           ],
@@ -235,12 +235,12 @@ class PersonalDetailsForm extends StatelessWidget {
 
   Widget _buildCountryCodePicker(BuildContext context) {
     return SizedBox(
-       width: 120,
+       width: AppShapes.borderThin,
        child: Column(
          crossAxisAlignment: CrossAxisAlignment.start,
          children: [
             Padding(
-              padding: const EdgeInsets.only(left: 12, bottom: 4),
+              padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.xs),
               child: Text(
                 'Code'.toUpperCase(),
                 style: AppTypography.label.copyWith(
@@ -251,7 +251,7 @@ class PersonalDetailsForm extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: AppShapes.pill,
                 boxShadow: AppShadows.inputSoft,
                 border: Theme.of(context).brightness == Brightness.dark 
                     ? null 
@@ -259,10 +259,10 @@ class PersonalDetailsForm extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Icon(
                     Icons.public_rounded,
-                    size: 18,
+                    size: AppShapes.iconSm,
                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark300,
                   ),
                   Expanded(
@@ -287,7 +287,7 @@ class PersonalDetailsForm extends StatelessWidget {
                             child: Material(
                               elevation: 8,
                               color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: AppShapes.lg,
                               child: Container(
                                 width: 195,
                                 constraints: const BoxConstraints(maxHeight: 250),
@@ -300,19 +300,19 @@ class PersonalDetailsForm extends StatelessWidget {
                                     return InkWell(
                                       onTap: () => onSelected(option),
                                       child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
                                         child: Row(
                                           children: [
                                             Text(
                                               option['flag'] ?? '',
                                               style: AppTypography.displayLargeBody,
                                             ),
-                                            const SizedBox(width: 8),
+                                            const SizedBox(width: AppSpacing.sm),
                                             Text(
                                               option['code']!,
-                                              style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                                              style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
                                             ),
-                                            const SizedBox(width: 8),
+                                            const SizedBox(width: AppSpacing.sm),
                                             Expanded(
                                                 child: Text(
                                                   option['name']!,
@@ -340,10 +340,10 @@ class PersonalDetailsForm extends StatelessWidget {
                           cursorColor: Theme.of(context).primaryColor,
                           decoration: const InputDecoration(
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                            contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                           ),
                           style: AppTypography.bodySmall.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: AppTypography.weightSemibold,
                             color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : const Color(0xFF1A1A1A),
                           ),
                         );

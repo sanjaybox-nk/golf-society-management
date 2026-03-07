@@ -190,13 +190,13 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   Text(
                     event.title,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w600,
+                      fontSize: AppTypography.sizeBodySmall,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                      fontWeight: AppTypography.weightSemibold,
                       letterSpacing: -0.2,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildToolbar(event, events, handicapMap, comp, config),
                 ],
               ),
@@ -271,7 +271,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   Widget _buildSquadPool(List<TeeGroupParticipant> squad, Map<String, Member> memberMap, List<GolfEvent> history) {
     return Container(
       width: double.infinity,
-      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+      color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -281,35 +281,35 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
             height: 90,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               itemCount: squad.length,
               itemBuilder: (context, idx) {
                 final p = squad[idx];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: LongPressDraggable<Map<String, dynamic>>(
                     data: {'player': p, 'group': null}, 
-                    delay: const Duration(milliseconds: 100),
+                    delay: AppAnimations.fast,
                     feedback: Material(
                       elevation: 4,
-                      borderRadius: BorderRadius.circular(24),
-                      child: GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: 48),
+                      borderRadius: AppShapes.x2l,
+                      child: GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: AppShapes.iconHero),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: 40),
-                        const SizedBox(height: 4),
+                        GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: AppShapes.iconXl),
+                        const SizedBox(height: AppSpacing.xs),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               p.name.split(' ').first, 
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                              style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightMedium),
                             ),
                             if (p.isGuest) ...[
-                              const SizedBox(width: 2),
-                              const Text('G', style: TextStyle(fontSize: 9, color: Colors.orange, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: AppShapes.borderMedium),
+                              const Text('G', style: TextStyle(fontSize: AppTypography.sizeMicroSmall, color: AppColors.amber500, fontWeight: AppTypography.weightBold)),
                             ],
                           ],
                         ),
@@ -386,18 +386,18 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               final primary = Theme.of(context).colorScheme.primary;
 
               return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: AppAnimations.fast,
                 height: 60,
-                margin: const EdgeInsets.symmetric(vertical: 4),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppShapes.md,
                   border: Border.all(
-                    color: isOver ? primary : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
+                    color: isOver ? primary : (isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacitySubtle)),
                     style: BorderStyle.solid,
                     width: isOver ? 2 : 1,
                   ),
                   color: isOver 
-                      ? primary.withValues(alpha: 0.1) 
+                      ? primary.withValues(alpha: AppColors.opacityLow) 
                       : Theme.of(context).cardColor,
                 ),
                 child: Row(
@@ -405,16 +405,16 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   children: [
                     Icon(
                       Icons.add_circle_outline_rounded, 
-                      size: 16, 
+                      size: AppShapes.iconSm, 
                       color: isOver ? primary : primary.withValues(alpha: 0.4),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       'EMPTY SLOT', 
                       style: AppTypography.displayMedium.copyWith(
                         color: isOver ? primary : primary.withValues(alpha: 0.4),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontSize: AppTypography.sizeCaptionStrong,
+                        fontWeight: AppTypography.weightExtraBold,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -578,13 +578,13 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     if (dy < threshold) {
       _scrollController.animateTo(
         (_scrollController.offset - scrollSpeed).clamp(0, _scrollController.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 50),
+        duration: AppAnimations.fast,
         curve: Curves.linear,
       );
     } else if (dy > height - threshold) {
       _scrollController.animateTo(
         (_scrollController.offset + scrollSpeed).clamp(0, _scrollController.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 50),
+        duration: AppAnimations.fast,
         curve: Curves.linear,
       );
     }
@@ -681,7 +681,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         GestureDetector(
           onTap: () => setState(() => _showGenerationOptions = false),
           child: Container(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: Colors.black.withValues(alpha: AppColors.opacityHalf),
             width: double.infinity,
             height: double.infinity,
           ),
@@ -692,20 +692,14 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           child: Container(
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
-                ),
-              ],
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
+              boxShadow: AppShadows.softScale,
             ),
             child: StatefulBuilder(
               builder: (context, setOverlayState) {
                 return SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(AppSpacing.x2l),
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -713,29 +707,29 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                         children: [
                           Center(
                             child: Container(
-                              width: 40,
-                              height: 4,
-                              margin: const EdgeInsets.only(bottom: 24),
+                              width: AppSpacing.x4l,
+                              height: AppSpacing.xs,
+                              margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(2),
+                                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
+                                borderRadius: AppShapes.grabber,
                               ),
                             ),
                           ),
                           Text(
                             'Generate Groups', 
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppTypography.weightBlack,
                               letterSpacing: -1,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppSpacing.sm),
                           Text(
                             'Configure how players are sorted into groups.', 
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                            style: TextStyle(color: AppColors.dark600, fontSize: AppTypography.sizeBodySmall),
                           ),
                           
-                          const SizedBox(height: 32),
+                          const SizedBox(height: AppSpacing.x3l),
                           const BoxyArtSectionTitle(
                             title: 'STRATEGY',
                             isLevel2: true,),
@@ -749,7 +743,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                             ],
                           ),
     
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.x2l),
                           const BoxyArtSectionTitle(
                             title: 'PREFERENCES',
                             isLevel2: true,),
@@ -762,7 +756,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                             onChanged: (val) => setOverlayState(() => pairBuggies = val),
                           ),
     
-                          const SizedBox(height: 32),
+                          const SizedBox(height: AppSpacing.x3l),
                           Row(
                             children: [
                               Expanded(
@@ -772,7 +766,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                                   onTap: () => setState(() => _showGenerationOptions = false),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: AppSpacing.lg),
                               Expanded(
                                 child: BoxyArtButton(
                                   title: 'Generate',
@@ -815,26 +809,26 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
     final isSelected = value == groupValue;
     return BoxyArtCard(
       onTap: () => onChanged(value),
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 8),
-      border: isSelected ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor, width: 2)) : null,
-      backgroundColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.05) : null,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      border: isSelected ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor, width: AppShapes.borderMedium)) : null,
+      backgroundColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle) : null,
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(title, style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeButton)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                Text(subtitle, style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.dark600)),
               ],
             ),
           ),
           if (isSelected) 
             Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor)
           else 
-            Icon(Icons.circle_outlined, color: Colors.grey.shade300),
+            Icon(Icons.circle_outlined, color: AppColors.dark300),
         ],
       ),
     );
@@ -930,7 +924,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           mainAxisSize: MainAxisSize.min,
           children: [
             const BoxyArtSectionTitle(title: 'SELECT TARGET GROUP', isLevel2: true),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
@@ -939,26 +933,26 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   final g = _localGroups![index];
                   if (g == currentGroup) return const SizedBox.shrink();
                   return BoxyArtCard(
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                     onTap: () {
                       _handleMove(p, currentGroup, g, null);
                       Navigator.pop(context);
                     },
                     child: Row(
                       children: [
-                        Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: 20),
-                        const SizedBox(width: 12),
+                        Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),
+                        const SizedBox(width: AppSpacing.md),
                         Text(
                           'Group ${g.index + 1}', 
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: AppTypography.weightBold),
                         ),
                         const Spacer(),
                         Text(
                           '${g.players.length} / 4',
                           style: TextStyle(
-                            fontSize: 12, 
-                            color: g.players.length >= 4 ? Colors.red : Colors.green,
-                            fontWeight: FontWeight.w800,
+                            fontSize: AppTypography.sizeLabel, 
+                            color: g.players.length >= 4 ? AppColors.coral500 : AppColors.lime500,
+                            fontWeight: AppTypography.weightExtraBold,
                           ),
                         ),
                       ],
@@ -1123,7 +1117,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   : null,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // 2. Recalculate PHCs
           BoxyArtGlassIconButton(
@@ -1131,7 +1125,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
             tooltip: 'Recalculate PHCs',
             onPressed: () => _recalculateAllPHCs(event, handicapMap, comp?.rules, config.useWhsHandicaps),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // 3. Lock/Unlock
           Opacity(
@@ -1152,7 +1146,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   : null,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // 4. Match Mode (if applicable)
           if (event.secondaryTemplateId != null) ...[
@@ -1167,7 +1161,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 }
               },
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
           ],
 
           // 5. Save
@@ -1180,7 +1174,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
               onPressed: event.isRegistrationClosed ? () => _saveGrouping(event) : null,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // 6. Publish
           BoxyArtGlassIconButton(

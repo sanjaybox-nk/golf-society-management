@@ -89,10 +89,10 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
       showBack: true,
       actions: [
         if (_isSaving)
-          const Center(child: Padding(padding: EdgeInsets.only(right: 20), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+          const Center(child: Padding(padding: EdgeInsets.only(right: AppSpacing.xl), child: SizedBox(width: AppSpacing.xl, height: AppSpacing.xl, child: CircularProgressIndicator(strokeWidth: 2))))
         else
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: BoxyArtGlassIconButton(
               icon: Icons.check_rounded,
               onPressed: _save,
@@ -102,7 +102,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
       ],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'General Information'),
@@ -115,7 +115,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
                       controller: _titleController,
                       hint: 'e.g., Seasonal Feedback',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     BoxyArtInputField(
                       label: 'Description',
                       controller: _descriptionController,
@@ -130,7 +130,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
               const BoxyArtSectionTitle(title: 'Visibility'),
               const SizedBox(height: AppTheme.sectionSpacing),
               BoxyArtCard(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: BoxyArtSwitchField(
                   label: 'Published (Visible to Members)',
                   value: _isPublished,
@@ -149,7 +149,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
                       : null,
                 );
               }),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtButton(
                 title: 'ADD QUESTION',
                 onTap: () => setState(() => _questionControllers.add(_QuestionController())),
@@ -226,9 +226,9 @@ class _QuestionEditorState extends State<_QuestionEditor> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -242,36 +242,36 @@ class _QuestionEditorState extends State<_QuestionEditor> {
                 ),
                 if (widget.onRemove != null)
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: AppShapes.iconMd),
                     onPressed: widget.onRemove,
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             BoxyArtInputField(
               label: 'The Question',
               controller: widget.controller.questionController,
               hint: 'e.g., What is your favorite course?',
             ),
-            const SizedBox(height: 16),
-            const Text('Question Type', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.dark150)),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.lg),
+            const Text('Question Type', style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold, color: AppColors.dark150)),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 _buildTypeButton('Choice', SurveyQuestionType.singleChoice, Icons.radio_button_checked_rounded),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 _buildTypeButton('Multi', SurveyQuestionType.multipleChoice, Icons.check_box_rounded),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 _buildTypeButton('Text', SurveyQuestionType.text, Icons.text_fields_rounded),
               ],
             ),
             if (widget.controller.type != SurveyQuestionType.text) ...[
-              const SizedBox(height: 16),
-              const Text('Options', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.dark150)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.lg),
+              const Text('Options', style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold, color: AppColors.dark150)),
+              const SizedBox(height: AppSpacing.sm),
               ...widget.controller.optionControllers.asMap().entries.map((entry) {
                  return Padding(
-                   padding: const EdgeInsets.only(bottom: 8),
+                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                    child: Row(
                      children: [
                        Expanded(
@@ -283,7 +283,7 @@ class _QuestionEditorState extends State<_QuestionEditor> {
                        ),
                        if (widget.controller.optionControllers.length > 2)
                          IconButton(
-                           icon: const Icon(Icons.remove_circle_outline_rounded, size: 20, color: Colors.redAccent),
+                           icon: const Icon(Icons.remove_circle_outline_rounded, size: AppShapes.iconMd, color: Colors.redAccent),
                            onPressed: () => setState(() => widget.controller.optionControllers.removeAt(entry.key)),
                          ),
                      ],
@@ -297,7 +297,7 @@ class _QuestionEditorState extends State<_QuestionEditor> {
                 icon: Icons.add_rounded,
               ),
             ],
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             BoxyArtSwitchField(
               label: 'Required',
               value: widget.controller.isRequired,
@@ -317,15 +317,15 @@ class _QuestionEditorState extends State<_QuestionEditor> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.lime500.withValues(alpha: 0.1) : Colors.transparent,
+            color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
             border: Border.all(color: isSelected ? AppColors.lime500 : AppColors.dark400),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppShapes.sm,
           ),
           child: Column(
             children: [
-              Icon(icon, size: 18, color: isSelected ? AppColors.lime500 : AppColors.dark150),
-              const SizedBox(height: 4),
-              Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isSelected ? AppColors.lime500 : AppColors.dark150)),
+              Icon(icon, size: AppShapes.iconSm, color: isSelected ? AppColors.lime500 : AppColors.dark150),
+              const SizedBox(height: AppSpacing.xs),
+              Text(label, style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: isSelected ? AppColors.lime500 : AppColors.dark150)),
             ],
           ),
         ),

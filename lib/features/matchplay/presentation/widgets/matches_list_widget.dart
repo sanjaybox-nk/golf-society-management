@@ -23,8 +23,8 @@ class MatchesListWidget extends ConsumerWidget {
         if (matches.isEmpty) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: Text('No matches defined for this event.', style: TextStyle(color: Colors.grey)),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.x4l),
+              child: Text('No matches defined for this event.', style: TextStyle(color: AppColors.textSecondary)),
             ),
           );
         }
@@ -67,10 +67,10 @@ class _MatchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
             Row(
@@ -81,14 +81,14 @@ class _MatchTile extends StatelessWidget {
                     children: [
                       Text(
                         match.team1Name ?? 'Side A',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBodySmall),
                       ),
                     ],
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('vs', style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic)),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Text('vs', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabel, fontStyle: FontStyle.italic)),
                 ),
                 Expanded(
                   child: Column(
@@ -96,7 +96,7 @@ class _MatchTile extends StatelessWidget {
                     children: [
                       Text(
                         match.team2Name ?? 'Side B',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBodySmall),
                         textAlign: TextAlign.end,
                       ),
                     ],
@@ -104,28 +104,28 @@ class _MatchTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: _getStatusColor(result.status).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _getStatusColor(result.status).withValues(alpha: 0.3)),
+                color: _getStatusColor(result.status).withValues(alpha: AppColors.opacityLow),
+                borderRadius: AppShapes.xl,
+                border: Border.all(color: _getStatusColor(result.status).withValues(alpha: AppColors.opacityMuted)),
               ),
               child: Text(
                 result.status,
                 style: TextStyle(
                   color: _getStatusColor(result.status),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontWeight: AppTypography.weightBold,
+                  fontSize: AppTypography.sizeLabel,
                 ),
               ),
             ),
             if (result.holesPlayed > 0) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 'Through ${result.holesPlayed} holes',
-                style: const TextStyle(color: Colors.grey, fontSize: 11),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeCaptionStrong),
               ),
             ],
           ],
@@ -135,8 +135,8 @@ class _MatchTile extends StatelessWidget {
   }
 
   Color _getStatusColor(String status) {
-    if (status == 'A/S') return Colors.orange;
-    if (status.contains('UP') || status.contains('&')) return Colors.blue;
-    return Colors.grey;
+    if (status == 'A/S') return AppColors.amber500;
+    if (status.contains('UP') || status.contains('&')) return AppColors.teamA;
+    return AppColors.textSecondary;
   }
 }

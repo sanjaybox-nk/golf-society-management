@@ -199,19 +199,19 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
               children: [
                 Icon(
                   _isPublished ? Icons.check_circle_rounded : Icons.save_rounded, 
-                  color: Colors.white, 
-                  size: 20,
+                  color: AppColors.pureWhite, 
+                  size: AppShapes.iconMd,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   _isPublished ? 'Post Published' : 'Draft Saved',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(fontWeight: AppTypography.weightBold, color: AppColors.pureWhite),
                 ),
               ],
             ),
             behavior: SnackBarBehavior.floating,
             shape: AppShapes.pillShape,
-            backgroundColor: _isPublished ? AppColors.lime600 : Colors.orange.shade800,
+            backgroundColor: _isPublished ? AppColors.lime600 : AppColors.amber500,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -236,8 +236,8 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
       actions: [
         if (_isSaving)
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: SizedBox(width: AppSpacing.xl, height: AppSpacing.xl, child: CircularProgressIndicator(strokeWidth: 2)),
           )
         else ...[
           BoxyArtGlassIconButton(
@@ -249,9 +249,9 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                _save();
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: BoxyArtGlassIconButton(
               icon: Icons.publish_rounded,
               iconSize: 22,
@@ -266,14 +266,14 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
       ],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Post Type Selector
               const BoxyArtSectionTitle(title: 'Post Type'),
               const SizedBox(height: AppTheme.sectionSpacing),
               BoxyArtCard(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: Row(
                   children: [
                     Expanded(
@@ -281,25 +281,25 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                         title: 'Flash Update',
                         icon: Icons.warning_amber_rounded,
                         type: FeedItemType.flash,
-                        color: Colors.orange,
+                        color: AppColors.amber500,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: _buildTypeToggle(
                         title: 'Newsletter',
                         icon: Icons.article_rounded,
                         type: FeedItemType.newsletter,
-                        color: Colors.blue,
+                        color: AppColors.teamA,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: _buildTypeToggle(
                         title: 'Poll',
                         icon: Icons.poll_rounded,
                         type: FeedItemType.poll,
-                        color: Colors.purple,
+                        color: AppColors.teamB,
                       ),
                     ),
                   ],
@@ -311,7 +311,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
               const BoxyArtSectionTitle(title: 'Placement'),
               const SizedBox(height: AppTheme.sectionSpacing),
               BoxyArtCard(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: BoxyArtSwitchField(
                   label: 'Pin to Top',
                   value: _isPinned,
@@ -339,7 +339,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                      titleHint: entry.key == 0 ? 'Headline / Title' : 'Section Title (Optional)',
                    );
                 }),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 BoxyArtButton(
                   title: 'ADD SECTION',
                   onTap: () => setState(() => _richNoteControllers.add(RichNoteController(content: ''))),
@@ -363,10 +363,10 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedType = type),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: AppAnimations.fast,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
+          color: isSelected ? color.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
           border: Border.all(
             color: isSelected ? color : (isDark ? AppColors.dark400 : AppColors.lightBorder),
           ),
@@ -378,14 +378,14 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
             Icon(
               icon, 
               color: isSelected ? color : (isDark ? AppColors.dark150 : AppColors.dark400),
-              size: 20,
+              size: AppShapes.iconMd,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               title,
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
+                fontSize: AppTypography.sizeLabelStrong,
+                fontWeight: AppTypography.weightBold,
                 color: isSelected ? color : (isDark ? AppColors.dark150 : AppColors.dark400),
               ),
             ),
@@ -413,7 +413,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
           final index = entry.key;
           final ctrl = entry.value;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: BoxyArtCard(
               child: Row(
                 children: [
@@ -434,7 +434,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
             ),
           );
         }),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         BoxyArtButton(
           title: 'ADD OPTION',
           onTap: () => setState(() => _pollOptionsControllers.add(TextEditingController())),

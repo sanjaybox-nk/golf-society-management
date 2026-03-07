@@ -181,13 +181,13 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
         sliver: SliverList(
           delegate: SliverChildListDelegate([
             // METRICS CARD
             const BoxyArtSectionTitle(title: 'Registration Stats'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -205,7 +205,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: playingValue,
@@ -215,7 +215,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: reserveValue,
@@ -225,7 +225,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
@@ -238,7 +238,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   // ATTENDANCE STATS
                   IntrinsicHeight(
                     child: Row(
@@ -253,7 +253,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '${stats.dinnerCount}',
@@ -263,7 +263,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '${stats.waitlistGolfers}',
@@ -273,7 +273,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '${stats.breakfastCount}',
@@ -286,9 +286,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   const Divider(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   // FINANCIAL STATS
                   IntrinsicHeight(
                     child: Row(
@@ -303,7 +303,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
@@ -313,7 +313,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '$currency${totalLunchFees.toStringAsFixed(0)}',
@@ -323,7 +323,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                             isCompact: true,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: ModernMetricStat(
                             value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
@@ -336,13 +336,13 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   const Divider(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   // STATUS BAR
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                       child: Wrap(
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -352,8 +352,8 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                           Text(
                             '${stats.confirmedGolfers}/$capacity spaces',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontSize: AppTypography.sizeBody,
+                              fontWeight: AppTypography.weightSemibold,
                               color: Theme.of(context).brightness == Brightness.dark
                                   ? AppColors.dark150
                                   : const Color(0xFF2C3E50),
@@ -372,12 +372,12 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               ),
             ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           // MEMBERS - PLAYING
           if (playingMembers.isNotEmpty) ...[
             BoxyArtSectionTitle(title: 'Playing (${playingMembers.length})'),
             ...playingMembers.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Member',
@@ -402,10 +402,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // MEMBERS - WAITLIST
           if (waitlistMembers.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Waitlist (${waitlistMembers.length})'),
             ...waitlistMembers.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Member',
@@ -430,10 +430,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // MEMBERS - RESERVED
           if (reservedMembers.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Reserved (${reservedMembers.length})'),
             ...reservedMembers.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Member',
@@ -458,10 +458,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // GUESTS - PLAYING
           if (playingGuests.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Playing Guests (${playingGuests.length})'),
             ...playingGuests.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name, 
                 label: 'Guest of ${vm.item.registration.memberName}',
@@ -486,10 +486,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // WAITLIST GUESTS
           if (waitlistGuests.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Waitlist Guests (${waitlistGuests.length})'),
             ...waitlistGuests.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name, 
                 label: 'Guest of ${vm.item.registration.memberName}',
@@ -514,10 +514,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // RESERVED GUESTS
           if (reservedGuests.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Reserved Guests (${reservedGuests.length})'),
             ...reservedGuests.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name, 
                 label: 'Guest of ${vm.item.registration.memberName}',
@@ -542,10 +542,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // DINNER ONLY
           if (dinnerModels.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
             ...dinnerModels.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Dinner Only',
@@ -569,10 +569,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // NOT PARTICIPATING
           if (withdrawnModels.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Not Participating (${withdrawnModels.length})'),
             ...withdrawnModels.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Withdrawn',

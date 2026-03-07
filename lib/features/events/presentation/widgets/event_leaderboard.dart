@@ -211,8 +211,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     if (finalEntries.isEmpty) {
       return const Center(child: Padding(
-        padding: EdgeInsets.all(32.0),
-        child: Text('Standings will appear once scoring starts.', style: TextStyle(color: Colors.grey)),
+        padding: EdgeInsets.all(AppSpacing.x3l),
+        child: Text('Standings will appear once scoring starts.', style: TextStyle(color: AppColors.textSecondary)),
       ));
     }
 
@@ -274,8 +274,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
 
     if (memberEntries.isEmpty && guestEntries.isEmpty) {
       return const Center(child: Padding(
-        padding: EdgeInsets.all(32.0),
-        child: Text('Standings will appear once scoring starts.', style: TextStyle(color: Colors.grey)),
+        padding: EdgeInsets.all(AppSpacing.x3l),
+        child: Text('Standings will appear once scoring starts.', style: TextStyle(color: AppColors.textSecondary)),
       ));
     }
 
@@ -288,7 +288,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
               title: isGuestLeaderboardActive ? 'SOCIETY MEMBERS' : 'LIVE STANDINGS',
               count: isGuestLeaderboardActive ? memberEntries.length : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
           LeaderboardWidget(
             entries: memberEntries,
@@ -297,13 +297,13 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
           ),
         ],
         if (guestEntries.isNotEmpty) ...[
-          const SizedBox(height: 32),
+          const SizedBox(height: AppSpacing.x3l),
           if (widget.showTitles) ...[
             BoxyArtSectionTitle(
               title: 'GUESTS',
               count: guestEntries.length,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
           LeaderboardWidget(
             entries: guestEntries,

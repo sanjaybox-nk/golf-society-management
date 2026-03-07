@@ -31,7 +31,7 @@ class BoxyArtCircularIconBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(100),
+      borderRadius: AppShapes.pill,
       child: Container(
         padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
@@ -62,7 +62,7 @@ class BoxyArtThemedCircleIcon extends StatelessWidget {
         color: backgroundColor,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: iconColor, size: 14),
+      child: Icon(icon, color: iconColor, size: AppShapes.iconXs),
     );
   }
 }
@@ -100,9 +100,9 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
     final primaryColor = theme.primaryColor;
     
     // In dark mode, favor white/light glass over dark primary tints
-    final defaultIconColor = widget.iconColor ?? (isDark ? Colors.white : primaryColor);
+    final defaultIconColor = widget.iconColor ?? (isDark ? AppColors.pureWhite : primaryColor);
     final defaultBgColor = widget.backgroundColor ?? (isDark 
-        ? Colors.white.withValues(alpha: 0.08) 
+        ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
         : primaryColor.withValues(alpha: 0.12));
     
     return GestureDetector(
@@ -112,23 +112,23 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
       onTap: widget.onPressed,
       child: AnimatedScale(
         scale: _isPressed ? 0.92 : 1.0,
-        duration: const Duration(milliseconds: 100),
+        duration: AppAnimations.fast,
         child: Container(
-          width: 40,
-          height: 40,
+          width: AppSpacing.x4l,
+          height: AppSpacing.x4l,
           decoration: BoxDecoration(
             color: defaultBgColor,
             shape: BoxShape.circle,
             border: Border.all(
               color: isDark 
-                  ? Colors.white.withValues(alpha: 0.15) 
-                  : primaryColor.withValues(alpha: 0.2),
+                  ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) 
+                  : primaryColor.withValues(alpha: AppColors.opacityMedium),
               width: 0.8,
             ),
             boxShadow: [
               if (!isDark) // Soft shadows only in light mode for glass
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),

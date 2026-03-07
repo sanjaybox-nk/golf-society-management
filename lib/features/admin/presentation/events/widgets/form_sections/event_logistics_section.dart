@@ -37,7 +37,7 @@ class EventLogisticsSection extends ConsumerWidget {
                     }
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 if (state.eventType == EventType.golf) ...[
                   BoxyArtSwitchField(
                     label: 'Multi-Day Event', 
@@ -46,7 +46,7 @@ class EventLogisticsSection extends ConsumerWidget {
                   ),
                 ],
                 if (state.isMultiDay) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                    BoxyArtDatePickerField(
                     label: 'End Date',
                     value: state.endDate != null ? DateFormat.yMMMd().format(state.endDate!) : 'Select End Date',
@@ -63,7 +63,7 @@ class EventLogisticsSection extends ConsumerWidget {
                     },
                   ),
                 ],
-                const Divider(height: 32),
+                const Divider(height: AppSpacing.x3l),
                 Row(
                   children: [
                     Expanded(
@@ -82,7 +82,7 @@ class EventLogisticsSection extends ConsumerWidget {
                       ),
                     ),
                     if (state.eventType == EventType.golf) ...[
-                      const SizedBox(width: 16),
+                      const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: BoxyArtDatePickerField(
                           label: 'Tee-off',
@@ -102,7 +102,7 @@ class EventLogisticsSection extends ConsumerWidget {
                   ],
                 ),
                 if (state.eventType == EventType.golf) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   BoxyArtFormField(
                     label: 'Group Tee-off Interval (minutes)',
                     initialValue: state.teeOffInterval.toString(),
@@ -115,7 +115,7 @@ class EventLogisticsSection extends ConsumerWidget {
                     },
                   ),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtDatePickerField(
                   label: 'Registration Deadline',
                   value: (state.deadlineDate == null || state.deadlineTime == null) 
@@ -140,14 +140,14 @@ class EventLogisticsSection extends ConsumerWidget {
                     }
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtSwitchField(
                   label: 'Show Registration Button',
                   value: state.showRegistrationButton,
                   onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateShowRegistrationButton(v),
                 ),
                 if (state.eventType == EventType.golf) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   BoxyArtSwitchField(
                     label: 'Invitational / Non-Scoring',
                     subtitle: "Exclude this event's scores from all season leaderboards.",

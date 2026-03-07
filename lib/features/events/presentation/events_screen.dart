@@ -51,7 +51,7 @@ class EventsScreen extends ConsumerWidget {
               );
             }
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -59,7 +59,7 @@ class EventsScreen extends ConsumerWidget {
                     return StaggeredEntrance(
                       index: index,
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: _EventCard(event: events[index], isHighlighted: isNextMatch),
                       ),
                     );
@@ -93,7 +93,7 @@ class EventsScreen extends ConsumerWidget {
               );
             }
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -135,7 +135,7 @@ class _EventCard extends ConsumerWidget {
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
       padding: const EdgeInsets.all(14),
       backgroundColor: isHighlighted 
-          ? (isDark ? primary.withValues(alpha: 0.15) : primary.withValues(alpha: 0.03))
+          ? (isDark ? primary.withValues(alpha: AppColors.opacityLow) : primary.withValues(alpha: 0.03))
           : null,
       child: Row(
         children: [
@@ -156,8 +156,8 @@ class _EventCard extends ConsumerWidget {
                 Text(
                   event.title,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 17,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeUI,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -166,14 +166,14 @@ class _EventCard extends ConsumerWidget {
                 Row(
                   children: [
                     BoxyArtIconBadge(icon: Icons.location_on_rounded, color: primary),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         event.courseName ?? 'TBA',
                         style: TextStyle(
                           color: textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontSize: AppTypography.sizeLabelStrong,
+                          fontWeight: AppTypography.weightSemibold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -181,19 +181,19 @@ class _EventCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 
                 // Time Row
                 Row(
                   children: [
-                    BoxyArtIconBadge(icon: Icons.access_time_filled_rounded, color: Colors.grey.shade600),
-                    const SizedBox(width: 8),
+                    BoxyArtIconBadge(icon: Icons.access_time_filled_rounded, color: AppColors.dark600),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Registration: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
                       style: TextStyle(
                         color: textSecondary?.withValues(alpha: 0.75),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
+                        fontSize: AppTypography.sizeLabel,
+                        fontWeight: AppTypography.weightBlack,
                         letterSpacing: 0.8,
                       ),
                     ),
@@ -201,7 +201,7 @@ class _EventCard extends ConsumerWidget {
                 ),
                 
                 // Bottom Pill Row
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -211,8 +211,8 @@ class _EventCard extends ConsumerWidget {
                       BoxyArtPill(
                         label: 'SOCIAL',
                         color: AppColors.coral500,
-                        backgroundColor: AppColors.coral500.withValues(alpha: 0.1),
-                        borderColor: AppColors.coral500.withValues(alpha: 0.2),
+                        backgroundColor: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
+                        borderColor: AppColors.coral500.withValues(alpha: AppColors.opacityMedium),
                       ),
                     _buildGameTypePill(context, ref, event.id),
                     if (event.isInvitational)
@@ -243,19 +243,19 @@ class _EventCard extends ConsumerWidget {
     
     if (status == EventStatus.draft) {
       statusText = 'Draft';
-      statusColor = Colors.orange;
+      statusColor = AppColors.amber500;
     } else if (status == EventStatus.inPlay) {
       statusText = 'Live';
-      statusColor = Colors.blue;
+      statusColor = AppColors.teamA;
     } else if (status == EventStatus.suspended) {
       statusText = 'Suspended';
       statusColor = Colors.deepOrange;
     } else if (status == EventStatus.cancelled) {
       statusText = 'Cancelled';
-      statusColor = Colors.red;
+      statusColor = AppColors.coral500;
     } else if (status == EventStatus.completed) {
       statusText = 'Completed';
-      statusColor = Colors.grey;
+      statusColor = AppColors.textSecondary;
     } else {
       // Published = Open for members
       statusText = 'Published';

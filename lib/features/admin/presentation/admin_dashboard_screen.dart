@@ -37,7 +37,7 @@ class AdminDashboardScreen extends ConsumerWidget {
       actions: const [],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Next Event Hero
@@ -76,35 +76,35 @@ class AdminDashboardScreen extends ConsumerWidget {
                         width: cardWidth,
                         icon: Icons.add_circle_outline_rounded,
                         title: 'Create Event',
-                        color: Colors.green,
+                        color: AppColors.lime500,
                         onTap: () => context.push('/admin/events/new'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.campaign_rounded,
                         title: 'Broadcasts',
-                        color: Colors.pink,
+                        color: AppColors.coral500,
                         onTap: () => _showBroadcastPicker(context, eventsAsync),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.person_add_alt_1_rounded,
                         title: 'Add Member',
-                        color: Colors.blue,
+                        color: AppColors.teamA,
                         onTap: () => context.push('/admin/members/new'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.settings_suggest_rounded,
                         title: 'Settings',
-                        color: Colors.orange,
+                        color: AppColors.amber500,
                         onTap: () => context.push('/admin/settings'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.poll_rounded,
                         title: 'Surveys',
-                        color: Colors.amber,
+                        color: StatusColors.warning,
                         onTap: () => context.go('/admin/surveys'),
                       ),
                     ],
@@ -112,7 +112,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 },
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: AppSpacing.x4l),
 
               // 4. Recent Activity Feed
               const BoxyArtSectionTitle(
@@ -167,10 +167,10 @@ class _FeatureGridItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withValues(alpha: AppColors.opacityLow),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: AppShapes.iconLg),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -204,7 +204,7 @@ class _ActivityFeed extends ConsumerWidget {
               child: Center(
                 child: Text(
                   'No recent activity', 
-                  style: AppTypography.label.copyWith(color: Colors.grey),
+                  style: AppTypography.label.copyWith(color: AppColors.textTertiary),
                 ),
               ),
             ),
@@ -225,10 +225,10 @@ class _ActivityFeed extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.sm),
                           decoration: BoxDecoration(
-                            color: appearance.$2.withValues(alpha: 0.1),
+                            color: appearance.$2.withValues(alpha: AppColors.opacityLow),
                             borderRadius: BorderRadius.circular(AppSpacing.sm),
                           ),
-                          child: Icon(appearance.$1, color: appearance.$2, size: 18),
+                          child: Icon(appearance.$1, color: appearance.$2, size: AppShapes.iconSm),
                         ),
                         const SizedBox(width: AppSpacing.lg),
                         Expanded(
@@ -255,7 +255,7 @@ class _ActivityFeed extends ConsumerWidget {
                     Divider(
                       height: 1, 
                       indent: 64, 
-                      color: theme.dividerColor.withValues(alpha: 0.05),
+                      color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                     ),
                 ],
               );
@@ -290,24 +290,24 @@ class _BroadcastEventPicker extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.r2xl)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Center(
             child: Container(
-              width: 40,
-              height: 4,
+              width: AppSpacing.x4l,
+              height: AppSpacing.xs,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
+                borderRadius: AppShapes.grabber,
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.x2l),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -315,7 +315,7 @@ class _BroadcastEventPicker extends StatelessWidget {
                   'Select Event',
                   style: AppTypography.displayLocker,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Choose an event to post an update or newsletter.',
                   style: AppTypography.bodySmall,
@@ -328,33 +328,33 @@ class _BroadcastEventPicker extends StatelessWidget {
               data: (events) {
                 final sortedEvents = events.sortedBy((e) => e.date).reversed.toList();
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
                   itemCount: sortedEvents.length,
                   itemBuilder: (context, index) {
                     final event = sortedEvents[index];
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.md),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                        borderRadius: AppShapes.lg,
+                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
                       ),
                       child: ListTile(
                         onTap: () {
                           Navigator.pop(context);
                           context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/broadcast/new');
                         },
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
                         title: Text(
                           event.title,
                           style: AppTypography.displayLargeBody.copyWith(
-                            fontSize: 16,
+                            fontSize: AppTypography.sizeBody,
                           ),
                         ),
                         subtitle: Text(
                           DateFormat('MMM d, yyyy').format(event.date),
                         ),
-                        trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                        trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                       ),
                     );
                   },

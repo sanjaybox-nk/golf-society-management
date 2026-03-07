@@ -29,19 +29,19 @@ class ModernInfoRow extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.dark700.withValues(alpha: 0.8) 
-                  : (iconColor ?? primary).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+                  ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
+                  : (iconColor ?? primary).withValues(alpha: AppColors.opacityLow),
+              borderRadius: AppShapes.md,
               border: Border.all(
                 color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white.withValues(alpha: 0.15) 
-                    : (iconColor ?? primary).withValues(alpha: 0.1),
+                    ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) 
+                    : (iconColor ?? primary).withValues(alpha: AppColors.opacityLow),
               ),
             ),
             child: Icon(
               icon,
               color: iconColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : primary),
-              size: 20,
+              size: AppShapes.iconMd,
             ),
           ),
           const SizedBox(width: 14),
@@ -53,9 +53,9 @@ class ModernInfoRow extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 13,
-                  color: textSecondary?.withValues(alpha: 0.8),
-                  fontWeight: FontWeight.w500,
+                  fontSize: AppTypography.sizeLabelStrong,
+                  color: textSecondary?.withValues(alpha: AppColors.opacityHigh),
+                  fontWeight: AppTypography.weightMedium,
                   letterSpacing: 0.2,
                 ),
               ),
@@ -63,8 +63,8 @@ class ModernInfoRow extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppTypography.sizeBody,
+                  fontWeight: AppTypography.weightBlack,
                   color: textPrimary,
                 ),
               ),
@@ -106,7 +106,7 @@ class ModernRuleItem extends StatelessWidget {
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: BoxyArtSectionTitle(
               title: label,
@@ -117,8 +117,8 @@ class ModernRuleItem extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontSize: AppTypography.sizeLabelStrong,
+              fontWeight: AppTypography.weightSemibold,
               color: textPrimary,
             ),
           ),
@@ -158,7 +158,7 @@ class ModernCostRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: isTotal ? 16 : 15,
                 color: color ?? (isTotal ? textPrimary : textSecondary),
-                fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+                fontWeight: isTotal ? AppTypography.weightBold : AppTypography.weightMedium,
               ),
             ),
           ),
@@ -167,7 +167,7 @@ class ModernCostRow extends StatelessWidget {
             amount,
             style: TextStyle(
               fontSize: isTotal ? 18 : 15,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+              fontWeight: isTotal ? AppTypography.weightBold : AppTypography.weightSemibold,
               color: textPrimary,
             ),
           ),

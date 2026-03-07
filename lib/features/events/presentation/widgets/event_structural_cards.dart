@@ -23,7 +23,7 @@ class EventHeadlineCard extends StatelessWidget {
           children: [
             if (hasImage)
               ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: AppShapes.xl,
                 child: Image.network(
                   event.imageUrl!,
                   width: double.infinity,
@@ -32,36 +32,36 @@ class EventHeadlineCard extends StatelessWidget {
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.calendar_today_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           DateFormat('EEEE, d MMM yyyy').format(event.date),
-                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_rounded, size: 16, color: Colors.grey),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.location_on_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           event.courseName ?? 'Location TBA',
-                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildStatusBadge(context),
                 ],
               ),
@@ -81,7 +81,7 @@ class EventHeadlineCard extends StatelessWidget {
     switch (status) {
       case EventStatus.draft:
         statusText = 'DRAFT';
-        statusColor = Colors.orange;
+        statusColor = AppColors.amber500;
         break;
       case EventStatus.published:
         statusText = 'PUBLISHED';
@@ -89,7 +89,7 @@ class EventHeadlineCard extends StatelessWidget {
         break;
       case EventStatus.inPlay:
         statusText = 'LIVE';
-        statusColor = Colors.blue;
+        statusColor = AppColors.teamA;
         break;
       case EventStatus.suspended:
         statusText = 'SUSPENDED';
@@ -97,11 +97,11 @@ class EventHeadlineCard extends StatelessWidget {
         break;
       case EventStatus.completed:
         statusText = 'COMPLETED';
-        statusColor = Colors.grey;
+        statusColor = AppColors.textSecondary;
         break;
       case EventStatus.cancelled:
         statusText = 'CANCELLED';
-        statusColor = Colors.red;
+        statusColor = AppColors.coral500;
         break;
     }
     
@@ -154,24 +154,24 @@ class EventRegistrationCard extends ConsumerWidget {
                   Text(
                     isFull ? 'Event Full' : 'Secure your spot',
                     style: AppTypography.displayLargeBody.copyWith(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppTypography.weightBlack,
                       letterSpacing: 0.5,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   if (event.registrationDeadline != null) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
                       style: AppTypography.labelStrong.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8), 
-                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh), 
+                        fontWeight: AppTypography.weightExtraBold,
                         letterSpacing: 0.2,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       isFull ? 'Join the waitlist below' : 'Register below to join the event',
                       style: AppTypography.labelStrong.copyWith(
@@ -182,39 +182,34 @@ class EventRegistrationCard extends ConsumerWidget {
                   ],
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
             ] else ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 12,
-                    height: 12,
+                    width: AppSpacing.md,
+                    height: AppSpacing.md,
                     decoration: BoxDecoration(
                       color: myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: (myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12)).withValues(alpha: 0.3),
-                          blurRadius: 8,
-                        ),
-                      ],
+                      boxShadow: AppShadows.softScale,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Text(
                     myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
                     style: AppTypography.displayLargeBody.copyWith(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppTypography.weightBlack,
                       letterSpacing: 0.5,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
             ],
             if (isRegistered) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
               // Compact Status Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -266,14 +261,14 @@ class EventRegistrationCard extends ConsumerWidget {
               // Detail Snippets
               if (myRegistration.guestName != null || 
                   (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty)) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white.withValues(alpha: 0.05) 
+                        ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
                         : Colors.black.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppShapes.md,
                   ),
                   child: Column(
                     children: [
@@ -284,7 +279,7 @@ class EventRegistrationCard extends ConsumerWidget {
                           'Guest: ${myRegistration.guestName}',
                         ),
                       if (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty) ...[
-                        if (myRegistration.guestName != null) const SizedBox(height: 8),
+                        if (myRegistration.guestName != null) const SizedBox(height: AppSpacing.sm),
                         _buildDetailSnippet(
                           context, 
                           Icons.set_meal_rounded, 
@@ -295,7 +290,7 @@ class EventRegistrationCard extends ConsumerWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
             ],
             
             BoxyArtButton(
@@ -321,12 +316,12 @@ class EventRegistrationCard extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 4),
+        Icon(icon, color: color, size: AppShapes.iconMd),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           label,
           style: AppTypography.micro.copyWith(
-            fontWeight: active ? FontWeight.bold : FontWeight.normal,
+            fontWeight: active ? AppTypography.weightBold : AppTypography.weightRegular,
             color: color,
           ),
         ),
@@ -336,11 +331,11 @@ class EventRegistrationCard extends ConsumerWidget {
 
   Widget _buildStatusSeparator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Container(
-        height: 20,
-        width: 1,
-        color: Colors.grey.withValues(alpha: 0.2),
+        height: AppSpacing.xl,
+        width: AppShapes.borderThin,
+        color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium),
       ),
     );
   }
@@ -348,12 +343,12 @@ class EventRegistrationCard extends ConsumerWidget {
   Widget _buildDetailSnippet(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Theme.of(context).primaryColor),
-        const SizedBox(width: 8),
+        Icon(icon, size: AppShapes.iconXs, color: Theme.of(context).primaryColor),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             text,
-            style: AppTypography.labelStrong.copyWith(fontWeight: FontWeight.w500),
+            style: AppTypography.labelStrong.copyWith(fontWeight: AppTypography.weightMedium),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -387,13 +382,13 @@ class EventGalleryCard extends StatelessWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: event.galleryUrls.length > 5 ? 5 : event.galleryUrls.length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       return ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppShapes.md,
                         child: Image.network(
                           event.galleryUrls[index],
-                          width: 120,
+                          width: AppShapes.borderThin,
                           height: 120,
                           fit: BoxFit.cover,
                         ),
@@ -401,7 +396,7 @@ class EventGalleryCard extends StatelessWidget {
                     },
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 BoxyArtButton(
                   title: event.galleryUrls.length > 5 ? 'View All ${event.galleryUrls.length} Photos' : 'View Gallery',
                   onTap: isManagement ? null : () {
@@ -442,7 +437,7 @@ class EventPodiumCard extends StatelessWidget {
             const BoxyArtSectionTitle(title: 'Event Recap & Results'),
             BoxyArtCard(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                 child: Center(
                   child: Text(
                     'Podium Results Block\n(Visible when event completed)',
@@ -480,11 +475,11 @@ class EventPodiumCard extends StatelessWidget {
                    return ListTile(
                      contentPadding: EdgeInsets.zero,
                      leading: BoxyArtNumberBadge(number: rank, size: 36, color: rank == 1 ? Theme.of(context).primaryColor : null),
-                     title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: FontWeight.bold)),
-                     trailing: Text('$score pts', style: AppTypography.displayLargeBody.copyWith(fontWeight: FontWeight.w900, color: Theme.of(context).primaryColor)),
+                     title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold)),
+                     trailing: Text('$score pts', style: AppTypography.displayLargeBody.copyWith(fontWeight: AppTypography.weightBlack, color: Theme.of(context).primaryColor)),
                    );
                 }),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 BoxyArtButton(
                   title: 'View Full Results',
                   isPrimary: false,

@@ -21,11 +21,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'Live Preview', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               _buildPreviewCard(
                 config.primaryColor, 
                 config.secondaryColor, 
@@ -37,10 +37,10 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 config.pillRadius,
                 config.buttonRadius,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
 
               const BoxyArtSectionTitle(title: 'App Appearance', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 child: Column(
                   children: [
@@ -70,10 +70,10 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
 
               const BoxyArtSectionTitle(title: 'Society Identity', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 child: Column(
                   children: [
@@ -83,7 +83,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       onChanged: (v) => controller.setSocietyName(v),
                       icon: Icons.business_rounded,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.x2l),
                     _LogoPicker(
                       currentUrl: config.logoUrl,
                       onUrlChanged: (v) => controller.setLogoUrl(v),
@@ -91,27 +91,27 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
               
               const BoxyArtSectionTitle(title: 'Style Preference', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Choose a structural tone for your society. This adjusts corner rounding and depth.',
-                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                      style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightMedium),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                     Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Use Shadows', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-                              Text('Adds depth to cards and buttons', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w400)),
+                              Text('Use Shadows', style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold)),
+                              Text('Adds depth to cards and buttons', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightRegular)),
                             ],
                           ),
                         ),
@@ -119,7 +119,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           value: config.useShadows,
                           onChanged: (v) => controller.setUseShadows(v),
                           activeThumbColor: Color(config.secondaryColor),
-                          activeTrackColor: Color(config.secondaryColor).withValues(alpha: 0.2),
+                          activeTrackColor: Color(config.secondaryColor).withValues(alpha: AppColors.opacityMedium),
                         ),
                       ],
                     ),
@@ -129,8 +129,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Use Borders', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-                              Text('Hardens card and field edges', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w400)),
+                              Text('Use Borders', style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold)),
+                              Text('Hardens card and field edges', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightRegular)),
                             ],
                           ),
                         ),
@@ -138,15 +138,15 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           value: config.useBorders,
                           onChanged: (v) => controller.setUseBorders(v),
                           activeThumbColor: Color(config.secondaryColor),
-                          activeTrackColor: Color(config.secondaryColor).withValues(alpha: 0.2),
+                          activeTrackColor: Color(config.secondaryColor).withValues(alpha: AppColors.opacityMedium),
                         ),
                       ],
                     ),
                     if (config.useBorders) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Row(
                         children: [
-                          Text('Border', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w700)),
+                          Text('Border', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
                           Expanded(
                             child: Slider(
                               value: config.borderWidth,
@@ -158,14 +158,14 @@ class BrandingSettingsScreen extends ConsumerWidget {
                               onChanged: (v) => controller.setBorderWidth(v),
                             ),
                           ),
-                          Text(config.borderWidth.toStringAsFixed(1), style: AppTypography.helper.copyWith(fontWeight: FontWeight.w900)),
+                          Text(config.borderWidth.toStringAsFixed(1), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
                         ],
                       ),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
-                        Text('Pills', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w700)),
+                        Text('Pills', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
                         Expanded(
                           child: Slider(
                             value: config.pillRadius,
@@ -177,12 +177,12 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             onChanged: (v) => controller.setPillRadius(v),
                           ),
                         ),
-                        Text(config.pillRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: FontWeight.w900)),
+                        Text(config.pillRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
                       ],
                     ),
                     Row(
                       children: [
-                        Text('Buttons', style: AppTypography.helper.copyWith(fontWeight: FontWeight.w700)),
+                        Text('Buttons', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
                         Expanded(
                           child: Slider(
                             value: config.buttonRadius,
@@ -194,7 +194,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             onChanged: (v) => controller.setButtonRadius(v),
                           ),
                         ),
-                        Text(config.buttonRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: FontWeight.w900)),
+                        Text(config.buttonRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -205,10 +205,10 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
 
               const BoxyArtSectionTitle(title: 'App Identity Colors', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 child: Column(
                   children: [
@@ -221,7 +221,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                             onTap: () => _pickColor(context, 'Primary', Color(config.primaryColor), (c) => controller.setPrimaryColor(c)),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: _CompactColorPicker(
                             label: 'Action Color',
@@ -231,15 +231,15 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _CompactColorPicker(
                       label: 'Page Background (Light Mode)',
                       color: Color(config.backgroundColor),
                       onTap: () => _pickColor(context, 'Background', Color(config.backgroundColor), (c) => controller.setBackgroundColor(c)),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                     const Divider(height: 1),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _ColorPalette(
                       selectedColor: Color(config.primaryColor),
                       customColors: config.customColors,
@@ -250,7 +250,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
 
 
 
@@ -268,8 +268,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
       context,
       current,
       title: Text('$title Color', style: Theme.of(context).textTheme.titleLarge),
-      width: 40,
-      height: 40,
+      width: AppSpacing.x4l,
+      height: AppSpacing.x4l,
       spacing: 8,
       runSpacing: 8,
       borderRadius: 12,
@@ -301,8 +301,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
     final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
-    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black;
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : AppColors.pureWhite;
+    final textColor = isDark ? AppColors.pureWhite : Colors.black;
 
     double radius;
     switch (style) {
@@ -312,17 +312,17 @@ class BrandingSettingsScreen extends ConsumerWidget {
     }
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       showShadow: useShadows,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(radius),
-          border: useBorders ? Border.all(color: textColor.withValues(alpha: 0.1), width: borderWidth) : null,
+          border: useBorders ? Border.all(color: textColor.withValues(alpha: AppColors.opacityLow), width: borderWidth) : null,
           boxShadow: useShadows ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
               blurRadius: style == 'modern' ? 30 : 15,
               offset: const Offset(0, 4),
             ),
@@ -332,18 +332,18 @@ class BrandingSettingsScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(backgroundColor: primary.withValues(alpha: 0.2), radius: 24, child: Icon(Icons.person, color: primary)),
-                const SizedBox(width: 16),
+                CircleAvatar(backgroundColor: primary.withValues(alpha: AppColors.opacityMedium), radius: 24, child: Icon(Icons.person, color: primary)),
+                const SizedBox(width: AppSpacing.lg),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('John Doe', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: textColor, letterSpacing: -0.5)),
-                    Text('Handicap: 14.2', style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text('John Doe', style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody, color: textColor, letterSpacing: -0.5)),
+                    Text('Handicap: 14.2', style: TextStyle(color: textColor.withValues(alpha: AppColors.opacityHalf), fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightSemibold)),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -357,15 +357,15 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('Action Button', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.2)),
+                child: const Text('Action Button', style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeButton, letterSpacing: -0.2)),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 BoxyArtPill(label: 'Preview Pill', color: secondary),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 BoxyArtPill(label: 'Secondary', color: primary),
               ],
             ),
@@ -392,32 +392,32 @@ class _CompactColorPicker extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.08)),
+          borderRadius: AppShapes.md,
+          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: -0.2)),
+            Text(label, style: const TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBlack, letterSpacing: -0.2)),
             const SizedBox(height: 10),
             Row(
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: AppSpacing.x3l,
+                  height: AppSpacing.x3l,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black12),
+                    border: Border.all(color: Colors.black.withValues(alpha: 0.12)),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   '#${color.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace'),
+                  style: const TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightSemibold, fontFamily: 'monospace'),
                 ),
               ],
             ),
@@ -441,10 +441,10 @@ class _StyleSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(14),
+        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.lg,
       ),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(AppSpacing.xs),
       child: Row(
         children: [
           Expanded(child: _StyleItem(label: 'Classic', value: 'classic', groupValue: currentStyle, onTap: onStyleChanged)),
@@ -477,22 +477,22 @@ class _StyleItem extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: AppAnimations.fast,
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color: isSelected ? AppColors.pureWhite : Colors.transparent,
+          borderRadius: AppShapes.md,
           boxShadow: [
             if (isSelected)
-              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
+              BoxShadow(color: Colors.black.withValues(alpha: AppColors.opacitySubtle), blurRadius: 4, offset: Offset(0, 2)),
           ],
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+            fontSize: AppTypography.sizeBodySmall,
+            fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightSemibold,
             color: isSelected ? primary : Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
@@ -522,25 +522,25 @@ class _ThemeModeTile extends StatelessWidget {
     return InkWell(
       onTap: () => onChanged(value),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         child: Row(
           children: [
             Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(10),
+                color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow) : Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                borderRadius: AppShapes.md,
               ),
-              child: Icon(icon, size: 20, color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodySmall?.color),
+              child: Icon(icon, size: AppShapes.iconMd, color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodySmall?.color),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+                  fontSize: AppTypography.sizeBody,
+                  fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightMedium,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -609,9 +609,9 @@ class _ColorPaletteState extends State<_ColorPalette> {
           children: _ColorPalette._systemColors.map((c) => _buildColorCircle(c, isSystemColor: true)).toList(),
         ),
         
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         
         // Custom Colors Row
         Wrap(
@@ -647,7 +647,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: isSelected ? Border.all(color: Colors.black, width: 3) : Border.all(color: Colors.grey.shade300),
+          border: isSelected ? Border.all(color: Colors.black, width: 3) : Border.all(color: AppColors.dark300),
           boxShadow: [
             if (isSelected) BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 2),
           ],
@@ -655,7 +655,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
         child: Stack(
           children: [
             if (isSelected)
-              Center(child: Icon(Icons.check, color: ContrastHelper.getContrastingText(color), size: 28)),
+              Center(child: Icon(Icons.check, color: ContrastHelper.getContrastingText(color), size: AppShapes.iconLg)),
             if (!isSystemColor && customIndex != null)
               Positioned(
                 top: 0,
@@ -663,12 +663,12 @@ class _ColorPaletteState extends State<_ColorPalette> {
                 child: GestureDetector(
                   onTap: () => _showEditCustomColorDialog(customIndex, color),
                   child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.black87,
+                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.87),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 14),
+                    child: const Icon(Icons.edit, color: AppColors.pureWhite, size: AppShapes.iconXs),
                   ),
                 ),
               ),
@@ -685,11 +685,11 @@ class _ColorPaletteState extends State<_ColorPalette> {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: AppColors.dark100,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade400, width: 2),
+          border: Border.all(color: AppColors.dark400, width: AppShapes.borderMedium),
         ),
-        child: Icon(Icons.add, color: Colors.grey.shade400, size: 24),
+        child: Icon(Icons.add, color: AppColors.dark400, size: AppShapes.iconLg),
       ),
     );
   }
@@ -699,8 +699,8 @@ class _ColorPaletteState extends State<_ColorPalette> {
       context,
       widget.selectedColor,
       title: Text('Add Color', style: Theme.of(context).textTheme.titleLarge),
-      width: 40,
-      height: 40,
+      width: AppSpacing.x4l,
+      height: AppSpacing.x4l,
       spacing: 8,
       runSpacing: 8,
       borderRadius: 8,
@@ -729,8 +729,8 @@ class _ColorPaletteState extends State<_ColorPalette> {
       context,
       currentColor,
       title: Text('Edit Color', style: Theme.of(context).textTheme.titleLarge),
-      width: 40,
-      height: 40,
+      width: AppSpacing.x4l,
+      height: AppSpacing.x4l,
       spacing: 8,
       runSpacing: 8,
       borderRadius: 8,
@@ -812,21 +812,21 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
         Text(
           'Society Logo',
           style: TextStyle(
-            fontSize: 13, 
-            fontWeight: FontWeight.bold,
+            fontSize: AppTypography.sizeLabelStrong, 
+            fontWeight: AppTypography.weightBold,
             color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Container(
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                borderRadius: AppShapes.xl,
+                border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
                 image: widget.currentUrl != null
                     ? DecorationImage(
                         image: NetworkImage(widget.currentUrl!),
@@ -835,10 +835,10 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
                     : null,
               ),
               child: widget.currentUrl == null
-                  ? Icon(Icons.golf_course_rounded, size: 36, color: Theme.of(context).dividerColor.withValues(alpha: 0.2))
+                  ? Icon(Icons.golf_course_rounded, size: 36, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium))
                   : null,
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: AppSpacing.xl),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -851,21 +851,21 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
                         backgroundColor: Theme.of(context).primaryColor,
                         foregroundColor: ContrastHelper.getContrastingText(Theme.of(context).primaryColor),
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
                       ),
                       child: _isUploading 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Update Logo', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ? const SizedBox(width: AppSpacing.xl, height: AppSpacing.xl, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.pureWhite))
+                        : const Text('Update Logo', style: TextStyle(fontWeight: AppTypography.weightBold)),
                     ),
                   ),
                   if (widget.currentUrl != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     TextButton.icon(
                       onPressed: () => widget.onUrlChanged(null),
-                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconSm),
                       label: const Text('Remove Logo'),
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
+                        foregroundColor: AppColors.coral500,
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                       ),

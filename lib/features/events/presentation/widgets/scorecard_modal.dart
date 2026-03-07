@@ -181,23 +181,23 @@ class ScorecardModal {
           builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            borderRadius: AppShapes.sheet,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Container(
-                width: 40,
-                height: 4,
+                width: AppSpacing.x4l,
+                height: AppSpacing.xs,
                 decoration: BoxDecoration(
-                  color: AppColors.dark400.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
+                  color: AppColors.dark400.withValues(alpha: AppColors.opacityMedium),
+                  borderRadius: AppShapes.grabber,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -215,14 +215,14 @@ class ScorecardModal {
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () => setModalState(() => focusedPlayerId = 'team'),
                                   child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
+                                    padding: const EdgeInsets.only(bottom: AppSpacing.xs, left: AppSpacing.xs),
                                     child: Text(
                                       'TEAM VIEW',
                                       style: AppTypography.label.copyWith(
-                                        fontSize: 13, 
+                                        fontSize: AppTypography.sizeLabelStrong, 
                                         color: focusedPlayerId == 'team' ? AppColors.lime500 : AppColors.dark200,
                                         letterSpacing: 1.0,
-                                        fontWeight: FontWeight.w900,
+                                        fontWeight: AppTypography.weightBlack,
                                       ),
                                     ),
                                   ),
@@ -236,7 +236,7 @@ class ScorecardModal {
                                   final isMemberGuest = id.contains('_guest') || (entry.isGuest && entry.teamMemberIds!.length == 1);
 
                                   return Padding(
-                                    padding: const EdgeInsets.only(bottom: 4.0),
+                                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                                     child: _buildHeaderPill(
                                       context: context,
                                       label: name,
@@ -309,7 +309,7 @@ class ScorecardModal {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.x3l),
                   child: Builder(
                     builder: (context) {
                       // Resolve effective rules/format for modal
@@ -385,7 +385,7 @@ class ScorecardModal {
                                   playerName: name,
                                   scores: card.holeScores,
                                   handicap: playerPhc,
-                                  color: i == 0 ? Colors.blue[800] : Colors.green[800],
+                                  color: i == 0 ? AppColors.teamA : AppColors.lime500,
                                   countingHoles: memberCountingHoles,
                                 ));
 
@@ -508,12 +508,12 @@ class ScorecardModal {
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
                                  Padding(
-                                   padding: const EdgeInsets.only(bottom: 10.0, left: 4.0),
+                                   padding: const EdgeInsets.only(bottom: 10.0, left: AppSpacing.xs),
                                    child: Text(
                                      "VIEWING ${focusedName.toUpperCase()}'S SI CONTEXT ($playerTeeName TEES)",
                                      style: AppTypography.label.copyWith(
-                                       fontSize: 10,
-                                       fontWeight: FontWeight.w900,
+                                       fontSize: AppTypography.sizeCaption,
+                                       fontWeight: AppTypography.weightBlack,
                                        color: AppColors.dark200,
                                        letterSpacing: 2.0,
                                      ),
@@ -537,7 +537,7 @@ class ScorecardModal {
                                ],
                              );
                           })(),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.x2l),
                           // Comparison Footer
                           
                           (() {
@@ -702,12 +702,12 @@ class ScorecardModal {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
             isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE"),
             style: AppTypography.label.copyWith(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
+              fontSize: AppTypography.sizeCaption,
+              fontWeight: AppTypography.weightBlack,
               color: AppColors.dark200,
               letterSpacing: 2.0,
             ),
@@ -715,7 +715,7 @@ class ScorecardModal {
         ),
         if (isScramble && scorecard != null && scorecard.shotAttributions.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
             child: Wrap(
               spacing: 8,
               runSpacing: 4,
@@ -727,17 +727,17 @@ class ScorecardModal {
                 final name = member?.displayName.split(' ').first ?? 'Player';
                 
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
-                    color: AppColors.lime500.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.lime500.withValues(alpha: 0.3)),
+                    color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                    borderRadius: AppShapes.xs,
+                    border: Border.all(color: AppColors.lime500.withValues(alpha: AppColors.opacityMuted)),
                   ),
                   child: Text(
                     "H$holeNum: $name",
                     style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppTypography.sizeCaption,
+                      fontWeight: AppTypography.weightBlack,
                       color: AppColors.lime500,
                     ),
                   ),
@@ -748,7 +748,7 @@ class ScorecardModal {
         
         // Unified Team Row
         Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -756,18 +756,18 @@ class ScorecardModal {
                 children: [
                   Container(
                     width: 3,
-                    height: 12,
+                    height: AppSpacing.md,
                     margin: const EdgeInsets.only(right: 6),
                     decoration: BoxDecoration(
-                      color: Colors.blue[800],
+                      color: AppColors.teamA,
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
                   Text(
                     (playerName ?? "TEAM").toUpperCase(),
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppTypography.sizeCaption,
+                      fontWeight: AppTypography.weightBlack,
                       color: AppColors.lime500,
                     ),
                   ),
@@ -776,7 +776,7 @@ class ScorecardModal {
                     matchPlayResults != null 
                         ? "TOTAL: ${matchPlaySummary ?? 'AS'}"
                         : "TOTAL: ${scores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int))}",
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+                    style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -784,7 +784,7 @@ class ScorecardModal {
               Column(
                 children: [
                   _buildNineHoleRow(context, event, membersList, scores, 0, matchPlayResults: matchPlayResults),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   _buildNineHoleRow(context, event, membersList, scores, 9, matchPlayResults: matchPlayResults),
                 ],
               ),
@@ -806,10 +806,10 @@ class ScorecardModal {
     // We use the event course config by default for the UNIFIED view
 
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.dark600,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppShapes.sm,
         border: Border.all(color: AppColors.dark500),
       ),
       child: Row(
@@ -820,21 +820,21 @@ class ScorecardModal {
           if (matchPlayResults != null) {
               final result = matchPlayResults.length > hIdx ? matchPlayResults[hIdx] : '';
               Color bgColor = Colors.transparent;
-              Color textColor = Colors.grey[400]!;
-              Color borderColor = Colors.grey[200]!;
+              Color textColor = AppColors.textSecondary;
+              Color borderColor = AppColors.textSecondary;
               
               if (result == 'W') {
-                  bgColor = Colors.green;
-                  textColor = Colors.white;
-                  borderColor = Colors.green[700]!;
+                  bgColor = AppColors.lime500;
+                  textColor = AppColors.pureWhite;
+                  borderColor = AppColors.lime500;
               } else if (result == 'L') {
-                  bgColor = Colors.red;
-                  textColor = Colors.white;
-                  borderColor = Colors.red[700]!;
+                  bgColor = AppColors.coral500;
+                  textColor = AppColors.pureWhite;
+                  borderColor = AppColors.coral500;
               } else if (result == 'H') {
-                  bgColor = Colors.grey[400]!;
-                  textColor = Colors.white;
-                  borderColor = Colors.grey[500]!;
+                  bgColor = AppColors.textSecondary;
+                  textColor = AppColors.pureWhite;
+                  borderColor = AppColors.textSecondary;
               }
 
               return Expanded(
@@ -844,14 +844,14 @@ class ScorecardModal {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: bgColor,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: borderColor, width: 1),
+                    borderRadius: AppShapes.sm,
+                    border: Border.all(color: borderColor, width: AppShapes.borderThin),
                   ),
                   child: Text(
                     result.isEmpty ? '-' : result,
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppTypography.sizeCaptionStrong,
+                      fontWeight: AppTypography.weightBlack,
                       color: textColor,
                     ),
                   ),
@@ -872,17 +872,17 @@ class ScorecardModal {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: points != null ? AppColors.dark500 : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: AppShapes.sm,
                 border: Border.all(
                   color: points != null ? AppColors.dark400 : AppColors.dark500,
-                  width: 1,
+                  width: AppShapes.borderThin,
                 ),
               ),
               child: Text(
                 points?.toString() ?? '-',
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: points != null ? FontWeight.w900 : FontWeight.bold,
+                  fontSize: AppTypography.sizeCaptionStrong,
+                  fontWeight: points != null ? AppTypography.weightBlack : AppTypography.weightBold,
                   color: points != null ? AppColors.lime500 : AppColors.dark400,
                 ),
               ),
@@ -904,14 +904,14 @@ class ScorecardModal {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(right: 8, bottom: 4),
+        margin: const EdgeInsets.only(right: AppSpacing.sm, bottom: AppSpacing.xs),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isFocused ? AppColors.lime500.withValues(alpha: 0.1) : AppColors.dark600,
-          borderRadius: BorderRadius.circular(12),
+          color: isFocused ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : AppColors.dark600,
+          borderRadius: AppShapes.md,
           border: Border.all(
             color: isFocused ? AppColors.lime500 : AppColors.dark500,
-            width: 1.5,
+            width: AppShapes.borderLight,
           ),
         ),
         child: Row(
@@ -920,19 +920,19 @@ class ScorecardModal {
             Text(
               label.toUpperCase(),
               style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
+                fontWeight: AppTypography.weightBlack,
+                fontSize: AppTypography.sizeLabelStrong,
                 color: isFocused ? AppColors.lime500 : AppColors.dark200,
                 letterSpacing: 1.0,
               ),
             ),
             if (showGuest) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               const Text(
                 'G',
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppTypography.sizeCaptionStrong,
+                  fontWeight: AppTypography.weightBlack,
                   color: AppColors.amber500,
                 ),
               ),
@@ -945,11 +945,11 @@ class ScorecardModal {
 
   static Color _getTeeColor(String teeName) {
     final name = teeName.toLowerCase();
-    if (name.contains('white')) return Colors.grey.shade400;
+    if (name.contains('white')) return AppColors.dark400;
     if (name.contains('yellow')) return const Color(0xFFFFD700);
     if (name.contains('red')) return const Color(0xFFFF4D4D);
     if (name.contains('blue')) return const Color(0xFF1E90FF);
     if (name.contains('black')) return const Color(0xFF2F2F2F);
-    return Colors.grey;
+    return AppColors.textSecondary;
   }
 }

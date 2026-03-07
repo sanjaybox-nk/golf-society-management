@@ -62,16 +62,16 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         backgroundColor: beigeBackground,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Search & Filter Card
                 BoxyArtCard(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
-                      const SizedBox(width: 12),
+                      const Icon(Icons.search_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: TextField(
                           focusNode: _searchFocusNode,
@@ -83,14 +83,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                             focusedBorder: InputBorder.none,
                             isDense: true,
                             filled: false,
-                            contentPadding: EdgeInsets.symmetric(vertical: 4),
+                            contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
                 ModernUnderlinedFilterBar<AdminMemberFilter>(
                   selectedValue: currentFilter,
@@ -101,7 +101,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
 
                 // Members List
                 membersAsync.when(
@@ -130,7 +130,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                       children: sortedMembers.map((m) {
                         final eventCount = memberStatsAsync.value?[m.id] ?? 0;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: MemberTile(
                             member: m,
                             onTap: () => MemberDetailsModal.show(context, m),
@@ -168,12 +168,12 @@ class _EmptyMembers extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.person_off_outlined, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
+            const Icon(Icons.person_off_outlined, size: AppShapes.iconMassive, color: AppColors.textSecondary),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'No members found',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.grey,
+                    color: AppColors.textSecondary,
                   ),
             ),
           ],

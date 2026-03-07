@@ -18,20 +18,14 @@ class EventDashboardTab extends ConsumerWidget {
             // 1. Top Header Section (White background)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x3l, AppSpacing.xl, AppSpacing.x3l),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+                  bottomLeft: Radius.circular(AppShapes.rPill),
+                  bottomRight: Radius.circular(AppShapes.rPill),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                boxShadow: AppShadows.softScale,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,13 +33,13 @@ class EventDashboardTab extends ConsumerWidget {
                    Text(
                     'Welcome Back, Admin',
                     style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
+                      fontSize: AppTypography.sizeDisplaySmall,
+                      fontWeight: AppTypography.weightBold,
                       letterSpacing: -0.5,
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   // Next Upcoming Event Wide Card
                   _buildUpcomingEventCard(context),
                 ],
@@ -53,7 +47,7 @@ class EventDashboardTab extends ConsumerWidget {
             ),
 
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.x2l),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -61,11 +55,11 @@ class EventDashboardTab extends ConsumerWidget {
                   const Text(
                     'Vital Signs',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: AppTypography.sizeLargeBody,
+                      fontWeight: AppTypography.weightBold,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Vital Signs Grid
                   GridView.count(
@@ -80,42 +74,42 @@ class EventDashboardTab extends ConsumerWidget {
                         label: 'Slots Filled',
                         value: '24/32',
                         icon: Icons.how_to_reg,
-                        iconColor: Colors.blue,
+                        iconColor: AppColors.teamA,
                       ),
                       _VitalSignCard(
                         label: 'Fees Collected',
                         value: '${currency}480',
                         icon: Icons.payments,
-                        iconColor: Colors.green,
+                        iconColor: AppColors.lime500,
                         subtitle: '${currency}120 Outstanding',
-                        subtitleColor: Colors.red,
+                        subtitleColor: AppColors.coral500,
                       ),
                       const _VitalSignCard(
                         label: 'Draw Not Published',
                         value: 'Pending',
                         icon: Icons.sports_score,
-                        iconColor: Colors.orange,
+                        iconColor: AppColors.amber500,
                       ),
                       const _VitalSignCard(
                         label: 'New Guests',
                         value: '+3',
                         icon: Icons.group_add,
-                        iconColor: Colors.purple,
+                        iconColor: AppColors.teamB,
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.x3l),
 
                   // 3. Quick Actions Section (RESTORED)
                   const Text(
                     'Quick Actions',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: AppTypography.sizeLargeBody,
+                      fontWeight: AppTypography.weightBold,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -126,14 +120,14 @@ class EventDashboardTab extends ConsumerWidget {
                           icon: Icons.add,
                           onTap: () {},
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         BoxyArtButton(
                           title: 'Publish Draw',
                           isSecondary: true,
                           icon: Icons.assignment_outlined,
                           onTap: () {},
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         BoxyArtButton(
                           title: 'Close Event',
                           isSecondary: true,
@@ -144,35 +138,35 @@ class EventDashboardTab extends ConsumerWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.x3l),
 
                   // 4. Action Required Section
                   const Text(
                     'Action Required',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: AppTypography.sizeLargeBody,
+                      fontWeight: AppTypography.weightBold,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   
                   _buildActionItem(
                     title: 'Approve 2 Guest Requests',
                     subtitle: 'From Monthly Medal registration',
                     icon: Icons.person_add_sharp,
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    iconColor: Colors.orange,
+                    color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                    iconColor: AppColors.amber500,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _buildActionItem(
                     title: 'Publish Draw for Saturday',
                     subtitle: 'Deadline approaching (6h remaining)',
                     icon: Icons.notification_important_outlined,
-                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.error.withValues(alpha: AppColors.opacityLow),
                     iconColor: Theme.of(context).colorScheme.error,
                   ),
                   
-                  const SizedBox(height: 40),
+                  const SizedBox(height: AppSpacing.x4l),
                 ],
               ),
             ),
@@ -188,9 +182,9 @@ class EventDashboardTab extends ConsumerWidget {
         children: [
           // Date Badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
+              color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
@@ -198,23 +192,23 @@ class EventDashboardTab extends ConsumerWidget {
                 Text(
                   'OCT',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontSize: AppTypography.sizeLabel,
+                    fontWeight: AppTypography.weightBold,
                     color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
                 Text(
                   '24',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontSize: AppTypography.sizeDisplaySubPage,
+                    fontWeight: AppTypography.weightBold,
                     color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: AppSpacing.xl),
           
           // Event Details
           Expanded(
@@ -224,15 +218,15 @@ class EventDashboardTab extends ConsumerWidget {
                 const Text(
                   'Monthly Medal',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: AppTypography.sizeLargeBody,
+                    fontWeight: AppTypography.weightBold,
                   ),
                 ),
                 Text(
                   'Augusta National',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                    fontSize: AppTypography.sizeBodySmall,
+                    color: AppColors.dark600,
                   ),
                 ),
               ],
@@ -240,7 +234,7 @@ class EventDashboardTab extends ConsumerWidget {
           ),
           
           // Manage Button
-          const Icon(Icons.chevron_right, color: Colors.black26),
+          Icon(Icons.chevron_right, color: Colors.black.withValues(alpha: 0.26)),
         ],
       ),
     );
@@ -256,19 +250,19 @@ class EventDashboardTab extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppShapes.lg,
       ),
       child: ListTile(
         leading: Icon(icon, color: iconColor),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBodySmall),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.dark700),
         ),
-        trailing: const Icon(Icons.chevron_right, size: 20),
+        trailing: const Icon(Icons.chevron_right, size: AppShapes.iconMd),
       ),
     );
   }
@@ -294,10 +288,10 @@ class _VitalSignCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(25), // Boxy Art style
+        borderRadius: AppShapes.sheet, // Boxy Art style
         boxShadow: AppShadows.inputSoft,
       ),
       child: Column(
@@ -307,17 +301,17 @@ class _VitalSignCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
+              color: iconColor.withValues(alpha: AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 22),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontSize: AppTypography.sizeDisplaySubPage,
+              fontWeight: AppTypography.weightBold,
               height: 1.0,
             ),
           ),
@@ -325,19 +319,19 @@ class _VitalSignCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
+              color: AppColors.dark600,
+              fontWeight: AppTypography.weightMedium,
+              fontSize: AppTypography.sizeLabelStrong,
             ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               subtitle!,
               style: TextStyle(
-                color: subtitleColor ?? Colors.grey.shade600,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
+                color: subtitleColor ?? AppColors.dark600,
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightBold,
               ),
             ),
           ],

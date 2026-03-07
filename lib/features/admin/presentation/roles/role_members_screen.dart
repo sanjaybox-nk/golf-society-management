@@ -46,17 +46,11 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.x2l),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: AppColors.pureWhite,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.r2xl)),
+              boxShadow: AppShadows.softScale,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,12 +58,12 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
                 Text(
                   _getRoleDescription(widget.role),
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                    fontSize: AppTypography.sizeBodySmall,
+                    color: AppColors.dark600,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 
                 // Search Bar
                 BoxyArtFormField(
@@ -118,14 +112,14 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
                 child: Center(
                   child: Text(
                     isSearching ? 'No members found.' : 'No members have this role.',
-                    style: TextStyle(color: Colors.grey.shade500),
+                    style: TextStyle(color: AppColors.dark500),
                   ),
                 ),
               );
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -137,12 +131,12 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
                     
                     if (!hasRole) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: _buildCandidateTile(member),
                       );
                     } else {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: _buildActiveRoleTile(member),
                       );
                     }
@@ -163,31 +157,25 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
   Widget _buildCandidateTile(Member member) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppColors.pureWhite,
+        borderRadius: AppShapes.lg,
+        boxShadow: AppShadows.softScale,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         leading: CircleAvatar(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.pureWhite,
           backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
           child: member.avatarUrl == null
               ? Text(
                   member.firstName.isNotEmpty ? member.firstName[0] : '',
-                  style: const TextStyle(color: Colors.black54),
+                  style: TextStyle(color: Colors.black.withValues(alpha: 0.54)),
                 )
               : null,
         ),
-        title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: AppTypography.weightBold)),
         trailing: IconButton(
-          icon: const Icon(Icons.add_circle, color: Color(0xFF1A237E), size: 32),
+          icon: const Icon(Icons.add_circle, color: Color(0xFF1A237E), size: AppShapes.iconXl),
           onPressed: () {
             _updateRole(member, widget.role);
             _searchController.clear();
@@ -207,12 +195,12 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.coral500,
+          borderRadius: AppShapes.lg,
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete, color: AppColors.pureWhite),
       ),
       onDismissed: (direction) {
         // Remove role (Demote to standard member)
@@ -220,46 +208,46 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: roleColor, width: 2),
+          color: AppColors.pureWhite,
+          borderRadius: AppShapes.lg,
+          border: Border.all(color: roleColor, width: AppShapes.borderMedium),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         child: Row(
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.pureWhite,
               backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
               child: member.avatarUrl == null
                   ? Text(
                       member.firstName.isNotEmpty ? member.firstName[0] : '',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                      style: TextStyle(fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)),
                     )
                   : null,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '${member.firstName} ${member.lastName}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
                       decoration: BoxDecoration(
-                        color: roleColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
+                        color: roleColor.withValues(alpha: AppColors.opacityLow),
+                        borderRadius: AppShapes.xs,
                       ),
                       child: Text(
                         _getRoleDisplayName(widget.role),
                         style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                          fontSize: AppTypography.sizeCaptionStrong,
+                          fontWeight: AppTypography.weightBold,
                           color: roleColor,
                         ),
                       ),
@@ -271,7 +259,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
             Switch(
               value: true, // Always true if in this list
               activeTrackColor: roleColor,
-              thumbColor: const WidgetStatePropertyAll(Colors.white),
+              thumbColor: const WidgetStatePropertyAll(AppColors.pureWhite),
               trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
               onChanged: (val) {
                  // Toggling off removes the role
@@ -319,10 +307,10 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
   Color _getRoleColor(MemberRole role) {
     switch (role) {
       case MemberRole.superAdmin: return Colors.deepPurple;
-      case MemberRole.admin: return Colors.blue;
-      case MemberRole.restrictedAdmin: return Colors.orange;
-      case MemberRole.viewer: return Colors.teal;
-      case MemberRole.member: return Colors.grey;
+      case MemberRole.admin: return AppColors.teamA;
+      case MemberRole.restrictedAdmin: return AppColors.amber500;
+      case MemberRole.viewer: return AppColors.lime500;
+      case MemberRole.member: return AppColors.textSecondary;
     }
   }
 }

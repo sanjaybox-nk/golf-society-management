@@ -12,7 +12,7 @@ class SurveyManagerScreen extends ConsumerWidget {
     final surveys = ref.watch(surveysProvider);
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -25,13 +25,13 @@ class SurveyManagerScreen extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         if (surveys.isEmpty)
           _buildEmptyState()
         else
           ...surveys.map((survey) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: BoxyArtCard(
                 onTap: () => _openSurveyForm(context, survey: survey),
                 child: Row(
@@ -40,21 +40,21 @@ class SurveyManagerScreen extends ConsumerWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.lime500.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                        borderRadius: AppShapes.md,
                       ),
                       child: const Icon(Icons.assignment_rounded, color: AppColors.lime500),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: AppSpacing.lg),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             survey.title,
-                            style: AppTypography.displayHeading.copyWith(fontSize: 16),
+                            style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeBody),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             '${survey.questions.length} Questions • ${survey.responses.length} Responses',
                             style: AppTypography.bodySmall.copyWith(
@@ -65,10 +65,10 @@ class SurveyManagerScreen extends ConsumerWidget {
                       ),
                     ),
                     if (survey.isPublished)
-                      BoxyArtPill.status(label: 'LIVE', color: Colors.green)
+                      BoxyArtPill.status(label: 'LIVE', color: AppColors.lime500)
                     else
-                      BoxyArtPill.status(label: 'DRAFT', color: Colors.orange),
-                    const SizedBox(width: 8),
+                      BoxyArtPill.status(label: 'DRAFT', color: AppColors.amber500),
+                    const SizedBox(width: AppSpacing.sm),
                     const Icon(Icons.chevron_right_rounded, color: AppColors.dark150),
                   ],
                 ),
@@ -94,21 +94,21 @@ class SurveyManagerScreen extends ConsumerWidget {
       children: [
         Icon(
           Icons.assignment_outlined,
-          size: 64,
+          size: AppShapes.iconMassive,
           color: AppColors.dark400,
         ),
-        SizedBox(height: 16),
+        SizedBox(height: AppSpacing.lg),
         Text(
           'No Surveys Yet',
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontSize: AppTypography.sizeLargeBody,
+            fontWeight: AppTypography.weightBold,
             color: AppColors.dark200,
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: AppSpacing.sm),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 40),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.x4l),
           child: Text(
             'Gather insights from your members by creating your first survey.',
             textAlign: TextAlign.center,

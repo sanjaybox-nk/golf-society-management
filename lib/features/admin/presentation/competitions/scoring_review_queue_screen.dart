@@ -22,46 +22,46 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final review = reviews[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
                       child: BoxyArtCard(
                         margin: EdgeInsets.zero,
                         padding: EdgeInsets.zero,
                         onTap: () => context.push('/admin/competitions/manage/${review.id}/reviews'),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(AppSpacing.lg),
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(AppSpacing.md),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                                  borderRadius: AppShapes.md,
                                 ),
-                                child: const Icon(Icons.rate_review_outlined, color: Colors.orange),
+                                child: const Icon(Icons.rate_review_outlined, color: AppColors.amber500),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: AppSpacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       review.name.toUpperCase(),
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(fontWeight: AppTypography.weightBold),
                                     ),
                                     Text(
                                       '${review.pendingCount} scorecards awaiting review',
-                                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                      style: const TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabel),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.chevron_right, color: Colors.grey),
+                              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
                             ],
                           ),
                         ),
@@ -77,7 +77,7 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (e, s) => SliverFillRemaining(
-            child: Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
+            child: Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.coral500))),
           ),
         ),
       ],
@@ -89,10 +89,10 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle_outline, size: 64, color: Colors.green.withValues(alpha: 0.3)),
-          const SizedBox(height: 16),
-          const Text('All caught up!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          const Text('No scorecards pending review.', style: TextStyle(color: Colors.grey)),
+          Icon(Icons.check_circle_outline, size: AppShapes.iconMassive, color: AppColors.lime500.withValues(alpha: AppColors.opacityMuted)),
+          const SizedBox(height: AppSpacing.lg),
+          const Text('All caught up!', style: TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBold)),
+          const Text('No scorecards pending review.', style: TextStyle(color: AppColors.textSecondary)),
         ],
       ),
     );

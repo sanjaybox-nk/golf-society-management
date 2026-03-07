@@ -63,7 +63,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       children: [
         // ── SCRAMBLE FORMAT ───────────────────────────────────
         const BoxyArtSectionTitle(title: 'SCRAMBLE FORMAT'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<CompetitionSubtype>(
           label: 'Scramble Mode',
@@ -79,7 +79,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         buildInfoBubble(_subtype == CompetitionSubtype.texas
             ? 'Standard team scramble — everyone drives, the team picks the best ball and all play from there.'
             : 'After each shot, the player whose ball was chosen steps aside and doesn\'t play the next shot.'),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtDropdownField<CompetitionFormat>(
           label: 'Base Scoring Format',
@@ -93,7 +93,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
           },
         ),
         buildInfoBubble('Stroke Play counts total strokes. Stableford awards points per hole relative to par.'),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtDropdownField<int>(
           label: 'Team Size',
@@ -116,7 +116,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         ),
         buildInfoBubble('Allowance defaults auto-update to WHS recommendations when you change team size.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         buildInfoCard(
           _subtype == CompetitionSubtype.texas
               ? [
@@ -135,16 +135,16 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
                 ],
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         _buildTeamHandicapMethodDropdown(),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         buildAllowanceSlider(
           _allowance,
@@ -152,7 +152,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
           label: 'TEAM HCP ALLOWANCE',
           hint: 'Applied to the combined team course handicap. WHS recommends 10% for a 4-man team.',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         buildCapSlider(
           _teamCap,
@@ -160,13 +160,13 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         ),
         buildInfoBubble('Maximum total strokes the team can receive. Use this to prevent low-handicap teams from gaining too much advantage.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── RULES & ATTRIBUTIONS ──────────────────────────────
         const BoxyArtSectionTitle(title: 'RULES & ATTRIBUTIONS'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtSwitchField(
           label: 'Track Shot Attributions',
@@ -175,9 +175,9 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         ),
         buildInfoBubble('Enables step-aside enforcement and minimum drives tracking per player.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

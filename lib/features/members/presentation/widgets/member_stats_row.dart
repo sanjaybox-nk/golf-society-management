@@ -23,7 +23,7 @@ class MemberStatsRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0),
       child: BoxyArtCard(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.lg),
         borderRadius: 24,
         child: Row(
           children: [
@@ -61,15 +61,15 @@ class _StatItem extends StatelessWidget {
           style: AppTypography.displaySection.copyWith(
             color: isHighlight ? const Color(0xFFFFD700) : Theme.of(context).colorScheme.onSurface, // Gold for wins
             shadows: isHighlight ? [
-              Shadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: Offset(0, 2))
+              Shadow(color: Colors.black.withValues(alpha: AppColors.opacityLow), blurRadius: 4, offset: Offset(0, 2))
             ] : null,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           label,
           style: AppTypography.label.copyWith(
-            color: Colors.grey.shade500,
+            color: AppColors.dark500,
           ),
         ),
       ],
@@ -81,9 +81,9 @@ class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 1,
-      height: 32,
-      color: Colors.grey.withValues(alpha: 0.2),
+      width: AppShapes.borderThin,
+      height: AppSpacing.x3l,
+      color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium),
     );
   }
 }

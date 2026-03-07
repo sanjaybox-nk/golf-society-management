@@ -22,19 +22,19 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'CALCULATION PROVIDER'),
               ...HandicapSystem.values.map((system) {
                 final isSelected = system == societyConfig.handicapSystem;
                 final isDark = theme.brightness == Brightness.dark;
-                const identityColor = Colors.blue;
+                const identityColor = AppColors.teamA;
                 final iconColor = isSelected ? identityColor : (isDark ? AppColors.dark300 : AppColors.dark400);
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: BoxyArtCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     onTap: () {
                       ref.read(themeControllerProvider.notifier).setHandicapSystem(system);
                       context.pop();
@@ -46,18 +46,18 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: identityColor.withValues(alpha: 0.1),
+                            color: identityColor.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: Icon(
                               _getIcon(system), 
                               color: iconColor, 
-                              size: 24,
+                              size: AppShapes.iconLg,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,8 +65,8 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                               Text(
                                 system.shortName.toUpperCase(),
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: AppTypography.sizeButton,
+                                  fontWeight: AppTypography.weightExtraBold,
                                   letterSpacing: 0.5,
                                   color: isDark ? AppColors.pureWhite : AppColors.dark900,
                                 ),
@@ -75,7 +75,7 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                               Text(
                                 _getDescription(system),
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: AppTypography.sizeLabelStrong,
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                 ),
                               ),
@@ -83,12 +83,12 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                           ),
                         ),
                         if (isSelected)
-                          const Icon(Icons.check_circle_rounded, color: identityColor, size: 24)
+                          const Icon(Icons.check_circle_rounded, color: identityColor, size: AppShapes.iconLg)
                         else
                           Icon(
                             Icons.chevron_right_rounded, 
                             color: isDark ? AppColors.dark400 : AppColors.dark300,
-                            size: 20,
+                            size: AppShapes.iconMd,
                           ),
                       ],
                     ),

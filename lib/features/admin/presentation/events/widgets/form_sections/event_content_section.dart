@@ -24,7 +24,7 @@ class EventContentSection extends ConsumerWidget {
               children: [
                 ...state.facilities.asMap().entries.map((entry) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: BoxyArtFormField(
                       label: 'Facility ${entry.key + 1}',
                       initialValue: entry.value,
@@ -36,19 +36,19 @@ class EventContentSection extends ConsumerWidget {
                     ),
                   );
                 }),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 TextButton.icon(
                   onPressed: () {
                     final list = List<String>.from(state.facilities)..add('');
                     ref.read(eventFormNotifierProvider.notifier).updateFacilities(list);
                   },
-                  icon: const Icon(Icons.add, color: Colors.grey, size: 18),
-                  label: const Text('Add Facility', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 13)),
+                  icon: const Icon(Icons.add, color: AppColors.textSecondary, size: AppShapes.iconSm),
+                  label: const Text('Add Facility', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong)),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const BoxyArtSectionTitle(title: 'Notes & Content'),
           const SizedBox(height: AppTheme.sectionSpacing),
           ...state.notes.asMap().entries.map((entry) {
@@ -64,7 +64,7 @@ class EventContentSection extends ConsumerWidget {
                },
              );
           }),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           BoxyArtButton(
             title: 'ADD NOTE',
             onTap: () {

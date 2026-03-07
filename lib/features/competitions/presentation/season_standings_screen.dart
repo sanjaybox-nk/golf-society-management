@@ -60,9 +60,9 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
                 children: [
                   const SizedBox(height: 80),
                   _buildHeader(context, season),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   ModernUnderlinedFilterBar<String>(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                     tabs: season.leaderboards.map((l) => ModernFilterTab(
                       label: l.name.toUpperCase(), 
                       value: l.id,
@@ -92,24 +92,19 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
                   right: 0,
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 10),
                       child: Row(
                         children: [
                           Container(
-                            width: 40,
-                            height: 40,
+                            width: AppSpacing.x4l,
+                            height: AppSpacing.x4l,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.8),
+                              color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                ),
-                              ],
+                              boxShadow: AppShadows.softScale,
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                              icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withValues(alpha: 0.87)),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
@@ -129,24 +124,24 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
 
   Widget _buildHeader(BuildContext context, dynamic season) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '${season.year} Standings',
             style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+              fontSize: AppTypography.sizeDisplayMedium,
+              fontWeight: AppTypography.weightBold,
               letterSpacing: -1,
             ),
           ),
           Text(
             season.name.toUpperCase(),
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.bold,
+              fontSize: AppTypography.sizeLabel,
+              color: AppColors.dark500,
+              fontWeight: AppTypography.weightBold,
               letterSpacing: 1.2,
             ),
           ),
@@ -186,7 +181,7 @@ class _LeaderboardTab extends ConsumerWidget {
             
             if (config != null)
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
                 sliver: SliverToBoxAdapter(
                   child: _buildFormatSpecificHeader(config),
                 ),
@@ -196,18 +191,18 @@ class _LeaderboardTab extends ConsumerWidget {
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3l),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.leaderboard_outlined, 
-                        size: 64, 
+                        size: AppShapes.iconMassive, 
                         color: Theme.of(context).brightness == Brightness.dark 
-                           ? AppColors.dark150.withValues(alpha: 0.2) 
-                           : AppColors.dark400.withValues(alpha: 0.2)
+                           ? AppColors.dark150.withValues(alpha: AppColors.opacityMedium) 
+                           : AppColors.dark400.withValues(alpha: AppColors.opacityMedium)
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       Text(
                         'NO STANDINGS YET', 
                         style: AppTypography.label.copyWith(
@@ -215,11 +210,11 @@ class _LeaderboardTab extends ConsumerWidget {
                           letterSpacing: 1.2,
                         )
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
                         'Standings will appear here once events in this season are published and calculated.', 
                         textAlign: TextAlign.center, 
-                        style: AppTypography.bodySmall.copyWith(color: Colors.grey)
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)
                       ),
                       const SizedBox(height: 100), // Account for bottom padding
                     ],
@@ -234,7 +229,7 @@ class _LeaderboardTab extends ConsumerWidget {
                     (context, index) {
                       final standing = standings[index];
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 6),
                         child: _StandingRow(standing: standing, rank: index + 1, isMe: standing.memberId == currentUserId),
                       );
                     },
@@ -246,59 +241,59 @@ class _LeaderboardTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => Center(child: Text('Error loading standings: $e', style: const TextStyle(color: Colors.red))),
+      error: (e, s) => Center(child: Text('Error loading standings: $e', style: const TextStyle(color: AppColors.coral500))),
     );
   }
 
   Widget _buildFormatSpecificHeader(LeaderboardConfig config) {
     // Return unique UI helpers based on format
     return BoxyArtCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: config.map(
         orderOfMerit: (oom) => Row(
           children: [
-            const Icon(Icons.info_outline_rounded, size: 16, color: Colors.blue),
-            const SizedBox(width: 12),
+            const Icon(Icons.info_outline_rounded, size: AppShapes.iconSm, color: AppColors.teamA),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 'Top ${oom.positionPointsMap.length} players per event earn points.',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                style: const TextStyle(fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightMedium),
               ),
             ),
           ],
         ),
         bestOfSeries: (bos) => Row(
           children: [
-            const Icon(Icons.stars_rounded, size: 16, color: Colors.amber),
-            const SizedBox(width: 12),
+            const Icon(Icons.stars_rounded, size: AppShapes.iconSm, color: AppColors.amber500),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 'Counting best ${bos.bestN} rounds for the season.',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                style: const TextStyle(fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightMedium),
               ),
             ),
           ],
         ),
         eclectic: (_) => Row(
           children: [
-            const Icon(Icons.grid_on_rounded, size: 16, color: Colors.teal),
-            const SizedBox(width: 12),
+            const Icon(Icons.grid_on_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
+            const SizedBox(width: AppSpacing.md),
             const Expanded(
               child: Text(
                 'Your ultimate scorecard combining your best score on each hole across the season.',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightMedium),
               ),
             ),
           ],
         ),
         markerCounter: (_) => Row(
           children: [
-            const Icon(Icons.park_rounded, size: 16, color: Colors.green),
-            const SizedBox(width: 12),
+            const Icon(Icons.park_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
+            const SizedBox(width: AppSpacing.md),
             const Expanded(
               child: Text(
                 'Total birdie/eagle count for the season.',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightMedium),
               ),
             ),
           ],
@@ -327,7 +322,7 @@ class _PodiumHeader extends StatelessWidget {
 
     return Container(
       height: 240,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -361,7 +356,7 @@ class _PodiumSpot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).primaryColor;
-    final Color rankColor = rank == 1 ? Colors.amber : (rank == 2 ? Colors.grey : Colors.brown.shade400);
+    final Color rankColor = rank == 1 ? AppColors.amber500 : (rank == 2 ? AppColors.textSecondary : Colors.brown);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -370,7 +365,7 @@ class _PodiumSpot extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: Container(
                 width: isWinner ? 80 : 64,
                 height: isWinner ? 80 : 64,
@@ -380,20 +375,14 @@ class _PodiumSpot extends StatelessWidget {
                     color: isMe ? primary : rankColor, 
                     width: isWinner ? 3 : 2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (isMe ? primary : rankColor).withValues(alpha: 0.2), 
-                      blurRadius: 15, 
-                      spreadRadius: 2,
-                    ),
-                  ],
+                  boxShadow: AppShadows.softScale,
                 ),
                 child: Center(
                   child: Text(
                     standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
                     style: TextStyle(
                       fontSize: isWinner ? 32 : 24, 
-                      fontWeight: FontWeight.bold, 
+                      fontWeight: AppTypography.weightBold, 
                       color: isMe ? primary : rankColor,
                     ),
                   ),
@@ -401,24 +390,24 @@ class _PodiumSpot extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
               decoration: BoxDecoration(
                 color: rankColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: AppShapes.md,
               ),
               child: Text(
                 '#$rank',
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppColors.pureWhite, fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           standing.memberName,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontWeight: isMe ? FontWeight.w900 : (isWinner ? FontWeight.w900 : FontWeight.bold), 
+            fontWeight: isMe ? AppTypography.weightBlack : (isWinner ? AppTypography.weightBlack : AppTypography.weightBold), 
             fontSize: isWinner ? 14 : 12,
             color: isMe ? primary : null,
             letterSpacing: -0.2,
@@ -428,15 +417,15 @@ class _PodiumSpot extends StatelessWidget {
         ),
         Text(
           '${standing.points.toStringAsFixed(0)} $unit',
-          style: TextStyle(fontSize: 10, color: primary, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTypography.sizeCaption, color: primary, fontWeight: AppTypography.weightBold),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Container(
           width: double.infinity,
           height: isWinner ? 60 : 40,
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rMd)),
           ),
         ),
       ],
@@ -454,42 +443,42 @@ class _StandingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: isMe ? Border.fromBorderSide(const BorderSide(color: AppColors.amber500, width: 2)) : null,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      border: isMe ? Border.fromBorderSide(const BorderSide(color: AppColors.amber500, width: AppShapes.borderMedium)) : null,
       onTap: () => _showDetails(context),
       child: Row(
         children: [
           SizedBox(
-            width: 24,
+            width: AppSpacing.x2l,
             child: Text(
               '$rank',
               style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: isMe ? AppColors.amber500 : Colors.grey,
+                fontWeight: AppTypography.weightBlack,
+                color: isMe ? AppColors.amber500 : AppColors.textSecondary,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           CircleAvatar(
             radius: 14,
-            backgroundColor: isMe ? AppColors.amber500.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
+            backgroundColor: isMe ? AppColors.amber500.withValues(alpha: AppColors.opacityMedium) : AppColors.textSecondary.withValues(alpha: AppColors.opacityLow),
             child: Text(
               standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isMe ? AppColors.amber500 : Colors.grey),
+              style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: isMe ? AppColors.amber500 : AppColors.textSecondary),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               standing.memberName,
               textAlign: TextAlign.left,
-              style: TextStyle(fontWeight: isMe ? FontWeight.w900 : FontWeight.bold, fontSize: 14),
+              style: TextStyle(fontWeight: isMe ? AppTypography.weightBlack : AppTypography.weightBold, fontSize: AppTypography.sizeBodySmall),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
             standing.points.toStringAsFixed(0),
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: isMe ? AppColors.amber500 : null),
+            style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody, color: isMe ? AppColors.amber500 : null),
           ),
         ],
       ),
@@ -516,41 +505,41 @@ class _StandingDetailSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.x3l),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40,
-              height: 4,
+              width: AppSpacing.x4l,
+              height: AppSpacing.xs,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium),
+                borderRadius: AppShapes.grabber,
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Row(
             children: [
               CircleAvatar(
                 radius: 24,
                 child: Text(standing.memberName[0].toUpperCase()),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     standing.memberName,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: AppTypography.sizeDisplaySection, fontWeight: AppTypography.weightBold),
                   ),
                   Text(
                     '${standing.roundsPlayed} Rounds Played',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                    style: TextStyle(color: AppColors.dark500, fontSize: AppTypography.sizeLabelStrong),
                   ),
                 ],
               ),
@@ -560,21 +549,21 @@ class _StandingDetailSheet extends StatelessWidget {
                 children: [
                   Text(
                     standing.points.toStringAsFixed(0),
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Theme.of(context).primaryColor),
+                    style: TextStyle(fontSize: AppTypography.sizeDisplayLocker, fontWeight: AppTypography.weightBlack, color: Theme.of(context).primaryColor),
                   ),
-                  const Text('TOTAL PTS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  const Text('TOTAL PTS', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, letterSpacing: 1)),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppSpacing.x3l),
           const Text(
             'PERFORMANCE BREAKDOWN',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBlack, letterSpacing: 1.2),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           _buildFormatSpecificDetails(context),
-          const SizedBox(height: 40),
+          const SizedBox(height: AppSpacing.x4l),
           BoxyArtButton(
             title: 'Close',
             onTap: () => Navigator.pop(context),
@@ -598,9 +587,9 @@ class _StandingDetailSheet extends StatelessWidget {
     }
     
     return const BoxyArtCard(
-      padding: EdgeInsets.all(24),
+      padding: EdgeInsets.all(AppSpacing.x2l),
       child: Center(
-        child: Text('No further breakdown available for this format.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        child: Text('No further breakdown available for this format.', style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
       ),
     );
   }
@@ -621,39 +610,39 @@ class PointsBreakdownWidget extends StatelessWidget {
         : -1.0;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'BEST OF SERIES ($countingRounds ROUNDS)',
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber),
+            style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.amber500),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: points.map((p) {
               final isCounting = p >= threshold && p > 0;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: isCounting ? Colors.amber.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: isCounting ? Colors.amber.withValues(alpha: 0.3) : Colors.transparent),
+                  color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityLow) : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+                  borderRadius: AppShapes.sm,
+                  border: Border.all(color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : Colors.transparent),
                 ),
                 child: Text(
                   p.toStringAsFixed(0),
                   style: TextStyle(
-                    fontWeight: isCounting ? FontWeight.w900 : FontWeight.normal,
-                    color: isCounting ? Colors.amber.shade900 : Colors.grey,
+                    fontWeight: isCounting ? AppTypography.weightBlack : AppTypography.weightRegular,
+                    color: isCounting ? AppColors.amber500 : AppColors.textSecondary,
                   ),
                 ),
               );
             }).toList(),
           ),
           if (points.isEmpty) 
-            const Text('No scores recorded yet.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('No scores recorded yet.', style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
         ],
       ),
     );
@@ -667,11 +656,11 @@ class MasterScorecardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxyArtCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         children: [
-          const Text('BEST HOLE-BY-HOLE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal)),
-          const SizedBox(height: 16),
+          const Text('BEST HOLE-BY-HOLE', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.lime500)),
+          const SizedBox(height: AppSpacing.lg),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -682,18 +671,18 @@ class MasterScorecardWidget extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.teal.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.teal.withValues(alpha: 0.2)),
+                  color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.sm,
+                  border: Border.all(color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium)),
                 ),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('$hole', style: const TextStyle(fontSize: 8, color: Colors.teal)),
+                      Text('$hole', style: const TextStyle(fontSize: AppTypography.sizeNano, color: AppColors.lime500)),
                       Text(
                         score != null ? '$score' : '-',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBodySmall),
                       ),
                     ],
                   ),
@@ -714,13 +703,13 @@ class BirdieGalleryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildBirdieStat('🐦', 'BIRDIES', counts['birdies'] ?? 0, Colors.blue),
-          _buildBirdieStat('🦅', 'EAGLES', counts['eagles'] ?? 0, Colors.orange),
-          _buildBirdieStat('🔥', 'ALBATROSS', counts['albatross'] ?? 0, Colors.red),
+          _buildBirdieStat('🐦', 'BIRDIES', counts['birdies'] ?? 0, AppColors.teamA),
+          _buildBirdieStat('🦅', 'EAGLES', counts['eagles'] ?? 0, AppColors.amber500),
+          _buildBirdieStat('🔥', 'ALBATROSS', counts['albatross'] ?? 0, AppColors.coral500),
         ],
       ),
     );
@@ -729,15 +718,15 @@ class BirdieGalleryWidget extends StatelessWidget {
   Widget _buildBirdieStat(String emoji, String label, int count, Color color) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 8),
+        Text(emoji, style: const TextStyle(fontSize: AppTypography.sizeDisplayLocker)),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           '$count',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color),
+          style: TextStyle(fontSize: AppTypography.sizeDisplaySection, fontWeight: AppTypography.weightBlack, color: color),
         ),
         Text(
           label,
-          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          style: const TextStyle(fontSize: AppTypography.sizeMicroSmall, fontWeight: AppTypography.weightBold, letterSpacing: 0.5),
         ),
       ],
     );

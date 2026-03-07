@@ -46,9 +46,9 @@ class LockerScreen extends ConsumerWidget {
                     ),
                     SizedBox(height: AppSpacing.xs),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                       decoration: BoxDecoration(
-                        color: AppColors.lime500.withValues(alpha: 0.1),
+                        color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                         borderRadius: BorderRadius.circular(AppShapes.rPill),
                       ),
                       child: Consumer(
@@ -93,21 +93,21 @@ class LockerScreen extends ConsumerWidget {
                     data: (stakes) {
                       if (stakes == null) return const SizedBox.shrink();
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                         child: BoxyArtCard(
-                          backgroundColor: primary.withValues(alpha: 0.05),
-                          border: Border.all(color: primary.withValues(alpha: 0.1)),
+                          backgroundColor: primary.withValues(alpha: AppColors.opacitySubtle),
+                          border: Border.all(color: primary.withValues(alpha: AppColors.opacityLow)),
                           child: Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: primary.withValues(alpha: 0.1),
+                                  color: primary.withValues(alpha: AppColors.opacityLow),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Icons.auto_awesome_rounded, color: primary, size: 20),
+                                child: Icon(Icons.auto_awesome_rounded, color: primary, size: AppShapes.iconMd),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: AppSpacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +116,7 @@ class LockerScreen extends ConsumerWidget {
                                       'SEASON STAKES',
                                       style: AppTypography.micro,
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: AppSpacing.xs),
                                     Text(
                                       stakes,
                                       style: AppTypography.labelStrong,
@@ -144,33 +144,33 @@ class LockerScreen extends ConsumerWidget {
                       value: stats['roundsPlayed'].toString(),
                       label: 'ROUNDS',
                       icon: Icons.golf_course_rounded,
-                      color: Colors.blue,
+                      color: AppColors.teamA,
                       isCompact: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ModernMetricStat(
                       value: stats['averageScore'].toString(),
                       label: 'AVG SCORE',
                       icon: Icons.analytics_rounded,
-                      color: Colors.orange,
+                      color: AppColors.amber500,
                       isCompact: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ModernMetricStat(
                       value: stats['wins'].toString(),
                       label: 'WINS',
                       icon: Icons.emoji_events_rounded,
-                      color: Colors.amber,
+                      color: AppColors.amber500,
                       isCompact: true,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               BoxyArtButton(
                 title: 'Season Standings',
                 icon: Icons.leaderboard_rounded,
@@ -209,7 +209,7 @@ class LockerScreen extends ConsumerWidget {
                       icon: Icons.help_outline_rounded,
                       title: 'Help & Support',
                       subtitle: 'FAQs and support chat',
-                      iconColor: Colors.purple,
+                      iconColor: AppColors.teamB,
                       onTap: () {},
                     ),
                   ],
@@ -224,11 +224,11 @@ class LockerScreen extends ConsumerWidget {
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.redAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.md),
                   ),
                   child: const Text(
                     'Sign Out',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: AppTypography.weightBold),
                   ),
                 ),
               ),

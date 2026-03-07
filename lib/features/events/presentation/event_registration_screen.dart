@@ -191,7 +191,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         if (_attendingLunch) _buildMiniCostRow('Lunch', event.lunchCost),
         if (_attendingDinner) _buildMiniCostRow('Dinner', event.dinnerCost),
         if (_registerGuest) ...[
-          const Divider(height: 16),
+          const Divider(height: AppSpacing.lg),
           if (event.eventType == EventType.social)
             _buildMiniCostRow('Guest Entry', event.eventCost, isGuest: true)
           else ...[
@@ -216,7 +216,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           Text(
             label,
             style: AppTypography.bodySmall.copyWith(
-              color: Colors.grey,
+              color: AppColors.textSecondary,
             ),
           ),
           Text(
@@ -270,7 +270,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           showBack: true,
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverToBoxAdapter(
                 child: Form(
                   key: _formKey,
@@ -278,9 +278,9 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const BoxyArtSectionTitle(title: 'Your Attendance'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Column(
                           children: [
                             if (event.eventType == EventType.golf) ...[
@@ -331,11 +331,11 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.x3l),
                       const BoxyArtSectionTitle(title: 'Guest Registration'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Column(
                           children: [
                             BoxyArtSwitchTile(
@@ -347,7 +347,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                             ),
                             if (_registerGuest) ...[
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                                 child: BoxyArtInputField(
                                   label: 'Guest Name',
                                   controller: _guestNameController,
@@ -357,7 +357,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                                 child: BoxyArtInputField(
                                   label: 'Guest Handicap',
                                   controller: _guestHandicapController,
@@ -386,11 +386,11 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.x3l),
                       const BoxyArtSectionTitle(title: 'Notes & Requirements'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
                         child: Column(
                           children: [
                             BoxyArtInputField(
@@ -400,7 +400,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                               prefixIcon: const Icon(Icons.set_meal_rounded),
                               maxLines: 2,
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: AppSpacing.xl),
                             BoxyArtInputField(
                               label: 'Other Requests',
                               controller: _specialNeedsController,
@@ -412,21 +412,21 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.x3l),
                       const BoxyArtSectionTitle(title: 'Estimated Fees'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
                         child: Column(
                           children: [
                             _buildPriceBreakdownRow(context, event),
-                            const Divider(height: 32),
+                            const Divider(height: AppSpacing.x3l),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                   Text(
                                     'Total to Pay',
                                     style: AppTypography.displayLargeBody.copyWith(
-                                      fontSize: 16,
+                                      fontSize: AppTypography.sizeBody,
                                     ),
                                   ),
                                 Text(
@@ -441,7 +441,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
                       
-                      const SizedBox(height: 40),
+                      const SizedBox(height: AppSpacing.x4l),
                       if (_isSaving)
                         const Center(child: CircularProgressIndicator())
                       else
@@ -450,7 +450,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                           isPrimary: true,
                           onTap: () => _submit(event),
                         ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: AppSpacing.x4l),
                     ],
                   ),
                 ),

@@ -62,7 +62,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 BoxyArtInputField(
@@ -73,10 +73,10 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const BoxyArtSectionTitle(title: 'SCORING RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -89,7 +89,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
                   )).toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   value: _scoringType,
@@ -105,10 +105,10 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           ),
         
           if (_scoringType == ScoringType.position) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 children: [
                   BoxyArtInputField(
@@ -116,11 +116,11 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
                     controller: _appearancePointsController,
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 16),
-                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
+                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                  const SizedBox(height: AppSpacing.lg),
                   ...(_positionPoints.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => _buildPointRow(e.key, e.value)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Center(
                     child: BoxyArtButton(
                       title: 'ADD NEXT POSITION',
@@ -133,7 +133,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
             ),
           ],
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
               title: 'SAVE CHANGES',
@@ -148,7 +148,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
   Widget _buildPointRow(int position, int points) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         children: [
           Expanded(
@@ -156,7 +156,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
               '${_ordinal(position)} Place'.toUpperCase(),
               style: AppTypography.label.copyWith(
                 color: isDark ? AppColors.dark150 : AppColors.dark400,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppTypography.weightBlack,
                 letterSpacing: 0.5,
               ),
             ),
@@ -167,18 +167,18 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
               initialValue: points.toString(),
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+              style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold),
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
                 fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
                 filled: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppShapes.md,
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppShapes.md,
                   borderSide: BorderSide(color: isDark ? AppColors.dark500 : AppColors.dark100),
                 ),
               ),
@@ -192,11 +192,11 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
               },
             ),
           ),
-          const SizedBox(width: 12),
-          Text('PTS', style: AppTypography.label.copyWith(fontSize: 10, color: AppColors.lime500, fontWeight: FontWeight.w900)),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.md),
+          Text('PTS', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500, fontWeight: AppTypography.weightBlack)),
+          const SizedBox(width: AppSpacing.sm),
           IconButton(
-            icon: const Icon(Icons.close, size: 18, color: Colors.redAccent),
+            icon: const Icon(Icons.close, size: AppShapes.iconSm, color: Colors.redAccent),
             onPressed: () => setState(() => _positionPoints.remove(position)),
             visualDensity: VisualDensity.compact,
           )
@@ -260,20 +260,20 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: AppSpacing.x2l),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.md,
       ),
       child: Column(
         children: [
            _buildInfoRow('Goal', goal),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Result', result),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Tie-Break', tie),
         ],
       ),
@@ -289,9 +289,9 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           child: Text(
             '$label:', 
             style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.w900, 
+              fontWeight: AppTypography.weightBlack, 
               color: AppColors.lime500,
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
             )
           )
         ),
@@ -299,7 +299,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           child: Text(
             value, 
             style: AppTypography.label.copyWith(
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
               color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )

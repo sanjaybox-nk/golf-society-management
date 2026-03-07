@@ -60,15 +60,15 @@ class AdminScorecardList extends ConsumerWidget {
       children: [
         if (members.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 12, top: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md, top: AppSpacing.sm),
             child: BoxyArtSectionTitle(title: 'SOCIETY MEMBERS', count: members.length),
           ),
           ...members.asMap().entries.map((entry) => _buildIndividualTile(context, ref, entry.key + 1, entry.value, comp)),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
         ],
         if (guests.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: BoxyArtSectionTitle(title: 'GUESTS', count: guests.length),
           ),
           ...guests.asMap().entries.map((entry) => _buildIndividualTile(context, ref, members.length + entry.key + 1, entry.value, comp)),
@@ -103,7 +103,7 @@ class AdminScorecardList extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(bottom: 12, top: 8),
+          padding: EdgeInsets.only(bottom: AppSpacing.md, top: AppSpacing.sm),
           child: BoxyArtSectionTitle(title: 'TEAMS & GROUPS'),
         ),
         ...teamGroups.asMap().entries.map((entry) => _buildTeamTile(context, ref, entry.key + 1, entry.value, comp)),
@@ -136,11 +136,11 @@ class AdminScorecardList extends ConsumerWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: BoxyArtScorecardTile(
         playerName: item.name,
         isConfirmed: isConfirmed,
-        leading: BoxyArtNumberBadge(number: index, size: 40, isFilled: false),
+        leading: BoxyArtNumberBadge(number: index, size: AppShapes.iconXl, isFilled: false),
         status: _buildMetadataRow(status, scorecard, baseHcp.toInt(), phc),
         score: _formatScore(scorecard, comp),
         trailingActions: _buildLockAction(ref, scorecard, item.name, status, isConfirmed),
@@ -170,13 +170,13 @@ class AdminScorecardList extends ConsumerWidget {
     final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: BoxyArtScorecardTile(
         playerName: names.first,
         secondaryPlayerName: names.length > 1 ? names[1] : null,
         avatarNames: names,
         isConfirmed: isConfirmed,
-        leading: BoxyArtNumberBadge(number: index, size: 40, isFilled: false),
+        leading: BoxyArtNumberBadge(number: index, size: AppShapes.iconXl, isFilled: false),
         status: _buildMetadataRow(status, scorecard, null, null), // TODO: Team PHC if needed
         score: _formatScore(scorecard, comp),
         trailingActions: _buildLockAction(ref, scorecard, names.join(' / '), status, isConfirmed),
@@ -210,7 +210,7 @@ class AdminScorecardList extends ConsumerWidget {
           children: [
             BoxyArtPill.status(label: label, color: color),
             if (showThru) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               _buildProMaxLabel('THRU $holesPlayed', AppColors.lime500),
             ],
           ],
@@ -221,7 +221,7 @@ class AdminScorecardList extends ConsumerWidget {
              child: Row(
                children: [
                  _buildProMaxLabel('HC: $hcp', AppColors.dark150),
-                 const SizedBox(width: 8),
+                 const SizedBox(width: AppSpacing.sm),
                  _buildProMaxLabel('PHC: $phc', AppColors.lime500),
                ],
              ),
@@ -238,9 +238,9 @@ class AdminScorecardList extends ConsumerWidget {
     return Text(
       text,
       style: AppTypography.label.copyWith(
-        fontSize: 10,
+        fontSize: AppTypography.sizeCaption,
         color: color,
-        fontWeight: FontWeight.w900,
+        fontWeight: AppTypography.weightBlack,
         letterSpacing: 2.0,
       ),
     );
@@ -269,7 +269,7 @@ class AdminScorecardList extends ConsumerWidget {
       child: BoxyArtIconBadge(
         icon: isConfirmed ? Icons.lock_rounded : (isPending ? Icons.pending_actions_rounded : Icons.lock_open_rounded),
         color: isConfirmed ? AppColors.lime500 : (isPending ? AppColors.amber500 : AppColors.dark400),
-        size: 32,
+        size: AppShapes.iconXl,
         iconSize: 16,
       ),
     );
@@ -298,7 +298,7 @@ class AdminScorecardList extends ConsumerWidget {
   Widget _buildEmptyState() {
     return const BoxyArtCard(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: EdgeInsets.all(AppSpacing.x3l),
         child: Center(child: Text('No participants found for this event.')),
       ),
     );

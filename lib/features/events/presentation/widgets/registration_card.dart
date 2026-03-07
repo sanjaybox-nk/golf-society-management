@@ -53,18 +53,18 @@ class RegistrationCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bool isWithdrawn = status == RegistrationStatus.withdrawn;
-    final Color avatarColor = isGuest ? Colors.orange.withValues(alpha: 0.1) : theme.primaryColor.withValues(alpha: 0.1);
-    final Color textColor = isGuest ? Colors.orange : theme.primaryColor;
+    final Color avatarColor = isGuest ? AppColors.amber500.withValues(alpha: AppColors.opacityLow) : theme.primaryColor.withValues(alpha: AppColors.opacityLow);
+    final Color textColor = isGuest ? AppColors.amber500 : theme.primaryColor;
 
     // Avatar Logic
     Widget avatarChild;
     if (memberProfile?.avatarUrl != null && !isGuest) {
       avatarChild = Container(
-        width: 40,
-        height: 40,
+        width: AppSpacing.x4l,
+        height: AppSpacing.x4l,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: theme.primaryColor.withValues(alpha: 0.1), width: 1.5),
+          border: Border.all(color: theme.primaryColor.withValues(alpha: AppColors.opacityLow), width: AppShapes.borderLight),
           image: DecorationImage(
             image: NetworkImage(memberProfile!.avatarUrl!),
             fit: BoxFit.cover,
@@ -73,14 +73,14 @@ class RegistrationCard extends StatelessWidget {
       );
     } else {
       avatarChild = Container(
-        width: 40,
-        height: 40,
+        width: AppSpacing.x4l,
+        height: AppSpacing.x4l,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: avatarColor,
           border: Border.all(
-            color: textColor.withValues(alpha: 0.1),
-            width: 1.5,
+            color: textColor.withValues(alpha: AppColors.opacityLow),
+            width: AppShapes.borderLight,
           ),
         ),
         child: Center(
@@ -88,8 +88,8 @@ class RegistrationCard extends StatelessWidget {
             name.isNotEmpty ? name[0].toUpperCase() : '?',
             style: TextStyle(
               color: textColor,
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
+              fontWeight: AppTypography.weightBlack,
+              fontSize: AppTypography.sizeBody,
             ),
           ),
         ),
@@ -103,7 +103,7 @@ class RegistrationCard extends StatelessWidget {
           // Position Badge or Avatar
           if (!isDinnerOnly && position != null && position != 0 && !isWithdrawn) ...[
             BoxyArtNumberBadge(number: position!, size: 36, isRanking: false),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
           ] else ...[
             // Avatar with optional Guest badge
           Stack(
@@ -115,18 +115,18 @@ class RegistrationCard extends StatelessWidget {
                   right: 0,
                   bottom: 0,
                   child: Container(
-                    width: 16,
-                    height: 16,
+                    width: AppSpacing.lg,
+                    height: AppSpacing.lg,
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: AppColors.amber500,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                      border: Border.all(color: AppColors.pureWhite, width: AppShapes.borderLight),
                     ),
                     child: Center(
                       child: Text(
                         'G',
                         style: AppTypography.caption.copyWith(
-                          color: Colors.white,
+                          color: AppColors.pureWhite,
                         ),
                       ),
                     ),
@@ -134,7 +134,7 @@ class RegistrationCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
         ],
         Expanded(
           child: Column(
@@ -143,8 +143,8 @@ class RegistrationCard extends StatelessWidget {
                   Text(
                     name,
                     style: AppTypography.body.copyWith(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
+                      fontWeight: AppTypography.weightBlack,
+                      fontSize: AppTypography.sizeBody,
                       letterSpacing: -0.4,
                     ),
                   ),
@@ -152,7 +152,7 @@ class RegistrationCard extends StatelessWidget {
                     label,
                     style: AppTypography.subtext.copyWith(
                       color: isDark ? AppColors.dark150 : AppColors.dark300,
-                      fontSize: 12, // Keep the density sizing
+                      fontSize: AppTypography.sizeLabel, // Keep the density sizing
                     ),
                   ),
                   SizedBox(height: AppSpacing.sm),
@@ -160,26 +160,26 @@ class RegistrationCard extends StatelessWidget {
                     PopupMenuButton<RegistrationStatus>(
                       initialValue: status,
                       onSelected: onStatusChanged,
-                      color: isDark ? Colors.grey[900] : Colors.white,
+                      color: isDark ? AppColors.textSecondary : AppColors.pureWhite,
                       surfaceTintColor: Colors.transparent,
                       elevation: 8,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
                       itemBuilder: (context) => [
                         const PopupMenuItem(
                           value: RegistrationStatus.confirmed, 
-                          child: Text('Confirmed', style: TextStyle(color: AppColors.lime500, fontWeight: FontWeight.bold))
+                          child: Text('Confirmed', style: TextStyle(color: AppColors.lime500, fontWeight: AppTypography.weightBold))
                         ),
                         const PopupMenuItem(
                           value: RegistrationStatus.reserved, 
-                          child: Text('Reserved', style: TextStyle(color: AppColors.amber500, fontWeight: FontWeight.bold))
+                          child: Text('Reserved', style: TextStyle(color: AppColors.amber500, fontWeight: AppTypography.weightBold))
                         ),
                         const PopupMenuItem(
                           value: RegistrationStatus.waitlist, 
-                          child: Text('Waitlist', style: TextStyle(color: AppColors.coral500, fontWeight: FontWeight.bold))
+                          child: Text('Waitlist', style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBold))
                         ),
                         const PopupMenuItem(
                           value: RegistrationStatus.withdrawn, 
-                          child: Text('Withdrawn', style: TextStyle(color: AppColors.dark400, fontWeight: FontWeight.bold))
+                          child: Text('Withdrawn', style: TextStyle(color: AppColors.dark400, fontWeight: AppTypography.weightBold))
                         ),
                       ],
                       child: _buildStatusPill(context, status),
@@ -205,47 +205,47 @@ class RegistrationCard extends StatelessWidget {
                     child: onBuggyToggle != null
                         ? InkWell(
                             onTap: onBuggyToggle,
-                            borderRadius: BorderRadius.circular(12),
-                            child: _buildBuggyIcon(context, buggyStatus, size: 20),
+                            borderRadius: AppShapes.md,
+                            child: _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
                           )
-                        : _buildBuggyIcon(context, buggyStatus, size: 20),
+                        : _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   _buildLargeIconContainer(
                     isActive: attendingBreakfast && !isWithdrawn,
                     child: onBreakfastToggle != null
                         ? InkWell(
                             onTap: onBreakfastToggle,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: AppShapes.md,
                             child: Icon(
                               Icons.local_cafe_rounded,
                               color: attendingBreakfast
-                                  ? (isWithdrawn ? (isDark ? AppColors.dark300 : Colors.grey) : _getStatusColor(context, status))
+                                  ? (isWithdrawn ? (isDark ? AppColors.dark300 : AppColors.textSecondary) : _getStatusColor(context, status))
                                   : (isDark ? AppColors.dark400 : AppColors.dark300),
-                              size: 20,
+                              size: AppShapes.iconMd,
                             ),
                           )
                         : Icon(
                             Icons.local_cafe_rounded,
                             color: attendingBreakfast
-                                ? (isWithdrawn ? (isDark ? AppColors.dark300 : Colors.grey) : _getStatusColor(context, status))
+                                ? (isWithdrawn ? (isDark ? AppColors.dark300 : AppColors.textSecondary) : _getStatusColor(context, status))
                                 : (isDark ? AppColors.dark400 : AppColors.dark300),
-                            size: 20,
+                            size: AppShapes.iconMd,
                           ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   // Guest indicator (always present for alignment)
                   _buildLargeIconContainer(
                     isActive: hasGuest && !isWithdrawn,
                     child: Icon(
                       Icons.person_add_alt_1_rounded,
-                      color: hasGuest && !isWithdrawn ? (isDark ? Colors.white : AppColors.dark800) : (isDark ? AppColors.dark400 : AppColors.dark300),
-                      size: 20,
+                      color: hasGuest && !isWithdrawn ? (isDark ? AppColors.pureWhite : AppColors.dark800) : (isDark ? AppColors.dark400 : AppColors.dark300),
+                      size: AppShapes.iconMd,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               
               // Row 2: Lunch, Dinner, Payment
               Row(
@@ -256,54 +256,54 @@ class RegistrationCard extends StatelessWidget {
                     child: onLunchToggle != null
                         ? InkWell(
                             onTap: onLunchToggle,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: AppShapes.md,
                             child: Icon(
                               Icons.restaurant_menu_rounded,
                               color: attendingLunch
-                                  ? (isWithdrawn ? (isDark ? AppColors.dark300 : Colors.grey) : _getStatusColor(context, status))
+                                  ? (isWithdrawn ? (isDark ? AppColors.dark300 : AppColors.textSecondary) : _getStatusColor(context, status))
                                   : (isDark ? AppColors.dark400 : AppColors.dark300),
-                              size: 20,
+                              size: AppShapes.iconMd,
                             ),
                           )
                         : Icon(
                             Icons.restaurant_menu_rounded,
                             color: attendingLunch
-                                ? (isWithdrawn ? (isDark ? AppColors.dark300 : Colors.grey) : _getStatusColor(context, status))
+                                ? (isWithdrawn ? (isDark ? AppColors.dark300 : AppColors.textSecondary) : _getStatusColor(context, status))
                                 : (isDark ? AppColors.dark400 : AppColors.dark300),
-                            size: 20,
+                            size: AppShapes.iconMd,
                           ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   _buildLargeIconContainer(
                     isActive: attendingDinner && !isWithdrawn,
                     child: onDinnerToggle != null
                         ? InkWell(
                             onTap: onDinnerToggle,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: AppShapes.md,
                             child: Icon(
                               Icons.restaurant_rounded,
                               color: attendingDinner
-                                  ? (isWithdrawn ? (isDark ? AppColors.dark300 : Colors.grey) : _getStatusColor(context, status))
+                                  ? (isWithdrawn ? (isDark ? AppColors.dark300 : AppColors.textSecondary) : _getStatusColor(context, status))
                                   : (isDark ? AppColors.dark400 : AppColors.dark300),
-                              size: 20,
+                              size: AppShapes.iconMd,
                             ),
                           )
                         : Icon(
                             Icons.restaurant_rounded,
                             color: attendingDinner
-                                ? (isWithdrawn ? (isDark ? AppColors.dark300 : Colors.grey) : _getStatusColor(context, status))
+                                ? (isWithdrawn ? (isDark ? AppColors.dark300 : AppColors.textSecondary) : _getStatusColor(context, status))
                                 : (isDark ? AppColors.dark400 : AppColors.dark300),
-                            size: 20,
+                            size: AppShapes.iconMd,
                           ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   // Payment indicator (always present for alignment)
                   _buildLargeIconContainer(
                     isActive: isAdmin && hasPaid,
                     child: Icon(
                       Icons.check_circle_rounded,
-                      color: isAdmin && hasPaid ? (isDark ? Colors.white : AppColors.dark800) : (isDark ? AppColors.dark400 : AppColors.dark300),
-                      size: 20,
+                      color: isAdmin && hasPaid ? (isDark ? AppColors.pureWhite : AppColors.dark800) : (isDark ? AppColors.dark400 : AppColors.dark300),
+                      size: AppShapes.iconMd,
                     ),
                   ),
                 ],
@@ -344,7 +344,7 @@ class RegistrationCard extends StatelessWidget {
         text = 'Withdrawn';
         break;
       case RegistrationStatus.dinner:
-        color = Colors.blue; 
+        color = AppColors.teamA; 
         text = 'Dinner';
         break;
       case RegistrationStatus.none:
@@ -358,7 +358,7 @@ class RegistrationCard extends StatelessWidget {
   Widget _buildBuggyIcon(BuildContext context, RegistrationStatus status, {double size = 20.0}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final inactiveColor = isDark ? AppColors.dark400 : AppColors.dark300;
-    final activeColor = isDark ? Colors.white : AppColors.dark800;
+    final activeColor = isDark ? AppColors.pureWhite : AppColors.dark800;
 
     // Always show grey icon if no buggy
     if (status == RegistrationStatus.none) {
@@ -387,7 +387,7 @@ class RegistrationCard extends StatelessWidget {
 
   Color _getStatusColor(BuildContext context, RegistrationStatus status) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = isDark ? Colors.white : AppColors.dark800;
+    final activeColor = isDark ? AppColors.pureWhite : AppColors.dark800;
 
     switch (status) {
       case RegistrationStatus.confirmed: return activeColor;

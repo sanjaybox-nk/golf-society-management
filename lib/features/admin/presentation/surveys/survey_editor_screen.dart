@@ -89,11 +89,11 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
           title: widget.surveyId == null ? 'New Survey' : 'Edit Survey',
           subtitle: 'Configure society feedback',
           actions: const [
-            SizedBox(width: 16),
+            SizedBox(width: AppSpacing.lg),
           ],
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   Form(
@@ -102,11 +102,11 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildBasicInfoSection(),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSpacing.x3l),
                         const BoxyArtSectionTitle(title: 'Questions'),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         ..._buildQuestionsList(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSpacing.x2l),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -140,38 +140,38 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
 
   Widget _buildBasicInfoSection() {
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'General Details'),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Survey Title',
             controller: _titleController,
             hintText: 'e.g., Annual Trip Preference',
             validator: (v) => v?.isEmpty == true ? 'Required' : null,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           BoxyArtFormField(
             label: 'Description (Optional)',
             controller: _descriptionController,
             hintText: 'Provide context for members...',
             maxLines: 3,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Deadline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    const SizedBox(height: 8),
+                    const Text('Deadline', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong)),
+                    const SizedBox(height: AppSpacing.sm),
                     InkWell(
                       onTap: _pickDeadline,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                         decoration: BoxDecoration(
                           color: AppColors.dark600,
                           borderRadius: AppShapes.md,
@@ -179,17 +179,17 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey),
-                            const SizedBox(width: 12),
+                            const Icon(Icons.calendar_today_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),
+                            const SizedBox(width: AppSpacing.md),
                             Text(
                               _deadline == null ? 'No deadline' : DateFormat('MMM d, yyyy ' 'at' ' h:mm a').format(_deadline!),
-                              style: TextStyle(color: _deadline == null ? Colors.grey : Colors.white, fontSize: 13),
+                              style: TextStyle(color: _deadline == null ? AppColors.textSecondary : AppColors.pureWhite, fontSize: AppTypography.sizeLabelStrong),
                             ),
                             if (_deadline != null) ...[
                               const Spacer(),
                               GestureDetector(
                                 onTap: () => setState(() => _deadline = null),
-                                child: const Icon(Icons.cancel_rounded, size: 16, color: Colors.grey),
+                                child: const Icon(Icons.cancel_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),
                               ),
                             ],
                           ],
@@ -199,12 +199,12 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: AppSpacing.x2l),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Published', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  const SizedBox(height: 4),
+                  const Text('Published', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong)),
+                  const SizedBox(height: AppSpacing.xs),
                   Switch.adaptive(
                     value: _isPublished,
                     activeThumbColor: AppColors.lime500,
@@ -225,43 +225,43 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
       final q = entry.value;
 
       return Padding(
-        padding: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Q${index + 1}', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.lime500)),
+                  Text('Q${index + 1}', style: const TextStyle(fontWeight: AppTypography.weightBlack, color: AppColors.lime500)),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                    icon: const Icon(Icons.delete_outline_rounded, color: AppColors.coral500, size: AppShapes.iconMd),
                     onPressed: () => _removeQuestion(index),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               BoxyArtFormField(
                 label: 'Question Prompt',
                 controller: _questionControllers[q.id],
                 onChanged: (v) => _updateQuestion(index, q.copyWith(question: v)),
                 hintText: 'What would you like to ask?',
               ),
-              const SizedBox(height: 20),
-              const Text('Question Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xl),
+              const Text('Question Type', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong)),
+              const SizedBox(height: AppSpacing.sm),
               _buildTypeSelector(index, q.type),
               if (q.type != SurveyQuestionType.text) ...[
-                const SizedBox(height: 24),
-                const Text('Options', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.x2l),
+                const Text('Options', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong)),
+                const SizedBox(height: AppSpacing.sm),
                 ..._buildOptionsList(index, q),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 TextButton.icon(
                   onPressed: () => _addOption(index),
-                  icon: const Icon(Icons.add_rounded, size: 16, color: AppColors.lime500),
-                  label: const Text('Add Option', style: TextStyle(color: AppColors.lime500, fontSize: 12)),
+                  icon: const Icon(Icons.add_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
+                  label: const Text('Add Option', style: TextStyle(color: AppColors.lime500, fontSize: AppTypography.sizeLabel)),
                 ),
               ],
             ],
@@ -278,7 +278,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
         children: SurveyQuestionType.values.map((type) {
           final isSelected = type == currentType;
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(_getTypeLabel(type)),
               selected: isSelected,
@@ -287,7 +287,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                   _updateQuestion(qIndex, _questions[qIndex].copyWith(type: type));
                 }
               },
-              selectedColor: AppColors.lime500.withValues(alpha: 0.2),
+              selectedColor: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
               side: BorderSide(color: isSelected ? AppColors.lime500 : AppColors.dark500),
             ),
           );
@@ -302,7 +302,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
       final optIndex = entry.key;
 
       return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child: Row(
           children: [
             Expanded(
@@ -319,7 +319,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
             ),
             if (options.length > 2)
               IconButton(
-                icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.grey, size: 20),
+                icon: const Icon(Icons.remove_circle_outline_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
                 onPressed: () => _removeOption(qIndex, optIndex),
               ),
           ],

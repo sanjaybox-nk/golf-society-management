@@ -18,7 +18,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get current theme color for status bar contrast
     final currentThemeColor = Theme.of(context).primaryColor;
-    final statusBarIconBrightness = ContrastHelper.getContrastingText(currentThemeColor) == Colors.white
+    final statusBarIconBrightness = ContrastHelper.getContrastingText(currentThemeColor) == AppColors.pureWhite
         ? Brightness.light  // White icons for dark backgrounds
         : Brightness.dark;  // Black icons for light backgrounds
     

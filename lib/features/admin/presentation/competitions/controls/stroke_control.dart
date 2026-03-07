@@ -49,7 +49,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       children: [
         // ── MEDAL SETTINGS ───────────────────────────────────
         const BoxyArtSectionTitle(title: 'MEDAL SETTINGS'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<bool>(
           label: 'Scoring Type',
@@ -63,22 +63,22 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
         buildInfoBubble('Net deducts each player\'s playing handicap from their gross score. Gross scores the raw stroke total with no adjustments.'),
 
         if (_isNet) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
 
           // ── HANDICAP ──────────────────────────────────────
           const BoxyArtSectionTitle(title: 'HANDICAP'),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           buildAllowanceSlider(
             _handicapAllowance,
             (val) => setState(() => _handicapAllowance = val),
             hint: "Fraction of each player's course handicap applied. 100% = full handicap.",
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
 
           buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
           buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
 
           BoxyArtSwitchField(
             label: 'Hard Cap Playing HC',
@@ -89,7 +89,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
           buildInfoBubble(_applyCapToIndex
               ? 'Cap applies to the baseline index. WHS course adjustments may push the playing HC above it.'
               : 'Cap is applied to the final playing HC — a player will never exceed $_handicapCap.'),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
 
           BoxyArtSwitchField(
             label: 'Mixed Tee Adjustments',
@@ -99,13 +99,13 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
           ),
         ],
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
         const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildSliderField(
           label: 'Number of Rounds',
@@ -116,7 +116,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
         ),
         buildInfoBubble('Leave at 1 for single events. Increase for season-long or multi-round series.'),
         if (_roundsCount > 1) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtDropdownField<AggregationMethod>(
             label: 'Series Scoring',
             value: _aggregation,
@@ -129,13 +129,13 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
           buildInfoBubble('Cumulative adds all round scores together. Best Round only counts a player\'s lowest round.'),
         ],
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── TEAM / GROUP SCORING ──────────────────────────────
         const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<int>(
           label: 'Best X Scores per Flight',
@@ -145,9 +145,9 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
         ),
         buildInfoBubble('How many individual scores count towards the group total displayed in the flight view.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

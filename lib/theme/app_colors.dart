@@ -38,6 +38,13 @@ class AppColors {
   static const Color dark50 = Color(0xFFF9F9F8); // Lightest Neutral
   static const Color pureWhite = Color(0xFFFFFFFF);
 
+  // Semantic Alignment Tokens
+  static const Color textPrimary = dark60;
+  static const Color textSecondary = dark150;
+  static const Color textTertiary = dark200;
+  static const Color surfaceSubtle = dark900;
+  static const Color borderSubtle = dark500;
+
   // Semantic Action Colors
   static const Color actionGreen = lime500;
   static const Color actionText = Color(0xFF0A1A0F); // Dark green-tinted black for lime buttons
@@ -59,6 +66,15 @@ class AppColors {
   static const Color lightHeader = Color(0xFFF7F7F5);
   static const Color lightBorder = Color(0xFFE2E2DC);
   static const Color forestGreen = Color(0xFF1A2E20); // Light theme total column bg
+
+  // Opacity Tokens (v3.1)
+  static const double opacitySubtle = 0.05;
+  static const double opacityLow = 0.1;
+  static const double opacityMedium = 0.2;
+  static const double opacityMuted = 0.3;
+  static const double opacityHalf = 0.5;
+  static const double opacityHigh = 0.8;
+  static const double opacityStrong = 0.9;
 
   /// Generates the Dark ColorScheme based on v3.1 spec
   static ColorScheme darkScheme() {

@@ -25,11 +25,11 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 0),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const SizedBox(height: 8),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.x2l),
               // Search & Filters
               BoxyArtCard(
                 child: Column(
@@ -38,11 +38,11 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                       label: 'Search History',
                       hint: 'Search by title or message...',
                       onChanged: (v) => setState(() => _searchQuery = v),
-                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                      prefixIcon: const Icon(Icons.search_rounded, size: AppShapes.iconMd),
                     ),
                     const Divider(height: 1),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                       child: Row(
                         children: [
                             Text(
@@ -51,7 +51,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                                 color: isDark ? AppColors.dark150 : AppColors.dark400,
                               ),
                             ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
@@ -62,13 +62,13 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                                     isSelected: _groupBy == 'Date',
                                     onTap: () => setState(() => _groupBy = 'Date'),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: AppSpacing.sm),
                                   _GroupChip(
                                     label: 'Category',
                                     isSelected: _groupBy == 'Category',
                                     onTap: () => setState(() => _groupBy = 'Category'),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: AppSpacing.sm),
                                   _GroupChip(
                                     label: 'None',
                                     isSelected: _groupBy == 'None',
@@ -84,7 +84,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
 
               notificationsAsync.when(
                 data: (notifications) {
@@ -97,11 +97,11 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                   if (filtered.isEmpty) {
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(48.0),
+                        padding: const EdgeInsets.all(AppSpacing.x5l),
                         child: Column(
                           children: [
-                            Icon(Icons.history_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                            const SizedBox(height: 16),
+                            Icon(Icons.history_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
+                            const SizedBox(height: AppSpacing.lg),
                             Text(
                               'No notifications found',
                               style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
@@ -166,9 +166,9 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BoxyArtSectionTitle(title: key),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             ...groupItems.map((c) => _HistoryCard(campaign: c)),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
           ],
         );
       }).toList(),
@@ -188,17 +188,17 @@ class _GroupChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppShapes.xl,
         ),
         child: Text(
           label,
           style: TextStyle(
             color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).textTheme.bodyMedium?.color,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontWeight: AppTypography.weightBold,
+            fontSize: AppTypography.sizeLabel,
           ),
         ),
       ),
@@ -215,7 +215,7 @@ class _HistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: BoxyArtCard(
         onTap: () => _showCampaignDetails(context),
         child: Column(
@@ -227,45 +227,45 @@ class _HistoryCard extends StatelessWidget {
                 Text(
                   parseDate(campaign.timestamp), 
                   style: AppTypography.label.copyWith(
-                    fontSize: 11,
+                    fontSize: AppTypography.sizeCaptionStrong,
                     color: isDark ? AppColors.dark200 : AppColors.dark400,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.lime500.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                    borderRadius: AppShapes.sm,
                   ),
                   child: Text(
                     campaign.category.toUpperCase(),
                     style: AppTypography.label.copyWith(
-                      fontSize: 9,
+                      fontSize: AppTypography.sizeMicroSmall,
                       color: isDark ? AppColors.lime500 : AppColors.lime700,
                       letterSpacing: 0.5,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: AppTypography.weightExtraBold,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     campaign.title, 
-                    style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800),
+                    style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightExtraBold),
                   )
                 ),
                 if (campaign.recipientCount > 0) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.people_alt_rounded, size: 14, color: isDark ? AppColors.dark300 : AppColors.dark400),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.sm),
+                  Icon(Icons.people_alt_rounded, size: AppShapes.iconXs, color: isDark ? AppColors.dark300 : AppColors.dark400),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     '${campaign.recipientCount}', 
                     style: AppTypography.label.copyWith(
-                      fontSize: 12,
+                      fontSize: AppTypography.sizeLabel,
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
                     ),
                   ),
@@ -277,7 +277,7 @@ class _HistoryCard extends StatelessWidget {
               _getPlainTextMessage(campaign.message), 
               style: AppTypography.bodySmall.copyWith(
                 color: isDark ? AppColors.dark150 : AppColors.dark400,
-                fontSize: 13,
+                fontSize: AppTypography.sizeLabelStrong,
                 height: 1.4,
               ), 
               maxLines: 2, 
@@ -324,26 +324,26 @@ class _HistoryCard extends StatelessWidget {
           _DetailRow(label: 'Sent To', value: '${campaign.targetType} (${campaign.recipientCount} recipients)'),
           if (campaign.targetDescription != null) 
              _DetailRow(label: 'Target', value: campaign.targetDescription!),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _DetailRow(label: 'Category', value: campaign.category),
           _DetailRow(label: 'Date', value: parseDate(campaign.timestamp)),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Text(
             'MESSAGE CONTENT', 
             style: AppTypography.label.copyWith(
-              fontSize: 10, 
+              fontSize: AppTypography.sizeCaption, 
               color: isDark ? AppColors.dark300 : AppColors.dark400,
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
-               color: isDark ? AppColors.dark600 : Colors.grey.shade50,
-               borderRadius: BorderRadius.circular(20),
-               border: Border.all(color: isDark ? AppColors.dark500 : Colors.grey.shade200),
+               color: isDark ? AppColors.dark600 : AppColors.dark50,
+               borderRadius: AppShapes.xl,
+               border: Border.all(color: isDark ? AppColors.dark500 : AppColors.dark200),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,11 +351,11 @@ class _HistoryCard extends StatelessWidget {
                 Text(
                   campaign.title, 
                   style: AppTypography.body.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeLargeBody,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 if (quillController != null)
                   quill.QuillEditor.basic(
                     controller: quillController,
@@ -380,7 +380,7 @@ class _HistoryCard extends StatelessWidget {
             ),
           ),
           if (campaign.actionUrl != null) ...[
-             const SizedBox(height: 20),
+             const SizedBox(height: AppSpacing.xl),
              _DetailRow(label: 'Action', value: campaign.actionUrl!),
           ],
           const SizedBox(height: 48), // Bottom clearance
@@ -402,12 +402,12 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color))),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+          SizedBox(width: 80, child: Text(label, style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong, color: Theme.of(context).textTheme.bodyMedium?.color))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: AppTypography.sizeLabelStrong))),
         ],
       ),
     );

@@ -90,8 +90,8 @@ class CompetitionRuleDescription extends StatelessWidget {
       description,
       textAlign: TextAlign.start,
       style: style ?? TextStyle(
-        fontSize: 14,
-        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+        fontSize: AppTypography.sizeBodySmall,
+        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
         height: 1.5,
       ),
     );
@@ -145,11 +145,11 @@ class CompetitionRulesCard extends ConsumerWidget {
   Widget _buildLoadingState() {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: 20),
-      padding: const EdgeInsets.all(32),
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.x3l),
       decoration: BoxDecoration(
         color: const Color(0xFF111111), // Hardened dark color
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppShapes.x2l,
       ),
       child: const Center(child: CircularProgressIndicator()),
     );
@@ -158,14 +158,14 @@ class CompetitionRulesCard extends ConsumerWidget {
   Widget _buildErrorState(Object e) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: 20),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.x2l),
       decoration: BoxDecoration(
         color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        borderRadius: AppShapes.x2l,
+        border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMuted)),
       ),
-      child: Text("Problem loading rules: $e", style: const TextStyle(color: Colors.red)),
+      child: Text("Problem loading rules: $e", style: const TextStyle(color: AppColors.coral500)),
     );
   }
 
@@ -186,7 +186,7 @@ class CompetitionRulesCard extends ConsumerWidget {
 
   Widget _buildContent(BuildContext context, Competition comp) {
     final primary = AppColors.lime500; // Hardcoded fallback to ensure visibility
-    final accent = isSecondary ? Colors.orange : primary;
+    final accent = isSecondary ? AppColors.amber500 : primary;
     final isTemplate = comp.id == 'template';
     
     return Material(
@@ -196,17 +196,17 @@ class CompetitionRulesCard extends ConsumerWidget {
         children: [
           if (title.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12, left: 4),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md, left: AppSpacing.xs),
               child: Row(
                 children: [
-                  Icon(Icons.emoji_events_rounded, color: Colors.grey.shade600, size: 14),
-                  const SizedBox(width: 8),
+                  Icon(Icons.emoji_events_rounded, color: AppColors.dark600, size: AppShapes.iconXs),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     title.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.grey.shade500,
+                      fontSize: AppTypography.sizeCaptionStrong,
+                      fontWeight: AppTypography.weightBlack,
+                      color: AppColors.dark500,
                       letterSpacing: 2.0,
                     ),
                   ),
@@ -219,24 +219,18 @@ class CompetitionRulesCard extends ConsumerWidget {
             width: double.infinity, // FORCE WIDE
             decoration: BoxDecoration(
               color: const Color(0xFF151515), // DEEP OPAQUE BLACK
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: AppShapes.x2l,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.05), 
-                width: 1,
+                color: AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle), 
+                width: AppShapes.borderThin,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              boxShadow: AppShadows.softScale,
             ),
             child: InkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: AppShapes.x2l,
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.x2l),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -250,11 +244,11 @@ class CompetitionRulesCard extends ConsumerWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: accent.withValues(alpha: 0.4), width: 1.5),
+                            color: accent.withValues(alpha: AppColors.opacityMedium),
+                            borderRadius: AppShapes.lg,
+                            border: Border.all(color: accent.withValues(alpha: 0.4), width: AppShapes.borderLight),
                           ),
-                          child: Icon(comp.rules.gameIcon, color: accent, size: 32),
+                          child: Icon(comp.rules.gameIcon, color: accent, size: AppShapes.iconXl),
                         ),
                         const SizedBox(width: 18),
                         // RIGHT COL: TEXTS
@@ -267,23 +261,23 @@ class CompetitionRulesCard extends ConsumerWidget {
                                 child: Text(
                                   (comp.name ?? 'COMPETITION').toUpperCase(),
                                   style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
+                                    fontSize: AppTypography.sizeLargeBody,
+                                    fontWeight: AppTypography.weightBlack,
+                                    color: AppColors.pureWhite,
                                     letterSpacing: 0.5,
                                   ),
                                   textAlign: TextAlign.left,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.xs),
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   isSecondary ? 'SECONDARY OVERLAY' : comp.rules.gameName,
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white.withValues(alpha: 0.5),
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: AppTypography.sizeBodySmall,
+                                    color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
+                                    fontWeight: AppTypography.weightBold,
                                   ),
                                   textAlign: TextAlign.left,
                                 ),
@@ -292,13 +286,13 @@ class CompetitionRulesCard extends ConsumerWidget {
                           ),
                         ),
                         if (showChevron)
-                          Icon(Icons.arrow_forward_ios_rounded, color: Colors.white.withValues(alpha: 0.2), size: 16),
+                          Icon(Icons.arrow_forward_ios_rounded, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium), size: AppShapes.iconSm),
                       ],
                     ),
                     
-                    const SizedBox(height: 24),
-                    Divider(color: Colors.white.withValues(alpha: 0.05), height: 1),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.x2l),
+                    Divider(color: AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle), height: 1),
+                    const SizedBox(height: AppSpacing.x2l),
                     
                     // RULES TEXT
                     Align(
@@ -306,9 +300,9 @@ class CompetitionRulesCard extends ConsumerWidget {
                       child: Text(
                         isTemplate ? 'Fetching competition specific rules...' : CompetitionRuleTranslator.translate(comp.rules),
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: AppTypography.sizeButton,
                           height: 1.6,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: AppColors.pureWhite.withValues(alpha: 0.85),
                         ),
                         textAlign: TextAlign.left,
                       ),
@@ -327,7 +321,7 @@ class CompetitionRulesCard extends ConsumerWidget {
                     ),
                     
                     if (extraBadges != null && extraBadges!.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Wrap(

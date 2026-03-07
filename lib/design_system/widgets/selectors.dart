@@ -21,14 +21,14 @@ class BoxyHoleSelector extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: 0.5), size: 28),
+            icon: Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconLg),
             onPressed: currentHole > 1 ? () => onHoleChanged(currentHole - 1) : null,
           ),
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 18,
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               itemBuilder: (context, index) {
                 final holeNum = index + 1;
                 final isSelected = holeNum == currentHole;
@@ -38,7 +38,7 @@ class BoxyHoleSelector extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: 0.5), size: 28),
+            icon: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconLg),
             onPressed: currentHole < 18 ? () => onHoleChanged(currentHole + 1) : null,
           ),
         ],
@@ -53,15 +53,15 @@ class BoxyHoleSelector extends StatelessWidget {
     return GestureDetector(
       onTap: () => onHoleChanged(holeNum),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: AppAnimations.fast,
         width: 50,
-        margin: const EdgeInsets.only(right: 8),
+        margin: const EdgeInsets.only(right: AppSpacing.sm),
         decoration: BoxDecoration(
           color: Colors.transparent,
           border: Border(
             bottom: BorderSide(
               color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-              width: 2.0,
+              width: AppShapes.borderMedium,
             ),
           ),
         ),
@@ -69,23 +69,23 @@ class BoxyHoleSelector extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
+              duration: AppAnimations.fast,
               style: AppTypography.displayHeading.copyWith(
                 color: isSelected
                     ? (isDark ? AppColors.pureWhite : AppColors.dark900)
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
                 fontSize: isSelected ? 24 : 18,
               ),
               child: Text('$holeNum'),
             ),
             if (hasScore)
               Positioned(
-                bottom: 4,
+                bottom: AppSpacing.xs,
                 child: Container(
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: 0.3),
+                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: AppColors.opacityMuted),
                     shape: BoxShape.circle,
                   ),
                 ),

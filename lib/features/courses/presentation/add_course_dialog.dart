@@ -69,25 +69,25 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
             BoxyArtFormField(label: 'Course Name', controller: _nameController),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             BoxyArtFormField(label: 'Location / Address', controller: _addressController, maxLines: 2),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             BoxyArtFormField(label: 'Tee Position Name (e.g. White, Yellow)', controller: _teeNameController),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 Expanded(child: BoxyArtFormField(label: 'Slope', controller: _slopeController, keyboardType: TextInputType.number)),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 Expanded(child: BoxyArtFormField(label: 'Rating', controller: _ratingController, keyboardType: TextInputType.number)),
               ],
             ),
-            const SizedBox(height: 24),
-            const Text('Hole Details (Par, SI, Yardage)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.x2l),
+            const Text('Hole Details (Par, SI, Yardage)', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody)),
+            const SizedBox(height: AppSpacing.lg),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -101,8 +101,8 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
               itemBuilder: (context, i) {
                 return Column(
                   children: [
-                    Text('Hole ${i + 1}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
+                    Text('Hole ${i + 1}', style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold)),
+                    const SizedBox(height: AppSpacing.xs),
                     SizedBox(
                       height: 36,
                       child: TextField(
@@ -110,10 +110,10 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                         decoration: const InputDecoration(hintText: 'Par', isDense: true, border: OutlineInputBorder()),
                         textAlign: TextAlign.center,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: AppTypography.sizeLabel),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     SizedBox(
                       height: 36,
                       child: TextField(
@@ -121,10 +121,10 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                         decoration: const InputDecoration(hintText: 'SI', isDense: true, border: OutlineInputBorder()),
                         textAlign: TextAlign.center,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: AppTypography.sizeLabel),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     SizedBox(
                       height: 36,
                       child: TextField(
@@ -132,7 +132,7 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
                         decoration: const InputDecoration(hintText: 'Yds', isDense: true, border: OutlineInputBorder()),
                         textAlign: TextAlign.center,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: AppTypography.sizeLabel),
                       ),
                     ),
                   ],

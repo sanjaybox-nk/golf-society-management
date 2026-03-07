@@ -20,33 +20,27 @@ class DashboardHeroCard extends StatelessWidget {
     final gradient = LinearGradient(
       colors: [
         theme.primaryColor,
-        theme.primaryColor.withValues(alpha: 0.8),
+        theme.primaryColor.withValues(alpha: AppColors.opacityHigh),
       ],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: theme.primaryColor.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        borderRadius: AppShapes.x2l,
+        boxShadow: AppShadows.softScale,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppShapes.x2l,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(AppSpacing.x2l),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -54,59 +48,59 @@ class DashboardHeroCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium),
+                          borderRadius: AppShapes.xl,
                         ),
                         child: Text(
                           'NEXT EVENT',
                           style: AppTypography.micro.copyWith(
-                            color: Colors.white,
+                            color: AppColors.pureWhite,
                           ),
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios_rounded, color: Colors.white.withValues(alpha: 0.6), size: 16),
+                      Icon(Icons.arrow_forward_ios_rounded, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconSm),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     event.title,
                     style: AppTypography.displaySubPage.copyWith(
-                      color: Colors.white,
+                      color: AppColors.pureWhite,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_rounded, color: Colors.white.withValues(alpha: 0.8), size: 14),
-                      const SizedBox(width: 8),
+                      Icon(Icons.calendar_today_rounded, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh), size: AppShapes.iconXs),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         DateFormat('EEEE, d MMMM').format(event.date),
                         style: AppTypography.bodySmall.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontWeight: FontWeight.w500,
+                          color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
+                          fontWeight: AppTypography.weightMedium,
                         ),
                       ),
                     ],
                   ),
                   if (event.courseName != null && event.courseName!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [
-                        Icon(Icons.location_on_rounded, color: Colors.white.withValues(alpha: 0.8), size: 14),
-                        const SizedBox(width: 8),
+                        Icon(Icons.location_on_rounded, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh), size: AppShapes.iconXs),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           event.courseName!,
                           style: AppTypography.bodySmall.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
+                            fontWeight: AppTypography.weightMedium,
                           ),
                         ),
                       ],
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   
                   // Progress / Stats
                   Row(
@@ -116,7 +110,7 @@ class DashboardHeroCard extends StatelessWidget {
                         '${event.playingCount}',
                         '/${event.maxParticipants ?? 40}',
                       ),
-                      const SizedBox(width: 32),
+                      const SizedBox(width: AppSpacing.x3l),
                       _buildMiniStat(
                         'WAITLIST',
                         '${event.waitlistCount}',
@@ -140,7 +134,7 @@ class DashboardHeroCard extends StatelessWidget {
         Text(
           label,
           style: AppTypography.microSmall.copyWith(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
           ),
         ),
         const SizedBox(height: 2),
@@ -151,15 +145,15 @@ class DashboardHeroCard extends StatelessWidget {
             Text(
               value,
               style: AppTypography.displaySection.copyWith(
-                color: Colors.white,
+                color: AppColors.pureWhite,
               ),
             ),
             if (total.isNotEmpty)
               Text(
                 total,
                 style: AppTypography.label.copyWith(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontWeight: FontWeight.w500,
+                  color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
+                  fontWeight: AppTypography.weightMedium,
                 ),
               ),
           ],

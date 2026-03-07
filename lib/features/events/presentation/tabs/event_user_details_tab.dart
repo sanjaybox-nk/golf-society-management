@@ -160,7 +160,7 @@ class EventDetailsContent extends ConsumerWidget {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100),
+          padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
                 SizedBox(height: AppTheme.cardSpacing),
@@ -216,19 +216,19 @@ class EventDetailsContent extends ConsumerWidget {
     
     if (displayStatus == EventStatus.draft) {
       statusText = 'DRAFT';
-      statusColor = Colors.orange;
+      statusColor = AppColors.amber500;
     } else if (displayStatus == EventStatus.completed) {
       statusText = 'COMPLETED';
-      statusColor = Colors.grey;
+      statusColor = AppColors.textSecondary;
     } else if (displayStatus == EventStatus.inPlay) {
       statusText = 'LIVE';
-      statusColor = Colors.blue;
+      statusColor = AppColors.teamA;
     } else if (displayStatus == EventStatus.suspended) {
       statusText = 'SUSPENDED';
       statusColor = Colors.deepOrange;
     } else if (displayStatus == EventStatus.cancelled) {
       statusText = 'CANCELLED';
-      statusColor = Colors.red;
+      statusColor = AppColors.coral500;
     } else {
       statusText = 'PUBLISHED';
       statusColor = const Color(0xFF27AE60);
@@ -242,8 +242,8 @@ class EventDetailsContent extends ConsumerWidget {
           color: statusColor,
         ),
         if (onStatusChanged != null) ...[
-          const SizedBox(width: 4),
-          Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: statusColor),
+          const SizedBox(width: AppSpacing.xs),
+          Icon(Icons.keyboard_arrow_down_rounded, size: AppShapes.iconXs, color: statusColor),
         ],
       ],
     );
@@ -261,15 +261,15 @@ class EventDetailsContent extends ConsumerWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => BoxyArtCard(
-        margin: const EdgeInsets.all(16),
+        margin: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(AppSpacing.lg),
               child: Text(
                 'Change Event Status',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody),
               ),
             ),
             const Divider(),
@@ -289,7 +289,7 @@ class EventDetailsContent extends ConsumerWidget {
                       title: Text(
                         label,
                         style: TextStyle(
-                          fontWeight: event.status == s ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: event.status == s ? AppTypography.weightBold : AppTypography.weightRegular,
                           color: event.status == s ? _getStatusColor(s) : null,
                         ),
                       ),
@@ -325,12 +325,12 @@ class EventDetailsContent extends ConsumerWidget {
 
   Color _getStatusColor(EventStatus status) {
     switch (status) {
-      case EventStatus.draft: return Colors.orange;
+      case EventStatus.draft: return AppColors.amber500;
       case EventStatus.published: return const Color(0xFF27AE60);
-      case EventStatus.inPlay: return Colors.blue;
+      case EventStatus.inPlay: return AppColors.teamA;
       case EventStatus.suspended: return Colors.deepOrange;
-      case EventStatus.completed: return Colors.grey;
-      case EventStatus.cancelled: return Colors.red;
+      case EventStatus.completed: return AppColors.textSecondary;
+      case EventStatus.cancelled: return AppColors.coral500;
     }
   }
 
@@ -342,7 +342,7 @@ class EventDetailsContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: AppShapes.xl,
               child: Image.network(
                 event.imageUrl!,
                 width: double.infinity,
@@ -352,13 +352,13 @@ class EventDetailsContent extends ConsumerWidget {
             ),
             if (event.description != null && event.description!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Text(
                   event.description!,
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                    fontSize: AppTypography.sizeButton,
+                    fontWeight: AppTypography.weightSemibold,
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
                     height: 1.5,
                   ),
                 ),
@@ -371,9 +371,9 @@ class EventDetailsContent extends ConsumerWidget {
         child: Text(
           event.description!,
           style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+            fontSize: AppTypography.sizeButton,
+            fontWeight: AppTypography.weightSemibold,
+            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
             height: 1.5,
           ),
         ),
@@ -459,21 +459,21 @@ class EventDetailsContent extends ConsumerWidget {
                       icon: Icon(
                         Icons.map_outlined, 
                         color: Theme.of(context).primaryColor,
-                        size: 20,
+                        size: AppShapes.iconMd,
                       ),
                       onPressed: () => _launchMap(event.courseName!, event.courseDetails),
                     ),
                 ],
               ),
               if (event.courseDetails != null && event.courseDetails!.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Padding(
                   padding: const EdgeInsets.only(left: 52),
                   child: Text(
                     event.courseDetails!,
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodySmall?.color,
-                      fontSize: 13,
+                      fontSize: AppTypography.sizeLabelStrong,
                     ),
                   ),
                 ),
@@ -582,37 +582,37 @@ class EventDetailsContent extends ConsumerWidget {
           children: [
             const SizedBox(height: AppTheme.cardSpacing),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                color: AppColors.coral500.withValues(alpha: AppColors.opacitySubtle),
+                borderRadius: AppShapes.xl,
+                border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMedium)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                    Row(
                      children: [
-                       const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24),
-                       const SizedBox(width: 12),
+                       const Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconLg),
+                       const SizedBox(width: AppSpacing.md),
                        Expanded(
                          child: Column(
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: [
                              const Text(
                                'Missing Course Data',
-                               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.red),
+                               style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody, color: AppColors.coral500),
                              ),
                              Text(
                                'Handicaps cannot be accurately calculated.',
-                               style: TextStyle(fontSize: 13, color: Colors.red.withValues(alpha: 0.8)),
+                               style: TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh)),
                              ),
                            ],
                          ),
                        ),
                      ],
                    ),
-                   const SizedBox(height: 20),
+                   const SizedBox(height: AppSpacing.xl),
                    _buildManualDataFixer(context, ref),
                 ],
               ),
@@ -636,11 +636,11 @@ class EventDetailsContent extends ConsumerWidget {
             Expanded(
               child: _buildMiniInput(context, 'Slope', slopeController),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: _buildMiniInput(context, 'Rating', ratingController),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: _buildMiniInput(context, 'Par', parController),
             ),
@@ -677,25 +677,25 @@ class EventDetailsContent extends ConsumerWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+          style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, letterSpacing: 1.0),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Container(
           height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+            color: AppColors.pureWhite,
+            borderRadius: AppShapes.md,
+            border: Border.all(color: AppColors.dark300),
           ),
           child: TextField(
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
             decoration: const InputDecoration(
               border: InputBorder.none,
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 12),
+              contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.md),
             ),
           ),
         ),
@@ -740,65 +740,60 @@ class EventDetailsContent extends ConsumerWidget {
                 Text(
                   isFull ? 'Event Full' : 'Secure your spot',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeLargeBody,
                     letterSpacing: 0.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 if (event.registrationDeadline != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
                     style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8), 
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh), 
+                      fontSize: AppTypography.sizeLabelStrong,
+                      fontWeight: AppTypography.weightExtraBold,
                       letterSpacing: 0.2,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ] else ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     isFull ? 'Join the waitlist below' : 'Register below to join the event',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: AppTypography.sizeLabelStrong),
                     textAlign: TextAlign.center,
                   ),
                 ],
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
           ] else ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 12,
-                  height: 12,
+                  width: AppSpacing.md,
+                  height: AppSpacing.md,
                   decoration: BoxDecoration(
                     color: myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: (myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12)).withValues(alpha: 0.3),
-                        blurRadius: 8,
-                      ),
-                    ],
+                    boxShadow: AppShadows.softScale,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeLargeBody,
                     letterSpacing: 0.5,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
           ],
           BoxyArtButton(
             title: isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now'),
@@ -812,7 +807,7 @@ class EventDetailsContent extends ConsumerWidget {
           ),
           
           if (isRegistered) ...[
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.x3l),
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -822,37 +817,37 @@ class EventDetailsContent extends ConsumerWidget {
                       value: myRegistration.hasPaid ? 'YES' : 'NO',
                       label: 'Paid',
                       icon: Icons.payments_rounded,
-                      color: myRegistration.hasPaid ? const Color(0xFF27AE60) : Colors.grey.shade400,
+                      color: myRegistration.hasPaid ? const Color(0xFF27AE60) : AppColors.dark400,
                       isCompact: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ModernMetricStat(
                       value: myRegistration.attendingBreakfast ? 'YES' : 'NO',
                       label: 'Breakfast',
                       icon: Icons.breakfast_dining_rounded,
-                      color: myRegistration.attendingBreakfast ? const Color(0xFF795548) : Colors.grey.shade400,
+                      color: myRegistration.attendingBreakfast ? const Color(0xFF795548) : AppColors.dark400,
                       isCompact: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ModernMetricStat(
                       value: myRegistration.attendingLunch ? 'YES' : 'NO',
                       label: 'Lunch',
                       icon: Icons.lunch_dining_rounded,
-                      color: myRegistration.attendingLunch ? const Color(0xFFD35400) : Colors.grey.shade400,
+                      color: myRegistration.attendingLunch ? const Color(0xFFD35400) : AppColors.dark400,
                       isCompact: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ModernMetricStat(
                       value: myRegistration.attendingDinner ? 'YES' : 'NO',
                       label: 'Dinner',
                       icon: Icons.dinner_dining_rounded,
-                      color: myRegistration.attendingDinner ? const Color(0xFF2980B9) : Colors.grey.shade400,
+                      color: myRegistration.attendingDinner ? const Color(0xFF2980B9) : AppColors.dark400,
                       isCompact: true,
                     ),
                   ),
@@ -914,22 +909,22 @@ class EventDetailsContent extends ConsumerWidget {
               ],
               if (event.buggyCost != null) ...[
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Divider(height: 1),
                 ),
                 ModernCostRow(
                   label: 'Buggy Hire', 
                   amount: '$currencySymbol${event.buggyCost?.toStringAsFixed(2)}',
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Payable to Pro Shop',
                     style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6), 
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf), 
+                      fontSize: AppTypography.sizeLabelStrong,
+                      fontWeight: AppTypography.weightMedium,
                     ),
                   ),
                 ),
@@ -989,19 +984,19 @@ class EventDetailsContent extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF27AE60).withValues(alpha: 0.1),
+                      color: Color(0xFF27AE60).withValues(alpha: AppColors.opacityLow),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF27AE60)),
+                    child: const Icon(Icons.check_circle_rounded, size: AppShapes.iconSm, color: Color(0xFF27AE60)),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       f,
                       style: TextStyle(
-                        fontWeight: FontWeight.w600, 
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.9),
+                        fontWeight: AppTypography.weightSemibold, 
+                        fontSize: AppTypography.sizeBody,
+                        color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: AppColors.opacityStrong),
                       ),
                     ),
                   ),
@@ -1039,24 +1034,24 @@ class EventDetailsContent extends ConsumerWidget {
     } catch (_) {}
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (note.title != null && note.title!.isNotEmpty) ...[
               Text(
                 note.title!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               const Divider(),
               const SizedBox(height: AppTheme.cardSpacing),
             ],
             if (note.imageUrl != null) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppShapes.lg,
                 child: Image.network(
                   note.imageUrl!,
                   width: double.infinity,
@@ -1065,7 +1060,7 @@ class EventDetailsContent extends ConsumerWidget {
                     height: 150,
                     width: double.infinity,
                     color: Theme.of(context).cardColor,
-                    child: const Icon(Icons.image, color: Colors.grey),
+                    child: const Icon(Icons.image, color: AppColors.textSecondary),
                   ),
                 ),
               ),
@@ -1109,7 +1104,7 @@ class EventDetailsContent extends ConsumerWidget {
                   icon: Icon(
                     Icons.map_outlined,
                     color: Theme.of(context).primaryColor,
-                    size: 20,
+                    size: AppShapes.iconMd,
                   ),
                   onPressed: () => _launchMap(event.dinnerLocation!, null),
                 ),
@@ -1151,18 +1146,18 @@ class EventDetailsContent extends ConsumerWidget {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(AppSpacing.sm),
                           decoration: BoxDecoration(
-                            color: iconColor.withValues(alpha: 0.1),
+                            color: iconColor.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(icon, size: 20, color: iconColor),
+                          child: Icon(icon, size: AppShapes.iconMd, color: iconColor),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1170,26 +1165,26 @@ class EventDetailsContent extends ConsumerWidget {
                               Text(
                                 award.label,
                                 style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: AppTypography.sizeBody,
+                                  fontWeight: AppTypography.weightBold,
                                 ),
                               ),
                               if (award.type.toLowerCase() != 'cup' && award.value > 0)
                                 Text(
                                   'Value: ${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                                    fontSize: AppTypography.sizeLabelStrong,
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                                   ),
                                 )
                               else
                                 Text(
                                   award.type.toUpperCase(),
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: AppTypography.sizeLabel,
+                                    fontWeight: AppTypography.weightExtraBold,
                                     letterSpacing: 0.5,
-                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                                   ),
                                 ),
                             ],
@@ -1199,7 +1194,7 @@ class EventDetailsContent extends ConsumerWidget {
                     ),
                   ),
                   if (!isLast) const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                     child: Divider(),
                   ),
                 ],

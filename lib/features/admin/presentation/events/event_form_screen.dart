@@ -58,17 +58,17 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
             onPressed: () => _showPreview(context, ref, state),
             tooltip: 'Preview',
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: state.isSaving 
               ? const SizedBox(
-                  width: 40,
-                  height: 40,
+                  width: AppSpacing.x4l,
+                  height: AppSpacing.x4l,
                   child: Center(
                     child: SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: AppSpacing.xl,
+                      height: AppSpacing.xl,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
@@ -132,8 +132,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 300),
+      barrierColor: Colors.black.withValues(alpha: 0.54),
+      transitionDuration: AppAnimations.medium,
       pageBuilder: (context, anim1, anim2) {
         return EventDetailsContent(
           event: mockEvent,

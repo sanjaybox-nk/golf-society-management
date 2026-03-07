@@ -52,7 +52,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
       children: [
         // ── SCORE CAP SETTINGS ────────────────────────────────
         const BoxyArtSectionTitle(title: 'SCORE CAP SETTINGS'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<MaxScoreType>(
           label: 'Max Score Type',
@@ -75,7 +75,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         buildInfoBubble(_getMaxScoreTypeDescription(_type)),
 
         if (_type != MaxScoreType.netDoubleBogey) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           buildSliderField(
             label: _type == MaxScoreType.parPlusX ? 'Maximum Strokes Over Par' : 'Fixed Score Cap',
             valueLabel: '$_value',
@@ -87,24 +87,24 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
           ),
         ],
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
           _allowance,
           (val) => setState(() => _allowance = val),
           hint: "Fraction of each player's course handicap applied to the score.",
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
         buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtSwitchField(
           label: 'Hard Cap Playing HC\nOff = Max Cap Index + WHS ·\nOn = HC + WHS',
@@ -115,13 +115,13 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
             ? 'Cap applies to the baseline index. WHS course adjustments may push the playing HC above it.'
             : 'Cap is applied to the final playing HC — a player will never exceed $_handicapCap.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── TIE BREAK ─────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'TIE BREAK'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<TieBreakMethod>(
           label: 'Tie Break Method',
@@ -134,13 +134,13 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         ),
         buildInfoBubble('Back 9 compares the last 9 holes in reverse order. Playoff is a sudden-death hole-off decided manually.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
         const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildSliderField(
           label: 'Number of Rounds',
@@ -151,7 +151,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         ),
         buildInfoBubble('Leave at 1 for single events. Increase for season-long or multi-round series.'),
         if (_roundsCount > 1) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtDropdownField<AggregationMethod>(
             label: 'Series Scoring',
             value: _aggregation,
@@ -164,13 +164,13 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
           buildInfoBubble('Cumulative adds all round scores. Best Round only counts a player\'s lowest gross round.'),
         ],
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── TEAM / GROUP SCORING ──────────────────────────────
         const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<int>(
           label: 'Best X Scores per Flight',
@@ -180,9 +180,9 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         ),
         buildInfoBubble('How many individual scores count towards the group total in the flight view.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

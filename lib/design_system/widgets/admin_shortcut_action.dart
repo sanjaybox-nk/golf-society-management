@@ -1,4 +1,3 @@
-import "package:flutter/material.dart";
 
 
 
@@ -49,20 +48,20 @@ class AdminShortcutAction extends ConsumerWidget {
     if (!canSeeAdmin) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       child: Container(
-        width: 40,
-        height: 40,
+        width: AppSpacing.x4l,
+        height: AppSpacing.x4l,
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           shape: BoxShape.circle,
-          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
         ),
         child: IconButton(
           icon: Icon(
             Icons.admin_panel_settings_rounded,
             color: Theme.of(context).iconTheme.color,
-            size: 20,
+            size: AppShapes.iconMd,
           ),
           tooltip: 'Admin Console',
           onPressed: () => context.go('/admin'),

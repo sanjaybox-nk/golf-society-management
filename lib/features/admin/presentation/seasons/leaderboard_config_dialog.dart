@@ -78,8 +78,8 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
     return Dialog(
       backgroundColor: Colors.black,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Colors.white10),
+        borderRadius: AppShapes.xl,
+        side: BorderSide(color: AppColors.pureWhite.withValues(alpha: 0.10)),
       ),
       child: Container( // Constraint wrapper
         constraints: BoxConstraints(
@@ -88,7 +88,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.x2l),
             child: Form(
               key: _formKey,
               child: Column(
@@ -97,22 +97,22 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
                 children: [
                   const Text(
                     'CONFIGURE LEADERBOARD',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: AppColors.pureWhite, fontSize: AppTypography.sizeLargeBody, fontWeight: AppTypography.weightBold),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   
                   // Common Fields
                   _buildTypeSelector(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: 'Leaderboard Name',
                     controller: _nameController,
                     validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
                   
-                  const SizedBox(height: 24),
-                  const Divider(color: Colors.white10),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.x2l),
+                  Divider(color: AppColors.pureWhite.withValues(alpha: 0.10)),
+                  const SizedBox(height: AppSpacing.lg),
                   
                   // Dynamic Fields
                   if (_selectedType == LeaderboardType.orderOfMerit) _buildOOMFields(),
@@ -120,23 +120,23 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
                   if (_selectedType == LeaderboardType.eclectic) _buildEclecticFields(),
                   if (_selectedType == LeaderboardType.markerCounter) _buildMarkerFields(),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.x3l),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('CANCEL', style: TextStyle(color: Colors.grey)),
+                        child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: AppSpacing.lg),
                       ElevatedButton(
                         onPressed: _save,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,
                           foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3l, vertical: AppSpacing.lg),
                         ),
-                        child: const Text('SAVE', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('SAVE', style: TextStyle(fontWeight: AppTypography.weightBold)),
                       ),
                     ],
                   ),
@@ -153,20 +153,20 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('TYPE', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        const Text('TYPE', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBold)),
+        const SizedBox(height: AppSpacing.sm),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white10,
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.pureWhite.withValues(alpha: 0.10),
+            borderRadius: AppShapes.md,
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<LeaderboardType>(
               value: _selectedType,
               isExpanded: true,
-              dropdownColor: Colors.grey.shade900,
-              style: const TextStyle(color: Colors.white),
+              dropdownColor: AppColors.dark900,
+              style: const TextStyle(color: AppColors.pureWhite),
               onChanged: widget.existingConfig != null ? null : (v) => setState(() => _selectedType = v!),
               items: LeaderboardType.values.map((t) => DropdownMenuItem(
                 value: t,
@@ -184,9 +184,9 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'SCORING RULES', ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         _buildEnumDropdown('Source', OOMSource.values, _oomSource, (v) => setState(() => _oomSource = v!)),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         BoxyArtFormField(
           label: 'Appearance Points (Bonus per event)',
           controller: _appearancePointsController,
@@ -201,15 +201,15 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'LEAGUE RULES', ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         BoxyArtFormField(
           label: 'Best N Rounds (e.g. 6)',
           controller: _bestNController,
           keyboardType: TextInputType.number,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         _buildEnumDropdown('Metric', BestOfMetric.values, _bestOfMetric, (v) => setState(() => _bestOfMetric = v!)),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         _buildEnumDropdown('Tie Break', TiePolicy.values, _tiePolicy, (v) => setState(() => _tiePolicy = v!)),
       ],
     );
@@ -220,7 +220,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'ECLECTIC RULES', ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
          _buildEnumDropdown('Metric', EclecticMetric.values, _eclecticMetric, (v) => setState(() => _eclecticMetric = v!)),
       ],
      );
@@ -231,7 +231,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'TARGET EVENTS', ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -249,9 +249,9 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
                   }
                 });
               },
-              backgroundColor: Colors.white10,
+              backgroundColor: AppColors.pureWhite.withValues(alpha: 0.10),
               selectedColor: Theme.of(context).primaryColor,
-              labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
+              labelStyle: TextStyle(color: isSelected ? Colors.black : AppColors.pureWhite),
             );
           }).toList(),
         ),
@@ -265,20 +265,20 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(), style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        Text(label.toUpperCase(), style: const TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBold)),
+        const SizedBox(height: AppSpacing.sm),
          Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white10,
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.pureWhite.withValues(alpha: 0.10),
+            borderRadius: AppShapes.md,
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<T>(
               value: currentValue,
               isExpanded: true,
-              dropdownColor: Colors.grey.shade900,
-              style: const TextStyle(color: Colors.white),
+              dropdownColor: AppColors.dark900,
+              style: const TextStyle(color: AppColors.pureWhite),
               onChanged: onChanged,
               items: values.map((v) => DropdownMenuItem(
                 value: v,

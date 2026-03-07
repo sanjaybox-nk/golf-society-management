@@ -145,7 +145,7 @@ class CourseInfoCard extends StatelessWidget {
                 front9Pars,
                 1,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               
               // Back 9
               _buildNineHoles(
@@ -156,7 +156,7 @@ class CourseInfoCard extends StatelessWidget {
                 back9Pars,
                 10,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               
               // Totals
               _buildTotalsRow(context, totalPar, totalStrokes, totalAdjustedStrokes, totalPoints, holesPlayed, holePars, holeSIs),
@@ -271,7 +271,7 @@ class CourseInfoCard extends StatelessWidget {
                 SizedBox(width: 50, child: _buildCellHeader(context, '', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(child: _buildCellHeader(context, '${startHole + i}', width: double.infinity)),
-                SizedBox(width: 40, child: _buildCellHeader(context, label, width: 40, isBold: true)),
+                SizedBox(width: AppSpacing.x4l, child: _buildCellHeader(context, label, width: AppSpacing.x4l, isBold: true)),
               ],
             ),
           ),
@@ -280,14 +280,14 @@ class CourseInfoCard extends StatelessWidget {
           // Par row with tee color background
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
+              color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
             ),
             child: Row(
               children: [
                 SizedBox(width: 50, child: _buildCellLabel(context, 'Par', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(child: _buildCell(context, i < pars.length ? '${pars[i]}' : '-', width: double.infinity, isPar: true)),
-                SizedBox(width: 40, child: _buildCell(context, '$totalPar', width: 40, isBold: true)),
+                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, '$totalPar', width: AppSpacing.x4l, isBold: true)),
               ],
             ),
           ),
@@ -299,7 +299,7 @@ class CourseInfoCard extends StatelessWidget {
               SizedBox(width: 50, child: _buildCellLabel(context, 'SI', width: 50)),
               for (int i = 0; i < 9; i++)
                 Expanded(child: _buildCell(context, i < sis.length ? '${sis[i]}' : '-', width: double.infinity)),
-              SizedBox(width: 40, child: _buildCell(context, '', width: 40)),
+              SizedBox(width: AppSpacing.x4l, child: _buildCell(context, '', width: AppSpacing.x4l)),
             ],
           ),
           const Divider(height: 1),
@@ -321,7 +321,7 @@ class CourseInfoCard extends StatelessWidget {
                           : null,
                     ),
                   ),
-                SizedBox(width: 40, child: _buildCell(context, totalScore > 0 || nineScores.any((s) => s != null) ? '$totalScore' : '-', width: 40, isBold: true, isScore: true)),
+                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalScore > 0 || nineScores.any((s) => s != null) ? '$totalScore' : '-', width: AppSpacing.x4l, isBold: true, isScore: true)),
               ],
             ),
             const Divider(height: 1),
@@ -359,7 +359,7 @@ class CourseInfoCard extends StatelessWidget {
                       ),
                     );
                   })(),
-                SizedBox(width: 40, child: _buildCell(context, totalAdjusted > 0 || adjustedScores.any((s) => s != null) ? '$totalAdjusted' : '-', width: 40, isBold: true, isScore: true)),
+                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalAdjusted > 0 || adjustedScores.any((s) => s != null) ? '$totalAdjusted' : '-', width: AppSpacing.x4l, isBold: true, isScore: true)),
               ],
             ),
           ],
@@ -375,11 +375,11 @@ class CourseInfoCard extends StatelessWidget {
                     final result = idx < matchPlayResults!.length ? matchPlayResults![idx] : '';
                     Color? bgColor;
                     if (result == 'W') {
-                      bgColor = Colors.green;
+                      bgColor = AppColors.lime500;
                     } else if (result == 'L') {
-                      bgColor = Colors.red;
+                      bgColor = AppColors.coral500;
                     } else if (result == 'H') {
-                      bgColor = Colors.grey.shade400;
+                      bgColor = AppColors.dark400;
                     }
 
                     return Expanded(
@@ -390,12 +390,12 @@ class CourseInfoCard extends StatelessWidget {
                         isScore: true,
                         isBold: true,
                         overrideBgColor: bgColor,
-                        overrideTextColor: bgColor != null ? Colors.white : Colors.grey.shade400,
+                        overrideTextColor: bgColor != null ? AppColors.pureWhite : AppColors.dark400,
                         scoreDiff: null, 
                       ),
                     );
                   })(),
-                SizedBox(width: 40, child: _buildCell(context, '', width: 40)), // No 9-hole total for Match Play text
+                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, '', width: AppSpacing.x4l)), // No 9-hole total for Match Play text
               ],
             ),
           ],
@@ -409,7 +409,7 @@ class CourseInfoCard extends StatelessWidget {
                 SizedBox(width: 50, child: _buildCellLabel(context, 'Points', width: 50)),
                 for (int i = 0; i < 9; i++)
                   Expanded(child: _buildCell(context, (i < stablefordPoints.length) ? (stablefordPoints[i]?.toString() ?? '-') : '-', width: double.infinity, isPoints: true)),
-                SizedBox(width: 40, child: _buildCell(context, totalPoints > 0 || stablefordPoints.any((p) => p != null) ? '$totalPoints' : '-', width: 40, isBold: true, isPoints: true)),
+                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalPoints > 0 || stablefordPoints.any((p) => p != null) ? '$totalPoints' : '-', width: AppSpacing.x4l, isBold: true, isPoints: true)),
               ],
             ),
         ],
@@ -453,10 +453,10 @@ class CourseInfoCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+        borderRadius: AppShapes.sm,
       ),
       child: Row(
         children: [
@@ -467,7 +467,7 @@ class CourseInfoCard extends StatelessWidget {
               Text(
                 'TOTAL',
                 style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppTypography.weightBlack,
                   letterSpacing: 2.0,
                   color: AppColors.dark150,
                 ),
@@ -476,7 +476,7 @@ class CourseInfoCard extends StatelessWidget {
                 Text(
                   'THRU $holesPlayed',
                   style: AppTypography.caption.copyWith(
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: Colors.black.withValues(alpha: AppColors.opacityHalf),
                     letterSpacing: 2.0,
                   ),
                 ),
@@ -492,14 +492,14 @@ class CourseInfoCard extends StatelessWidget {
                 diff: totalStrokes - parForPlayed,
               ),
             if (isMaxScore && totalAdjusted != totalStrokes) ...[
-               const SizedBox(width: 12),
+               const SizedBox(width: AppSpacing.md),
                _buildTotalStat(context, 'Adjusted', totalAdjusted, isHighlighted: true),
             ],
             if (isStableford) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               _buildTotalStat(context, 'Points', overrideTotalPoints ?? totalPoints),
             ] else if (isNet && netDifferential != null) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               _buildTotalStat(
                 context, 
                 'Net', 
@@ -507,7 +507,7 @@ class CourseInfoCard extends StatelessWidget {
                 diff: netDifferential,
               ),
             ],
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
           ],
             _buildTotalStat(context, 'Par', parForPlayed),
         ],
@@ -534,8 +534,8 @@ class CourseInfoCard extends StatelessWidget {
         Text(
           '$label: ',
           style: AppTypography.label.copyWith(
-            fontSize: 9, 
-            fontWeight: FontWeight.w900, 
+            fontSize: AppTypography.sizeMicroSmall, 
+            fontWeight: AppTypography.weightBlack, 
             color: isHighlighted ? AppColors.lime500 : AppColors.dark200,
             letterSpacing: 0.5,
           ),
@@ -543,19 +543,19 @@ class CourseInfoCard extends StatelessWidget {
         Text(
           displayValue,
           style: AppTypography.label.copyWith(
-            fontSize: 12, 
-            fontWeight: FontWeight.w900,
+            fontSize: AppTypography.sizeLabel, 
+            fontWeight: AppTypography.weightBlack,
             color: isHighlighted ? AppColors.lime500 : AppColors.dark60,
           ),
         ),
         if (diffLabel != null)
           Padding(
-            padding: const EdgeInsets.only(left: 4),
+            padding: const EdgeInsets.only(left: AppSpacing.xs),
             child: Text(
               '($diffLabel)',
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+                fontSize: AppTypography.sizeCaption,
+                fontWeight: AppTypography.weightBold,
                 color: diff! < 0 ? AppColors.lime500 : (diff > 0 ? AppColors.coral500 : AppColors.dark200),
               ),
             ),
@@ -567,13 +567,13 @@ class CourseInfoCard extends StatelessWidget {
   Widget _buildCellHeader(BuildContext context, String text, {double width = 30, bool isBold = false}) {
     return SizedBox(
       width: width,
-      height: 24,
+      height: AppSpacing.x2l,
       child: Center(
         child: Text(
           text,
           style: AppTypography.label.copyWith(
-            fontSize: 9,
-            fontWeight: FontWeight.w900,
+            fontSize: AppTypography.sizeMicroSmall,
+            fontWeight: AppTypography.weightBlack,
             color: AppColors.dark200,
           ),
         ),
@@ -586,7 +586,7 @@ class CourseInfoCard extends StatelessWidget {
       width: width,
       height: 28,
       child: Padding(
-        padding: const EdgeInsets.only(left: 8),
+        padding: const EdgeInsets.only(left: AppSpacing.sm),
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(
@@ -594,8 +594,8 @@ class CourseInfoCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTypography.label.copyWith(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
+              fontSize: AppTypography.sizeMicroSmall,
+              fontWeight: AppTypography.weightBlack,
               color: color ?? AppColors.dark150,
             ),
           ),
@@ -616,16 +616,16 @@ class CourseInfoCard extends StatelessWidget {
         textColor = Colors.black;
       } else if (scoreDiff == -1) { // Birdie
         bgColor = AppColors.lime500;
-        textColor = Colors.white;
+        textColor = AppColors.pureWhite;
       } else if (scoreDiff == 0) { // Par
         bgColor = null; // Transparent
         textColor = Theme.of(context).colorScheme.onSurface;
       } else if (scoreDiff == 1) { // Bogey
         bgColor = AppColors.coral400;
-        textColor = Colors.white;
+        textColor = AppColors.pureWhite;
       } else { // Double Bogey or worse
         bgColor = AppColors.coral500;
-        textColor = Colors.white;
+        textColor = AppColors.pureWhite;
       }
     }
 
@@ -634,18 +634,18 @@ class CourseInfoCard extends StatelessWidget {
       height: 28,
       alignment: Alignment.center,
       child: Container(
-        width: 20,
-        height: 20,
+        width: AppSpacing.xl,
+        height: AppSpacing.xl,
         alignment: Alignment.center,
         decoration: bgColor != null ? BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: AppShapes.xs,
         ) : null,
         child: Text(
           text,
           style: TextStyle(
             fontSize: isSmall ? 8 : ((isScore || isPoints) ? 12 : 11), 
-            fontWeight: FontWeight.w900,
+            fontWeight: AppTypography.weightBlack,
             color: textColor,
           ),
         ),
@@ -684,13 +684,13 @@ class CourseInfoCard extends StatelessWidget {
                      scoreDiff: (rowScores[i] != null && i < pars.length) 
                          ? rowScores[i]! - (pars[i] as int) 
                          : null,
-                     overrideTextColor: isCounting ? (color ?? Colors.black) : color?.withValues(alpha: 0.5),
+                     overrideTextColor: isCounting ? (color ?? Colors.black) : color?.withValues(alpha: AppColors.opacityHalf),
                      // Add a subtle border or dot for counting holes?
                      // For now, extra bold + full opacity is a good start.
                    ),
                  );
                })(),
-             SizedBox(width: 40, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: 40, isBold: true, isScore: true, overrideTextColor: color)),
+             SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: AppSpacing.x4l, isBold: true, isScore: true, overrideTextColor: color)),
            ],
          ),
          const Divider(height: 1), // Separator between rows

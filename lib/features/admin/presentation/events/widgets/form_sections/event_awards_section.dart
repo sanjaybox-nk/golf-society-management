@@ -32,13 +32,13 @@ class EventAwardsSection extends ConsumerWidget {
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateShowAwards(v),
                   ),
                   if (state.showAwards) ...[
-                    const Divider(height: 32),
+                    const Divider(height: AppSpacing.x3l),
                     ...state.awards.asMap().entries.map((entry) {
                       final index = entry.key;
                       final award = entry.value;
                       return Column(
                         children: [
-                          if (index > 0) const Divider(height: 32),
+                          if (index > 0) const Divider(height: AppSpacing.x3l),
                           Row(
                             children: [
                               Expanded(
@@ -49,7 +49,7 @@ class EventAwardsSection extends ConsumerWidget {
                                   onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateAward(index, award.copyWith(label: v)),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 flex: 1,
                                 child: BoxyArtFormField(
@@ -65,15 +65,15 @@ class EventAwardsSection extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           Row(
                             children: ['Cup', 'Cash', 'Voucher'].map((type) {
                               final isSelected = award.type.toLowerCase() == type.toLowerCase();
                               return Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                                   child: SizedBox(
-                                    height: 32,
+                                    height: AppSpacing.x3l,
                                     child: BoxyArtButton(
                                       title: type.toUpperCase(),
                                       onTap: () => ref.read(eventFormNotifierProvider.notifier).updateAward(index, award.copyWith(type: type)),
@@ -87,7 +87,7 @@ class EventAwardsSection extends ConsumerWidget {
                         ],
                       );
                     }),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     BoxyArtButton(
                       title: 'ADD AWARD',
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
@@ -97,7 +97,7 @@ class EventAwardsSection extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
           ],
         );
       },

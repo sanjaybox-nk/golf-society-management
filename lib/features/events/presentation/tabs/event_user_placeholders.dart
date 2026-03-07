@@ -102,7 +102,7 @@ class EventGroupingUserTab extends ConsumerWidget {
           actions: const [],
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+              padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.xl),
               sliver: SliverToBoxAdapter(
                 child: _FieldHubToggle(),
               ),
@@ -110,7 +110,7 @@ class EventGroupingUserTab extends ConsumerWidget {
             if (ref.watch(eventFieldTabProvider) == 0) ...[
               // Registrations View
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 sliver: SliverToBoxAdapter(
                   child: membersAsync.when(
                     data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members),
@@ -137,7 +137,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                 )
               else 
                 SliverPadding(
-                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.pageBottom),
                    sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                          (context, index) {
@@ -148,7 +148,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                             final comp = compAsync.value;
                             
                             return Padding(
-                               padding: const EdgeInsets.only(bottom: 20),
+                               padding: const EdgeInsets.only(bottom: AppSpacing.xl),
                                child: GroupingCard(
                                   group: group,
                                   memberMap: memberMap,
@@ -439,26 +439,26 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             return HeadlessScaffold(
               title: event.title,
               subtitle: 'Live Hub',
-              contentPadding: const EdgeInsets.only(top: 120, left: 20, right: 20, bottom: 20),
+              contentPadding: const EdgeInsets.only(top: 120, left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.xl),
               showBack: true,
               onBack: () => context.go('/events'),
               actions: [
                 if (headerBadgeText != null) 
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                       child: GestureDetector(
                         onTap: headerOnBadgeTap,
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          duration: AppAnimations.fast,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                           decoration: BoxDecoration(
-                            color: headerOnBadgeTap != null ? headerBadgeColor : headerBadgeColor?.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: headerBadgeColor!.withValues(alpha: 0.3)),
+                            color: headerOnBadgeTap != null ? headerBadgeColor : headerBadgeColor?.withValues(alpha: AppColors.opacityLow),
+                            borderRadius: AppShapes.md,
+                            border: Border.all(color: headerBadgeColor!.withValues(alpha: AppColors.opacityMuted)),
                             boxShadow: headerOnBadgeTap != null ? [
                               BoxShadow(
-                                color: headerBadgeColor.withValues(alpha: 0.3),
+                                color: headerBadgeColor.withValues(alpha: AppColors.opacityMuted),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               )
@@ -469,15 +469,15 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                             children: [
                               if (headerOnBadgeTap != null)
                                 const Padding(
-                                  padding: EdgeInsets.only(right: 4.0),
-                                  child: Icon(Icons.check_circle_outline, size: 10, color: Colors.white),
+                                  padding: EdgeInsets.only(right: AppSpacing.xs),
+                                  child: Icon(Icons.check_circle_outline, size: AppShapes.iconXs, color: AppColors.pureWhite),
                                 ),
                               Text(
                                 headerBadgeText,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: AppTypography.sizeCaption,
                                   color: headerOnBadgeTap != null ? AppColors.pureWhite : headerBadgeColor,
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: AppTypography.weightBlack,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -490,13 +490,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ],
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.xl),
                   sliver: SliverToBoxAdapter(
                     child: _LiveHubToggle(event: event),
                   ),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   sliver: SliverToBoxAdapter(
                     child: _buildTabContent(event, comp, leaderboardEntries, effectiveRules),
                   ),
@@ -781,7 +781,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             ),
           ),
           loading: () => const Center(child: Padding(
-            padding: EdgeInsets.all(32.0),
+            padding: EdgeInsets.all(AppSpacing.x3l),
             child: CircularProgressIndicator(),
           )),
           error: (e, s) => Center(child: Text('Error: $e')),
@@ -840,8 +840,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
         if (groups.isEmpty) {
           return const Center(child: Padding(
-            padding: EdgeInsets.all(32.0),
-            child: Text('Grouping is not yet available.', style: TextStyle(color: Colors.grey)),
+            padding: EdgeInsets.all(AppSpacing.x3l),
+            child: Text('Grouping is not yet available.', style: TextStyle(color: AppColors.textSecondary)),
           ));
         }
 
@@ -1142,7 +1142,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         return Column(
           children: [
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4.0), // Consistent label spacing
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.xs), // Consistent label spacing
               child: BoxyArtSectionTitle(title: 'Group Scores'),
             ),
             ListView.builder(
@@ -1178,7 +1178,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         );
       },
       loading: () => const Center(child: Padding(
-        padding: EdgeInsets.all(32.0),
+        padding: EdgeInsets.all(AppSpacing.x3l),
         child: CircularProgressIndicator(),
       )),
       error: (e, s) => Center(child: Text('Error: $e')),
@@ -1320,7 +1320,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1328,7 +1328,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               GestureDetector(
                 onTap: () => _showMarkerSelectionSheet(event, isScoringActive),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(AppTheme.fieldRadius),
@@ -1338,7 +1338,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     children: [
                       Icon(
                         isSelfMarking ? Icons.person : Icons.supervisor_account, 
-                        size: 14, 
+                        size: AppShapes.iconXs, 
                         color: Theme.of(context).primaryColor
                       ),
                       const SizedBox(width: 6),
@@ -1349,13 +1349,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                                 ? 'Marking: ${_getDisplayName(event, targetEntryId).split(' ').first.toUpperCase()}' 
                                 : 'Marking: SELECT'),
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontSize: AppTypography.sizeLabel,
+                          fontWeight: AppTypography.weightBold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_drop_down, size: 16, color: Colors.grey),
+                      const SizedBox(width: AppSpacing.xs),
+                      const Icon(Icons.arrow_drop_down, size: AppShapes.iconSm, color: AppColors.textSecondary),
                     ],
                   ),
                 ),
@@ -1368,24 +1368,24 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                     'HC: ${_formatHcp(baseHcp)}', 
                     style: AppTypography.caption.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppTypography.weightBlack,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Container(
-                    width: 4, 
-                    height: 4, 
+                    width: AppSpacing.xs, 
+                    height: AppSpacing.xs, 
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300, 
+                      color: AppColors.dark300, 
                       shape: BoxShape.circle
                     )
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     'PHC: $playingHcpValue', 
                     style: AppTypography.caption.copyWith(
                       color: AppColors.lime500,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppTypography.weightBlack,
                     ),
                   ),
                 ],
@@ -1400,16 +1400,16 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
            Padding(
              padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
              child: Container(
-               padding: const EdgeInsets.all(12),
+               padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.md,
+                  border: Border.all(color: AppColors.teamA.withValues(alpha: AppColors.opacityMuted)),
                 ),
                child: Row(
                  children: [
-                   const Icon(Icons.info_outline, color: Colors.blue),
-                   const SizedBox(width: 12),
+                   const Icon(Icons.info_outline, color: AppColors.teamA),
+                   const SizedBox(width: AppSpacing.md),
                    Expanded(
                      child: Column(
                        crossAxisAlignment: CrossAxisAlignment.start,
@@ -1417,14 +1417,14 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                          Text(
                            'Partner Scoring Active',
                            style: TextStyle(
-                             fontSize: 12,
-                             fontWeight: FontWeight.bold,
-                             color: Colors.blue.shade800,
+                             fontSize: AppTypography.sizeLabel,
+                             fontWeight: AppTypography.weightBold,
+                             color: AppColors.teamA,
                            ),
                          ),
                          Text(
                            '${partnerName ?? 'Teammate'} is keeping score.',
-                           style: TextStyle(fontSize: 12, color: Colors.blue.shade600),
+                           style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.teamA),
                          ),
                        ],
                      ),
@@ -1433,8 +1433,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                      onPressed: () => _copyScoresFromPartner(partnerCard),
                      style: TextButton.styleFrom(
                        visualDensity: VisualDensity.compact,
-                       foregroundColor: Colors.blue.shade800,
-                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                       foregroundColor: AppColors.teamA,
+                       textStyle: const TextStyle(fontWeight: AppTypography.weightBold),
                      ),
                      child: const Text('SYNC TO ME'),
                    ),
@@ -1447,16 +1447,16 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                  color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.md,
+                  border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityHalf)),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.warning_amber_rounded, color: Colors.deepOrange),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1464,14 +1464,14 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                           const Text(
                             'Score Conflict Detected',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontSize: AppTypography.sizeLabel,
+                              fontWeight: AppTypography.weightBold,
                               color: Colors.deepOrange,
                             ),
                           ),
                           Text(
                             'You and ${partnerName ?? 'Partner'} have different scores.',
-                            style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
+                            style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.amber500),
                           ),
                         ],
                       ),
@@ -1489,14 +1489,14 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             isStableford: isStableford,
             playerHandicap: playingHcpValue,
             scores: gridScores,
-            headerColor: isVerifierView ? Colors.orange.withValues(alpha: 0.3) : null,
+            headerColor: isVerifierView ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : null,
             format: comp?.rules.format ?? CompetitionFormat.stableford, 
             maxScoreConfig: comp?.rules.maxScoreConfig,
             holeLimit: limit,
             matchPlayResults: matchTokens, 
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           HoleByHoleScoringWidget(
             event: event,
@@ -1515,7 +1515,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
           ),
         ],
         
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         
         if (!shouldShowCard)
            _buildInactiveBanner(event),
@@ -1526,22 +1526,22 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
   Widget _buildInactiveBanner(GolfEvent event) {
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.x2l),
         child: Column(
           children: [
-            const Icon(Icons.lock_clock_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
+            const Icon(Icons.lock_clock_outlined, size: AppShapes.iconHero, color: AppColors.textSecondary),
+            const SizedBox(height: AppSpacing.lg),
             const Text(
               'GAME NOT ACTIVE',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: AppTypography.sizeLargeBody, fontWeight: AppTypography.weightBold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Scoring will open on ${DateFormat('EEEE, d MMMM').format(event.date)}.',
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                fontWeight: AppTypography.weightMedium,
               ),
             ),
           ],
@@ -1635,7 +1635,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       isScrollControlled: false, 
       backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppShapes.rXl)),
       ),
       builder: (context) {
         return Consumer(
@@ -1648,42 +1648,42 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             final tees = event.courseConfig.tees;
 
             return Container(
-              padding: const EdgeInsets.only(bottom: 24), 
+              padding: const EdgeInsets.only(bottom: AppSpacing.x2l), 
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Header Handle
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
-                      width: 40, 
-                      height: 4, 
+                      width: AppSpacing.x4l, 
+                      height: AppSpacing.xs, 
                       decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2)
+                        color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
+                        borderRadius: AppShapes.grabber
                       )
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.x2l),
                     Text(
                       'Marker & Tee Selection',
                       style: AppTypography.displayHeading.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppTypography.weightBlack,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
                       child: Row(
                         children: [
-                          Icon(Icons.person_search_outlined, size: 18, color: Theme.of(context).colorScheme.primary),
-                          const SizedBox(width: 8),
+                          Icon(Icons.person_search_outlined, size: AppShapes.iconSm, color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             'SELECT PLAYER TO MARK',
                             style: AppTypography.label.copyWith(
                               color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppTypography.weightBlack,
                               letterSpacing: 1.0,
                             ),
                           ),
@@ -1736,29 +1736,29 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                        );
                     }),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.x3l),
                     
                     // Tip logic
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+                          borderRadius: AppShapes.md,
+                          border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityMedium)),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.lightbulb_outline, size: 16, color: Theme.of(context).colorScheme.primary),
-                            const SizedBox(width: 8),
+                            Icon(Icons.lightbulb_outline, size: AppShapes.iconSm, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: Text(
                                 'Tee overrides update the scorecard immediately for that player.',
                                 style: AppTypography.caption.copyWith(
-                                  fontSize: 10, 
-                                  fontWeight: FontWeight.w900, 
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  fontSize: AppTypography.sizeCaption, 
+                                  fontWeight: AppTypography.weightBlack, 
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                                 ),
                               ),
                             ),
@@ -1805,7 +1805,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         );
         if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Scorecard Submitted Successfully!'), backgroundColor: Colors.green),
+             const SnackBar(content: Text('Scorecard Submitted Successfully!'), backgroundColor: AppColors.lime500),
            );
         }
       } catch (e) {
@@ -1915,7 +1915,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Scores synced successfully!'), backgroundColor: Colors.green),
+            const SnackBar(content: Text('Scores synced successfully!'), backgroundColor: AppColors.lime500),
           );
         }
       } catch (e) {
@@ -1942,7 +1942,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     required String defaultTeeName,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1953,21 +1953,21 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 flex: 1,
                 child: InkWell(
                   onTap: onSelect,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppShapes.md,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 20,
-                          height: 20,
+                          width: AppSpacing.xl,
+                          height: AppSpacing.xl,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isSelected 
                                   ? Theme.of(context).colorScheme.onSurface 
-                                  : Colors.grey.shade400,
+                                  : AppColors.dark400,
                               width: isSelected ? 2 : 1.5,
                             ),
                           ),
@@ -1984,18 +1984,18 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                                 )
                               : null,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.caption.copyWith(
-                              fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                              fontSize: AppTypography.sizeBodySmall,
+                              fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightSemibold,
                               color: isSelected 
                                   ? Theme.of(context).colorScheme.onSurface 
-                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
                             ),
                           ),
                         ),
@@ -2005,7 +2005,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 ),
               ),
               
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               
               // Right Col (Tee Dropdown)
               Expanded(
@@ -2014,7 +2014,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ),
             ],
           ),
-          Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+          Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
         ],
       ),
     );
@@ -2033,17 +2033,17 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
      
      return Container(
        height: 36,
-       padding: const EdgeInsets.symmetric(horizontal: 8),
+       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
        decoration: BoxDecoration(
-         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-         borderRadius: BorderRadius.circular(8),
-         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: AppColors.opacityMuted),
+         borderRadius: AppShapes.sm,
+         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
        ),
        child: DropdownButtonHideUnderline(
          child: DropdownButton<String?>(
            value: currentTeeValue,
            isExpanded: true,
-           icon: const Icon(Icons.arrow_drop_down, size: 20),
+           icon: const Icon(Icons.arrow_drop_down, size: AppShapes.iconMd),
            onChanged: (String? newValue) {
              if (newValue == null) {
                ref.read(markerSelectionProvider.notifier).clearManualTee(entryId);
@@ -2059,20 +2059,20 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                  mainAxisSize: MainAxisSize.min,
                  children: [
                    Container(
-                     width: 8, height: 8,
+                     width: AppSpacing.sm, height: AppSpacing.sm,
                      decoration: BoxDecoration(
                        color: _parseTeeColor(defaultTeeName),
                        shape: BoxShape.circle,
                      ),
                    ),
-                   const SizedBox(width: 8),
+                   const SizedBox(width: AppSpacing.sm),
                    Expanded(
                      child: Text(
                        defaultTeeName,
                        overflow: TextOverflow.ellipsis,
                        style: AppTypography.caption.copyWith(
-                         fontSize: 13, 
-                         fontWeight: FontWeight.w900,
+                         fontSize: AppTypography.sizeLabelStrong, 
+                         fontWeight: AppTypography.weightBlack,
                          color: Theme.of(context).colorScheme.onSurface,
                        ),
                      ),
@@ -2092,20 +2092,20 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                    mainAxisSize: MainAxisSize.min,
                    children: [
                      Container(
-                       width: 8, height: 8,
+                       width: AppSpacing.sm, height: AppSpacing.sm,
                        decoration: BoxDecoration(
                          color: _parseTeeColor(name),
                          shape: BoxShape.circle,
                        ),
                      ),
-                     const SizedBox(width: 8),
+                     const SizedBox(width: AppSpacing.sm),
                      Expanded(
                        child: Text(
                          name,
                          overflow: TextOverflow.ellipsis,
                          style: AppTypography.caption.copyWith(
-                           fontSize: 13, 
-                           fontWeight: FontWeight.w900,
+                           fontSize: AppTypography.sizeLabelStrong, 
+                           fontWeight: AppTypography.weightBlack,
                            color: Theme.of(context).colorScheme.onSurface,
                          ),
                        ),
@@ -2122,7 +2122,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
   Color _parseTeeColor(String teeName) {
     final name = teeName.toLowerCase();
-    if (name.contains('white')) return Colors.white;
+    if (name.contains('white')) return AppColors.pureWhite;
     if (name.contains('yellow')) return const Color(0xFFFFD700);
     if (name.contains('red')) return const Color(0xFFFF4D4D);
     if (name.contains('blue')) return const Color(0xFF1E90FF);
@@ -2130,9 +2130,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     if (name.contains('green')) return const Color(0xFF2ECC71);
     if (name.contains('gold')) return const Color(0xFFFFD700);
     if (name.contains('silver')) return const Color(0xFFC0C0C0);
-    if (name.contains('orange')) return Colors.orange;
-    if (name.contains('purple')) return Colors.purple;
-    return Colors.grey.shade600;
+    if (name.contains('orange')) return AppColors.amber500;
+    if (name.contains('purple')) return AppColors.teamB;
+    return AppColors.dark600;
   }
 } // End of _EventScoresUserTabState
 
@@ -2158,7 +2158,7 @@ class EventStatsUserTab extends ConsumerWidget {
             'Advanced Stats',
             style: AppTypography.caption.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppTypography.weightBlack,
             ),
           ),
           showBack: true,
@@ -2169,7 +2169,7 @@ class EventStatsUserTab extends ConsumerWidget {
               child: compAsync.when(
                 data: (comp) => scorecardsAsync.when(
                   data: (scorecards) => Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom),
                     child: EventStatsTab(
                       event: event,
                       comp: comp,

@@ -34,10 +34,10 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(context).padding.bottom + 20),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(40),
+        color: AppColors.pureWhite,
+        borderRadius: AppShapes.pill,
         boxShadow: AppShadows.floatingAlt,
       ),
       child: Row(
@@ -53,21 +53,21 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
               child: Text(
                 cancelLabel ?? 'Cancel',
                 style: TextStyle(
-                  color: isLoading ? Colors.grey[400] : Colors.grey[800],
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+                  color: isLoading ? AppColors.textSecondary : AppColors.textSecondary,
+                  fontWeight: AppTypography.weightSemibold,
+                  fontSize: AppTypography.sizeBody,
                 ),
               ),
             ),
           ),
           
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           
           // Save Button (50%)
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: AppShapes.x2l,
                 boxShadow: AppShadows.primaryButtonGlow,
               ),
               child: Builder(
@@ -82,13 +82,13 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
                       foregroundColor: textColor,
                       elevation: 0,
                       shadowColor: Colors.transparent,
-                      disabledBackgroundColor: backgroundColor.withValues(alpha: 0.5),
+                      disabledBackgroundColor: backgroundColor.withValues(alpha: AppColors.opacityHalf),
                       shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                       minimumSize: const Size(double.infinity, 56),
                       textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
+                        fontWeight: AppTypography.weightBold,
+                        fontSize: AppTypography.sizeUI,
                         letterSpacing: 0.2,
                       ),
                     ),

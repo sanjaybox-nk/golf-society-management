@@ -69,7 +69,7 @@ class ModernScoringView extends StatelessWidget {
       children: [
         // Hole Ribbon
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: BoxyHoleSelector(
             currentHole: currentHole,
             scores: scores,
@@ -77,11 +77,11 @@ class ModernScoringView extends StatelessWidget {
           ),
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
 
         // Player + Tee Pills Row
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Row(
             children: [
               BoxyArtPill.type(
@@ -94,18 +94,18 @@ class ModernScoringView extends StatelessWidget {
           ),
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         
         // Hero Card
         SizedBox(
           height: 240,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: _buildHeroCard(context, par, si, score, cap),
           ),
         ),
         
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         
         _buildKeypad(context, par, score, cap),
       ],
@@ -141,7 +141,7 @@ class ModernScoringView extends StatelessWidget {
     return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppShapes.x2l,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.x2l),
           child: Column(
@@ -150,11 +150,11 @@ class ModernScoringView extends StatelessWidget {
               Text(
                 'HOLE $currentHole',
                 style: AppTypography.label.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
                   letterSpacing: 2.0,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 'Par $par${si != null ? ' • SI $si' : ''}',
                 style: AppTypography.displaySection.copyWith(
@@ -164,32 +164,26 @@ class ModernScoringView extends StatelessWidget {
               const SizedBox(height: 10),
               // Large Score Display
               Container(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.lime500.withValues(alpha: 0.2),
-                    width: 2,
+                    color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
+                    width: AppShapes.borderMedium,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.lime500.withValues(alpha: 0.15),
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                    )
-                  ],
+                  boxShadow: AppShadows.softScale,
                 ),
                 child: Text(
                   cap != null && score >= cap ? 'MAX' : '$score',
                   style: (cap != null && score >= cap 
-                      ? AppTypography.displayTitle.copyWith(fontSize: 44) 
+                      ? AppTypography.displayTitle.copyWith(fontSize: AppTypography.sizeDisplayLarge) 
                       : AppTypography.displayHero).copyWith(
                     color: cap != null && score >= cap ? AppColors.coral500 : AppColors.lime500,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -197,7 +191,7 @@ class ModernScoringView extends StatelessWidget {
                     label: 'STABLEFORD: $pts pts',
                   ),
                   if (matchResult != null) ...[
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     BoxyArtPill.format(
                       label: 'MATCH: $matchHoleStatus',
                     ),
@@ -222,25 +216,19 @@ class ModernScoringView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppShapes.x2l,
         border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-          width: 1.0,
+          color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
+          width: AppShapes.borderThin,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
+        boxShadow: AppShadows.softScale,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Full-width PLAYER / ME toggle
           _buildMarkerToggle(context),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               ...options.map((val) {
@@ -248,14 +236,14 @@ class ModernScoringView extends StatelessWidget {
                 final isOverCap = cap != null && val > cap;
                 return Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                     child: _buildKeypadButton(context, '$val', val, isSelected, isDisabled: isOverCap),
                   ),
                 );
               }),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: _buildKeypadButton(
                     context, 
                     cap != null ? 'MAX' : '7+', 
@@ -266,7 +254,7 @@ class ModernScoringView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
@@ -277,7 +265,7 @@ class ModernScoringView extends StatelessWidget {
                   onTap: currentScore > 1 ? () => onSetScore(currentHole, currentScore - 1) : null,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 flex: 2,
                 child: BoxyArtButton(
@@ -286,7 +274,7 @@ class ModernScoringView extends StatelessWidget {
                   onTap: currentHole < 18 ? () => onHoleChanged(currentHole + 1) : onShowFullCard,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: BoxyArtButton(
                   title: '',
@@ -310,24 +298,24 @@ class ModernScoringView extends StatelessWidget {
       onTap: isDisabled ? null : () => onSetScore(currentHole, value),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: AppAnimations.fast,
         height: 50,
         decoration: BoxDecoration(
           color: Colors.transparent,
           border: Border(
             bottom: BorderSide(
               color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-              width: 2.0,
+              width: AppShapes.borderMedium,
             ),
           ),
         ),
         child: Center(
           child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
+            duration: AppAnimations.fast,
             style: (isSelected ? AppTypography.displayLocker : AppTypography.displayLargeBody).copyWith(
               color: isSelected 
                   ? (isDark ? AppColors.pureWhite : AppColors.dark900) 
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
             ),
             child: Text(label),
           ),
@@ -343,8 +331,8 @@ class ModernScoringView extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-            width: 1.0,
+            color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
+            width: AppShapes.borderThin,
           ),
         ),
       ),
@@ -366,14 +354,14 @@ class ModernScoringView extends StatelessWidget {
         onTap: isDisabled ? null : () => onTabChanged(tab),
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: AppAnimations.fast,
           height: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
                 color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-                width: 2.0,
+                width: AppShapes.borderMedium,
               ),
             ),
           ),
@@ -382,18 +370,18 @@ class ModernScoringView extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 16,
+                size: AppShapes.iconSm,
                 color: isSelected
                     ? (isDark ? AppColors.pureWhite : AppColors.dark900)
                     : (isDisabled
                         ? (isDark ? AppColors.dark400 : AppColors.dark200)
                         : (isDark ? AppColors.dark150 : AppColors.dark600)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 label,
                 style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppTypography.weightBlack,
                   letterSpacing: 0.5,
                   color: isSelected
                       ? (isDark ? AppColors.pureWhite : AppColors.dark900)
@@ -415,21 +403,21 @@ class ModernScoringView extends StatelessWidget {
   Widget _buildTeePill(BuildContext context, String teeName) {
     final teeColor = _getTeeColor(teeName);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: teeColor.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(10),
+        color: teeColor.withValues(alpha: AppColors.opacityMedium),
+        borderRadius: AppShapes.md,
         border: Border.all(
-          color: teeColor.withValues(alpha: 0.35),
-          width: 1.0,
+          color: teeColor.withValues(alpha: AppColors.opacityMuted),
+          width: AppShapes.borderThin,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: AppSpacing.sm,
+            height: AppSpacing.sm,
             decoration: BoxDecoration(
               color: teeColor,
               shape: BoxShape.circle,
@@ -449,7 +437,7 @@ class ModernScoringView extends StatelessWidget {
 
   Color _getTeeColor(String teeName) {
     final name = teeName.toLowerCase();
-    if (name.contains('white')) return Colors.grey.shade400;
+    if (name.contains('white')) return AppColors.dark400;
     if (name.contains('yellow')) return const Color(0xFFFFD700);
     if (name.contains('red')) return const Color(0xFFFF4D4D);
     if (name.contains('blue')) return const Color(0xFF1E90FF);
@@ -457,8 +445,8 @@ class ModernScoringView extends StatelessWidget {
     if (name.contains('green')) return const Color(0xFF2ECC71);
     if (name.contains('gold')) return const Color(0xFFFFD700);
     if (name.contains('silver')) return const Color(0xFFC0C0C0);
-    if (name.contains('orange')) return Colors.orange;
-    if (name.contains('purple')) return Colors.purple;
-    return Colors.grey;
+    if (name.contains('orange')) return AppColors.amber500;
+    if (name.contains('purple')) return AppColors.teamB;
+    return AppColors.textSecondary;
   }
 }

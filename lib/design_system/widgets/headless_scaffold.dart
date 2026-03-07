@@ -73,9 +73,9 @@ class HeadlessScaffold extends StatelessWidget {
           child: Padding(
             padding: contentPadding ?? EdgeInsets.only(
               top: contentTopPadding,
-              left: 20,
-              right: 20,
-              bottom: 16,
+              left: AppSpacing.xl,
+              right: AppSpacing.xl,
+              bottom: AppSpacing.lg,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class HeadlessScaffold extends StatelessWidget {
                       ),
                     ),
                     if (titleSuffix != null) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       titleSuffix!,
                     ],
                   ],
@@ -117,7 +117,7 @@ class HeadlessScaffold extends StatelessWidget {
                     subtitle!,
                     style: AppTypography.bodySmall.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: AppTypography.weightSemibold,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -170,8 +170,8 @@ class HeadlessScaffold extends StatelessWidget {
           ),
           if (floatingActionButton != null)
             Positioned(
-              bottom: 16,
-              right: 16,
+              bottom: AppSpacing.lg,
+              right: AppSpacing.lg,
               child: floatingActionButton!,
             ),
         ],

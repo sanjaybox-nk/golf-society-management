@@ -47,15 +47,15 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
             final allRoles = [..._standardRoles, ...activeCustomRoles];
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const BoxyArtSectionTitle(title: 'SOCIETY TITLES'),
                   ...allRoles.map((role) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                     child: _buildRoleCard(context, role),
                   )),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.x3l),
                   _buildCreateButton(context),
                   const SizedBox(height: 100),
                 ]),
@@ -75,13 +75,13 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
     const identityColor = Colors.cyan; 
-    final bgColor = identityColor.withValues(alpha: 0.1);
+    final bgColor = identityColor.withValues(alpha: AppColors.opacityLow);
 
     return BoxyArtCard(
       onTap: () {
         context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(role)}');
       },
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
           // Circular Icon Container (56x56)
@@ -96,11 +96,11 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
               child: Icon(
                 icon, 
                 color: identityColor, 
-                size: 24,
+                size: AppShapes.iconLg,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           // Content
           Expanded(
             child: Column(
@@ -110,8 +110,8 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                 Text(
                   role.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    fontSize: AppTypography.sizeButton,
+                    fontWeight: AppTypography.weightExtraBold,
                     letterSpacing: 0.5,
                     color: isDark ? AppColors.pureWhite : AppColors.dark900,
                   ),
@@ -121,7 +121,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTypography.sizeLabelStrong,
                       color: isDark ? AppColors.dark300 : AppColors.dark400,
                     ),
                   ),
@@ -129,17 +129,17 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           // Actions
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
+            icon: const Icon(Icons.edit_outlined, size: AppShapes.iconMd),
             color: isDark ? AppColors.dark400 : AppColors.dark200,
             onPressed: () => _showEditRoleDialog(role),
           ),
           Icon(
             Icons.chevron_right_rounded, 
             color: isDark ? AppColors.dark400 : AppColors.dark300, 
-            size: 20,
+            size: AppShapes.iconMd,
           ),
         ],
       ),
@@ -189,9 +189,9 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
         children: [
           const Text(
             'Renaming this role will update the title for ALL members who currently hold it.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Role Title',
             controller: controller,

@@ -54,18 +54,18 @@ class _StandingsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        color: Colors.black.withValues(alpha: AppColors.opacityMuted),
+        borderRadius: AppShapes.md,
+        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(groupName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 13)),
-          const SizedBox(height: 16),
+          Text(groupName.toUpperCase(), style: const TextStyle(fontWeight: AppTypography.weightBold, color: AppColors.amber500, fontSize: AppTypography.sizeLabelStrong)),
+          const SizedBox(height: AppSpacing.lg),
           Table(
             columnWidths: const {
               0: FlexColumnWidth(4),
@@ -79,21 +79,21 @@ class _StandingsTable extends StatelessWidget {
             children: [
               TableRow(
                 children: ['Player', 'P', 'W', 'L', 'D', 'Diff', 'Pts'].map((h) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(h, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                  child: Text(h, style: const TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
                 )).toList(),
               ),
               ...standings.map((s) => TableRow(
                 children: [
-                   Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(s.playerName, style: const TextStyle(fontSize: 12))),
-                   Text(s.played.toString(), style: const TextStyle(fontSize: 12)),
-                   Text(s.won.toString(), style: const TextStyle(fontSize: 12)),
-                   Text(s.lost.toString(), style: const TextStyle(fontSize: 12)),
-                   Text(s.halved.toString(), style: const TextStyle(fontSize: 12)),
+                   Padding(padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm), child: Text(s.playerName, style: const TextStyle(fontSize: AppTypography.sizeLabel))),
+                   Text(s.played.toString(), style: const TextStyle(fontSize: AppTypography.sizeLabel)),
+                   Text(s.won.toString(), style: const TextStyle(fontSize: AppTypography.sizeLabel)),
+                   Text(s.lost.toString(), style: const TextStyle(fontSize: AppTypography.sizeLabel)),
+                   Text(s.halved.toString(), style: const TextStyle(fontSize: AppTypography.sizeLabel)),
                    Text(s.holeDiff > 0 ? '+${s.holeDiff}' : s.holeDiff.toString(), 
-                       style: TextStyle(fontSize: 11, color: s.holeDiff > 0 ? Colors.green : (s.holeDiff < 0 ? Colors.red : Colors.grey))),
-                   Text(s.points.toString(), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.amber)),
-                ].map((c) => Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: c))).toList(),
+                       style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, color: s.holeDiff > 0 ? AppColors.lime500 : (s.holeDiff < 0 ? AppColors.coral500 : AppColors.textSecondary))),
+                   Text(s.points.toString(), style: const TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightBold, color: AppColors.amber500)),
+                ].map((c) => Padding(padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm), child: Center(child: c))).toList(),
               )),
             ],
           ),

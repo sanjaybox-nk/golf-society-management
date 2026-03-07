@@ -14,7 +14,7 @@ class ModernMetricBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ?? const EdgeInsets.symmetric(vertical: 8),
+      padding: padding ?? const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: children,
@@ -51,21 +51,15 @@ class ModernMetricCircle extends StatelessWidget {
           decoration: BoxDecoration(
             color: themeColor,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            boxShadow: AppShadows.softScale,
           ),
           child: Center(
             child: Text(
               value,
               style: TextStyle(
                 fontSize: value.length > 4 ? 12 : 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                fontWeight: AppTypography.weightBold,
+                color: AppColors.pureWhite,
               ),
             ),
           ),
@@ -74,9 +68,9 @@ class ModernMetricCircle extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: AppTypography.sizeCaptionStrong,
             color: textSecondary,
-            fontWeight: FontWeight.w500,
+            fontWeight: AppTypography.weightMedium,
           ),
         ),
       ],
@@ -110,29 +104,29 @@ class ModernMetricStat extends StatelessWidget {
 
     if (isCompact) {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
         decoration: BoxDecoration(
-          color: isSolid ? color : color.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(16),
-          border: isSolid ? null : Border.all(color: color.withValues(alpha: 0.1), width: 1),
+          color: isSolid ? color : color.withValues(alpha: AppColors.opacityMedium),
+          borderRadius: AppShapes.lg,
+          border: isSolid ? null : Border.all(color: color.withValues(alpha: AppColors.opacityLow), width: AppShapes.borderThin),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 20, color: isSolid ? Colors.white : color),
-              const SizedBox(height: 8),
+              Icon(icon, size: AppShapes.iconMd, color: isSolid ? AppColors.pureWhite : color),
+              const SizedBox(height: AppSpacing.sm),
             ],
             Text(
               value,
               style: AppTypography.displayHeading.copyWith(
-                fontSize: 18,
+                fontSize: AppTypography.sizeLargeBody,
                 color: isSolid 
-                    ? Colors.white 
+                    ? AppColors.pureWhite 
                     : (isDark ? color : AppColors.dark900),
                 letterSpacing: -0.8,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppTypography.weightBlack,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -142,11 +136,11 @@ class ModernMetricStat extends StatelessWidget {
             Text(
               label,
               style: AppTypography.caption.copyWith(
-                fontSize: 10,
+                fontSize: AppTypography.sizeCaption,
                 color: isSolid 
-                    ? Colors.white.withValues(alpha: 0.8) 
+                    ? AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh) 
                     : (isDark ? AppColors.dark200 : AppColors.dark300),
-                fontWeight: FontWeight.w600,
+                fontWeight: AppTypography.weightSemibold,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -165,21 +159,15 @@ class ModernMetricStat extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            boxShadow: AppShadows.softScale,
           ),
           child: Center(
             child: Text(
               value,
               style: TextStyle(
                 fontSize: value.length > 4 ? 12 : 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                fontWeight: AppTypography.weightBold,
+                color: AppColors.pureWhite,
               ),
             ),
           ),
@@ -188,9 +176,9 @@ class ModernMetricStat extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: AppTypography.sizeCaptionStrong,
             color: textSecondary,
-            fontWeight: FontWeight.w500,
+            fontWeight: AppTypography.weightMedium,
           ),
         ),
       ],
@@ -216,7 +204,7 @@ class ModernSummaryIcon extends StatelessWidget {
   @override
   @override
   Widget build(BuildContext context) {
-    final color = active ? (activeColor ?? const Color(0xFF27AE60)) : Colors.grey.shade300;
+    final color = active ? (activeColor ?? const Color(0xFF27AE60)) : AppColors.dark300;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -225,9 +213,9 @@ class ModernSummaryIcon extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 9,
-            fontWeight: active ? FontWeight.bold : FontWeight.normal,
-            color: active ? Colors.black87 : Colors.grey.shade400,
+            fontSize: AppTypography.sizeMicroSmall,
+            fontWeight: active ? AppTypography.weightBold : AppTypography.weightRegular,
+            color: active ? Colors.black.withValues(alpha: 0.87) : AppColors.dark400,
             letterSpacing: 0.2,
           ),
         ),

@@ -41,7 +41,7 @@ class BoxyArtInputField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
             label.toUpperCase(),
             style: AppTypography.label.copyWith(
@@ -216,7 +216,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
             label.toUpperCase(),
             style: AppTypography.label.copyWith(
@@ -228,7 +228,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
           onTap: readOnly ? null : onTap,
           borderRadius: BorderRadius.circular(AppShapes.rLg),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: 18),
             decoration: BoxDecoration(
               color: isDark ? AppColors.dark600 : AppColors.lightHeader,
               borderRadius: BorderRadius.circular(AppShapes.rLg),
@@ -251,7 +251,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
                 ),
                 Icon(
                   Icons.calendar_today_rounded,
-                  size: 20,
+                  size: AppShapes.iconMd,
                   color: isDark ? AppColors.dark200 : AppColors.dark300,
                 ),
               ],
@@ -296,7 +296,7 @@ class BoxyArtSwitchField extends StatelessWidget {
                 ),
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle!,
                   style: AppTypography.helper.copyWith(
@@ -311,9 +311,9 @@ class BoxyArtSwitchField extends StatelessWidget {
           value: value,
           onChanged: onChanged,
           activeThumbColor: AppColors.lime500,
-          activeTrackColor: AppColors.lime500.withValues(alpha: 0.2),
+          activeTrackColor: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
           inactiveThumbColor: AppColors.dark300,
-          inactiveTrackColor: AppColors.dark500.withValues(alpha: 0.5),
+          inactiveTrackColor: AppColors.dark500.withValues(alpha: AppColors.opacityHalf),
           trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.selected)) {
@@ -353,7 +353,7 @@ class BoxyArtSlider extends StatelessWidget {
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         activeTrackColor: primary,
-        inactiveTrackColor: primary.withValues(alpha: 0.15),
+        inactiveTrackColor: primary.withValues(alpha: AppColors.opacityLow),
         thumbColor: primary,
         overlayColor: primary.withValues(alpha: 0.12),
         trackHeight: 4,
@@ -362,8 +362,8 @@ class BoxyArtSlider extends StatelessWidget {
         valueIndicatorColor: primary,
         valueIndicatorTextStyle: const TextStyle(
           color: AppColors.actionText, 
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
+          fontWeight: AppTypography.weightBold,
+          fontSize: AppTypography.sizeLabel,
         ),
       ),
       child: Slider(
@@ -403,7 +403,7 @@ class BoxyArtSwitchTile extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Row(
         children: [
           // Boxed Icon (Standard 44x44)
@@ -411,12 +411,12 @@ class BoxyArtSwitchTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: iconColor.withValues(alpha: AppColors.opacityLow),
+              borderRadius: AppShapes.md,
             ),
             child: Icon(icon, color: iconColor, size: 22),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           // Content
           Expanded(
             child: Column(
@@ -427,7 +427,7 @@ class BoxyArtSwitchTile extends StatelessWidget {
                   label,
                   style: AppTypography.label.copyWith(
                     color: theme.colorScheme.onSurface,
-                    fontSize: 16,
+                    fontSize: AppTypography.sizeBody,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -437,22 +437,22 @@ class BoxyArtSwitchTile extends StatelessWidget {
                     subtitle!,
                     style: AppTypography.caption.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: AppTypography.weightMedium,
                     ),
                   ),
                 ],
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           // Switch
           Switch(
             value: value,
             onChanged: onChanged,
             activeThumbColor: AppColors.lime500,
-            activeTrackColor: AppColors.lime500.withValues(alpha: 0.2),
+            activeTrackColor: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
             inactiveThumbColor: AppColors.dark300,
-            inactiveTrackColor: AppColors.dark500.withValues(alpha: 0.5),
+            inactiveTrackColor: AppColors.dark500.withValues(alpha: AppColors.opacityHalf),
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
             thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
               if (states.contains(WidgetState.selected)) {
@@ -491,9 +491,9 @@ class BoxyArtNavTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: AppShapes.lg,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         child: Row(
           children: [
             // Boxed Icon (Standard 44x44)
@@ -501,12 +501,12 @@ class BoxyArtNavTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: iconColor.withValues(alpha: AppColors.opacityLow),
+                borderRadius: AppShapes.md,
               ),
               child: Icon(icon, color: iconColor, size: 22),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             // Content
             Expanded(
               child: Column(
@@ -517,7 +517,7 @@ class BoxyArtNavTile extends StatelessWidget {
                     title,
                     style: AppTypography.label.copyWith(
                       color: theme.colorScheme.onSurface,
-                      fontSize: 16,
+                      fontSize: AppTypography.sizeBody,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -526,17 +526,17 @@ class BoxyArtNavTile extends StatelessWidget {
                     subtitle,
                     style: AppTypography.caption.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark400,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: AppTypography.weightMedium,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Icon(
               Icons.arrow_forward_ios_rounded, 
               color: isDark ? AppColors.dark400 : AppColors.dark200, 
-              size: 14,
+              size: AppShapes.iconXs,
             ),
           ],
         ),
@@ -570,10 +570,10 @@ class ModernSwitchRow extends StatelessWidget {
           children: [
             if (icon != null) ...[
               if (icon is IconData)
-                Icon(icon, size: 20, color: AppColors.lime500)
+                Icon(icon, size: AppShapes.iconMd, color: AppColors.lime500)
               else
                 (icon as Widget),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
             ],
             Expanded(
               child: BoxyArtSwitchField(
@@ -617,7 +617,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
             label.toUpperCase(),
             style: AppTypography.label.copyWith(
@@ -626,7 +626,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           decoration: BoxDecoration(
             color: isDark ? AppColors.dark600 : AppColors.lightHeader,
             borderRadius: BorderRadius.circular(AppShapes.rLg),

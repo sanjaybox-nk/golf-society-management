@@ -28,9 +28,9 @@ class MemberRolePicker extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFF0F2F5),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppShapes.r2xl)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.x2l),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -39,11 +39,11 @@ class MemberRolePicker extends StatelessWidget {
             Text(
               'Assign Role',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                fontWeight: AppTypography.weightBold,
+                color: Colors.black.withValues(alpha: 0.87),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
@@ -54,7 +54,7 @@ class MemberRolePicker extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),
@@ -71,35 +71,29 @@ class MemberRolePicker extends StatelessWidget {
         Navigator.pop(context);
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: isSelected ? Border.all(color: theme.primaryColor, width: 2) : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: AppColors.pureWhite,
+          borderRadius: AppShapes.lg,
+          border: isSelected ? Border.all(color: theme.primaryColor, width: AppShapes.borderMedium) : null,
+          boxShadow: AppShadows.softScale,
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isSelected ? theme.primaryColor.withValues(alpha: 0.1) : Colors.grey.shade100,
+                color: isSelected ? theme.primaryColor.withValues(alpha: AppColors.opacityLow) : AppColors.dark100,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _getRoleIcon(role),
-                color: isSelected ? theme.primaryColor : Colors.grey,
-                size: 20,
+                color: isSelected ? theme.primaryColor : AppColors.textSecondary,
+                size: AppShapes.iconMd,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,15 +101,15 @@ class MemberRolePicker extends StatelessWidget {
                   Text(
                     _getRoleDisplayName(role),
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? theme.primaryColor : Colors.black87,
+                      fontWeight: AppTypography.weightBold,
+                      color: isSelected ? theme.primaryColor : Colors.black.withValues(alpha: 0.87),
                     ),
                   ),
                   Text(
                     _getRoleDescription(role),
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
+                      color: AppColors.dark600,
+                      fontSize: AppTypography.sizeLabel,
                     ),
                   ),
                 ],

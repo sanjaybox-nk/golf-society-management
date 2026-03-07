@@ -67,13 +67,13 @@ class BoxyArtButton extends ConsumerWidget {
           borderRadius: BorderRadius.circular(config.buttonRadius),
           side: config.useBorders 
               ? BorderSide(
-                  color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                  color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacitySubtle),
                   width: config.borderWidth,
                 )
               : BorderSide.none,
         ),
         elevation: config.useShadows ? 2 : 0,
-        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.1),
+        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: AppColors.opacityLow),
       );
     }
 
@@ -91,7 +91,7 @@ class BoxyArtButton extends ConsumerWidget {
         ? TextButton(
             onPressed: isLoading ? null : onTap,
             style: style,
-            child: _buildContent(style.foregroundColor?.resolve({}) ?? Colors.grey),
+            child: _buildContent(style.foregroundColor?.resolve({}) ?? AppColors.textSecondary),
           )
         : isSecondary
             ? OutlinedButton(
@@ -102,7 +102,7 @@ class BoxyArtButton extends ConsumerWidget {
             : ElevatedButton(
                 onPressed: isLoading ? null : onTap,
                 style: style,
-                child: _buildContent(style.foregroundColor?.resolve({}) ?? Colors.white),
+                child: _buildContent(style.foregroundColor?.resolve({}) ?? AppColors.pureWhite),
               ),
     );
   }
@@ -114,17 +114,17 @@ class BoxyArtButton extends ConsumerWidget {
       children: [
         if (isLoading) ...[
           SizedBox(
-            width: 16,
-            height: 16,
+            width: AppSpacing.lg,
+            height: AppSpacing.lg,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
         ] else if (icon != null) ...[
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 8),
+          Icon(icon, color: color, size: AppShapes.iconSm),
+          const SizedBox(width: AppSpacing.sm),
         ],
         Text(
           title, // Removed uppercase here as the label style might handle it or it might be explicit

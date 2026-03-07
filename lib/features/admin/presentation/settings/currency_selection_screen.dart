@@ -57,7 +57,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Search Bar standardized with BoxyArtInputField
@@ -66,9 +66,9 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 hint: 'Name, code or symbol...',
                 controller: _searchController,
                 onChanged: _filterCurrencies,
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                prefixIcon: const Icon(Icons.search_rounded, size: AppShapes.iconMd),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.x3l),
 
               if (_searchController.text.isEmpty) ...[
                 const BoxyArtSectionTitle(title: 'Popular Currencies', ),
@@ -76,18 +76,18 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                   ref.read(themeControllerProvider.notifier).setCurrency(c.symbol, c.code);
                   context.pop();
                 }),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.x3l),
                 const BoxyArtSectionTitle(title: 'All Currencies', ),
               ],
               
               ..._filteredCurrencies.map((c) {
                 final isSelected = c.code == societyConfig.currencyCode;
-                const identityColor = Colors.green;
+                const identityColor = AppColors.lime500;
                 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: BoxyArtCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     onTap: () {
                       ref.read(themeControllerProvider.notifier).setCurrency(c.symbol, c.code);
                       context.pop();
@@ -99,21 +99,21 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
+                            color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: Text(
                               c.symbol,
                               style: const TextStyle(
-                                color: Colors.green,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                                color: AppColors.lime500,
+                                fontSize: AppTypography.sizeDisplayLocker,
+                                fontWeight: AppTypography.weightBold,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,8 +121,8 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                               Text(
                                 c.name.toUpperCase(),
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: AppTypography.sizeButton,
+                                  fontWeight: AppTypography.weightExtraBold,
                                   letterSpacing: 0.5,
                                   color: isDark ? AppColors.pureWhite : AppColors.dark900,
                                 ),
@@ -131,7 +131,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                               Text(
                                 c.code,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: AppTypography.sizeLabelStrong,
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                 ),
                               ),
@@ -143,18 +143,18 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                             Text(
                               c.symbol,
                               style: AppTypography.label.copyWith(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
+                                fontSize: AppTypography.sizeLargeBody,
+                                fontWeight: AppTypography.weightBold,
                                 color: isSelected ? identityColor : null,
                               ),
                             ),
                             if (isSelected)
                               Padding(
-                                padding: const EdgeInsets.only(left: 12),
+                                padding: const EdgeInsets.only(left: AppSpacing.md),
                                 child: Icon(
                                   Icons.check_circle_rounded,
                                   color: identityColor,
-                                  size: 24,
+                                  size: AppShapes.iconLg,
                                 ),
                               ),
                           ],
@@ -168,11 +168,11 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
               if (_filteredCurrencies.isEmpty)
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(48),
+                    padding: const EdgeInsets.all(AppSpacing.x5l),
                     child: Column(
                       children: [
-                        Icon(Icons.search_off_rounded, size: 48, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
-                        const SizedBox(height: 16),
+                        Icon(Icons.search_off_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
+                        const SizedBox(height: AppSpacing.lg),
                         Text(
                           'No currencies found',
                           style: AppTypography.body.copyWith(
@@ -218,22 +218,22 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: (isSelected ? AppColors.lime500 : Colors.green).withValues(alpha: 0.1),
+                  color: (isSelected ? AppColors.lime500 : AppColors.lime500).withValues(alpha: AppColors.opacityLow),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Text(
                     _getEmoji(c),
-                    style: const TextStyle(fontSize: 20),
+                    style: const TextStyle(fontSize: AppTypography.sizeDisplaySection),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 c.code,
                 style: AppTypography.label.copyWith(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontSize: AppTypography.sizeLabelStrong,
+                  fontWeight: AppTypography.weightExtraBold,
                   letterSpacing: 0.2,
                   color: isSelected ? AppColors.lime500 : null,
                 ),

@@ -63,21 +63,21 @@ class EventStatsTab extends ConsumerWidget {
     if (!isDataReady || (!isAdmin && !statsReleased)) {
       return BoxyArtCard(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(AppSpacing.x3l),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.analytics_outlined, size: 48, color: Colors.grey),
-              const SizedBox(height: 16),
+              const Icon(Icons.analytics_outlined, size: AppShapes.iconHero, color: AppColors.textSecondary),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 isCalculating 
                     ? 'Stats are being calculated as scores come in...' 
                     : 'Stats will be available after scoring starts.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
+                style: const TextStyle(color: AppColors.textSecondary),
               ),
               if (isAdmin && scorecards.isNotEmpty) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtButton(
                   title: 'FORCE REFRESH',
                   onTap: () {
@@ -263,16 +263,16 @@ class EventStatsTab extends ConsumerWidget {
           const BoxyArtSectionTitle(title: 'Society Hero Recap'),
           if (eclecticRound.any((s) => s != null))
             FieldEclecticCard(eclecticScores: eclecticRound, holes: holes),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           BoxyArtCard(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildSmallStat('EAGLES', fieldEagles.toString(), Colors.purple),
-                  _buildSmallStat('BIRDIES', fieldBirdies.toString(), Colors.blue),
-                  _buildSmallStat('PARS', fieldPars.toString(), Colors.green),
+                  _buildSmallStat('EAGLES', fieldEagles.toString(), AppColors.teamB),
+                  _buildSmallStat('BIRDIES', fieldBirdies.toString(), AppColors.teamA),
+                  _buildSmallStat('PARS', fieldPars.toString(), AppColors.lime500),
                 ],
               ),
             ),
@@ -283,50 +283,50 @@ class EventStatsTab extends ConsumerWidget {
             'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
           }),
           if (isStableford) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             StablefordDistributionChart(bucketCounts: stablefordBuckets),
           ],
           SizedBox(height: AppTheme.cardSpacing),
           const BoxyArtSectionTitle(title: 'Performance Trends'),
           SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           ParTypeBreakdown(parTypeAverages: parTypeAverages),
           SizedBox(height: AppTheme.cardSpacing),
           const BoxyArtSectionTitle(title: 'Course Analysis'),
           DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
           SizedBox(height: AppTheme.cardSpacing),
           const BoxyArtSectionTitle(title: 'Hall of Fame'),
           if (maxStreak > 0)
-            AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: Colors.orange),
-          const SizedBox(height: 8),
+            AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: AppColors.amber500),
+          const SizedBox(height: AppSpacing.sm),
           if (maxBounceBacks > 0)
-            AchievementTile(title: 'BOUNCE BACK', playerName: bounceBackPlayer, value: '$maxBounceBacks recoveries today', icon: Icons.trending_up, color: Colors.blue),
-          const SizedBox(height: 8),
+            AchievementTile(title: 'BOUNCE BACK', playerName: bounceBackPlayer, value: '$maxBounceBacks recoveries today', icon: Icons.trending_up, color: AppColors.teamA),
+          const SizedBox(height: AppSpacing.sm),
           if (finisherPlayer != 'None')
-            AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: Colors.purple),
+            AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: AppColors.teamB),
           SizedBox(height: AppTheme.cardSpacing),
           const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
           if (maxBlobs > 0)
-            AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: Colors.red),
-          const SizedBox(height: 8),
+            AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: AppColors.coral500),
+          const SizedBox(height: AppSpacing.sm),
           if (maxParsPlayer > 0)
-            AchievementTile(title: 'THE GRINDER', playerName: grinderPlayer, value: 'Most consistent with $maxParsPlayer pars', icon: Icons.shield, color: Colors.green),
-          const SizedBox(height: 8),
+            AchievementTile(title: 'THE GRINDER', playerName: grinderPlayer, value: 'Most consistent with $maxParsPlayer pars', icon: Icons.shield, color: AppColors.lime500),
+          const SizedBox(height: AppSpacing.sm),
           if (maxBirdsPlayer > 0)
             AchievementTile(title: 'THE SNIPER', playerName: sniperPlayer, value: 'Picked off $maxBirdsPlayer birdies', icon: Icons.gps_fixed, color: Colors.blueGrey),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           if (maxVariance > 3.0)
-            AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: Colors.pink),
+            AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: AppColors.coral400),
           SizedBox(height: AppTheme.cardSpacing),
           SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
         ] else ...[
           if (myScorecard == null)
             const BoxyArtCard(
               child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Center(child: Text('No personal scorecard found for this event.', style: TextStyle(color: Colors.grey))),
+                padding: EdgeInsets.all(AppSpacing.x2l),
+                child: Center(child: Text('No personal scorecard found for this event.', style: TextStyle(color: AppColors.textSecondary))),
               ),
             )
           else
@@ -352,8 +352,8 @@ class EventStatsTab extends ConsumerWidget {
   Widget _buildSmallStat(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: color)),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600)),
+        Text(value, style: TextStyle(fontSize: AppTypography.sizeDisplayLocker, fontWeight: AppTypography.weightBlack, color: color)),
+        Text(label, style: TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontWeight: AppTypography.weightSemibold)),
       ],
     );
   }
@@ -429,35 +429,35 @@ class EventStatsTab extends ConsumerWidget {
         if (myAwards.isNotEmpty) ...[
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary]),
-              borderRadius: BorderRadius.circular(16),
+              gradient: AppGradients.primary(context),
+              borderRadius: AppShapes.lg,
             ),
             child: Column(
               children: [
-                const Icon(Icons.emoji_events, color: Colors.white, size: 32),
-                const SizedBox(height: 8),
-                const Text('AWARD EARNED!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.5)),
-                const SizedBox(height: 4),
-                Text(myAwards.join(' & '), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                const Icon(Icons.emoji_events, color: AppColors.pureWhite, size: AppShapes.iconXl),
+                const SizedBox(height: AppSpacing.sm),
+                const Text('AWARD EARNED!', style: TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabel, letterSpacing: 1.5)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(myAwards.join(' & '), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody)),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
         ],
         PersonalBenchmarkingCard(myAverages: myParTypeAverages, fieldAverages: fieldParTypeAvgs),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         NetComparisonCard(myNet: myScorecard.netTotal ?? grossScore, fieldAvgNet: fieldAvgNet),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         ConsistencyStatCard(myVariance: myVariance, fieldAvgVariance: fieldAvgVariance),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         BounceBackStatCard(myRate: myBounceBackRate, fieldRate: fieldAvgBounceBackRate),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         HoleNemesisComparison(myHardestHoleIdx: myHardestIdx, myHardestHoleDiff: myMaxDiff, fieldHardestHoleIdx: fieldToughestHoleIdx, fieldHardestHoleDiff: fieldHardestHoleDiff),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         HoleComparisonHeatmap(myScorecard: myScorecard, fieldAverages: fieldHoleAvgs, holes: holes),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         AchievementTile(title: 'HANDICAP IMPACT', playerName: 'Round Rating', value: 'Net Differential: ${diff.toStringAsFixed(1)}', icon: Icons.analytics, color: Theme.of(context).colorScheme.primary),
       ],
     );

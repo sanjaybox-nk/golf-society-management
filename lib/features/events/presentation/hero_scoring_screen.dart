@@ -85,23 +85,23 @@ class _HeroScoringScreenState extends ConsumerState<HeroScoringScreen> {
           children: [
             // Drawer handle indicator
             Container(
-              width: 32,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 8),
+              width: AppSpacing.x3l,
+              height: AppSpacing.xs,
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
+                borderRadius: AppShapes.grabber,
               ),
             ),
             Text(
               'HOLE $_currentHole',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2.0),
+              style: const TextStyle(fontSize: AppTypography.sizeBodySmall, fontWeight: AppTypography.weightBlack, letterSpacing: 2.0),
             ),
           ],
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: AppShapes.iconLg),
           onPressed: () => Navigator.of(context).pop(),
           tooltip: 'Dismiss',
         ),

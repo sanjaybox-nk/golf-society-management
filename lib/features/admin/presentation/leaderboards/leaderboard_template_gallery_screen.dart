@@ -29,7 +29,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Start Blank Card (Only available when editing templates in settings)
@@ -46,7 +46,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                 ),
 
               if (!isPicker)
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
               StreamBuilder<List<LeaderboardConfig>>(
                 stream: templatesAsync,
@@ -64,11 +64,11 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.x3l),
                       const BoxyArtSectionTitle(title: 'Saved Templates', ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       ...filtered.map((t) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: _buildTemplateCard(context, t, ref),
                       )),
                     ],
@@ -89,14 +89,14 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
       key: Key(template.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(24),
+          color: AppColors.coral500,
+          borderRadius: AppShapes.x2l,
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
+        child: const Icon(Icons.delete_outline, color: AppColors.pureWhite, size: AppShapes.iconLg),
       ),
       confirmDismiss: (direction) async {
         if (isPicker) return false; // Can't delete from picker mode usually, or maybe we allow? Let's disallow for safety.
@@ -109,7 +109,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
               TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
               TextButton(
                 onPressed: () => context.pop(true), 
-                child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                child: const Text("Delete", style: TextStyle(color: AppColors.coral500)),
               ),
             ],
           ),
@@ -165,10 +165,10 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
 
   Color _getFormatColor(LeaderboardType type) {
     switch (type) {
-      case LeaderboardType.orderOfMerit: return Colors.amber;
-      case LeaderboardType.bestOfSeries: return Colors.blue;
-      case LeaderboardType.eclectic: return Colors.purple;
-      case LeaderboardType.markerCounter: return Colors.green;
+      case LeaderboardType.orderOfMerit: return AppColors.amber500;
+      case LeaderboardType.bestOfSeries: return AppColors.teamA;
+      case LeaderboardType.eclectic: return AppColors.teamB;
+      case LeaderboardType.markerCounter: return AppColors.lime500;
     }
   }
 
@@ -202,7 +202,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final effectiveColor = iconColor ?? (isPrimary ? AppColors.lime500 : (isDark ? AppColors.dark300 : AppColors.dark400));
-    final effectiveBg = iconColor?.withValues(alpha: 0.1) ?? (isPrimary ? AppColors.lime500.withValues(alpha: 0.1) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
+    final effectiveBg = iconColor?.withValues(alpha: AppColors.opacityLow) ?? (isPrimary ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
     
     return BoxyArtCard(
       onTap: onTap,
@@ -221,10 +221,10 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                 child: Icon(
                   icon, 
                   color: effectiveColor,
-                  size: 28,
+                  size: AppShapes.iconLg,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,15 +232,15 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                     Text(
                       title,
                       style: AppTypography.body.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: AppTypography.weightExtraBold,
                         color: isDark ? AppColors.pureWhite : AppColors.dark900,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       subtitle,
                       style: AppTypography.label.copyWith(
-                        fontSize: 12,
+                        fontSize: AppTypography.sizeLabel,
                         color: isDark ? AppColors.dark300 : AppColors.dark400,
                       ),
                     ),
@@ -250,12 +250,12 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
               Icon(
                 Icons.arrow_forward_ios_rounded, 
                 color: isDark ? AppColors.dark400 : AppColors.dark300, 
-                size: 20,
+                size: AppShapes.iconMd,
               ),
             ],
           ),
           if (badges != null && badges.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Wrap(spacing: 0, runSpacing: 8, children: badges),
           ],
         ],

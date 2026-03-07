@@ -59,7 +59,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
     if (key != null && key.currentContext != null) {
       Scrollable.ensureVisible(
         key.currentContext!,
-        duration: animate ? const Duration(milliseconds: 300) : Duration.zero,
+        duration: animate ? AppAnimations.medium : Duration.zero,
         curve: Curves.easeInOut,
         alignment: 0.5, // Centers the item in the view
         alignmentPolicy: ScrollPositionAlignmentPolicy.explicit, // Always force center alignment
@@ -96,8 +96,8 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-              width: 1.0,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacityLow),
+              width: AppShapes.borderThin,
             ),
           ),
         ),
@@ -153,12 +153,12 @@ class _UnderlinedTabItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 48, // Standard touch target
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
               color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-              width: 2.0, // Thinner, sharper underline
+              width: AppShapes.borderMedium, // Thinner, sharper underline
             ),
           ),
         ),
@@ -169,17 +169,17 @@ class _UnderlinedTabItem extends StatelessWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                size: 18,
+                size: AppShapes.iconSm,
                 color: isSelected ? activeTextColor : inactiveTextColor,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
             ],
             Flexible(
               child: Text(
                 label,
                 style: AppTypography.displayMedium.copyWith(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  fontSize: AppTypography.sizeBodySmall,
+                  fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
                   color: isSelected ? activeTextColor : inactiveTextColor,
                   letterSpacing: 0.3,
                 ),

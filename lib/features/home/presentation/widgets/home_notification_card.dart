@@ -29,7 +29,7 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
     final primary = isUrgent ? const Color(0xFFE74C3C) : const Color(0xFFF39C12);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Dismissible(
         key: Key('notif_${widget.notification.id}'),
         direction: DismissDirection.endToStart,
@@ -38,22 +38,22 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
         },
         background: Container(
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 24),
+          padding: const EdgeInsets.only(right: AppSpacing.x2l),
           decoration: BoxDecoration(
             color: const Color(0xFF27AE60),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: AppShapes.xl,
           ),
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.done_all_rounded, color: Colors.white, size: 28),
-              SizedBox(height: 4),
+              Icon(Icons.done_all_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
+              SizedBox(height: AppSpacing.xs),
               Text(
                 'READ',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                  color: AppColors.pureWhite,
+                  fontSize: AppTypography.sizeCaption,
+                  fontWeight: AppTypography.weightBold,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -61,10 +61,10 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
           ),
         ),
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: InkWell(
             onTap: widget.onTap ?? () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: AppShapes.xl,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -73,13 +73,13 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                   width: 52,
                   height: 52,
                   decoration: ShapeDecoration(
-                    color: primary.withValues(alpha: 0.1),
+                    color: primary.withValues(alpha: AppColors.opacityLow),
                     shape: ContinuousRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: AppShapes.x2l,
                     ),
                     shadows: [
                       BoxShadow(
-                        color: primary.withValues(alpha: 0.15),
+                        color: primary.withValues(alpha: AppColors.opacityLow),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -91,7 +91,7 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                     size: 26,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 
                 // Middle: Title and Body
                 Expanded(
@@ -104,25 +104,25 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                             child: Text(
                               widget.notification.title,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontWeight: AppTypography.weightBold,
+                                fontSize: AppTypography.sizeBody,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             _formatTimestamp(widget.notification.timestamp),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: AppTypography.sizeCaptionStrong,
                               color: Theme.of(context).textTheme.bodySmall?.color,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: AppTypography.weightMedium,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       AnimatedSize(
-                        duration: const Duration(milliseconds: 300),
+                        duration: AppAnimations.medium,
                         curve: Curves.easeInOut,
                         child: _buildMessageContent(context),
                       ),
@@ -166,8 +166,8 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
         maxLines: _isExpanded ? null : 2,
         overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 13,
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+          fontSize: AppTypography.sizeLabelStrong,
+          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
           height: 1.4,
         ),
       );

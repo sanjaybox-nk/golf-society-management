@@ -44,7 +44,7 @@ class HoleScoreCard extends StatelessWidget {
       child: AbsorbPointer(
         absorbing: isDisabled,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.sm),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -53,24 +53,24 @@ class HoleScoreCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left_rounded, size: 32, color: onPrevHole != null ? primaryColor : onSurface.withValues(alpha: 0.05)),
+                    icon: Icon(Icons.chevron_left_rounded, size: AppShapes.iconXl, color: onPrevHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
                     onPressed: onPrevHole,
                   ),
                   Text(
                     'H$holeNum',
                     style: textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppTypography.weightBlack,
                       color: onSurface, // Full solid contrast
                       letterSpacing: -2,
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.chevron_right_rounded, size: 32, color: onNextHole != null ? primaryColor : onSurface.withValues(alpha: 0.05)),
+                    icon: Icon(Icons.chevron_right_rounded, size: AppShapes.iconXl, color: onNextHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
                     onPressed: onNextHole,
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               
               // 2. Vertical Stack of Detail Pills (Center-Left)
               Column(
@@ -79,12 +79,12 @@ class HoleScoreCard extends StatelessWidget {
                 children: [
                   _buildPremiumPill(context, 'PAR $par', Colors.blueGrey, width: 60),
                   if (si != null) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     _buildPremiumPill(context, 'SI $si', primaryColor, width: 60),
                   ],
                   if (maxScore != null) ...[
-                    const SizedBox(height: 4),
-                    _buildPremiumPill(context, 'MAX $maxScore', Colors.orange, width: 60),
+                    const SizedBox(height: AppSpacing.xs),
+                    _buildPremiumPill(context, 'MAX $maxScore', AppColors.amber500, width: 60),
                   ],
                 ],
               ),
@@ -102,18 +102,18 @@ class HoleScoreCard extends StatelessWidget {
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: Icon(Icons.keyboard_arrow_left_rounded, size: 40, color: primaryColor),
+                          icon: Icon(Icons.keyboard_arrow_left_rounded, size: AppShapes.iconXl, color: primaryColor),
                           onPressed: onDecrement ?? () {},
                         ),
                       
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                         child: _ScoreDisplay(
                           score: score,
                           hasConflict: hasConflict,
                           isReadOnly: isReadOnly || isDisabled, 
                           onChanged: onScoreChanged,
-                          size: 64, 
+                          size: AppShapes.iconMassive, 
                         ),
                       ),
         
@@ -121,12 +121,12 @@ class HoleScoreCard extends StatelessWidget {
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: Icon(Icons.keyboard_arrow_right_rounded, size: 40, color: primaryColor),
+                          icon: Icon(Icons.keyboard_arrow_right_rounded, size: AppShapes.iconXl, color: primaryColor),
                           onPressed: onIncrement ?? () {},
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   _buildScoreMetadata(score, par),
                 ],
               ),
@@ -142,22 +142,22 @@ class HoleScoreCard extends StatelessWidget {
     
     return Container(
       width: width,
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: baseColor.withValues(alpha: isDark ? 0.15 : 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppShapes.xl,
         border: Border.all(
           color: baseColor.withValues(alpha: isDark ? 0.4 : 0.3),
-          width: 1.5,
+          width: AppShapes.borderLight,
         ),
       ),
       child: Text(
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: baseColor == Colors.blueGrey ? (isDark ? Colors.white70 : Colors.blueGrey.shade800) : baseColor,
-          fontSize: 9,
-          fontWeight: FontWeight.w900,
+          color: baseColor == Colors.blueGrey ? (isDark ? AppColors.pureWhite.withValues(alpha: 0.70) : Colors.blueGrey) : baseColor,
+          fontSize: AppTypography.sizeMicroSmall,
+          fontWeight: AppTypography.weightBlack,
           letterSpacing: 0.5,
         ),
       ),
@@ -168,33 +168,33 @@ class HoleScoreCard extends StatelessWidget {
   Widget _buildScoreMetadata(int score, int par) {
     final diff = score - par;
     String label = 'Par';
-    Color color = Colors.blueGrey.shade700;
+    Color color = Colors.blueGrey;
 
     if (diff == -1) {
       label = 'Birdie';
-      color = Colors.red;
+      color = AppColors.coral500;
     } else if (diff <= -2) {
       label = 'Eagle';
-      color = Colors.amber;
+      color = AppColors.amber500;
     } else if (diff == 1) {
       label = 'Bogey';
-      color = Colors.blue;
+      color = AppColors.teamA;
     } else if (diff >= 2) {
       label = 'Dbl Bogey';
       color = Colors.black;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        color: color.withValues(alpha: AppColors.opacityLow),
+        borderRadius: AppShapes.xs,
       ),
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w900,
+          fontSize: AppTypography.sizeMicroSmall,
+          fontWeight: AppTypography.weightBlack,
           color: color,
           letterSpacing: 0.5,
         ),
@@ -269,27 +269,20 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         width: widget.size,
         height: widget.size,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.pureWhite,
+          borderRadius: AppShapes.lg,
           border: Border.all(
-            color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.05),
-            width: 2,
+            color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+            width: AppShapes.borderMedium,
           ),
-          boxShadow: [
-             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-            ...AppShadows.softScale,
-          ],
+          boxShadow: AppShadows.softScale,
         ),
         alignment: Alignment.center,
         child: Text(
           '${widget.score}',
           style: TextStyle(
             fontSize: widget.size * 0.5,
-            fontWeight: FontWeight.w900,
+            fontWeight: AppTypography.weightBlack,
             color: Colors.black,
             letterSpacing: -1,
           ),
@@ -298,25 +291,25 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
     }
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: AppAnimations.medium,
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.pureWhite,
+        borderRadius: AppShapes.lg,
         border: Border.all(
-          color: widget.hasConflict ? Colors.red : Colors.grey.withValues(alpha: 0.05),
-          width: 2,
+          color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+          width: AppShapes.borderMedium,
         ),
         boxShadow: widget.hasConflict ? [
           BoxShadow(
-            color: Colors.red.withValues(alpha: 0.1),
+            color: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
             blurRadius: 10,
             spreadRadius: 2,
           )
         ] : [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -332,7 +325,7 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         textAlignVertical: TextAlignVertical.center,
         style: TextStyle(
           fontSize: widget.size * 0.5,
-          fontWeight: FontWeight.w900,
+          fontWeight: AppTypography.weightBlack,
           color: Colors.black,
           letterSpacing: -1,
         ),

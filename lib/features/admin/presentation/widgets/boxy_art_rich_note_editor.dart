@@ -65,7 +65,7 @@ class _BoxyArtRichNoteEditorState extends State<BoxyArtRichNoteEditor> {
   Widget build(BuildContext context) {
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
       child: BoxyArtCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,14 +80,14 @@ class _BoxyArtRichNoteEditorState extends State<BoxyArtRichNoteEditor> {
                     decoration: InputDecoration(
                       hintText: widget.titleHint,
                       hintStyle: TextStyle(
-                        color: Colors.grey.withValues(alpha: 0.5),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        color: AppColors.textSecondary.withValues(alpha: AppColors.opacityHalf),
+                        fontWeight: AppTypography.weightBold,
+                        fontSize: AppTypography.sizeBody,
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                     ),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
                   ),
                 ),
                 BoxyArtGlassIconButton(
@@ -97,7 +97,7 @@ class _BoxyArtRichNoteEditorState extends State<BoxyArtRichNoteEditor> {
                   tooltip: 'Add Photo',
                 ),
                 if (widget.showRemoveHeader && widget.onRemove != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   BoxyArtGlassIconButton(
                     icon: Icons.close_rounded,
                     iconSize: 18,
@@ -111,11 +111,11 @@ class _BoxyArtRichNoteEditorState extends State<BoxyArtRichNoteEditor> {
             
             // Image Stack
             if (widget.controller.imageUrl != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppShapes.md,
                     child: widget.controller.imageUrl!.startsWith('http') 
                       ? Image.network(
                           widget.controller.imageUrl!,
@@ -129,8 +129,8 @@ class _BoxyArtRichNoteEditorState extends State<BoxyArtRichNoteEditor> {
                         ),
                   ),
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: AppSpacing.sm,
+                    right: AppSpacing.sm,
                     child: BoxyArtGlassIconButton(
                       icon: Icons.close_rounded,
                       iconSize: 16,
@@ -139,22 +139,22 @@ class _BoxyArtRichNoteEditorState extends State<BoxyArtRichNoteEditor> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               const Divider(),
             ],
 
             // Content Section
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             const Text(
               'CONTENT',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
+                fontWeight: AppTypography.weightBold,
+                fontSize: AppTypography.sizeCaptionStrong,
                 letterSpacing: 1.2,
-                color: Colors.grey,
+                color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             BoxyArtRichEditor(
               controller: widget.controller.quillController,

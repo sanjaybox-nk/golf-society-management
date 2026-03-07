@@ -28,17 +28,17 @@ class AdminSeasonsScreen extends ConsumerWidget {
       ),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),
+          padding: const EdgeInsets.only(top: AppSpacing.x2l, left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'All Seasons', ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               seasonsAsync.when(
                 data: (seasons) {
                   if (seasons.isEmpty) {
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(48.0),
+                        padding: const EdgeInsets.all(AppSpacing.x5l),
                         child: Text(
                           'No seasons created yet',
                           style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
@@ -48,13 +48,13 @@ class AdminSeasonsScreen extends ConsumerWidget {
                   }
                   return Column(
                     children: seasons.map((season) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                       child: _SeasonCard(season: season),
                     )).toList(),
                   );
                 },
                 loading: () => const Padding(
-                  padding: EdgeInsets.all(32.0),
+                  padding: EdgeInsets.all(AppSpacing.x3l),
                   child: Center(child: CircularProgressIndicator()),
                 ),
                 error: (err, stack) => Center(child: Text('Error: $err')),
@@ -77,21 +77,21 @@ class _SeasonCard extends ConsumerWidget {
     final isActive = season.status == SeasonStatus.active;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    const identityColor = Colors.teal;
+    const identityColor = AppColors.lime500;
     final iconColor = isActive ? identityColor : (isDark ? AppColors.dark400 : AppColors.dark300);
-    final bgColor = isActive ? identityColor.withValues(alpha: 0.1) : (isDark ? AppColors.dark800 : AppColors.dark50);
+    final bgColor = isActive ? identityColor.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark800 : AppColors.dark50);
 
     return Dismissible(
       key: Key(season.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        padding: const EdgeInsets.only(right: 24),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
         alignment: Alignment.centerRight,
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.coral500,
+          borderRadius: AppShapes.xl,
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+        child: const Icon(Icons.delete_outline_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
       ),
       confirmDismiss: (direction) async {
         return await showBoxyArtDialog(
@@ -107,7 +107,7 @@ class _SeasonCard extends ConsumerWidget {
       },
       child: BoxyArtCard(
         onTap: () => context.push('/admin/settings/seasons/edit/${season.id}', extra: season),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
           children: [
             // Circular Icon Container (56x56)
@@ -122,11 +122,11 @@ class _SeasonCard extends ConsumerWidget {
                 child: Icon(
                   isActive ? Icons.calendar_today_rounded : Icons.archive_outlined, 
                   color: iconColor, 
-                  size: 24,
+                  size: AppShapes.iconLg,
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             // Content
             Expanded(
               child: Column(
@@ -136,8 +136,8 @@ class _SeasonCard extends ConsumerWidget {
                   Text(
                     season.name.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                      fontSize: AppTypography.sizeButton,
+                      fontWeight: AppTypography.weightExtraBold,
                       letterSpacing: 0.5,
                       color: isDark ? AppColors.pureWhite : AppColors.dark900,
                     ),
@@ -146,7 +146,7 @@ class _SeasonCard extends ConsumerWidget {
                   Text(
                     '${DateFormat('MMM yyyy').format(season.startDate)} - ${DateFormat('MMM yyyy').format(season.endDate)}',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTypography.sizeLabelStrong,
                       color: isDark ? AppColors.dark300 : AppColors.dark400,
                     ),
                   ),
@@ -154,15 +154,15 @@ class _SeasonCard extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded, color: identityColor, size: 12),
-                        const SizedBox(width: 4),
+                        const Icon(Icons.star_rounded, color: identityColor, size: AppShapes.iconXs),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           'CURRENT SEASON',
                           style: TextStyle(
                             color: identityColor,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: AppTypography.weightBlack,
                             letterSpacing: 0.5,
-                            fontSize: 10,
+                            fontSize: AppTypography.sizeCaption,
                           ),
                         ),
                       ],
@@ -171,7 +171,7 @@ class _SeasonCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             // Actions
             if (isActive && !season.isCurrent)
               BoxyArtGlassIconButton(
@@ -204,7 +204,7 @@ class _SeasonCard extends ConsumerWidget {
               IconButton(
                 icon: Icon(
                   Icons.archive_outlined, 
-                  size: 20, 
+                  size: AppShapes.iconMd, 
                   color: isDark ? AppColors.dark400 : AppColors.dark200,
                 ),
                 onPressed: () => _showCloseSeasonDialog(context, ref),
@@ -212,7 +212,7 @@ class _SeasonCard extends ConsumerWidget {
             Icon(
               Icons.chevron_right_rounded, 
               color: isDark ? AppColors.dark400 : AppColors.dark300, 
-              size: 20,
+              size: AppShapes.iconMd,
             ),
           ],
         ),

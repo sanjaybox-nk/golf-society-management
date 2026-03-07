@@ -32,7 +32,7 @@ class MemberTile extends ConsumerWidget {
     
     return BoxyArtCard(
       onTap: onTap ?? () => MemberDetailsModal.show(context, member),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,16 +48,16 @@ class MemberTile extends ConsumerWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: primary.withValues(alpha: 0.1),
-                        width: 2,
+                        color: primary.withValues(alpha: AppColors.opacityLow),
+                        width: AppShapes.borderMedium,
                       ),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(32),
+                      borderRadius: AppShapes.pill,
                       child: member.avatarUrl != null 
                           ? Image.network(member.avatarUrl!, fit: BoxFit.cover)
                           : Container(
-                              color: primary.withValues(alpha: 0.05),
+                              color: primary.withValues(alpha: AppColors.opacitySubtle),
                               child: Center(
                                 child: Text(
                                   '${member.firstName[0]}${member.lastName[0]}',
@@ -72,17 +72,17 @@ class MemberTile extends ConsumerWidget {
                     ),
                   ),
                   if (member.joinedDate != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Since ${member.joinedDate!.year}',
                       style: AppTypography.caption.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                       ),
                     ),
                   ],
                 ],
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: AppSpacing.xl),
               
               // Info Section
               Expanded(
@@ -95,7 +95,7 @@ class MemberTile extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // Metrics Grid
                     Consumer(
@@ -110,7 +110,7 @@ class MemberTile extends ConsumerWidget {
                               'HANDICAP',
                               member.handicap.toStringAsFixed(1),
                             ),
-                            const SizedBox(width: 24),
+                            const SizedBox(width: AppSpacing.x2l),
                             _buildMetricColumn(
                               context,
                               secondaryMetricLabel ?? system.idLabel, // If provided use it, else default
@@ -126,7 +126,7 @@ class MemberTile extends ConsumerWidget {
             ],
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           
           // Status Row
           Row(
@@ -136,7 +136,7 @@ class MemberTile extends ConsumerWidget {
                 member.status.color,
               ),
               if (member.societyRole?.isNotEmpty == true) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 _buildStatusPill(
                   member.societyRole!,
                   primary,
@@ -164,14 +164,14 @@ class MemberTile extends ConsumerWidget {
         Text(
           label,
           style: AppTypography.microSmall.copyWith(
-            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value,
           style: AppTypography.displayLargeBody.copyWith(
-            fontWeight: FontWeight.w900,
+            fontWeight: AppTypography.weightBlack,
           ),
         ),
       ],
@@ -180,11 +180,11 @@ class MemberTile extends ConsumerWidget {
 
   Widget _buildStatusPill(String text, Color color, {bool isOutline = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: isOutline ? null : color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: isOutline ? Border.all(color: color.withValues(alpha: 0.3), width: 1) : null,
+        color: isOutline ? null : color.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.xl,
+        border: isOutline ? Border.all(color: color.withValues(alpha: AppColors.opacityMuted), width: AppShapes.borderThin) : null,
       ),
       child: Text(
         text.toUpperCase(),

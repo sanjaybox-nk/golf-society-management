@@ -34,9 +34,9 @@ class SocietyRolePicker extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.x3l),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -46,18 +46,18 @@ class SocietyRolePicker extends StatelessWidget {
               'Select Society Position',
               style: TextStyle(
                 fontSize: primarySize,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppTypography.weightBlack,
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ...defaultRoles.map((r) => _buildSocietyRoleOption(context, r)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     
                     // Custom Role Action Tile
                     GestureDetector(
@@ -66,24 +66,24 @@ class SocietyRolePicker extends StatelessWidget {
                         _showCustomRoleDialog(context);
                       },
                       child: BoxyArtCard(
-                        padding: const EdgeInsets.all(18),
+                        padding: const EdgeInsets.all(AppSpacing.xl),
                         borderRadius: 16,
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(AppSpacing.sm),
                               decoration: BoxDecoration(
-                                color: theme.primaryColor.withValues(alpha: 0.1),
+                                color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.add_rounded, color: theme.primaryColor, size: 20),
+                              child: Icon(Icons.add_rounded, color: theme.primaryColor, size: AppShapes.iconMd),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: AppSpacing.lg),
                             const Text(
                               'Create Custom Role',
                               style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
+                                fontWeight: AppTypography.weightBlack,
+                                fontSize: AppTypography.sizeBody,
                                 letterSpacing: -0.3,
                               ),
                             ),
@@ -95,7 +95,7 @@ class SocietyRolePicker extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),
@@ -108,24 +108,24 @@ class SocietyRolePicker extends StatelessWidget {
     final primary = theme.primaryColor;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: GestureDetector(
         onTap: () {
           onRoleSelected(role);
           Navigator.pop(context);
         },
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           borderRadius: 16,
-          border: isSelected ? Border.fromBorderSide(BorderSide(color: primary, width: 2)) : null,
+          border: isSelected ? Border.fromBorderSide(BorderSide(color: primary, width: AppShapes.borderMedium)) : null,
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   role,
                   style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeBody,
                     letterSpacing: -0.3,
                     color: isSelected ? primary : null,
                   ),
@@ -153,7 +153,7 @@ class SocietyRolePicker extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
         ),
         TextButton(
           onPressed: () {
@@ -162,7 +162,7 @@ class SocietyRolePicker extends StatelessWidget {
               Navigator.pop(context);
             }
           },
-          child: Text('Save', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+          child: Text('Save', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: AppTypography.weightBold)),
         ),
       ],
     );

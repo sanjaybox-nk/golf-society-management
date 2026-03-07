@@ -1,4 +1,4 @@
-import "package:flutter/material.dart";
+import 'package:golf_society/design_system/design_system.dart';
 
 
 
@@ -13,7 +13,7 @@ class AppShadows {
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.08), // Darker
+      color: Colors.black.withValues(alpha: AppColors.opacitySubtle), // Darker
       offset: const Offset(0, 10),
       blurRadius: 30,
       spreadRadius: 0,
@@ -23,7 +23,7 @@ class AppShadows {
   /// Specifically for form inputs to keep them extremely subtle.
   static final List<BoxShadow> inputSoft = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.05),
+      color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
       offset: const Offset(0, 4),
       blurRadius: 10,
       spreadRadius: 0,
@@ -44,7 +44,7 @@ class AppShadows {
   /// Subtle shadow for text on colored backgrounds.
   static final List<Shadow> textHighlight = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.15),
+      color: Colors.black.withValues(alpha: AppColors.opacityLow),
       offset: const Offset(0, 2),
       blurRadius: 4,
     ),
@@ -54,7 +54,7 @@ class AppShadows {
   /// Darker yellow with 20% opacity.
   static final List<BoxShadow> primaryButtonGlow = [
     BoxShadow(
-      color: const Color(0xFFB89E00).withValues(alpha: 0.20), // Darker yellow
+      color: Color(0xFFB89E00).withValues(alpha: 0.20), // Darker yellow
       offset: const Offset(0, 8),
       blurRadius: 16,
       spreadRadius: 0,

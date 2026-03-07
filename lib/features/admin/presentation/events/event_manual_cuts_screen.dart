@@ -95,7 +95,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
           actions: [
             if (_isSaving)
               const Padding(
-                padding: EdgeInsets.only(right: 16),
+                padding: EdgeInsets.only(right: AppSpacing.lg),
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               )
             else
@@ -106,12 +106,12 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
           ],
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // 1. Search Bar
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                     child: BoxyArtInputField(
                       label: 'FIND PARTICIPANT',
                       hint: 'Search by name...',
@@ -123,7 +123,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
 
                   // 2. Info Text
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                     child: Text(
                       'Assign individual shot adjustments for this specific event. Negative values act as a handicap cut.',
                       style: AppTypography.caption.copyWith(color: AppColors.dark300, fontStyle: FontStyle.italic),
@@ -139,9 +139,9 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                     );
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
                       child: BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                         child: Row(
                           children: [
                             BoxyArtAvatar(
@@ -149,46 +149,46 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                               url: member?.avatarUrl,
                               radius: 22,
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: AppSpacing.lg),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     reg.memberName.toUpperCase(),
-                                    style: AppTypography.label.copyWith(fontSize: 15),
+                                    style: AppTypography.label.copyWith(fontSize: AppTypography.sizeButton),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     'INDEX: ${member?.handicap ?? "N/A"}',
                                     style: AppTypography.caption.copyWith(
                                       color: AppColors.dark300,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: AppTypography.weightSemibold,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: AppSpacing.lg),
                             // Refined numeric input container
                             Container(
                               width: 90,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(8),
+                                color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                                borderRadius: AppShapes.sm,
                               ),
                               alignment: Alignment.center,
                               child: TextField(
                                 controller: controller,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody),
                                 decoration: InputDecoration(
                                   isDense: true,
                                   suffixText: 'pt',
-                                  suffixStyle: AppTypography.caption.copyWith(fontWeight: FontWeight.w900, color: AppColors.dark300),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                  suffixStyle: AppTypography.caption.copyWith(fontWeight: AppTypography.weightBlack, color: AppColors.dark300),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                                   border: InputBorder.none,
                                 ),
                                 onChanged: (val) {
@@ -206,7 +206,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                       ),
                     );
                   }),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: AppSpacing.x4l),
                   BoxyArtButton(
                     title: 'SAVE ADJUSTMENTS',
                     isLoading: _isSaving,

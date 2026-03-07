@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_typography.dart';
-import '../../theme/app_spacing.dart';
-import 'card.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// A standardized tile for displaying scorecard information, 
 /// primarily used in administrative lists.
@@ -34,7 +30,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return BoxyArtCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
       child: Row(
         children: [
           // 1. Leading Section (Ranking Badge or Avatar)
@@ -59,7 +55,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
                   playerName,
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.pureWhite,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppTypography.weightBlack,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -71,7 +67,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
                       secondaryPlayerName!,
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.pureWhite,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppTypography.weightBlack,
                         ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -85,7 +81,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // 3. Trailing Section (Score + Actions)
           Row(
@@ -103,15 +99,15 @@ class BoxyArtScorecardTile extends StatelessWidget {
                 ),
               
               if (trailingActions != null) ...[
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 trailingActions!,
               ],
               
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Icon(
                 Icons.chevron_right_rounded, 
-                color: AppColors.dark400.withValues(alpha: 0.3), 
-                size: 16
+                color: AppColors.dark400.withValues(alpha: AppColors.opacityMuted), 
+                size: AppShapes.iconSm
               ),
             ],
           ),
@@ -147,7 +143,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
         color: AppColors.dark600,
         border: Border.all(
           color: AppColors.dark900,
-          width: 2.0,
+          width: AppShapes.borderMedium,
         ),
       ),
       child: Center(
@@ -155,7 +151,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
           name.isNotEmpty ? name[0].toUpperCase() : '?',
           style: AppTypography.displayHeading.copyWith(
             color: AppColors.dark300,
-            fontWeight: FontWeight.w900,
+            fontWeight: AppTypography.weightBlack,
             fontSize: size * 0.45,
           ),
         ),

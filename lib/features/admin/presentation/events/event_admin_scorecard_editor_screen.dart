@@ -54,7 +54,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
         useScaffold: false, // Nested in EventAdminShell
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.x5l),
             sliver: SliverToBoxAdapter(
               child: compAsync.when(
                 data: (comp) {
@@ -90,11 +90,11 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                     children: [
                       // Player Info Row
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 24.0),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                         child: Row(
                           children: [
                             BoxyArtPill.hc(label: _formatHcp(baseHcp)),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: AppSpacing.sm),
                             BoxyArtPill.phc(context: context, label: '$phc'),
                             const Spacer(),
                             // Tee pill matching design
@@ -115,7 +115,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                         maxScoreConfig: comp?.rules.maxScoreConfig,
                       ),
                       
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       
                       // Admin Keypad
                       AdminScorecardKeypad(
@@ -188,7 +188,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving score: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error saving score: $e'), backgroundColor: AppColors.coral500),
       );
     }
   }
@@ -210,12 +210,12 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
 
   Color _getTeeColor(String teeName) {
     final name = teeName.toLowerCase();
-    if (name.contains('white')) return Colors.grey.shade400;
+    if (name.contains('white')) return AppColors.dark400;
     if (name.contains('yellow')) return const Color(0xFFFFD700);
     if (name.contains('red')) return const Color(0xFFFF4D4D);
     if (name.contains('blue')) return const Color(0xFF1E90FF);
     if (name.contains('black')) return const Color(0xFF2F2F2F);
-    return Colors.grey;
+    return AppColors.textSecondary;
   }
 
   // _resolvePlayerCourseConfig removed as we now use ScoringCalculator

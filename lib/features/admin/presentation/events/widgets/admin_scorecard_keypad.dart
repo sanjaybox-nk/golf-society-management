@@ -30,7 +30,7 @@ class AdminScorecardKeypad extends StatelessWidget {
           onHoleChanged: onHoleChanged,
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
 
         // 2. Number Keypad Row (3, 4, 5, 6, 7+)
         Row(
@@ -39,13 +39,13 @@ class AdminScorecardKeypad extends StatelessWidget {
             for (int i = 3; i <= 6; i++)
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: _buildNumberButton(context, i, currentScore == i),
                 ),
               ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                 child: _buildNumberButton(
                   context, 
                   7, 
@@ -57,7 +57,7 @@ class AdminScorecardKeypad extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // 3. Action Row ([-] [NEXT HOLE] [+])
         Row(
@@ -73,7 +73,7 @@ class AdminScorecardKeypad extends StatelessWidget {
                     : null,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               flex: 2,
               child: BoxyArtButton(
@@ -86,7 +86,7 @@ class AdminScorecardKeypad extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               flex: 1,
               child: BoxyArtButton(
@@ -112,22 +112,22 @@ class AdminScorecardKeypad extends StatelessWidget {
       onTap: () => onSetScore(currentHole, value),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: AppAnimations.fast,
         height: 54,
         decoration: BoxDecoration(
           color: isSelected 
               ? theme.primaryColor 
               : (isDark ? AppColors.dark700 : AppColors.dark50),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppShapes.lg,
           border: Border.all(
             color: isSelected 
                 ? theme.primaryColor 
                 : (isDark ? AppColors.dark600 : AppColors.dark100),
-            width: 1,
+            width: AppShapes.borderThin,
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: theme.primaryColor.withValues(alpha: 0.3),
+              color: theme.primaryColor.withValues(alpha: AppColors.opacityMuted),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )
@@ -138,10 +138,10 @@ class AdminScorecardKeypad extends StatelessWidget {
             label ?? '$value',
             style: AppTypography.displayHeading.copyWith(
               color: isSelected 
-                  ? Colors.white 
+                  ? AppColors.pureWhite 
                   : (isDark ? AppColors.dark100 : AppColors.dark800),
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontSize: AppTypography.sizeDisplaySubPage,
+              fontWeight: AppTypography.weightBlack,
             ),
           ),
         ),

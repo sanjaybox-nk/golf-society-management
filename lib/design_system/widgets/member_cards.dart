@@ -65,7 +65,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = theme.colorScheme.onSurface;
-    final subColor = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
+    final subColor = theme.colorScheme.onSurfaceVariant.withValues(alpha: AppColors.opacityHalf);
     final inputFill = isDark ? AppColors.dark600 : AppColors.dark50;
     final inputBorder = isDark ? AppColors.dark500 : AppColors.dark200;
 
@@ -73,7 +73,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     final system = society.handicapSystem;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.x2l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -91,8 +91,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                            width: 2,
+                            color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
+                            width: AppShapes.borderMedium,
                           ),
                         ),
                         child: CircleAvatar(
@@ -117,20 +117,14 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                 color: Colors.black.withValues(alpha: 0.2),
-                                 blurRadius: 5,
-                                 offset: const Offset(0, 2),
-                                ),
-                              ],
+                              boxShadow: AppShadows.softScale,
                             ),
                             child: const Padding(
-                              padding: EdgeInsets.all(4.0),
+                              padding: EdgeInsets.all(AppSpacing.xs),
                               child: Icon(
                                 Icons.camera_alt,
-                                size: 14,
-                                color: Colors.white,
+                                size: AppShapes.iconXs,
+                                color: AppColors.pureWhite,
                               ),
                             ),
                           ),
@@ -138,7 +132,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     ],
                   ),
                   if (joinedDate != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Since ${joinedDate!.year}',
                       style: AppTypography.microSmall.copyWith(
@@ -148,7 +142,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   ],
                 ],
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: AppSpacing.x2l),
               // Name / Stats Section (Top Right)
               Expanded(
                 child: Column(
@@ -164,7 +158,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // HC / Handicap ID Stats Row (Under Name)
                     if (isEditing)
@@ -175,7 +169,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(left: 4, bottom: 4),
+                                padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs),
                                 child: Text(
                                   'Handicap'.toUpperCase(),
                                   style: AppTypography.micro.copyWith(
@@ -208,12 +202,12 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(left: 4, bottom: 4),
+                                padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs),
                                 child: Text(
                                   system.idLabel.toUpperCase(),
                                   style: AppTypography.micro.copyWith(
@@ -236,7 +230,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                     isDense: true,
                                     border: InputBorder.none,
                                     hintText: system.hintText,
-                                    hintStyle: AppTypography.micro.copyWith(color: Colors.grey.shade400),
+                                    hintStyle: AppTypography.micro.copyWith(color: AppColors.textSecondary),
                                     contentPadding: const EdgeInsets.symmetric(vertical: 10),
                                   ),
                                   style: AppTypography.bodySmall,
@@ -257,15 +251,15 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               color: isDark ? AppColors.dark200 : AppColors.dark300,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             handicapController?.text ?? '-',
                             style: AppTypography.displayLargeBody.copyWith(
-                              fontSize: 16,
+                              fontSize: AppTypography.sizeBody,
                               color: textColor,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
                           // iGolf Group
                           Text(
                             system.idLabel.toUpperCase(),
@@ -273,11 +267,11 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               color: isDark ? AppColors.dark200 : AppColors.dark300,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             handicapIdController?.text ?? '-',
                             style: AppTypography.displayLargeBody.copyWith(
-                              fontSize: 16,
+                              fontSize: AppTypography.sizeBody,
                               color: textColor,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -290,7 +284,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
             ],
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           
           // Row 3: Bottom Row (Status, Fee, Member Badge -> ... -> Society Role)
           Wrap(
@@ -308,8 +302,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               child: Text(
                                 s == MemberStatus.member ? "Active" : s.displayName,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: s == status ? FontWeight.bold : FontWeight.w600,
+                                  fontSize: AppTypography.sizeBodySmall,
+                                  fontWeight: s == status ? AppTypography.weightBold : AppTypography.weightSemibold,
                                   color: s == status 
                                       ? primary 
                                       : (s.color == StatusColors.neutral ? textColor : s.color),
@@ -354,17 +348,11 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   onTap: onSocietyRoleTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: primary,
                       borderRadius: AppShapes.pill,
-                      boxShadow: [
-                        BoxShadow(
-                          color: primary.withValues(alpha: 0.25),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      boxShadow: AppShadows.softScale,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -375,15 +363,15 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             color: AppColors.actionText,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, size: 12, color: AppColors.actionText),
+                        const SizedBox(width: AppSpacing.xs),
+                        const Icon(Icons.keyboard_arrow_down, size: AppShapes.iconXs, color: AppColors.actionText),
                       ],
                     ),
                   ),
                 )
               else if (societyRole?.isNotEmpty == true)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: primary,
                     borderRadius: AppShapes.pill,
@@ -436,10 +424,10 @@ class ModernMemberCard extends StatelessWidget {
         children: [
           // Position badge
           Container(
-            width: 32,
-            height: 32,
+            width: AppSpacing.x3l,
+            height: AppSpacing.x3l,
             decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.15),
+              color: statusColor.withValues(alpha: AppColors.opacityLow),
               borderRadius: AppShapes.sm,
             ),
             child: Center(
@@ -451,7 +439,7 @@ class ModernMemberCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           
           // Name and status
           Expanded(

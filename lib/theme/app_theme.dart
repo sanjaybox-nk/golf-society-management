@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'app_colors.dart';
-import 'app_typography.dart';
 import '../../domain/models/society_config.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// Fairway Design System v3.1 Theme Composition
 class AppTheme {
@@ -64,7 +62,7 @@ class AppTheme {
         centerTitle: true,
         titleTextStyle: AppTypography.displaySection.copyWith(
           color: AppColors.dark60,
-          fontWeight: FontWeight.w900,
+          fontWeight: AppTypography.weightBlack,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
@@ -91,7 +89,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.dark60,
-          side: const BorderSide(color: AppColors.dark500, width: 1.5),
+          side: const BorderSide(color: AppColors.dark500, width: AppShapes.borderLight),
           textStyle: AppTypography.label,
           shape: const StadiumBorder(),
         ),
@@ -109,7 +107,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.dark600,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: BorderSide.none,
@@ -162,7 +160,7 @@ class AppTheme {
         backgroundColor: AppColors.dark600,
         labelStyle: AppTypography.helper.copyWith(color: AppColors.dark60),
         secondaryLabelStyle: AppTypography.helper.copyWith(color: secondaryColor),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
         shape: StadiumBorder(side: const BorderSide(color: AppColors.dark500)),
       ),
 
@@ -230,7 +228,7 @@ class AppTheme {
         centerTitle: true,
         titleTextStyle: AppTypography.displaySection.copyWith(
           color: const Color(0xFF1A1A1A),
-          fontWeight: FontWeight.w900,
+          fontWeight: AppTypography.weightBlack,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
@@ -257,7 +255,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightHeader,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: const BorderSide(color: AppColors.lightBorder),

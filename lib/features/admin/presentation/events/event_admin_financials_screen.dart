@@ -21,18 +21,18 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
           showBack: false,
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildBalanceOverview(context, event),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   const BoxyArtSectionTitle(title: 'Expenses'),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   ...event.expenses.map((e) => _buildExpenseRow(context, ref, event, e)),
                   _buildAddExpenseButton(context, ref, event),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.x3l),
                   const BoxyArtSectionTitle(title: 'Prizes & Awards'),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   ...event.awards.map((a) => _buildAwardRow(context, ref, event, a)),
                   _buildAddAwardButton(context, ref, event),
                 ]),
@@ -54,7 +54,7 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
     final netProfit = registrationRevenue - totalExpenses - cashPrizes;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         children: [
           Row(
@@ -63,12 +63,12 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
                Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('NET POSITION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.2)),
+                  const Text('NET POSITION', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.2)),
                   Text(
                     '${netProfit >= 0 ? '+' : ''}£${netProfit.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 32, 
-                      fontWeight: FontWeight.w900, 
+                      fontSize: AppTypography.sizeDisplayMedium, 
+                      fontWeight: AppTypography.weightBlack, 
                       color: netProfit >= 0 ? AppColors.lime500 : Colors.redAccent,
                       letterSpacing: -1,
                     ),
@@ -76,26 +76,26 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: (netProfit >= 0 ? AppColors.lime500 : Colors.redAccent).withValues(alpha: 0.1),
+                  color: (netProfit >= 0 ? AppColors.lime500 : Colors.redAccent).withValues(alpha: AppColors.opacityLow),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   netProfit >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
                   color: netProfit >= 0 ? AppColors.lime500 : Colors.redAccent,
-                  size: 24,
+                  size: AppShapes.iconLg,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const Divider(),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           _buildMetricRow('Registration Revenue', '£${registrationRevenue.toStringAsFixed(2)}', Icons.payments_outlined),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildMetricRow('Operational Costs', '-£${totalExpenses.toStringAsFixed(2)}', Icons.receipt_long_outlined),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _buildMetricRow('Cash Payouts', '-£${cashPrizes.toStringAsFixed(2)}', Icons.emoji_events_outlined),
         ],
       ),
@@ -105,46 +105,46 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
   Widget _buildMetricRow(String label, String value, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w600)),
+        Icon(icon, size: AppShapes.iconSm, color: AppColors.textSecondary),
+        const SizedBox(width: AppSpacing.sm),
+        Text(label, style: const TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.textSecondary, fontWeight: AppTypography.weightSemibold)),
         const Spacer(),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+        Text(value, style: const TextStyle(fontSize: AppTypography.sizeBodySmall, fontWeight: AppTypography.weightBlack)),
       ],
     );
   }
 
   Widget _buildExpenseRow(BuildContext context, WidgetRef ref, GolfEvent event, EventExpense expense) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: GestureDetector(
         onTap: () => _showExpenseDialog(context, ref, event, expense: expense),
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.dark700.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.dark700.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.md,
                 ),
-                child: Icon(_getCategoryIcon(expense.category), size: 18, color: Colors.grey),
+                child: Icon(_getCategoryIcon(expense.category), size: AppShapes.iconSm, color: AppColors.textSecondary),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(expense.label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                    Text(expense.category.toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                    Text(expense.label, style: const TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeButton)),
+                    Text(expense.category.toUpperCase(), style: const TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5)),
                   ],
                 ),
               ),
-              Text('£${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              const SizedBox(width: 8),
+              Text('£${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
+              const SizedBox(width: AppSpacing.sm),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Colors.redAccent),
+                icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconMd, color: Colors.redAccent),
                 onPressed: () => _deleteExpense(ref, event, expense.id),
               ),
             ],
@@ -156,36 +156,36 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
 
   Widget _buildAwardRow(BuildContext context, WidgetRef ref, GolfEvent event, EventAward award) {
      return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: GestureDetector(
         onTap: () => _showAwardDialog(context, ref, event, award: award),
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: [
                Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.lime500.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.md,
                 ),
-                child: Icon(award.type == 'Cup' ? Icons.emoji_events_rounded : Icons.account_balance_wallet_rounded, size: 18, color: AppColors.lime500),
+                child: Icon(award.type == 'Cup' ? Icons.emoji_events_rounded : Icons.account_balance_wallet_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(award.label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                    Text(award.winnerName ?? 'UNASSIGNED', style: TextStyle(fontSize: 10, color: award.winnerName != null ? AppColors.lime500 : Colors.orange, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                    Text(award.label, style: const TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeButton)),
+                    Text(award.winnerName ?? 'UNASSIGNED', style: TextStyle(fontSize: AppTypography.sizeCaption, color: award.winnerName != null ? AppColors.lime500 : AppColors.amber500, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5)),
                   ],
                 ),
               ),
               if (award.value > 0)
-                Text('£${award.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              const SizedBox(width: 8),
+                Text('£${award.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
+              const SizedBox(width: AppSpacing.sm),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Colors.redAccent),
+                icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconMd, color: Colors.redAccent),
                 onPressed: () => _deleteAward(ref, event, award.id),
               ),
             ],
@@ -227,9 +227,9 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               BoxyArtFormField(label: 'Description', controller: labelController),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               BoxyArtFormField(label: 'Amount (£)', controller: amountController, keyboardType: TextInputType.number),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _buildCategorySelector(category, (val) => setDialogState(() => category = val)),
             ],
           ),
@@ -265,8 +265,8 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-        const SizedBox(height: 8),
+        const Text('Category', style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary)),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: 8,
           children: categories.map((cat) => ChoiceChip(
@@ -295,11 +295,11 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               BoxyArtFormField(label: 'Prize Label (e.g. Winner)', controller: labelController),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               BoxyArtFormField(label: 'Cash Value (£)', controller: valueController, keyboardType: TextInputType.number),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _buildTypeSelector(type, (val) => setDialogState(() => type = val)),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _buildWinnerPicker(context, event, selectedWinnerId, (id, name) {
                 setDialogState(() {
                   selectedWinnerId = id;
@@ -341,8 +341,8 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Award Type', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-        const SizedBox(height: 8),
+        const Text('Award Type', style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary)),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: 8,
           children: types.map((t) => ChoiceChip(
@@ -362,14 +362,14 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Winner (Optional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-        const SizedBox(height: 8),
+        const Text('Winner (Optional)', style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary)),
+        const SizedBox(height: AppSpacing.sm),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+            color: AppColors.pureWhite,
+            borderRadius: AppShapes.md,
+            border: Border.all(color: AppColors.dark300),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(

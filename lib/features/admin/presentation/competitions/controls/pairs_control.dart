@@ -69,7 +69,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
       children: [
         // ── FORMAT ────────────────────────────────────────────
         BoxyArtSectionTitle(title: title),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<CompetitionFormat>(
           label: 'Scoring Format',
@@ -90,18 +90,18 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
           },
         ),
         buildInfoBubble(_getScoringFormatDescription(_scoringFormat, widget.subtype)),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // Format info card
         _buildInfoCardForFormat(),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
           _allowance,
@@ -111,19 +111,19 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
               ? 'WHS recommends 50% of combined team handicap for Foursomes.'
               : 'Fraction of each player\'s course handicap applied. 100% is standard for Fourball.',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
         buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
 
         if (_scoringFormat != CompetitionFormat.matchPlay) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const Divider(height: 1),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
 
           // ── TIE BREAK ───────────────────────────────────────
           const BoxyArtSectionTitle(title: 'TIE BREAK'),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           BoxyArtDropdownField<TieBreakMethod>(
             label: 'Tie Break Method',
@@ -143,7 +143,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
             onChanged: (val) { if (val != null) setState(() => _tieBreak = val); },
           ),
           buildInfoBubble('Back 9 compares the last 9 holes in reverse order to determine who takes priority.'),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
 
           // ── SERIES ────────────────────────────────────────
           buildSliderField(

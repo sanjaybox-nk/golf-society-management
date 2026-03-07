@@ -53,7 +53,7 @@ class MatchesBracketWidget extends ConsumerWidget {
                   minScale: 0.1,
                   maxScale: 2.0,
                   child: Padding(
-                    padding: const EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.all(AppSpacing.x3l),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: sortedRounds.map((roundType) {
@@ -72,8 +72,8 @@ class MatchesBracketWidget extends ConsumerWidget {
                 ),
                 if (isAdmin)
                   Positioned(
-                    top: 16,
-                    right: 16,
+                    top: AppSpacing.lg,
+                    right: AppSpacing.lg,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -82,10 +82,10 @@ class MatchesBracketWidget extends ConsumerWidget {
                           onPressed: () => _promoteWinners(ref, event, scorecards),
                           label: const Text('Promote Winners'),
                           icon: const Icon(Icons.arrow_forward),
-                          backgroundColor: Colors.amber,
+                          backgroundColor: AppColors.amber500,
                         ),
                         if (hasGroupMatches) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           FloatingActionButton.extended(
                             heroTag: 'qualify_groups',
                             onPressed: () => _qualifyFromGroups(ref, event, scorecards),
@@ -137,19 +137,19 @@ class _RoundColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 250,
-      margin: const EdgeInsets.symmetric(horizontal: 24),
+      width: AppShapes.borderMedium,
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 24.0),
+            padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
             child: Text(
               roundName.toUpperCase(),
               style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 12,
+                fontWeight: AppTypography.weightBlack,
+                fontSize: AppTypography.sizeLabel,
                 letterSpacing: 1.2,
-                color: Colors.grey,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
@@ -177,38 +177,32 @@ class _BracketMatchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 32),
+      margin: const EdgeInsets.only(bottom: AppSpacing.x3l),
       decoration: BoxDecoration(
         color: Colors.black,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: AppShapes.sm,
+        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
+        boxShadow: AppShadows.softScale,
       ),
       child: Column(
         children: [
           _buildPlayerRow(match.team1Name ?? (match.team1Ids.isEmpty ? 'BYE' : 'Side A'), result.winningTeamIndex == 0),
-          const Divider(height: 1, color: Colors.white12),
+          Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.12)),
           _buildPlayerRow(match.team2Name ?? (match.team2Ids.isEmpty ? 'BYE' : 'Side B'), result.winningTeamIndex == 1),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             decoration: BoxDecoration(
-              color: _getStatusColor(result.status).withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+              color: _getStatusColor(result.status).withValues(alpha: AppColors.opacityLow),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.rSm)),
             ),
             child: Center(
               child: Text(
                 result.status,
                 style: TextStyle(
                   color: _getStatusColor(result.status),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                  fontSize: AppTypography.sizeCaption,
+                  fontWeight: AppTypography.weightBold,
                 ),
               ),
             ),
@@ -220,7 +214,7 @@ class _BracketMatchTile extends StatelessWidget {
 
   Widget _buildPlayerRow(String name, bool isWinner) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -228,25 +222,25 @@ class _BracketMatchTile extends StatelessWidget {
             child: Text(
               name,
               style: TextStyle(
-                color: isWinner ? Colors.white : Colors.white70,
-                fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
-                fontSize: 12,
+                color: isWinner ? AppColors.pureWhite : AppColors.pureWhite.withValues(alpha: 0.70),
+                fontWeight: isWinner ? AppTypography.weightBold : AppTypography.weightRegular,
+                fontSize: AppTypography.sizeLabel,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           if (isWinner)
-            const Icon(Icons.check_circle, color: Colors.green, size: 14),
+            const Icon(Icons.check_circle, color: AppColors.lime500, size: AppShapes.iconXs),
         ],
       ),
     );
   }
 
   Color _getStatusColor(String status) {
-    if (status == 'A/S') return Colors.orange;
-    if (status.contains('UP') || status.contains('&')) return Colors.blue;
-    return Colors.grey;
+    if (status == 'A/S') return AppColors.amber500;
+    if (status.contains('UP') || status.contains('&')) return AppColors.teamA;
+    return AppColors.textSecondary;
   }
 }
 

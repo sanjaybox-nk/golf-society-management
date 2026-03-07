@@ -114,11 +114,11 @@ class AdminEventsScreen extends ConsumerWidget {
       background: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.error,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppShapes.md,
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
+        child: const Icon(Icons.delete_outline, color: AppColors.pureWhite, size: AppShapes.iconLg),
       ),
       confirmDismiss: (direction) async {
         return await showBoxyArtDialog<bool>(
@@ -128,11 +128,11 @@ class AdminEventsScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context, rootNavigator: true).pop(false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              child: const Text('Delete', style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBold)),
             ),
           ],
         );
@@ -161,7 +161,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     event.title,
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, letterSpacing: -0.4),
+                    style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeUI, letterSpacing: -0.4),
                   ),
                   const SizedBox(height: 6),
                   
@@ -172,19 +172,19 @@ class AdminEventsScreen extends ConsumerWidget {
                     event.courseName ?? 'TBA',
                     Theme.of(context).primaryColor,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   
                   // Time Row
                   _buildIconLabel(
                     context, 
                     Icons.access_time_filled_rounded, 
                     'Reg: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
-                    Colors.grey.shade600,
+                    AppColors.dark600,
                     isRegistration: true,
                   ),
 
                   // Bottom Pill Row
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -200,7 +200,7 @@ class AdminEventsScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       _buildStatusBadge(event),
                     ],
                   ),
@@ -218,7 +218,7 @@ class AdminEventsScreen extends ConsumerWidget {
   Widget _buildInvitationalBadge() {
     return BoxyArtPill(
       label: toTitleCase('Invitational'),
-      color: Colors.purple,
+      color: AppColors.teamB,
     );
   }
 
@@ -226,21 +226,21 @@ class AdminEventsScreen extends ConsumerWidget {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(AppSpacing.xs),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withValues(alpha: AppColors.opacityLow),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 10, color: color),
+          child: Icon(icon, size: AppShapes.iconXs, color: color),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             label,
             style: TextStyle(
               color: Theme.of(context).textTheme.bodySmall?.color,
-              fontSize: 13,
-              fontWeight: isRegistration ? FontWeight.w900 : FontWeight.w600,
+              fontSize: AppTypography.sizeLabelStrong,
+              fontWeight: isRegistration ? AppTypography.weightBlack : AppTypography.weightSemibold,
               letterSpacing: isRegistration ? 0.8 : null,
             ),
             maxLines: 1,
@@ -278,11 +278,11 @@ class AdminEventsScreen extends ConsumerWidget {
     switch (status) {
       case EventStatus.draft:
         statusText = 'DRAFT';
-        statusColor = Colors.orange;
+        statusColor = AppColors.amber500;
         break;
       case EventStatus.inPlay:
         statusText = 'LIVE';
-        statusColor = Colors.blue;
+        statusColor = AppColors.teamA;
         break;
       case EventStatus.suspended:
         statusText = 'SUSPENDED';
@@ -290,11 +290,11 @@ class AdminEventsScreen extends ConsumerWidget {
         break;
       case EventStatus.cancelled:
         statusText = 'CANCELLED';
-        statusColor = Colors.red;
+        statusColor = AppColors.coral500;
         break;
       case EventStatus.completed:
         statusText = 'COMPLETED';
-        statusColor = Colors.grey;
+        statusColor = AppColors.textSecondary;
         break;
       default:
         statusText = 'PUBLISHED';

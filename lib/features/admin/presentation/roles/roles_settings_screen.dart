@@ -27,20 +27,20 @@ class RolesSettingsScreen extends ConsumerWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               ...roles.map((role) {
                 if (role == MemberRole.member) return const SizedBox.shrink();
                 final description = roleDescriptions[role] ?? '';
                 final isDark = Theme.of(context).brightness == Brightness.dark;
-                const identityColor = Colors.purple;
+                const identityColor = AppColors.teamB;
                 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                   child: BoxyArtCard(
                     onTap: () => context.push('/admin/settings/roles/members/${role.index}'),
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(AppSpacing.xl),
                     child: Row(
                       children: [
                         // High Impact Circular Icon Container (56x56)
@@ -48,16 +48,16 @@ class RolesSettingsScreen extends ConsumerWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: identityColor.withValues(alpha: 0.1),
+                            color: identityColor.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             _getRoleIcon(role),
                             color: identityColor,
-                            size: 28,
+                            size: AppShapes.iconLg,
                           ),
                         ),
-                        const SizedBox(width: 20),
+                        const SizedBox(width: AppSpacing.xl),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,17 +65,17 @@ class RolesSettingsScreen extends ConsumerWidget {
                               Text(
                                 _getRoleDisplayName(role).toUpperCase(),
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: AppTypography.sizeBody,
+                                  fontWeight: AppTypography.weightExtraBold,
                                   letterSpacing: 0.5,
                                   color: isDark ? AppColors.pureWhite : AppColors.dark900,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.xs),
                               Text(
                                 description,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: AppTypography.sizeLabelStrong,
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                   height: 1.3,
                                 ),
@@ -86,7 +86,7 @@ class RolesSettingsScreen extends ConsumerWidget {
                         Icon(
                           Icons.chevron_right_rounded, 
                           color: isDark ? AppColors.dark400 : AppColors.dark300,
-                          size: 20,
+                          size: AppShapes.iconMd,
                         ),
                       ],
                     ),

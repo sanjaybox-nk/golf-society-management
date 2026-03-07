@@ -48,7 +48,7 @@ class EventFeedDetailScreen extends ConsumerWidget {
       onBack: () => Navigator.of(context).pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               if (item.type == FeedItemType.flash)
@@ -65,37 +65,37 @@ class EventFeedDetailScreen extends ConsumerWidget {
 
   Widget _buildFlashDetail(EventFeedItem item) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.x2l),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
+        color: AppColors.amber500.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.x2l,
+        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityLow)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.campaign_rounded, color: Colors.orange, size: 28),
-              const SizedBox(width: 12),
+              const Icon(Icons.campaign_rounded, color: AppColors.amber500, size: AppShapes.iconLg),
+              const SizedBox(width: AppSpacing.md),
               Text(
                 'FLASH UPDATE',
                 style: TextStyle(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppTypography.weightBlack,
                   letterSpacing: 1.5,
-                  color: Colors.orange.withValues(alpha: 0.8),
-                  fontSize: 12,
+                  color: AppColors.amber500.withValues(alpha: AppColors.opacityHigh),
+                  fontSize: AppTypography.sizeLabel,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           Text(
             item.content,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: AppTypography.sizeLargeBody,
               height: 1.6,
-              fontWeight: FontWeight.w500,
+              fontWeight: AppTypography.weightMedium,
             ),
           ),
         ],
@@ -116,20 +116,20 @@ class EventFeedDetailScreen extends ConsumerWidget {
     } catch (_) {}
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 32),
+      margin: const EdgeInsets.only(bottom: AppSpacing.x3l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (section.title != null && section.title!.isNotEmpty) ...[
             Text(
               section.title!,
-              style: AppTypography.displayHeading.copyWith(fontSize: 24),
+              style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeDisplayLocker),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
           if (section.imageUrl != null) ...[
             ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: AppShapes.xl,
               child: Image.network(
                 section.imageUrl!,
                 width: double.infinity,
@@ -137,7 +137,7 @@ class EventFeedDetailScreen extends ConsumerWidget {
                 errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
           if (quillController != null)
             QuillEditor.basic(

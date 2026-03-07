@@ -22,8 +22,8 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 300),
+      barrierColor: Colors.black.withValues(alpha: 0.54),
+      transitionDuration: AppAnimations.medium,
       pageBuilder: (context, animation, secondaryAnimation) {
         return MemberDetailsModal(member: member);
       },
@@ -310,7 +310,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         actions: [
           if (!_isEditing && canEdit)
             Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
               child: BoxyArtGlassIconButton(
                 onPressed: () => setState(() => _isEditing = true),
                 icon: Icons.edit_outlined,
@@ -319,29 +319,29 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
             ),
           if (_isEditing)
              Padding(
-              padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+              padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm, bottom: AppSpacing.sm),
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: AppShapes.xl,
                 ),
                 child: TextButton(
                   onPressed: _isSaving ? null : _save,
                   child: _isSaving
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
+                          width: AppSpacing.lg,
+                          height: AppSpacing.lg,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
                           ),
                         )
                       : const Text(
                           'Save',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            color: AppColors.pureWhite,
+                            fontSize: AppTypography.sizeBodySmall,
+                            fontWeight: AppTypography.weightBold,
                           ),
                         ),
                 ),
@@ -351,7 +351,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         bottomNavigationBar: _buildBottomMenu(isAdmin),
         slivers: [
           SliverPadding(
-            padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: 40),
+            padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: AppSpacing.x4l),
             sliver: SliverToBoxAdapter(
               child: Form(
                 key: _formKey,
@@ -416,35 +416,35 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     // Season Highlights (Design 3.1)
                     if (!_isNewMember && widget.member != null) ...[
                       const BoxyArtSectionTitle(title: 'Season Standing'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Consumer(
                         builder: (context, ref, _) {
                           final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
                           return statsAsync.when(
                             data: (stats) => BoxyArtCard(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(AppSpacing.lg),
                               child: Column(
                                 children: [
                                   _buildHighlightRow(
                                     context,
                                     icon: Icons.emoji_events_rounded,
-                                    color: Colors.amber,
+                                    color: AppColors.amber500,
                                     label: 'Order of Merit',
                                     value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
                                   ),
-                                  const Divider(height: 24, indent: 48),
+                                  const Divider(height: AppSpacing.x2l, indent: 48),
                                   _buildHighlightRow(
                                     context,
                                     icon: Icons.grid_view_rounded,
-                                    color: Colors.blue,
+                                    color: AppColors.teamA,
                                     label: 'Starts',
                                     value: '${stats.starts} Matches',
                                   ),
-                                  const Divider(height: 24, indent: 48),
+                                  const Divider(height: AppSpacing.x2l, indent: 48),
                                   _buildHighlightRow(
                                     context,
                                     icon: Icons.park_rounded,
-                                    color: Colors.green,
+                                    color: AppColors.lime500,
                                     label: 'Best Score',
                                     value: stats.bestPts > 0 ? '${stats.bestPts} Pts' : '-',
                                   ),
@@ -489,7 +489,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       phoneFocusNode: _phoneFocusNode,
                       addressFocusNode: _addressFocusNode,
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: AppSpacing.x4l),
                   ],
                 ),
               ),
@@ -508,7 +508,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Keep Editing', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          child: const Text('Keep Editing', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
         ),
         TextButton(
           onPressed: () {
@@ -522,7 +522,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                });
              }
           },
-          child: Text('Discard', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.bold)),
+          child: Text('Discard', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: AppTypography.weightBold)),
         ),
       ],
     );
@@ -546,26 +546,26 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: color.withValues(alpha: AppColors.opacityLow),
+            borderRadius: AppShapes.sm,
           ),
-          child: Icon(icon, size: 18, color: color),
+          child: Icon(icon, size: AppShapes.iconSm, color: color),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            style: const TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeBody),
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            color: color == Colors.amber ? Theme.of(context).primaryColor : color,
+            fontWeight: AppTypography.weightBlack,
+            fontSize: AppTypography.sizeBody,
+            color: color == AppColors.amber500 ? Theme.of(context).primaryColor : color,
           ),
         ),
       ],
@@ -582,8 +582,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       selectedIndex: 2, // Highlight "Members" tab
       onItemSelected: (index) => Navigator.of(context).pop(),
       backgroundColor: isDark ? AppColors.dark900 : Colors.black,
-      activeColor: Colors.white,
-      unselectedColor: Colors.grey.shade600,
+      activeColor: AppColors.pureWhite,
+      unselectedColor: AppColors.dark600,
       items: isAdmin 
         ? const [
             BoxyArtBottomNavItem(

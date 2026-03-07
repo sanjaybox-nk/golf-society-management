@@ -21,12 +21,12 @@ class AdminSettingsScreen extends ConsumerWidget {
       onBack: () => context.go('/admin'),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Localisation
               const BoxyArtSectionTitle(title: 'Localisation'),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -35,23 +35,23 @@ class AdminSettingsScreen extends ConsumerWidget {
                       icon: Icons.currency_exchange_rounded,
                       title: 'Currency',
                       subtitle: '${config.currencyCode} (${config.currencySymbol})',
-                      iconColor: Colors.green,
+                      iconColor: AppColors.lime500,
                       onTap: () => context.push('/admin/settings/currency'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.public_rounded,
                       title: 'Handicap Provider',
                       subtitle: config.handicapSystem.shortName,
-                      iconColor: Colors.blue,
+                      iconColor: AppColors.teamA,
                       onTap: () => context.push('/admin/settings/handicap-system'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.auto_graph_rounded,
                       title: 'Society Cuts',
                       subtitle: (config.societyCutMode != SocietyCutMode.off) ? 'Active' : 'Disabled',
-                      iconColor: Colors.orange,
+                      iconColor: AppColors.amber500,
                       onTap: () => context.push('/admin/settings/society-cuts'),
                     ),
                   ],
@@ -61,7 +61,7 @@ class AdminSettingsScreen extends ConsumerWidget {
 
               // 2. Competition Settings
               const BoxyArtSectionTitle(title: 'Competition Settings'),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -70,16 +70,16 @@ class AdminSettingsScreen extends ConsumerWidget {
                       icon: Icons.groups_3_rounded,
                       title: 'Grouping Strategy',
                       subtitle: _getStrategyLabel(config.groupingStrategy),
-                      iconColor: Colors.indigo,
+                      iconColor: AppColors.teamA,
                       onTap: () => context.push('/admin/settings/grouping-strategy'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtSwitchTile(
                       icon: Icons.splitscreen_rounded,
                       label: 'Guest Leaderboards',
                       subtitle: 'Show guests in their own section.',
                       value: config.separateGuestLeaderboard,
-                      iconColor: Colors.teal,
+                      iconColor: AppColors.lime500,
                       onChanged: (val) {
                         ref.read(themeControllerProvider.notifier).setSeparateGuestLeaderboard(val);
                       },
@@ -91,7 +91,7 @@ class AdminSettingsScreen extends ConsumerWidget {
 
               // 3. Society Configurations
               const BoxyArtSectionTitle(title: 'Society Configurations'),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -103,44 +103,44 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: const Color(0xFF1A237E),
                       onTap: () => context.push('/admin/settings/committee-roles'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.rule_folder_rounded,
                       title: 'Game Templates',
                       subtitle: 'Manage competition formats & rules',
-                      iconColor: Colors.orange,
+                      iconColor: AppColors.amber500,
                       onTap: () => context.push('/admin/settings/templates'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.emoji_events_rounded,
                       title: 'Leaderboard Templates',
                       subtitle: 'Manage season point systems',
-                      iconColor: Colors.amber,
+                      iconColor: AppColors.amber500,
                       onTap: () => context.push('/admin/settings/leaderboards'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.layers_rounded,
                       title: 'Manage Seasons',
                       subtitle: 'Archive and setup event seasons',
-                      iconColor: Colors.teal,
+                      iconColor: AppColors.lime500,
                       onTap: () => context.push('/admin/settings/seasons'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.notifications_rounded,
                       title: 'Notifications',
                       subtitle: 'Push notification preferences',
-                      iconColor: Colors.indigo,
+                      iconColor: AppColors.teamA,
                       onTap: () => context.push('/admin/communications'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.palette_rounded,
                       title: 'Society Branding',
                       subtitle: 'Customize colors and theme',
-                      iconColor: Colors.pink,
+                      iconColor: AppColors.coral400,
                       onTap: () => context.push('/admin/settings/branding'),
                     ),
                   ],
@@ -157,10 +157,10 @@ class AdminSettingsScreen extends ConsumerWidget {
                       icon: Icons.shield_rounded,
                       title: 'System Roles',
                       subtitle: 'View available administrative roles',
-                      iconColor: Colors.purple,
+                      iconColor: AppColors.teamB,
                       onTap: () => context.push('/admin/settings/roles'),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.history_rounded,
                       title: 'Audit Logs',
@@ -189,12 +189,12 @@ class AdminSettingsScreen extends ConsumerWidget {
                       iconColor: Colors.pinkAccent,
                       onTap: () => _seedFullDemo(context, ref),
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.delete_forever_rounded,
                       title: 'Clear Database',
                       subtitle: 'Remove all society records',
-                      iconColor: Colors.red,
+                      iconColor: AppColors.coral500,
                       onTap: () => _clearDatabase(context, ref),
                     ),
                   ],
@@ -211,10 +211,10 @@ class AdminSettingsScreen extends ConsumerWidget {
                       icon: Icons.info_outline_rounded,
                       title: 'Version',
                       subtitle: '1.0.0 (Build 61)',
-                      iconColor: Colors.grey,
+                      iconColor: AppColors.textSecondary,
                       onTap: () {},
                     ),
-                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05), indent: 76),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.devices_rounded,
                       title: 'Platform',

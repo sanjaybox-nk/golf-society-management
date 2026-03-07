@@ -28,19 +28,19 @@ class ArchiveScreen extends ConsumerWidget {
               children: [
                 const BoxyArtSectionTitle(
                   title: 'Archived Seasons',),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 seasonsAsync.when(
                   data: (seasons) {
                     if (seasons.isEmpty) {
                       return const Center(
-                        child: Padding(padding: EdgeInsets.all(16), child: Text('No archived seasons yet.'),
+                        child: Padding(padding: EdgeInsets.all(AppSpacing.lg), child: Text('No archived seasons yet.'),
                         ),
                       );
                     }
                     return Column(
                       children: seasons.map((season) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: _SeasonCard(season: season),
                         );
                       }).toList(),
@@ -78,44 +78,44 @@ class _SeasonCard extends StatelessWidget {
           shape: const Border(),
           title: Text(
             '${season.year} Season',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: -0.5),
+            style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody, letterSpacing: -0.5),
           ),
-          subtitle: Text('Captain: $captain', style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+          subtitle: Text('Captain: $captain', style: TextStyle(color: AppColors.dark500, fontSize: AppTypography.sizeBodySmall)),
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: primary.withValues(alpha: AppColors.opacityLow),
+              borderRadius: AppShapes.md,
             ),
             child: Icon(
               Icons.history_edu_rounded,
               color: primary,
-              size: 20,
+              size: AppShapes.iconMd,
             ),
           ),
           childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           children: [
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             _buildDetailRow(context, 'Player of the Year', poty, Icons.emoji_events_rounded),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'MAJOR WINNERS',
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+                fontSize: AppTypography.sizeCaption,
+                fontWeight: AppTypography.weightBold,
                 letterSpacing: 1.1,
-                color: Colors.grey.shade400,
+                color: AppColors.dark400,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             ...majors.map((winner) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
-                  Icon(Icons.star_rounded, size: 14, color: primary.withValues(alpha: 0.6)),
-                  const SizedBox(width: 12),
-                  Text(winner, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                  Icon(Icons.star_rounded, size: AppShapes.iconXs, color: primary.withValues(alpha: AppColors.opacityHalf)),
+                  const SizedBox(width: AppSpacing.md),
+                  Text(winner, style: const TextStyle(fontWeight: AppTypography.weightMedium, fontSize: AppTypography.sizeBodySmall)),
                 ],
               ),
             )),
@@ -128,8 +128,8 @@ class _SeasonCard extends StatelessWidget {
   Widget _buildDetailRow(BuildContext context, String label, String value, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 12),
+        Icon(icon, size: AppShapes.iconMd, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: AppSpacing.md),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -139,7 +139,7 @@ class _SeasonCard extends StatelessWidget {
             ),
             Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: const TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeBody),
             ),
           ],
         ),

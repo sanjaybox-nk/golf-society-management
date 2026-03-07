@@ -1,11 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:golf_society/theme/app_colors.dart';
-import 'package:golf_society/theme/app_typography.dart';
-import 'package:golf_society/theme/app_shapes.dart';
-import 'package:golf_society/theme/app_spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:golf_society/design_system/theme/theme_controller.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
 class BoxyArtIconBadge extends StatelessWidget {
@@ -28,7 +23,7 @@ class BoxyArtIconBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: AppColors.opacityLow),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -94,7 +89,7 @@ class BoxyArtNumberBadge extends StatelessWidget {
         style: AppTypography.caption.copyWith(
           color: textColor ?? (!isFilled ? AppColors.pureWhite : (color != null ? AppColors.pureWhite : fg)),
           fontSize: size * 0.45,
-          fontWeight: FontWeight.w900,
+          fontWeight: AppTypography.weightBlack,
         ),
       ),
     );
@@ -130,7 +125,7 @@ class BoxyArtPill extends ConsumerWidget {
       label: label,
       color: AppColors.lime400,
       icon: icon,
-      backgroundColor: AppColors.lime500.withValues(alpha: 0.08),
+      backgroundColor: AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
       borderColor: AppColors.lime500.withValues(alpha: 0.18),
     );
   }
@@ -160,7 +155,7 @@ class BoxyArtPill extends ConsumerWidget {
       label: label,
       color: color,
       icon: icon,
-      backgroundColor: color.withValues(alpha: 0.08),
+      backgroundColor: color.withValues(alpha: AppColors.opacitySubtle),
       borderColor: color.withValues(alpha: 0.18),
     );
   }
@@ -196,8 +191,8 @@ class BoxyArtPill extends ConsumerWidget {
     return BoxyArtPill(
       label: label,
       color: teeColor,
-      backgroundColor: teeColor.withValues(alpha: 0.1),
-      borderColor: teeColor.withValues(alpha: 0.3),
+      backgroundColor: teeColor.withValues(alpha: AppColors.opacityLow),
+      borderColor: teeColor.withValues(alpha: AppColors.opacityMuted),
     );
   }
 
@@ -218,27 +213,27 @@ class BoxyArtPill extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: backgroundColor ?? color.withValues(alpha: isDark ? 0.08 : 0.12),
         borderRadius: BorderRadius.circular(config.pillRadius),
         border: Border.all(
           color: borderColor ?? color.withValues(alpha: isDark ? 0.18 : 0.25),
-          width: 1,
+          width: AppShapes.borderThin,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 10, color: effectiveTextColor),
+            Icon(icon, size: AppShapes.iconXs, color: effectiveTextColor),
             SizedBox(width: AppSpacing.xs),
           ] else ...[
             Container(
               width: 5,
               height: 5,
               decoration: BoxDecoration(
-                color: effectiveTextColor.withValues(alpha: 0.6), 
+                color: effectiveTextColor.withValues(alpha: AppColors.opacityHalf), 
                 shape: BoxShape.circle,
               ),
             ),
@@ -248,7 +243,7 @@ class BoxyArtPill extends ConsumerWidget {
             label.toUpperCase(),
             style: AppTypography.caption.copyWith(
               color: effectiveTextColor,
-              fontWeight: isDark ? FontWeight.w600 : FontWeight.w800,
+              fontWeight: isDark ? AppTypography.weightSemibold : AppTypography.weightExtraBold,
             ),
           ),
         ],
@@ -295,16 +290,16 @@ class BoxyArtDateBadge extends StatelessWidget {
           width: highlightColor != null ? 1.5 : 1,
         ),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.xs),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             DateFormat('MMM').format(date).toUpperCase(),
             style: AppTypography.caption.copyWith(
-              fontSize: 9,
+              fontSize: AppTypography.sizeMicroSmall,
               color: effectiveLabelColor,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppTypography.weightBlack,
             ),
           ),
           Text(
@@ -320,9 +315,9 @@ class BoxyArtDateBadge extends StatelessWidget {
           Text(
             DateFormat('yyyy').format(date),
             style: AppTypography.micro.copyWith(
-              fontSize: 9, // Keeping 9 for specialized multi-day logic but using micro as base
+              fontSize: AppTypography.sizeMicroSmall, // Keeping 9 for specialized multi-day logic but using micro as base
               color: isDark ? AppColors.dark300 : AppColors.dark400,
-              fontWeight: FontWeight.w600,
+              fontWeight: AppTypography.weightSemibold,
             ),
           ),
         ],
@@ -381,7 +376,7 @@ class BoxyArtSquareBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: AppShapes.sm,
       ),
       child: child,
     );

@@ -65,7 +65,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       onBack: () => context.pop(),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 8.0, top: 4.0),
+          padding: const EdgeInsets.only(right: AppSpacing.sm, top: AppSpacing.xs),
           child: BoxyArtButton(
             title: 'SAVE',
             isGhost: true,
@@ -77,7 +77,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       ],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 0),
           sliver: SliverToBoxAdapter(
             child: Form(
               key: _formKey,
@@ -92,7 +92,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                           controller: _nameController,
                           validator: (v) => v!.isEmpty ? 'Required' : null,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         Row(
                           children: [
                             Expanded(
@@ -102,17 +102,17 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                                 keyboardType: TextInputType.number,
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: AppSpacing.lg),
                             Expanded(child: _buildStatusDropdown()),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   const BoxyArtSectionTitle(title: 'DATES',),
                   BoxyArtCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     child: Row(
                       children: [
                         Expanded(
@@ -122,7 +122,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                             onTap: () => _pickDate(isStart: true),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: BoxyArtDatePickerField(
                             label: 'Ends',
@@ -133,7 +133,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   
                   // LEADERBOARDS SECTION
                   Row(
@@ -141,31 +141,31 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                     children: [
                       // Section Header Manual Build (to avoid Align expansion)
                       Padding(
-                        padding: const EdgeInsets.only(left: 4, bottom: 4), // Added bottom padding to lift text slightly above baseline if buttons push row height
+                        padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs), // Added bottom padding to lift text slightly above baseline if buttons push row height
                         child: Text(
                           'LEADERBOARDS',
                           style: TextStyle(
-                            fontSize: 12, // Match BoxyArtSectionTitle default
-                            fontWeight: FontWeight.w900,
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : Colors.grey,
+                            fontSize: AppTypography.sizeLabel, // Match BoxyArtSectionTitle default
+                            fontWeight: AppTypography.weightBlack,
+                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.textSecondary,
                             letterSpacing: 1.5,
                             fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       // Refresh Action
                       if (widget.season != null)
                         Tooltip(
                           message: 'Recalculate Standings',
                           child: InkWell(
                             onTap: _isRecalculating ? null : _recalculateStandings,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: AppShapes.xl,
                             child: Padding(
-                              padding: const EdgeInsets.all(4.0), // Minimized padding further to 4
+                              padding: const EdgeInsets.all(AppSpacing.xs), // Minimized padding further to 4
                               child: _isRecalculating 
                                 ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                                : Icon(Icons.refresh, size: 16, color: Theme.of(context).colorScheme.secondary),
+                                : Icon(Icons.refresh, size: AppShapes.iconSm, color: Theme.of(context).colorScheme.secondary),
                             ),
                           ),
                         ),
@@ -174,29 +174,23 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                       GestureDetector(
                         onTap: () => _openLeaderboardDialog(),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                           decoration: BoxDecoration(
                             color: Theme.of(context).primaryColor, // Solid Primary Color
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                            borderRadius: AppShapes.xl,
+                            boxShadow: AppShadows.softScale,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.add, size: 14, color: Colors.white),
+                              const Icon(Icons.add, size: AppShapes.iconXs, color: AppColors.pureWhite),
                               const SizedBox(width: 6),
                               Text(
                                 'ADD NEW', // Changed label for clarity
                                 style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
+                                  color: AppColors.pureWhite,
+                                  fontWeight: AppTypography.weightBold,
+                                  fontSize: AppTypography.sizeCaptionStrong,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -206,11 +200,11 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4), // Minimized gap to header
+                  const SizedBox(height: AppSpacing.xs), // Minimized gap to header
                   if (_leaderboards.isEmpty)
                     const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: Text('No leaderboards configured.', style: TextStyle(color: Colors.grey))),
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.x2l),
+                      child: Center(child: Text('No leaderboards configured.', style: TextStyle(color: AppColors.textSecondary))),
                     )
                   else
                     ListView.separated(
@@ -218,7 +212,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                       physics: const NeverScrollableScrollPhysics(), // Remove critical default padding
                       padding: EdgeInsets.zero,
                       itemCount: _leaderboards.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 8), // Standardize gap
+                      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm), // Standardize gap
                       itemBuilder: (context, index) {
                         final config = _leaderboards[index];
                         return _LeaderboardListTile(
@@ -229,13 +223,13 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                       },
                     ),
 
-                  const SizedBox(height: 12), // Reduced spacing to "Set as Current" (was 24)
+                  const SizedBox(height: AppSpacing.md), // Reduced spacing to "Set as Current" (was 24)
                   BoxyArtSwitchField(
                     label: 'Set as Current Season',
                     value: _isCurrent,
                     onChanged: (v) => setState(() => _isCurrent = v),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: AppSpacing.x4l),
                 ],
               ),
             ),
@@ -250,13 +244,13 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 8),
+          padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.sm),
           child: Text(
             'Status',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+              fontSize: AppTypography.sizeLabelStrong,
+              fontWeight: AppTypography.weightBold,
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : Colors.black,
               fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
             ),
           ),
@@ -265,12 +259,12 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
           decoration: ShapeDecoration(
             color: Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFFF5F5F5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppShapes.md,
               side: BorderSide(
                 color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white12 
+                    ? AppColors.pureWhite.withValues(alpha: 0.12) 
                     : const Color(0xFFE0E0E0),
-                width: 1,
+                width: AppShapes.borderThin,
               ),
             ),
             shadows: AppShadows.inputSoft,
@@ -280,22 +274,22 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
               initialValue: _status,
               isExpanded: true,
               decoration: const InputDecoration(
-                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 0),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 filled: false,
               ),
-              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+              icon: Icon(Icons.keyboard_arrow_down, color: Colors.black.withValues(alpha: 0.54)),
               style: TextStyle(
-                fontSize: 14, 
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+                fontSize: AppTypography.sizeBodySmall, 
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : Colors.black.withValues(alpha: 0.87),
                 fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
               ),
               items: SeasonStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(s.name.toUpperCase()))).toList(),
               onChanged: (v) => setState(() => _status = v!),
               dropdownColor: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppShapes.md,
             ),
           ),
         ),
@@ -403,7 +397,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating standings: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error updating standings: $e'), backgroundColor: AppColors.coral500),
         );
       }
     } finally {
@@ -431,14 +425,14 @@ class _LeaderboardListTile extends StatelessWidget {
     Color color = Theme.of(context).primaryColor;
     
     config.map(
-      orderOfMerit: (_) { typeLabel = 'ORDER OF MERIT'; icon = Icons.emoji_events_rounded; color = Colors.amber; },
-      bestOfSeries: (_) { typeLabel = 'BEST OF SERIES'; icon = Icons.list_alt_rounded; color = Colors.blue; },
-      eclectic: (_) { typeLabel = 'ECLECTIC'; icon = Icons.grid_on_rounded; color = Colors.purple; },
-      markerCounter: (_) { typeLabel = 'BIRDIE TREE'; icon = Icons.park_rounded; color = Colors.green; },
+      orderOfMerit: (_) { typeLabel = 'ORDER OF MERIT'; icon = Icons.emoji_events_rounded; color = AppColors.amber500; },
+      bestOfSeries: (_) { typeLabel = 'BEST OF SERIES'; icon = Icons.list_alt_rounded; color = AppColors.teamA; },
+      eclectic: (_) { typeLabel = 'ECLECTIC'; icon = Icons.grid_on_rounded; color = AppColors.teamB; },
+      markerCounter: (_) { typeLabel = 'BIRDIE TREE'; icon = Icons.park_rounded; color = AppColors.lime500; },
     );
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       onTap: onEdit,
       child: Row(
         children: [
@@ -446,12 +440,12 @@ class _LeaderboardListTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: AppShapes.iconLg),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,14 +454,14 @@ class _LeaderboardListTile extends StatelessWidget {
                   typeLabel,
                   style: AppTypography.label.copyWith(
                     color: isDark ? AppColors.dark300 : AppColors.dark400,
-                    fontSize: 10,
+                    fontSize: AppTypography.sizeCaption,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   config.name,
                   style: AppTypography.body.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: AppTypography.weightExtraBold,
                     color: isDark ? AppColors.pureWhite : AppColors.dark900,
                   ),
                 ),
@@ -475,7 +469,7 @@ class _LeaderboardListTile extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.delete_outline_rounded, color: isDark ? AppColors.dark300 : AppColors.dark400, size: 20),
+            icon: Icon(Icons.delete_outline_rounded, color: isDark ? AppColors.dark300 : AppColors.dark400, size: AppShapes.iconMd),
             onPressed: onDelete,
           ),
         ],

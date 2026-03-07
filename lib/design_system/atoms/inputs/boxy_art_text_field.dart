@@ -51,17 +51,17 @@ class BoxyArtTextField extends StatelessWidget {
           Text(
             label!,
             style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: AppTypography.sizeBodySmall,
+              fontWeight: AppTypography.weightBold,
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
         ],
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppShapes.lg,
             boxShadow: AppShadows.inputSoft,
           ),
           child: TextField(
@@ -76,22 +76,22 @@ class BoxyArtTextField extends StatelessWidget {
             minLines: minLines,
             focusNode: focusNode,
             autofocus: autofocus,
-            style: const TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: AppTypography.sizeButton),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 15,
+                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityHalf),
+                fontSize: AppTypography.sizeButton,
               ),
               prefixIcon: prefixIcon != null 
-                ? Icon(prefixIcon, color: Theme.of(context).primaryColor, size: 20) 
+                ? Icon(prefixIcon, color: Theme.of(context).primaryColor, size: AppShapes.iconMd) 
                 : null,
               suffixIcon: suffixIcon,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppShapes.lg,
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
               errorText: errorText,
             ),
           ),

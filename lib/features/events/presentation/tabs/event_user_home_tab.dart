@@ -66,7 +66,7 @@ class EventHomeContent extends ConsumerWidget {
       },
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100),
+          padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: AppTheme.cardSpacing),
@@ -109,24 +109,24 @@ class EventHomeContent extends ConsumerWidget {
   Widget _buildFlashItem(BuildContext context, EventFeedItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+        borderRadius: AppShapes.lg,
+        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMuted)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.campaign_rounded, color: Colors.orange),
-          const SizedBox(width: 12),
+          const Icon(Icons.campaign_rounded, color: AppColors.amber500),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               item.content,
               style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: Colors.orange,
+                fontSize: AppTypography.sizeButton,
+                fontWeight: AppTypography.weightExtraBold,
+                color: AppColors.amber500,
                 height: 1.4,
               ),
             ),
@@ -165,7 +165,7 @@ class EventHomeContent extends ConsumerWidget {
             children: [
               if (item.imageUrl != null)
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rXl)),
                   child: Image.network(
                     item.imageUrl!,
                     height: 180,
@@ -175,16 +175,16 @@ class EventHomeContent extends ConsumerWidget {
                   ),
                 ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (item.title != null && item.title!.isNotEmpty) ...[
                       Text(
                         item.title!,
-                        style: AppTypography.displayHeading.copyWith(fontSize: 18),
+                        style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                     ],
                     if (snippet.isNotEmpty)
                       Text(
@@ -192,25 +192,25 @@ class EventHomeContent extends ConsumerWidget {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                          fontSize: AppTypography.sizeBodySmall,
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
                           height: 1.5,
                         ),
                       ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     Row(
                       children: [
                         Text(
                           'READ FULL STORY',
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
+                            fontSize: AppTypography.sizeCaptionStrong,
+                            fontWeight: AppTypography.weightBlack,
                             letterSpacing: 1.2,
                             color: Theme.of(context).primaryColor,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_rounded, size: 14, color: Theme.of(context).primaryColor),
+                        const SizedBox(width: AppSpacing.xs),
+                        Icon(Icons.arrow_forward_rounded, size: AppShapes.iconXs, color: Theme.of(context).primaryColor),
                       ],
                     ),
                   ],
@@ -245,8 +245,8 @@ class EventHomeContent extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: 20),
-                const SizedBox(width: 8),
+                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: AppShapes.iconMd),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   'SOCIETY POLL',
                   style: AppTypography.label.copyWith(
@@ -256,19 +256,19 @@ class EventHomeContent extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               item.title ?? 'Quick Question',
-              style: AppTypography.displayHeading.copyWith(fontSize: 18),
+              style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
             ...options.map((option) {
               final count = counts[option] ?? 0;
               final percent = totalVotes == 0 ? 0.0 : count / totalVotes;
               final isSelected = userVote == option;
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: GestureDetector(
                   onTap: hasVoted ? null : () => _vote(ref, item, option),
                   child: Stack(
@@ -279,30 +279,30 @@ class EventHomeContent extends ConsumerWidget {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white.withValues(alpha: 0.05) 
+                              ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
                               : Colors.black.withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: AppShapes.md,
                           border: Border.all(
                             color: isSelected ? AppColors.lime500 : Colors.transparent,
-                            width: 1.5,
+                            width: AppShapes.borderLight,
                           ),
                         ),
                       ),
                       // Progress Fill
                       if (hasVoted)
                         AnimatedContainer(
-                          duration: const Duration(milliseconds: 500),
+                          duration: AppAnimations.slow,
                           height: 48,
                           width: MediaQuery.of(context).size.width * percent,
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.lime500.withValues(alpha: 0.2) : AppColors.lime500.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
+                            color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityMedium) : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+                            borderRadius: AppShapes.md,
                           ),
                         ),
                       // Content
                       Positioned.fill(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -310,8 +310,8 @@ class EventHomeContent extends ConsumerWidget {
                                 child: Text(
                                   option,
                                   style: TextStyle(
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                    fontSize: 15,
+                                    fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightMedium,
+                                    fontSize: AppTypography.sizeButton,
                                   ),
                                 ),
                               ),
@@ -333,7 +333,7 @@ class EventHomeContent extends ConsumerWidget {
             }),
             if (hasVoted)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
                 child: Text(
                   '$totalVotes vote${totalVotes == 1 ? '' : 's'}',
                   style: AppTypography.bodySmall.copyWith(

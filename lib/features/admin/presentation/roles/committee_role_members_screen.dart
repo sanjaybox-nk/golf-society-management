@@ -46,17 +46,11 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.x2l),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.r2xl)),
+              boxShadow: AppShadows.softScale,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,12 +58,12 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
                 Text(
                   'Manage members currently serving as ${widget.role}.',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                    fontSize: AppTypography.sizeBodySmall,
+                    color: AppColors.dark600,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 
                 // Search Bar
                 BoxyArtFormField(
@@ -120,7 +114,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -129,12 +123,12 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
 
                     if (!hasRole) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: _buildCandidateTile(member),
                       );
                     } else {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: _buildActiveRoleTile(member),
                       );
                     }
@@ -156,34 +150,28 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: AppShapes.lg,
+        boxShadow: AppShadows.softScale,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         leading: CircleAvatar(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.pureWhite,
           backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
           child: member.avatarUrl == null
               ? Text(
                   member.firstName.isNotEmpty ? member.firstName[0] : '',
-                  style: const TextStyle(color: Colors.black54),
+                  style: TextStyle(color: Colors.black.withValues(alpha: 0.54)),
                 )
               : null,
         ),
-        title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: AppTypography.weightBold)),
         // existing societyRole info could go here as subtitle if they hold another role
         subtitle: member.societyRole != null && member.societyRole!.isNotEmpty 
-            ? Text(member.societyRole!, style: TextStyle(fontSize: 12, color: _roleColor)) 
+            ? Text(member.societyRole!, style: TextStyle(fontSize: AppTypography.sizeLabel, color: _roleColor)) 
             : null,
         trailing: IconButton(
-          icon: Icon(Icons.add_circle, color: _roleColor, size: 32),
+          icon: Icon(Icons.add_circle, color: _roleColor, size: AppShapes.iconXl),
           onPressed: () {
             _updateRole(member, widget.role);
             _searchController.clear();
@@ -200,12 +188,12 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.error,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppShapes.lg,
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete, color: AppColors.pureWhite),
       ),
       onDismissed: (direction) {
         _updateRole(member, null); // Remove role
@@ -213,45 +201,45 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _roleColor, width: 2),
+          borderRadius: AppShapes.lg,
+          border: Border.all(color: _roleColor, width: AppShapes.borderMedium),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         child: Row(
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.pureWhite,
               backgroundImage: member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
               child: member.avatarUrl == null
                   ? Text(
                       member.firstName.isNotEmpty ? member.firstName[0] : '',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                      style: TextStyle(fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)),
                     )
                   : null,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '${member.firstName} ${member.lastName}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _roleColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
+                        color: _roleColor.withValues(alpha: AppColors.opacityLow),
+                        borderRadius: AppShapes.xs,
                       ),
                       child: Text(
                         widget.role,
                         style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                          fontSize: AppTypography.sizeCaptionStrong,
+                          fontWeight: AppTypography.weightBold,
                           color: _roleColor,
                         ),
                       ),
@@ -263,7 +251,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
             Switch(
               value: true,
               activeTrackColor: _roleColor,
-              thumbColor: const WidgetStatePropertyAll(Colors.white),
+              thumbColor: const WidgetStatePropertyAll(AppColors.pureWhite),
               trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
               onChanged: (val) {
                  if (!val) _updateRole(member, null);

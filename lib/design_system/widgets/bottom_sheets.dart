@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_typography.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// Standard branded bottom sheet for Golf Society v3.1.
 class BoxyArtBottomSheet extends StatelessWidget {
@@ -23,25 +21,25 @@ class BoxyArtBottomSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.r2xl)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // Grab Handle
           Container(
-            width: 40,
-            height: 4,
+            width: AppSpacing.x4l,
+            height: AppSpacing.xs,
             decoration: BoxDecoration(
-              color: AppColors.dark400.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(2),
+              color: AppColors.dark400.withValues(alpha: AppColors.opacityMedium),
+              borderRadius: AppShapes.grabber,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -49,26 +47,26 @@ class BoxyArtBottomSheet extends StatelessWidget {
                   child: Text(
                     title,
                     style: AppTypography.displayHeading.copyWith(
-                      fontSize: 20,
-                      color: isDark ? Colors.white : AppColors.dark600,
+                      fontSize: AppTypography.sizeDisplaySection,
+                      color: isDark ? AppColors.pureWhite : AppColors.dark600,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 24),
+                  icon: const Icon(Icons.close_rounded, size: AppShapes.iconLg),
                   onPressed: () => Navigator.pop(context),
                   color: isDark ? AppColors.dark200 : AppColors.dark400,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           const Divider(height: 1),
           // Content
           Flexible(
             child: SingleChildScrollView(
               controller: scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               child: child,
             ),
           ),

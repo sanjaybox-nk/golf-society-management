@@ -68,7 +68,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
             });
             
             return SliverPadding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 100, top: 20),
+              padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100, top: AppSpacing.xl),
               sliver: items.isEmpty ? _buildEmptyState() : _buildReorderableList(event, items),
             );
           },
@@ -83,24 +83,24 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
     return SliverToBoxAdapter(
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.x4l),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.x2l),
                 decoration: BoxDecoration(
-                  color: Colors.pink.withValues(alpha: 0.1),
+                  color: AppColors.coral400.withValues(alpha: AppColors.opacityLow),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.campaign_rounded, size: 48, color: Colors.pink),
+                child: const Icon(Icons.campaign_rounded, size: AppShapes.iconHero, color: AppColors.coral400),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
               const Text(
                 'No Posts Yet',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: AppTypography.sizeDisplaySection, fontWeight: AppTypography.weightBold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 'To create a new post, visit the Admin Home and use the "Broadcast" trigger.',
                 textAlign: TextAlign.center,
@@ -124,7 +124,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
           return Material(
             color: Colors.transparent,
             elevation: 8,
-            shadowColor: Colors.black45,
+            shadowColor: Colors.black.withValues(alpha: 0.45),
             child: child,
           );
         },
@@ -156,25 +156,25 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                     children: [
                       if (!item.isPublished) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: AppSpacing.xs),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(4),
+                            color: AppColors.amber500.withValues(alpha: AppColors.opacityMedium),
+                            borderRadius: AppShapes.xs,
                           ),
-                          child: const Text('DRAFT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange)),
+                          child: const Text('DRAFT', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.amber500)),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                       ],
                       if (item.isPinned) ...[
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
+                            color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.push_pin_rounded, size: 16, color: Colors.blue),
+                          child: const Icon(Icons.push_pin_rounded, size: AppShapes.iconSm, color: AppColors.teamA),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                       ],
                       ReorderableDragStartListener(
                         index: index,
@@ -202,26 +202,26 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
       return EventGalleryCard(event: event, isManagement: true);
     } else if (item.type == FeedItemType.flash) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.orange.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+          color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+          borderRadius: AppShapes.lg,
+          border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMuted)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.campaign_rounded, color: Colors.orange),
-            const SizedBox(width: 12),
+            const Icon(Icons.campaign_rounded, color: AppColors.amber500),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 140), // Room for draft + pin + drag handle
                 child: Text(
                   item.content,
                   style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.orange,
+                    fontSize: AppTypography.sizeButton,
+                    fontWeight: AppTypography.weightExtraBold,
+                    color: AppColors.amber500,
                     height: 1.4,
                   ),
                 ),
@@ -243,7 +243,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
       } catch (_) {}
 
       return BoxyArtCard(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -253,17 +253,17 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                 child: Text(
                   item.title!,
                   style: AppTypography.displayHeading.copyWith(
-                    fontSize: 20,
+                    fontSize: AppTypography.sizeDisplaySection,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               const Divider(),
               const SizedBox(height: AppTheme.cardSpacing),
             ],
             if (item.imageUrl != null) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppShapes.lg,
                 child: Image.network(
                   item.imageUrl!,
                   width: double.infinity,
@@ -272,7 +272,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                     height: 150,
                     width: double.infinity,
                     color: Theme.of(context).cardColor,
-                    child: const Icon(Icons.image, color: Colors.grey),
+                    child: const Icon(Icons.image, color: AppColors.textSecondary),
                   ),
                 ),
               ),
@@ -302,19 +302,13 @@ class _DragHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: AppShapes.sm,
+        boxShadow: AppShadows.softScale,
       ),
-      child: const Icon(Icons.drag_indicator_rounded, color: Colors.grey, size: 20),
+      child: const Icon(Icons.drag_indicator_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
     );
   }
 }

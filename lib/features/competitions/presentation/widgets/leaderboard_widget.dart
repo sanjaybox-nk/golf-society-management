@@ -24,7 +24,7 @@ class LeaderboardWidget extends StatelessWidget {
         final isTop3 = index < 3;
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: BoxyArtScorecardTile(
             onTap: () => onPlayerTap?.call(entry),
             playerName: entry.playerName,
@@ -32,7 +32,7 @@ class LeaderboardWidget extends StatelessWidget {
             avatarNames: entry.teamMemberNames,
             leading: BoxyArtNumberBadge(
               number: index + 1,
-              size: 40,
+              size: AppShapes.iconXl,
               isRanking: true,
               isFilled: isTop3,
             ),
@@ -56,11 +56,11 @@ class LeaderboardWidget extends StatelessWidget {
           children: [
             if (isTeam) ...[
               BoxyArtPill.type(label: entry.mode == CompetitionMode.pairs ? 'PAIR' : 'TEAM'),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
             ],
             if (entry.isGuest) ...[
               BoxyArtPill.status(label: 'GUEST', color: AppColors.amber500),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
             ],
             if (showThru)
               _buildProMaxLabel('THRU ${entry.holesPlayed}', AppColors.lime500),
@@ -72,7 +72,7 @@ class LeaderboardWidget extends StatelessWidget {
              child: Row(
                children: [
                  _buildProMaxLabel('HC: ${entry.handicap}', AppColors.dark150),
-                 const SizedBox(width: 8),
+                 const SizedBox(width: AppSpacing.sm),
                  _buildProMaxLabel('PHC: ${entry.playingHandicap}', AppColors.lime500),
                ],
              ),
@@ -87,9 +87,9 @@ class LeaderboardWidget extends StatelessWidget {
     return Text(
       text,
       style: AppTypography.label.copyWith(
-        fontSize: 10,
+        fontSize: AppTypography.sizeCaption,
         color: color,
-        fontWeight: FontWeight.w900,
+        fontWeight: AppTypography.weightBlack,
         letterSpacing: 2.0,
       ),
     );

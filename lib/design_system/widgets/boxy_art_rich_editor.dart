@@ -26,9 +26,9 @@ class BoxyArtRichEditor extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: isDark 
-                ? AppColors.dark400.withValues(alpha: 0.3) 
-                : Colors.grey.withValues(alpha: 0.05),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                ? AppColors.dark400.withValues(alpha: AppColors.opacityMuted) 
+                : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rMd)),
           ),
           child: SizedBox(
             height: 48,
@@ -81,7 +81,7 @@ class BoxyArtRichEditor extends StatelessWidget {
             ),
           ),
         ),
-        const Divider(height: 1, color: Colors.white10),
+        Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.10)),
         
         // Editor
         Container(
@@ -89,15 +89,15 @@ class BoxyArtRichEditor extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: isDark 
-                ? AppColors.dark300.withValues(alpha: 0.2) 
-                : Colors.white.withValues(alpha: 0.5),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                ? AppColors.dark300.withValues(alpha: AppColors.opacityMedium) 
+                : AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.rMd)),
             border: Border.all(
               color: isDark ? AppColors.dark400 : AppColors.lightBorder,
-              width: 1,
+              width: AppShapes.borderThin,
             ),
           ),
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: QuillEditor.basic(
             controller: controller,
             config: QuillEditorConfig(
@@ -146,7 +146,7 @@ class BoxyArtRichEditor extends StatelessWidget {
               label: 'Text',
               hintText: 'Display text',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             BoxyArtTextField(
               controller: linkController,
               label: 'Link (URL)',

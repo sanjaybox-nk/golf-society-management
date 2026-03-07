@@ -14,12 +14,12 @@ class LeaderboardTableView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (standings.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(AppSpacing.x3l),
           child: Text(
             'No standings available yet.',
-            style: TextStyle(color: Colors.white54),
+            style: TextStyle(color: AppColors.pureWhite.withValues(alpha: 0.54)),
           ),
         ),
       );
@@ -28,29 +28,29 @@ class LeaderboardTableView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ListView.separated(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       itemCount: standings.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final standing = standings[index];
         final isMe = standing.memberId == currentUserId;
 
         return BoxyArtCard(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: [
               // Rank
               SizedBox(
-                width: 32,
+                width: AppSpacing.x3l,
                 child: Text(
                   '${index + 1}',
                   style: AppTypography.displayHeading.copyWith(
-                    fontSize: 18,
+                    fontSize: AppTypography.sizeLargeBody,
                     color: isMe ? AppColors.lime500 : (isDark ? AppColors.dark150 : AppColors.dark700),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               
               // Avatar Placeholder
               CircleAvatar(
@@ -60,12 +60,12 @@ class LeaderboardTableView extends StatelessWidget {
                   standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
                   style: AppTypography.label.copyWith(
                     color: isMe ? AppColors.actionText : (isDark ? AppColors.pureWhite : AppColors.dark900),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppTypography.sizeBodySmall,
+                    fontWeight: AppTypography.weightBlack,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
 
               // Name
               Expanded(
@@ -75,7 +75,7 @@ class LeaderboardTableView extends StatelessWidget {
                     Text(
                       standing.memberName,
                       style: AppTypography.bodySmall.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: AppTypography.weightExtraBold,
                         color: isMe ? AppColors.lime500 : (isDark ? AppColors.pureWhite : AppColors.dark900),
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -84,7 +84,7 @@ class LeaderboardTableView extends StatelessWidget {
                       '${standing.roundsPlayed} ROUNDS',
                       style: AppTypography.label.copyWith(
                         color: isDark ? AppColors.dark300 : AppColors.dark400,
-                        fontSize: 10,
+                        fontSize: AppTypography.sizeCaption,
                         letterSpacing: 1.0,
                       ),
                     ),
@@ -100,15 +100,15 @@ class LeaderboardTableView extends StatelessWidget {
                     standing.points.toStringAsFixed(standing.points.truncateToDouble() == standing.points ? 0 : 1),
                     style: AppTypography.displayHeading.copyWith(
                       color: isMe ? AppColors.lime500 : (isDark ? AppColors.pureWhite : AppColors.dark900),
-                      fontSize: 18,
+                      fontSize: AppTypography.sizeLargeBody,
                     ),
                   ),
                   Text(
                     'PTS',
                     style: AppTypography.label.copyWith(
                       color: isDark ? AppColors.dark300 : AppColors.dark400,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppTypography.sizeCaption,
+                      fontWeight: AppTypography.weightBlack,
                     ),
                   ),
                 ],

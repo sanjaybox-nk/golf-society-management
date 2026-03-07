@@ -37,19 +37,19 @@ class MatchStatusHeader extends StatelessWidget {
     }
 
     // Determine color based on status
-    Color statusColor = Colors.grey;
+    Color statusColor = AppColors.textSecondary;
     if (result.status.contains('UP') || result.status.contains('&')) {
       statusColor = Colors.blueAccent;
     } else if (result.status == 'A/S') {
-      statusColor = Colors.orange;
+      statusColor = AppColors.amber500;
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20), // [FIX] Align with HoleByHoleScoringWidget padding
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.xl), // [FIX] Align with HoleByHoleScoringWidget padding
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        border: Border(bottom: BorderSide(color: statusColor.withValues(alpha: 0.3))),
+        color: statusColor.withValues(alpha: AppColors.opacityLow),
+        border: Border(bottom: BorderSide(color: statusColor.withValues(alpha: AppColors.opacityMuted))),
       ),
       child: Row(
         children: [
@@ -58,28 +58,28 @@ class MatchStatusHeader extends StatelessWidget {
             child: Text(
               strokesInfo ?? 'Match Status', // Fallback label if no strokes info
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AppTypography.sizeCaption,
                 fontStyle: FontStyle.italic,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+                fontWeight: AppTypography.weightSemibold,
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           // Right: Status Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
             decoration: BoxDecoration(
               color: statusColor,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: AppShapes.xs,
             ),
             child: Text(
               result.status,
               style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightBold,
+                color: AppColors.pureWhite,
               ),
             ),
           ),

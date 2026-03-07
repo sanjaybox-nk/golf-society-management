@@ -15,18 +15,12 @@ class FloatingBottomSearch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24, left: 32, right: 32),
+      margin: const EdgeInsets.only(bottom: AppSpacing.x2l, left: AppSpacing.x3l, right: AppSpacing.x3l),
       height: 60,
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.dark950.withValues(alpha: 0.2),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
+        borderRadius: AppShapes.lg,
+        boxShadow: AppShadows.softScale,
       ),
       child: Row(
         children: [
@@ -35,14 +29,14 @@ class FloatingBottomSearch extends StatelessWidget {
             child: InkWell(
               onTap: onSearchTap,
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
+                topLeft: Radius.circular(AppShapes.rLg),
+                bottomLeft: Radius.circular(AppShapes.rLg),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    BoxyArtThemedCircleIcon(Icons.search),
-                   SizedBox(width: 8),
+                   SizedBox(width: AppSpacing.sm),
                    Text(
                      "Search", 
                      style: AppTypography.displayMedium.copyWith(
@@ -55,21 +49,21 @@ class FloatingBottomSearch extends StatelessWidget {
           ),
           
           // Divider
-          Container(width: 1, height: 24, color: AppColors.dark200),
+          Container(width: AppShapes.borderThin, height: AppSpacing.x2l, color: AppColors.dark200),
 
           // Filter Button (Right)
           Expanded(
             child: InkWell(
               onTap: onFilterTap,
               borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(16),
+                topRight: Radius.circular(AppShapes.rLg),
+                bottomRight: Radius.circular(AppShapes.rLg),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    BoxyArtThemedCircleIcon(Icons.tune), // Filter icon
-                   SizedBox(width: 8),
+                   SizedBox(width: AppSpacing.sm),
                    Text(
                      "Filter", 
                      style: AppTypography.displayMedium.copyWith(
@@ -113,14 +107,14 @@ class FloatingFilterBar<T> extends StatelessWidget {
     return Center(
       child: Container(
         margin: const EdgeInsets.only(bottom: 30),
-        width: 220,
+        width: AppShapes.borderMedium,
         height: 50,
         decoration: ShapeDecoration(
           color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
           shape: const StadiumBorder(),
           shadows: [
             BoxShadow(
-              color: AppColors.dark950.withValues(alpha: 0.2),
+              color: AppColors.dark950.withValues(alpha: AppColors.opacityMedium),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -141,16 +135,16 @@ class FloatingFilterBar<T> extends StatelessWidget {
 
             // Layer 1: Active Indicator
             AnimatedAlign(
-              duration: const Duration(milliseconds: 250),
+              duration: AppAnimations.medium,
               curve: Curves.easeInOut,
               alignment: Alignment(alignmentX.toDouble(), 0),
               child: Padding(
-                padding: const EdgeInsets.all(4.0),
+                padding: const EdgeInsets.all(AppSpacing.xs),
                 child: Container(
                   width: (220 / count) - 8,
                   height: 42,
                   decoration: ShapeDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                    color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
                     shape: const StadiumBorder(),
                   ),
                 ),
@@ -164,7 +158,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
                 
                 // Calculate text color based on background
                 final backgroundColor = isSelected 
-                    ? Theme.of(context).primaryColor.withValues(alpha: 0.8)
+                    ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh)
                     : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite);
                 final textColor = ContrastHelper.getContrastingText(backgroundColor);
                 final inactiveTextColor = Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400;
@@ -172,14 +166,14 @@ class FloatingFilterBar<T> extends StatelessWidget {
                 return Expanded(
                   child: InkWell(
                     onTap: () => onChanged(option.value),
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: AppShapes.sheet,
                     child: Center(
                       child: Text(
                         option.label,
                         style: TextStyle(
                           color: isSelected ? textColor : inactiveTextColor,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 14,
+                          fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightRegular,
+                          fontSize: AppTypography.sizeBodySmall,
                         ),
                       ),
                     ),
@@ -223,16 +217,16 @@ class ProfileInfoRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               icon, 
-              size: 20, 
+              size: AppShapes.iconMd, 
               color: isDark ? AppColors.dark300 : AppColors.dark400,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,11 +238,11 @@ class ProfileInfoRow extends StatelessWidget {
                       letterSpacing: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     value,
                     style: AppTypography.displayMedium.copyWith(
-                      fontSize: 16,
+                      fontSize: AppTypography.sizeBody,
                       color: isDark ? AppColors.dark60 : AppColors.dark950,
                     ),
                   ),
@@ -303,7 +297,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 size: isLevel2 ? 12 : 14,
                 color: isDark ? AppColors.dark300 : AppColors.dark400,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
             ] else if (isPeeking) ...[
               Icon(
                 Icons.visibility,
@@ -317,7 +311,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 displayTitle.toUpperCase(),
                 style: AppTypography.caption.copyWith(
                   fontSize: isLevel2 ? 10 : 11,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: AppTypography.weightExtraBold,
                   color: isDark ? AppColors.dark150 : AppColors.dark300,
                   letterSpacing: isLevel2 ? 1.5 : 2.0,
                 ),

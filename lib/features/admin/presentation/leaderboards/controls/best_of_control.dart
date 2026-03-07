@@ -73,7 +73,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 BoxyArtInputField(
@@ -84,7 +84,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const BoxyArtSectionTitle(title: 'LEAGUE RULES'),
           BoxyArtCard(
             child: Column(
@@ -95,7 +95,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
                   controller: _bestNController,
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<BestOfMetric>(
                   label: 'Metric',
                   value: _metric,
@@ -105,7 +105,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
                   )).toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 BoxyArtDropdownField<ScoringType>(
                   label: 'Scoring Type',
                   value: _scoringType,
@@ -121,10 +121,10 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
           ),
 
           if (_scoringType == ScoringType.position) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
             BoxyArtCard(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 children: [
                    BoxyArtInputField(
@@ -132,11 +132,11 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
                     controller: _appearancePointsController,
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 16),
-                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
+                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                  const SizedBox(height: AppSpacing.lg),
                   ...(_positionPoints.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => _buildPointRow(e.key, e.value)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Center(
                     child: BoxyArtButton(
                       title: 'ADD NEXT POSITION',
@@ -149,7 +149,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
             ),
           ],
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
               title: 'SAVE CHANGES',
@@ -163,7 +163,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
 
   Widget _buildPointRow(int position, int points) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         children: [
           Expanded(
@@ -182,11 +182,11 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
                 fillColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lightHeader,
                 filled: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppShapes.sm,
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -200,11 +200,11 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
               },
             ),
           ),
-          const SizedBox(width: 8),
-          Text('PTS', style: AppTypography.label.copyWith(fontSize: 10, color: AppColors.lime500)),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
+          Text('PTS', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500)),
+          const SizedBox(width: AppSpacing.sm),
           IconButton(
-            icon: const Icon(Icons.close, size: 16, color: Colors.grey),
+            icon: const Icon(Icons.close, size: AppShapes.iconSm, color: AppColors.textSecondary),
             onPressed: () => setState(() => _positionPoints.remove(position)),
             visualDensity: VisualDensity.compact,
           )
@@ -283,20 +283,20 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: AppSpacing.x2l),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.md,
       ),
       child: Column(
         children: [
            _buildInfoRow('Goal', goal),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Result', result),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Tie-Break', tie),
         ],
       ),
@@ -312,9 +312,9 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
           child: Text(
             '$label:', 
             style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.w900, 
+              fontWeight: AppTypography.weightBlack, 
               color: AppColors.lime500,
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
             )
           )
         ),
@@ -322,7 +322,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
           child: Text(
             value, 
             style: AppTypography.label.copyWith(
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
               color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )

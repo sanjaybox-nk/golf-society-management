@@ -239,9 +239,9 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           Container(
             padding: const EdgeInsets.all(AppSpacing.xs),
             decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+              color: theme.scaffoldBackgroundColor.withValues(alpha: AppColors.opacityHalf),
               borderRadius: BorderRadius.circular(AppSpacing.lg),
-              border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
+              border: Border.all(color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle)),
             ),
             child: Row(
               children: _targetOptions.map((opt) {
@@ -256,7 +256,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                         borderRadius: BorderRadius.circular(AppSpacing.md),
                         boxShadow: isSelected ? [
                           BoxShadow(
-                            color: AppColors.lime500.withValues(alpha: 0.2),
+                            color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           )
@@ -266,9 +266,9 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                         opt,
                         textAlign: TextAlign.center,
                         style: AppTypography.label.copyWith(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                          color: isSelected ? AppColors.actionText : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                          fontSize: AppTypography.sizeLabel,
+                          fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightSemibold,
+                          color: isSelected ? AppColors.actionText : theme.textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHalf),
                         ),
                       ),
                     ),
@@ -281,28 +281,28 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           
           if (_targetType == 'All Members') 
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.lime500.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.lime500.withValues(alpha: 0.1)),
+                color: AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+                borderRadius: AppShapes.md,
+                border: Border.all(color: AppColors.lime500.withValues(alpha: AppColors.opacityLow)),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: AppColors.lime500.withValues(alpha: 0.1),
+                      color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.people_rounded, size: 16, color: AppColors.lime500),
+                    child: const Icon(Icons.people_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Text(
                     'Reach: approx. $totalCount members',
                     style: AppTypography.bodySmall.copyWith(
                       color: AppColors.lime500,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: AppTypography.weightExtraBold,
                     ),
                   ),
                 ],
@@ -312,17 +312,17 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           if (_targetType == 'Groups')
             if (customLists.isEmpty)
             Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: theme.dividerColor.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+                    color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                    borderRadius: AppShapes.lg,
+                    border: Border.all(color: theme.dividerColor.withValues(alpha: AppColors.opacityLow)),
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.group_off_rounded, size: 32, color: theme.dividerColor.withValues(alpha: 0.3)),
-                      const SizedBox(height: 12),
+                      Icon(Icons.group_off_rounded, size: AppShapes.iconXl, color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         'No audience groups found',
                         style: AppTypography.bodySmall.copyWith(color: AppColors.dark300),
@@ -353,7 +353,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                       hint: 'Start typing name...',
                       controller: controller,
                       focusNode: focusNode,
-                      prefixIcon: const Icon(Icons.person_search_rounded, size: 20),
+                      prefixIcon: const Icon(Icons.person_search_rounded, size: AppShapes.iconMd),
                     );
                   },
                 ),
@@ -377,7 +377,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                    controller: _titleController,
                  ),
                ),
-               const SizedBox(width: 8),
+               const SizedBox(width: AppSpacing.sm),
                IconButton(
                  icon: const Icon(Icons.add_a_photo_rounded, color: AppColors.lime500),
                  onPressed: () {
@@ -385,19 +385,19 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                  },
                ),
                IconButton(
-                 icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                 icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                  onPressed: _resetForm,
                ),
              ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'CONTENT'),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           BoxyArtRichEditor(
             controller: _quillController,
             placeholder: 'Message content...',
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           BoxyArtDropdownField<String>(
             label: 'Category',
             value: _category,

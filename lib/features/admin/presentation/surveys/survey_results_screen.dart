@@ -25,13 +25,13 @@ class SurveyResultsScreen extends ConsumerWidget {
           subtitle: survey.title,
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildParticipationCard(context, survey, membersAsync),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.x3l),
                   ...survey.questions.map((q) => Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                     child: _buildQuestionResult(context, q, survey.responses, membersAsync),
                   )),
                   const SizedBox(height: 100),
@@ -52,14 +52,14 @@ class SurveyResultsScreen extends ConsumerWidget {
     final rate = totalMembers == 0 ? 0 : (totalResponses / totalMembers * 100).toInt();
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.x2l),
       child: Row(
         children: [
           _buildMetric('RESPONSES', totalResponses.toString(), Icons.people_rounded, AppColors.lime500),
           const Spacer(),
           const VerticalDivider(),
           const Spacer(),
-          _buildMetric('PARTICIPATION', '$rate%', Icons.analytics_rounded, Colors.blue),
+          _buildMetric('PARTICIPATION', '$rate%', Icons.analytics_rounded, AppColors.teamA),
         ],
       ),
     );
@@ -68,25 +68,25 @@ class SurveyResultsScreen extends ConsumerWidget {
   Widget _buildMetric(String label, String value, IconData icon, Color color) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+        Icon(icon, color: color, size: AppShapes.iconLg),
+        const SizedBox(height: AppSpacing.sm),
+        Text(value, style: const TextStyle(fontSize: AppTypography.sizeDisplayLocker, fontWeight: AppTypography.weightBlack)),
+        Text(label, style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary)),
       ],
     );
   }
 
   Widget _buildQuestionResult(BuildContext context, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<dynamic>> membersAsync) {
     return BoxyArtCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             q.question.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.2, color: AppColors.lime500),
+            style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.2, color: AppColors.lime500),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           if (q.type == SurveyQuestionType.text)
             _buildTextResults(context, q, responses, membersAsync)
           else
@@ -126,20 +126,20 @@ class SurveyResultsScreen extends ConsumerWidget {
         final percent = total == 0 ? 0.0 : count / responses.length; // Per respondent, not per total selection
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text(opt, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
-                  Text('$count (${(percent * 100).toInt()}%)', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  Expanded(child: Text(opt, style: const TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeBodySmall))),
+                  Text('$count (${(percent * 100).toInt()}%)', style: const TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: AppShapes.xs,
                 child: LinearProgressIndicator(
                   value: percent,
                   minHeight: 8,
@@ -160,7 +160,7 @@ class SurveyResultsScreen extends ConsumerWidget {
         .toList();
 
     if (textResponses.isEmpty) {
-      return const Text('No responses yet.', style: TextStyle(color: Colors.grey, fontSize: 13));
+      return const Text('No responses yet.', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabelStrong));
     }
 
     return Column(
@@ -172,8 +172,8 @@ class SurveyResultsScreen extends ConsumerWidget {
 
         return Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.dark600,
             borderRadius: AppShapes.md,
@@ -182,9 +182,9 @@ class SurveyResultsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.lime500, fontSize: 11)),
-              const SizedBox(height: 8),
-              Text(answer, style: const TextStyle(fontSize: 14, height: 1.4)),
+              Text(name, style: const TextStyle(fontWeight: AppTypography.weightBlack, color: AppColors.lime500, fontSize: AppTypography.sizeCaptionStrong)),
+              const SizedBox(height: AppSpacing.sm),
+              Text(answer, style: const TextStyle(fontSize: AppTypography.sizeBodySmall, height: 1.4)),
             ],
           ),
         );

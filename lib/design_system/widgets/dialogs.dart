@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:golf_society/theme/app_colors.dart';
-import 'package:golf_society/theme/app_typography.dart';
-import 'package:golf_society/theme/app_spacing.dart';
+import 'package:golf_society/design_system/design_system.dart';
 
 /// Standard branded dialog for Fairway v3.1.
 class BoxyArtDialog extends StatelessWidget {
@@ -205,7 +202,7 @@ class _BoxyArtDeleteConfirmationDialogState extends State<BoxyArtDeleteConfirmat
           Text(
             'Type "${widget.requiredText}" to confirm:',
             style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: AppTypography.weightBold,
               color: widget.isDestructive ? theme.colorScheme.error : null,
             ),
           ),
@@ -234,7 +231,7 @@ class _BoxyArtDeleteConfirmationDialogState extends State<BoxyArtDeleteConfirmat
           onPressed: _isMatch ? () => Navigator.of(context).pop(true) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: widget.isDestructive ? theme.colorScheme.error : null,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.pureWhite,
           ),
           child: Text(widget.confirmLabel),
         ),

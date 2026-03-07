@@ -21,7 +21,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(
@@ -30,31 +30,31 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
                 title: 'Order of Merit',
                 subtitle: 'Accumulate points from all rounds.',
                 icon: Icons.emoji_events_rounded,
-                color: Colors.amber,
+                color: AppColors.amber500,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.orderOfMerit),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _TypeTile(
                 title: 'Best of Series',
                 subtitle: 'Count top N scores (e.g. Best 8 of 10).',
                 icon: Icons.list_alt_rounded,
-                color: Colors.blue,
+                color: AppColors.teamA,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.bestOfSeries),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _TypeTile(
                 title: 'Eclectic',
                 subtitle: 'Best score per hole across season.',
                 icon: Icons.grid_on_rounded,
-                color: Colors.purple,
+                color: AppColors.teamB,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.eclectic),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _TypeTile(
                 title: 'Birdie Tree',
                 subtitle: 'Track Birdies, Eagles, or Pars.',
                 icon: Icons.park_rounded,
-                color: Colors.green,
+                color: AppColors.lime500,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.markerCounter),
               ),
               const SizedBox(height: 100),
@@ -100,19 +100,19 @@ class _TypeTile extends StatelessWidget {
     
     return BoxyArtCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
           Container(
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: AppShapes.iconLg),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,16 +120,16 @@ class _TypeTile extends StatelessWidget {
                 Text(
                   title,
                   style: AppTypography.body.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: AppTypography.weightExtraBold,
                     color: isDark ? AppColors.pureWhite : AppColors.dark900,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle,
                   style: AppTypography.label.copyWith(
                     color: isDark ? AppColors.dark300 : AppColors.dark400,
-                    fontSize: 12,
+                    fontSize: AppTypography.sizeLabel,
                   ),
                 ),
               ],
@@ -138,7 +138,7 @@ class _TypeTile extends StatelessWidget {
           Icon(
             Icons.chevron_right_rounded, 
             color: isDark ? AppColors.dark300 : AppColors.dark400,
-            size: 20,
+            size: AppShapes.iconMd,
           ),
         ],
       ),

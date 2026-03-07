@@ -33,11 +33,11 @@ class BoxyArtEmptyState extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(isCompact ? AppSpacing.md : AppSpacing.lg),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.dark700 : AppColors.dark50.withValues(alpha: 0.5),
+                color: isDark ? AppColors.dark700 : AppColors.dark50.withValues(alpha: AppColors.opacityHalf),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isDark ? AppColors.dark600 : AppColors.dark100,
-                  width: 1,
+                  width: AppShapes.borderThin,
                 ),
               ),
               child: Icon(

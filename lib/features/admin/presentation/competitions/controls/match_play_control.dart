@@ -70,7 +70,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       children: [
         // ── MATCH FORMAT ──────────────────────────────────────
         const BoxyArtSectionTitle(title: 'MATCH FORMAT'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<CompetitionSubtype>(
           label: 'Format',
@@ -90,36 +90,36 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
           },
         ),
         buildInfoBubble(_getFormatDescription(effectiveSubtype)),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // Format info card
         buildInfoCard(_getFormatRules(effectiveSubtype)),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
           _allowance,
           (val) => setState(() => _allowance = val),
           hint: 'Fraction of the handicap difference given as stroke allowance.',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
         buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── TIE BREAK ─────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'TIE BREAK'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<TieBreakMethod>(
           label: 'Tie Break Method',
@@ -132,9 +132,9 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
         ),
         buildInfoBubble('Match Play normally ends before 18 holes — a playoff is the standard resolution for all-square matches.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

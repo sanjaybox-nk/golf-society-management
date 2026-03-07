@@ -24,7 +24,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               if (formatFilter == null || formatFilter == 'stableford') ...[
@@ -32,10 +32,10 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   title: 'Stableford',
                   subtitle: 'Points based on handicap. Best for mixed ability.',
                   icon: Icons.format_list_numbered_rounded,
-                  color: Colors.orange,
+                  color: AppColors.amber500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.stableford),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
               
               if (formatFilter == null || formatFilter == 'stroke') ...[
@@ -43,10 +43,10 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   title: 'Stroke Play (Medal)',
                   subtitle: 'Count every shot. The pure test of golf.',
                   icon: Icons.golf_course_rounded,
-                  color: Colors.blue,
+                  color: AppColors.teamA,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.stroke),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
               
               if (formatFilter == null || formatFilter == 'maxScore') ...[
@@ -54,14 +54,14 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   title: 'Max Score',
                   subtitle: 'Stroke play with a cap per hole (e.g. Par + 3).',
                   icon: Icons.vertical_align_top_rounded,
-                  color: Colors.teal,
+                  color: AppColors.lime500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.maxScore),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
 
               if (formatFilter == null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 const BoxyArtSectionTitle(
                   title: 'HEAD-TO-HEAD',),
                 _TypeTile(
@@ -71,21 +71,21 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: Colors.redAccent,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
 
               if (formatFilter == null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 const BoxyArtSectionTitle(
                   title: 'PAIRS FORMATS',),
                 _TypeTile(
                   title: 'Fourball (Better Ball)',
                   subtitle: 'Pairs play own ball. Best score counts.',
                   icon: Icons.people_outline_rounded,
-                  color: Colors.indigo,
+                  color: AppColors.teamA,
                   onTap: () => _navigateToBuilder(context, CompetitionSubtype.fourball),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 _TypeTile(
                   title: 'Foursomes (Alternate Shot)',
                   subtitle: 'Partners alternate hitting one ball.',
@@ -93,24 +93,24 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: Colors.indigoAccent,
                   onTap: () => _navigateToBuilder(context, CompetitionSubtype.foursomes),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
 
               if (formatFilter == null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 const BoxyArtSectionTitle(
                   title: 'TEAM FORMATS',),
                 _TypeTile(
                   title: 'Scramble',
                   subtitle: 'Texas/Florida Scramble. Team aggregate play.',
                   icon: Icons.group_work_rounded,
-                  color: Colors.purple,
+                  color: AppColors.teamB,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.scramble),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
               
-              const SizedBox(height: 40),
+              const SizedBox(height: AppSpacing.x4l),
             ]),
           ),
         ),
@@ -154,7 +154,7 @@ class _TypeTile extends StatelessWidget {
 
     return BoxyArtCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
           // Icon Avatar with soft background
@@ -162,12 +162,12 @@ class _TypeTile extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: AppShapes.iconLg),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: AppSpacing.xl),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,8 +179,8 @@ class _TypeTile extends StatelessWidget {
                     Text(
                       mainTitle,
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
+                        fontSize: AppTypography.sizeDisplaySection,
+                        fontWeight: AppTypography.weightBlack,
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -189,21 +189,21 @@ class _TypeTile extends StatelessWidget {
                       Text(
                         bracketText,
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontSize: AppTypography.sizeLabel,
+                          fontWeight: AppTypography.weightBold,
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                         ),
                       ),
                     ],
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    fontSize: AppTypography.sizeBodySmall,
+                    fontWeight: AppTypography.weightMedium,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
                     height: 1.2,
                   ),
                 ),
@@ -212,7 +212,7 @@ class _TypeTile extends StatelessWidget {
           ),
           Icon(
             Icons.chevron_right_rounded, 
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
           ),
         ],
       ),

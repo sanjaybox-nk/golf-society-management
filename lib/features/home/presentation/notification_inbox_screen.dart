@@ -21,18 +21,18 @@ class NotificationInboxScreen extends ConsumerWidget {
           CustomScrollView(
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 100),
+                padding: const EdgeInsets.only(top: 80, left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const Text(
                       'Notifications',
                       style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                        fontSize: AppTypography.sizeDisplayMedium,
+                        fontWeight: AppTypography.weightBold,
                         letterSpacing: -1,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.x2l),
                     notificationsAsync.when(
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (err, stack) => Center(child: Text('Error: $err')),
@@ -43,16 +43,16 @@ class NotificationInboxScreen extends ConsumerWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const SizedBox(height: 60),
-                                    Icon(Icons.notifications_none_rounded, size: 64, color: Colors.grey.withValues(alpha: 0.2)),
-                                    const SizedBox(height: 16),
-                                    Text('No notifications found', style: TextStyle(color: Colors.grey.shade500)),
+                                    Icon(Icons.notifications_none_rounded, size: AppShapes.iconMassive, color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium)),
+                                    const SizedBox(height: AppSpacing.lg),
+                                    Text('No notifications found', style: TextStyle(color: AppColors.dark500)),
                                   ],
                                 ),
                               )
                             : Column(
                                 children: notifications.map((notification) {
                                   return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                                     child: Dismissible(
                                       key: Key('inbox_notif_${notification.id}'),
                                       direction: DismissDirection.endToStart,
@@ -61,22 +61,22 @@ class NotificationInboxScreen extends ConsumerWidget {
                                       },
                                       background: Container(
                                         alignment: Alignment.centerRight,
-                                        padding: const EdgeInsets.only(right: 24),
+                                        padding: const EdgeInsets.only(right: AppSpacing.x2l),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE74C3C),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: AppShapes.xl,
                                         ),
                                         child: const Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 28),
-                                            SizedBox(height: 4),
+                                            Icon(Icons.delete_sweep_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
+                                            SizedBox(height: AppSpacing.xs),
                                             Text(
                                               'DELETE',
                                               style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.pureWhite,
+                                                fontSize: AppTypography.sizeCaption,
+                                                fontWeight: AppTypography.weightBold,
                                                 letterSpacing: 1.2,
                                               ),
                                             ),
@@ -103,25 +103,20 @@ class NotificationInboxScreen extends ConsumerWidget {
             right: 0,
             child: Container(
               height: 100,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               child: SafeArea(
                 child: Row(
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: AppSpacing.x4l,
+                      height: AppSpacing.x4l,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
+                        boxShadow: AppShadows.softScale,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20, color: Colors.black87),
+                        icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withValues(alpha: 0.87)),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -145,7 +140,7 @@ class _InboxNotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUrgent = notification.category == 'Urgent';
     final primary = Theme.of(context).primaryColor;
-    final accent = isUrgent ? Colors.red : primary;
+    final accent = isUrgent ? AppColors.coral500 : primary;
 
     return BoxyArtCard(
       onTap: () {
@@ -157,34 +152,34 @@ class _InboxNotificationCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: accent.withValues(alpha: AppColors.opacityLow),
+              borderRadius: AppShapes.md,
             ),
             child: Icon(
               isUrgent ? Icons.warning_rounded : Icons.info_rounded,
               color: accent,
-              size: 20,
+              size: AppShapes.iconMd,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   notification.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 _buildMessageContent(context),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
-                    Icon(Icons.schedule_rounded, size: 12, color: Colors.grey.shade400),
-                    const SizedBox(width: 4),
+                    Icon(Icons.schedule_rounded, size: AppShapes.iconXs, color: AppColors.dark400),
+                    const SizedBox(width: AppSpacing.xs),
                     Text(
                       _formatTimestamp(notification.timestamp),
-                      style: TextStyle(color: Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: AppColors.dark400, fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightMedium),
                     ),
                   ],
                 ),
@@ -220,7 +215,7 @@ class _InboxNotificationCard extends StatelessWidget {
         notification.message,
         style: TextStyle(
           color: Theme.of(context).textTheme.bodySmall?.color,
-          fontSize: 14,
+          fontSize: AppTypography.sizeBodySmall,
           height: 1.3,
         ),
       );

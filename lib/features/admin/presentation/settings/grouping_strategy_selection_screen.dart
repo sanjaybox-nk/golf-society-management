@@ -48,7 +48,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const BoxyArtSectionTitle(title: 'PAIRING LOGIC'),
@@ -56,12 +56,12 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                 final isSelected = strategy.id == current;
                 final theme = Theme.of(context);
                 final isDark = theme.brightness == Brightness.dark;
-                const identityColor = Colors.indigo;
+                const identityColor = AppColors.teamA;
                 final iconColor = isSelected ? identityColor : (isDark ? AppColors.dark300 : AppColors.dark400);
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: BoxyArtCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     onTap: () {
                       ref.read(themeControllerProvider.notifier).setGroupingStrategy(strategy.id);
                       context.pop();
@@ -74,18 +74,18 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: identityColor.withValues(alpha: 0.1),
+                            color: identityColor.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: Icon(
                               strategy.icon, 
                               color: iconColor, 
-                              size: 24,
+                              size: AppShapes.iconLg,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,8 +93,8 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                               Text(
                                 strategy.label.toUpperCase(),
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: AppTypography.sizeButton,
+                                  fontWeight: AppTypography.weightExtraBold,
                                   letterSpacing: 0.5,
                                   color: isDark ? AppColors.pureWhite : AppColors.dark900,
                                 ),
@@ -103,7 +103,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                               Text(
                                 strategy.description,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: AppTypography.sizeLabelStrong,
                                   color: isDark ? AppColors.dark300 : AppColors.dark400,
                                   height: 1.3,
                                 ),
@@ -113,20 +113,20 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                         ),
                         if (isSelected)
                           const Padding(
-                            padding: EdgeInsets.only(left: 8, top: 2),
+                            padding: EdgeInsets.only(left: AppSpacing.sm, top: 2),
                             child: Icon(
                               Icons.check_circle_rounded,
                               color: identityColor,
-                              size: 24,
+                              size: AppShapes.iconLg,
                             ),
                           )
                         else
                           Padding(
-                            padding: const EdgeInsets.only(left: 8, top: 2),
+                            padding: const EdgeInsets.only(left: AppSpacing.sm, top: 2),
                             child: Icon(
                               Icons.chevron_right_rounded, 
                               color: isDark ? AppColors.dark400 : AppColors.dark300,
-                              size: 20,
+                              size: AppShapes.iconMd,
                             ),
                           ),
                       ],

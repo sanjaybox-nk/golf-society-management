@@ -36,7 +36,7 @@ class _EclecticControlState extends State<EclecticControl> {
         children: [
           BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 BoxyArtInputField(
@@ -47,10 +47,10 @@ class _EclecticControlState extends State<EclecticControl> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -65,7 +65,7 @@ class _EclecticControlState extends State<EclecticControl> {
                 ),
                 
                 if (_metric == EclecticMetric.strokes) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.x2l),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -78,13 +78,13 @@ class _EclecticControlState extends State<EclecticControl> {
                       Text(
                         '${_handicapPercentage.toInt()}%',
                         style: AppTypography.bodySmall.copyWith(
-                          fontWeight: FontWeight.w800,
+                          fontWeight: AppTypography.weightExtraBold,
                           color: AppColors.lime500,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   BoxyArtSlider(
                     value: _handicapPercentage,
                     min: 0,
@@ -99,7 +99,7 @@ class _EclecticControlState extends State<EclecticControl> {
                       : 'Net Score (Gross - ${_handicapPercentage.toInt()}% of Final Handicap)',
                     style: AppTypography.label.copyWith(
                       color: AppColors.dark400,
-                      fontSize: 10,
+                      fontSize: AppTypography.sizeCaption,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -109,7 +109,7 @@ class _EclecticControlState extends State<EclecticControl> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
               title: 'SAVE CHANGES',
@@ -149,18 +149,18 @@ class _EclecticControlState extends State<EclecticControl> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: AppSpacing.x2l),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.md,
       ),
       child: Column(
         children: [
            _buildInfoRow('Goal', goal),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Result', result),
         ],
       ),
@@ -176,9 +176,9 @@ class _EclecticControlState extends State<EclecticControl> {
           child: Text(
             '$label:', 
             style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.w900, 
+              fontWeight: AppTypography.weightBlack, 
               color: AppColors.lime500,
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
             )
           )
         ),
@@ -186,7 +186,7 @@ class _EclecticControlState extends State<EclecticControl> {
           child: Text(
             value, 
             style: AppTypography.label.copyWith(
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
               color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )

@@ -61,27 +61,27 @@ class EventCourseSection extends ConsumerWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: 'Course Location (Auto-filled)',
                     initialValue: state.courseDetails,
                     readOnly: true,
                     maxLines: 2,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   // Tee Selection (Simplified for now - can be expanded)
                   BoxyArtFormField(
                     label: 'Starting Tee (Manual)',
                     initialValue: state.selectedTeeName,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedTeeName(v),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: 'Dress Code',
                     initialValue: state.dressCode,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDressCode(v),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
                       Expanded(
@@ -92,7 +92,7 @@ class EventCourseSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateAvailableBuggies(int.tryParse(v)),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: BoxyArtFormField(
                           label: 'Buggy Cost ($currency)',
@@ -103,7 +103,7 @@ class EventCourseSection extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
                     label: 'Available Spaces',
                     initialValue: state.maxParticipants?.toString() ?? '',
@@ -121,7 +121,7 @@ class EventCourseSection extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
           ],
         );
       },

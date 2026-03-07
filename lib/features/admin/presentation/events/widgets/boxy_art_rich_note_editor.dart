@@ -42,12 +42,12 @@ class BoxyArtRichNoteEditor extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                icon: const Icon(Icons.delete_outline, color: AppColors.textSecondary),
                 onPressed: onRemove,
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Note Content',
             controller: controller.contentController,

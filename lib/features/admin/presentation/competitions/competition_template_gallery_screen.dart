@@ -37,7 +37,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 24),
+          padding: const EdgeInsets.only(top: AppSpacing.x2l, left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.x2l),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Start Blank Card
@@ -80,18 +80,18 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.x3l),
                       const BoxyArtSectionTitle(title: 'Saved Templates', ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       ...filtered.map((t) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: _buildTemplateCard(context, t, ref),
                       )),
                     ],
                   );
                 },
                 loading: () => const Padding(
-                  padding: EdgeInsets.all(32.0),
+                  padding: EdgeInsets.all(AppSpacing.x3l),
                   child: Center(child: CircularProgressIndicator()),
                 ),
                 error: (e, s) => Text('Error loading templates: $e'),
@@ -111,14 +111,14 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
       key: Key(template.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(24),
+          color: AppColors.coral500,
+          borderRadius: AppShapes.x2l,
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        padding: const EdgeInsets.only(right: AppSpacing.x2l),
+        child: const Icon(Icons.delete_outline, color: AppColors.pureWhite, size: AppShapes.iconLg),
       ),
       confirmDismiss: (direction) async {
         return await showDialog<bool>(
@@ -130,7 +130,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
               TextButton(onPressed: () => context.pop(false), child: const Text("Cancel")),
               TextButton(
                 onPressed: () => context.pop(true), 
-                child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                child: const Text("Delete", style: TextStyle(color: AppColors.coral500)),
               ),
             ],
           ),
@@ -143,7 +143,7 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: CompetitionRulesCard(
           eventId: template.id,
           competition: template, // Pass the object directly!
@@ -184,20 +184,20 @@ class _BlankTemplateCard extends StatelessWidget {
     
     return BoxyArtCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+              color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+              borderRadius: AppShapes.md,
+              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium)),
             ),
-            child: Icon(icon, color: theme.colorScheme.primary, size: 24),
+            child: Icon(icon, color: theme.colorScheme.primary, size: AppShapes.iconLg),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,8 +205,8 @@ class _BlankTemplateCard extends StatelessWidget {
                 Text(
                   title.toUpperCase(),
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppTypography.sizeBody,
+                    fontWeight: AppTypography.weightBlack,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -214,15 +214,15 @@ class _BlankTemplateCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTypography.sizeLabel,
                     color: theme.textTheme.bodySmall?.color,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppTypography.weightSemibold,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.add_rounded, color: Colors.grey, size: 20),
+          const Icon(Icons.add_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
         ],
       ),
     );

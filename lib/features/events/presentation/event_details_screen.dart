@@ -52,28 +52,28 @@ class _EventDetailsContent extends StatelessWidget {
             delegate: SliverChildListDelegate([
               if (event.status == EventStatus.cancelled)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                    color: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
+                    borderRadius: AppShapes.lg,
+                    border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMedium)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.cancel_outlined, color: Colors.red),
-                      const SizedBox(width: 16),
+                      const Icon(Icons.cancel_outlined, color: AppColors.coral500),
+                      const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
                               'EVENT CANCELLED',
-                              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                              style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBlack, letterSpacing: 1.2),
                             ),
                             Text(
                               'This event has been cancelled by the administrative team.',
-                              style: TextStyle(color: Colors.red.withValues(alpha: 0.8), fontSize: 13),
+                              style: TextStyle(color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh), fontSize: AppTypography.sizeLabelStrong),
                             ),
                           ],
                         ),
@@ -82,14 +82,14 @@ class _EventDetailsContent extends StatelessWidget {
                   ),
                 ),
               _buildStatusBadge(context),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.x2l),
               
               // Event Hero Image
               if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
                 BoxyArtCard(
                   padding: EdgeInsets.zero,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: AppShapes.xl,
                     child: Image.network(
                       event.imageUrl!,
                       height: 200,
@@ -102,7 +102,7 @@ class _EventDetailsContent extends StatelessWidget {
                 BoxyArtCard(
                   padding: const EdgeInsets.symmetric(vertical: 60),
                   child: Center(
-                    child: Icon(Icons.golf_course, size: 64, color: primary.withValues(alpha: 0.2)),
+                    child: Icon(Icons.golf_course, size: AppShapes.iconMassive, color: primary.withValues(alpha: AppColors.opacityMedium)),
                   ),
                 ),
               SizedBox(height: AppTheme.cardSpacing),
@@ -168,7 +168,7 @@ class _EventDetailsContent extends StatelessWidget {
     switch (displayStatus) {
       case EventStatus.draft:
         statusText = 'DRAFT';
-        statusColor = Colors.orange;
+        statusColor = AppColors.amber500;
         break;
       case EventStatus.published:
         statusText = 'PUBLISHED';
@@ -176,7 +176,7 @@ class _EventDetailsContent extends StatelessWidget {
         break;
       case EventStatus.inPlay:
         statusText = 'LIVE';
-        statusColor = Colors.blue;
+        statusColor = AppColors.teamA;
         break;
       case EventStatus.suspended:
         statusText = 'SUSPENDED';
@@ -184,18 +184,18 @@ class _EventDetailsContent extends StatelessWidget {
         break;
       case EventStatus.completed:
         statusText = 'COMPLETED';
-        statusColor = Colors.grey;
+        statusColor = AppColors.textSecondary;
         break;
       case EventStatus.cancelled:
         statusText = 'CANCELLED';
-        statusColor = Colors.red;
+        statusColor = AppColors.coral500;
         break;
     }
     
     // Override if invitational
     if (event.isInvitational) {
       statusText = 'INVITATIONAL';
-      statusColor = Colors.grey.shade600;
+      statusColor = AppColors.dark600;
     }
 
     return BoxyArtPill.status(
@@ -229,22 +229,22 @@ class _EventDetailsContent extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: AppSpacing.x4l,
+                height: AppSpacing.x4l,
                 decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: primary.withValues(alpha: AppColors.opacityLow),
+                  borderRadius: AppShapes.md,
                 ),
                 child: Icon(Icons.groups_rounded, color: primary, size: 22),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               const Text(
                 'Registration',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: AppTypography.sizeLargeBody, fontWeight: AppTypography.weightBold),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           Row(
             children: [
               Expanded(
@@ -255,16 +255,16 @@ class _EventDetailsContent extends StatelessWidget {
                   isCompact: true,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: ModernMetricStat(
                   value: '${event.guestCount}',
                   label: 'Guests',
-                  color: Colors.purple,
+                  color: AppColors.teamB,
                   isCompact: true,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: ModernMetricStat(
                   value: '${event.waitlistCount}',
@@ -275,7 +275,7 @@ class _EventDetailsContent extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 32),
+          const Divider(height: AppSpacing.x3l),
           if (isRegistered) ...[
             const BoxyArtSectionTitle(title: 'Your Status'),
             Row(
@@ -286,13 +286,13 @@ class _EventDetailsContent extends StatelessWidget {
                 Expanded(child: _buildSummaryIcon(Icons.restaurant, 'Dinner', myRegistration.attendingDinner)),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
           ] else if (event.registrationDeadline != null) ...[
             ModernRuleItem(
               label: 'Deadline',
               value: '${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
           BoxyArtButton(
             title: isPastDeadline 
@@ -316,13 +316,13 @@ class _EventDetailsContent extends StatelessWidget {
             value: DateFormat('EEEE, d MMM y').format(event.date),
             icon: Icons.calendar_month_rounded,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           ModernInfoRow(
             label: 'Tee Times',
             value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
             icon: Icons.schedule_rounded,
           ),
-          const Divider(height: 32),
+          const Divider(height: AppSpacing.x3l),
           ModernInfoRow(
             label: 'Course',
             value: event.courseName ?? 'TBA',
@@ -375,18 +375,18 @@ class _EventDetailsContent extends StatelessWidget {
           if (hasBreakfast) ModernCostRow(label: 'Breakfast', amount: _formatCost(event.breakfastCost)),
           if (hasLunch) ModernCostRow(label: 'Lunch', amount: _formatCost(event.lunchCost)),
           if (hasDinner) ModernCostRow(label: 'Dinner', amount: _formatCost(event.dinnerCost)),
-          const Divider(height: 24),
+          const Divider(height: AppSpacing.x2l),
           ModernCostRow(label: 'Member Total', amount: _formatCost(memberSubtotal), isTotal: true),
 
-          const SizedBox(height: 12),
-          ModernCostRow(label: 'Guest Golf', amount: _formatCost(event.guestCost), color: Colors.purple.shade300),
+          const SizedBox(height: AppSpacing.md),
+          ModernCostRow(label: 'Guest Golf', amount: _formatCost(event.guestCost), color: AppColors.teamB),
           
           if (event.buggyCost != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             ModernRuleItem(label: 'Buggy (Optional)', value: _formatCost(event.buggyCost)),
             const Text(
               'Shared cost per buggy',
-              style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
+              style: TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
             ),
           ],
         ],
@@ -412,15 +412,15 @@ class _EventDetailsContent extends StatelessWidget {
 
   Widget _buildUpdateCard(BuildContext context, String update) {
     return BoxyArtCard(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
-          const Icon(Icons.campaign_rounded, color: Colors.orange, size: 24),
-          const SizedBox(width: 16),
+          const Icon(Icons.campaign_rounded, color: AppColors.amber500, size: AppShapes.iconLg),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Text(
               update,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+              style: const TextStyle(fontWeight: AppTypography.weightMedium, fontSize: AppTypography.sizeLabelStrong),
             ),
           ),
         ],
@@ -436,12 +436,12 @@ class _EventDetailsContent extends StatelessWidget {
         itemCount: event.galleryUrls.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppShapes.lg,
               child: Image.network(
                 event.galleryUrls[index],
-                width: 140,
+                width: AppShapes.borderThin,
                 height: 140,
                 fit: BoxFit.cover,
               ),

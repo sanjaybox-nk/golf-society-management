@@ -38,30 +38,24 @@ class BoxyArtBottomNavBar extends StatelessWidget {
         height: dockHeight,
         width: availableWidth,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
-              blurRadius: 32,
-              offset: const Offset(0, 16),
-            ),
-          ],
+          borderRadius: AppShapes.x2l,
+          boxShadow: AppShadows.softScale,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppShapes.x2l,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
               decoration: BoxDecoration(
                 color: backgroundColor ?? (isDark 
-                    ? AppColors.dark700.withValues(alpha: 0.8) 
-                    : Colors.white.withValues(alpha: 0.85)),
-                borderRadius: BorderRadius.circular(24),
+                    ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
+                    : AppColors.pureWhite.withValues(alpha: 0.85)),
+                borderRadius: AppShapes.x2l,
                 border: Border.all(
                   color: isDark 
-                      ? Colors.white.withValues(alpha: 0.12) 
-                      : AppColors.dark700.withValues(alpha: 0.08),
-                  width: 1.0,
+                      ? AppColors.pureWhite.withValues(alpha: 0.12) 
+                      : AppColors.dark700.withValues(alpha: AppColors.opacitySubtle),
+                  width: AppShapes.borderThin,
                 ),
               ),
               child: Stack(
@@ -85,7 +79,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                             children: [
                               const SizedBox(height: 2),
                               AnimatedScale(
-                                duration: const Duration(milliseconds: 300),
+                                duration: AppAnimations.medium,
                                 scale: isSelected ? 1.1 : 1.0,
                                 curve: Curves.easeOutBack,
                                 child: Icon(
@@ -93,15 +87,15 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                                   color: isSelected 
                                     ? (isDark ? AppColors.pureWhite : primaryColor) 
                                     : unselectedItemColor,
-                                  size: 20,
+                                  size: AppShapes.iconMd,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.xs),
                               Text(
                                 item.label,
                                 style: AppTypography.caption.copyWith(
-                                  fontSize: 10.5,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                  fontSize: AppTypography.sizeCaption,
+                                  fontWeight: isSelected ? AppTypography.weightSemibold : AppTypography.weightRegular,
                                   color: isSelected 
                                       ? (isDark ? AppColors.pureWhite : primaryColor) 
                                       : unselectedItemColor,

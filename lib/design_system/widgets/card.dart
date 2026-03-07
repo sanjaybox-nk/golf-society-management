@@ -75,7 +75,7 @@ class BoxyArtCard extends ConsumerWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   tintedColor,
-                  isDark ? tintedColor.withValues(alpha: 0.8) : tintedColor.withValues(alpha: 0.95),
+                  isDark ? tintedColor.withValues(alpha: AppColors.opacityHigh) : tintedColor.withValues(alpha: 0.95),
                 ],
               ) 
             : null,
@@ -89,7 +89,7 @@ class BoxyArtCard extends ConsumerWidget {
                 )
               ] : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
@@ -97,7 +97,7 @@ class BoxyArtCard extends ConsumerWidget {
             : null,
         border: config.useBorders 
             ? (border ?? Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.12),
+                color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: 0.12),
                 width: config.borderWidth,
               ))
             : null,
@@ -110,7 +110,7 @@ class BoxyArtCard extends ConsumerWidget {
             onTap: onTap,
             onLongPress: onLongPress,
             child: Padding(
-              padding: padding ?? const EdgeInsets.all(24),
+              padding: padding ?? const EdgeInsets.all(AppSpacing.x2l),
               child: child,
             ),
           ),
@@ -137,7 +137,7 @@ class BoxyArtSettingsCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 12),
+          padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.md),
           child: Text(
             title,
             style: AppTypography.displaySection.copyWith(
@@ -148,11 +148,11 @@ class BoxyArtSettingsCard extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: AppShapes.pill,
             boxShadow: AppShadows.inputSoft,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: AppShapes.pill,
             child: Column(
               children: children,
             ),
@@ -181,25 +181,25 @@ class ModernNoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BoxyArtCard(
-      margin: margin ?? const EdgeInsets.only(bottom: 12),
+      margin: margin ?? const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null && title!.isNotEmpty) ...[
             Text(
               title!,
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+              style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
           ],
           Text(
             content,
             style: AppTypography.bodySmall.copyWith(height: 1.4),
           ),
           if (imageUrl != null && imageUrl!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppShapes.md,
               child: Image.network(imageUrl!, width: double.infinity, fit: BoxFit.cover),
             ),
           ],

@@ -75,13 +75,13 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                   child: Row(
                     children: [
-                      const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
+                      const Icon(Icons.search_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: TextField(
                           focusNode: _searchFocusNode,
                           onChanged: (v) => ref.read(adminMemberSearchQueryProvider.notifier).update(v),
-                          style: AppTypography.label.copyWith(fontSize: 15),
+                          style: AppTypography.label.copyWith(fontSize: AppTypography.sizeButton),
                           decoration: const InputDecoration(
                             hintText: 'Search roster...',
                             border: InputBorder.none,
@@ -89,7 +89,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                             focusedBorder: InputBorder.none,
                             isDense: true,
                             filled: false,
-                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                            contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
                           ),
                         ),
                       ),
@@ -107,7 +107,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
 
                 // Members List
                 membersAsync.when(
@@ -130,7 +130,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     if (filtered.isEmpty) {
                       return const Center(
                         child: Padding(
-                          padding: EdgeInsets.all(48.0),
+                          padding: EdgeInsets.all(AppSpacing.x5l),
                           child: Text('No matching members'),
                         ),
                       );
@@ -143,7 +143,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                       children: sortedMembers.map((member) {
                         final eventCount = memberStatsAsync.value?[member.id] ?? 0;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: _buildDismissibleMember(
                             context, 
                             ref, 
@@ -179,18 +179,18 @@ Widget _buildDismissibleMember(
   String? secondaryMetricValue,
 }) {
   return Padding(
-    padding: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
     child: Dismissible(
       key: Key(member.id),
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.8),
+          color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh),
           borderRadius: BorderRadius.circular(AppSpacing.lg),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppSpacing.x2l),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 24),
+        child: const Icon(Icons.delete_outline, color: AppColors.pureWhite, size: AppShapes.iconLg),
       ),
       confirmDismiss: (direction) async {
         return await showBoxyArtDialog<bool>(

@@ -248,7 +248,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text('Error saving score: $e'), backgroundColor: Colors.red),
+         SnackBar(content: Text('Error saving score: $e'), backgroundColor: AppColors.coral500),
       );
     }
   }
@@ -314,14 +314,14 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                           'HOLE $currentHoleNum • PAR $par${si != null ? ' • SI $si' : ''}',
                           textAlign: TextAlign.center,
                           style: AppTypography.caption.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                            fontWeight: FontWeight.w900,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                            fontWeight: AppTypography.weightBlack,
                             letterSpacing: 1.0,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     // Row 2: 50/50 Split Actions
                     Row(
                       children: [
@@ -330,8 +330,8 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                           child: Container(
                             height: 36, // [FIX] Standardized height
                             decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(10),
+                              color: AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+                              borderRadius: AppShapes.md,
                             ),
                             child: Row(
                               children: [
@@ -354,25 +354,25 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         // Enter Button
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () => _openHeroScoring(holes, resolvedPtc),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).primaryColor,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.pureWhite,
                               elevation: 0,
                               minimumSize: const Size(double.infinity, 36), // [FIX] Expand to fill
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                              shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center, // Center for better symmetry
                               children: [
-                                Icon(Icons.bolt, size: 12),
-                                SizedBox(width: 4),
-                                 Text('ENTER SCORE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                Icon(Icons.bolt, size: AppShapes.iconXs),
+                                SizedBox(width: AppSpacing.xs),
+                                 Text('ENTER SCORE', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5)),
                               ],
                             ),
                           ),
@@ -386,12 +386,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
               const Spacer(),
               // Drag Handle Indicator
               Container(
-                width: 32,
+                width: AppSpacing.x3l,
                 height: 3,
                 margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+                  color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
+                  borderRadius: AppShapes.grabber,
                 ),
               ),
           ],
@@ -411,14 +411,14 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       child: GestureDetector(
         onTap: isDisabled ? null : onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: AppAnimations.fast,
           margin: const EdgeInsets.all(2), // Subtle inset for the pill
           decoration: BoxDecoration(
             color: isActive ? activeBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppShapes.sm,
             boxShadow: isActive ? [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: Colors.black.withValues(alpha: AppColors.opacityMedium),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               )
@@ -431,18 +431,18 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
               Text(
                 '$label${score != null ? ': $score' : ''}',
                 style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppTypography.weightBlack,
                   letterSpacing: 0.5,
                   color: (hasConflict) 
                       ? AppColors.coral500 
                       : (isActive 
                           ? activeTextColor 
-                          : (isDisabled ? theme.colorScheme.onSurface.withValues(alpha: 0.2) : theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                          : (isDisabled ? theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium) : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf))),
                 ),
               ),
               if (hasConflict) ...[
-                const SizedBox(width: 4),
-                Icon(Icons.error, size: 14, color: isActive ? Colors.red : Colors.grey),
+                const SizedBox(width: AppSpacing.xs),
+                Icon(Icons.error, size: AppShapes.iconXs, color: isActive ? AppColors.coral500 : AppColors.textSecondary),
               ],
             ],
           ),
@@ -478,7 +478,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: AppAnimations.slow,
       ),
     ).then((_) => setState(() {}));
   }

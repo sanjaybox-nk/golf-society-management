@@ -50,7 +50,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       children: [
         // ── HANDICAP ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'HANDICAP'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
           _allowance,
@@ -58,11 +58,11 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           disabled: _isGross,
           hint: "Fraction of each player's course handicap applied. 95% is the WHS default for Stableford.",
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         buildCapSlider(_handicapCap, (val) => setState(() => _handicapCap = val)),
         buildInfoBubble('0 = no cap applied. 1–54 limits each player\'s playing handicap to that maximum value.'),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtSwitchField(
           label: 'Hard Cap Playing HC',
@@ -73,7 +73,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         buildInfoBubble(_applyCapToIndex
             ? 'Cap applies to the baseline handicap index. WHS adjustments may push the playing HC above the cap.'
             : 'Cap is applied to the final playing HC — a player will never exceed $_handicapCap strokes.'),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtSwitchField(
           label: 'Mixed Tee Adjustments',
@@ -81,7 +81,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           value: _useMixedTeeAdjustment,
           onChanged: (val) => setState(() => _useMixedTeeAdjustment = val),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtSwitchField(
           label: 'Gross Scoring',
@@ -90,13 +90,13 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           onChanged: (val) => setState(() => _isGross = val),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── TIEBREAK ──────────────────────────────────────────
         const BoxyArtSectionTitle(title: 'TIE BREAK'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<TieBreakMethod>(
           label: 'Tie Break Method',
@@ -109,13 +109,13 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         ),
         buildInfoBubble('How tied scores are resolved. Back 9 compares the last 9 holes in reverse. Playoff is a sudden-death hole-off.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
         const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         buildSliderField(
           label: 'Number of Rounds',
@@ -126,7 +126,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         ),
         buildInfoBubble('For single events leave at 1. Increase for season-long or multi-round series.'),
         if (_roundsCount > 1) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtDropdownField<AggregationMethod>(
             label: 'Series Scoring',
             value: _aggregation,
@@ -139,13 +139,13 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
           buildInfoBubble('Cumulative adds all round scores. Best Round only counts a player\'s highest round.'),
         ],
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── TEAM / GROUP SCORING ──────────────────────────────
         const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<int>(
           label: 'Best X Scores per Flight',
@@ -155,9 +155,9 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         ),
         buildInfoBubble('Determines how many individual scores are combined for the group total shown in the flight view.'),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
         const Divider(height: 1),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.x2l),
 
         // ── GUEST SETTINGS ────────────────────────────────────
         buildGuestSettings(

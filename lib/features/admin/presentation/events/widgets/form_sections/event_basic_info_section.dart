@@ -18,7 +18,7 @@ class EventBasicInfoSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'Event Type'),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           ModernUnderlinedFilterBar<EventType>(
             selectedValue: state.eventType,
             onTabSelected: (type) => ref.read(eventFormNotifierProvider.notifier).updateEventType(type),
@@ -28,7 +28,7 @@ class EventBasicInfoSection extends ConsumerWidget {
               ModernFilterTab(label: 'SOCIAL', value: EventType.social, icon: Icons.celebration_rounded),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const BoxyArtSectionTitle(title: 'Basic Info'),
           BoxyArtCard(
             child: Column(
@@ -40,25 +40,25 @@ class EventBasicInfoSection extends ConsumerWidget {
                     height: 160,
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white.withValues(alpha: 0.05) 
+                          ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
                           : Colors.black.withValues(alpha: 0.03),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: AppShapes.lg,
                       border: Border.all(
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
                       ),
                     ),
                     child: state.imageUrl != null 
                         ? Stack(
                             children: [
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: AppShapes.lg,
                                 child: state.imageUrl!.startsWith('http') 
                                     ? Image.network(state.imageUrl!, width: double.infinity, height: 160, fit: BoxFit.cover)
                                     : Image.file(File(state.imageUrl!), width: double.infinity, height: 160, fit: BoxFit.cover),
                               ),
                               Positioned(
-                                top: 8,
-                                right: 8,
+                                top: AppSpacing.sm,
+                                right: AppSpacing.sm,
                                 child: Row(
                                   children: [
                                     BoxyArtGlassIconButton(
@@ -66,7 +66,7 @@ class EventBasicInfoSection extends ConsumerWidget {
                                       iconSize: 18,
                                       onPressed: () => ref.read(eventFormNotifierProvider.notifier).pickImage(),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: AppSpacing.sm),
                                     BoxyArtGlassIconButton(
                                       icon: Icons.delete_outline_rounded,
                                       iconSize: 18,
@@ -80,21 +80,21 @@ class EventBasicInfoSection extends ConsumerWidget {
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo_rounded, size: 32, color: Theme.of(context).primaryColor.withValues(alpha: 0.5)),
-                              const SizedBox(height: 8),
-                              const Text('Add Event Photo', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                              Icon(Icons.add_a_photo_rounded, size: AppShapes.iconXl, color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHalf)),
+                              const SizedBox(height: AppSpacing.sm),
+                              const Text('Add Event Photo', style: TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightBold)),
                             ],
                           ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtFormField(
                   label: 'Event Title',
                   initialValue: state.title,
                   onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateTitle(v),
                   validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtFormField(
                   label: 'Description',
                   initialValue: state.description,

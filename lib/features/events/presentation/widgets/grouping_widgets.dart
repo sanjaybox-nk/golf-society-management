@@ -66,7 +66,7 @@ class GroupingPlayerAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: borderColor != Colors.transparent
-              ? Border.all(color: borderColor, width: 2.5)
+              ? Border.all(color: borderColor, width: AppShapes.borderSemi)
               : null,
         ),
         child: CircleAvatar(
@@ -82,9 +82,9 @@ class GroupingPlayerAvatar extends StatelessWidget {
                   player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
                   style: TextStyle(
                     color: player.isCaptain 
-                        ? Colors.white 
+                        ? AppColors.pureWhite 
                         : (isDark ? AppColors.dark100 : AppColors.dark900),
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppTypography.weightBlack,
                     fontSize: size * 0.4,
                   ),
                 )
@@ -151,22 +151,22 @@ class GroupingPlayerTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
-          borderRadius: BorderRadius.circular(16),
+          color: isSelected ? primaryColor.withValues(alpha: AppColors.opacityLow) : null,
+          borderRadius: AppShapes.lg,
           border: isSelected
-              ? Border.all(color: primaryColor, width: 2)
+              ? Border.all(color: primaryColor, width: AppShapes.borderMedium)
               : (matchSide != null
                     ? Border.all(
                         color: matchSide == 'A'
-                            ? Colors.orange.withValues(alpha: 0.5)
-                            : Colors.blue.withValues(alpha: 0.5),
-                        width: 1.5,
+                            ? AppColors.amber500.withValues(alpha: AppColors.opacityHalf)
+                            : AppColors.lime500.withValues(alpha: AppColors.opacityHalf),
+                        width: AppShapes.borderLight,
                       )
                     : Border.all(
                         color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                        width: 1,
+                        width: AppShapes.borderThin,
                       )),
         ),
         child: Row(
@@ -184,21 +184,21 @@ class GroupingPlayerTile extends StatelessWidget {
                   : PopupMenuButton<String>(
                       onSelected: (val) => onAction?.call(val, player, group),
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[900]
-                          : Colors.white,
+                          ? AppColors.dark700
+                          : AppColors.pureWhite,
                       surfaceTintColor: Colors.transparent,
                       elevation: 8,
                       offset: const Offset(0, 48),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: AppShapes.lg,
                       ),
                       itemBuilder: (context) => [
                         const PopupMenuItem(
                           value: 'move',
                           child: Row(
                             children: [
-                              Icon(Icons.drive_file_move_outlined, size: 18),
-                              SizedBox(width: 12),
+                              Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
+                              SizedBox(width: AppSpacing.md),
                               Text('Move to Group...'),
                             ],
                           ),
@@ -207,8 +207,8 @@ class GroupingPlayerTile extends StatelessWidget {
                           value: 'remove',
                           child: Row(
                             children: [
-                              Icon(Icons.person_remove_outlined, size: 18),
-                              SizedBox(width: 12),
+                              Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
+                              SizedBox(width: AppSpacing.md),
                               Text('Remove from Group'),
                             ],
                           ),
@@ -219,10 +219,10 @@ class GroupingPlayerTile extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.exit_to_app,
-                                size: 18,
+                                size: AppShapes.iconSm,
                                 color: AppColors.coral500,
                               ),
-                              SizedBox(width: 12),
+                              SizedBox(width: AppSpacing.md),
                               Text(
                                 'Withdraw Member',
                                 style: TextStyle(color: AppColors.coral500),
@@ -240,7 +240,7 @@ class GroupingPlayerTile extends StatelessWidget {
                         size: 36,
                       ),
                     )),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +251,7 @@ class GroupingPlayerTile extends StatelessWidget {
                         child: Text(
                           player.name,
                           style: AppTypography.displayLargeBody.copyWith(
-                            fontSize: 16,
+                            fontSize: AppTypography.sizeBody,
                             letterSpacing: -0.4,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -265,7 +265,7 @@ class GroupingPlayerTile extends StatelessWidget {
                         'HC: ${player.handicapIndex.toStringAsFixed(1)}',
                         style: AppTypography.caption.copyWith(
                           color: isDark ? AppColors.dark150 : AppColors.dark400,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppTypography.weightBlack,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -273,7 +273,7 @@ class GroupingPlayerTile extends StatelessWidget {
                         width: 3,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.dark500 : AppColors.dark200.withValues(alpha: 0.3),
+                          color: isDark ? AppColors.dark500 : AppColors.dark200.withValues(alpha: AppColors.opacityMuted),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -282,7 +282,7 @@ class GroupingPlayerTile extends StatelessWidget {
                         'PHC: $displayPhc',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.lime500,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppTypography.weightBlack,
                         ),
                       ),
                       if (matchSide != null) ...[
@@ -291,7 +291,7 @@ class GroupingPlayerTile extends StatelessWidget {
                           width: 3,
                           height: 3,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                            color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -300,8 +300,8 @@ class GroupingPlayerTile extends StatelessWidget {
                           'SIDE $matchSide',
                           style: AppTypography.micro.copyWith(
                             color: matchSide == 'A'
-                                ? Colors.orange
-                                : Colors.blue,
+                                ? AppColors.amber500
+                                : AppColors.lime500,
                           ),
                         ),
                       ],
@@ -318,7 +318,7 @@ class GroupingPlayerTile extends StatelessWidget {
                 // Guest Indicator
                 if (player.isGuest)
                   Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
                     child: BoxyArtSquareBadge(
                       child: Text(
                         'G',
@@ -332,11 +332,11 @@ class GroupingPlayerTile extends StatelessWidget {
                 // Winner Trophy
                 if (isScoreMode && isWinner)
                   const Padding(
-                    padding: EdgeInsets.only(right: 8),
+                    padding: EdgeInsets.only(right: AppSpacing.sm),
                     child: BoxyArtSquareBadge(
                       child: Icon(
                         Icons.emoji_events_rounded,
-                        size: 14,
+                        size: AppShapes.iconXs,
                         color: AppColors.amber500,
                       ),
                     ),
@@ -346,12 +346,12 @@ class GroupingPlayerTile extends StatelessWidget {
                   // Member's Guest Marker
                   if (hasGuest)
                     const Padding(
-                      padding: EdgeInsets.only(right: 4),
+                      padding: EdgeInsets.only(right: AppSpacing.xs),
                       child: BoxyArtSquareBadge(
                         child: Icon(
                           Icons.person_add,
                           color: AppColors.lime500,
-                          size: 14,
+                          size: AppShapes.iconXs,
                         ),
                       ),
                     ),
@@ -359,18 +359,18 @@ class GroupingPlayerTile extends StatelessWidget {
                   // Buggy Marker/Toggle
                   if (player.needsBuggy || isAdmin)
                     Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsets.only(right: AppSpacing.xs),
                       child: BoxyArtSquareBadge(
                         child: InkWell(
                           onTap: isAdmin
                               ? () => onAction?.call('buggy', player, group)
                               : null,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: AppShapes.sm,
                           child: _buildBuggyIcon(
                             player.needsBuggy
                                 ? player.buggyStatus
                                 : RegistrationStatus.none,
-                            size: 14,
+                            size: AppShapes.iconXs,
                           ),
                         ),
                       ),
@@ -379,19 +379,19 @@ class GroupingPlayerTile extends StatelessWidget {
                   // Captain Marker/Toggle
                   if (player.isCaptain || isAdmin)
                     Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsets.only(right: AppSpacing.xs),
                       child: BoxyArtSquareBadge(
                         child: InkWell(
                           onTap: isAdmin
                               ? () => onAction?.call('captain', player, group)
                               : null,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: AppShapes.sm,
                           child: Icon(
                             player.isCaptain ? Icons.shield : Icons.shield_outlined,
                             color: player.isCaptain
                                 ? AppColors.amber500
                                 : (isDark ? AppColors.dark400 : AppColors.dark100),
-                            size: 14,
+                            size: AppShapes.iconXs,
                           ),
                         ),
                       ),
@@ -425,16 +425,16 @@ class GroupingPlayerTile extends StatelessWidget {
     Color color;
     switch (status) {
       case RegistrationStatus.confirmed:
-        color = Colors.green;
+        color = AppColors.lime500;
         break;
       case RegistrationStatus.reserved:
-        color = Colors.orange;
+        color = AppColors.amber500;
         break;
       case RegistrationStatus.waitlist:
-        color = Colors.red;
+        color = AppColors.coral500;
         break;
       default:
-        color = Colors.grey.shade300;
+        color = AppColors.dark300;
     }
     return Icon(Icons.electric_rickshaw, color: color, size: size);
   }
@@ -744,9 +744,9 @@ class GroupingCard extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -761,35 +761,29 @@ class GroupingCard extends StatelessWidget {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: AppSpacing.md,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    borderRadius: AppShapes.xl,
+                    boxShadow: AppShadows.softScale,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
                         Icons.access_time_filled_rounded,
-                        size: 14,
-                        color: Colors.white,
+                        size: AppShapes.iconXs,
+                        color: AppColors.pureWhite,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         _formatTime(context, group.teeTime),
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 13,
+                          color: AppColors.pureWhite,
+                          fontWeight: AppTypography.weightBlack,
+                          fontSize: AppTypography.sizeLabelStrong,
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -798,7 +792,7 @@ class GroupingCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // --- PLAYERS LIST ---
             ...group.players.asMap().entries.map((entry) {
@@ -901,29 +895,29 @@ class GroupingCard extends StatelessWidget {
                   children: [
                     widget,
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                       child: Row(
                         children: [
                           Expanded(
                             child: Divider(
-                              color: Colors.grey.shade400,
+                              color: AppColors.dark400,
                               height: 1,
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                             child: Text(
                               'VS',
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black54,
+                                fontSize: AppTypography.sizeCaption,
+                                fontWeight: AppTypography.weightBold,
+                                color: Colors.black.withValues(alpha: 0.54),
                               ),
                             ),
                           ),
                           Expanded(
                             child: Divider(
-                              color: Colors.grey.shade400,
+                              color: AppColors.dark400,
                               height: 1,
                             ),
                           ),
@@ -939,7 +933,7 @@ class GroupingCard extends StatelessWidget {
 
             if (isAdmin && group.players.length < 4)
               emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
-            const Divider(height: 24, color: Colors.black12),
+            Divider(height: AppSpacing.x2l, color: Colors.black.withValues(alpha: 0.12)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -961,7 +955,7 @@ class GroupingCard extends StatelessWidget {
                   )
                 else
                   const Spacer(),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   isFourball
                       ? (rules?.format == CompetitionFormat.matchPlay
@@ -971,9 +965,9 @@ class GroupingCard extends StatelessWidget {
                             ? 'Team PHC: ${displayTotalHandicap.toInt()}'
                             : 'Total PHC: ${displayTotalHandicap.toInt()}'),
                   style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.dark500,
+                    fontSize: AppTypography.sizeCaptionStrong,
+                    fontWeight: AppTypography.weightSemibold,
                   ),
                 ),
               ],
@@ -1015,17 +1009,17 @@ class GroupingCard extends StatelessWidget {
               Text(
                 'Status: ',
                 style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.dark700,
+                  fontSize: AppTypography.sizeCaptionStrong,
+                  fontWeight: AppTypography.weightSemibold,
                 ),
               ),
               Text(
                 matchStatus.toUpperCase(),
                 style: const TextStyle(
                   color: AppColors.lime500,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppTypography.sizeLabel,
+                  fontWeight: AppTypography.weightBlack,
                   letterSpacing: 0.2,
                 ),
               ),
@@ -1035,27 +1029,27 @@ class GroupingCard extends StatelessWidget {
               Text(
                 'A:',
                 style: TextStyle(
-                  color: Colors.orange.shade700,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
+                  color: AppColors.amber500,
+                  fontSize: AppTypography.sizeCaptionStrong,
+                  fontWeight: AppTypography.weightExtraBold,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xs),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 4,
+                  vertical: AppSpacing.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.amber500.withValues(alpha: AppColors.opacitySubtle),
+                  borderRadius: AppShapes.md,
                 ),
                 child: Text(
                   bbA ?? '-',
                   style: TextStyle(
-                    color: Colors.orange.shade800,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
+                    color: AppColors.amber500,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeLabelStrong,
                   ),
                 ),
               ),
@@ -1063,27 +1057,27 @@ class GroupingCard extends StatelessWidget {
               Text(
                 'B:',
                 style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
+                  color: AppColors.teamA,
+                  fontSize: AppTypography.sizeCaptionStrong,
+                  fontWeight: AppTypography.weightExtraBold,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xs),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 4,
+                  vertical: AppSpacing.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.teamA.withValues(alpha: AppColors.opacitySubtle),
+                  borderRadius: AppShapes.md,
                 ),
                 child: Text(
                   bbB ?? '-',
                   style: TextStyle(
-                    color: Colors.blue.shade800,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
+                    color: AppColors.teamA,
+                    fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeLabelStrong,
                   ),
                 ),
               ),
@@ -1098,68 +1092,68 @@ class GroupingCard extends StatelessWidget {
             Text(
               'Status: ',
               style: TextStyle(
-                color: Colors.grey.shade700,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                color: AppColors.dark700,
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightSemibold,
               ),
             ),
             Text(
               matchStatus.toUpperCase(),
               style: TextStyle(
                 color: Theme.of(context).primaryColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
+                fontSize: AppTypography.sizeLabel,
+                fontWeight: AppTypography.weightBlack,
                 letterSpacing: 0.2,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Container(
-              width: 1,
-              height: 12,
-              color: Colors.grey.shade300.withValues(alpha: 0.5),
+              width: AppShapes.borderThin,
+              height: AppSpacing.md,
+              color: AppColors.dark300.withValues(alpha: AppColors.opacityHalf),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
           ],
           if (matchStatus == null) ...[
             Text(
               'A:',
               style: TextStyle(
-                color: Colors.grey.shade700,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                color: AppColors.dark700,
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightSemibold,
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: AppShapes.borderMedium),
             Text(
               hasScoreA ? formatScore(scoreA) : '-',
               style: TextStyle(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
+                color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh),
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightBlack,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Container(
-              width: 1,
-              height: 12,
-              color: Colors.grey.shade300.withValues(alpha: 0.5),
+              width: AppShapes.borderThin,
+              height: AppSpacing.md,
+              color: AppColors.dark300.withValues(alpha: AppColors.opacityHalf),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               'B:',
               style: TextStyle(
-                color: Colors.grey.shade700,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                color: AppColors.dark700,
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightSemibold,
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: AppShapes.borderMedium),
             Text(
               hasScoreB ? formatScore(scoreB) : '-',
               style: TextStyle(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
+                color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh),
+                fontSize: AppTypography.sizeCaptionStrong,
+                fontWeight: AppTypography.weightBlack,
               ),
             ),
           ],
@@ -1173,8 +1167,8 @@ class GroupingCard extends StatelessWidget {
           : 'Group Total (Best $bestX): ${formatScore(groupTotal)}',
       style: TextStyle(
         color: isStableford ? AppColors.pureWhite : AppColors.lime500,
-        fontSize: 12,
-        fontWeight: FontWeight.w900,
+        fontSize: AppTypography.sizeLabel,
+        fontWeight: AppTypography.weightBlack,
       ),
     );
 
@@ -1202,9 +1196,9 @@ class GroupingCard extends StatelessWidget {
               child: Text(
                 weightInfo,
                 style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.dark500,
+                  fontSize: AppTypography.sizeCaption,
+                  fontWeight: AppTypography.weightSemibold,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -1238,14 +1232,14 @@ class GroupingCard extends StatelessWidget {
 
         return LongPressDraggable<Map<String, dynamic>>(
           data: {'player': p, 'group': group},
-          delay: const Duration(milliseconds: 500),
+          delay: AppAnimations.slow,
           feedback: Material(
             elevation: 8,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: AppShapes.x2l,
             child: GroupingPlayerAvatar(
               player: p,
               member: memberMap[p.registrationMemberId],
-              size: 48,
+              size: AppShapes.iconHero,
               groupIndex: group.index,
               totalGroups: totalGroups,
               history: history,
@@ -1253,17 +1247,17 @@ class GroupingCard extends StatelessWidget {
           ),
           childWhenDragging: Opacity(opacity: 0.3, child: child),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: AppAnimations.fast,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppShapes.md,
               border: Border.all(
                 color: isOver
                     ? Theme.of(context).primaryColor
                     : Colors.transparent,
-                width: 2,
+                width: AppShapes.borderMedium,
               ),
               color: isOver
-                  ? Theme.of(context).primaryColor.withValues(alpha: 0.05)
+                  ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle)
                   : Colors.transparent,
             ),
             child: child,

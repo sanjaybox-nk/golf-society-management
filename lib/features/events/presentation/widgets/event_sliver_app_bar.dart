@@ -38,7 +38,7 @@ class EventSliverAppBar extends ConsumerWidget {
       leadingWidth: 70,
       leading: Center(
         child: IconButton(
-          icon: const Icon(Icons.home, color: Colors.white),
+          icon: const Icon(Icons.home, color: AppColors.pureWhite),
           onPressed: () => context.go('/home'),
         ),
       ),
@@ -51,20 +51,20 @@ class EventSliverAppBar extends ConsumerWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
+              color: AppColors.pureWhite,
+              fontWeight: AppTypography.weightBold,
+              fontSize: AppTypography.sizeDisplaySection,
               letterSpacing: -0.5,
             ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               subtitle!,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+              style: TextStyle(
+                color: AppColors.pureWhite.withValues(alpha: 0.70),
+                fontSize: AppTypography.sizeLabelStrong,
+                fontWeight: AppTypography.weightMedium,
               ),
             ),
           ],
@@ -73,16 +73,16 @@ class EventSliverAppBar extends ConsumerWidget {
       actions: [
         if (isPreview)
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: Container(
-              width: 40,
-              height: 40,
+              width: AppSpacing.x4l,
+              height: AppSpacing.x4l,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: AppColors.pureWhite.withValues(alpha: AppColors.opacityLow),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
+                  color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium),
+                  width: AppShapes.borderThin,
                 ),
               ),
               child: ClipOval(
@@ -91,7 +91,7 @@ class EventSliverAppBar extends ConsumerWidget {
                   child: IconButton(
                     icon: const Icon(Icons.edit),
                     iconSize: 20,
-                    color: Colors.white,
+                    color: AppColors.pureWhite,
                     onPressed: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
                     padding: EdgeInsets.zero,
                     tooltip: 'Edit Event',

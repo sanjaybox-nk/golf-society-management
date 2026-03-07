@@ -66,11 +66,11 @@ class EventRegistrationUserTab extends ConsumerWidget {
           
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(AppSpacing.x3l),
           child: Text(
             emptyText,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey, fontSize: 16),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeBody),
           ),
         ),
       );
@@ -178,7 +178,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
         SizedBox(height: AppTheme.cardSpacing),
         const BoxyArtSectionTitle(title: 'Registration Stats'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -196,7 +196,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         isCompact: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ModernMetricStat(
                         value: playingValue,
@@ -206,7 +206,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         isCompact: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ModernMetricStat(
                         value: reserveValue,
@@ -216,20 +216,20 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         isCompact: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ModernMetricStat(
                         value: '${stats.totalGuests}',
                         label: 'Guests',
                         icon: Icons.person_add_rounded,
-                        color: Colors.purple,
+                        color: AppColors.teamB,
                         isCompact: true,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               // ATTENDANCE STATS
               IntrinsicHeight(
                 child: Row(
@@ -244,7 +244,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         isCompact: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ModernMetricStat(
                         value: '${stats.dinnerCount}',
@@ -254,7 +254,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         isCompact: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ModernMetricStat(
                         value: '${stats.waitlistGolfers}',
@@ -264,7 +264,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         isCompact: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ModernMetricStat(
                         value: '${stats.breakfastCount}',
@@ -277,13 +277,13 @@ class EventRegistrationUserTab extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.xl),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               // STATUS BAR
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -291,14 +291,14 @@ class EventRegistrationUserTab extends ConsumerWidget {
                         child: Text(
                           '${stats.confirmedGolfers}/$capacity spaces',
                           style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontSize: AppTypography.sizeBodySmall,
+                            fontWeight: AppTypography.weightSemibold,
                             color: Color(0xFF2C3E50),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       RegistrationStatusPill(
                         type: isClosed 
                             ? RegistrationStatusType.closed 
@@ -318,7 +318,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
         if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest)) ...[
           BoxyArtSectionTitle(title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).length})'),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Member',
@@ -342,7 +342,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Playing Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).length})'),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Guest of ${vm.item.registration.memberName}',
@@ -366,7 +366,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Waitlist Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).length})'),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Member',
@@ -390,7 +390,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Waitlist Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).length})'),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Guest of ${vm.item.registration.memberName}',
@@ -414,7 +414,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Reserved Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).length})'),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Member',
@@ -438,7 +438,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Reserved Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).length})'),
           ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Guest of ${vm.item.registration.memberName}',
@@ -462,7 +462,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
           ...dinnerModels.map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Dinner Only',
@@ -484,7 +484,7 @@ class EventRegistrationUserTab extends ConsumerWidget {
           SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Withdrawn (${withdrawnModels.length})'),
           ...withdrawnModels.map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Withdrawn',

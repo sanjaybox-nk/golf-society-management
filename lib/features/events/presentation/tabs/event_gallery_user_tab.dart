@@ -51,7 +51,7 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error uploading: $e'), backgroundColor: AppColors.coral500),
         );
       }
     } finally {
@@ -86,18 +86,18 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.photo_library, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No photos yet', style: TextStyle(color: Colors.grey, fontSize: 18)),
-                      SizedBox(height: 8),
-                      Text('Be the first to upload!', style: TextStyle(color: Colors.grey)),
+                      Icon(Icons.photo_library, size: AppShapes.iconMassive, color: AppColors.textSecondary),
+                      SizedBox(height: AppSpacing.lg),
+                      Text('No photos yet', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLargeBody)),
+                      SizedBox(height: AppSpacing.sm),
+                      Text('Be the first to upload!', style: TextStyle(color: AppColors.textSecondary)),
                     ],
                   ),
                 ),
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -107,13 +107,13 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       return ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppShapes.sm,
                         child: Image.network(
                           event.galleryUrls[index],
                           fit: BoxFit.cover,
                           loadingBuilder: (ctx, child, loading) {
                             if (loading == null) return child;
-                            return Container(color: Colors.grey.shade200);
+                            return Container(color: AppColors.dark200);
                           },
                         ),
                       );
@@ -126,7 +126,7 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: _isUploading ? null : () => _pickAndUploadImage(event),
             icon: _isUploading 
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+              ? const SizedBox(width: AppSpacing.xl, height: AppSpacing.xl, child: CircularProgressIndicator(color: AppColors.pureWhite, strokeWidth: 2)) 
               : const Icon(Icons.add_a_photo),
             label: Text(_isUploading ? 'Uploading...' : 'Add Photo'),
             backgroundColor: Colors.black,

@@ -21,7 +21,7 @@ class AdminSurveysScreen extends ConsumerWidget {
           onPressed: () => context.push('/admin/surveys/new'),
           tooltip: 'Create Survey',
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
       ],
       slivers: [
         surveysAsync.when(
@@ -35,13 +35,13 @@ class AdminSurveysScreen extends ConsumerWidget {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final survey = surveys[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                       child: _SurveyListCard(survey: survey),
                     );
                   },
@@ -78,14 +78,14 @@ class _SurveyListCard extends ConsumerWidget {
               Expanded(
                 child: Text(
                   survey.title,
-                  style: AppTypography.displayHeading.copyWith(fontSize: 18),
+                  style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
                 ),
               ),
               _buildStatusBadge(),
             ],
           ),
           if (survey.description != null && survey.description!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               survey.description!,
               style: AppTypography.bodySmall.copyWith(
@@ -95,7 +95,7 @@ class _SurveyListCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               _buildInfoItem(
@@ -103,7 +103,7 @@ class _SurveyListCard extends ConsumerWidget {
                 Icons.question_answer_outlined,
                 '${survey.questions.length} Questions',
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               _buildInfoItem(
                 context,
                 Icons.people_outline_rounded,
@@ -111,15 +111,15 @@ class _SurveyListCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Created ${DateFormat('MMM d, yyyy').format(survey.createdAt)}',
-                style: AppTypography.caption.copyWith(color: Colors.grey),
+                style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
               ),
               BoxyArtGlassIconButton(
                 icon: Icons.edit_rounded,
@@ -128,7 +128,7 @@ class _SurveyListCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -139,8 +139,8 @@ class _SurveyListCard extends ConsumerWidget {
               ),
               Row(
                 children: [
-                  const Text('Published', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 4),
+                  const Text('Published', style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
+                  const SizedBox(width: AppSpacing.xs),
                   Switch.adaptive(
                     value: survey.isPublished,
                     activeThumbColor: AppColors.lime500,
@@ -164,22 +164,22 @@ class _SurveyListCard extends ConsumerWidget {
     final isExpired = survey.deadline != null && survey.deadline!.isBefore(now);
 
     if (isExpired) {
-      return BoxyArtPill.status(label: 'EXPIRED', color: Colors.grey);
+      return BoxyArtPill.status(label: 'EXPIRED', color: AppColors.textSecondary);
     }
     if (!survey.isPublished) {
-      return BoxyArtPill.status(label: 'DRAFT', color: Colors.orange);
+      return BoxyArtPill.status(label: 'DRAFT', color: AppColors.amber500);
     }
-    return BoxyArtPill.status(label: 'ACTIVE', color: Colors.blue);
+    return BoxyArtPill.status(label: 'ACTIVE', color: AppColors.teamA);
   }
 
   Widget _buildInfoItem(BuildContext context, IconData icon, String label) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Theme.of(context).primaryColor),
+        Icon(icon, size: AppShapes.iconXs, color: Theme.of(context).primaryColor),
         const SizedBox(width: 6),
         Text(
           label,
-          style: AppTypography.label.copyWith(fontSize: 12),
+          style: AppTypography.label.copyWith(fontSize: AppTypography.sizeLabel),
         ),
       ],
     );

@@ -62,7 +62,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               sliver: SliverToBoxAdapter(
                 child: _buildTabContent(event, scorecardsAsync),
               ),
@@ -84,9 +84,9 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusHeader(event, scorecardsAsync),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.x2l),
             const BoxyArtSectionTitle(title: 'ANALYTICS & STATS'),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             BoxyArtCard(
               child: Column(
                 children: [
@@ -102,7 +102,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                       );
                     },
                   ),
-                  const Divider(height: 32),
+                  const Divider(height: AppSpacing.x3l),
                    ModernSwitchRow(
                     icon: Icons.lock_outline,
                     label: 'Close Event & Finalize',
@@ -116,18 +116,18 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
                       }
                     },
                   ),
-                  const Divider(height: 32),
-                  const SizedBox(height: 12),
+                  const Divider(height: AppSpacing.x3l),
+                  const SizedBox(height: AppSpacing.md),
                   BoxyArtButton(
                     title: 'RECALCULATE STATS',
                     fullWidth: true,
                     isSecondary: true,
                     onTap: () => _recalculateStats(event, scorecardsAsync),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Last Finalized: ${event.finalizedStats.isNotEmpty ? "Ready" : "Never"}',
-                    style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontWeight: AppTypography.weightBold),
                   ),
                 ],
               ),
@@ -138,7 +138,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         return Column(
           children: [
             const BoxyArtSectionTitle(title: 'LIVE STANDINGS'),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             scorecardsAsync.when(
               data: (scorecards) => EventLeaderboard(
                 event: event,
@@ -169,7 +169,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         return Column(
           children: [
             BoxyArtSectionTitle(title: 'PLAYER SCORECARDS (${RegistrationLogic.getPlayingParticipants(event).length})'),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             scorecardsAsync.when(
               data: (scorecards) => AdminScorecardList(
                 event: event,
@@ -186,7 +186,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
         return Column(
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             EventStatsTab(
                 event: event,
                 comp: ref.watch(competitionDetailProvider(event.id)).value,
@@ -250,7 +250,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         content: const Text('This will lock all scorecards, finalize the results, and mark the event as completed.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('CLOSE', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('CLOSE', style: TextStyle(color: AppColors.coral500))),
         ],
       ),
     );
@@ -323,10 +323,10 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
       statusColor = Theme.of(context).colorScheme.primary;
     } else if (isPast) {
       status = 'PAST';
-      statusColor = Colors.orange;
+      statusColor = AppColors.amber500;
     } else {
       status = 'UPCOMING';
-      statusColor = Colors.blue;
+      statusColor = AppColors.teamA;
     }
 
     return Row(
@@ -334,12 +334,12 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         Expanded(
           child: _buildBadgeCard('STATUS', status, statusColor),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: _buildBadgeCard(
             'SUBMITTED', 
             '$submittedCount / $totalGolfers', 
-            Colors.blue,
+            AppColors.teamA,
           ),
         ),
       ],
@@ -348,12 +348,12 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
 
   Widget _buildBadgeCard(String label, String value, Color color) {
     return BoxyArtCard(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.x2l, horizontal: AppSpacing.lg),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1.1)),
-          const SizedBox(height: 12),
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
+          Text(label, style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.1)),
+          const SizedBox(height: AppSpacing.md),
+          Text(value, style: TextStyle(fontSize: AppTypography.sizeLargeBody, fontWeight: AppTypography.weightBlack, color: color)),
         ],
       ),
     );

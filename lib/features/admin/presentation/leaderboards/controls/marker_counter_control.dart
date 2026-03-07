@@ -47,7 +47,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
         children: [
           const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 BoxyArtInputField(
@@ -58,10 +58,10 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           const BoxyArtSectionTitle(title: 'TRACKING RULES'),
           BoxyArtCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -71,7 +71,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -95,16 +95,16 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                       backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lightHeader,
                       labelStyle: AppTypography.label.copyWith(
                         color: isSelected ? AppColors.actionText : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark400),
-                        fontSize: 10,
-                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                        fontSize: AppTypography.sizeCaption,
+                        fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
                       ),
                       side: BorderSide.none,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: AppShapes.sm),
                       showCheckmark: false,
                     );
                   }).toList(),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtDropdownField<HoleFilter>(
                   label: 'Hole Filter',
                   value: _holeFilter,
@@ -114,7 +114,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                   )).toList(),
                   onChanged: (v) => setState(() => _holeFilter = v!),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtDropdownField<MarkerRankingMethod>(
                   label: 'Ranking Basis',
                   value: _rankingMethod,
@@ -124,19 +124,19 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                   )).toList(),
                   onChanged: (v) => setState(() => _rankingMethod = v!),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtInputField(
                   label: 'Best N Rounds',
                   controller: _bestNController,
                   keyboardType: TextInputType.number,
                   hint: '0 = All rounds counted',
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Only markers from the best N Stableford rounds will be counted.',
                   style: AppTypography.label.copyWith(
                     color: AppColors.dark400,
-                    fontSize: 10,
+                    fontSize: AppTypography.sizeCaption,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -145,7 +145,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
               title: 'SAVE CHANGES',
@@ -184,18 +184,18 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
        : 'Player with highest Stableford points from these markers wins.';
 
     return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: AppSpacing.x2l),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+        borderRadius: AppShapes.md,
       ),
       child: Column(
         children: [
            _buildInfoRow('Goal', goal),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: 8),
+           const SizedBox(height: AppSpacing.sm),
            _buildInfoRow('Result', result),
         ],
       ),
@@ -211,9 +211,9 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
           child: Text(
             '$label:', 
             style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.w900, 
+              fontWeight: AppTypography.weightBlack, 
               color: AppColors.lime500,
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
             )
           )
         ),
@@ -221,7 +221,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
           child: Text(
             value, 
             style: AppTypography.label.copyWith(
-              fontSize: 11,
+              fontSize: AppTypography.sizeCaptionStrong,
               color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )
