@@ -351,7 +351,7 @@ class RegistrationCard extends StatelessWidget {
         return const SizedBox.shrink();
     }
 
-    return BoxyArtPill.status(label: text.toUpperCase(), color: color);
+    return BoxyArtPill.status(label: text, color: color);
   }
 
 

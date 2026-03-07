@@ -278,8 +278,8 @@ class EventDetailsContent extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: EventStatus.values.map((s) {
-                    String label = s.name.toUpperCase();
-                    if (s == EventStatus.inPlay) label = 'LIVE';
+                    String label = s.name;
+                    if (s == EventStatus.inPlay) label = 'Live';
                     
                     return ListTile(
                       leading: Icon(
@@ -676,7 +676,7 @@ class EventDetailsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label.toUpperCase(),
+          label,
           style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, letterSpacing: 1.0),
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -1179,7 +1179,7 @@ class EventDetailsContent extends ConsumerWidget {
                                 )
                               else
                                 Text(
-                                  award.type.toUpperCase(),
+                                  toTitleCase(award.type),
                                   style: TextStyle(
                                     fontSize: AppTypography.sizeLabel,
                                     fontWeight: AppTypography.weightExtraBold,

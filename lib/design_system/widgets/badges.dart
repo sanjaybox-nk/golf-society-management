@@ -199,12 +199,6 @@ class BoxyArtPill extends ConsumerWidget {
     
     // Derived text color for better contrast in light mode
     Color effectiveTextColor = textColor ?? color;
-    if (!isDark && textColor == null) {
-      // If it's light mode and no explicit text color, darken the theme color
-      // Simple heuristic: darken by 40%
-      final hsl = HSLColor.fromColor(color);
-      effectiveTextColor = hsl.withLightness((hsl.lightness - 0.4).clamp(0.0, 1.0)).toColor();
-    }
 
 
     return Padding(

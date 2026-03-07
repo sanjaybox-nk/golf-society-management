@@ -248,7 +248,7 @@ class _EventCard extends ConsumerWidget {
                   children: [
                     if (event.eventType == EventType.social)
                       BoxyArtPill(
-                        label: 'SOCIAL',
+                        label: 'Social',
                         color: AppColors.coral500,
                       ),
                     _buildGameTypePill(context, ref, event.id),

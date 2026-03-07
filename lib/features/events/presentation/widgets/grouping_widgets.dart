@@ -1015,7 +1015,7 @@ class GroupingCard extends StatelessWidget {
                 ),
               ),
               Text(
-                matchStatus.toUpperCase(),
+                matchStatus,
                 style: const TextStyle(
                   color: AppColors.lime500,
                   fontSize: AppTypography.sizeLabel,
@@ -1098,7 +1098,7 @@ class GroupingCard extends StatelessWidget {
               ),
             ),
             Text(
-              matchStatus.toUpperCase(),
+              matchStatus,
               style: TextStyle(
                 color: Theme.of(context).primaryColor,
                 fontSize: AppTypography.sizeLabel,
