@@ -19,17 +19,13 @@ class BoxyArtIconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: AppColors.opacityLow),
-        shape: BoxShape.circle,
-      ),
       child: Center(
         child: Icon(
           icon,
-          size: iconSize,
+          size: iconSize + 2, // Slightly larger since container is gone
           color: color,
         ),
       ),
@@ -209,18 +205,9 @@ class BoxyArtPill extends ConsumerWidget {
       effectiveTextColor = hsl.withLightness((hsl.lightness - 0.4).clamp(0.0, 1.0)).toColor();
     }
 
-    final config = ref.watch(themeControllerProvider);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? color.withValues(alpha: isDark ? AppColors.opacityLow : AppColors.opacityMedium),
-        borderRadius: BorderRadius.circular(config.pillRadius),
-        border: Border.all(
-          color: borderColor ?? color.withValues(alpha: isDark ? AppColors.opacityMedium : AppColors.opacityMuted),
-          width: AppShapes.borderThin,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

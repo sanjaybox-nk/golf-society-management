@@ -254,8 +254,6 @@ class _EventCard extends ConsumerWidget {
                       BoxyArtPill(
                         label: 'SOCIAL',
                         color: AppColors.coral500,
-                        backgroundColor: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
-                        borderColor: AppColors.coral500.withValues(alpha: AppColors.opacityMedium),
                       ),
                     _buildGameTypePill(context, ref, event.id),
                     _buildStatusBadge(context),
