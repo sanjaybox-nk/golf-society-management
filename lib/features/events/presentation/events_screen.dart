@@ -137,7 +137,9 @@ class _EventCard extends ConsumerWidget {
           BoxyArtDateBadge(
             date: event.date, 
             endDate: event.endDate,
-            highlightColor: event.eventType == EventType.social ? AppColors.coral500 : null,
+            highlightColor: event.isInvitational 
+                ? AppColors.amber500 
+                : (event.eventType == EventType.social ? AppColors.coral500 : null),
           ),
           const SizedBox(width: 14),
 
