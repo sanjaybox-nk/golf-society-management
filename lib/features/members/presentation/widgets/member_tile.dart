@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import '../member_details_modal.dart';
 
 class MemberTile extends ConsumerWidget {
@@ -95,6 +96,14 @@ class MemberTile extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
+                    const SizedBox(height: AppSpacing.xs),
+                    
+                    // Status Legend (Relocated)
+                    BoxyArtPill(
+                      label: member.status.displayName,
+                      color: member.status.color,
+                    ),
+                    
                     const SizedBox(height: AppSpacing.lg),
                     
                     // Metrics Grid
@@ -107,13 +116,13 @@ class MemberTile extends ConsumerWidget {
                           children: [
                             _buildMetricColumn(
                               context,
-                              'HANDICAP',
+                              toTitleCase('HANDICAP'),
                               member.handicap.toStringAsFixed(1),
                             ),
                             const SizedBox(width: AppSpacing.x2l),
                             _buildMetricColumn(
                               context,
-                              secondaryMetricLabel ?? system.idLabel, // If provided use it, else default
+                              toTitleCase(secondaryMetricLabel ?? system.idLabel),
                               secondaryMetricValue ?? (member.handicapId ?? '-'),
                             ),
                           ],
@@ -128,29 +137,28 @@ class MemberTile extends ConsumerWidget {
           
           const SizedBox(height: AppSpacing.xl),
           
-          // Status Row
-          Row(
-            children: [
-              _buildStatusPill(
-                member.status.displayName,
-                member.status.color,
-              ),
-              if (member.societyRole?.isNotEmpty == true) ...[
-                const SizedBox(width: AppSpacing.sm),
-                _buildStatusPill(
-                  member.societyRole!,
-                  primary,
-                  isOutline: true,
-                ),
+          // Bottom Labels
+          if (member.societyRole?.isNotEmpty == true || (showFeeStatus && member.hasPaid)) ...[
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (member.societyRole?.isNotEmpty == true)
+                  BoxyArtPill(
+                    label: toTitleCase(member.societyRole!),
+                    color: primary,
+                    textColor: AppColors.actionText,
+                  ),
+                if (showFeeStatus && member.hasPaid)
+                  BoxyArtPill(
+                    label: 'Fee paid',
+                    color: StatusColors.positive,
+                  ),
               ],
-              const Spacer(),
-              if (showFeeStatus && member.hasPaid)
-                _buildStatusPill(
-                  'Fee Paid',
-                  StatusColors.positive,
-                ),
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
@@ -178,20 +186,4 @@ class MemberTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusPill(String text, Color color, {bool isOutline = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: isOutline ? null : color.withValues(alpha: AppColors.opacitySubtle),
-        borderRadius: AppShapes.xl,
-        border: isOutline ? Border.all(color: color.withValues(alpha: AppColors.opacityMuted), width: AppShapes.borderThin) : null,
-      ),
-      child: Text(
-        text.toUpperCase(),
-        style: AppTypography.micro.copyWith(
-          color: color,
-        ),
-      ),
-    );
-  }
 }
