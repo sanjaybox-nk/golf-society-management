@@ -55,12 +55,11 @@ class EventsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final isNextMatch = index == 0;
                     return StaggeredEntrance(
                       index: index,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: _EventCard(event: events[index], isHighlighted: isNextMatch),
+                        child: _EventCard(event: events[index]),
                       ),
                     );
                   },
@@ -101,7 +100,7 @@ class EventsScreen extends ConsumerWidget {
                       index: index + 5, // Offset stagger for past events
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: _EventCard(event: events[index], isHighlighted: false),
+                        child: _EventCard(event: events[index]),
                       ),
                     );
                   },
@@ -120,42 +119,20 @@ class EventsScreen extends ConsumerWidget {
 
 class _EventCard extends ConsumerWidget {
   final GolfEvent event;
-  final bool isHighlighted;
 
-  const _EventCard({required this.event, this.isHighlighted = false});
+  const _EventCard({required this.event});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final primary = theme.primaryColor;
-    final isDark = theme.brightness == Brightness.dark;
     final textSecondary = theme.textTheme.bodySmall?.color;
 
     return BoxyArtCard(
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
-      padding: EdgeInsets.zero,
-      backgroundColor: Colors.transparent, 
-      customShadows: isHighlighted && !isDark ? [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
-        )
-      ] : null,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (isHighlighted)
-              Container(
-                width: 4,
-                color: AppColors.lime500,
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
           // Date Badge
           BoxyArtDateBadge(
             date: event.date, 
@@ -280,12 +257,7 @@ class _EventCard extends ConsumerWidget {
             ),
           ),
 
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
