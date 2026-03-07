@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
 class BoxyArtIconBadge extends StatelessWidget {
@@ -226,7 +227,7 @@ class BoxyArtPill extends ConsumerWidget {
             SizedBox(width: AppSpacing.xs),
           ],
           Text(
-            label.toUpperCase(),
+            toTitleCase(label),
             style: AppTypography.caption.copyWith(
               color: effectiveTextColor,
               fontWeight: isDark ? AppTypography.weightSemibold : AppTypography.weightExtraBold,

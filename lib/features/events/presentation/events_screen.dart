@@ -169,7 +169,7 @@ class _EventCard extends ConsumerWidget {
                             const Icon(Icons.star_rounded, size: 10, color: AppColors.amber500),
                             const SizedBox(width: 4),
                           Text(
-                            'INVITATIONAL EVENT',
+                            'Invitational event',
                             style: AppTypography.caption.copyWith(
                               color: AppColors.amber500,
                               fontWeight: AppTypography.weightBlack,
@@ -186,7 +186,7 @@ class _EventCard extends ConsumerWidget {
                             Icon(Icons.event_repeat_rounded, size: 10, color: textSecondary?.withValues(alpha: 0.6)),
                             const SizedBox(width: 4),
                             Text(
-                              'MULTI-DAY',
+                              'Multi-day',
                               style: AppTypography.caption.copyWith(
                                 color: textSecondary?.withValues(alpha: 0.6),
                                 fontWeight: AppTypography.weightBlack,
