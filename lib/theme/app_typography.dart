@@ -4,11 +4,11 @@ class AppTypography {
   // Brand v3.1 Typography System
 
   // 0. Base Sizes
-  static const double sizeDisplayHero = 64.0;
-  static const double sizeDisplayLarge = 44.0;
-  static const double sizeDisplayMedium = 32.0;
-  static const double sizeDisplaySmall = 26.0;
-  static const double sizeDisplayTitle = 40.0;
+  static const double sizeDisplayHero = 64.0;   // Epic scale numbers
+  static const double sizeDisplayLarge = 44.0;  // Massive stat headers
+  static const double sizeDisplayMedium = 32.0; // Primary section titles
+  static const double sizeDisplaySmall = 26.0;  // Secondary display headers
+  static const double sizeDisplayTitle = 40.0;  // Editorial landing titles
   static const double sizeDisplayPage = 34.0;
   static const double sizeDisplayHeading = 28.0;
   static const double sizeDisplayLocker = 24.0;
@@ -38,7 +38,7 @@ class AppTypography {
   // 1. Display (Syne - Expressive)
   // Usage: Massive marketing numbers or "Hero" stats.
   static const TextStyle displayHero = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplayHero,
     fontWeight: weightExtraBold,
     letterSpacing: -2.0,
@@ -47,7 +47,7 @@ class AppTypography {
 
   // Usage: Main editorial titles (e.g., Login welcome).
   static const TextStyle displayTitle = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplayTitle,
     fontWeight: weightExtraBold,
     letterSpacing: -1.8,
@@ -56,7 +56,7 @@ class AppTypography {
 
   // Usage: Primary Page Header (scrolling titles in HeadlessScaffold).
   static const TextStyle displayPage = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplayPage,
     fontWeight: weightBlack,
     letterSpacing: -1.8,
@@ -65,7 +65,7 @@ class AppTypography {
 
   // Usage: Standard section headers within a page.
   static const TextStyle displayHeading = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplayHeading,
     fontWeight: weightBold,
     letterSpacing: -1.0,
@@ -74,7 +74,7 @@ class AppTypography {
 
   // Usage: Specialized locker room or large numeric headers (24px).
   static const TextStyle displayLocker = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplayLocker,
     fontWeight: weightExtraBold,
     letterSpacing: -0.8,
@@ -83,7 +83,7 @@ class AppTypography {
 
   // Usage: Secondary page titles or deep-linked headers (22px).
   static const TextStyle displaySubPage = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplaySubPage,
     fontWeight: weightExtraBold,
     letterSpacing: -0.6,
@@ -92,7 +92,7 @@ class AppTypography {
 
   // Usage: Standard section headers or prominent card titles (20px).
   static const TextStyle displaySection = TextStyle(
-    fontFamily: 'Syne',
+    fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplaySection,
     fontWeight: weightBold,
     letterSpacing: -0.5,

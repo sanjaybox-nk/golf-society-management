@@ -126,7 +126,7 @@ class BoxyArtPill extends ConsumerWidget {
       color: AppColors.lime400,
       icon: icon,
       backgroundColor: AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
-      borderColor: AppColors.lime500.withValues(alpha: 0.18),
+      borderColor: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
     );
   }
 
@@ -140,8 +140,7 @@ class BoxyArtPill extends ConsumerWidget {
       label: label,
       color: AppColors.dark100,
       icon: icon,
-      backgroundColor: AppColors.dark600,
-      borderColor: AppColors.dark500,
+      // No explicit bg/border colors, dynamic logic in build() will handle it
     );
   }
 
@@ -156,7 +155,7 @@ class BoxyArtPill extends ConsumerWidget {
       color: color,
       icon: icon,
       backgroundColor: color.withValues(alpha: AppColors.opacitySubtle),
-      borderColor: color.withValues(alpha: 0.18),
+      borderColor: color.withValues(alpha: AppColors.opacityMedium),
     );
   }
 
@@ -215,10 +214,10 @@ class BoxyArtPill extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: backgroundColor ?? color.withValues(alpha: isDark ? 0.08 : 0.12),
+        color: backgroundColor ?? color.withValues(alpha: isDark ? AppColors.opacityLow : AppColors.opacityMedium),
         borderRadius: BorderRadius.circular(config.pillRadius),
         border: Border.all(
-          color: borderColor ?? color.withValues(alpha: isDark ? 0.18 : 0.25),
+          color: borderColor ?? color.withValues(alpha: isDark ? AppColors.opacityMedium : AppColors.opacityMuted),
           width: AppShapes.borderThin,
         ),
       ),

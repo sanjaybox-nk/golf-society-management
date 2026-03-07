@@ -1,6 +1,7 @@
 import 'package:golf_society/design_system/design_system.dart';
 
 class AppGradients {
+  /// The primary brand gradient combining primary and secondary colors.
   static LinearGradient primary(BuildContext context) {
     final theme = Theme.of(context);
     return LinearGradient(
@@ -13,6 +14,7 @@ class AppGradients {
     );
   }
 
+  /// A decorative vertical gradient used for stat bars or cards.
   static LinearGradient verticalSurface(Color color) {
     return LinearGradient(
       begin: Alignment.topCenter,
@@ -24,6 +26,7 @@ class AppGradients {
     );
   }
 
+  /// A standard dark-to-transparent scrim for overlaying text on images/media.
   static LinearGradient scrim() {
     return LinearGradient(
       begin: Alignment.topCenter,

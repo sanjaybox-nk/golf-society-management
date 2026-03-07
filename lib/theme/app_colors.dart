@@ -68,13 +68,13 @@ class AppColors {
   static const Color forestGreen = Color(0xFF1A2E20); // Light theme total column bg
 
   // Opacity Tokens (v3.1)
-  static const double opacitySubtle = 0.05;
-  static const double opacityLow = 0.1;
-  static const double opacityMedium = 0.2;
-  static const double opacityMuted = 0.3;
-  static const double opacityHalf = 0.5;
-  static const double opacityHigh = 0.8;
-  static const double opacityStrong = 0.9;
+  static const double opacitySubtle = 0.3; // Ghostly subtle (e.g. card highlights)
+  static const double opacityLow = 0.1;    // Very faint (e.g. subtle overlays)
+  static const double opacityMedium = 0.2; // Visible lift (e.g. soft shadows)
+  static const double opacityMuted = 0.3;  // De-emphasized (e.g. disabled-ish states)
+  static const double opacityHalf = 0.5;   // Semi-transparent (e.g. scrims)
+  static const double opacityHigh = 0.8;   // Substantial (e.g. text on images)
+  static const double opacityStrong = 0.9; // Nearly opaque (e.g. overlays)
 
   /// Generates the Dark ColorScheme based on v3.1 spec
   static ColorScheme darkScheme() {

@@ -24,8 +24,8 @@ class EventsScreen extends ConsumerWidget {
     );
 
     final subtitle = seasonName.isNotEmpty 
-        ? 'Society calendar - $seasonName' 
-        : 'Society calendar';
+        ? seasonName 
+        : 'All Seasons';
 
     return HeadlessScaffold(
       title: 'Events',
@@ -156,11 +156,54 @@ class _EventCard extends ConsumerWidget {
                 Text(
                   event.title,
                   style: const TextStyle(
-                    fontWeight: AppTypography.weightBlack,
+                    fontWeight: AppTypography.weightExtraBold,
                     fontSize: AppTypography.sizeUI,
                   ),
                 ),
-                const SizedBox(height: 6),
+                if (event.isInvitational || event.isMultiDay) ...[
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 12,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (event.isInvitational)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded, size: 10, color: AppColors.amber500),
+                            const SizedBox(width: 4),
+                          Text(
+                            'INVITATIONAL EVENT',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.amber500,
+                              fontWeight: AppTypography.weightBlack,
+                              fontSize: 10,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          ],
+                        ),
+                      if (event.isMultiDay)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.event_repeat_rounded, size: 10, color: textSecondary?.withValues(alpha: 0.6)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'MULTI-DAY',
+                              style: AppTypography.caption.copyWith(
+                                color: textSecondary?.withValues(alpha: 0.6),
+                                fontWeight: AppTypography.weightBlack,
+                                fontSize: 10,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 8),
                 
                 // Location Row
                 Row(
@@ -193,7 +236,7 @@ class _EventCard extends ConsumerWidget {
                       style: TextStyle(
                         color: textSecondary?.withValues(alpha: 0.75),
                         fontSize: AppTypography.sizeLabel,
-                        fontWeight: AppTypography.weightBlack,
+                        fontWeight: AppTypography.weightBold,
                         letterSpacing: 0.8,
                       ),
                     ),
@@ -215,14 +258,6 @@ class _EventCard extends ConsumerWidget {
                         borderColor: AppColors.coral500.withValues(alpha: AppColors.opacityMedium),
                       ),
                     _buildGameTypePill(context, ref, event.id),
-                    if (event.isInvitational)
-                      BoxyArtPill.type(
-                        label: 'Invitational',
-                      ),
-                    if (event.isMultiDay == true)
-                      BoxyArtPill.type(
-                        label: 'Multi-day',
-                      ),
                     _buildStatusBadge(context),
                   ],
                 ),
