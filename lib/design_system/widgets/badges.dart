@@ -269,10 +269,10 @@ class BoxyArtDateBadge extends StatelessWidget {
       width: 52,
       constraints: const BoxConstraints(minHeight: 62),
       decoration: BoxDecoration(
-        color: accentColor.withValues(alpha: isDark ? 0.07 : 0.1),
+        color: Colors.transparent,
         borderRadius: AppShapes.sm,
         border: Border.all(
-          color: accentColor.withValues(alpha: highlightColor != null ? 0.4 : (isDark ? 0.14 : 0.25)),
+          color: accentColor,
           width: highlightColor != null ? 1.5 : 1,
         ),
       ),
