@@ -1,4 +1,5 @@
 import "package:golf_society/design_system/design_system.dart";
+import "package:golf_society/utils/string_utils.dart";
 
 
 
@@ -232,7 +233,7 @@ class ProfileInfoRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    label.toUpperCase(),
+                    toTitleCase(label),
                     style: AppTypography.caption.copyWith(
                       color: isDark ? AppColors.dark200 : AppColors.dark300,
                       letterSpacing: 1.0,
@@ -308,7 +309,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
             ],
             Flexible(
               child: Text(
-                displayTitle.toUpperCase(),
+                toTitleCase(displayTitle),
                 style: AppTypography.caption.copyWith(
                   fontSize: isLevel2 ? 10 : 11,
                   fontWeight: AppTypography.weightExtraBold,

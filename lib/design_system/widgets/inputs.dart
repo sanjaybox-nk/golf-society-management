@@ -1,4 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Standard branded input field for Fairway v3.1.
@@ -43,7 +44,7 @@ class BoxyArtInputField extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
-            label.toUpperCase(),
+            toTitleCase(label),
             style: AppTypography.label.copyWith(
               color: isDark ? AppColors.dark150 : AppColors.dark300,
             ),
@@ -218,7 +219,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
-            label.toUpperCase(),
+            toTitleCase(label),
             style: AppTypography.label.copyWith(
               color: isDark ? AppColors.dark150 : AppColors.dark300,
             ),
@@ -290,7 +291,7 @@ class BoxyArtSwitchField extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label.toUpperCase(),
+                toTitleCase(label),
                 style: AppTypography.label.copyWith(
                   color: isDark ? AppColors.dark150 : const Color(0xFF404040),
                 ),
@@ -619,7 +620,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
-            label.toUpperCase(),
+            toTitleCase(label),
             style: AppTypography.label.copyWith(
               color: isDark ? AppColors.dark150 : AppColors.dark300,
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
 
 /// The Main Member Header Card used in Detail Views.
@@ -150,7 +151,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   children: [
                     // Name
                     Text(
-                      '$firstName $lastName'.toUpperCase(),
+                      toTitleCase('$firstName $lastName'),
                       style: AppTypography.displaySubPage.copyWith(
                         color: textColor,
                       ),
@@ -171,7 +172,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               Padding(
                                 padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs),
                                 child: Text(
-                                  'Handicap'.toUpperCase(),
+                                  toTitleCase('Handicap'),
                                   style: AppTypography.micro.copyWith(
                                     color: isDark ? AppColors.dark150 : AppColors.dark300,
                                   ),
@@ -209,7 +210,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                               Padding(
                                 padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs),
                                 child: Text(
-                                  system.idLabel.toUpperCase(),
+                                  toTitleCase(system.idLabel),
                                   style: AppTypography.micro.copyWith(
                                     color: isDark ? AppColors.dark150 : AppColors.dark300,
                                   ),
@@ -246,7 +247,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                         children: [
                           // Handicap Group
                           Text(
-                            'HANDICAP',
+                            toTitleCase('HANDICAP'),
                             style: AppTypography.microSmall.copyWith(
                               color: isDark ? AppColors.dark200 : AppColors.dark300,
                             ),
@@ -262,7 +263,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           const SizedBox(height: AppSpacing.lg),
                           // iGolf Group
                           Text(
-                            system.idLabel.toUpperCase(),
+                            toTitleCase(system.idLabel),
                             style: AppTypography.microSmall.copyWith(
                               color: isDark ? AppColors.dark200 : AppColors.dark300,
                             ),
@@ -327,7 +328,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                 GestureDetector(
                   onTap: canEdit ? onRoleTap : null,
                   child: BoxyArtPill(
-                    label: (role?.displayName ?? 'Member').toUpperCase(),
+                    label: toTitleCase(role?.displayName ?? 'Member'),
                     color: StatusColors.neutral,
                   ),
                 ),
@@ -358,7 +359,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          (societyRole?.isNotEmpty == true ? societyRole! : 'NO TITLE').toUpperCase(),
+                          toTitleCase(societyRole?.isNotEmpty == true ? societyRole! : 'NO TITLE'),
                           style: AppTypography.microSmall.copyWith(
                             color: AppColors.actionText,
                           ),
@@ -377,7 +378,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     borderRadius: AppShapes.pill,
                   ),
                   child: Text(
-                    societyRole!.toUpperCase(),
+                    toTitleCase(societyRole!),
                     style: AppTypography.microSmall.copyWith(
                       color: AppColors.actionText,
                     ),
