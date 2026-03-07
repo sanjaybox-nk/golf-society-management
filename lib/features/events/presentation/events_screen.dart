@@ -133,12 +133,29 @@ class _EventCard extends ConsumerWidget {
 
     return BoxyArtCard(
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
-      padding: const EdgeInsets.all(14),
-      backgroundColor: isHighlighted 
-          ? (isDark ? primary.withValues(alpha: AppColors.opacityLow) : primary.withValues(alpha: 0.03))
-          : null,
-      child: Row(
-        children: [
+      padding: EdgeInsets.zero,
+      backgroundColor: Colors.transparent, 
+      customShadows: isHighlighted && !isDark ? [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        )
+      ] : null,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isHighlighted)
+              Container(
+                width: 4,
+                color: AppColors.lime500,
+              ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
           // Date Badge
           BoxyArtDateBadge(
             date: event.date, 
@@ -263,7 +280,12 @@ class _EventCard extends ConsumerWidget {
             ),
           ),
 
-        ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
