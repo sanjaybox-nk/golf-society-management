@@ -324,8 +324,8 @@ class BoxyArtFeePill extends StatelessWidget {
     
     return GestureDetector(
       onTap: onToggle,
-      child: BoxyArtPill.status(
-        label: isPaid ? 'PAID' : 'DUE',
+      child: BoxyArtPill(
+        label: isPaid ? 'Fee paid' : 'Fee due',
         color: color,
         icon: isPaid ? Icons.check_circle_rounded : Icons.info_outline_rounded,
       ),

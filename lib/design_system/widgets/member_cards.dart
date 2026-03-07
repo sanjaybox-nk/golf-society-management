@@ -158,7 +158,38 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: AppSpacing.xs),
                     
+                    // 1. Status Indicator (Relocated from bottom)
+                    if (canEdit && isAdmin)
+                      PopupMenuButton<MemberStatus>(
+                        itemBuilder: (context) => MemberStatus.values
+                            .where((s) => s != MemberStatus.active)
+                            .map((s) => PopupMenuItem(
+                                    value: s,
+                                    child: Text(
+                                      s == MemberStatus.member ? "Active" : s.displayName,
+                                      style: TextStyle(
+                                        fontSize: AppTypography.sizeBodySmall,
+                                        fontWeight: s == status ? AppTypography.weightBold : AppTypography.weightSemibold,
+                                        color: s == status 
+                                            ? primary 
+                                            : (s.color == StatusColors.neutral ? textColor : s.color),
+                                      ),
+                                    ),
+                                ))
+                            .toList(),
+                        child: BoxyArtPill(
+                          label: statusLabel,
+                          color: status.color,
+                        ),
+                      )
+                    else
+                      BoxyArtPill(
+                        label: statusLabel,
+                        color: status.color,
+                      ),
+
                     const SizedBox(height: AppSpacing.lg),
                     
                     // HC / Handicap ID Stats Row (Under Name)
@@ -293,35 +324,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              // 1. Status Pill (Interactive for Admin)
-              if (canEdit && isAdmin)
-                PopupMenuButton<MemberStatus>(
-                  itemBuilder: (context) => MemberStatus.values
-                      .where((s) => s != MemberStatus.active)
-                      .map((s) => PopupMenuItem(
-                              value: s,
-                              child: Text(
-                                s == MemberStatus.member ? "Active" : s.displayName,
-                                style: TextStyle(
-                                  fontSize: AppTypography.sizeBodySmall,
-                                  fontWeight: s == status ? AppTypography.weightBold : AppTypography.weightSemibold,
-                                  color: s == status 
-                                      ? primary 
-                                      : (s.color == StatusColors.neutral ? textColor : s.color),
-                                ),
-                              ),
-                          ))
-                      .toList(),
-                  child: BoxyArtPill(
-                    label: statusLabel,
-                    color: status.color,
-                  ),
-                )
-              else
-                BoxyArtPill(
-                  label: statusLabel,
-                  color: status.color,
-                ),
               
               // 2. Member Role Badge (System Role)
               if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
@@ -343,46 +345,22 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                   ),
                 ),
 
-              // 4. Society Role (President etc) - Standardized with Tokens
+              // 4. Society Role (President etc) - Refactored to BoxyArtPill
               if (onSocietyRoleTap != null && canEdit)
                 GestureDetector(
                   onTap: onSocietyRoleTap,
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: primary,
-                      borderRadius: AppShapes.pill,
-                      boxShadow: AppShadows.softScale,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          toTitleCase(societyRole?.isNotEmpty == true ? societyRole! : 'NO TITLE'),
-                          style: AppTypography.microSmall.copyWith(
-                            color: AppColors.actionText,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        const Icon(Icons.keyboard_arrow_down, size: AppShapes.iconXs, color: AppColors.actionText),
-                      ],
-                    ),
+                  child: BoxyArtPill(
+                    label: toTitleCase(societyRole?.isNotEmpty == true ? societyRole! : 'No title'),
+                    color: primary,
+                    textColor: AppColors.actionText,
+                    icon: Icons.keyboard_arrow_down,
                   ),
                 )
               else if (societyRole?.isNotEmpty == true)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: AppShapes.pill,
-                  ),
-                  child: Text(
-                    toTitleCase(societyRole!),
-                    style: AppTypography.microSmall.copyWith(
-                      color: AppColors.actionText,
-                    ),
-                  ),
+                BoxyArtPill(
+                  label: societyRole!,
+                  color: primary,
+                  textColor: AppColors.actionText,
                 ),
             ],
           ),
@@ -455,7 +433,7 @@ class ModernMemberCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  status,
+                  toTitleCase(status),
                   style: AppTypography.microSmall.copyWith(
                     color: statusColor,
                   ),
