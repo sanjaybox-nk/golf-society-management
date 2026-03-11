@@ -123,7 +123,7 @@ class MemberHomeScreen extends ConsumerWidget {
                               Container(
                                 decoration: BoxDecoration(
                                   borderRadius: AppShapes.md,
-                                  boxShadow: AppShadows.softScale,
+                                  boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                                 ),
                                 child: ClipRRect(
                                   borderRadius: AppShapes.md,
@@ -296,13 +296,16 @@ class MemberHomeScreen extends ConsumerWidget {
 
 }
 
-class _NextMatchCard extends StatelessWidget {
+class _NextMatchCard extends ConsumerWidget {
   final GolfEvent event;
 
   const _NextMatchCard({required this.event});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final effectiveUser = ref.watch(effectiveUserProvider);
+    final isLive = event.status == EventStatus.inPlay;
+    final isPlaying = event.registrations.any((r) => r.memberId == effectiveUser.id);
 
     
     return BoxyArtCard(
@@ -369,17 +372,17 @@ class _NextMatchCard extends StatelessWidget {
                         style: AppTypography.displayLocker,
                       ),
                     ),
-                    if (event.registrations.any((r) => r.memberId == 'current-user-id'))
+                    if (isPlaying)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: Color(0xFF27AE60).withValues(alpha: AppColors.opacityLow),
+                          color: Theme.of(context).colorScheme.secondary.withValues(alpha: AppColors.opacityLow),
                           borderRadius: AppShapes.md,
                         ),
                         child: Text(
                           'Playing',
                           style: AppTypography.micro.copyWith(
-                            color: const Color(0xFF27AE60),
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
                         ),
                       ),
@@ -398,11 +401,27 @@ class _NextMatchCard extends StatelessWidget {
                   icon: Icons.schedule_rounded,
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                BoxyArtButton(
-                  title: 'View Details',
-                  isPrimary: true,
-                  onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
-                ),
+                if (isLive && isPlaying) ...[
+                  BoxyArtButton(
+                    title: 'ENTER SCORE',
+                    isPrimary: true,
+                    fullWidth: true,
+                    onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}/live'),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  BoxyArtButton(
+                    title: 'View Event Hub',
+                    isSecondary: true,
+                    fullWidth: true,
+                    onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
+                  ),
+                ] else
+                  BoxyArtButton(
+                    title: 'View Details',
+                    isPrimary: true,
+                    fullWidth: true,
+                    onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
+                  ),
               ],
             ),
           ),
@@ -475,7 +494,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.dark300,
-                          fontWeight: AppTypography.weightBlack,
+                          fontWeight: AppTypography.weightExtraBold,
                         ),
                       ),
                     ),
@@ -486,7 +505,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                       name,
                       style: AppTypography.button.copyWith(
                         color: isMe ? AppColors.teamA : AppColors.pureWhite,
-                        fontWeight: AppTypography.weightBlack,
+                        fontWeight: AppTypography.weightExtraBold,
                       ),
                     ),
                   ),
@@ -494,7 +513,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                     '${player['points']}',
                     style: AppTypography.displayLargeBody.copyWith(
                       color: isMe ? AppColors.teamA : (isFirst ? AppColors.lime500 : AppColors.pureWhite),
-                      fontWeight: AppTypography.weightBlack,
+                      fontWeight: AppTypography.weightExtraBold,
                     ),
                   ),
                 ],
@@ -526,7 +545,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                       (personalStanding!.memberName.isNotEmpty) ? personalStanding!.memberName[0].toUpperCase() : '?',
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.dark300,
-                        fontWeight: AppTypography.weightBlack,
+                        fontWeight: AppTypography.weightExtraBold,
                       ),
                     ),
                   ),
@@ -537,7 +556,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                     'Your Standing',
                     style: AppTypography.displayHeading.copyWith(
                       fontSize: AppTypography.sizeButton, 
-                      fontWeight: AppTypography.weightBlack, 
+                      fontWeight: AppTypography.weightExtraBold, 
                       color: AppColors.teamA,
                     ),
                   ),
@@ -545,7 +564,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                 Text(
                   '${personalStanding?.points.toInt()}',
                   style: AppTypography.displayLargeBody.copyWith(
-                    fontWeight: AppTypography.weightBlack, 
+                    fontWeight: AppTypography.weightExtraBold, 
                     color: AppColors.teamA,
                   ),
                 ),
@@ -729,7 +748,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
             q.question.toUpperCase(),
             style: AppTypography.labelStrong.copyWith(
               color: AppColors.pureWhite,
-              fontWeight: AppTypography.weightBlack,
+              fontWeight: AppTypography.weightExtraBold,
             ),
           ),
           const SizedBox(height: AppSpacing.md),

@@ -53,6 +53,13 @@ class AppTheme {
       textTheme: textTheme,
       extensions: [
         ScoreColors.dark(),
+        AppShapeTokens(heroRadius: config.heroRadius),
+        AppShadows(
+          useShadows: config.useShadows,
+          intensity: config.shadowIntensity,
+          spread: config.shadowSpread,
+          opacity: config.shadowOpacity,
+        ),
       ],
 
       // Components - AppBar
@@ -107,7 +114,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.dark600,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: BorderSide.none,
@@ -219,6 +226,13 @@ class AppTheme {
       textTheme: textTheme,
       extensions: [
         ScoreColors.light(),
+        AppShadows(
+          useShadows: config.useShadows,
+          intensity: config.shadowIntensity,
+          spread: config.shadowSpread,
+          opacity: config.shadowOpacity,
+        ),
+        AppShapeTokens(heroRadius: config.heroRadius),
       ],
 
       // Components - AppBar
@@ -255,7 +269,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightHeader,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radius * 0.8),
           borderSide: const BorderSide(color: AppColors.lightBorder),

@@ -177,6 +177,7 @@ class SeedingService {
         templates: userTemplates,
         isMultiDay: config.isMultiDay,
         endDate: config.endDate,
+        eventIndex: i,
       );
 
       if (!config.isInvitational && results.isNotEmpty) {
@@ -363,6 +364,7 @@ class SeedingService {
     required List<Competition> templates,
     bool isMultiDay = false,
     DateTime? endDate,
+    int eventIndex = 0,
   }) async {
     final eventRepo = ref.read(eventsRepositoryProvider);
     final compRepo = ref.read(competitionsRepositoryProvider);
@@ -498,7 +500,10 @@ class SeedingService {
     final eventHasDinner = event.hasDinner;
 
     for (int i = 0; i < targetRegCount; i++) {
-        final m = members[i % members.length];
+        // Use a sliding window to ensure all members get picked over the season
+        // Shifting by 5 members per event covers all 75 members every 15 events
+        final memberIdx = (eventIndex * 5 + i) % members.length;
+        final m = members[memberIdx];
         if (m.id == 'demo_hero_sanjay') continue;
         
         bool isWithdrawn = _random.nextDouble() < 0.05;

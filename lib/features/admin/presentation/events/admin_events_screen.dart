@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../events/presentation/events_provider.dart';
@@ -17,7 +16,7 @@ class AdminEventsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Events',
-      subtitle: 'Manage society events and calendar',
+      subtitle: 'Society events and calendar',
       showBack: false,
       leading: Center(
         child: BoxyArtGlassIconButton(
@@ -67,7 +66,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 else
                   ...upcoming.map((e) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.lg, left: AppSpacing.xl, right: AppSpacing.xl),
-                    child: _buildEventRow(context, ref, e),
+                    child: _AdminEventRow(event: e),
                   )),
 
                 // Past Section
@@ -85,7 +84,7 @@ class AdminEventsScreen extends ConsumerWidget {
                 else
                   ...past.map((e) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.lg, left: AppSpacing.xl, right: AppSpacing.xl),
-                    child: _buildEventRow(context, ref, e),
+                    child: _AdminEventRow(event: e),
                   )),
 
                 const SizedBox(height: 120),
@@ -106,8 +105,15 @@ class AdminEventsScreen extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _buildEventRow(BuildContext context, WidgetRef ref, GolfEvent event) {
+class _AdminEventRow extends ConsumerWidget {
+  final GolfEvent event;
+
+  const _AdminEventRow({required this.event});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return Dismissible(
       key: Key(event.id),
       direction: DismissDirection.endToStart,
@@ -141,113 +147,12 @@ class AdminEventsScreen extends ConsumerWidget {
         ref.read(eventsRepositoryProvider).deleteEvent(event.id);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted "${event.title}"')));
       },
-      child: BoxyArtCard(
-        onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/home'),
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            // Date Badge
-            BoxyArtDateBadge(
-              date: event.date, 
-              endDate: event.endDate,
-              highlightColor: event.eventType == EventType.social ? AppColors.coral500 : null,
-            ),
-            const SizedBox(width: 14),
-
-            // Event Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.title,
-                    style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeUI, letterSpacing: -0.4),
-                  ),
-                  const SizedBox(height: 6),
-                  
-                  // Location Row
-                  _buildIconLabel(
-                    context, 
-                    Icons.location_on_rounded, 
-                    event.courseName ?? 'TBA',
-                    Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  
-                  // Time Row
-                  _buildIconLabel(
-                    context, 
-                    Icons.access_time_filled_rounded, 
-                    'Reg: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
-                    AppColors.dark600,
-                    isRegistration: true,
-                  ),
-
-                  // Bottom Pill Row
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            if (event.eventType == EventType.social) 
-                              BoxyArtPill(label: 'SOCIAL', color: AppColors.coral500),
-                            _buildGameTypePill(context, ref, event.id),
-                            if (event.isInvitational) _buildInvitationalBadge(),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      _buildStatusBadge(event),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: BoxyArtEventCard(
+        event: event,
+        onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
+        gameTypePill: _buildGameTypePill(context, ref, event.id),
+        statusPill: _buildStatusBadge(context, event),
       ),
-    );
-  }
-
-
-
-  Widget _buildInvitationalBadge() {
-    return BoxyArtPill(
-      label: toTitleCase('Invitational'),
-      color: AppColors.teamB,
-    );
-  }
-
-  Widget _buildIconLabel(BuildContext context, IconData icon, String label, Color color, {bool isRegistration = false}) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: AppColors.opacityLow),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, size: AppShapes.iconXs, color: color),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodySmall?.color,
-              fontSize: AppTypography.sizeLabelStrong,
-              fontWeight: isRegistration ? AppTypography.weightBlack : AppTypography.weightSemibold,
-              letterSpacing: isRegistration ? 0.8 : null,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 
@@ -258,11 +163,9 @@ class AdminEventsScreen extends ConsumerWidget {
       data: (comp) {
         if (comp == null) return const SizedBox.shrink();
         final gameName = comp.rules.gameName;
-        final color = Theme.of(context).colorScheme.primary;
 
-        return BoxyArtPill(
-          label: toTitleCase(gameName),
-          color: color,
+        return BoxyArtPill.format(
+          label: gameName,
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -270,49 +173,40 @@ class AdminEventsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBadge(GolfEvent event) {
+  Widget _buildStatusBadge(BuildContext context, GolfEvent event) {
     final status = event.displayStatus;
     Color statusColor;
     String statusText;
 
     switch (status) {
       case EventStatus.draft:
-        statusText = 'DRAFT';
+        statusText = 'Draft';
         statusColor = AppColors.amber500;
         break;
       case EventStatus.inPlay:
-        statusText = 'LIVE';
+        statusText = 'Live';
         statusColor = AppColors.teamA;
         break;
       case EventStatus.suspended:
-        statusText = 'SUSPENDED';
+        statusText = 'Suspended';
         statusColor = Colors.deepOrange;
         break;
       case EventStatus.cancelled:
-        statusText = 'CANCELLED';
+        statusText = 'Cancelled';
         statusColor = AppColors.coral500;
         break;
       case EventStatus.completed:
-        statusText = 'COMPLETED';
+        statusText = 'Completed';
         statusColor = AppColors.textSecondary;
         break;
       default:
-        statusText = 'PUBLISHED';
-        statusColor = const Color(0xFF27AE60);
+        statusText = 'Published';
+        statusColor = AppColors.lime500;
     }
 
-    return BoxyArtPill(
-      label: toTitleCase(statusText),
+    return BoxyArtPill.status(
+      label: statusText,
       color: statusColor,
     );
   }
-
-  String toTitleCase(String text) {
-    if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-  }
 }
-

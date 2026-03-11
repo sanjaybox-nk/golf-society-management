@@ -5,6 +5,8 @@ import "package:golf_society/design_system/design_system.dart";
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:golf_society/design_system/constants/navigation_constants.dart';
+
 class ScaffoldWithNavBar extends StatelessWidget {
   const ScaffoldWithNavBar({
     required this.navigationShell,
@@ -33,33 +35,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         bottomNavigationBar: BoxyArtBottomNavBar(
           selectedIndex: navigationShell.currentIndex,
           onItemSelected: (index) => _onTap(context, index),
-          items: const [
-            BoxyArtBottomNavItem(
-              icon: Icons.home_outlined,
-              activeIcon: Icons.home,
-              label: 'Home',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.calendar_month_outlined,
-              activeIcon: Icons.calendar_month,
-              label: 'Events',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.people_outline,
-              activeIcon: Icons.people,
-              label: 'Members',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.person_outline,
-              activeIcon: Icons.person,
-              label: 'Locker',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.history_outlined,
-              activeIcon: Icons.history,
-              label: 'Archive',
-            ),
-          ],
+          items: NavigationConstants.userNavItems,
         ),
       ),
     );

@@ -48,7 +48,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
 
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
-        title: 'Manage Scorecard',
+        title: 'Scorecard Editor',
         subtitle: _getDisplayName(event, playerId),
         showBack: true,
         useScaffold: false, // Nested in EventAdminShell

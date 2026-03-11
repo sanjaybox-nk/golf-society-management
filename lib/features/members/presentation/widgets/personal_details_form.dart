@@ -50,18 +50,10 @@ class PersonalDetailsForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.x2l),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-        const BoxyArtSectionTitle(
-          title: 'Personal Details',
-          isLevel2: true,
-          icon: Icons.account_circle_outlined,
-        ),
-          
-          if (isEditing) ...[
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isEditing) ...[
             BoxyArtFormField(
               label: 'Bio',
               controller: bioController,
@@ -120,7 +112,7 @@ class PersonalDetailsForm extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : const Color(0xFFF5F5F5),
                           borderRadius: AppShapes.pill,
-                          boxShadow: AppShadows.inputSoft,
+                          boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
                           border: Theme.of(context).brightness == Brightness.dark 
                               ? null 
                               : Border.all(color: AppColors.lightBorder),
@@ -202,32 +194,31 @@ class PersonalDetailsForm extends StatelessWidget {
             // View Mode
             if (nicknameController.text.isNotEmpty) ...[
                _buildInfoRow(Icons.short_text_rounded, 'NICKNAME', nicknameController.text),
-               const SizedBox(height: AppSpacing.lg),
+               const SizedBox(height: AppSpacing.x2l),
             ],
             _buildInfoRow(Icons.email_outlined, 'EMAIL', emailController.text),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.x2l),
             _buildInfoRow(Icons.phone_outlined, 'PHONE', '${countryCodeController.text}${phoneController.text}'),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.x2l),
             _buildInfoRow(Icons.location_on_outlined, 'ADDRESS', addressController.text),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.x2l),
             _buildInfoRow(
               Icons.calendar_today_outlined, 
               'MEMBER SINCE', 
               joinedDate != null ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' : '-'
             ),
             if (gender != null) ...[
-               const SizedBox(height: AppSpacing.lg),
-               _buildInfoRow(Icons.wc_outlined, 'GENDER', gender!),
+               const SizedBox(height: AppSpacing.x2l),
+               _buildInfoRow(null, 'GENDER', gender!),
             ],
           ],
         ],
-      ),
-    );
+      );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData? icon, String label, String value) {
     return ModernInfoRow(
-      icon: icon,
+      icon: null,
       label: label,
       value: value,
     );
@@ -252,7 +243,7 @@ class PersonalDetailsForm extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : const Color(0xFFF5F5F5),
                 borderRadius: AppShapes.pill,
-                boxShadow: AppShadows.inputSoft,
+                boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
                 border: Theme.of(context).brightness == Brightness.dark 
                     ? null 
                     : Border.all(color: AppColors.lightBorder),

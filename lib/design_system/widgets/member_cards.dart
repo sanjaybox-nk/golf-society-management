@@ -118,7 +118,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
-                              boxShadow: AppShadows.softScale,
+                              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                             ),
                             child: const Padding(
                               padding: EdgeInsets.all(AppSpacing.xs),
@@ -136,8 +136,33 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Since ${joinedDate!.year}',
-                      style: AppTypography.microSmall.copyWith(
-                        color: subColor,
+                      style: AppTypography.caption.copyWith(
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
+                      ),
+                    ),
+                  ],
+                  // [NEW] Society Role under Joined Date
+                  if (societyRole?.isNotEmpty == true) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    GestureDetector(
+                      onTap: isAdmin && isEditing ? onSocietyRoleTap : null,
+                      child: BoxyArtPill(
+                        label: societyRole!,
+                        color: primary,
+                        textColor: AppColors.actionText,
+                        icon: isAdmin && isEditing ? Icons.keyboard_arrow_down : null,
+                      ),
+                    ),
+                  ],
+
+                  // [NEW] System Role Badge under Society Role
+                  if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null)) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    GestureDetector(
+                      onTap: isAdmin && isEditing ? onRoleTap : null,
+                      child: BoxyArtPill(
+                        label: toTitleCase(role?.displayName ?? 'Member'),
+                        color: StatusColors.neutral,
                       ),
                     ),
                   ],
@@ -154,6 +179,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       toTitleCase('$firstName $lastName'),
                       style: AppTypography.displaySubPage.copyWith(
                         color: textColor,
+                        fontSize: 19,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -179,15 +205,21 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                     ),
                                 ))
                             .toList(),
-                        child: BoxyArtPill(
-                          label: statusLabel,
-                          color: status.color,
+                        child: Text(
+                          statusLabel,
+                          style: AppTypography.displayUI.copyWith(
+                            color: status.color,
+                            fontWeight: AppTypography.weightBold,
+                          ),
                         ),
                       )
                     else
-                      BoxyArtPill(
-                        label: statusLabel,
-                        color: status.color,
+                      Text(
+                        statusLabel,
+                        style: AppTypography.displayUI.copyWith(
+                          color: status.color,
+                          fontWeight: AppTypography.weightBold,
+                        ),
                       ),
 
                     const SizedBox(height: AppSpacing.lg),
@@ -280,15 +312,17 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           Text(
                             toTitleCase('HANDICAP'),
                             style: AppTypography.microSmall.copyWith(
-                              color: isDark ? AppColors.dark200 : AppColors.dark300,
+                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
+                              fontSize: 11,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             handicapController?.text ?? '-',
                             style: AppTypography.displayLargeBody.copyWith(
-                              fontSize: AppTypography.sizeBody,
+                              fontSize: 20,
                               color: textColor,
+                              fontWeight: AppTypography.weightExtraBold,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.lg),
@@ -296,15 +330,17 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                           Text(
                             toTitleCase(system.idLabel),
                             style: AppTypography.microSmall.copyWith(
-                              color: isDark ? AppColors.dark200 : AppColors.dark300,
+                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
+                              fontSize: 11,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             handicapIdController?.text ?? '-',
                             style: AppTypography.displayLargeBody.copyWith(
-                              fontSize: AppTypography.sizeBody,
+                              fontSize: 20,
                               color: textColor,
+                              fontWeight: AppTypography.weightExtraBold,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -318,25 +354,11 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
           
           const SizedBox(height: AppSpacing.x2l),
           
-          // Row 3: Bottom Row (Status, Fee, Member Badge -> ... -> Society Role)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              
-              // 2. Member Role Badge (System Role)
-              if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null))
-                GestureDetector(
-                  onTap: canEdit ? onRoleTap : null,
-                  child: BoxyArtPill(
-                    label: toTitleCase(role?.displayName ?? 'Member'),
-                    color: StatusColors.neutral,
-                  ),
-                ),
-
-              // 3. Fee Pill (Interactive for Admin)
-              if (isAdmin) 
+          // Row 3: Bottom Row (Fee Status Only)
+          if (isAdmin)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
                 IgnorePointer(
                   ignoring: !canEdit,
                   child: BoxyArtFeePill(
@@ -344,26 +366,8 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                     onToggle: () => onFeeToggle?.call(!hasPaid),
                   ),
                 ),
-
-              // 4. Society Role (President etc) - Refactored to BoxyArtPill
-              if (onSocietyRoleTap != null && canEdit)
-                GestureDetector(
-                  onTap: onSocietyRoleTap,
-                  child: BoxyArtPill(
-                    label: toTitleCase(societyRole?.isNotEmpty == true ? societyRole! : 'No title'),
-                    color: primary,
-                    textColor: AppColors.actionText,
-                    icon: Icons.keyboard_arrow_down,
-                  ),
-                )
-              else if (societyRole?.isNotEmpty == true)
-                BoxyArtPill(
-                  label: societyRole!,
-                  color: primary,
-                  textColor: AppColors.actionText,
-                ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

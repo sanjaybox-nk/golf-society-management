@@ -2,7 +2,7 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
-import 'package:golf_society/features/admin/presentation/events/widgets/boxy_art_rich_note_editor.dart';
+import 'package:golf_society/design_system/widgets/boxy_art_rich_note_editor.dart';
 
 class EventContentSection extends ConsumerWidget {
   
@@ -24,7 +24,7 @@ class EventContentSection extends ConsumerWidget {
               children: [
                 ...state.facilities.asMap().entries.map((entry) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                     child: BoxyArtFormField(
                       label: 'Facility ${entry.key + 1}',
                       initialValue: entry.value,
@@ -48,23 +48,32 @@ class EventContentSection extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
+          const SizedBox(height: AppSpacing.x3l),
           const BoxyArtSectionTitle(title: 'Notes & Content'),
           const SizedBox(height: AppTheme.sectionSpacing),
           ...state.notes.asMap().entries.map((entry) {
-             return BoxyArtRichNoteEditor(
-               controller: RichNoteController(
-                 title: entry.value.title,
-                 content: entry.value.content,
-                 imageUrl: entry.value.imageUrl,
+             final index = entry.key;
+             final note = entry.value;
+             return Padding(
+               padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+               child: BoxyArtRichNoteEditor(
+                 key: ValueKey('note_$index'),
+                 initialTitle: note.title,
+                 initialContent: note.content,
+                 initialImageUrl: note.imageUrl,
+                 onChanged: (title, content, imageUrl) {
+                   final list = List<EventNote>.from(state.notes);
+                   list[index] = note.copyWith(title: title, content: content, imageUrl: imageUrl);
+                   ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
+                 },
+                 onRemove: () {
+                   final list = List<EventNote>.from(state.notes)..removeAt(index);
+                   ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
+                 },
                ),
-               onRemove: () {
-                 final list = List<EventNote>.from(state.notes)..removeAt(entry.key);
-                 ref.read(eventFormNotifierProvider.notifier).updateNotes(list);
-               },
              );
           }),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtButton(
             title: 'ADD NOTE',
             onTap: () {
@@ -73,7 +82,6 @@ class EventContentSection extends ConsumerWidget {
             },
             isGhost: true,
           ),
-          const SizedBox(height: 48),
         ],
       ),
       loading: () => const SizedBox.shrink(),

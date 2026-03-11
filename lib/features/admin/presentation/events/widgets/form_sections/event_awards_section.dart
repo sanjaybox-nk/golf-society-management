@@ -36,58 +36,15 @@ class EventAwardsSection extends ConsumerWidget {
                     ...state.awards.asMap().entries.map((entry) {
                       final index = entry.key;
                       final award = entry.value;
-                      return Column(
-                        children: [
-                          if (index > 0) const Divider(height: AppSpacing.x3l),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: BoxyArtFormField(
-                                  label: 'Award Label',
-                                  initialValue: award.label,
-                                  onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateAward(index, award.copyWith(label: v)),
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Expanded(
-                                flex: 1,
-                                child: BoxyArtFormField(
-                                  label: 'Value ($currency)',
-                                  initialValue: award.value == 0 ? '' : award.value.toString(),
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                  onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateAward(index, award.copyWith(value: double.tryParse(v) ?? 0.0)),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-                                onPressed: () => ref.read(eventFormNotifierProvider.notifier).removeAward(index),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Row(
-                            children: ['Cup', 'Cash', 'Voucher'].map((type) {
-                              final isSelected = award.type.toLowerCase() == type.toLowerCase();
-                              return Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                                  child: SizedBox(
-                                    height: AppSpacing.x3l,
-                                    child: BoxyArtButton(
-                                      title: type.toUpperCase(),
-                                      onTap: () => ref.read(eventFormNotifierProvider.notifier).updateAward(index, award.copyWith(type: type)),
-                                      isGhost: !isSelected,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
+                      return _AwardRow(
+                        key: ValueKey('award_${index}_${award.id}'),
+                        index: index,
+                        award: award,
+                        currency: currency,
+                        ref: ref,
                       );
                     }),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.x2l),
                     BoxyArtButton(
                       title: 'ADD AWARD',
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
@@ -97,12 +54,117 @@ class EventAwardsSection extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.x2l),
           ],
         );
       },
       loading: () => const SizedBox.shrink(),
       error: (e, _) => Text('Error: $e'),
+    );
+  }
+}
+
+class _AwardRow extends StatefulWidget {
+  final int index;
+  final EventAward award;
+  final String currency;
+  final WidgetRef ref;
+
+  const _AwardRow({
+    super.key,
+    required this.index,
+    required this.award,
+    required this.currency,
+    required this.ref,
+  });
+
+  @override
+  State<_AwardRow> createState() => _AwardRowState();
+}
+
+class _AwardRowState extends State<_AwardRow> {
+  late final TextEditingController _labelController;
+  late final TextEditingController _valueController;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelController = TextEditingController(text: widget.award.label);
+    _valueController = TextEditingController(text: widget.award.value == 0 ? '' : widget.award.value.toString());
+  }
+
+  @override
+  void didUpdateWidget(_AwardRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.award.label != oldWidget.award.label && widget.award.label != _labelController.text) {
+      _labelController.text = widget.award.label;
+    }
+    
+    final newValueStr = widget.award.value == 0 ? '' : widget.award.value.toString();
+    if (widget.award.value != oldWidget.award.value && 
+        newValueStr != _valueController.text && 
+        double.tryParse(_valueController.text) != widget.award.value) {
+      _valueController.text = newValueStr;
+    }
+  }
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    _valueController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (widget.index > 0) const Divider(height: AppSpacing.x3l),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: BoxyArtFormField(
+                label: 'Award Label',
+                controller: _labelController,
+                onChanged: (v) => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(label: v)),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.x2l),
+            Expanded(
+              flex: 1,
+              child: BoxyArtFormField(
+                label: 'Value (${widget.currency})',
+                controller: _valueController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                onChanged: (v) => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(value: double.tryParse(v) ?? 0.0)),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+              onPressed: () => widget.ref.read(eventFormNotifierProvider.notifier).removeAward(widget.index),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.x2l),
+        Row(
+          children: ['Cup', 'Cash', 'Voucher'].map((type) {
+            final isSelected = widget.award.type.toLowerCase() == type.toLowerCase();
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                child: SizedBox(
+                  height: AppSpacing.x3l,
+                  child: BoxyArtButton(
+                    title: type.toUpperCase(),
+                    onTap: () => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(type: type)),
+                    isGhost: !isSelected,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

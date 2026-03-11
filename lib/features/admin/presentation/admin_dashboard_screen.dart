@@ -76,35 +76,30 @@ class AdminDashboardScreen extends ConsumerWidget {
                         width: cardWidth,
                         icon: Icons.add_circle_outline_rounded,
                         title: 'Create Event',
-                        color: AppColors.lime500,
                         onTap: () => context.push('/admin/events/new'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.campaign_rounded,
                         title: 'Broadcasts',
-                        color: AppColors.coral500,
                         onTap: () => _showBroadcastPicker(context, eventsAsync),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.person_add_alt_1_rounded,
                         title: 'Add Member',
-                        color: AppColors.teamA,
                         onTap: () => context.push('/admin/members/new'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.settings_suggest_rounded,
                         title: 'Settings',
-                        color: AppColors.amber500,
                         onTap: () => context.push('/admin/settings'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.poll_rounded,
                         title: 'Surveys',
-                        color: StatusColors.warning,
                         onTap: () => context.go('/admin/surveys'),
                       ),
                     ],
@@ -144,14 +139,12 @@ class _FeatureGridItem extends StatelessWidget {
   final double width;
   final IconData icon;
   final String title;
-  final Color color;
   final VoidCallback onTap;
 
   const _FeatureGridItem({
     required this.width,
     required this.icon,
     required this.title,
-    required this.color,
     required this.onTap,
   });
 
@@ -167,10 +160,14 @@ class _FeatureGridItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: AppColors.opacityLow),
-                shape: BoxShape.circle,
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.dark300.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
               ),
-              child: Icon(icon, color: color, size: AppShapes.iconLg),
+              child: Icon(icon, color: AppColors.dark600, size: AppShapes.iconLg),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -225,10 +222,14 @@ class _ActivityFeed extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.sm),
                           decoration: BoxDecoration(
-                            color: appearance.$2.withValues(alpha: AppColors.opacityLow),
-                            borderRadius: BorderRadius.circular(AppSpacing.sm),
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.dark300.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
                           ),
-                          child: Icon(appearance.$1, color: appearance.$2, size: AppShapes.iconSm),
+                          child: Icon(appearance.$1, color: AppColors.dark600, size: AppShapes.iconSm),
                         ),
                         const SizedBox(width: AppSpacing.lg),
                         Expanded(
@@ -326,24 +327,25 @@ class _BroadcastEventPicker extends StatelessWidget {
           Expanded(
             child: eventsAsync.when(
               data: (events) {
-                final sortedEvents = events.sortedBy((e) => e.date).reversed.toList();
+                final filteredEvents = events.where((e) {
+                  return e.status != EventStatus.completed && 
+                         e.status != EventStatus.cancelled &&
+                         e.status != EventStatus.draft;
+                }).toList();
+                final sortedEvents = filteredEvents.sortedBy((e) => e.date).reversed.toList();
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
                   itemCount: sortedEvents.length,
                   itemBuilder: (context, index) {
                     final event = sortedEvents[index];
-                    return Container(
+                    return BoxyArtCard(
                       margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: AppShapes.lg,
-                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
-                      ),
+                      padding: EdgeInsets.zero,
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/broadcast/new');
+                      },
                       child: ListTile(
-                        onTap: () {
-                          Navigator.pop(context);
-                          context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/broadcast/new');
-                        },
                         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
                         title: Text(
                           event.title,

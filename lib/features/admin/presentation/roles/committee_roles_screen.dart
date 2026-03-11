@@ -29,7 +29,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
     return HeadlessScaffold(
       title: 'Committee Roles',
-      subtitle: 'Manage society specific titles',
+      subtitle: 'Society specific titles',
       backgroundColor: beigeBackground,
       showBack: true,
       onBack: () => context.pop(),

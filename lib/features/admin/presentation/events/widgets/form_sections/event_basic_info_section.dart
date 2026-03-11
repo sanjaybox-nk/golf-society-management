@@ -1,8 +1,8 @@
-import 'package:golf_society/domain/models/golf_event.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
+import 'package:golf_society/design_system/widgets/boxy_art_rich_form_field.dart';
 
 class EventBasicInfoSection extends ConsumerWidget {
   
@@ -17,19 +17,8 @@ class EventBasicInfoSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Event Type'),
-          const SizedBox(height: AppSpacing.sm),
-          ModernUnderlinedFilterBar<EventType>(
-            selectedValue: state.eventType,
-            onTabSelected: (type) => ref.read(eventFormNotifierProvider.notifier).updateEventType(type),
-            isExpanded: true,
-            tabs: const [
-              ModernFilterTab(label: 'GOLF', value: EventType.golf, icon: Icons.sports_golf_rounded),
-              ModernFilterTab(label: 'SOCIAL', value: EventType.social, icon: Icons.celebration_rounded),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.x2l),
           const BoxyArtSectionTitle(title: 'Basic Info'),
+          const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
             child: Column(
               children: [
@@ -95,11 +84,10 @@ class EventBasicInfoSection extends ConsumerWidget {
                   validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: AppSpacing.x2l),
-                BoxyArtFormField(
+                BoxyArtRichFormField(
                   label: 'Description',
                   initialValue: state.description,
                   onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDescription(v),
-                  maxLines: null,
                 ),
               ],
             ),

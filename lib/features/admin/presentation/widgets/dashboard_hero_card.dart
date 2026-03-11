@@ -16,25 +16,18 @@ class DashboardHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Premium Gradient
-    final gradient = LinearGradient(
-      colors: [
-        theme.primaryColor,
-        theme.primaryColor.withValues(alpha: AppColors.opacityHigh),
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
+    // Tokenized Premium Gradient
+    final gradient = AppGradients.brandPrimary(context);
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: AppShapes.x2l,
-        boxShadow: AppShadows.softScale,
+        borderRadius: theme.extension<AppShapeTokens>()?.hero ?? AppShapes.hero,
+        boxShadow: theme.extension<AppShadows>()?.softScale ?? [],
       ),
       child: ClipRRect(
-        borderRadius: AppShapes.x2l,
+        borderRadius: theme.extension<AppShapeTokens>()?.hero ?? AppShapes.hero,
         child: Material(
           color: Colors.transparent,
           child: InkWell(

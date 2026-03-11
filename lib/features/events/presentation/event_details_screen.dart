@@ -167,40 +167,75 @@ class _EventDetailsContent extends StatelessWidget {
     
     switch (displayStatus) {
       case EventStatus.draft:
-        statusText = 'DRAFT';
+        statusText = 'Draft';
         statusColor = AppColors.amber500;
         break;
       case EventStatus.published:
-        statusText = 'PUBLISHED';
-        statusColor = const Color(0xFF27AE60);
+        statusText = 'Published';
+        statusColor = Theme.of(context).colorScheme.secondary;
         break;
       case EventStatus.inPlay:
-        statusText = 'LIVE';
+        statusText = 'Live';
         statusColor = AppColors.teamA;
         break;
       case EventStatus.suspended:
-        statusText = 'SUSPENDED';
+        statusText = 'Suspended';
         statusColor = Colors.deepOrange;
         break;
       case EventStatus.completed:
-        statusText = 'COMPLETED';
+        statusText = 'Completed';
         statusColor = AppColors.textSecondary;
         break;
       case EventStatus.cancelled:
-        statusText = 'CANCELLED';
+        statusText = 'Cancelled';
         statusColor = AppColors.coral500;
         break;
     }
     
-    // Override if invitational
-    if (event.isInvitational) {
-      statusText = 'INVITATIONAL';
-      statusColor = AppColors.dark600;
-    }
-
-    return BoxyArtPill.status(
-      label: statusText,
-      color: statusColor,
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        BoxyArtPill.status(
+          label: statusText,
+          color: statusColor,
+        ),
+        if (event.isInvitational)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.star_rounded, size: 12, color: AppColors.amber500),
+              const SizedBox(width: 4),
+              Text(
+                'Invitational event',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.amber500,
+                  fontWeight: AppTypography.weightBlack,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        if (event.eventType == EventType.social)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.favorite_rounded, size: 12, color: AppColors.coral500),
+              const SizedBox(width: 4),
+              Text(
+                'Social event',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.coral500,
+                  fontWeight: AppTypography.weightBlack,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 
@@ -251,7 +286,7 @@ class _EventDetailsContent extends StatelessWidget {
                 child: ModernMetricStat(
                   value: '${event.playingCount}/${event.capacity ?? 32}',
                   label: 'Playing',
-                  color: const Color(0xFF27AE60),
+                  color: Theme.of(context).colorScheme.secondary,
                   isCompact: true,
                 ),
               ),
@@ -402,10 +437,33 @@ class _EventDetailsContent extends StatelessWidget {
 
   Widget _buildDinnerLocationCard(BuildContext context) {
     return BoxyArtCard(
-      child: ModernInfoRow(
-        label: 'Dinner Venue',
-        value: event.dinnerLocation!,
-        icon: Icons.restaurant_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ModernInfoRow(
+            label: 'Dinner Venue',
+            value: event.dinnerLocation!,
+            icon: Icons.restaurant_rounded,
+          ),
+          if (event.dinnerAddress != null && event.dinnerAddress!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(width: 52), // Match offset of ModernInfoRow
+                Expanded(
+                  child: Text(
+                    event.dinnerAddress!,
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                      fontSize: AppTypography.sizeLabelStrong,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }

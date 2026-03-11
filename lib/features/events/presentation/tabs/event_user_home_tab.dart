@@ -10,8 +10,9 @@ import '../widgets/event_structural_cards.dart';
 
 class EventUserHomeTab extends ConsumerWidget {
   final String eventId;
+  final bool useScaffold;
 
-  const EventUserHomeTab({super.key, required this.eventId});
+  const EventUserHomeTab({super.key, required this.eventId, this.useScaffold = true});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,20 +20,26 @@ class EventUserHomeTab extends ConsumerWidget {
     
     return eventAsync.when(
       data: (event) {
-        return EventHomeContent(event: event);
+        return EventHomeContent(event: event, useScaffold: useScaffold);
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => useScaffold 
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => useScaffold
+          ? Scaffold(body: Center(child: Text('Error: $err')))
+          : Center(child: Text('Error: $err')),
     );
   }
 }
 
 class EventHomeContent extends ConsumerWidget {
   final GolfEvent event;
+  final bool useScaffold;
 
   const EventHomeContent({
     super.key,
     required this.event, 
+    this.useScaffold = true,
   });
 
   @override
@@ -42,7 +49,7 @@ class EventHomeContent extends ConsumerWidget {
     return HeadlessScaffold(
       title: event.title,
       subtitle: 'Event Dashboard',
-      useScaffold: true,
+      useScaffold: useScaffold,
       showBack: true,
       actions: isAdmin
           ? [
@@ -70,6 +77,7 @@ class EventHomeContent extends ConsumerWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: AppTheme.cardSpacing),
+              _buildActiveShortcuts(context, ref),
               ...() {
                 final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
                 publishedItems.sort((a, b) {
@@ -382,5 +390,81 @@ class EventHomeContent extends ConsumerWidget {
       }
     } catch (_) {}
     return quillJson.length > 150 ? '${quillJson.substring(0, 147)}...' : quillJson;
+  }
+
+  Widget _buildActiveShortcuts(BuildContext context, WidgetRef ref) {
+    if (event.eventType != EventType.golf) return const SizedBox.shrink();
+
+    final status = event.displayStatus;
+    final bool isLocked = event.isScoringLocked == true;
+    final bool isCompleted = status == EventStatus.completed;
+    
+    final now = DateTime.now();
+    final isSameDayOrPast = now.year == event.date.year && 
+                             now.month == event.date.month && 
+                             now.day == event.date.day || 
+                             now.isAfter(event.date);
+
+    final bool isScoringActive = !isCompleted && ((status == EventStatus.inPlay) || (isSameDayOrPast && !isLocked));
+
+    if (!isScoringActive) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+      child: GestureDetector(
+        onTap: () => context.go('/events/${event.id}/live'),
+        child: BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          backgroundColor: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.edit_note_rounded,
+                  color: Theme.of(context).primaryColor,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'READY TO SCORE?',
+                      style: AppTypography.label.copyWith(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: AppTypography.weightBlack,
+                        letterSpacing: 1.2,
+                        fontSize: AppTypography.sizeCaption,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Enter Scorecard',
+                      style: AppTypography.displayHeading.copyWith(
+                        fontSize: AppTypography.sizeLargeBody,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded, 
+                size: 16, 
+                color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

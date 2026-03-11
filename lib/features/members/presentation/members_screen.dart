@@ -65,7 +65,18 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Search & Filter Card
+                ModernUnderlinedFilterBar<AdminMemberFilter>(
+                  selectedValue: currentFilter,
+                  onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
+                  tabs: [
+                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Search Card
                 BoxyArtCard(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
@@ -89,17 +100,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                ModernUnderlinedFilterBar<AdminMemberFilter>(
-                  selectedValue: currentFilter,
-                  onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
-                  tabs: [
-                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
-                  ],
                 ),
                 const SizedBox(height: AppSpacing.x2l),
 

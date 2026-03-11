@@ -2,7 +2,7 @@ import 'package:golf_society/design_system/design_system.dart';
 
 class AppGradients {
   /// The primary brand gradient combining primary and secondary colors.
-  static LinearGradient primary(BuildContext context) {
+  static LinearGradient brandPrimary(BuildContext context) {
     final theme = Theme.of(context);
     return LinearGradient(
       begin: Alignment.topLeft,

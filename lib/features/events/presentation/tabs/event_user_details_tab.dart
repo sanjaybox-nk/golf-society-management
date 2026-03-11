@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import '../events_provider.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'dart:convert';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
@@ -93,6 +93,7 @@ class EventDetailsContent extends ConsumerWidget {
     return HeadlessScaffold(
       title: event.title,
       subtitle: 'Info Hub',
+      subtitleTrailing: _buildStatusBadge(context),
       useScaffold: useScaffold,
       leading: isPreview ? Center(
         child: BoxyArtGlassIconButton(
@@ -120,6 +121,11 @@ class EventDetailsContent extends ConsumerWidget {
         }
       },
       actions: [
+        BoxyArtGlassIconButton(
+          icon: Icons.home_rounded,
+          tooltip: 'Event Home',
+          onPressed: () => context.push('/events/${event.id}/home'),
+        ),
         if (!isPreview) ...[
           if (onEdit != null)
             BoxyArtGlassIconButton(
@@ -152,24 +158,18 @@ class EventDetailsContent extends ConsumerWidget {
       ],
       bottomNavigationBar: bottomNavigationBar,
       slivers: [
-        // Status Badge (Integrated into content)
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
-            child: _buildStatusBadge(context),
-          ),
-        ),
         SliverPadding(
           padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
                 SizedBox(height: AppTheme.cardSpacing),
+                SizedBox(height: AppTheme.cardSpacing),
+                _buildDateTimeSection(context),
+                SizedBox(height: AppTheme.cardSpacing),
                 _buildRegistrationCard(context),
                 SizedBox(height: AppTheme.cardSpacing),
                 _buildHeroSection(context),
                 SizedBox(height: AppTheme.cardSpacing),
-              _buildDateTimeSection(context),
-              SizedBox(height: AppTheme.cardSpacing),
               if (event.eventType == EventType.golf) ...[
                 _buildCourseSelectionSection(context),
                 _buildCourseDataHardeningSection(context),
@@ -208,6 +208,7 @@ class EventDetailsContent extends ConsumerWidget {
 
   Widget _buildStatusBadge(BuildContext context) {
     final displayStatus = event.displayStatus;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     // Member view uses user-friendly labels
     // Admin view shows technical statuses (draft/published/inplay/completed)
@@ -215,23 +216,23 @@ class EventDetailsContent extends ConsumerWidget {
     Color statusColor;
     
     if (displayStatus == EventStatus.draft) {
-      statusText = 'DRAFT';
+      statusText = 'Draft';
       statusColor = AppColors.amber500;
     } else if (displayStatus == EventStatus.completed) {
-      statusText = 'COMPLETED';
-      statusColor = AppColors.textSecondary;
+      statusText = 'Completed';
+      statusColor = isDark ? AppColors.dark200 : AppColors.dark400;
     } else if (displayStatus == EventStatus.inPlay) {
-      statusText = 'LIVE';
+      statusText = 'Live';
       statusColor = AppColors.teamA;
     } else if (displayStatus == EventStatus.suspended) {
-      statusText = 'SUSPENDED';
+      statusText = 'Suspended';
       statusColor = Colors.deepOrange;
     } else if (displayStatus == EventStatus.cancelled) {
-      statusText = 'CANCELLED';
+      statusText = 'Cancelled';
       statusColor = AppColors.coral500;
     } else {
-      statusText = 'PUBLISHED';
-      statusColor = const Color(0xFF27AE60);
+      statusText = 'Published';
+      statusColor = Theme.of(context).colorScheme.secondary;
     }
 
     final badge = Row(
@@ -240,6 +241,9 @@ class EventDetailsContent extends ConsumerWidget {
         BoxyArtPill.status(
           label: statusText,
           color: statusColor,
+          fontSize: 15.0,
+          fontWeight: AppTypography.weightSemibold,
+          letterSpacing: -0.5,
         ),
         if (onStatusChanged != null) ...[
           const SizedBox(width: AppSpacing.xs),
@@ -257,57 +261,50 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   void _showStatusSelector(BuildContext context) {
-    showModalBottomSheet(
+    BoxyArtBottomSheet.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => BoxyArtCard(
-        margin: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(AppSpacing.lg),
-              child: Text(
-                'Change Event Status',
-                style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody),
-              ),
-            ),
-            const Divider(),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: EventStatus.values.map((s) {
-                    String label = s.name;
-                    if (s == EventStatus.inPlay) label = 'Live';
-                    
-                    return ListTile(
-                      leading: Icon(
-                        _getStatusIcon(s),
-                        color: _getStatusColor(s),
-                      ),
-                      title: Text(
-                        label,
-                        style: TextStyle(
-                          fontWeight: event.status == s ? AppTypography.weightBold : AppTypography.weightRegular,
-                          color: event.status == s ? _getStatusColor(s) : null,
-                        ),
-                      ),
-                      trailing: event.status == s ? Icon(Icons.check_rounded, color: _getStatusColor(s)) : null,
-                      onTap: () {
-                        Navigator.pop(context);
-                        if (onStatusChanged != null) {
-                          onStatusChanged!(s);
-                        }
-                      },
-                    );
-                  }).toList(),
+      title: 'Change Event Status',
+      isScrollControlled: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: EventStatus.values.map((s) {
+          final isSelected = event.status == s;
+          String label = toTitleCase(s.name);
+          if (s == EventStatus.inPlay) label = 'Live';
+          
+          return Column(
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: BoxyArtIconBadge(
+                  icon: _getStatusIcon(s),
+                  color: AppColors.dark600,
+                  showFill: false,
+                  borderColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark300,
+                  iconColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
                 ),
+                title: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
+                    fontSize: AppTypography.sizeBody,
+                    color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
+                  ),
+                ),
+                trailing: isSelected 
+                  ? Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor, size: 20) 
+                  : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  if (onStatusChanged != null) {
+                    onStatusChanged!(s);
+                  }
+                },
               ),
-            ),
-            const SizedBox(height: AppTheme.cardSpacing),
-          ],
-        ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -323,16 +320,6 @@ class EventDetailsContent extends ConsumerWidget {
     }
   }
 
-  Color _getStatusColor(EventStatus status) {
-    switch (status) {
-      case EventStatus.draft: return AppColors.amber500;
-      case EventStatus.published: return const Color(0xFF27AE60);
-      case EventStatus.inPlay: return AppColors.teamA;
-      case EventStatus.suspended: return Colors.deepOrange;
-      case EventStatus.completed: return AppColors.textSecondary;
-      case EventStatus.cancelled: return AppColors.coral500;
-    }
-  }
 
   Widget _buildHeroSection(BuildContext context) {
     if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
@@ -353,86 +340,115 @@ class EventDetailsContent extends ConsumerWidget {
             if (event.description != null && event.description!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Text(
-                  event.description!,
-                  style: TextStyle(
-                    fontSize: AppTypography.sizeButton,
-                    fontWeight: AppTypography.weightSemibold,
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
-                    height: 1.5,
-                  ),
-                ),
+                child: _buildRichDescription(context, event.description!),
               ),
           ],
         ),
       );
     } else if (event.description != null && event.description!.isNotEmpty) {
       return BoxyArtCard(
-        child: Text(
-          event.description!,
-          style: TextStyle(
-            fontSize: AppTypography.sizeButton,
-            fontWeight: AppTypography.weightSemibold,
-            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
-            height: 1.5,
-          ),
-        ),
+        child: _buildRichDescription(context, event.description!),
       );
     }
     return const SizedBox.shrink();
   }
 
 
+  Widget _buildRichDescription(BuildContext context, String content) {
+    // Handle both JSON Delta and Plain Text
+    late quill.QuillController controller;
+    
+    if (content.startsWith('[{"insert"')) {
+      try {
+        controller = quill.QuillController(
+          document: quill.Document.fromJson(jsonDecode(content)),
+          selection: const TextSelection.collapsed(offset: 0),
+          readOnly: true,
+        );
+      } catch (_) {
+        controller = quill.QuillController.basic();
+        controller.readOnly = true;
+      }
+    } else {
+      controller = quill.QuillController.basic();
+      controller.readOnly = true;
+      controller.document.insert(0, content);
+    }
+
+    return BoxyArtRichEditor(
+      controller: controller,
+      readOnly: true,
+      showToolbar: false,
+      scrollable: false,
+      minHeight: 0,
+    );
+  }
+
+
   Widget _buildDateTimeSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'Date & Time'),
-        BoxyArtCard(
-          child: Column(
-            children: [
-              ModernInfoRow(
-                label: event.isMultiDay ? 'Start Date' : 'Event Date',
-                value: DateFormat('EEEE, d MMM yyyy').format(event.date),
-                icon: Icons.calendar_today_rounded,
-              ),
-              if (event.isMultiDay && event.endDate != null) ...[
-                const SizedBox(height: AppTheme.cardSpacing),
-                ModernInfoRow(
-                  label: 'End Date',
-                  value: DateFormat('EEEE, d MMM yyyy').format(event.endDate!),
-                  icon: Icons.calendar_today_rounded,
-                ),
-              ],
-              const SizedBox(height: AppTheme.cardSpacing),
-              if (event.eventType == EventType.golf) ...[
-                ModernInfoRow(
-                  label: 'Tee-off',
-                  value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
-                  icon: Icons.schedule_rounded,
-                ),
-                const SizedBox(height: AppTheme.cardSpacing),
-              ],
-              ModernInfoRow(
-                label: 'Registration',
-                value: event.regTime != null 
-                    ? DateFormat('h:mm a').format(event.regTime!)
-                    : 'TBA',
-                icon: Icons.app_registration_rounded,
-              ),
-              if (event.registrationDeadline != null) ...[
-                const SizedBox(height: AppTheme.cardSpacing),
-                ModernInfoRow(
-                  label: 'Deadline',
-                  value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
-                  icon: Icons.timer_outlined,
-                  iconColor: Colors.redAccent,
-                ),
-              ],
-            ],
+    final gradient = AppGradients.brandPrimary(context);
+    
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.x2l),
+      gradient: gradient,
+      isHero: true,
+      customShadows: Theme.of(context).extension<AppShadows>()?.softScale,
+      child: Column(
+        children: [
+          ModernInfoRow(
+            label: event.isMultiDay ? 'START DATE' : 'EVENT DATE',
+            value: DateFormat('EEEE, d MMM yyyy').format(event.date),
+            icon: Icons.calendar_today_rounded,
+            labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+            valueColor: AppColors.pureWhite,
+            iconColor: AppColors.pureWhite,
           ),
-        ),
-      ],
+          if (event.isMultiDay && event.endDate != null) ...[
+            const SizedBox(height: AppSpacing.xl),
+            ModernInfoRow(
+              label: 'END DATE',
+              value: DateFormat('EEEE, d MMM yyyy').format(event.endDate!),
+              icon: Icons.calendar_today_rounded,
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+              valueColor: AppColors.pureWhite,
+              iconColor: AppColors.pureWhite,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.xl),
+          if (event.eventType == EventType.golf) ...[
+            ModernInfoRow(
+              label: 'TEE-OFF',
+              value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
+              icon: Icons.schedule_rounded,
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+              valueColor: AppColors.pureWhite,
+              iconColor: AppColors.pureWhite,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+          ModernInfoRow(
+            label: 'REGISTRATION',
+            value: event.regTime != null 
+                ? DateFormat('h:mm a').format(event.regTime!)
+                : 'TBA',
+            icon: Icons.app_registration_rounded,
+            labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+            valueColor: AppColors.pureWhite,
+            iconColor: AppColors.pureWhite,
+          ),
+          if (event.registrationDeadline != null) ...[
+            const SizedBox(height: AppSpacing.xl),
+            ModernInfoRow(
+              label: 'DEADLINE',
+              value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+              icon: Icons.timer_outlined,
+              iconColor: AppColors.pureWhite,
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+              valueColor: AppColors.pureWhite,
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -467,15 +483,20 @@ class EventDetailsContent extends ConsumerWidget {
               ),
               if (event.courseDetails != null && event.courseDetails!.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Padding(
-                  padding: const EdgeInsets.only(left: 52),
-                  child: Text(
-                    event.courseDetails!,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                      fontSize: AppTypography.sizeLabelStrong,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(width: 52), // Exact offset of ModernInfoRow text (38 icon + 14 spacing)
+                    Expanded(
+                      child: Text(
+                        event.courseDetails!,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: AppTypography.sizeLabelStrong,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
               if (event.eventType == EventType.golf && (event.selectedTeeName != null || event.selectedFemaleTeeName != null)) ...[
@@ -601,7 +622,7 @@ class EventDetailsContent extends ConsumerWidget {
                            children: [
                              const Text(
                                'Missing Course Data',
-                               style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody, color: AppColors.coral500),
+                               style: TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeBody, color: AppColors.coral500),
                              ),
                              Text(
                                'Handicaps cannot be accurately calculated.',
@@ -625,9 +646,9 @@ class EventDetailsContent extends ConsumerWidget {
 
   Widget _buildManualDataFixer(BuildContext context, WidgetRef ref) {
     final config = event.courseConfig;
-    final slopeController = TextEditingController(text: config.slope.toString());
-    final ratingController = TextEditingController(text: config.rating.toString());
-    final parController = TextEditingController(text: config.par.toString());
+    final slopeController = TextEditingController(text: config.slope?.toString() ?? '');
+    final ratingController = TextEditingController(text: config.rating?.toString() ?? '');
+    final parController = TextEditingController(text: config.par?.toString() ?? '');
 
     return Column(
       children: [
@@ -694,6 +715,7 @@ class EventDetailsContent extends ConsumerWidget {
             style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
             decoration: const InputDecoration(
               border: InputBorder.none,
+              filled: false,
               isDense: true,
               contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.md),
             ),
@@ -734,67 +756,6 @@ class EventDetailsContent extends ConsumerWidget {
     return BoxyArtCard(
       child: Column(
         children: [
-          if (!isRegistered) ...[
-            Column(
-              children: [
-                Text(
-                  isFull ? 'Event Full' : 'Secure your spot',
-                  style: const TextStyle(
-                    fontWeight: AppTypography.weightBlack,
-                    fontSize: AppTypography.sizeLargeBody,
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (event.registrationDeadline != null) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh), 
-                      fontSize: AppTypography.sizeLabelStrong,
-                      fontWeight: AppTypography.weightExtraBold,
-                      letterSpacing: 0.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ] else ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    isFull ? 'Join the waitlist below' : 'Register below to join the event',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: AppTypography.sizeLabelStrong),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: AppSpacing.x2l),
-          ] else ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: AppSpacing.md,
-                  height: AppSpacing.md,
-                  decoration: BoxDecoration(
-                    color: myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12),
-                    shape: BoxShape.circle,
-                    boxShadow: AppShadows.softScale,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Text(
-                  myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
-                  style: const TextStyle(
-                    fontWeight: AppTypography.weightBlack,
-                    fontSize: AppTypography.sizeLargeBody,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.x2l),
-          ],
           BoxyArtButton(
             title: isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now'),
             onTap: (isPreview || isPastDeadline) ? null : () {
@@ -981,13 +942,11 @@ class EventDetailsContent extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(vertical: 6.0),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF27AE60).withValues(alpha: AppColors.opacityLow),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.check_circle_rounded, size: AppShapes.iconSm, color: Color(0xFF27AE60)),
+                  BoxyArtIconBadge(
+                    icon: Icons.check_rounded, 
+                    size: 38,
+                    iconSize: 18, 
+                    color: AppColors.actionGreen,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -1022,11 +981,11 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildNoteCard(BuildContext context, EventNote note) {
-    QuillController? quillController;
+    quill.QuillController? quillController;
     try {
       if (note.content.isNotEmpty) {
-        quillController = QuillController(
-          document: Document.fromJson(jsonDecode(note.content)),
+        quillController = quill.QuillController(
+          document: quill.Document.fromJson(jsonDecode(note.content)),
           selection: const TextSelection.collapsed(offset: 0),
           readOnly: true,
         );
@@ -1067,9 +1026,9 @@ class EventDetailsContent extends ConsumerWidget {
               const SizedBox(height: AppTheme.cardSpacing),
             ],
             if (quillController != null)
-              QuillEditor.basic(
+              quill.QuillEditor.basic(
                 controller: quillController,
-                config: QuillEditorConfig(
+                config: const quill.QuillEditorConfig(
                   padding: EdgeInsets.zero,
                   autoFocus: false,
                   expands: false,
@@ -1089,25 +1048,48 @@ class EventDetailsContent extends ConsumerWidget {
       children: [
         const BoxyArtSectionTitle(title: 'Dinner Info'),
         BoxyArtCard(
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: ModernInfoRow(
-                  label: 'Location',
-                  value: event.dinnerLocation!,
-                  icon: Icons.restaurant_rounded,
-                ),
-              ),
-              if (isPreview == false)
-                IconButton(
-                  icon: Icon(
-                    Icons.map_outlined,
-                    color: Theme.of(context).primaryColor,
-                    size: AppShapes.iconMd,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ModernInfoRow(
+                      label: 'Location',
+                      value: event.dinnerLocation!,
+                      icon: Icons.restaurant_rounded,
+                    ),
                   ),
-                  onPressed: () => _launchMap(event.dinnerLocation!, null),
+                  if (isPreview == false)
+                    IconButton(
+                      icon: Icon(
+                        Icons.map_outlined,
+                        color: Theme.of(context).primaryColor,
+                        size: AppShapes.iconMd,
+                      ),
+                      onPressed: () => _launchMap(event.dinnerLocation!, event.dinnerAddress),
+                    ),
+                ],
+              ),
+              if (event.dinnerAddress != null && event.dinnerAddress!.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(width: 52), // Exact offset of ModernInfoRow text (38 icon + 14 spacing)
+                    Expanded(
+                      child: Text(
+                        event.dinnerAddress!,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: AppTypography.sizeLabelStrong,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              ],
             ],
           ),
         ),
@@ -1127,20 +1109,16 @@ class EventDetailsContent extends ConsumerWidget {
             children: event.awards.map((award) {
               final isLast = award == event.awards.last;
               IconData icon;
-              Color iconColor;
               
               switch (award.type.toLowerCase()) {
                 case 'cup':
                   icon = Icons.emoji_events_rounded;
-                  iconColor = const Color(0xFFFFD700); // Gold
                   break;
                 case 'voucher':
                   icon = Icons.confirmation_number_rounded;
-                  iconColor = const Color(0xFF27AE60);
                   break;
                 default:
                   icon = Icons.payments_rounded;
-                  iconColor = const Color(0xFF2D9CDB);
               }
 
               return Column(
@@ -1149,13 +1127,10 @@ class EventDetailsContent extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                     child: Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.sm),
-                          decoration: BoxDecoration(
-                            color: iconColor.withValues(alpha: AppColors.opacityLow),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(icon, size: AppShapes.iconMd, color: iconColor),
+                        BoxyArtIconBadge(
+                          icon: icon,
+                          color: AppColors.actionGreen,
+                          size: 38,
                         ),
                         const SizedBox(width: AppSpacing.lg),
                         Expanded(

@@ -456,7 +456,8 @@ class CourseInfoCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
-        borderRadius: AppShapes.sm,
+        // Removed hardcoded AppShapes.lg to allow parent BoxyArtCard clipping to match dynamic radius
+        borderRadius: BorderRadius.zero, 
       ),
       child: Row(
         children: [

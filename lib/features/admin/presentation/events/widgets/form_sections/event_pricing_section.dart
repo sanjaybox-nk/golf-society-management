@@ -41,7 +41,7 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyFee(double.tryParse(v)),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.lg),
+                      const SizedBox(width: AppSpacing.x2l),
                       const Expanded(child: SizedBox.shrink()),
                     ],
                   ),
@@ -56,7 +56,7 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMemberCost(double.tryParse(v)),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.lg),
+                      const SizedBox(width: AppSpacing.x2l),
                       Expanded(
                         child: BoxyArtFormField(
                           label: 'Guest Charge ($currency)',
@@ -71,7 +71,7 @@ class EventPricingSection extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
+          const SizedBox(height: AppSpacing.x3l),
           const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
           const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
@@ -95,17 +95,22 @@ class EventPricingSection extends ConsumerWidget {
                   (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerCost(double.tryParse(v) ?? 0),
                 ),
                 if (state.hasDinner) ...[
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.x2l),
                   BoxyArtFormField(
                     label: 'Dinner Location',
                     initialValue: state.dinnerLocation,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerLocation(v),
                   ),
+                  const SizedBox(height: AppSpacing.x2l),
+                  BoxyArtFormField(
+                    label: 'Dinner Address (Optional)',
+                    initialValue: state.dinnerAddress,
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerAddress(v),
+                  ),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.x2l),
         ],
       ),
       loading: () => const SizedBox.shrink(),
@@ -128,14 +133,14 @@ class EventPricingSection extends ConsumerWidget {
       children: [
         BoxyArtSwitchField(label: 'Offer $label', value: value, onChanged: onToggle),
         if (value) ...[
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtFormField(
             label: 'Society $label Cost ($currency)',
             initialValue: societyCost?.toString() ?? '',
             keyboardType: TextInputType.number,
             onChanged: onSocietyCostChanged,
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.x2l),
           BoxyArtFormField(
             label: 'Member Charge ($currency)',
             initialValue: memberCost?.toString() ?? '',

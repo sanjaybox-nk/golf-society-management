@@ -25,7 +25,7 @@ class EventDashboardTab extends ConsumerWidget {
                   bottomLeft: Radius.circular(AppShapes.rPill),
                   bottomRight: Radius.circular(AppShapes.rPill),
                 ),
-                boxShadow: AppShadows.softScale,
+                boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +292,7 @@ class _VitalSignCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: AppShapes.sheet, // Boxy Art style
-        boxShadow: AppShadows.inputSoft,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

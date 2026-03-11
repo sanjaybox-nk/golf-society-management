@@ -21,7 +21,7 @@ class FloatingBottomSearch extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
         borderRadius: AppShapes.lg,
-        boxShadow: AppShadows.softScale,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: Row(
         children: [

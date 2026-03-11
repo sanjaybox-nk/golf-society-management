@@ -66,8 +66,16 @@ class BoxyArtBottomSheet extends StatelessWidget {
           Flexible(
             child: SingleChildScrollView(
               controller: scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
-              child: child,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.x2l,
+                AppSpacing.xl,
+                110, // Extra padding to clear the 76px floating dock + safe area
+              ),
+              child: SafeArea(
+                top: false,
+                child: child,
+              ),
             ),
           ),
         ],
@@ -87,7 +95,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
       isScrollControlled: isScrollControlled,
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
+        initialChildSize: 0.68,
         minChildSize: 0.5,
         maxChildSize: 0.96,
         expand: false,

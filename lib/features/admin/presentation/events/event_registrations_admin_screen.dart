@@ -22,7 +22,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) {
         return HeadlessScaffold(
-          title: 'Manage Registrations',
+          title: 'Registrations',
           subtitle: event.title,
           useScaffold: false,
           showBack: true,

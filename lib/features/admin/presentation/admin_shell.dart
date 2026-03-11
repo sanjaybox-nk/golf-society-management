@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/design_system/constants/navigation_constants.dart';
 
 class AdminShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -23,57 +24,41 @@ class AdminShell extends StatelessWidget {
   }
 
   Widget _buildMobile(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       extendBody: true,
       body: navigationShell,
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
-        onItemSelected: (index) => navigationShell.goBranch(_mapUiIndexToBranch(index)),
-        borderColor: Theme.of(context).primaryColor,
-        items: const [
-          BoxyArtBottomNavItem(
-            icon: Icons.dashboard_outlined,
-            activeIcon: Icons.dashboard,
-            label: 'Dashboard',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.calendar_month_outlined,
-            activeIcon: Icons.calendar_month,
-            label: 'Events',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.people_outline,
-            activeIcon: Icons.people,
-            label: 'Members',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.notification_add_outlined,
-            activeIcon: Icons.notification_add,
-            label: 'Comms',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.analytics_outlined,
-            activeIcon: Icons.analytics,
-            label: 'Reporting',
-          ),
-        ],
+        onItemSelected: _onTap,
+        borderColor: theme.primaryColor,
+        items: NavigationConstants.adminNavItems,
       ),
     );
   }
 
+  void _onTap(int index) {
+    final branchIndex = _mapUiIndexToBranch(index);
+    navigationShell.goBranch(
+      branchIndex,
+      initialLocation: branchIndex == navigationShell.currentIndex,
+    );
+  }
+
   Widget _buildDesktop(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Row(
         children: [
           NavigationRail(
             selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
-            onDestinationSelected: (index) => navigationShell.goBranch(_mapUiIndexToBranch(index)),
+            onDestinationSelected: _onTap,
             labelType: NavigationRailLabelType.all,
             backgroundColor: Colors.black,
-            selectedIconTheme: IconThemeData(color: Theme.of(context).primaryColor),
-            unselectedIconTheme: IconThemeData(color: Theme.of(context).primaryColor.withValues(alpha: 0.4)),
-            selectedLabelTextStyle: TextStyle(color: Theme.of(context).primaryColor, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold),
-            unselectedLabelTextStyle: TextStyle(color: Theme.of(context).primaryColor.withValues(alpha: 0.4), fontSize: AppTypography.sizeLabel),
+            selectedIconTheme: IconThemeData(color: theme.primaryColor),
+            unselectedIconTheme: IconThemeData(color: theme.primaryColor.withValues(alpha: 0.4)),
+            selectedLabelTextStyle: TextStyle(color: theme.primaryColor, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold),
+            unselectedLabelTextStyle: TextStyle(color: theme.primaryColor.withValues(alpha: 0.4), fontSize: AppTypography.sizeLabel),
             destinations: _navItems().map((item) => NavigationRailDestination(
               icon: item.icon,
               selectedIcon: item.activeIcon,

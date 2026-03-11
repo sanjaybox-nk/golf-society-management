@@ -6,6 +6,9 @@ class ModernInfoRow extends StatelessWidget {
   final String value;
   final IconData? icon;
   final Color? iconColor;
+  final Color? labelColor;
+  final Color? valueColor;
+  final double? fontSize;
 
   const ModernInfoRow({
     super.key,
@@ -13,36 +16,22 @@ class ModernInfoRow extends StatelessWidget {
     required this.value,
     this.icon,
     this.iconColor,
+    this.labelColor,
+    this.valueColor,
+    this.fontSize,
   });
 
   @override
   Widget build(BuildContext context) {
     final textPrimary = Theme.of(context).textTheme.bodyLarge?.color;
     final textSecondary = Theme.of(context).textTheme.bodySmall?.color;
-    final primary = Theme.of(context).primaryColor;
 
     return Row(
       children: [
         if (icon != null) ...[
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                  : (iconColor ?? primary).withValues(alpha: AppColors.opacityLow),
-              borderRadius: AppShapes.md,
-              border: Border.all(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) 
-                    : (iconColor ?? primary).withValues(alpha: AppColors.opacityLow),
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: iconColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : primary),
-              size: AppShapes.iconMd,
-            ),
+          BoxyArtIconBadge(
+            icon: icon!,
+            color: iconColor ?? AppColors.actionGreen,
           ),
           const SizedBox(width: 14),
         ],
@@ -51,21 +40,21 @@ class ModernInfoRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label,
-                style: TextStyle(
-                  fontSize: AppTypography.sizeLabelStrong,
-                  color: textSecondary?.withValues(alpha: AppColors.opacityHigh),
-                  fontWeight: AppTypography.weightMedium,
-                  letterSpacing: 0.2,
+                label.toUpperCase(),
+                style: AppTypography.caption.copyWith(
+                  fontWeight: AppTypography.weightBold,
+                  color: labelColor ?? textSecondary?.withValues(alpha: AppColors.opacityHigh),
+                  letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 1),
+              const SizedBox(height: 2),
               Text(
                 value,
-                style: TextStyle(
-                  fontSize: AppTypography.sizeBody,
-                  fontWeight: AppTypography.weightBlack,
-                  color: textPrimary,
+                style: AppTypography.displayMedium.copyWith(
+                  fontSize: fontSize ?? 16.5,
+                  fontWeight: AppTypography.weightExtraBold,
+                  color: valueColor ?? textPrimary,
+                  letterSpacing: -0.2,
                 ),
               ),
             ],
@@ -158,7 +147,7 @@ class ModernCostRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: isTotal ? 16 : 15,
                 color: color ?? (isTotal ? textPrimary : textSecondary),
-                fontWeight: isTotal ? AppTypography.weightBold : AppTypography.weightMedium,
+                fontWeight: isTotal ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
               ),
             ),
           ),
@@ -166,9 +155,9 @@ class ModernCostRow extends StatelessWidget {
           Text(
             amount,
             style: TextStyle(
-              fontSize: isTotal ? 18 : 15,
-              fontWeight: isTotal ? AppTypography.weightBold : AppTypography.weightSemibold,
-              color: textPrimary,
+              fontSize: isTotal ? 18 : 16,
+              fontWeight: isTotal ? AppTypography.weightBlack : AppTypography.weightBold,
+              color: color ?? textPrimary,
             ),
           ),
         ],

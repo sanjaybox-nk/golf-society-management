@@ -63,11 +63,33 @@ class CompetitionBadgeRow extends StatelessWidget {
       );
     }
 
+    // 5. Build list with separators
+    final List<Widget> children = [];
+    for (int i = 0; i < pills.length; i++) {
+      children.add(pills[i]);
+      if (i < pills.length - 1) {
+        children.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '•',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: AppTypography.sizeLargeBody,
+                fontWeight: AppTypography.weightBold,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 0, // Using manual padding for dots
+      runSpacing: 4,
       alignment: WrapAlignment.start,
-      children: pills,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: children,
     );
   }
 }
@@ -108,6 +130,10 @@ class CompetitionRulesCard extends ConsumerWidget {
   final List<Widget>? extraBadges;
   final Competition? competition; // Optional direct competition object
 
+  final VoidCallback? onCustomize;
+  final VoidCallback? onRemove;
+  final String? customizeLabel;
+
   const CompetitionRulesCard({
     super.key,
     required this.eventId,
@@ -118,6 +144,9 @@ class CompetitionRulesCard extends ConsumerWidget {
     this.showChevron = false,
     this.extraBadges,
     this.competition,
+    this.onCustomize,
+    this.onRemove,
+    this.customizeLabel,
   });
 
   @override
@@ -185,156 +214,159 @@ class CompetitionRulesCard extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, Competition comp) {
-    final primary = AppColors.lime500; // Hardcoded fallback to ensure visibility
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = AppColors.lime500; 
     final accent = isSecondary ? AppColors.amber500 : primary;
     final isTemplate = comp.id == 'template';
     
     return Material(
-      color: Colors.transparent, // Ensures standard text styles from theme
+      color: Colors.transparent, 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md, left: AppSpacing.xs),
-              child: Row(
-                children: [
-                  Icon(Icons.emoji_events_rounded, color: AppColors.dark600, size: AppShapes.iconXs),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    title.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeCaptionStrong,
-                      fontWeight: AppTypography.weightBlack,
-                      color: AppColors.dark500,
-                      letterSpacing: 2.0,
+            BoxyArtSectionTitle(title: title),
+            
+          BoxyArtCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: onTap,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.x2l),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            BoxyArtIconBadge(
+                              icon: comp.rules.gameIcon,
+                              color: accent,
+                              size: 56,
+                              iconSize: AppShapes.iconXl,
+                              showFill: false,
+                            ),
+                            const SizedBox(width: 18),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      (comp.name ?? 'COMPETITION').toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: AppTypography.sizeLargeBody,
+                                        fontWeight: AppTypography.weightExtraBold,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                        letterSpacing: 0.5,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      (isSecondary ? 'Secondary Overlay' : comp.rules.gameName).toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: AppTypography.sizeBodySmall,
+                                        color: Theme.of(context).textTheme.bodySmall?.color,
+                                        fontWeight: AppTypography.weightBold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (showChevron)
+                              Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityMedium), size: AppShapes.iconSm),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: AppSpacing.x2l),
+                        Divider(color: Theme.of(context).dividerColor, height: 1),
+                        const SizedBox(height: AppSpacing.x2l),
+                        
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            isTemplate ? 'Fetching competition specific rules...' : CompetitionRuleTranslator.translate(comp.rules),
+                            style: TextStyle(
+                              fontSize: AppTypography.sizeButton,
+                              height: 1.6,
+                              color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.85),
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 28),
+                        
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: CompetitionBadgeRow(
+                            rules: comp.rules,
+                            eventId: eventId,
+                            baseColor: accent,
+                          ),
+                        ),
+                        
+                        if (extraBadges != null && extraBadges!.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Wrap(
+                              spacing: 10, runSpacing: 10,
+                              alignment: WrapAlignment.start,
+                              children: extraBadges!,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                
+                if (onCustomize != null || onRemove != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(left: AppSpacing.x2l, right: AppSpacing.x2l, bottom: AppSpacing.x2l),
+                    child: Column(
+                      children: [
+                        const Divider(),
+                        const SizedBox(height: AppSpacing.x2l),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: AppSpacing.md,
+                          runSpacing: AppSpacing.md,
+                          children: [
+                            if (onCustomize != null)
+                              BoxyArtButton(
+                                title: (customizeLabel ?? 'CUSTOMIZE').toUpperCase(),
+                                icon: Icons.tune_rounded,
+                                onTap: onCustomize!,
+                              ),
+                            if (onRemove != null)
+                              BoxyArtButton(
+                                title: "REMOVE",
+                                isGhost: true,
+                                icon: Icons.delete_outline,
+                                textColor: isDark ? AppColors.coral400 : AppColors.coral500,
+                                onTap: onRemove!,
+                              ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
-            ),
-            
-          // THE HARDENED CARD
-          Container(
-            width: double.infinity, // FORCE WIDE
-            decoration: BoxDecoration(
-              color: const Color(0xFF151515), // DEEP OPAQUE BLACK
-              borderRadius: AppShapes.x2l,
-              border: Border.all(
-                color: AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle), 
-                width: AppShapes.borderThin,
-              ),
-              boxShadow: AppShadows.softScale,
-            ),
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: AppShapes.x2l,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.x2l),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // TOP ROW: ICON | TITLES
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // LEFT COL: ICON
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: AppColors.opacityMedium),
-                            borderRadius: AppShapes.lg,
-                            border: Border.all(color: accent.withValues(alpha: 0.4), width: AppShapes.borderLight),
-                          ),
-                          child: Icon(comp.rules.gameIcon, color: accent, size: AppShapes.iconXl),
-                        ),
-                        const SizedBox(width: 18),
-                        // RIGHT COL: TEXTS
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  (comp.name ?? 'COMPETITION').toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: AppTypography.sizeLargeBody,
-                                    fontWeight: AppTypography.weightBlack,
-                                    color: AppColors.pureWhite,
-                                    letterSpacing: 0.5,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  isSecondary ? 'SECONDARY OVERLAY' : comp.rules.gameName,
-                                  style: TextStyle(
-                                    fontSize: AppTypography.sizeBodySmall,
-                                    color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
-                                    fontWeight: AppTypography.weightBold,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (showChevron)
-                          Icon(Icons.arrow_forward_ios_rounded, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium), size: AppShapes.iconSm),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: AppSpacing.x2l),
-                    Divider(color: AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle), height: 1),
-                    const SizedBox(height: AppSpacing.x2l),
-                    
-                    // RULES TEXT
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        isTemplate ? 'Fetching competition specific rules...' : CompetitionRuleTranslator.translate(comp.rules),
-                        style: TextStyle(
-                          fontSize: AppTypography.sizeButton,
-                          height: 1.6,
-                          color: AppColors.pureWhite.withValues(alpha: 0.85),
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 28),
-                    
-                    // BADGES
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: CompetitionBadgeRow(
-                        rules: comp.rules,
-                        eventId: eventId,
-                        baseColor: accent,
-                      ),
-                    ),
-                    
-                    if (extraBadges != null && extraBadges!.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          alignment: WrapAlignment.start,
-                          children: extraBadges!,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
         ],

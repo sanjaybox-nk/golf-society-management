@@ -110,6 +110,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(false) bool hasLunch,
     @Default(true) bool hasDinner,
     String? dinnerLocation,
+    String? dinnerAddress,
     double? societyGreenFee,
     double? societyBreakfastCost,
     double? societyLunchCost,

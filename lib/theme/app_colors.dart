@@ -46,7 +46,7 @@ class AppColors {
   static const Color borderSubtle = dark500;
 
   // Semantic Action Colors
-  static const Color actionGreen = lime500;
+  static const Color actionGreen = Color(0xFF86AD92);
   static const Color actionText = Color(0xFF0A1A0F); // Dark green-tinted black for lime buttons
 
   // Team Participation Colors (v3.1)
@@ -108,6 +108,23 @@ class AppColors {
       surfaceContainer: Color(0xFFEFEFED), // Page Background
       onSurfaceVariant: Color(0xFF3A3A3A), // Secondary text
     );
+  }
+
+  /// Returns the brand color associated with a Tee name
+  static Color getTeeColor(String? teeName) {
+    if (teeName == null) return textSecondary;
+    final name = teeName.toLowerCase();
+    if (name.contains('white')) return dark400;
+    if (name.contains('yellow')) return const Color(0xFFFFD700);
+    if (name.contains('red')) return const Color(0xFFFF4D4D);
+    if (name.contains('blue')) return const Color(0xFF1E90FF);
+    if (name.contains('black')) return const Color(0xFF2F2F2F);
+    if (name.contains('green')) return const Color(0xFF2ECC71);
+    if (name.contains('gold')) return const Color(0xFFFFD700);
+    if (name.contains('silver')) return const Color(0xFFC0C0C0);
+    if (name.contains('orange')) return amber500;
+    if (name.contains('purple')) return const Color(0xFF8E44AD); // Standard purple
+    return textSecondary;
   }
 }
 

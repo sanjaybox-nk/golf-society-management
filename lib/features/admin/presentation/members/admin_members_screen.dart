@@ -70,7 +70,18 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
             padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Search & Filter Card
+                ModernUnderlinedFilterBar<AdminMemberFilter>(
+                  selectedValue: currentFilter,
+                  onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
+                  tabs: [
+                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Search Card
                 BoxyArtCard(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                   child: Row(
@@ -95,17 +106,6 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                ModernUnderlinedFilterBar<AdminMemberFilter>(
-                  selectedValue: currentFilter,
-                  onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
-                  tabs: [
-                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
-                  ],
                 ),
                 const SizedBox(height: AppSpacing.x2l),
 

@@ -40,8 +40,8 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: AppSpacing.x2l),
           decoration: BoxDecoration(
-            color: const Color(0xFF27AE60),
-            borderRadius: AppShapes.xl,
+            color: Theme.of(context).colorScheme.secondary,
+            borderRadius: AppShapes.lg,
           ),
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,

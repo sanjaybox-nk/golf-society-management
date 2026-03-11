@@ -50,13 +50,13 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.r2xl)),
-              boxShadow: AppShadows.softScale,
+              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Manage members currently serving as ${widget.role}.',
+                  'Members currently serving as ${widget.role}.',
                   style: TextStyle(
                     fontSize: AppTypography.sizeBodySmall,
                     color: AppColors.dark600,
@@ -151,7 +151,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: AppShapes.lg,
-        boxShadow: AppShadows.softScale,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),

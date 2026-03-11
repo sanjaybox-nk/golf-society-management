@@ -22,14 +22,11 @@ class EventHeadlineCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (hasImage)
-              ClipRRect(
-                borderRadius: AppShapes.xl,
-                child: Image.network(
-                  event.imageUrl!,
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
+              Image.network(
+                event.imageUrl!,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
               ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -43,7 +40,10 @@ class EventHeadlineCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           DateFormat('EEEE, d MMM yyyy').format(event.date),
-                          style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
+                          style: AppTypography.bodySmall.copyWith(
+                            fontSize: AppTypography.sizeButton,
+                            fontWeight: AppTypography.weightBold,
+                          ),
                         ),
                       ),
                     ],
@@ -56,7 +56,10 @@ class EventHeadlineCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           event.courseName ?? 'Location TBA',
-                          style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold),
+                          style: AppTypography.bodySmall.copyWith(
+                            fontSize: AppTypography.sizeButton,
+                            fontWeight: AppTypography.weightBold,
+                          ),
                         ),
                       ),
                     ],
@@ -80,27 +83,27 @@ class EventHeadlineCard extends StatelessWidget {
     
     switch (status) {
       case EventStatus.draft:
-        statusText = 'DRAFT';
+        statusText = 'Draft';
         statusColor = AppColors.amber500;
         break;
       case EventStatus.published:
-        statusText = 'PUBLISHED';
-        statusColor = const Color(0xFF27AE60);
+        statusText = 'Published';
+        statusColor = Theme.of(context).colorScheme.secondary;
         break;
       case EventStatus.inPlay:
-        statusText = 'LIVE';
+        statusText = 'Live';
         statusColor = AppColors.teamA;
         break;
       case EventStatus.suspended:
-        statusText = 'SUSPENDED';
+        statusText = 'Suspended';
         statusColor = Colors.deepOrange;
         break;
       case EventStatus.completed:
-        statusText = 'COMPLETED';
+        statusText = 'Completed';
         statusColor = AppColors.textSecondary;
         break;
       case EventStatus.cancelled:
-        statusText = 'CANCELLED';
+        statusText = 'Cancelled';
         statusColor = AppColors.coral500;
         break;
     }
@@ -191,9 +194,9 @@ class EventRegistrationCard extends ConsumerWidget {
                     width: AppSpacing.md,
                     height: AppSpacing.md,
                     decoration: BoxDecoration(
-                      color: myRegistration.hasPaid ? const Color(0xFF27AE60) : const Color(0xFFF39C12),
+                      color: myRegistration.hasPaid ? AppColors.lime500 : const Color(0xFFF39C12),
                       shape: BoxShape.circle,
-                      boxShadow: AppShadows.softScale,
+                      boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -262,6 +265,29 @@ class EventRegistrationCard extends ConsumerWidget {
               if (myRegistration.guestName != null || 
                   (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty)) ...[
                 const SizedBox(height: AppSpacing.lg),
+                if (myRegistration.hasPaid)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondary.withValues(alpha: AppColors.opacityLow),
+                      borderRadius: AppShapes.sm,
+                      border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: AppColors.opacityMedium)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_rounded, size: 12, color: Theme.of(context).colorScheme.secondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Paid',
+                          style: AppTypography.caption.copyWith(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontWeight: AppTypography.weightBold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
@@ -388,9 +414,15 @@ class EventGalleryCard extends StatelessWidget {
                         borderRadius: AppShapes.md,
                         child: Image.network(
                           event.galleryUrls[index],
-                          width: AppShapes.borderThin,
+                          width: 160,
                           height: 120,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: 160,
+                            height: 120,
+                            color: AppColors.dark200,
+                            child: const Icon(Icons.image_not_supported_rounded, color: AppColors.dark400),
+                          ),
                         ),
                       );
                     },
@@ -469,8 +501,8 @@ class EventPodiumCard extends StatelessWidget {
                 ...topResults.asMap().entries.map((entry) {
                    final rank = entry.key + 1;
                    final res = entry.value;
-                   final memberName = res['memberName'] ?? 'Player';
-                   final score = res['totalPoints'] ?? res['score'] ?? '-';
+                   final memberName = res['memberName'] ?? res['playerName'] ?? 'Player';
+                   final score = res['totalPoints'] ?? res['score'] ?? res['points'] ?? '-';
                    
                    return ListTile(
                      contentPadding: EdgeInsets.zero,

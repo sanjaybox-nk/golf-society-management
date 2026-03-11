@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
@@ -55,12 +54,9 @@ class EventsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return StaggeredEntrance(
-                      index: index,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: _EventCard(event: events[index]),
-                      ),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: _EventRow(event: events[index]),
                     );
                   },
                   childCount: events.length,
@@ -96,12 +92,9 @@ class EventsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return StaggeredEntrance(
-                      index: index + 5, // Offset stagger for past events
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: _EventCard(event: events[index]),
-                      ),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: _EventRow(event: events[index]),
                     );
                   },
                   childCount: events.length,
@@ -117,154 +110,22 @@ class EventsScreen extends ConsumerWidget {
   }
 }
 
-class _EventCard extends ConsumerWidget {
+class _EventRow extends ConsumerWidget {
   final GolfEvent event;
 
-  const _EventCard({required this.event});
+  const _EventRow({required this.event});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final primary = theme.primaryColor;
-    final textSecondary = theme.textTheme.bodySmall?.color;
-
-    return BoxyArtCard(
+    return BoxyArtEventCard(
+      event: event,
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          // Date Badge
-          BoxyArtDateBadge(
-            date: event.date, 
-            endDate: event.endDate,
-            highlightColor: event.isInvitational 
-                ? AppColors.amber500 
-                : (event.eventType == EventType.social ? AppColors.coral500 : null),
-          ),
-          const SizedBox(width: 14),
-
-          // Event Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Status Row
-                Text(
-                  event.title,
-                  style: const TextStyle(
-                    fontWeight: AppTypography.weightExtraBold,
-                    fontSize: AppTypography.sizeUI,
-                  ),
-                ),
-                if (event.isInvitational || event.isMultiDay) ...[
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      if (event.isInvitational)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star_rounded, size: 10, color: AppColors.amber500),
-                            const SizedBox(width: 4),
-                          Text(
-                            'Invitational event',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.amber500,
-                              fontWeight: AppTypography.weightBlack,
-                              fontSize: 10,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          ],
-                        ),
-                      if (event.isMultiDay)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.event_repeat_rounded, size: 10, color: textSecondary?.withValues(alpha: 0.6)),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Multi-day',
-                              style: AppTypography.caption.copyWith(
-                                color: textSecondary?.withValues(alpha: 0.6),
-                                fontWeight: AppTypography.weightBlack,
-                                fontSize: 10,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 8),
-                
-                // Location Row
-                Row(
-                  children: [
-                    BoxyArtIconBadge(icon: Icons.location_on_rounded, color: primary),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        event.courseName ?? 'TBA',
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: AppTypography.sizeLabelStrong,
-                          fontWeight: AppTypography.weightSemibold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                
-                // Time Row
-                Row(
-                  children: [
-                    BoxyArtIconBadge(icon: Icons.access_time_filled_rounded, color: AppColors.dark600),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'Registration: ${DateFormat('h:mm a').format(event.regTime ?? event.date)}',
-                      style: TextStyle(
-                        color: textSecondary?.withValues(alpha: 0.75),
-                        fontSize: AppTypography.sizeLabel,
-                        fontWeight: AppTypography.weightBold,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                // Bottom Pill Row
-                const SizedBox(height: AppSpacing.md),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    if (event.eventType == EventType.social)
-                      BoxyArtPill(
-                        label: 'Social',
-                        color: AppColors.coral500,
-                      ),
-                    _buildGameTypePill(context, ref, event.id),
-                    _buildStatusBadge(context),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-        ],
-      ),
+      gameTypePill: _buildGameTypePill(context, ref, event.id),
+      statusPill: _buildStatusBadge(context, event),
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context) {
+  Widget _buildStatusBadge(BuildContext context, GolfEvent event) {
     final status = event.displayStatus;
     
     String statusText;
@@ -288,7 +149,7 @@ class _EventCard extends ConsumerWidget {
     } else {
       // Published = Open for members
       statusText = 'Published';
-      statusColor = const Color(0xFF27AE60);
+      statusColor = AppColors.lime500;
     }
 
     return BoxyArtPill.status(

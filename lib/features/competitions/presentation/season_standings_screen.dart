@@ -101,7 +101,7 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
                               shape: BoxShape.circle,
-                              boxShadow: AppShadows.softScale,
+                              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                             ),
                             child: IconButton(
                               icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withValues(alpha: 0.87)),
@@ -375,7 +375,7 @@ class _PodiumSpot extends StatelessWidget {
                     color: isMe ? primary : rankColor, 
                     width: isWinner ? 3 : 2,
                   ),
-                  boxShadow: AppShadows.softScale,
+                  boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                 ),
                 child: Center(
                   child: Text(

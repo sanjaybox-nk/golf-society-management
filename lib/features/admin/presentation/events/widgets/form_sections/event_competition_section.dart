@@ -32,7 +32,7 @@ class EventCompetitionSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const BoxyArtSectionTitle(title: 'COMPETITION RULES'),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppTheme.sectionSpacing),
             if (!hasGame || displayComp == null)
               BoxyArtCard(
                 child: Column(
@@ -57,7 +57,7 @@ class EventCompetitionSection extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  CompetitionRulesCard(
+                   CompetitionRulesCard(
                     competition: displayComp,
                     eventId: state.eventId ?? "",
                     title: "",
@@ -66,6 +66,9 @@ class EventCompetitionSection extends ConsumerWidget {
                         context.push("/admin/events/competitions/edit/${Uri.encodeComponent(state.eventId!)}");
                       }
                     },
+                    onCustomize: () => _handleCustomize(context, ref, state),
+                    onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
+                    customizeLabel: state.isCustomized ? "CUSTOMIZED" : "CUSTOMIZE",
                   ),
                   if (state.isMultiDay && displayComp.rules.roundsCount > 1) ...[
                     const SizedBox(height: AppSpacing.lg),
@@ -93,34 +96,11 @@ class EventCompetitionSection extends ConsumerWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () => _handleCustomize(context, ref, state),
-                        icon: Icon(state.isCustomized ? Icons.edit_note : Icons.tune, size: AppShapes.iconSm),
-                        label: Text(state.isCustomized ? "CUSTOMIZED" : "CUSTOMIZE RULES"),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                          side: BorderSide(color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium)),
-                          shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      TextButton.icon(
-                        onPressed: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
-                        icon: const Icon(Icons.delete_outline, size: AppShapes.iconSm, color: AppColors.textSecondary),
-                        label: const Text("REMOVE", style: TextStyle(color: AppColors.textSecondary)),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             
             // Secondary Game (Match Play)
             _buildSecondaryGame(context, ref, state, templates),
-            const SizedBox(height: AppSpacing.x2l),
           ],
         );
       },
@@ -139,9 +119,9 @@ class EventCompetitionSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSpacing.x2l),
+        const SizedBox(height: AppSpacing.x3l),
         const BoxyArtSectionTitle(title: 'SECONDARY GAME (OVERLAY)'),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppTheme.sectionSpacing),
         BoxyArtCard(
           child: state.secondaryTemplateId == null
             ? Center(
@@ -157,39 +137,14 @@ class EventCompetitionSection extends ConsumerWidget {
               )
             : Column(
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
-                        child: const Icon(Icons.compare_arrows, color: AppColors.amber500),
-                      ),
-                      const SizedBox(width: AppSpacing.lg),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('MATCH PLAY OVERLAY', style: TextStyle(color: AppColors.amber500, fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBold)),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              (state.isSecondaryCustomized && state.secondaryCompetition?.name != null)
-                                  ? state.secondaryCompetition!.name!.toUpperCase()
-                                  : templates.where((t) => t.id == state.secondaryTemplateId).firstOrNull?.name?.toUpperCase() ?? 'MATCH PLAY',
-                              style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeBody),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => ref.read(eventFormNotifierProvider.notifier).updateSecondaryTemplateId(null),
-                        icon: const Icon(Icons.remove_circle_outline, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: AppSpacing.x3l),
-                  BoxyArtButton(
-                    title: state.isSecondaryCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE RULES',
-                    onTap: () => _handleSecondaryCustomize(context, ref, state),
-                    isGhost: true,
+                  CompetitionRulesCard(
+                    eventId: state.eventId ?? "",
+                    title: "",
+                    isSecondary: true,
+                    competition: state.secondaryCompetition ?? templates.where((t) => t.id == state.secondaryTemplateId).firstOrNull,
+                    onCustomize: () => _handleSecondaryCustomize(context, ref, state),
+                    onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateSecondaryTemplateId(null),
+                    customizeLabel: state.isSecondaryCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE',
                   ),
                 ],
               ),

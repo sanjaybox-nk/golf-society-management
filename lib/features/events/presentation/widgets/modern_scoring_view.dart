@@ -3,12 +3,13 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import '../../../matchplay/domain/match_definition.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 class ModernScoringView extends StatelessWidget {
   final GolfEvent event;
   final Map<int, int> scores;
   final int currentHole;
-  final List<dynamic> holes;
+  final List<CourseHole> holes;
   final int playerPhc;
   final String markingName; // [NEW] Clear identification
   final MatchResult? matchResult;
@@ -50,8 +51,8 @@ class ModernScoringView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final holeData = holes.length >= currentHole ? holes[currentHole - 1] : null;
-    final par = (holeData?['par'] as num?)?.toInt() ?? 4;
-    final si = (holeData?['si'] as num?)?.toInt();
+    final par = holeData?.par ?? 4;
+    final si = holeData?.si;
     final score = scores[currentHole] ?? par;
     final cap = ScoringCalculator.getMaxScoreCap(
       par: par,
@@ -98,7 +99,7 @@ class ModernScoringView extends StatelessWidget {
         
         // Hero Card
         SizedBox(
-          height: 240,
+          height: 250,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: _buildHeroCard(context, par, si, score, cap),
@@ -172,7 +173,7 @@ class ModernScoringView extends StatelessWidget {
                     color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
                     width: AppShapes.borderMedium,
                   ),
-                  boxShadow: AppShadows.softScale,
+                  boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                 ),
                 child: Text(
                   cap != null && score >= cap ? 'MAX' : '$score',
@@ -221,7 +222,7 @@ class ModernScoringView extends StatelessWidget {
           color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
           width: AppShapes.borderThin,
         ),
-        boxShadow: AppShadows.softScale,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -416,11 +417,15 @@ class ModernScoringView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: AppSpacing.sm,
-            height: AppSpacing.sm,
+            width: 12,
+            height: 12,
             decoration: BoxDecoration(
               color: teeColor,
               shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.black.withValues(alpha: 0.1),
+                width: 1,
+              ),
             ),
           ),
           const SizedBox(width: 5),

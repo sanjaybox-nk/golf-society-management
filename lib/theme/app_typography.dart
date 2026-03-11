@@ -85,7 +85,7 @@ class AppTypography {
   static const TextStyle displaySubPage = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplaySubPage,
-    fontWeight: weightExtraBold,
+    fontWeight: weightBold,
     letterSpacing: -0.6,
     height: 1.1,
   );

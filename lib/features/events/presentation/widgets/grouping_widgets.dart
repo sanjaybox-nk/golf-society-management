@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -63,11 +64,15 @@ class GroupingPlayerAvatar extends StatelessWidget {
     return Tooltip(
       message: varietyTooltip,
       child: Container(
+        width: size + 8,
+        height: size + 8,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: borderColor != Colors.transparent
-              ? Border.all(color: borderColor, width: AppShapes.borderSemi)
-              : null,
+          border: Border.all(
+            color: borderColor,
+            width: AppShapes.borderSemi,
+          ),
         ),
         child: CircleAvatar(
           radius: size / 2,
@@ -95,7 +100,7 @@ class GroupingPlayerAvatar extends StatelessWidget {
   }
 }
 
-class GroupingPlayerTile extends StatelessWidget {
+class GroupingPlayerTile extends ConsumerWidget {
   final TeeGroupParticipant player;
   final TeeGroup group;
   final Member? member;
@@ -139,304 +144,300 @@ class GroupingPlayerTile extends StatelessWidget {
   final int? phcOverride;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primaryColor = theme.primaryColor;
+    final primaryColor = theme.colorScheme.primary;
 
     // Single Source of Truth: PHC comes from stored grouping data.
-    // The admin "Recalculate PHCs" button is the ONLY place PHCs are calculated.
     int displayPhc = phcOverride ?? player.playingHandicap.round();
 
-    return InkWell(
+    BoxBorder? cardBorder;
+    if (isSelected) {
+      cardBorder = Border.all(color: primaryColor, width: AppShapes.borderMedium);
+    } else if (matchSide != null) {
+      cardBorder = Border.all(
+        color: matchSide == 'A' ? AppColors.teamA : AppColors.teamB,
+        width: AppShapes.borderMedium,
+      );
+    } else {
+      cardBorder = Border.all(
+        color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+        width: AppShapes.borderThin,
+      );
+    }
+
+    return BoxyArtCard(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withValues(alpha: AppColors.opacityLow) : null,
-          borderRadius: AppShapes.lg,
-          border: isSelected
-              ? Border.all(color: primaryColor, width: AppShapes.borderMedium)
-              : (matchSide != null
-                    ? Border.all(
-                        color: matchSide == 'A'
-                            ? AppColors.amber500.withValues(alpha: AppColors.opacityHalf)
-                            : AppColors.lime500.withValues(alpha: AppColors.opacityHalf),
-                        width: AppShapes.borderLight,
-                      )
-                    : Border.all(
-                        color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                        width: AppShapes.borderThin,
-                      )),
-        ),
-        child: Row(
-          children: [
-            if (!isScoreMode)
-              (!isAdmin
-                  ? GroupingPlayerAvatar(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+      showShadow: false,
+      backgroundColor: isSelected 
+          ? primaryColor.withValues(alpha: AppColors.opacityLow) 
+          : (isDark ? AppColors.dark700 : AppColors.pureWhite),
+      border: cardBorder,
+      child: Row(
+        children: [
+          if (!isScoreMode)
+            (!isAdmin
+                ? GroupingPlayerAvatar(
+                    player: player,
+                    member: member,
+                    groupIndex: group.index,
+                    totalGroups: totalGroups,
+                    history: history,
+                    size: 36,
+                  )
+                : PopupMenuButton<String>(
+                    onSelected: (val) => onAction?.call(val, player, group),
+                    color: isDark ? AppColors.dark700 : AppColors.pureWhite,
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 8,
+                    offset: const Offset(0, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppShapes.lg,
+                    ),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'move',
+                        child: Row(
+                          children: [
+                            Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
+                            SizedBox(width: AppSpacing.md),
+                            Text('Move to Group...'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'remove',
+                        child: Row(
+                          children: [
+                            Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
+                            SizedBox(width: AppSpacing.md),
+                            Text('Remove from Group'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'withdraw',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.exit_to_app,
+                              size: AppShapes.iconSm,
+                              color: AppColors.coral500,
+                            ),
+                            SizedBox(width: AppSpacing.md),
+                            Text(
+                              'Withdraw Member',
+                              style: TextStyle(color: AppColors.coral500),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: GroupingPlayerAvatar(
                       player: player,
                       member: member,
                       groupIndex: group.index,
                       totalGroups: totalGroups,
                       history: history,
                       size: 36,
-                    )
-                  : PopupMenuButton<String>(
-                      onSelected: (val) => onAction?.call(val, player, group),
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.dark700
-                          : AppColors.pureWhite,
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 8,
-                      offset: const Offset(0, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: AppShapes.lg,
+                    ),
+                  )),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        player.name,
+                        style: AppTypography.displayLargeBody.copyWith(
+                          fontSize: AppTypography.sizeBody,
+                          letterSpacing: -0.4,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'move',
-                          child: Row(
-                            children: [
-                              Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
-                              SizedBox(width: AppSpacing.md),
-                              Text('Move to Group...'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'remove',
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
-                              SizedBox(width: AppSpacing.md),
-                              Text('Remove from Group'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'withdraw',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.exit_to_app,
-                                size: AppShapes.iconSm,
-                                color: AppColors.coral500,
-                              ),
-                              SizedBox(width: AppSpacing.md),
-                              Text(
-                                'Withdraw Member',
-                                style: TextStyle(color: AppColors.coral500),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      child: GroupingPlayerAvatar(
-                        player: player,
-                        member: member,
-                        groupIndex: group.index,
-                        totalGroups: totalGroups,
-                        history: history,
-                        size: 36,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'HC: ${player.handicapIndex.toStringAsFixed(1)}',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.dark150 : AppColors.dark400,
+                        fontWeight: AppTypography.weightBlack,
                       ),
-                    )),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          player.name,
-                          style: AppTypography.displayLargeBody.copyWith(
-                            fontSize: AppTypography.sizeBody,
-                            letterSpacing: -0.4,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 3,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.dark500 : AppColors.dark200.withValues(alpha: AppColors.opacityMuted),
+                        shape: BoxShape.circle,
                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        'HC: ${player.handicapIndex.toStringAsFixed(1)}',
-                        style: AppTypography.caption.copyWith(
-                          color: isDark ? AppColors.dark150 : AppColors.dark400,
-                          fontWeight: AppTypography.weightBlack,
-                        ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'PHC: $displayPhc',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.dark150 : AppColors.dark400,
+                        fontWeight: AppTypography.weightBlack,
                       ),
+                    ),
+                    if (matchSide != null) ...[
                       const SizedBox(width: 6),
                       Container(
                         width: 3,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.dark500 : AppColors.dark200.withValues(alpha: AppColors.opacityMuted),
+                          color: theme.dividerColor.withValues(alpha: AppColors.opacityLow),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'PHC: $displayPhc',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.lime500,
-                          fontWeight: AppTypography.weightBlack,
+                        'SIDE $matchSide',
+                        style: AppTypography.micro.copyWith(
+                          color: matchSide == 'A'
+                              ? AppColors.amber500
+                              : AppColors.lime500,
                         ),
                       ),
-                      if (matchSide != null) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 3,
-                          height: 3,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'SIDE $matchSide',
-                          style: AppTypography.micro.copyWith(
-                            color: matchSide == 'A'
-                                ? AppColors.amber500
-                                : AppColors.lime500,
-                          ),
-                        ),
-                      ],
                     ],
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
-            
-            // 3. Trailing Section (Badges + Score)
+          ),
+          
+          // 3. Trailing Section (Badges + Score)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Guest Indicator
                 if (player.isGuest)
-                  Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.sm),
-                    child: BoxyArtSquareBadge(
-                      child: Text(
-                        'G',
-                        style: AppTypography.micro.copyWith(
-                          color: AppColors.amber500,
-                        ),
+                  BoxyArtSquareBadge(
+                    isTinted: true,
+                    child: Text(
+                      'G',
+                      style: AppTypography.micro.copyWith(
+                        color: AppColors.dark900,
+                        fontWeight: AppTypography.weightBlack,
+                        fontSize: 14,
                       ),
                     ),
                   ),
 
                 // Winner Trophy
-                if (isScoreMode && isWinner)
-                  const Padding(
-                    padding: EdgeInsets.only(right: AppSpacing.sm),
-                    child: BoxyArtSquareBadge(
-                      child: Icon(
-                        Icons.emoji_events_rounded,
-                        size: AppShapes.iconXs,
-                        color: AppColors.amber500,
-                      ),
+                if (isScoreMode && isWinner) ...[
+                  if (player.isGuest) const SizedBox(width: AppSpacing.xs),
+                  const BoxyArtSquareBadge(
+                    isTinted: true,
+                    child: Icon(
+                      Icons.emoji_events_rounded,
+                      size: 16,
+                      color: AppColors.dark900,
                     ),
                   ),
+                ],
 
                 if (!isScoreMode) ...[
                   // Member's Guest Marker
-                  if (hasGuest)
-                    const Padding(
-                      padding: EdgeInsets.only(right: AppSpacing.xs),
-                      child: BoxyArtSquareBadge(
-                        child: Icon(
-                          Icons.person_add,
-                          color: AppColors.lime500,
-                          size: AppShapes.iconXs,
-                        ),
+                  if (hasGuest) ...[
+                    if (player.isGuest) const SizedBox(width: AppSpacing.xs),
+                    const BoxyArtSquareBadge(
+                      isTinted: true,
+                      child: Icon(
+                        Icons.person_add,
+                        color: AppColors.dark900,
+                        size: 16,
                       ),
                     ),
+                  ],
 
                   // Buggy Marker/Toggle
-                  if (player.needsBuggy || isAdmin)
-                    Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.xs),
-                      child: BoxyArtSquareBadge(
-                        child: InkWell(
-                          onTap: isAdmin
-                              ? () => onAction?.call('buggy', player, group)
-                              : null,
-                          borderRadius: AppShapes.sm,
-                          child: _buildBuggyIcon(
-                            player.needsBuggy
-                                ? player.buggyStatus
-                                : RegistrationStatus.none,
-                            size: AppShapes.iconXs,
-                          ),
+                  if (player.needsBuggy || isAdmin) ...[
+                    if (player.isGuest || hasGuest) const SizedBox(width: AppSpacing.xs),
+                    BoxyArtSquareBadge(
+                      child: InkWell(
+                        onTap: isAdmin
+                            ? () => onAction?.call('buggy', player, group)
+                            : null,
+                        borderRadius: AppShapes.sm,
+                        child: _buildBuggyIcon(
+                          player.needsBuggy
+                              ? player.buggyStatus
+                              : RegistrationStatus.none,
+                          size: 16,
+                          color: AppColors.dark900,
                         ),
                       ),
                     ),
+                  ],
 
                   // Captain Marker/Toggle
-                  if (player.isCaptain || isAdmin)
-                    Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.xs),
-                      child: BoxyArtSquareBadge(
-                        child: InkWell(
-                          onTap: isAdmin
-                              ? () => onAction?.call('captain', player, group)
-                              : null,
-                          borderRadius: AppShapes.sm,
-                          child: Icon(
-                            player.isCaptain ? Icons.shield : Icons.shield_outlined,
-                            color: player.isCaptain
-                                ? AppColors.amber500
-                                : (isDark ? AppColors.dark400 : AppColors.dark100),
-                            size: AppShapes.iconXs,
-                          ),
+                  if (player.isCaptain || isAdmin) ...[
+                    if (player.isGuest || hasGuest || player.needsBuggy || isAdmin) 
+                      const SizedBox(width: AppSpacing.xs),
+                    BoxyArtSquareBadge(
+                      child: InkWell(
+                        onTap: isAdmin
+                            ? () => onAction?.call('captain', player, group)
+                            : null,
+                        borderRadius: AppShapes.sm,
+                        child: Icon(
+                          player.isCaptain ? Icons.shield : Icons.shield_outlined,
+                          color: player.isCaptain
+                              ? AppColors.dark900
+                              : (isDark ? AppColors.dark400 : AppColors.dark100),
+                          size: 16,
                         ),
                       ),
                     ),
+                  ],
                 ],
 
-                // Score Display (Aligned to far right)
-                if (isScoreMode)
-                  Container(
-                    width: 44, // Fixed width for alignment
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      (scoreDisplay == null || scoreDisplay!.isEmpty) ? '-' : scoreDisplay!,
-                      style: AppTypography.displaySection.copyWith(
-                        color: AppColors.pureWhite,
-                        height: 1.0,
-                        letterSpacing: -0.5,
-                      ),
+              // Score Display (Aligned to far right)
+              if (isScoreMode)
+                Container(
+                  width: 44, // Fixed width for alignment
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    (scoreDisplay == null || scoreDisplay!.isEmpty) ? '-' : scoreDisplay!,
+                    style: AppTypography.displaySection.copyWith(
+                      color: AppColors.pureWhite,
+                      height: 1.0,
+                      letterSpacing: -0.5,
                     ),
                   ),
-              ],
-            ),
-          ],
-        ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
 
-  Widget _buildBuggyIcon(RegistrationStatus status, {double size = 16}) {
-    Color color;
-    switch (status) {
-      case RegistrationStatus.confirmed:
-        color = AppColors.lime500;
-        break;
-      case RegistrationStatus.reserved:
-        color = AppColors.amber500;
-        break;
-      case RegistrationStatus.waitlist:
-        color = AppColors.coral500;
-        break;
-      default:
-        color = AppColors.dark300;
+  Widget _buildBuggyIcon(RegistrationStatus status, {double size = 16, Color? color}) {
+    Color iconColor = color ?? AppColors.dark300;
+    if (color == null) {
+      switch (status) {
+        case RegistrationStatus.confirmed:
+        case RegistrationStatus.reserved:
+        case RegistrationStatus.waitlist:
+          iconColor = AppColors.actionGreen;
+          break;
+        default:
+          iconColor = AppColors.dark300;
+      }
     }
-    return Icon(Icons.electric_rickshaw, color: color, size: size);
+    return Icon(Icons.electric_rickshaw, color: iconColor, size: size);
   }
 }
 
@@ -767,7 +768,7 @@ class GroupingCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                     borderRadius: AppShapes.xl,
-                    boxShadow: AppShadows.softScale,
+                    boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -884,7 +885,8 @@ class GroupingCard extends StatelessWidget {
                 matchSide: matchSide,
               );
 
-              final widget = isAdmin && !isLocked
+              final isLast = index == group.players.length - 1;
+              final playerWidget = isAdmin && !isLocked
                   ? _wrapWithDraggable(context, p, tile)
                   : tile;
 
@@ -893,9 +895,9 @@ class GroupingCard extends StatelessWidget {
               if (isSplitTeam && index == 1) {
                 return Column(
                   children: [
-                    widget,
+                    playerWidget,
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md), // Increased for split team separation
                       child: Row(
                         children: [
                           Expanded(
@@ -928,12 +930,18 @@ class GroupingCard extends StatelessWidget {
                 );
               }
 
-              return widget;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  playerWidget,
+                  if (!isLast) const SizedBox(height: AppSpacing.sm),
+                ],
+              );
             }),
 
             if (isAdmin && group.players.length < 4)
               emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
-            Divider(height: AppSpacing.x2l, color: Colors.black.withValues(alpha: 0.12)),
+            SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

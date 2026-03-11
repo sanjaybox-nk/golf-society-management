@@ -11,6 +11,7 @@ class AppShapes {
   static const double rPill = 999.0; // Fully rounded ends
   static const double rGrabber = 2.0; // Modal handle indicators
   static const double rSheet = 25.0; // Bottom sheet top corners
+  static const double rHero = r2xl; // Semantic hero radius
   
   // Border Widths - Standardized for Whitelabeling
   static const double borderThin = 1.0;   // Default hairline border
@@ -37,6 +38,7 @@ class AppShapes {
   static const BorderRadius pill = BorderRadius.all(Radius.circular(rPill));
   static const BorderRadius grabber = BorderRadius.all(Radius.circular(rGrabber));
   static const BorderRadius sheet = BorderRadius.vertical(top: Radius.circular(rSheet));
+  static const BorderRadius hero = x2l; // Semantic hero radius
 
   // Legacy/Alias support
   static BorderRadius get cardRadius => lg;

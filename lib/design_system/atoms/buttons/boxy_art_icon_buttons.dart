@@ -1,8 +1,5 @@
-import "package:golf_society/design_system/design_system.dart";
+import 'package:golf_society/design_system/design_system.dart';
 
-
-
-import 'dart:ui';
 
 /// A small circular button with an icon using BoxyArt styling.
 class BoxyArtCircularIconBtn extends StatelessWidget {
@@ -21,26 +18,36 @@ class BoxyArtCircularIconBtn extends StatelessWidget {
     this.onTap,
     this.backgroundColor,
     this.iconColor,
-    this.iconSize = 20,
-    this.padding = 0,
-    this.showShadow = true,
+    this.iconSize = 24,
+    this.padding = 6,
+    this.showShadow = false,
     this.shadowOverride,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return InkWell(
       onTap: onTap,
       borderRadius: AppShapes.pill,
       child: Container(
         padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
-          color: backgroundColor ?? Theme.of(context).cardColor,
+          color: backgroundColor ?? (isDark ? AppColors.dark800 : AppColors.dark50),
           shape: BoxShape.circle,
-          boxShadow: showShadow ? (shadowOverride ?? AppShadows.floatingAlt) : null,
+          boxShadow: showShadow ? (shadowOverride ?? Theme.of(context).extension<AppShadows>()?.floatingAlt ?? []) : null,
+          border: Border.all(
+            color: isDark ? AppColors.dark700 : AppColors.dark200,
+            width: 1,
+          ),
         ),
         alignment: Alignment.center,
-        child: Icon(icon, color: iconColor ?? Colors.black, size: iconSize),
+        child: Icon(
+          icon, 
+          color: iconColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900), 
+          size: iconSize,
+        ),
       ),
     );
   }
@@ -97,13 +104,12 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primaryColor = theme.primaryColor;
     
-    // In dark mode, favor white/light glass over dark primary tints
-    final defaultIconColor = widget.iconColor ?? (isDark ? AppColors.pureWhite : primaryColor);
+    // Design 3.1: No opacity, no shadows. Solid premium look.
+    final defaultIconColor = widget.iconColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900);
     final defaultBgColor = widget.backgroundColor ?? (isDark 
-        ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
-        : primaryColor.withValues(alpha: 0.12));
+        ? AppColors.dark800 
+        : AppColors.dark50);
     
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -121,29 +127,16 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
             shape: BoxShape.circle,
             border: Border.all(
               color: isDark 
-                  ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) 
-                  : primaryColor.withValues(alpha: AppColors.opacityMedium),
-              width: 0.8,
+                  ? AppColors.dark700 
+                  : AppColors.dark200,
+              width: 1.0,
             ),
-            boxShadow: [
-              if (!isDark) // Soft shadows only in light mode for glass
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
           ),
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-              child: Center(
-                child: Icon(
-                  widget.icon,
-                  size: widget.iconSize,
-                  color: defaultIconColor,
-                ),
-              ),
+          child: Center(
+            child: Icon(
+              widget.icon,
+              size: widget.iconSize,
+              color: defaultIconColor,
             ),
           ),
         ),

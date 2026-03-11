@@ -61,27 +61,27 @@ class EventCourseSection extends ConsumerWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.x2l),
                   BoxyArtFormField(
                     label: 'Course Location (Auto-filled)',
                     initialValue: state.courseDetails,
                     readOnly: true,
                     maxLines: 2,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.x2l),
                   // Tee Selection (Simplified for now - can be expanded)
                   BoxyArtFormField(
                     label: 'Starting Tee (Manual)',
                     initialValue: state.selectedTeeName,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedTeeName(v),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.x2l),
                   BoxyArtFormField(
                     label: 'Dress Code',
                     initialValue: state.dressCode,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDressCode(v),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.x2l),
                   Row(
                     children: [
                       Expanded(
@@ -103,7 +103,7 @@ class EventCourseSection extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.x2l),
                   BoxyArtFormField(
                     label: 'Available Spaces',
                     initialValue: state.maxParticipants?.toString() ?? '',
@@ -121,7 +121,6 @@ class EventCourseSection extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.x2l),
           ],
         );
       },

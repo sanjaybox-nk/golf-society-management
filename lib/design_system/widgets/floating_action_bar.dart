@@ -38,7 +38,7 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppShapes.pill,
-        boxShadow: AppShadows.floatingAlt,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.floatingAlt ?? [],
       ),
       child: Row(
         children: [
@@ -68,7 +68,7 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: AppShapes.x2l,
-                boxShadow: AppShadows.primaryButtonGlow,
+                boxShadow: Theme.of(context).extension<AppShadows>()?.primaryButtonGlow ?? [],
               ),
               child: Builder(
                 builder: (context) {

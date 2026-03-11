@@ -178,7 +178,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                           decoration: BoxDecoration(
                             color: Theme.of(context).primaryColor, // Solid Primary Color
                             borderRadius: AppShapes.xl,
-                            boxShadow: AppShadows.softScale,
+                            boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -267,7 +267,7 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
                 width: AppShapes.borderThin,
               ),
             ),
-            shadows: AppShadows.inputSoft,
+            shadows: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButtonFormField<SeasonStatus>(

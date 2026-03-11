@@ -27,12 +27,14 @@ class HeadlessScaffold extends StatelessWidget {
   final bool showAdminShortcut;
   final double? leadingWidth;
   final bool useScaffold;
+  final Widget? subtitleTrailing;
 
   const HeadlessScaffold({
     super.key,
     required this.title,
     this.subtitle,
     this.subtitleWidget,
+    this.subtitleTrailing,
     this.titleSuffix,
     required this.slivers,
     this.bottomNavigationBar,
@@ -84,22 +86,9 @@ class HeadlessScaffold extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          String displayTitle = title;
-                          try {
-                            final state = GoRouterState.of(context);
-                            final isAdmin = state.matchedLocation.startsWith('/admin');
-                            if (autoPrefix && isAdmin && !displayTitle.toLowerCase().contains('manage')) {
-                              displayTitle = 'Manage $displayTitle';
-                            }
-                          } catch (_) {}
-                          
-                          return Text(
-                            displayTitle,
-                            style: AppTypography.displayPage,
-                          );
-                        },
+                      child: Text(
+                        title,
+                        style: AppTypography.displayPage,
                       ),
                     ),
                     if (titleSuffix != null) ...[
@@ -113,13 +102,21 @@ class HeadlessScaffold extends StatelessWidget {
                   subtitleWidget!
                 ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    subtitle!,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: isDark ? AppColors.dark200 : AppColors.dark400,
-                      fontWeight: AppTypography.weightSemibold,
-                      letterSpacing: -0.5,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        subtitle!,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: isDark ? AppColors.dark200 : AppColors.dark400,
+                          fontWeight: AppTypography.weightSemibold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      if (subtitleTrailing != null) 
+                        subtitleTrailing!,
+                    ],
                   ),
                 ],
               ],
@@ -140,55 +137,51 @@ class HeadlessScaffold extends StatelessWidget {
     // Instead, use a Stack to overlay the AppBar on top of the scroll view,
     // replicating Scaffold's extendBodyBehindAppBar behavior.
     if (!useScaffold) {
-      Widget content = Stack(
-        children: [
-          scrollView,
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: BoxyArtAppBar(
-              title: '',
-              transparent: true,
-              showBack: showBack,
-              showLeading: showMenu && !showBack,
-              onBack: onBack,
-              backIcon: backIcon,
-              actions: actions,
-              leading: leading,
-              leadingWidth: leadingWidth,
-              bottom: bottom,
-              showAdminShortcut: () {
-                if (!showAdminShortcut) return false;
-                try {
-                  return !GoRouterState.of(context).uri.path.startsWith('/admin');
-                } catch (_) {
-                  return false;
-                }
-              }(),
-            ),
-          ),
-          if (floatingActionButton != null)
-            Positioned(
-              bottom: AppSpacing.lg,
-              right: AppSpacing.lg,
-              child: floatingActionButton!,
-            ),
-        ],
-      );
-
-      if (bottomNavigationBar != null) {
-        content = Column(
-          children: [
-            Expanded(child: content),
-            bottomNavigationBar!,
-          ],
-        );
-      }
-
       return Material(
         color: bg,
-        child: content,
+        child: Stack(
+          children: [
+            scrollView,
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: BoxyArtAppBar(
+                title: '',
+                transparent: true,
+                showBack: showBack,
+                showLeading: showMenu && !showBack,
+                onBack: onBack,
+                backIcon: backIcon,
+                actions: actions,
+                leading: leading,
+                leadingWidth: leadingWidth,
+                bottom: bottom,
+                showAdminShortcut: () {
+                  if (!showAdminShortcut) return false;
+                  try {
+                    return !GoRouterState.of(context).uri.path.startsWith('/admin');
+                  } catch (_) {
+                    return false;
+                  }
+                }(),
+              ),
+            ),
+            if (bottomNavigationBar != null)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: bottomNavigationBar!,
+              ),
+            if (floatingActionButton != null)
+              Positioned(
+                bottom: AppSpacing.lg,
+                right: AppSpacing.lg,
+                child: floatingActionButton!,
+              ),
+          ],
+        ),
       );
     }
 

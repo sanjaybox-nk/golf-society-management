@@ -53,7 +53,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
 
     return HeadlessScaffold(
       title: 'Event CMS',
-      subtitle: 'Manage Updates & Broadcasts',
+      subtitle: 'Updates & Broadcasts',
       useScaffold: true,
       showBack: true,
       onBack: () => context.pop(),
@@ -306,7 +306,7 @@ class _DragHandle extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: AppShapes.sm,
-        boxShadow: AppShadows.softScale,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: const Icon(Icons.drag_indicator_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
     );

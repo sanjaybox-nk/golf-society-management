@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:golf_society/services/storage_service.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:go_router/go_router.dart';
 import 'widgets/member_stats_row.dart';
 
 import 'package:golf_society/constants/country_codes.dart';
@@ -11,11 +12,13 @@ import 'profile_provider.dart';
 import 'widgets/member_role_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
+import 'package:golf_society/design_system/constants/navigation_constants.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
+  final Animation<double>? animation;
 
-  const MemberDetailsModal({super.key, this.member});
+  const MemberDetailsModal({super.key, this.member, this.animation});
 
   static void show(BuildContext context, Member? member) {
     showGeneralDialog(
@@ -25,17 +28,11 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
       barrierColor: Colors.black.withValues(alpha: 0.54),
       transitionDuration: AppAnimations.medium,
       pageBuilder: (context, animation, secondaryAnimation) {
-        return MemberDetailsModal(member: member);
+        return MemberDetailsModal(member: member, animation: animation);
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1.0, 0.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
+        return FadeTransition(
+          opacity: animation,
           child: child,
         );
       },
@@ -271,6 +268,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     // Cache variables here to satisfy Riverpod's strict ref.watch lifecycle rules
     final currentUser = ref.watch(currentUserProvider);
     final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
@@ -278,188 +276,145 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     final canEdit = isAdmin || isOwner || _isNewMember;
     final canAssignRoles = currentUser.role == MemberRole.superAdmin;
     
-    String title = _isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : '${_firstController.text} ${_lastController.text}');
+    String title = _isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail');
 
-    return PopScope(
-      canPop: !_isEditing,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (_isEditing) {
-          _showExitConfirmation();
-        }
-      },
-      child: HeadlessScaffold(
-        useScaffold: false,
-        title: title,
-        showBack: !_isEditing,
-        showAdminShortcut: false, // Modal context, no shortcut needed
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        
-        // Leading Action (Back / Cancel)
-        leading: _isEditing 
-          ? Center(
-              child: BoxyArtGlassIconButton(
-                icon: Icons.close_rounded,
-                onPressed: _showExitConfirmation,
-                tooltip: 'Cancel',
-              ),
-            )
-          : null, // Default back button logic handles view mode
-
-        // Trailing Actions (Edit / Save)
-        actions: [
-          if (!_isEditing && canEdit)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: BoxyArtGlassIconButton(
-                onPressed: () => setState(() => _isEditing = true),
-                icon: Icons.edit_outlined,
-                tooltip: 'Edit Member',
-              ),
+    final content = HeadlessScaffold(
+      useScaffold: false,
+      title: title,
+      showBack: !_isEditing,
+      showAdminShortcut: false, // Modal context, no shortcut needed
+      backgroundColor: theme.scaffoldBackgroundColor, 
+      
+      // Member-facing Bottom Navigation (Persistent UX)
+      bottomNavigationBar: BoxyArtBottomNavBar(
+        selectedIndex: 2, // Members context
+        items: NavigationConstants.userNavItems,
+        onItemSelected: (index) {
+          Navigator.of(context).pop(); // Close modal
+          final paths = ['/home', '/events', '/members', '/locker', '/archive'];
+          context.go(paths[index]);
+        },
+      ),
+      leading: _isEditing 
+        ? Center(
+            child: BoxyArtGlassIconButton(
+              icon: Icons.close_rounded,
+              onPressed: _showExitConfirmation,
+              tooltip: 'Cancel',
             ),
-          if (_isEditing)
-             Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm, bottom: AppSpacing.sm),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: AppShapes.xl,
-                ),
-                child: TextButton(
-                  onPressed: _isSaving ? null : _save,
-                  child: _isSaving
-                      ? const SizedBox(
-                          width: AppSpacing.lg,
-                          height: AppSpacing.lg,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
-                          ),
-                        )
-                      : const Text(
-                          'Save',
-                          style: TextStyle(
-                            color: AppColors.pureWhite,
-                            fontSize: AppTypography.sizeBodySmall,
-                            fontWeight: AppTypography.weightBold,
-                          ),
+          )
+        : null, // Default back button logic handles view mode
+
+      // Trailing Actions (Edit / Save)
+      actions: [
+        if (!_isEditing && canEdit)
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: BoxyArtGlassIconButton(
+              onPressed: () => setState(() => _isEditing = true),
+              icon: Icons.edit_outlined,
+              tooltip: 'Edit Member',
+            ),
+          ),
+        if (_isEditing)
+           Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm, bottom: AppSpacing.sm),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: AppShapes.xl,
+              ),
+              child: TextButton(
+                onPressed: _isSaving ? null : _save,
+                child: _isSaving
+                    ? const SizedBox(
+                        width: AppSpacing.lg,
+                        height: AppSpacing.lg,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
                         ),
-                ),
+                      )
+                    : const Text(
+                        'Save',
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: AppTypography.sizeBodySmall,
+                          fontWeight: AppTypography.weightBold,
+                        ),
+                      ),
               ),
             ),
-        ],
-        bottomNavigationBar: _buildBottomMenu(isAdmin),
-        slivers: [
-          SliverPadding(
-            padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: AppSpacing.x4l),
-            sliver: SliverToBoxAdapter(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: AppTheme.cardSpacing),
-                    ListenableBuilder(
-                      listenable: Listenable.merge([
-                        _firstController,
-                        _lastController,
-                        _nicknameController,
-                      ]),
-                      builder: (context, _) => BoxyArtMemberHeaderCard(
-                        firstName: _firstController.text,
-                        lastName: _lastController.text,
-                        nickname: _nicknameController.text,
-                        status: _status,
-                        hasPaid: _hasPaid,
-                        avatarUrl: _avatarUrl,
-                        handicapController: _handicapController,
-                        handicapIdController: _handicapIdController,
-                        handicapFocusNode: _handicapFocusNode,
-                        handicapIdFocusNode: _handicapIdFocusNode,
-                        isEditing: _isEditing,
-                        isAdmin: isAdmin,
-                        onCameraTap: _isEditing ? _pickImage : null,
-                        onFeeToggle: (v) => setState(() => _hasPaid = v),
-                        onStatusChanged: (v) => setState(() => _status = v),
-                        role: _role,
-                        onRoleTap: canAssignRoles ? _showRolePicker : null,
-                        societyRole: _societyRole,
-                        onSocietyRoleTap: isAdmin ? _showSocietyRolePicker : null,
-                        joinedDate: _joinedDate,
-                      ),
+          ),
+      ],
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: AppSpacing.x4l),
+          sliver: SliverToBoxAdapter(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: AppTheme.cardSpacing),
+                  ListenableBuilder(
+                    listenable: Listenable.merge([
+                      _firstController,
+                      _lastController,
+                      _nicknameController,
+                    ]),
+                    builder: (context, _) => BoxyArtMemberHeaderCard(
+                      firstName: _firstController.text,
+                      lastName: _lastController.text,
+                      nickname: _nicknameController.text,
+                      status: _status,
+                      hasPaid: _hasPaid,
+                      avatarUrl: _avatarUrl,
+                      handicapController: _handicapController,
+                      handicapIdController: _handicapIdController,
+                      handicapFocusNode: _handicapFocusNode,
+                      handicapIdFocusNode: _handicapIdFocusNode,
+                      isEditing: _isEditing,
+                      isAdmin: isAdmin,
+                      onCameraTap: _isEditing ? _pickImage : null,
+                      onFeeToggle: (v) => setState(() => _hasPaid = v),
+                      onStatusChanged: (v) => setState(() => _status = v),
+                      role: _role,
+                      onRoleTap: canAssignRoles ? _showRolePicker : null,
+                      societyRole: _societyRole,
+                      onSocietyRoleTap: isAdmin ? _showSocietyRolePicker : null,
+                      joinedDate: _joinedDate,
+                    ),
+                  ),
+
+                  SizedBox(height: AppTheme.cardSpacing),
+                  
+                  // Stats Row
+                  if (!_isNewMember && widget.member != null)
+                    Consumer(
+                      builder: (context, ref, _) {
+                         final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
+                         return statsAsync.when(
+                           data: (stats) => MemberStatsRow(
+                             starts: stats.starts,
+                             wins: stats.wins,
+                             top5: stats.top5,
+                             avgPts: stats.avgPts,
+                             bestPts: stats.bestPts,
+                             rank: stats.rank,
+                           ),
+                           loading: () => const SizedBox.shrink(), // Or skeleton
+                           error: (e, s) => const SizedBox.shrink(),
+                         );
+                      },
                     ),
 
-                    SizedBox(height: AppTheme.cardSpacing),
-                    
-                    // Stats Row
-                    if (!_isNewMember && widget.member != null)
-                      Consumer(
-                        builder: (context, ref, _) {
-                           final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
-                           return statsAsync.when(
-                             data: (stats) => MemberStatsRow(
-                               starts: stats.starts,
-                               wins: stats.wins,
-                               top5: stats.top5,
-                               avgPts: stats.avgPts,
-                               bestPts: stats.bestPts,
-                               rank: stats.rank,
-                             ),
-                             loading: () => const SizedBox.shrink(), // Or skeleton
-                             error: (e, s) => const SizedBox.shrink(),
-                           );
-                        },
-                      ),
-
-                    SizedBox(height: AppTheme.cardSpacing),
-
-                    // Season Highlights (Design 3.1)
-                    if (!_isNewMember && widget.member != null) ...[
-                      const BoxyArtSectionTitle(title: 'Season Standing'),
-                      const SizedBox(height: AppSpacing.md),
-                      Consumer(
-                        builder: (context, ref, _) {
-                          final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
-                          return statsAsync.when(
-                            data: (stats) => BoxyArtCard(
-                              padding: const EdgeInsets.all(AppSpacing.lg),
-                              child: Column(
-                                children: [
-                                  _buildHighlightRow(
-                                    context,
-                                    icon: Icons.emoji_events_rounded,
-                                    color: AppColors.amber500,
-                                    label: 'Order of Merit',
-                                    value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
-                                  ),
-                                  const Divider(height: AppSpacing.x2l, indent: 48),
-                                  _buildHighlightRow(
-                                    context,
-                                    icon: Icons.grid_view_rounded,
-                                    color: AppColors.teamA,
-                                    label: 'Starts',
-                                    value: '${stats.starts} Matches',
-                                  ),
-                                  const Divider(height: AppSpacing.x2l, indent: 48),
-                                  _buildHighlightRow(
-                                    context,
-                                    icon: Icons.park_rounded,
-                                    color: AppColors.lime500,
-                                    label: 'Best Score',
-                                    value: stats.bestPts > 0 ? '${stats.bestPts} Pts' : '-',
-                                  ),
-                                ],
-                              ),
-                            ),
-                            loading: () => const SizedBox(height: 160), // Consistent height
-                            error: (e, s) => const SizedBox.shrink(),
-                          );
-                        },
-                      ),
-                      SizedBox(height: AppTheme.cardSpacing),
-                    ],
-
-                    PersonalDetailsForm(
+                  const SizedBox(height: AppSpacing.x3l),
+                  const BoxyArtSectionTitle(title: 'Personal Details'),
+                  const SizedBox(height: AppSpacing.sm),
+                  BoxyArtCard(
+                    padding: const EdgeInsets.all(AppSpacing.x2l),
+                    child: PersonalDetailsForm(
                       isEditing: _isEditing,
                       firstController: _firstController,
                       lastController: _lastController,
@@ -489,14 +444,25 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       phoneFocusNode: _phoneFocusNode,
                       addressFocusNode: _addressFocusNode,
                     ),
-                    const SizedBox(height: AppSpacing.x4l),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: AppSpacing.x4l),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+
+    return PopScope(
+      canPop: !_isEditing,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_isEditing) {
+          _showExitConfirmation();
+        }
+      },
+      child: content,
     );
   }
 
@@ -536,109 +502,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     );
   }
 
-  Widget _buildHighlightRow(
-    BuildContext context, {
-    required IconData icon,
-    required Color color,
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: AppColors.opacityLow),
-            borderRadius: AppShapes.sm,
-          ),
-          child: Icon(icon, size: AppShapes.iconSm, color: color),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeBody),
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: AppTypography.weightBlack,
-            fontSize: AppTypography.sizeBody,
-            color: color == AppColors.amber500 ? Theme.of(context).primaryColor : color,
-          ),
-        ),
-      ],
-    );
-  }
 
 
 
 
-  Widget _buildBottomMenu(bool isAdmin) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return BoxyArtBottomNavBar(
-      selectedIndex: 2, // Highlight "Members" tab
-      onItemSelected: (index) => Navigator.of(context).pop(),
-      backgroundColor: isDark ? AppColors.dark900 : Colors.black,
-      activeColor: AppColors.pureWhite,
-      unselectedColor: AppColors.dark600,
-      items: isAdmin 
-        ? const [
-            BoxyArtBottomNavItem(
-              icon: Icons.dashboard_outlined,
-              activeIcon: Icons.dashboard,
-              label: 'Dashboard',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.calendar_month_outlined,
-              activeIcon: Icons.calendar_month,
-              label: 'Events',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.people_outline,
-              activeIcon: Icons.people,
-              label: 'Members',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.notification_add_outlined,
-              activeIcon: Icons.notification_add,
-              label: 'Comms',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.settings_outlined,
-              activeIcon: Icons.settings,
-              label: 'Settings',
-            ),
-          ]
-        : const [
-            BoxyArtBottomNavItem(
-              icon: Icons.home_outlined,
-              activeIcon: Icons.home,
-              label: 'Home',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.calendar_month_outlined,
-              activeIcon: Icons.calendar_month,
-              label: 'Events',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.people_outline,
-              activeIcon: Icons.people,
-              label: 'Members',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.person_outline,
-              activeIcon: Icons.person,
-              label: 'Locker',
-            ),
-            BoxyArtBottomNavItem(
-              icon: Icons.history_outlined,
-              activeIcon: Icons.history,
-              label: 'Archive',
-            ),
-          ],
-    );
-  }
 }

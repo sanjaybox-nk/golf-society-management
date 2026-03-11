@@ -8,6 +8,7 @@ import 'package:golf_society/features/events/presentation/tabs/event_user_detail
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:collection/collection.dart';
 
+import 'widgets/form_sections/event_type_section.dart';
 import 'widgets/form_sections/event_basic_info_section.dart';
 import 'widgets/form_sections/event_logistics_section.dart';
 import 'widgets/form_sections/event_course_section.dart';
@@ -92,13 +93,22 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const EventBasicInfoSection(),
+                  const EventTypeSection(),
+                  const SizedBox(height: AppSpacing.x3l),
                   const EventLogisticsSection(),
+                  const SizedBox(height: AppSpacing.x3l),
+                  const EventBasicInfoSection(),
+                  const SizedBox(height: AppSpacing.x3l),
                   const EventCourseSection(),
+                  const SizedBox(height: AppSpacing.x3l),
                   const EventCompetitionSection(),
+                  const SizedBox(height: AppSpacing.x3l),
                   const EventPricingSection(),
+                  const SizedBox(height: AppSpacing.x3l),
                   const EventAwardsSection(),
+                  const SizedBox(height: AppSpacing.x3l),
                   const EventContentSection(),
+                  const SizedBox(height: AppSpacing.pageBottom),
                 ],
               ),
             ),

@@ -73,9 +73,11 @@ Members access the hub via `Locker -> Season Standings`, featuring:
 The event leaderboard provides a real-time view of the field with advanced presentation features:
 
 ### 4.1 Live Tracking
+- **Flattened Tournament Navigation**: (v3.8) Consolidates the event experience into a 5-tab shell: **Info**, **Field**, **My Card**, **Scores**, **Stats**.
+- **"ENTER SCORE" Shortcut**: Direct access to the scorecard via a prominent Hero action on the Event Home.
 - **"THRU X" (Holes Played)**: While scoring is active, the leaderboard shows exactly how many holes each player has completed.
-- **Dynamic Updates**: Standings re-order in real-time as scores are entered via the swiper.
-- **Finalized State**: Progress indicators are automatically hidden once the event is marked as "Published" or "Locked" by the admin.
+- **Dynamic Updates**: Standings re-order in real-time as scores are entered.
+- **Finalized State**: Progress indicators are automatically hidden once the event is marked as "Published" or "Locked".
 
 ### 4.2 Automated Tie-Breaking
 - **Filtered Display**: Tie-break details (e.g., "Back 9: 18 pts") only appear when two or more players are tied on the same score.
@@ -101,8 +103,14 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Explicit Tee Support**: The UI dynamically resolves Par/SI values based on the player's gender and the event's explicit tee configuration (`selectedFemaleTeeName`).
     - **Dual Tee Display**: The Event Info Hub (`EventUserDetailsTab`) now displays both male and female tee positions (e.g., "Yellow / Red") when they differ, ensuring absolute clarity for mixed-gender fields.
     - **Header Sync**: Identical title and subtitle typography.
-    - **Course Context**: A `CourseInfoCard` showing the tee configuration and performance summaries.
-- **Typographic Standard**: Established "Pro Max" standards (w900 weight, 2.0 letter spacing) are applied to all functional labels (`Total`, `Hole`, `Scores`) and **player names are consistently rendered in Pure White** for maximum legibility across all scorecard tiles.
+    - **Course Context**: A `CourseInfoCard` or `SlidingCourseInfoCard` showing the tee configuration and performance summaries.
+- **Typographic Standard**: (v3.8 Refined)
+    - **PAR Row**: Bold weight, background color matches the selected Tee color.
+    - **SI Row**: Font size reduced by 1pt for better hierarchy.
+    - **Distance Row**: Thin weight (YDS/MTR).
+    - **MATCH Status**: Integrated W/L/H indicators for matchplay overlays.
+    - **REL column**: Relative to Par (+/-) display in `CourseInfoCard`.
+    - Player names are consistently rendered in **Pure White** (w900) for maximum legibility.
 - **Manual Society Cuts (Ad-Hoc Adjustments)**: Administrators can apply individual shot adjustments for a specific event via the **Manual Handicap Cuts** interface.
     - **Persistence**: These cuts are stored in the `manualCuts` registry within the `GolfEvent`.
     - **Scoring Impact**: Cuts are subtracted from the player's calculated Playing Handicap (PHC) across all supported formats (Stableford, Medal, etc.).
@@ -144,6 +152,7 @@ The rules are presented via the `CompetitionRulesCard`, which uses a **Hardened 
 - **Icon Restoration**: Uses high-contrast, high-alpha icon containers (e.g., Orange for Secondary, Lime for Primary) to ensure the game type is always identifiable.
 - **Visibility Hardening**: The card forces a `double.infinity` width and uses standard `Material` wrappers to guarantee correct font rendering and shadow depth.
 - **Fallback Protection**: If no dynamic competition data is found for an event, the card automatically renders a generic "SETUP COMPETITION..." template version, ensuring it never disappears or leaves a gap in the UI.
+- **Automatic Header Clipping**: Parent-level radius (18px) is applied via clipping, ensuring the background color striping is perfectly flush with the card's curve.
 
 ### Visual Components
 - **Identity Badge**: [Stableford] or [Texas Scramble] – Always shown in bold to identify the base format on both the event card and rules summary.

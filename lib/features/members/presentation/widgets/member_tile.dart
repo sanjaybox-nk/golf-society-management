@@ -5,6 +5,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../member_details_modal.dart';
+import '../profile_provider.dart';
 
 class MemberTile extends ConsumerWidget {
   final Member member;
@@ -31,6 +32,10 @@ class MemberTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     
+    final currentUser = ref.watch(currentUserProvider);
+    final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
+    final canSeeFees = isAdmin && showFeeStatus;
+
     return BoxyArtCard(
       onTap: onTap ?? () => MemberDetailsModal.show(context, member),
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -92,16 +97,19 @@ class MemberTile extends ConsumerWidget {
                   children: [
                     Text(
                       member.displayName,
-                      style: AppTypography.displaySubPage,
+                      style: AppTypography.displaySubPage.copyWith(fontSize: 19),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     
-                    // Status Legend (Relocated)
-                    BoxyArtPill(
-                      label: member.status.displayName,
-                      color: member.status.color,
+                    // Status (Flush Aligned)
+                    Text(
+                      member.status.displayName,
+                      style: AppTypography.displayUI.copyWith(
+                        color: member.status.color,
+                        fontWeight: AppTypography.weightBold,
+                      ),
                     ),
                     
                     const SizedBox(height: AppSpacing.lg),
@@ -135,11 +143,9 @@ class MemberTile extends ConsumerWidget {
             ],
           ),
           
-          const SizedBox(height: AppSpacing.xl),
-          
-          // Bottom Labels
-          if (member.societyRole?.isNotEmpty == true || (showFeeStatus && member.hasPaid)) ...[
-            const SizedBox(height: AppSpacing.md),
+          // Bottom Labels (Collapsing)
+          if (member.societyRole?.isNotEmpty == true || (canSeeFees && member.hasPaid)) ...[
+            const SizedBox(height: AppSpacing.xl),
             Wrap(
               spacing: 8,
               runSpacing: 4,
@@ -151,10 +157,9 @@ class MemberTile extends ConsumerWidget {
                     color: primary,
                     textColor: AppColors.actionText,
                   ),
-                if (showFeeStatus && member.hasPaid)
-                  BoxyArtPill(
-                    label: 'Fee paid',
-                    color: StatusColors.positive,
+                if (canSeeFees && member.hasPaid)
+                  BoxyArtFeePill(
+                    isPaid: true,
                   ),
               ],
             ),
@@ -173,13 +178,15 @@ class MemberTile extends ConsumerWidget {
           label,
           style: AppTypography.microSmall.copyWith(
             color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
+            fontSize: 11,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value,
           style: AppTypography.displayLargeBody.copyWith(
-            fontWeight: AppTypography.weightBlack,
+            fontWeight: AppTypography.weightExtraBold,
+            fontSize: 20,
           ),
         ),
       ],

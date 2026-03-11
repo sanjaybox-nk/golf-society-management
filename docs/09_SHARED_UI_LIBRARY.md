@@ -12,9 +12,15 @@ The foundational container for all UI blocks.
 - **Properties**:
   - `child`: Inner content.
   - `onTap`: Optional interaction (wraps in `InkWell`).
-  - `padding`: Default `24px`.
-  - `borderRadius`: Default `16px` (`AppShapes.rLg`).
+  - `padding`: Default `24px` (`AppSpacing.x2l`).
+  - `borderRadius`: Authoritative `rLg` (18px).
   - `backgroundColor`: Manual color override.
+- **Hardening**: Features mandatory **internal clipping** (`ClipRRect`) to ensure all children (like header/footer bands) match the card's curve without manual radius math.
+
+### `BoxyArtEventCard`
+The standardized summary card for events, used in both Member and Admin views.
+- **Features**: Integrated `BoxyArtDateBadge`, title line, location, and registration time metadata.
+- **Pills**: Supports optional `gameTypePill` and `statusPill` for situational context.
 
 ### `ModernNoteCard`
 A specialized horizontal card for informational notes.
@@ -52,6 +58,11 @@ A highly flexible v3.1 compliant app bar.
 The preferred layout for core screens.
 - **Sliver Architecture**: Uses `NestedScrollView` and `SliverAppBar` to provide a premium scrolling experience (scrolled-under transparency).
 
+### `EventUserShell` (Tournament Mode)
+(v3.8) The authoritative flattened navigation shell for tournament events.
+- **5-Tab Navigation**: Info, Field, My Card, Scores, Stats.
+- **Navigation Shortcuts**: Built-in logic for the `🏠` Home icon in tab headers to return to the Event Dashboard.
+
 ## 4. Badges & Indicators (`badges.dart`)
 
 ### `BoxyArtPill` (Legacy) / `BoxyArtLegend` (New)
@@ -61,7 +72,8 @@ The standard for highlighting status, format, or type classification. Implements
   - `BoxyArtPill.format(label)`: Competition formats (Stableford, Matchplay).
   - `BoxyArtPill.type(label)`: Entity classification (Invitational, Player Role).
   - `BoxyArtPill.status(label, color)`: Lifecycle and registration states.
-- **Visuals**: No background opacity. Uses a vibrant status color for the indicator dot and matching Title Case text.
+  - `BoxyArtPill.tee(color)`: (v3.8) Distinctive 12px tee color indicator with a subtle border.
+- **Visuals**: No background opacity. Uses a vibrant status color for the indicator dot/tee and matching Title Case text.
 
 ### `BoxyArtDateBadge`
 Vertical date display for event cards.

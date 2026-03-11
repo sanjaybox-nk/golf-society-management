@@ -62,7 +62,7 @@ class BoxyArtTextField extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: AppShapes.lg,
-            boxShadow: AppShadows.inputSoft,
+            boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
           ),
           child: TextField(
             controller: controller,

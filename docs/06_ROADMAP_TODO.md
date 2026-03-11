@@ -75,7 +75,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [x] **Interactive Polls**: Live event-room polls with real-time member voting results.
 - [x] **Society Branding & Theme System**
     - [x] **Dynamic Theme Engine**: Configurable seed color with automatic contrast calculation.
-    - [x] **Branding Settings Screen**: Live preview, color picker, dark mode policy.
+    - [x] **Branding Settings Screen**: Live preview, color picker, dark mode policy, and granular shadow/border control.
     - [x] **Status Color System**: Semantic palette for consistent status indicators.
     - [x] **Contrast Helper**: Automatic text color calculation for accessibility.
 - [x] **Society Reporting Hub (Premium Suite)**
@@ -90,6 +90,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Universal Title Case**: Elimination of all-caps across entire app interface.
     - [x] **Pill-to-Legend Shift**: Converted badge components to minimalist dot + text indicators.
     - [x] **Member Card Refinement**: Relocated status legends for cleaner data hierarchy.
+- [x] **Tournament UX & Radius Hardening (v3.8)**
+    - [x] **Flattened Navigation**: Implementation of 5-tab "Tournament Mode" shell.
+    - [x] **Radius Sync**: Resolved visual mismatches across cards using authoritative clipping.
+    - [x] **Direct Scoring Access**: Added "ENTER SCORE" shortcuts to main event hubs.
+    - [x] **Refined Logic Display**: Updated scorecard summaries with MATCH status and improved typo hierarchies.
 - [x] **Codebase Hardening & Audit**
     - [x] **Duplicate Elimination**: Deleted legacy `ModernMemberCard` and feature-specific pills.
     - [x] **Library Standardized**: Cleaned up `metrics.dart` and standardized `BoxyArtPill` as single source of truth.

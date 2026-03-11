@@ -11,98 +11,67 @@ class SocietyRolePicker extends StatelessWidget {
   });
 
   static void show(BuildContext context, String? currentRole, ValueChanged<String> onRoleSelected) {
-    showModalBottomSheet(
+    final defaultRoles = ['President', 'Captain', 'Vice Captain', 'Secretary', 'Treasurer'];
+    
+    BoxyArtBottomSheet.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => SocietyRolePicker(
-        currentRole: currentRole,
-        onRoleSelected: onRoleSelected,
+      title: 'Select Society Position',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...defaultRoles.map((r) => _buildSocietyRoleOption(context, r, currentRole, onRoleSelected)),
+          const SizedBox(height: AppSpacing.sm),
+          
+          // Custom Role Action Tile
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+              _showCustomRoleDialog(context, onRoleSelected);
+            },
+            child: BoxyArtCard(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              borderRadius: 16,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.add_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  const Text(
+                    'Create Custom Role',
+                    style: TextStyle(
+                      fontWeight: AppTypography.weightBlack,
+                      fontSize: AppTypography.sizeBody,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final defaultRoles = ['President', 'Captain', 'Vice Captain', 'Secretary', 'Treasurer'];
-    final theme = Theme.of(context);
-    final primarySize = 20.0;
-
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.x3l),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select Society Position',
-              style: TextStyle(
-                fontSize: primarySize,
-                fontWeight: AppTypography.weightBlack,
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.x2l),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ...defaultRoles.map((r) => _buildSocietyRoleOption(context, r)),
-                    const SizedBox(height: AppSpacing.sm),
-                    
-                    // Custom Role Action Tile
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showCustomRoleDialog(context);
-                      },
-                      child: BoxyArtCard(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        borderRadius: 16,
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(AppSpacing.sm),
-                              decoration: BoxDecoration(
-                                color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.add_rounded, color: theme.primaryColor, size: AppShapes.iconMd),
-                            ),
-                            const SizedBox(width: AppSpacing.lg),
-                            const Text(
-                              'Create Custom Role',
-                              style: TextStyle(
-                                fontWeight: AppTypography.weightBlack,
-                                fontSize: AppTypography.sizeBody,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-          ],
-        ),
-      ),
-    );
+    // This widget is now primarily used via its static show method
+    return const SizedBox.shrink();
   }
 
-  Widget _buildSocietyRoleOption(BuildContext context, String role) {
+  static Widget _buildSocietyRoleOption(
+    BuildContext context, 
+    String role, 
+    String? currentRole, 
+    ValueChanged<String> onRoleSelected
+  ) {
     final isSelected = currentRole == role;
     final theme = Theme.of(context);
     final primary = theme.primaryColor;
@@ -140,7 +109,7 @@ class SocietyRolePicker extends StatelessWidget {
     );
   }
 
-  void _showCustomRoleDialog(BuildContext context) {
+  static void _showCustomRoleDialog(BuildContext context, ValueChanged<String> onRoleSelected) {
     final controller = TextEditingController();
     showBoxyArtDialog(
       context: context,

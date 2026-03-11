@@ -859,7 +859,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id'];
           if (state.uri.pathSegments.length == 2) {
             final query = state.uri.query;
-            return '/events/$id/home${query.isNotEmpty ? '?$query' : ''}';
+            return '/events/$id/details${query.isNotEmpty ? '?$query' : ''}';
           }
           return null;
         },
@@ -895,14 +895,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: 'home',
                 pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
-                  child: EventUserHomeTab(eventId: state.pathParameters['id']!),
+                  child: EventUserHomeTab(
+                    eventId: state.pathParameters['id']!,
+                    useScaffold: false,
+                  ),
                 ),
               ),
               GoRoute(
                 path: 'details',
                 pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
-                  child: EventUserDetailsTab(eventId: state.pathParameters['id']!),
+                  child: EventUserDetailsTab(
+                    eventId: state.pathParameters['id']!,
+                    useScaffold: false,
+                  ),
                 ),
               ),
               GoRoute(
@@ -917,6 +923,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => fadePage(
                   key: state.pageKey,
                   child: EventScoresUserTab(eventId: state.pathParameters['id']!),
+                ),
+              ),
+              GoRoute(
+                path: 'scores',
+                pageBuilder: (context, state) => fadePage(
+                  key: state.pageKey,
+                  child: TournamentScoresUserTab(eventId: state.pathParameters['id']!),
                 ),
               ),
               GoRoute(
@@ -941,10 +954,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'grouping',
                 redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/field',
-              ),
-              GoRoute(
-                path: 'scores',
-                redirect: (context, state) => '/events/${Uri.encodeComponent(state.pathParameters['id']!)}/live',
               ),
               GoRoute(
                 path: 'gallery',

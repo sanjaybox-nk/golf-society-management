@@ -4,11 +4,42 @@ import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/design_system/widgets/boxy_art_rich_note_editor.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/services/storage_service.dart';
-import '../widgets/boxy_art_rich_note_editor.dart';
+
+class RichNoteController {
+  final TextEditingController titleController;
+  late final quill.QuillController quillController;
+  String? imageUrl;
+
+  RichNoteController({String? title, String? content, this.imageUrl})
+      : titleController = TextEditingController(text: title) {
+    if (content != null && content.startsWith('[{"insert"')) {
+      try {
+        quillController = quill.QuillController(
+          document: quill.Document.fromJson(jsonDecode(content)),
+          selection: const TextSelection.collapsed(offset: 0),
+        );
+      } catch (e) {
+        quillController = quill.QuillController.basic();
+      }
+    } else {
+      quillController = quill.QuillController.basic();
+      if (content != null && content.isNotEmpty) {
+        quillController.document.insert(0, content);
+      }
+    }
+  }
+
+  void dispose() {
+    titleController.dispose();
+    quillController.dispose();
+  }
+}
 
 class FeedItemEditorScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -330,13 +361,22 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                 _buildPollEditor()
               else ...[
                 ..._richNoteControllers.asMap().entries.map((entry) {
+                   final index = entry.key;
+                   final ctrl = entry.value;
                    return BoxyArtRichNoteEditor(
-                     controller: entry.value,
+                     key: ValueKey('feed_note_$index'),
+                     initialTitle: ctrl.titleController.text,
+                     initialContent: jsonEncode(ctrl.quillController.document.toDelta().toJson()),
+                     initialImageUrl: ctrl.imageUrl,
+                     onChanged: (title, content, imageUrl) {
+                       ctrl.titleController.text = title;
+                       ctrl.quillController.document = quill.Document.fromJson(jsonDecode(content));
+                       ctrl.imageUrl = imageUrl;
+                     },
                      onRemove: _richNoteControllers.length > 1 
-                        ? () => setState(() => _richNoteControllers.removeAt(entry.key))
-                        : null,
-                     showRemoveHeader: _richNoteControllers.length > 1,
-                     titleHint: entry.key == 0 ? 'Headline / Title' : 'Section Title (Optional)',
+                        ? () => setState(() => _richNoteControllers.removeAt(index))
+                        : () {},
+                     titleHint: index == 0 ? 'Headline / Title' : 'Section Title (Optional)',
                    );
                 }),
                 const SizedBox(height: AppSpacing.sm),

@@ -43,8 +43,9 @@ class HoleScoreCard extends StatelessWidget {
       opacity: isDisabled ? 0.5 : 1.0,
       child: AbsorbPointer(
         absorbing: isDisabled,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: AppSpacing.sm),
+        child: BoxyArtCard(
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -53,38 +54,41 @@ class HoleScoreCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left_rounded, size: AppShapes.iconXl, color: onPrevHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
+                    icon: Icon(Icons.chevron_left_rounded, size: AppShapes.iconLg, color: onPrevHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
                     onPressed: onPrevHole,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     'H$holeNum',
                     style: textTheme.displaySmall?.copyWith(
                       fontWeight: AppTypography.weightBlack,
-                      color: onSurface, // Full solid contrast
+                      color: onSurface,
                       letterSpacing: -2,
+                      fontSize: 28,
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.xs),
                   IconButton(
-                    icon: Icon(Icons.chevron_right_rounded, size: AppShapes.iconXl, color: onNextHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
+                    icon: Icon(Icons.chevron_right_rounded, size: AppShapes.iconLg, color: onNextHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
                     onPressed: onNextHole,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.md),
               
               // 2. Vertical Stack of Detail Pills (Center-Left)
               Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildPremiumPill(context, 'PAR $par', Colors.blueGrey, width: 60),
+                  _buildPremiumPill(context, 'PAR $par', Colors.blueGrey, width: 54),
                   if (si != null) ...[
                     const SizedBox(height: AppSpacing.xs),
-                    _buildPremiumPill(context, 'SI $si', primaryColor, width: 60),
-                  ],
-                  if (maxScore != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    _buildPremiumPill(context, 'MAX $maxScore', AppColors.amber500, width: 60),
+                    _buildPremiumPill(context, 'SI $si', primaryColor, width: 54),
                   ],
                 ],
               ),
@@ -113,7 +117,7 @@ class HoleScoreCard extends StatelessWidget {
                           hasConflict: hasConflict,
                           isReadOnly: isReadOnly || isDisabled, 
                           onChanged: onScoreChanged,
-                          size: AppShapes.iconMassive, 
+                          size: 64, // Slightly smaller to fit in card
                         ),
                       ),
         
@@ -275,7 +279,7 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
             color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
             width: AppShapes.borderMedium,
           ),
-          boxShadow: AppShadows.softScale,
+          boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
         ),
         alignment: Alignment.center,
         child: Text(
@@ -313,7 +317,7 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
-          ...AppShadows.softScale,
+          ...Theme.of(context).extension<AppShadows>()?.softScale ?? [],
         ],
       ),
       child: TextField(

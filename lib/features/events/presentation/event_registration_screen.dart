@@ -342,27 +342,41 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                               icon: Icons.person_add_rounded,
                               label: 'Add a Guest',
                               value: _registerGuest,
-                              iconColor: AppColors.lime500,
+                              iconColor: const Color(0xFF2ECC71), // Match vibrant green from design
                               onChanged: (val) => setState(() => _registerGuest = val),
                             ),
                             if (_registerGuest) ...[
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+                                child: Text(
+                                  'Guest Name',
+                                  style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                                 child: BoxyArtInputField(
-                                  label: 'Guest Name',
+                                  label: '', // Empty label as we use external Text widget
                                   controller: _guestNameController,
                                   hint: 'Full name',
-                                  prefixIcon: const Icon(Icons.badge_outlined),
+                                  prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.dark600),
                                   validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+                                child: Text(
+                                  'Guest Handicap',
+                                  style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                                 child: BoxyArtInputField(
-                                  label: 'Guest Handicap',
+                                  label: '', // Empty label as we use external Text widget
                                   controller: _guestHandicapController,
                                   hint: 'e.g. 18',
-                                  prefixIcon: const Icon(Icons.calculate_outlined),
+                                  prefixIcon: const Icon(Icons.calculate_outlined, color: AppColors.dark600),
                                 ),
                               ),
                               if (event.eventType == EventType.golf)
@@ -370,7 +384,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   icon: Icons.electric_rickshaw_rounded,
                                   label: 'Guest Buggy',
                                   value: _guestNeedsBuggy,
-                                  iconColor: AppColors.coral500,
+                                  iconColor: const Color(0xFFFF5252), // Match red from design
                                   onChanged: (val) => setState(() => _guestNeedsBuggy = val),
                                 ),
                               if (event.hasBreakfast == true && event.breakfastCost != null)
@@ -378,8 +392,24 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   icon: Icons.breakfast_dining_rounded,
                                   label: 'Guest Breakfast',
                                   value: _guestAttendingBreakfast,
-                                  iconColor: AppColors.amber500,
+                                  iconColor: const Color(0xFFFFC107), // Match yellow/amber from design
                                   onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
+                                ),
+                              if (event.hasLunch == true && event.lunchCost != null)
+                                BoxyArtSwitchTile(
+                                  icon: Icons.lunch_dining_rounded,
+                                  label: 'Guest Lunch',
+                                  value: _guestAttendingLunch,
+                                  iconColor: const Color(0xFFFF9800), 
+                                  onChanged: (val) => setState(() => _guestAttendingLunch = val),
+                                ),
+                              if (event.hasDinner == true && event.dinnerCost != null)
+                                BoxyArtSwitchTile(
+                                  icon: Icons.restaurant_rounded,
+                                  label: 'Guest Dinner',
+                                  value: _guestAttendingDinner,
+                                  iconColor: const Color(0xFF2980B9),
+                                  onChanged: (val) => setState(() => _guestAttendingDinner = val),
                                 ),
                             ],
                           ],

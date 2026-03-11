@@ -370,7 +370,7 @@ class DifficultyHeatmap extends StatelessWidget {
 
   Widget _buildHoleBubble(int i) {
     final avg = holeAverages[i] ?? 4.0;
-    final par = holes.length > i ? (holes[i]['par'] as int? ?? 4).toDouble() : 4.0;
+    final par = holes.length > i ? (holes[i] is Map ? (holes[i]['par'] as int? ?? 4) : holes[i].par).toDouble() : 4.0;
     final diff = avg - par;
     
     Color color;
@@ -429,9 +429,9 @@ class HoleDifficultyChart extends StatelessWidget {
     // Sort holes by difficulty (average relative to par)
     final sortedHoleIndices = holeAverages.keys.toList()
       ..sort((a, b) {
-        final parA = (holes[a]['par'] as int? ?? 4).toDouble();
+        final parA = (holes[a] is Map ? (holes[a]['par'] as int? ?? 4) : holes[a].par).toDouble();
         final diffA = holeAverages[a]! - parA;
-        final parB = (holes[b]['par'] as int? ?? 4).toDouble();
+        final parB = (holes[b] is Map ? (holes[b]['par'] as int? ?? 4) : holes[b].par).toDouble();
         final diffB = holeAverages[b]! - parB;
         return diffB.compareTo(diffA); // Toughest first
       });
@@ -454,7 +454,7 @@ class HoleDifficultyChart extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             ...sortedHoleIndices.take(5).map((idx) {
               final avg = holeAverages[idx]!;
-              final par = (holes[idx]['par'] as int? ?? 4).toDouble();
+              final par = (holes[idx] is Map ? (holes[idx]['par'] as int? ?? 4) : holes[idx].par).toDouble();
               final diff = avg - par;
               final isOverPar = diff > 0;
 
@@ -616,7 +616,7 @@ class FieldEclecticCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalStrokes = eclecticScores.whereType<int>().fold(0, (sum, s) => sum + s);
-    final parTotal = holes.fold(0, (sum, h) => sum + (h['par'] as int? ?? 4));
+    final parTotal = holes.fold(0, (sum, h) => sum + ((h is Map ? (h['par'] as int? ?? 4) : h.par) as int));
     final vsPar = totalStrokes - parTotal;
 
     return BoxyArtCard(
@@ -752,7 +752,7 @@ class SocietyRecapSummaryCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium),
                 shape: BoxShape.circle,
-                boxShadow: AppShadows.softScale,
+                boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
               ),
               child: const Icon(Icons.flag_rounded, color: AppColors.pureWhite, size: AppShapes.iconXl),
             ),

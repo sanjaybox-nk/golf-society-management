@@ -23,20 +23,19 @@ class MemberStatsRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0),
       child: BoxyArtCard(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.lg),
-        borderRadius: 24,
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             if (wins > 0) ...[
-              Expanded(child: _StatItem(label: 'WINS', value: '$wins', isHighlight: true)),
-              _Divider(),
+              Expanded(child: _StatItem(label: 'WINS', value: '$wins')),
+              const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(child: _StatItem(label: 'TOP 5', value: '$top5')),
-            _Divider(),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(child: _StatItem(label: 'AVG PTS', value: avgPts.toStringAsFixed(1))),
-            _Divider(),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(child: _StatItem(label: 'BEST', value: '$bestPts')),
-            _Divider(),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(child: _StatItem(label: 'RANK', value: rank != null ? '#$rank' : '-')),
           ],
         ),
@@ -48,42 +47,44 @@ class MemberStatsRow extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final bool isHighlight;
-
-  const _StatItem({required this.label, required this.value, this.isHighlight = false});
+  const _StatItem({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: AppTypography.displaySection.copyWith(
-            color: isHighlight ? const Color(0xFFFFD700) : Theme.of(context).colorScheme.onSurface, // Gold for wins
-            shadows: isHighlight ? [
-              Shadow(color: Colors.black.withValues(alpha: AppColors.opacityLow), blurRadius: 4, offset: Offset(0, 2))
-            ] : null,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          label,
-          style: AppTypography.label.copyWith(
-            color: AppColors.dark500,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      width: AppShapes.borderThin,
-      height: AppSpacing.x3l,
-      color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppShapes.rMd),
+        border: Border.all(
+          color: isDark 
+              ? AppColors.pureWhite.withValues(alpha: 0.12) 
+              : AppColors.dark700.withValues(alpha: AppColors.opacitySubtle),
+          width: AppShapes.borderThin,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: AppTypography.displaySection.copyWith(
+              fontSize: 20,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            label,
+            style: AppTypography.captionStrong.copyWith(
+              color: AppColors.dark500,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
+

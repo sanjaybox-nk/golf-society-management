@@ -183,7 +183,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           child: Stack(
           children: [
             HeadlessScaffold(
-              title: 'Manage Grouping',
+              title: 'Grouping',
               subtitleWidget: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -693,7 +693,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rPill)),
-              boxShadow: AppShadows.softScale,
+              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
             ),
             child: StatefulBuilder(
               builder: (context, setOverlayState) {

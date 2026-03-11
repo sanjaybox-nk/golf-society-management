@@ -14,7 +14,9 @@ class BoxyArtCard extends ConsumerWidget {
   final double? borderRadius;
   final BoxBorder? border;
   final Color? backgroundColor;
+  final LinearGradient? gradient;
   final bool showShadow;
+  final bool isHero;
   final List<BoxShadow>? customShadows;
 
   const BoxyArtCard({
@@ -29,7 +31,9 @@ class BoxyArtCard extends ConsumerWidget {
     this.borderRadius,
     this.border,
     this.backgroundColor,
+    this.gradient,
     this.showShadow = true,
+    this.isHero = false,
     this.customShadows,
   });
 
@@ -40,11 +44,15 @@ class BoxyArtCard extends ConsumerWidget {
     
     // Style Presets Mapping
     double defaultRadius;
-    switch (config.brandingStyle) {
-      case 'classic': defaultRadius = 8.0; break;
-      case 'modern':  defaultRadius = 28.0; break;
-      case 'boxy':
-      default:        defaultRadius = 18.0; break;
+    if (isHero) {
+      defaultRadius = config.heroRadius;
+    } else {
+      switch (config.brandingStyle) {
+        case 'classic': defaultRadius = 8.0; break;
+        case 'modern':  defaultRadius = 28.0; break;
+        case 'boxy':
+        default:        defaultRadius = 18.0; break;
+      }
     }
     
     final radius = borderRadius ?? defaultRadius;
@@ -69,7 +77,7 @@ class BoxyArtCard extends ConsumerWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: tintedColor,
-        gradient: (config.useCardGradient && backgroundColor == null)
+        gradient: gradient ?? ((config.useCardGradient && backgroundColor == null)
             ? LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -78,22 +86,10 @@ class BoxyArtCard extends ConsumerWidget {
                   isDark ? tintedColor.withValues(alpha: AppColors.opacityHigh) : tintedColor.withValues(alpha: 0.95),
                 ],
               ) 
-            : null,
+            : null),
         borderRadius: BorderRadius.circular(radius),
         boxShadow: effectivelyShowShadow 
-            ? (customShadows ?? (isDark ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                )
-              ] : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                )
-              ]))
+            ? (customShadows ?? Theme.of(context).extension<AppShadows>()?.softScale ?? [])
             : null,
         border: config.useBorders 
             ? (border ?? Border.all(
@@ -149,7 +145,7 @@ class BoxyArtSettingsCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: AppShapes.pill,
-            boxShadow: AppShadows.inputSoft,
+            boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
           ),
           child: ClipRRect(
             borderRadius: AppShapes.pill,

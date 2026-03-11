@@ -182,7 +182,7 @@ class _BracketMatchTile extends StatelessWidget {
         color: Colors.black,
         borderRadius: AppShapes.sm,
         border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
-        boxShadow: AppShadows.softScale,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: Column(
         children: [

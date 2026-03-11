@@ -16,6 +16,8 @@ class BoxyArtInputField extends StatelessWidget {
   final int? maxLines;
   final bool readOnly;
   final FocusNode? focusNode;
+  final Color? labelColor;
+  final Color? textColor;
 
   const BoxyArtInputField({
     super.key,
@@ -31,6 +33,8 @@ class BoxyArtInputField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.focusNode,
+    this.labelColor,
+    this.textColor,
   });
 
   @override
@@ -46,7 +50,7 @@ class BoxyArtInputField extends StatelessWidget {
           child: Text(
             toTitleCase(label),
             style: AppTypography.label.copyWith(
-              color: isDark ? AppColors.dark150 : AppColors.dark300,
+              color: labelColor ?? (isDark ? AppColors.dark150 : AppColors.dark300),
             ),
           ),
         ),
@@ -60,7 +64,7 @@ class BoxyArtInputField extends StatelessWidget {
           readOnly: readOnly,
           focusNode: focusNode,
           style: AppTypography.body.copyWith(
-            color: theme.colorScheme.onSurface,
+            color: textColor ?? theme.colorScheme.onSurface,
           ),
           decoration: InputDecoration(
             hintText: hint,
@@ -91,6 +95,8 @@ class BoxyArtFormField extends StatefulWidget {
   final int? maxLines;
   final FocusNode? focusNode;
   final bool readOnly;
+  final Color? labelColor;
+  final Color? textColor;
 
   const BoxyArtFormField({
     super.key,
@@ -107,6 +113,8 @@ class BoxyArtFormField extends StatefulWidget {
     this.maxLines = 1,
     this.focusNode,
     this.readOnly = false,
+    this.labelColor,
+    this.textColor,
   });
 
   @override
@@ -153,6 +161,8 @@ class _BoxyArtFormFieldState extends State<BoxyArtFormField> {
       maxLines: widget.maxLines,
       focusNode: widget.focusNode,
       readOnly: widget.readOnly,
+      labelColor: widget.labelColor,
+      textColor: widget.textColor,
     );
   }
 }
@@ -198,6 +208,9 @@ class BoxyArtDatePickerField extends ConsumerWidget {
   final String value;
   final VoidCallback onTap;
   final bool readOnly;
+  final Color? labelColor;
+  final Color? textColor;
+  final Color? iconColor;
 
   const BoxyArtDatePickerField({
     super.key,
@@ -205,6 +218,9 @@ class BoxyArtDatePickerField extends ConsumerWidget {
     required this.value,
     required this.onTap,
     this.readOnly = false,
+    this.labelColor,
+    this.textColor,
+    this.iconColor,
   });
 
   @override
@@ -221,7 +237,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
           child: Text(
             toTitleCase(label),
             style: AppTypography.label.copyWith(
-              color: isDark ? AppColors.dark150 : AppColors.dark300,
+              color: labelColor ?? (isDark ? AppColors.dark150 : AppColors.dark300),
             ),
           ),
         ),
@@ -229,7 +245,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
           onTap: readOnly ? null : onTap,
           borderRadius: BorderRadius.circular(AppShapes.rLg),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l, vertical: 18),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
             decoration: BoxDecoration(
               color: isDark ? AppColors.dark600 : AppColors.lightHeader,
               borderRadius: BorderRadius.circular(AppShapes.rLg),
@@ -246,14 +262,14 @@ class BoxyArtDatePickerField extends ConsumerWidget {
                   child: Text(
                     value,
                     style: AppTypography.body.copyWith(
-                      color: isDark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                      color: textColor ?? (isDark ? AppColors.dark60 : const Color(0xFF1A1A1A)),
                     ),
                   ),
                 ),
                 Icon(
                   Icons.calendar_today_rounded,
                   size: AppShapes.iconMd,
-                  color: isDark ? AppColors.dark200 : AppColors.dark300,
+                  color: iconColor ?? (isDark ? AppColors.dark200 : AppColors.dark300),
                 ),
               ],
             ),
@@ -270,6 +286,8 @@ class BoxyArtSwitchField extends StatelessWidget {
   final String? subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final Color? labelColor;
+  final Color? subtitleColor;
 
   const BoxyArtSwitchField({
     super.key,
@@ -277,6 +295,8 @@ class BoxyArtSwitchField extends StatelessWidget {
     this.subtitle,
     required this.value,
     required this.onChanged,
+    this.labelColor,
+    this.subtitleColor,
   });
 
   @override
@@ -293,7 +313,7 @@ class BoxyArtSwitchField extends StatelessWidget {
               Text(
                 toTitleCase(label),
                 style: AppTypography.label.copyWith(
-                  color: isDark ? AppColors.dark150 : const Color(0xFF404040),
+                  color: labelColor ?? (isDark ? AppColors.dark150 : const Color(0xFF404040)),
                 ),
               ),
               if (subtitle != null) ...[
@@ -301,7 +321,7 @@ class BoxyArtSwitchField extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: AppTypography.helper.copyWith(
-                    color: isDark ? AppColors.dark300 : AppColors.dark400,
+                    color: subtitleColor ?? (isDark ? AppColors.dark300 : AppColors.dark400),
                   ),
                 ),
               ],
@@ -311,16 +331,16 @@ class BoxyArtSwitchField extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeThumbColor: AppColors.lime500,
-          activeTrackColor: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
-          inactiveThumbColor: AppColors.dark300,
-          inactiveTrackColor: AppColors.dark500.withValues(alpha: AppColors.opacityHalf),
+          activeThumbColor: theme.primaryColor,
+          activeTrackColor: theme.primaryColor.withValues(alpha: 0.25),
+          inactiveThumbColor: isDark ? AppColors.dark300 : AppColors.pureWhite,
+          inactiveTrackColor: isDark ? AppColors.dark500.withValues(alpha: AppColors.opacityHalf) : AppColors.dark150,
           trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.selected)) {
-              return isDark ? AppColors.lime500 : AppColors.lime700;
+              return theme.primaryColor;
             }
-            return isDark ? AppColors.dark150 : AppColors.dark300;
+            return isDark ? AppColors.dark150 : AppColors.pureWhite;
           }),
         ),
       ],
@@ -412,7 +432,7 @@ class BoxyArtSwitchTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: AppColors.opacityLow),
+              color: iconColor.withValues(alpha: 0.20),
               borderRadius: AppShapes.md,
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -450,16 +470,16 @@ class BoxyArtSwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.lime500,
-            activeTrackColor: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
-            inactiveThumbColor: AppColors.dark300,
-            inactiveTrackColor: AppColors.dark500.withValues(alpha: AppColors.opacityHalf),
+            activeThumbColor: theme.primaryColor,
+            activeTrackColor: theme.primaryColor.withValues(alpha: 0.25),
+            inactiveThumbColor: isDark ? AppColors.dark300 : AppColors.pureWhite,
+            inactiveTrackColor: isDark ? AppColors.dark500.withValues(alpha: AppColors.opacityHalf) : AppColors.dark150,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
             thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
               if (states.contains(WidgetState.selected)) {
-                return isDark ? AppColors.lime500 : AppColors.lime700;
+                return theme.primaryColor;
               }
-              return isDark ? AppColors.dark150 : AppColors.dark300;
+              return isDark ? AppColors.dark150 : AppColors.pureWhite;
             }),
           ),
         ],
@@ -502,7 +522,7 @@ class BoxyArtNavTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: AppColors.opacityLow),
+                color: iconColor.withValues(alpha: 0.20),
                 borderRadius: AppShapes.md,
               ),
               child: Icon(icon, color: iconColor, size: 22),
@@ -571,7 +591,7 @@ class ModernSwitchRow extends StatelessWidget {
           children: [
             if (icon != null) ...[
               if (icon is IconData)
-                Icon(icon, size: AppShapes.iconMd, color: AppColors.lime500)
+                Icon(icon, size: AppShapes.iconMd, color: Theme.of(context).primaryColor)
               else
                 (icon as Widget),
               const SizedBox(width: AppSpacing.md),
@@ -642,6 +662,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
             child: DropdownButton<T>(
               value: value,
               isExpanded: true,
+              borderRadius: BorderRadius.circular(AppShapes.rLg),
               hint: hint != null ? Text(hint!, style: AppTypography.body.copyWith(color: isDark ? AppColors.dark400 : AppColors.dark300)) : null,
               items: items,
               onChanged: onChanged,

@@ -431,7 +431,7 @@ class EventStatsTab extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              gradient: AppGradients.primary(context),
+              gradient: AppGradients.brandPrimary(context),
               borderRadius: AppShapes.lg,
             ),
             child: Column(

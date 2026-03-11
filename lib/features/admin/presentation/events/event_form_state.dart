@@ -49,6 +49,7 @@ abstract class EventFormState with _$EventFormState {
     @Default([]) List<CourseHole> holes,
     double? rating,
     int? slope,
+    int? par,
     
     // Competition
     String? selectedTemplateId,
@@ -79,6 +80,7 @@ abstract class EventFormState with _$EventFormState {
     double? societyLunchCost,
     double? societyDinnerCost,
     @Default('') String dinnerLocation,
+    @Default('') String dinnerAddress,
     
     // Awards
     @Default(true) bool showAwards,

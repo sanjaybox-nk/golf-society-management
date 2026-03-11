@@ -20,10 +20,12 @@ class EventLogisticsSection extends ConsumerWidget {
           const BoxyArtSectionTitle(title: 'DateTime & Registration'),
           const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.x2l),
+            isHero: true,
             child: Column(
               children: [
                 BoxyArtDatePickerField(
-                  label: state.isMultiDay ? 'Start Date' : 'Date',
+                  label: state.isMultiDay ? 'START DATE' : 'DATE',
                   value: DateFormat.yMMMd().format(state.selectedDate),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -48,7 +50,7 @@ class EventLogisticsSection extends ConsumerWidget {
                 if (state.isMultiDay) ...[
                   const SizedBox(height: AppSpacing.x2l),
                    BoxyArtDatePickerField(
-                    label: 'End Date',
+                    label: 'END DATE',
                     value: state.endDate != null ? DateFormat.yMMMd().format(state.endDate!) : 'Select End Date',
                     onTap: () async {
                         final picked = await showDatePicker(
@@ -68,7 +70,7 @@ class EventLogisticsSection extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: BoxyArtDatePickerField(
-                        label: 'Registration',
+                        label: 'REGISTRATION',
                         value: state.registrationTime.format(context),
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -85,7 +87,7 @@ class EventLogisticsSection extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: BoxyArtDatePickerField(
-                          label: 'Tee-off',
+                          label: 'TEE-OFF',
                           value: state.selectedTime.format(context),
                           onTap: () async {
                             final picked = await showTimePicker(
@@ -117,7 +119,7 @@ class EventLogisticsSection extends ConsumerWidget {
                 ],
                 const SizedBox(height: AppSpacing.x2l),
                 BoxyArtDatePickerField(
-                  label: 'Registration Deadline',
+                  label: 'REGISTRATION DEADLINE',
                   value: (state.deadlineDate == null || state.deadlineTime == null) 
                       ? 'No deadline set' 
                       : '${DateFormat.yMMMd().format(state.deadlineDate!)} @ ${state.deadlineTime!.format(context)}',

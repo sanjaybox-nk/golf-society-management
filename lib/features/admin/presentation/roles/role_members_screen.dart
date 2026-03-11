@@ -50,7 +50,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
             decoration: BoxDecoration(
               color: AppColors.pureWhite,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.r2xl)),
-              boxShadow: AppShadows.softScale,
+              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +159,7 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppShapes.lg,
-        boxShadow: AppShadows.softScale,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
@@ -296,10 +296,10 @@ class _RoleMembersScreenState extends ConsumerState<RoleMembersScreen> {
 
   String _getRoleDescription(MemberRole role) {
     switch (role) {
-      case MemberRole.superAdmin: return 'Manage members designated as Super Admins.';
-      case MemberRole.admin: return 'Manage members designated as Admins.';
-      case MemberRole.restrictedAdmin: return 'Manage members designated as Restricted Admins.';
-      case MemberRole.viewer: return 'Manage members with Viewer access.';
+      case MemberRole.superAdmin: return 'Members designated as Super Admins.';
+      case MemberRole.admin: return 'Members designated as Admins.';
+      case MemberRole.restrictedAdmin: return 'Members designated as Restricted Admins.';
+      case MemberRole.viewer: return 'Members with Viewer access.';
       case MemberRole.member: return '';
     }
   }

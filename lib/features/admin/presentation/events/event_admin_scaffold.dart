@@ -22,7 +22,7 @@ class _EventAdminScaffoldState extends State<EventAdminScaffold> {
 
   final List<String> _titles = [
     'Event Analytics',
-    'Manage Events',
+    'Events',
     'Enter Results',
     'Event Templates',
   ];

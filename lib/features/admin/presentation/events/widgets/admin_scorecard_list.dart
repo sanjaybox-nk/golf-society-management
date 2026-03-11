@@ -271,6 +271,7 @@ class AdminScorecardList extends ConsumerWidget {
         color: isConfirmed ? AppColors.lime500 : (isPending ? AppColors.amber500 : AppColors.dark400),
         size: AppShapes.iconXl,
         iconSize: 16,
+        showFill: false,
       ),
     );
   }

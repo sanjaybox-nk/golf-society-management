@@ -78,6 +78,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       holes: e.courseConfig.holes,
       rating: e.courseConfig.rating,
       slope: e.courseConfig.slope,
+      par: e.courseConfig.par,
       selectedTemplateId: comp?.templateId,
       eventCompetition: comp,
       isCustomized: comp?.computeVersion != null && comp!.computeVersion! > 0,
@@ -129,20 +130,27 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   void updateIsInvitational(bool v) => state = AsyncData(state.value!.copyWith(isInvitational: v));
   
   void updateCourse(Course course) {
+    final tee = course.tees.firstOrNull;
+    final holePars = tee?.holePars ?? course.holePars;
+    final totalPar = holePars.fold<int>(0, (sum, p) => sum + p);
+
     state = AsyncData(state.value!.copyWith(
       selectedCourseId: course.id,
       courseName: course.name,
       courseDetails: course.address,
-      selectedTeeName: course.tees.firstOrNull?.name,
-      holes: course.tees.firstOrNull?.holePars.asMap().entries.map((entry) {
+      selectedTeeName: tee?.name,
+      holes: holePars.asMap().entries.map((entry) {
         final i = entry.key;
         return CourseHole(
           hole: i + 1,
-          par: course.tees.firstOrNull!.holePars[i],
-          si: course.tees.firstOrNull!.holeSIs[i],
-          yardage: course.tees.firstOrNull!.yardages[i],
+          par: holePars[i],
+          si: tee?.holeSIs[i] ?? (i + 1),
+          yardage: tee?.yardages[i] ?? 0,
         );
-      }).toList() ?? [],
+      }).toList(),
+      rating: tee?.rating ?? course.rating,
+      slope: tee?.slope ?? course.slope,
+      par: totalPar,
     ));
   }
 
@@ -203,6 +211,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   void updateSocietyDinnerCost(double v) => state = AsyncData(state.value!.copyWith(societyDinnerCost: v));
   void updateDinnerCost(double v) => state = AsyncData(state.value!.copyWith(dinnerCost: v));
   void updateDinnerLocation(String v) => state = AsyncData(state.value!.copyWith(dinnerLocation: v));
+  void updateDinnerAddress(String v) => state = AsyncData(state.value!.copyWith(dinnerAddress: v));
 
   // Awards Logic
   void updateShowAwards(bool v) => state = AsyncData(state.value!.copyWith(showAwards: v));
@@ -268,29 +277,98 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   GolfEvent constructPreviewEvent() => _constructEvent(state.value!);
 
   GolfEvent _constructEvent(EventFormState s) {
+    final config = s.initialEvent?.courseConfig.copyWith(
+      holes: s.holes,
+      rating: s.rating,
+      slope: s.slope,
+      par: s.par,
+    ) ?? CourseConfig(
+      holes: s.holes,
+      rating: s.rating,
+      slope: s.slope,
+      par: s.par,
+    );
+
+    final regDeadline = s.deadlineDate != null && s.deadlineTime != null 
+        ? DateTime(s.deadlineDate!.year, s.deadlineDate!.month, s.deadlineDate!.day, s.deadlineTime!.hour, s.deadlineTime!.minute)
+        : null;
+        
+    final regTime = DateTime(s.selectedDate.year, s.selectedDate.month, s.selectedDate.day, s.registrationTime.hour, s.registrationTime.minute);
+    final teeOffTime = DateTime(s.selectedDate.year, s.selectedDate.month, s.selectedDate.day, s.selectedTime.hour, s.selectedTime.minute);
+
+    if (s.initialEvent != null) {
+      return s.initialEvent!.copyWith(
+        title: s.title,
+        seasonId: s.selectedSeasonId ?? '',
+        date: s.selectedDate,
+        description: s.description,
+        imageUrl: s.imageUrl,
+        regTime: regTime,
+        teeOffTime: teeOffTime,
+        registrationDeadline: regDeadline,
+        courseId: s.selectedCourseId,
+        courseName: s.courseName,
+        courseDetails: s.courseDetails,
+        courseConfig: config,
+        selectedTeeName: s.selectedTeeName,
+        selectedFemaleTeeName: s.selectedFemaleTeeName,
+        showRegistrationButton: s.showRegistrationButton,
+        isInvitational: s.isInvitational,
+        teeOffInterval: s.teeOffInterval,
+        dressCode: s.dressCode,
+        availableBuggies: s.availableBuggies,
+        maxParticipants: s.maxParticipants,
+        facilities: s.facilities,
+        notes: s.notes,
+        memberCost: s.memberCost,
+        guestCost: s.guestCost,
+        societyGreenFee: s.societyGreenFee,
+        buggyCost: s.buggyCost,
+        eventCost: s.eventCost,
+        hasBreakfast: s.hasBreakfast,
+        hasLunch: s.hasLunch,
+        hasDinner: s.hasDinner,
+        breakfastCost: s.breakfastCost,
+        lunchCost: s.lunchCost,
+        dinnerCost: s.dinnerCost,
+        societyBreakfastCost: s.societyBreakfastCost,
+        societyLunchCost: s.societyLunchCost,
+        societyDinnerCost: s.societyDinnerCost,
+        dinnerLocation: s.dinnerLocation,
+        dinnerAddress: s.dinnerAddress,
+        awards: s.awards,
+        showAwards: s.showAwards,
+        eventType: s.eventType,
+        isMultiDay: s.isMultiDay,
+        endDate: s.endDate,
+        secondaryTemplateId: s.secondaryTemplateId,
+      );
+    }
 
     return GolfEvent(
       id: s.eventId ?? '',
       title: s.title,
-      seasonId: s.selectedSeasonId ?? '', // Should be validated
+      seasonId: s.selectedSeasonId ?? '',
       date: s.selectedDate,
       description: s.description,
       imageUrl: s.imageUrl,
-      regTime: DateTime(s.selectedDate.year, s.selectedDate.month, s.selectedDate.day, s.registrationTime.hour, s.registrationTime.minute),
-      teeOffTime: DateTime(s.selectedDate.year, s.selectedDate.month, s.selectedDate.day, s.selectedTime.hour, s.selectedTime.minute),
-      registrationDeadline: s.deadlineDate != null && s.deadlineTime != null 
-        ? DateTime(s.deadlineDate!.year, s.deadlineDate!.month, s.deadlineDate!.day, s.deadlineTime!.hour, s.deadlineTime!.minute)
-        : null,
+      regTime: regTime,
+      teeOffTime: teeOffTime,
+      registrationDeadline: regDeadline,
       courseId: s.selectedCourseId,
       courseName: s.courseName,
       courseDetails: s.courseDetails,
-      courseConfig: CourseConfig(
-        holes: s.holes,
-        rating: s.rating,
-        slope: s.slope,
-      ),
+      courseConfig: config,
       selectedTeeName: s.selectedTeeName,
       selectedFemaleTeeName: s.selectedFemaleTeeName,
+      showRegistrationButton: s.showRegistrationButton,
+      isInvitational: s.isInvitational,
+      teeOffInterval: s.teeOffInterval,
+      dressCode: s.dressCode,
+      availableBuggies: s.availableBuggies,
+      maxParticipants: s.maxParticipants,
+      facilities: s.facilities,
+      notes: s.notes,
       memberCost: s.memberCost,
       guestCost: s.guestCost,
       societyGreenFee: s.societyGreenFee,
@@ -306,6 +384,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       societyLunchCost: s.societyLunchCost,
       societyDinnerCost: s.societyDinnerCost,
       dinnerLocation: s.dinnerLocation,
+      dinnerAddress: s.dinnerAddress,
       awards: s.awards,
       showAwards: s.showAwards,
       eventType: s.eventType,

@@ -44,7 +44,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                         style: AppTypography.displayHeading,
                       ),
                       Text(
-                        'Manage custom mailing lists',
+                        'Custom mailing lists',
                         style: AppTypography.displayMedium.copyWith(
                           fontSize: AppTypography.sizeBodySmall,
                           color: isDark ? AppColors.dark150 : AppColors.dark300,
@@ -424,7 +424,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
             decoration: BoxDecoration(
               color: theme.scaffoldBackgroundColor,
-              boxShadow: AppShadows.softScale,
+              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

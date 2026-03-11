@@ -32,10 +32,13 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 config.themeMode, 
                 config.brandingStyle, 
                 config.useShadows, 
+                config.shadowIntensity,
                 config.useBorders, 
                 config.borderWidth,
-                config.pillRadius,
                 config.buttonRadius,
+                config.heroRadius,
+                config.shadowSpread,
+                config.shadowOpacity,
               ),
               const SizedBox(height: AppSpacing.x3l),
 
@@ -123,6 +126,59 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    if (config.useShadows) ...[
+                      Row(
+                        children: [
+                          Text('Intensity', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
+                          Expanded(
+                            child: Slider(
+                              value: config.shadowIntensity,
+                              min: 0.0,
+                              max: 2.0,
+                              divisions: 20,
+                              label: config.shadowIntensity.toStringAsFixed(1),
+                              activeColor: Color(config.secondaryColor),
+                              onChanged: (v) => controller.setShadowIntensity(v),
+                            ),
+                          ),
+                          Text(config.shadowIntensity.toStringAsFixed(1), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text('Spread', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
+                          Expanded(
+                            child: Slider(
+                              value: config.shadowSpread,
+                              min: 0.0,
+                              max: 20.0,
+                              divisions: 20,
+                              label: config.shadowSpread.toStringAsFixed(0),
+                              activeColor: Color(config.secondaryColor),
+                              onChanged: (v) => controller.setShadowSpread(v),
+                            ),
+                          ),
+                          Text(config.shadowSpread.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text('Opacity', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
+                          Expanded(
+                            child: Slider(
+                              value: config.shadowOpacity,
+                              min: 0.0,
+                              max: 1.0,
+                              divisions: 20,
+                              label: config.shadowOpacity.toStringAsFixed(2),
+                              activeColor: Color(config.secondaryColor),
+                              onChanged: (v) => controller.setShadowOpacity(v),
+                            ),
+                          ),
+                          Text(config.shadowOpacity.toStringAsFixed(2), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
+                        ],
+                      ),
+                    ],
                     Row(
                       children: [
                         Expanded(
@@ -195,6 +251,23 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(config.buttonRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text('Hero Cards', style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBold)),
+                        Expanded(
+                          child: Slider(
+                            value: config.heroRadius,
+                            min: 0.0,
+                            max: 60.0,
+                            divisions: 30,
+                            label: config.heroRadius.toStringAsFixed(0),
+                            activeColor: Color(config.secondaryColor),
+                            onChanged: (v) => controller.setHeroRadius(v),
+                          ),
+                        ),
+                        Text(config.heroRadius.toStringAsFixed(0), style: AppTypography.helper.copyWith(fontWeight: AppTypography.weightBlack)),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -293,23 +366,19 @@ class BrandingSettingsScreen extends ConsumerWidget {
     String themeMode, 
     String style, 
     bool useShadows, 
+    double shadowIntensity,
     bool useBorders, 
     double borderWidth,
-    double pillRadius,
     double buttonRadius,
+    double heroRadius,
+    double shadowSpread,
+    double shadowOpacity,
   ) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
     final bool isDark = themeMode == 'dark' || (themeMode == 'system' &&  WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
     final bgColor = isDark ? const Color(0xFF1E1E1E) : AppColors.pureWhite;
     final textColor = isDark ? AppColors.pureWhite : Colors.black;
-
-    double radius;
-    switch (style) {
-      case 'classic': radius = 8.0; break;
-      case 'modern':  radius = 28.0; break;
-      default:        radius = 18.0; break;
-    }
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -318,13 +387,14 @@ class BrandingSettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.circular(heroRadius),
           border: useBorders ? Border.all(color: textColor.withValues(alpha: AppColors.opacityLow), width: borderWidth) : null,
           boxShadow: useShadows ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
-              blurRadius: style == 'modern' ? 30 : 15,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: shadowOpacity * shadowIntensity.clamp(0.0, 1.0)),
+              blurRadius: (style == 'modern' ? 30 : 15) * shadowIntensity,
+              offset: Offset(0, 4 * shadowIntensity),
+              spreadRadius: shadowSpread,
             ),
           ] : null,
         ),

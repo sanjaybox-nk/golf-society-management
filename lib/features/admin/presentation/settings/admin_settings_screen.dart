@@ -99,7 +99,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                     BoxyArtNavTile(
                       icon: Icons.badge_rounded,
                       title: 'Committee Roles',
-                      subtitle: 'Manage society specific titles',
+                      subtitle: 'Society specific titles',
                       iconColor: const Color(0xFF1A237E),
                       onTap: () => context.push('/admin/settings/committee-roles'),
                     ),
@@ -107,7 +107,7 @@ class AdminSettingsScreen extends ConsumerWidget {
                     BoxyArtNavTile(
                       icon: Icons.rule_folder_rounded,
                       title: 'Game Templates',
-                      subtitle: 'Manage competition formats & rules',
+                      subtitle: 'Competition formats & rules',
                       iconColor: AppColors.amber500,
                       onTap: () => context.push('/admin/settings/templates'),
                     ),
@@ -115,14 +115,14 @@ class AdminSettingsScreen extends ConsumerWidget {
                     BoxyArtNavTile(
                       icon: Icons.emoji_events_rounded,
                       title: 'Leaderboard Templates',
-                      subtitle: 'Manage season point systems',
+                      subtitle: 'Season point systems',
                       iconColor: AppColors.amber500,
                       onTap: () => context.push('/admin/settings/leaderboards'),
                     ),
                     Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
                     BoxyArtNavTile(
                       icon: Icons.layers_rounded,
-                      title: 'Manage Seasons',
+                      title: 'Seasons',
                       subtitle: 'Archive and setup event seasons',
                       iconColor: AppColors.lime500,
                       onTap: () => context.push('/admin/settings/seasons'),

@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
-import 'package:golf_society/features/members/presentation/member_stats_provider.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/features/members/presentation/widgets/member_stats_row.dart';
 import '../../home/presentation/home_providers.dart';
 
 class LockerScreen extends ConsumerWidget {
@@ -12,7 +13,6 @@ class LockerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(effectiveUserProvider);
-    final stats = ref.watch(userStatsProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
     final primary = Theme.of(context).primaryColor;
 
@@ -135,40 +135,62 @@ class LockerScreen extends ConsumerWidget {
                 },
               ),
 
-              // Stats Section
+              // Stats Section (Design 3.1 Synchronization)
               const BoxyArtSectionTitle(title: 'Season Highlights'),
-              Row(
-                children: [
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: stats['roundsPlayed'].toString(),
-                      label: 'ROUNDS',
-                      icon: Icons.golf_course_rounded,
-                      color: AppColors.teamA,
-                      isCompact: true,
+              Consumer(
+                builder: (context, ref, _) {
+                  final performanceAsync = ref.watch(memberPerformanceProvider(user.id));
+                  return performanceAsync.when(
+                    data: (stats) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MemberStatsRow(
+                          starts: stats.starts,
+                          wins: stats.wins,
+                          top5: stats.top5,
+                          avgPts: stats.avgPts,
+                          bestPts: stats.bestPts,
+                          rank: stats.rank,
+                        ),
+                        SizedBox(height: AppTheme.cardSpacing),
+                        const BoxyArtSectionTitle(title: 'Season Standing'),
+                        const SizedBox(height: AppSpacing.md),
+                        BoxyArtCard(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: Column(
+                            children: [
+                              _buildHighlightRow(
+                                context,
+                                icon: Icons.emoji_events_rounded,
+                                color: AppColors.amber500,
+                                label: 'Order of Merit',
+                                value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
+                              ),
+                              const Divider(height: AppSpacing.x2l, indent: 48),
+                              _buildHighlightRow(
+                                context,
+                                icon: Icons.grid_view_rounded,
+                                color: AppColors.teamA,
+                                label: 'Starts',
+                                value: '${stats.starts} Matches',
+                              ),
+                              const Divider(height: AppSpacing.x2l, indent: 48),
+                              _buildHighlightRow(
+                                context,
+                                icon: Icons.park_rounded,
+                                color: AppColors.lime500,
+                                label: 'Best Score',
+                                value: stats.bestPts > 0 ? '${stats.bestPts} Pts' : '-',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: stats['averageScore'].toString(),
-                      label: 'AVG SCORE',
-                      icon: Icons.analytics_rounded,
-                      color: AppColors.amber500,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: stats['wins'].toString(),
-                      label: 'WINS',
-                      icon: Icons.emoji_events_rounded,
-                      color: AppColors.amber500,
-                      isCompact: true,
-                    ),
-                  ),
-                ],
+                    loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+                    error: (e, s) => const SizedBox.shrink(),
+                  );
+                },
               ),
               const SizedBox(height: AppSpacing.lg),
               BoxyArtButton(
@@ -240,7 +262,41 @@ class LockerScreen extends ConsumerWidget {
     );
   }
 
-  // Removed _buildModernSettingsTile as it is replaced by BoxyArtNavTile
+  Widget _buildHighlightRow(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: AppColors.opacityLow),
+            borderRadius: AppShapes.sm,
+          ),
+          child: Icon(icon, size: AppShapes.iconSm, color: color),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeBody),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: AppTypography.weightBlack,
+            fontSize: AppTypography.sizeBody,
+            color: color == AppColors.amber500 ? Theme.of(context).primaryColor : color,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 

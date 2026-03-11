@@ -6,6 +6,8 @@ class BoxyArtRichEditor extends StatelessWidget {
   final String placeholder;
   final double minHeight;
   final bool scrollable;
+  final bool readOnly;
+  final bool showToolbar;
 
   const BoxyArtRichEditor({
     super.key,
@@ -13,6 +15,8 @@ class BoxyArtRichEditor extends StatelessWidget {
     this.placeholder = 'Message content...',
     this.minHeight = 200,
     this.scrollable = true,
+    this.readOnly = false,
+    this.showToolbar = true,
   });
 
   @override
@@ -23,65 +27,67 @@ class BoxyArtRichEditor extends StatelessWidget {
     return Column(
       children: [
         // Compact Toolbar
-        Container(
-          decoration: BoxDecoration(
-            color: isDark 
-                ? AppColors.dark400.withValues(alpha: AppColors.opacityMuted) 
-                : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rMd)),
-          ),
-          child: SizedBox(
-            height: 48,
-            child: QuillSimpleToolbar(
-              controller: controller,
-              config: QuillSimpleToolbarConfig(
-                showDividers: true,
-                showFontFamily: false,
-                showFontSize: false,
-                showBoldButton: true,
-                showUnderLineButton: true,
-                showStrikeThrough: false,
-                showInlineCode: false,
-                showColorButton: false,
-                showBackgroundColorButton: false,
-                showClearFormat: false,
-                showAlignmentButtons: false,
-                showLeftAlignment: false,
-                showCenterAlignment: false,
-                showRightAlignment: false,
-                showJustifyAlignment: false,
-                showDirection: false,
-                showListNumbers: true,
-                showListBullets: true,
-                showListCheck: true,
-                showCodeBlock: false,
-                showQuote: false,
-                showIndent: false,
-                showLink: false,
-                buttonOptions: const QuillSimpleToolbarButtonOptions(
-                  base: QuillToolbarBaseButtonOptions(
-                    iconSize: 15,
+        if (showToolbar && !readOnly) ...[
+          Container(
+            decoration: BoxDecoration(
+              color: isDark 
+                  ? AppColors.dark400.withValues(alpha: AppColors.opacityMuted) 
+                  : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rMd)),
+            ),
+            child: SizedBox(
+              height: 48,
+              child: QuillSimpleToolbar(
+                controller: controller,
+                config: QuillSimpleToolbarConfig(
+                  showDividers: true,
+                  showFontFamily: false,
+                  showFontSize: false,
+                  showBoldButton: true,
+                  showUnderLineButton: true,
+                  showStrikeThrough: false,
+                  showInlineCode: false,
+                  showColorButton: false,
+                  showBackgroundColorButton: false,
+                  showClearFormat: false,
+                  showAlignmentButtons: false,
+                  showLeftAlignment: false,
+                  showCenterAlignment: false,
+                  showRightAlignment: false,
+                  showJustifyAlignment: false,
+                  showDirection: false,
+                  showListNumbers: true,
+                  showListBullets: true,
+                  showListCheck: true,
+                  showCodeBlock: false,
+                  showQuote: false,
+                  showIndent: false,
+                  showLink: false,
+                  buttonOptions: const QuillSimpleToolbarButtonOptions(
+                    base: QuillToolbarBaseButtonOptions(
+                      iconSize: 15,
+                    ),
+                    linkStyle: QuillToolbarLinkStyleButtonOptions(),
                   ),
-                  linkStyle: QuillToolbarLinkStyleButtonOptions(),
+                  showUndo: true,
+                  showRedo: true,
+                  showSubscript: false,
+                  showSuperscript: false,
+                  showSearchButton: false,
+                  multiRowsDisplay: false,
+                  customButtons: [
+                    QuillToolbarCustomButtonOptions(
+                      icon: const Icon(Icons.link, size: 15),
+                      tooltip: 'Insert Link',
+                      onPressed: () => _showLinkDialog(context, controller),
+                    ),
+                  ],
                 ),
-                showUndo: true,
-                showRedo: true,
-                showSubscript: false,
-                showSuperscript: false,
-                showSearchButton: false,
-                multiRowsDisplay: false,
-                customButtons: [
-                  QuillToolbarCustomButtonOptions(
-                    icon: const Icon(Icons.link, size: 15),
-                    tooltip: 'Insert Link',
-                    onPressed: () => _showLinkDialog(context, controller),
-                  ),
-                ],
               ),
             ),
           ),
-        ),
-        Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.10)),
+          Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.10)),
+        ],
         
         // Editor
         Container(
@@ -91,13 +97,15 @@ class BoxyArtRichEditor extends StatelessWidget {
             color: isDark 
                 ? AppColors.dark300.withValues(alpha: AppColors.opacityMedium) 
                 : AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.rMd)),
-            border: Border.all(
+            borderRadius: showToolbar && !readOnly
+                ? const BorderRadius.vertical(bottom: Radius.circular(AppShapes.rMd))
+                : BorderRadius.circular(AppShapes.rMd),
+            border: readOnly ? null : Border.all(
               color: isDark ? AppColors.dark400 : AppColors.lightBorder,
               width: AppShapes.borderThin,
             ),
           ),
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: readOnly ? EdgeInsets.zero : const EdgeInsets.all(AppSpacing.lg),
           child: QuillEditor.basic(
             controller: controller,
             config: QuillEditorConfig(

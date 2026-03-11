@@ -64,6 +64,12 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setShadowIntensity(double intensity) async {
+    final newConfig = state.copyWith(shadowIntensity: intensity);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setUseBorders(bool use) async {
     final newConfig = state.copyWith(useBorders: use);
     state = newConfig;
@@ -84,6 +90,24 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setButtonRadius(double radius) async {
     final newConfig = state.copyWith(buttonRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setHeroRadius(double radius) async {
+    final newConfig = state.copyWith(heroRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setShadowSpread(double spread) async {
+    final newConfig = state.copyWith(shadowSpread: spread);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setShadowOpacity(double opacity) async {
+    final newConfig = state.copyWith(shadowOpacity: opacity);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

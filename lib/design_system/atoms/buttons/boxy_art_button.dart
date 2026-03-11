@@ -57,23 +57,26 @@ class BoxyArtButton extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius)),
       );
     } else {
-      // Primary Action
-      final actionColor = backgroundColor ?? theme.colorScheme.secondary;
+      // Solid Action - map explicitly to User-Defined Action Color (#86AD92)
+      final actionColor = backgroundColor ?? AppColors.actionGreen;
       style = ElevatedButton.styleFrom(
         backgroundColor: actionColor,
-        foregroundColor: textColor ?? ContrastHelper.getContrastingText(actionColor),
-        textStyle: AppTypography.label,
+        foregroundColor: textColor ?? Colors.white,
+        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightExtraBold),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(config.buttonRadius),
           side: config.useBorders 
               ? BorderSide(
-                  color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacitySubtle),
+                  color: isDark ? AppColors.dark400 : AppColors.lightBorder,
                   width: config.borderWidth,
                 )
               : BorderSide.none,
         ),
         elevation: config.useShadows ? 2 : 0,
-        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: AppColors.opacityLow),
+        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.15),
+        // Ensure no default opacity on disabled state - Solid Action
+        disabledBackgroundColor: actionColor,
+        disabledForegroundColor: textColor ?? ContrastHelper.getContrastingText(actionColor),
       );
     }
 
@@ -128,7 +131,12 @@ class BoxyArtButton extends ConsumerWidget {
         ],
         Text(
           title, // Removed uppercase here as the label style might handle it or it might be explicit
-          style: AppTypography.label.copyWith(color: color),
+          style: AppTypography.label.copyWith(
+            color: color,
+            fontSize: 14.5,
+            fontWeight: AppTypography.weightExtraBold,
+            letterSpacing: -0.2,
+          ),
         ),
       ],
     );

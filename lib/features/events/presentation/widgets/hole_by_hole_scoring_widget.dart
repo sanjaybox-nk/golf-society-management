@@ -54,7 +54,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
   String? _activeEntryId; // [NEW] Track which partner is being edited
   Scorecard? _activeScorecard; // [NEW] Local cache if switching
   Scorecard? _localVerifierCard; // [NEW] Local cache for verifier card to prevent duplicates
-  final int _currentHoleIndex = 0; // [NEW] Track current hole across swiping/ribbon
+  int _currentHoleIndex = 0; // [NEW] Track current hole across swiping/ribbon
 
   @override
   void initState() {
@@ -283,120 +283,185 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
       si = hData.si;
     }
 
-    return GestureDetector(
-      onVerticalDragUpdate: (details) {
-        if (details.primaryDelta! < -10) {
-          _openHeroScoring(holes, resolvedPtc);
-        }
-      },
-      child: BoxyArtCard(
-        height: matchResult != null ? 140 : 100, // [FIXED] Reduced height for more compact layout
-        padding: EdgeInsets.zero,
-        child: Column(
-          children: [
-              // Match Status Header (if active)
-              if (matchResult != null)
-                MatchStatusHeader(
-                  result: matchResult.result,
-                  match: matchResult.match,
-                ),
+    final int currentScore = (widget.selectedTab == MarkerTab.player ? _localScores : _verifierScores)[currentHoleNum] ?? par;
+    final pts = ScoringCalculator.calculateHolePoints(
+      grossScore: currentScore,
+      par: par,
+      si: si ?? 18,
+      playingHandicap: HandicapCalculator.getStoredPhc(widget.event.grouping, _activeEntryId ?? '').toDouble(),
+    );
 
-              // Tactical Handle Content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), // [FIXED] Reduced top padding
-                child: Column(
-                  children: [
-                    // Row 1: Centered Hole Info
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'HOLE $currentHoleNum • PAR $par${si != null ? ' • SI $si' : ''}',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.caption.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
-                            fontWeight: AppTypography.weightBlack,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    // Row 2: 50/50 Split Actions
-                    Row(
-                      children: [
-                        // Persistent Toggle
-                        Expanded(
-                          child: Container(
-                            height: 36, // [FIX] Standardized height
-                            decoration: BoxDecoration(
-                              color: AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
-                              borderRadius: AppShapes.md,
-                            ),
-                            child: Row(
-                              children: [
-                                _buildTab(
-                                  context, 
-                                  'PLAYER', 
-                                  null, 
-                                  widget.selectedTab == MarkerTab.player, 
-                                  () => widget.onTabChanged(MarkerTab.player),
-                                  isDisabled: widget.isSelfMarking, 
-                                ),
-                                _buildTab(
-                                  context, 
-                                  'ME', 
-                                  null, 
-                                  widget.selectedTab == MarkerTab.verifier, 
-                                  () => widget.onTabChanged(MarkerTab.verifier),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        // Enter Button
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _openHeroScoring(holes, resolvedPtc),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).primaryColor,
-                              foregroundColor: AppColors.pureWhite,
-                              elevation: 0,
-                              minimumSize: const Size(double.infinity, 36), // [FIX] Expand to fill
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                              shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center, // Center for better symmetry
-                              children: [
-                                Icon(Icons.bolt, size: AppShapes.iconXs),
-                                SizedBox(width: AppSpacing.xs),
-                                 Text('ENTER SCORE', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              
-              const Spacer(),
-              // Drag Handle Indicator
-              Container(
-                width: AppSpacing.x3l,
-                height: 3,
-                margin: const EdgeInsets.only(bottom: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
-                  borderRadius: AppShapes.grabber,
-                ),
-              ),
-          ],
+    return Column(
+      children: [
+        // 1. Hole Selector Ribbon (Moved from Hero)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: BoxyHoleSelector(
+            currentHole: currentHoleNum,
+            scores: widget.selectedTab == MarkerTab.player ? _localScores : _verifierScores,
+            onHoleChanged: (h) => setState(() => _currentHoleIndex = h - 1),
+          ),
         ),
-      ),
+
+        GestureDetector(
+          onVerticalDragUpdate: (details) {
+            if (details.primaryDelta! < -10) {
+              _openHeroScoring(holes, resolvedPtc);
+            }
+          },
+          child: BoxyArtCard(
+            height: matchResult != null ? 160 : 125, // Height to accommodate mini keypad
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                  // Match Status Header (if active)
+                  if (matchResult != null)
+                    MatchStatusHeader(
+                      result: matchResult.result,
+                      match: matchResult.match,
+                    ),
+
+                  // Consolidated Scoring Content
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Column(
+                      children: [
+                        // Row 1: Player Selection + Hole Info
+                        Row(
+                          children: [
+                            // 50/50 Split Marker Toggle
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+                                  borderRadius: AppShapes.md,
+                                ),
+                                child: Row(
+                                  children: [
+                                    _buildTab(
+                                      context, 
+                                      'PLAYER', 
+                                      null, 
+                                      widget.selectedTab == MarkerTab.player, 
+                                      () => widget.onTabChanged(MarkerTab.player),
+                                      isDisabled: widget.isSelfMarking, 
+                                    ),
+                                    _buildTab(
+                                      context, 
+                                      'ME', 
+                                      null, 
+                                      widget.selectedTab == MarkerTab.verifier, 
+                                      () => widget.onTabChanged(MarkerTab.verifier),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            // Hole Summary
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                'PAR $par${si != null ? ' • SI $si' : ''} • $pts PTS',
+                                textAlign: TextAlign.right,
+                                style: AppTypography.caption.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                                  fontWeight: AppTypography.weightBlack,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        
+                        // Row 2: Mini Keypad + Next Hole
+                        Row(
+                          children: [
+                            // Keypad
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildMiniCircleButton(
+                                  context, 
+                                  Icons.remove, 
+                                  () => _setScore(currentHoleNum, currentScore - 1, isVerifier: widget.selectedTab == MarkerTab.verifier),
+                                  isDisabled: currentScore <= 1,
+                                ),
+                                Container(
+                                  width: 44,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '$currentScore',
+                                    style: AppTypography.displayLocker.copyWith(
+                                      color: Theme.of(context).primaryColor,
+                                      fontSize: 24,
+                                    ),
+                                  ),
+                                ),
+                                _buildMiniCircleButton(
+                                  context, 
+                                  Icons.add, 
+                                  () => _setScore(currentHoleNum, currentScore + 1, isVerifier: widget.selectedTab == MarkerTab.verifier),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            // Next Hole / Hero Button
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (currentHoleNum < 18) {
+                                    setState(() => _currentHoleIndex++);
+                                  } else {
+                                    _openHeroScoring(holes, resolvedPtc);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  foregroundColor: AppColors.pureWhite,
+                                  elevation: 0,
+                                  minimumSize: const Size(double.infinity, 40),
+                                  shape: RoundedRectangleBorder(borderRadius: AppShapes.md),
+                                ),
+                                child: Text(
+                                  currentHoleNum < 18 ? 'NEXT HOLE' : 'FINISH CARD', 
+                                  style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            // Expansion Button (Hero)
+                            IconButton(
+                              onPressed: () => _openHeroScoring(holes, resolvedPtc),
+                              icon: const Icon(Icons.bolt, color: AppColors.amber500),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const Spacer(),
+                  // Drag Handle Indicator
+                  Container(
+                    width: AppSpacing.x3l,
+                    height: 3,
+                    margin: const EdgeInsets.only(bottom: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
+                      borderRadius: AppShapes.grabber,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -415,7 +480,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
           margin: const EdgeInsets.all(2), // Subtle inset for the pill
           decoration: BoxDecoration(
             color: isActive ? activeBg : Colors.transparent,
-            borderRadius: AppShapes.sm,
+            borderRadius: AppShapes.md, // [FIX] Consistent with card system
             boxShadow: isActive ? [
               BoxShadow(
                 color: Colors.black.withValues(alpha: AppColors.opacityMedium),
@@ -446,6 +511,28 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniCircleButton(BuildContext context, IconData icon, VoidCallback? onTap, {bool isDisabled = false}) {
+    return InkWell(
+      onTap: isDisabled ? null : onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isDisabled 
+              ? AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle)
+              : Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle),
+        ),
+        child: Icon(
+          icon, 
+          size: 16, 
+          color: isDisabled ? AppColors.textSecondary : Theme.of(context).primaryColor
         ),
       ),
     );

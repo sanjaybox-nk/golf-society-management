@@ -12,17 +12,19 @@ class EventUserShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final location = GoRouterState.of(context).uri.toString();
     int currentIndex = 0;
     
     // Determine index based on current route
-    if (location.contains('/details')) {
+    final segments = GoRouterState.of(context).uri.pathSegments;
+    if (segments.contains('details')) {
+      currentIndex = 0;
+    } else if (segments.contains('field')) {
       currentIndex = 1;
-    } else if (location.contains('/field')) {
+    } else if (segments.contains('live')) {
       currentIndex = 2;
-    } else if (location.contains('/live')) {
+    } else if (segments.contains('scores')) {
       currentIndex = 3;
-    } else if (location.contains('/stats')) {
+    } else if (segments.contains('stats')) {
       currentIndex = 4;
     }
 
@@ -34,14 +36,9 @@ class EventUserShell extends ConsumerWidget {
         onItemSelected: (index) => _onTap(context, index),
         items: const [
           BoxyArtBottomNavItem(
-            icon: Icons.home_outlined,
-            activeIcon: Icons.home_rounded,
-            label: 'Home',
-          ),
-          BoxyArtBottomNavItem(
             icon: Icons.info_outline_rounded,
             activeIcon: Icons.info_rounded,
-            label: 'Details',
+            label: 'Info',
           ),
           BoxyArtBottomNavItem(
             icon: Icons.grid_view_rounded,
@@ -49,9 +46,14 @@ class EventUserShell extends ConsumerWidget {
             label: 'Field',
           ),
           BoxyArtBottomNavItem(
+            icon: Icons.edit_note_rounded,
+            activeIcon: Icons.edit_note_rounded,
+            label: 'My Card',
+          ),
+          BoxyArtBottomNavItem(
             icon: Icons.emoji_events_outlined,
             activeIcon: Icons.emoji_events_rounded,
-            label: 'Live',
+            label: 'Scores',
           ),
           BoxyArtBottomNavItem(
             icon: Icons.analytics_outlined,
@@ -77,18 +79,6 @@ class EventUserShell extends ConsumerWidget {
     if (segments.length < 2) return;
     final id = Uri.decodeComponent(segments[1]);
     
-    // Determine current index to detect if tapping same tab
-    int currentIndex = 0;
-    if (location.endsWith('/details')) {
-      currentIndex = 1;
-    } else if (location.endsWith('/field')) {
-      currentIndex = 2;
-    } else if (location.endsWith('/live')) {
-      currentIndex = 3;
-    } else if (location.endsWith('/stats')) {
-      currentIndex = 4;
-    }
-
     // Preserve query parameters (e.g. preview=true)
     final query = uri.query;
     final suffix = query.isNotEmpty ? '?$query' : '';
@@ -97,21 +87,16 @@ class EventUserShell extends ConsumerWidget {
 
     switch (index) {
       case 0:
-        // If already on Home tab, go back to events list
-        if (currentIndex == 0) {
-          context.go('/events');
-        } else {
-          context.go('/events/$encodedId$suffix');
-        }
-        break;
-      case 1:
         context.go('/events/$encodedId/details$suffix');
         break;
-      case 2:
+      case 1:
         context.go('/events/$encodedId/field$suffix');
         break;
-      case 3:
+      case 2:
         context.go('/events/$encodedId/live$suffix');
+        break;
+      case 3:
+        context.go('/events/$encodedId/scores$suffix');
         break;
       case 4:
         context.go('/events/$encodedId/stats$suffix');

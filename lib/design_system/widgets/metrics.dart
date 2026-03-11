@@ -28,37 +28,44 @@ class ModernMetricStat extends StatelessWidget {
   final String value;
   final String label;
   final IconData? icon;
-  final Color color;
+  final Color? color;
   final bool isCompact;
   final bool isSolid;
+  final Color? iconColor;
 
   const ModernMetricStat({
     super.key,
     required this.value,
     required this.label,
     this.icon,
-    required this.color,
+    this.color,
     this.isCompact = false,
     this.isSolid = false,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final effectiveColor = color ?? theme.colorScheme.secondary;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: isSolid ? color : color.withValues(alpha: AppColors.opacityMedium),
+        color: isSolid ? effectiveColor : AppColors.actionGreen.withValues(alpha: 0.20),
         borderRadius: AppShapes.lg,
-        border: isSolid ? null : Border.all(color: color.withValues(alpha: AppColors.opacityLow), width: AppShapes.borderThin),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: AppShapes.iconMd, color: isSolid ? AppColors.pureWhite : color),
+            Icon(
+              icon, 
+              size: AppShapes.iconMd, 
+              color: isSolid ? AppColors.pureWhite : AppColors.dark900,
+            ),
             const SizedBox(height: AppSpacing.sm),
           ],
           Text(
@@ -67,7 +74,7 @@ class ModernMetricStat extends StatelessWidget {
               fontSize: AppTypography.sizeLargeBody,
               color: isSolid 
                   ? AppColors.pureWhite 
-                  : (isDark ? color : AppColors.dark900),
+                  : (isDark ? AppColors.pureWhite : AppColors.dark900),
               letterSpacing: -0.8,
               fontWeight: AppTypography.weightBlack,
             ),
@@ -82,7 +89,7 @@ class ModernMetricStat extends StatelessWidget {
               fontSize: AppTypography.sizeCaption,
               color: isSolid 
                   ? AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh) 
-                  : (isDark ? AppColors.dark200 : AppColors.dark300),
+                  : (isDark ? AppColors.dark200 : AppColors.dark800),
               fontWeight: AppTypography.weightSemibold,
             ),
             textAlign: TextAlign.center,
@@ -111,9 +118,9 @@ class ModernSummaryIcon extends StatelessWidget {
   });
 
   @override
-  @override
   Widget build(BuildContext context) {
-    final color = active ? (activeColor ?? const Color(0xFF27AE60)) : AppColors.dark300;
+    final theme = Theme.of(context);
+    final color = active ? (activeColor ?? theme.colorScheme.secondary) : AppColors.dark300;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

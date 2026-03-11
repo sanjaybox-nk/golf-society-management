@@ -42,7 +42,7 @@ class _EventAdminScoresScreenState extends ConsumerState<EventAdminScoresScreen>
         });
 
         return HeadlessScaffold(
-          title: 'Manage Scores',
+          title: 'Scores',
           subtitle: event.title,
           useScaffold: false,
           showBack: true,

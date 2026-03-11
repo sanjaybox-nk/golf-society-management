@@ -39,7 +39,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
         width: availableWidth,
         decoration: BoxDecoration(
           borderRadius: AppShapes.x2l,
-          boxShadow: AppShadows.softScale,
+          boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
         ),
         child: ClipRRect(
           borderRadius: AppShapes.x2l,
@@ -49,7 +49,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: backgroundColor ?? (isDark 
                     ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                    : AppColors.pureWhite.withValues(alpha: 0.85)),
+                    : AppColors.pureWhite.withValues(alpha: 0.65)),
                 borderRadius: AppShapes.x2l,
                 border: Border.all(
                   color: isDark 
