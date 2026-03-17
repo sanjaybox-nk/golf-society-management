@@ -157,7 +157,7 @@ class _UnderlinedTabItem extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+              color: isSelected ? AppColors.actionGreen : Colors.transparent,
               width: AppShapes.borderMedium, // Thinner, sharper underline
             ),
           ),

@@ -7,12 +7,21 @@ class CourseInfoCard extends StatelessWidget {
   final String? selectedTeeName;
   final String distanceUnit;
   final bool isStableford;
-  final int? playerHandicap; // For calculating shot allowances
-  final List<int?>? scores; // Actual scores entered by user
+  final List<int?>? holeScores; // Main raw scores
+  final List<int?>? holeNetScores; // Pre-calculated net
+  final List<int?>? holePoints; // Pre-calculated points
+  final List<int>? holeDistances;
+  final List<int>? holePars;
+  final List<int>? holeSIs;
   final Color? headerColor; // [NEW] Optional override for header row background
   final CompetitionFormat? format; // [NEW] Current competition format
   final MaxScoreConfig? maxScoreConfig; // [NEW] Configuration for Max Score capping
   final bool isNet; // [NEW] Whether to show Net scores/totals
+  final int? holeLimit;
+  final List<CourseScoreRow>? additionalRows;
+  final String? mainRowLabel; 
+  final int? overrideTotalPoints;
+  final List<String>? matchPlayResults;
 
   const CourseInfoCard({
     super.key,
@@ -20,8 +29,12 @@ class CourseInfoCard extends StatelessWidget {
     this.selectedTeeName,
     this.distanceUnit = 'yards',
     this.isStableford = false,
-    this.playerHandicap,
-    this.scores,
+    this.holeScores,
+    this.holeNetScores,
+    this.holePoints,
+    this.holeDistances,
+    this.holePars,
+    this.holeSIs,
     this.headerColor,
     this.format,
     this.maxScoreConfig,
@@ -29,689 +42,299 @@ class CourseInfoCard extends StatelessWidget {
     this.additionalRows, 
     this.mainRowLabel, 
     this.isNet = true, 
-    this.overridePoints,
     this.overrideTotalPoints,
     this.matchPlayResults,
   });
 
-  final int? holeLimit;
-  final List<CourseScoreRow>? additionalRows;
-  final String? mainRowLabel; 
-  final List<int?>? overridePoints;
-  final int? overrideTotalPoints;
-  final List<String>? matchPlayResults; // [NEW] Optional Match Play outcome row (W, L, H)
-
   @override
   Widget build(BuildContext context) {
-    // Extract course data - handle both formats
-    List<dynamic> holePars;
-    List<dynamic> holeSIs;
-    
-    if (courseConfig is CourseConfig) {
-      holePars = courseConfig.holes.map((h) => h.par).toList();
-      holeSIs = courseConfig.holes.map((h) => h.si).toList();
-    } else if (courseConfig is Map && courseConfig['holes'] != null) {
-      final holes = courseConfig['holes'] as List<dynamic>;
-      holePars = holes.map((h) => h['par'] ?? 4).toList();
-      holeSIs = holes.map((h) => h['si'] ?? 0).toList();
-    } else if (courseConfig is Map) {
-      // Legacy format
-      holePars = courseConfig['holePars'] as List<dynamic>? ?? List.filled(18, 4);
-      holeSIs = courseConfig['holeSIs'] as List<dynamic>? ?? List.generate(18, (i) => i + 1);
-    } else {
-      holePars = List.filled(18, 4);
-      holeSIs = List.generate(18, (i) => i + 1);
-    }
-    
-    // Calculate totals
-    final front9Pars = holePars.take(9).fold<int>(0, (sum, par) => sum + (par as int));
-    final back9Pars = holePars.skip(9).take(9).fold<int>(0, (sum, par) => sum + (par as int));
-    final int totalPar = (front9Pars + back9Pars) > 0 ? (front9Pars + back9Pars) : 72; 
-    
-    // Calculate Running Stats
-    int totalStrokes = 0;
-    int totalAdjustedStrokes = 0;
-    int totalPoints = 0;
-    int holesPlayed = 0;
-    final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
+    // 1. Resolve Course Data
+    final List<int> pars = holePars ?? (courseConfig is CourseConfig ? (courseConfig as CourseConfig).holes.map((h) => h.par).toList() : List.filled(18, 4));
+    final List<int> sis = holeSIs ?? (courseConfig is CourseConfig ? (courseConfig as CourseConfig).holes.map((h) => h.si).toList() : List.generate(18, (i) => i + 1));
+    final List<int> dists = holeDistances ?? (courseConfig is CourseConfig ? (courseConfig as CourseConfig).holes.map((h) => (h.yardage ?? 0)).toList() : List.filled(18, 0));
 
-    if (scores != null) {
-      for (int i = 0; i < scores!.length; i++) {
-        final score = scores![i];
-        if (score != null) {
-          if (holeLimit != null && i >= holeLimit!) continue; // Skip holes beyond simulation limit
+    // 2. Totals Calculation (Simple sum of pre-calculated data)
+    final int holesPlayed = (holeScores ?? []).where((s) => s != null).length;
+    final int totalStrokes = (holeScores ?? []).whereType<int>().fold<int>(0, (a, b) => a + b);
+    final int totalNetStrokes = (holeNetScores ?? []).whereType<int>().fold<int>(0, (a, b) => a + b);
+    final int totalPoints = overrideTotalPoints ?? (holePoints ?? []).whereType<int>().fold<int>(0, (a, b) => a + b);
+    final int totalPar = pars.fold<int>(0, (a, b) => a + b);
 
-          totalStrokes += score;
-          holesPlayed++;
-
-          // Calculate Adjusted Score for Max Score
-          if (isMaxScore && playerHandicap != null && i < holePars.length && i < holeSIs.length) {
-             final par = holePars[i] as int;
-             final si = holeSIs[i] as int;
-             int shotsReceived = (playerHandicap! / 18).floor();
-             if (playerHandicap! % 18 >= si) shotsReceived++;
-
-             int cap;
-             switch (maxScoreConfig!.type) {
-               case MaxScoreType.fixed: cap = maxScoreConfig!.value; break;
-               case MaxScoreType.parPlusX: cap = par + maxScoreConfig!.value; break;
-               case MaxScoreType.netDoubleBogey: cap = par + 2 + shotsReceived; break;
-             }
-             totalAdjustedStrokes += score > cap ? cap : score;
-          } else {
-             totalAdjustedStrokes += score;
-          }
-
-          // Calculate points
-          if (isStableford && playerHandicap != null && i < holePars.length && i < holeSIs.length) {
-            final par = holePars[i] as int;
-            final si = holeSIs[i] as int;
-            
-            // Calculate shots received on this hole (handles HCP > 18)
-            int shotsReceived = (playerHandicap! / 18).floor();
-            if (playerHandicap! % 18 >= si) shotsReceived++;
-            
-            final netScore = score - shotsReceived;
-            
-            // Calculate Stableford points (2 points for net par)
-            final points = (par - netScore + 2).clamp(0, 8);
-            totalPoints += points;
-          }
-        }
-      }
-    } else if (additionalRows != null && additionalRows!.isNotEmpty) {
-      // For team events where mainScores is null, calculate holesPlayed from individual rows
-      for (int i = 0; i < 18; i++) {
-        if (additionalRows!.any((r) => r.scores.length > i && r.scores[i] != null)) {
-          holesPlayed++;
-        }
+    // To Par calculation
+    int? toParDiff;
+    if (holesPlayed > 0) {
+      if (isStableford) {
+        toParDiff = totalPoints - (holesPlayed * 2);
+      } else {
+        final playedPar = pars.take(holesPlayed).fold<int>(0, (a, b) => a + b);
+        toParDiff = totalNetStrokes - playedPar;
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        BoxyArtCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Front 9
-              _buildNineHoles(
-                context,
-                'OUT',
-                holePars.take(9).toList(),
-                holeSIs.take(9).toList(),
-                front9Pars,
-                1,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              
-              // Back 9
-              _buildNineHoles(
-                context,
-                'IN',
-                holePars.skip(9).take(9).toList(),
-                holeSIs.skip(9).take(9).toList(),
-                back9Pars,
-                10,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              
-              // Totals
-              _buildTotalsRow(context, totalPar, totalStrokes, totalAdjustedStrokes, totalPoints, holesPlayed, holePars, holeSIs),
-            ],
-          ),
-        ),
-      ],
+    return BoxyArtCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          _buildHeaderRow(context, 'FRONT 9'),
+          _buildNineHoles(context, 'OUT', 1, pars, sis, dists, holeScores, holeNetScores, holePoints),
+          const SizedBox(height: AppSpacing.sm),
+          _buildHeaderRow(context, 'BACK 9'),
+          _buildNineHoles(context, 'IN', 10, pars, sis, dists, holeScores, holeNetScores, holePoints),
+          _buildTotalsFooter(context, totalStrokes, totalNetStrokes, totalPoints, totalPar, holesPlayed, toParDiff),
+        ],
+      ),
     );
   }
 
   Widget _buildNineHoles(
-    BuildContext context,
-    String label,
-    List<dynamic> pars,
-    List<dynamic> sis,
-    int totalPar,
+    BuildContext context, 
+    String label, 
     int startHole,
+    List<int> pars,
+    List<int> sis,
+    List<int> dists,
+    List<int?>? scores,
+    List<int?>? nets,
+    List<int?>? points,
   ) {
-    // Get actual scores from user input and pad with nulls to ensure length 9
-    final rawScores = scores?.skip(startHole - 1).take(9).toList() ?? [];
-    final nineScores = List<int?>.generate(9, (i) {
-       if (holeLimit != null && (startHole + i) > holeLimit!) return null;
-       return i < rawScores.length ? rawScores[i] : null;
-    });
-    
-    final totalScore = nineScores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int));
-    
-    // Calculate Stableford points if applicable
-    List<int?> stablefordPoints = [];
-    int totalPoints = 0;
-    
-    if (isStableford && playerHandicap != null) {
-      for (int i = 0; i < 9; i++) {
-        if (nineScores[i] != null && i < pars.length && i < sis.length) {
-          final par = pars[i] as int;
-          final si = sis[i] as int;
-          final score = nineScores[i]!;
-          
-          // Calculate shots received on this hole (handles HCP > 18)
-          int shotsReceived = (playerHandicap! / 18).floor();
-          if (playerHandicap! % 18 >= si) shotsReceived++;
-          
-          final netScore = score - shotsReceived;
-          
-          // Calculate Stableford points (2 points for net par)
-          final points = par - netScore + 2;
-          stablefordPoints.add(points.clamp(0, 8)); // Support Higher points (Albatross etc)
-        } else {
-          stablefordPoints.add(null);
-        }
-      }
-    } else {
-      stablefordPoints = List<int?>.filled(9, null);
-    }
-    
-    // Apply overrides if provided
-    if (overridePoints != null) {
-      final overrideSlice = overridePoints!.skip(startHole - 1).take(9).toList();
-      for (int i = 0; i < 9; i++) {
-        if (i < overrideSlice.length) stablefordPoints[i] = overrideSlice[i];
-      }
-    }
+    final startIdx = startHole - 1;
+    final ninePars = pars.skip(startIdx).take(9).toList();
+    final nineSIs = sis.skip(startIdx).take(9).toList();
+    final nineDists = dists.skip(startIdx).take(9).toList();
+    final nineScores = (scores ?? List.filled(18, null)).skip(startIdx).take(9).toList();
+    final ninePoints = (points ?? List.filled(18, null)).skip(startIdx).take(9).toList();
 
-    totalPoints = stablefordPoints.where((p) => p != null).fold<int>(0, (sum, p) => sum + (p as int));
+    final String distLabel = distanceUnit.toUpperCase().contains('METRE') ? 'MTR' : 'YDS';
+    final int nineDistTotal = nineDists.fold<int>(0, (a, b) => a + b);
+    final int nineParTotal = ninePars.fold<int>(0, (a, b) => a + b);
+    final int nineScoreTotal = nineScores.whereType<int>().fold<int>(0, (a, b) => a + b);
 
-    // New: Calculate Adjusted Scores for Max Score format
-    List<int?> adjustedScores = [];
-    int totalAdjusted = 0;
-    final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
-
-    if (isMaxScore && playerHandicap != null) {
-      for (int i = 0; i < 9; i++) {
-        final score = nineScores[i];
-        if (score != null && i < pars.length && i < sis.length) {
-          final par = pars[i] as int;
-          final si = sis[i] as int;
-          
-          // Calculate shots received
-          int shotsReceived = (playerHandicap! / 18).floor();
-          if (playerHandicap! % 18 >= si) shotsReceived++;
-
-          int cap;
-          switch (maxScoreConfig!.type) {
-            case MaxScoreType.fixed:
-              cap = maxScoreConfig!.value;
-              break;
-            case MaxScoreType.parPlusX:
-              cap = par + maxScoreConfig!.value;
-              break;
-            case MaxScoreType.netDoubleBogey:
-              cap = par + 2 + shotsReceived;
-              break;
-          }
-          
-          final adjusted = score > cap ? cap : score;
-          adjustedScores.add(adjusted);
-          totalAdjusted += adjusted;
-        } else {
-          adjustedScores.add(null);
-        }
-      }
-    }
-    
     return Column(
       children: [
-          Container(
-            decoration: BoxDecoration(
-              color: headerColor ?? AppColors.dark600,
-            ),
+        // Hole Row
+        Row(
+          children: [
+            _buildSideLabel(context, 'HOLE'),
+            for (int i = 0; i < 9; i++)
+              Expanded(child: _buildValueCell(context, '${startHole + i}', isHeader: true)),
+            _buildTotalCell(context, label, isHeader: true),
+          ],
+        ),
+        const Divider(height: 1),
+
+        // Distance Row
+        Row(
+          children: [
+            _buildSideLabel(context, distLabel),
+            for (int i = 0; i < 9; i++)
+              Expanded(child: _buildValueCell(context, nineDists[i] > 0 ? '${nineDists[i]}' : '-', isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300)),
+            _buildTotalCell(context, nineDistTotal > 0 ? '$nineDistTotal' : '-', isDimmed: true, fontSize: 12, fontWeight: FontWeight.w300),
+          ],
+        ),
+        const Divider(height: 1),
+
+        // Par Row (Yellow/Tee styled)
+        (() {
+          final teeColor = AppColors.getTeeColor(selectedTeeName);
+          final teeTextColor = teeColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+          return Container(
+            color: teeColor,
             child: Row(
               children: [
-                SizedBox(width: 50, child: _buildCellHeader(context, '', width: 50)),
+                _buildSideLabel(context, 'PAR', color: teeTextColor),
                 for (int i = 0; i < 9; i++)
-                  Expanded(child: _buildCellHeader(context, '${startHole + i}', width: double.infinity)),
-                SizedBox(width: AppSpacing.x4l, child: _buildCellHeader(context, label, width: AppSpacing.x4l, isBold: true)),
+                  Expanded(child: _buildValueCell(context, '${ninePars[i]}', color: teeTextColor, isBold: true)),
+                _buildTotalCell(context, '$nineParTotal', color: teeTextColor, isBold: true, bgColor: teeColor),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          
-          // Par row with tee color background
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
-            ),
-            child: Row(
-              children: [
-                SizedBox(width: 50, child: _buildCellLabel(context, 'Par', width: 50)),
-                for (int i = 0; i < 9; i++)
-                  Expanded(child: _buildCell(context, i < pars.length ? '${pars[i]}' : '-', width: double.infinity, isPar: true)),
-                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, '$totalPar', width: AppSpacing.x4l, isBold: true)),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          
-          // SI row
+          );
+        })(),
+        const Divider(height: 1),
+
+        // SI Row
+        Row(
+          children: [
+            _buildSideLabel(context, 'SI'),
+            for (int i = 0; i < 9; i++)
+              Expanded(child: _buildValueCell(context, '${nineSIs[i]}')),
+            _buildTotalCell(context, ''),
+          ],
+        ),
+        const Divider(height: 1),
+
+        // Main Score Row (STR)
+        Row(
+          children: [
+            _buildSideLabel(context, mainRowLabel ?? 'STR'),
+            for (int i = 0; i < 9; i++)
+              Expanded(child: _buildScoreCell(context, nineScores[i], ninePars[i])),
+            _buildTotalCell(context, nineScoreTotal > 0 ? '$nineScoreTotal' : '-', isBold: true),
+          ],
+        ),
+        const Divider(height: 1),
+
+        // Partner Rows
+        if (additionalRows != null) ...[
+          for (var row in additionalRows!)
+            _buildPartnerScoreRow(context, row, startIdx, ninePars),
+        ],
+
+        // PTS Row (Stableford only)
+        if (isStableford) ...[
           Row(
             children: [
-              SizedBox(width: 50, child: _buildCellLabel(context, 'SI', width: 50)),
+              _buildSideLabel(context, 'PTS'),
               for (int i = 0; i < 9; i++)
-                Expanded(child: _buildCell(context, i < sis.length ? '${sis[i]}' : '-', width: double.infinity)),
-              SizedBox(width: AppSpacing.x4l, child: _buildCell(context, '', width: AppSpacing.x4l)),
+                Expanded(child: _buildValueCell(context, ninePoints[i] != null || nineScores[i] != null ? (ninePoints[i]?.toString() ?? '-') : '-', isDimmed: true)),
+              _buildTotalCell(context, ninePoints.whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
             ],
           ),
           const Divider(height: 1),
-          
-    // Score row (individual or team summary)
-          if (scores != null) ...[
-             Row(
-              children: [
-                SizedBox(width: 50, child: _buildCellLabel(context, mainRowLabel ?? 'Strokes', width: 50)),
-                for (int i = 0; i < 9; i++)
-                  Expanded(
-                    child: _buildCell(
-                      context, 
-                      nineScores[i]?.toString() ?? '-', 
-                      width: double.infinity, 
-                      isScore: true,
-                      scoreDiff: (nineScores[i] != null && i < pars.length) 
-                          ? nineScores[i]! - (pars[i] as int) 
-                          : null,
-                    ),
-                  ),
-                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalScore > 0 || nineScores.any((s) => s != null) ? '$totalScore' : '-', width: AppSpacing.x4l, isBold: true, isScore: true)),
-              ],
-            ),
-            const Divider(height: 1),
-          ],
-
-          if (additionalRows != null && additionalRows!.isNotEmpty) ...[
-             // Render Additional Rows (e.g. Partner A, Partner B)
-             for (var row in additionalRows!)
-               _buildScoreRow(context, row.playerName, row.scores, startHole, pars, sis, row.handicap, color: row.color, countingHoles: row.countingHoles),
-          ],
-          
-          // New: Adjusted Row
-          if (isMaxScore) ...[
-            const Divider(height: 1),
-            Row(
-              children: [
-                SizedBox(width: 50, child: _buildCellLabel(context, 'Adjusted', width: 50)),
-                for (int i = 0; i < 9; i++)
-                  (() {
-                    final score = adjustedScores[i];
-                    final rawScore = nineScores[i];
-                    final bool isCapped = score != null && rawScore != null && score < rawScore;
-                    
-                    return Expanded(
-                      child: _buildCell(
-                        context, 
-                        score?.toString() ?? '-', 
-                        width: double.infinity, 
-                        isScore: true,
-                        // Highlight if adjusted (capped)
-                        isBold: isCapped,
-                        overrideBgColor: isCapped ? AppColors.amber500 : AppColors.dark500,
-                        overrideTextColor: isCapped ? Colors.black : AppColors.dark200,
-                        scoreDiff: null, // Don't use standard golf colors for Adjusted row
-                      ),
-                    );
-                  })(),
-                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalAdjusted > 0 || adjustedScores.any((s) => s != null) ? '$totalAdjusted' : '-', width: AppSpacing.x4l, isBold: true, isScore: true)),
-              ],
-            ),
-          ],
-          
-          if (matchPlayResults != null && matchPlayResults!.isNotEmpty) ...[
-            const Divider(height: 1),
-            Row(
-              children: [
-                SizedBox(width: 50, child: _buildCellLabel(context, 'Match', width: 50)),
-                for (int i = 0; i < 9; i++)
-                  (() {
-                    final idx = startHole - 1 + i;
-                    final result = idx < matchPlayResults!.length ? matchPlayResults![idx] : '';
-                    Color? bgColor;
-                    if (result == 'W') {
-                      bgColor = AppColors.lime500;
-                    } else if (result == 'L') {
-                      bgColor = AppColors.coral500;
-                    } else if (result == 'H') {
-                      bgColor = AppColors.dark400;
-                    }
-
-                    return Expanded(
-                      child: _buildCell(
-                        context, 
-                        result.isNotEmpty ? result : '-', 
-                        width: double.infinity, 
-                        isScore: true,
-                        isBold: true,
-                        overrideBgColor: bgColor,
-                        overrideTextColor: bgColor != null ? AppColors.pureWhite : AppColors.dark400,
-                        scoreDiff: null, 
-                      ),
-                    );
-                  })(),
-                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, '', width: AppSpacing.x4l)), // No 9-hole total for Match Play text
-              ],
-            ),
-          ],
-          
-          // Stableford Points row (only if Stableford competition)
-          if (isStableford)
-            const Divider(height: 1),
-          if (isStableford)
-            Row(
-              children: [
-                SizedBox(width: 50, child: _buildCellLabel(context, 'Points', width: 50)),
-                for (int i = 0; i < 9; i++)
-                  Expanded(child: _buildCell(context, (i < stablefordPoints.length) ? (stablefordPoints[i]?.toString() ?? '-') : '-', width: double.infinity, isPoints: true)),
-                SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalPoints > 0 || stablefordPoints.any((p) => p != null) ? '$totalPoints' : '-', width: AppSpacing.x4l, isBold: true, isPoints: true)),
-              ],
-            ),
         ],
-      );
-  }
-
-  Widget _buildTotalsRow(BuildContext context, int totalPar, int totalStrokes, int totalAdjusted, int totalPoints, int holesPlayed, List<dynamic> holePars, List<dynamic> holeSIs) {
-    // Determine labels and totals for Strokeplay vs Stableford
-    final String strokesLabel = isStableford ? 'Strokes' : (isNet ? 'Gross' : 'Total');
-    final bool isMaxScore = format == CompetitionFormat.maxScore && maxScoreConfig != null;
-    
-    // Calculate Cumulative Net Strokes for Strokeplay
-    int? netDifferential;
-    int parForPlayed = totalPar; // Default to full course par
-    int parOfHolesPlayed = 0;
-
-    if (scores != null && playerHandicap != null) {
-      int runningNetTotal = 0;
-      for (int i = 0; i < scores!.length; i++) {
-        final score = scores![i];
-        if (score != null && i < holePars.length && i < holeSIs.length) {
-            final par = holePars[i] as int;
-            final si = holeSIs[i] as int;
-            
-            parOfHolesPlayed += par;
-
-            // Calculate shots received on this hole
-            int shotsReceived = (playerHandicap! / 18).floor();
-            if (playerHandicap! % 18 >= si) shotsReceived++;
-            
-            runningNetTotal += (score - shotsReceived);
-        }
-      }
-      if (holesPlayed > 0) {
-        netDifferential = runningNetTotal - parOfHolesPlayed;
-        if (holesPlayed < 18) parForPlayed = parOfHolesPlayed;
-      }
-      if (parForPlayed <= 0 && totalPar > 0) parForPlayed = totalPar;
-    } else {
-      parForPlayed = totalPar > 0 ? totalPar : 72;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
-        // Removed hardcoded AppShapes.lg to allow parent BoxyArtCard clipping to match dynamic radius
-        borderRadius: BorderRadius.zero, 
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'TOTAL',
-                style: AppTypography.caption.copyWith(
-                  fontWeight: AppTypography.weightBlack,
-                  letterSpacing: 2.0,
-                  color: AppColors.dark150,
-                ),
-              ),
-              if (holesPlayed > 0 && holesPlayed < 18)
-                Text(
-                  'THRU $holesPlayed',
-                  style: AppTypography.caption.copyWith(
-                    color: Colors.black.withValues(alpha: AppColors.opacityHalf),
-                    letterSpacing: 2.0,
-                  ),
-                ),
-            ],
-          ),
-          const Spacer(),
-          if (holesPlayed > 0) ...[
-            if (totalStrokes > 0)
-              _buildTotalStat(
-                context, 
-                strokesLabel, 
-                totalStrokes, 
-                diff: totalStrokes - parForPlayed,
-              ),
-            if (isMaxScore && totalAdjusted != totalStrokes) ...[
-               const SizedBox(width: AppSpacing.md),
-               _buildTotalStat(context, 'Adjusted', totalAdjusted, isHighlighted: true),
-            ],
-            if (isStableford) ...[
-              const SizedBox(width: AppSpacing.md),
-              _buildTotalStat(context, 'Points', overrideTotalPoints ?? totalPoints),
-            ] else if (isNet && netDifferential != null) ...[
-              const SizedBox(width: AppSpacing.md),
-              _buildTotalStat(
-                context, 
-                'Net', 
-                totalStrokes - (playerHandicap ?? 0), 
-                diff: netDifferential,
-              ),
-            ],
-            const SizedBox(width: AppSpacing.md),
-          ],
-            _buildTotalStat(context, 'Par', parForPlayed),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotalStat(BuildContext context, String label, int value, {bool isHighlighted = false, int? diff}) {
-    String displayValue = value.toString();
-    String? diffLabel;
-
-    if (diff != null) {
-       if (diff == 0) {
-         diffLabel = 'E';
-       } else if (diff > 0) {
-         diffLabel = '+$diff';
-       } else {
-         diffLabel = diff.toString();
-       }
-    }
-
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: AppTypography.label.copyWith(
-            fontSize: AppTypography.sizeMicroSmall, 
-            fontWeight: AppTypography.weightBlack, 
-            color: isHighlighted ? AppColors.lime500 : AppColors.dark200,
-            letterSpacing: 0.5,
-          ),
-        ),
-        Text(
-          displayValue,
-          style: AppTypography.label.copyWith(
-            fontSize: AppTypography.sizeLabel, 
-            fontWeight: AppTypography.weightBlack,
-            color: isHighlighted ? AppColors.lime500 : AppColors.dark60,
-          ),
-        ),
-        if (diffLabel != null)
-          Padding(
-            padding: const EdgeInsets.only(left: AppSpacing.xs),
-            child: Text(
-              '($diffLabel)',
-              style: TextStyle(
-                fontSize: AppTypography.sizeCaption,
-                fontWeight: AppTypography.weightBold,
-                color: diff! < 0 ? AppColors.lime500 : (diff > 0 ? AppColors.coral500 : AppColors.dark200),
-              ),
-            ),
-          ),
       ],
     );
   }
 
-  Widget _buildCellHeader(BuildContext context, String text, {double width = 30, bool isBold = false}) {
-    return SizedBox(
-      width: width,
-      height: AppSpacing.x2l,
-      child: Center(
-        child: Text(
-          text,
-          style: AppTypography.label.copyWith(
-            fontSize: AppTypography.sizeMicroSmall,
-            fontWeight: AppTypography.weightBlack,
-            color: AppColors.dark200,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCellLabel(BuildContext context, String text, {double width = 50, Color? color}) {
-    return SizedBox(
-      width: width,
-      height: 28,
-      child: Padding(
-        padding: const EdgeInsets.only(left: AppSpacing.sm),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.label.copyWith(
-              fontSize: AppTypography.sizeMicroSmall,
-              fontWeight: AppTypography.weightBlack,
-              color: color ?? AppColors.dark150,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCell(BuildContext context, String text, {double width = 30, bool isBold = false, bool isPar = false, bool isSmall = false, bool isScore = false, bool isPoints = false, int? scoreDiff, Color? overrideBgColor, Color? overrideTextColor}) {
-    Color? bgColor = overrideBgColor;
-    Color textColor = overrideTextColor ?? (isPoints || isScore
-        ? AppColors.lime500 
-        : (isPar ? AppColors.dark60 : AppColors.dark200));
-
-    if (scoreDiff != null) {
-      if (scoreDiff <= -2) { // Eagle or better
-        bgColor = AppColors.amber500;
-        textColor = Colors.black;
-      } else if (scoreDiff == -1) { // Birdie
-        bgColor = AppColors.lime500;
-        textColor = AppColors.pureWhite;
-      } else if (scoreDiff == 0) { // Par
-        bgColor = null; // Transparent
-        textColor = Theme.of(context).colorScheme.onSurface;
-      } else if (scoreDiff == 1) { // Bogey
-        bgColor = AppColors.coral400;
-        textColor = AppColors.pureWhite;
-      } else { // Double Bogey or worse
-        bgColor = AppColors.coral500;
-        textColor = AppColors.pureWhite;
-      }
-    }
-
-    return Container(
-      width: width,
-      height: 28,
-      alignment: Alignment.center,
-      child: Container(
-        width: AppSpacing.xl,
-        height: AppSpacing.xl,
-        alignment: Alignment.center,
-        decoration: bgColor != null ? BoxDecoration(
-          color: bgColor,
-          borderRadius: AppShapes.xs,
-        ) : null,
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: isSmall ? 8 : ((isScore || isPoints) ? 12 : 11), 
-            fontWeight: AppTypography.weightBlack,
-            color: textColor,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScoreRow(BuildContext context, String playerName, List<int?> allScores, int startHole, List<dynamic> pars, List<dynamic> sis, int? handicap, {Color? color, Set<int>? countingHoles}) {
-    // Slice scores for this 9
-    final startIdx = startHole - 1;
-    final rowScores = List<int?>.generate(9, (i) {
-       final idx = startIdx + i;
-       if (idx < allScores.length) return allScores[idx];
-       return null;
-    });
-
-    final totalScore = rowScores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int));
+  Widget _buildPartnerScoreRow(BuildContext context, CourseScoreRow row, int startIdx, List<int> pars) {
+    final nineScores = row.scores.skip(startIdx).take(9).toList();
+    final total = nineScores.whereType<int>().fold<int>(0, (a, b) => a + b);
 
     return Column(
       children: [
         Row(
-           children: [
-             SizedBox(width: 50, child: _buildCellLabel(context, handicap != null ? '$playerName ($handicap)' : playerName, width: 50, color: color)),
-             for (int i = 0; i < 9; i++)
-               (() {
-                 final idx = startIdx + i;
-                 final isCounting = countingHoles?.contains(idx) ?? false;
-                 
-                 return Expanded(
-                   child: _buildCell(
-                     context, 
-                     rowScores[i]?.toString() ?? '-', 
-                     width: double.infinity, 
-                     isScore: true,
-                     isBold: isCounting,
-                     scoreDiff: (rowScores[i] != null && i < pars.length) 
-                         ? rowScores[i]! - (pars[i] as int) 
-                         : null,
-                     overrideTextColor: isCounting ? (color ?? Colors.black) : color?.withValues(alpha: AppColors.opacityHalf),
-                     // Add a subtle border or dot for counting holes?
-                     // For now, extra bold + full opacity is a good start.
-                   ),
-                 );
-               })(),
-             SizedBox(width: AppSpacing.x4l, child: _buildCell(context, totalScore > 0 ? '$totalScore' : '-', width: AppSpacing.x4l, isBold: true, isScore: true, overrideTextColor: color)),
-           ],
-         ),
-         const Divider(height: 1), // Separator between rows
+          children: [
+            _buildSideLabel(context, row.playerName.toUpperCase()),
+            for (int i = 0; i < 9; i++)
+              Expanded(child: _buildScoreCell(context, nineScores[i], pars[i])),
+            _buildTotalCell(context, total > 0 ? '$total' : '-', isBold: true),
+          ],
+        ),
+        const Divider(height: 1),
+      ],
+    );
+  }
+
+  Widget _buildTotalsFooter(BuildContext context, int strokes, int nets, int points, int par, int thru, int? toPar) {
+    final toParColor = (toPar ?? 0) < 0 ? AppColors.coral500 : ((toPar ?? 0) > 0 ? AppColors.dark900 : AppColors.dark900);
+    final toParString = toPar == null ? '-' : (toPar == 0 ? 'E' : (toPar > 0 ? '+$toPar' : '$toPar'));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildStatItem('TOTAL', strokes.toString(), sub: 'THRU $thru'),
+          if (isStableford)
+            _buildStatItem('POINTS', points.toString())
+          else if (thru > 0) ...[
+            if (isNet) _buildStatItem('NET', nets.toString()),
+            _buildStatItem('TO PAR', toParString, color: toParColor),
+          ],
+          _buildStatItem('PAR', par.toString()),
+        ],
+      ),
+    );
+  }
+
+  // --- Helper Widgets ---
+
+  Widget _buildHeaderRow(BuildContext context, String text) {
+    return Container(
+      height: 28,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+      ),
+      child: Center(
+        child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: 10, color: AppColors.dark900, fontWeight: AppTypography.weightExtraBold, letterSpacing: 1.5)),
+      ),
+    );
+  }
+
+  Widget _buildSideLabel(BuildContext context, String text, {Color? color}) {
+    return Container(
+      width: 50, height: 28, padding: const EdgeInsets.only(left: 8), alignment: Alignment.centerLeft,
+      child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: 9, color: color ?? AppColors.dark200, fontWeight: AppTypography.weightExtraBold, letterSpacing: 0.5)),
+    );
+  }
+
+  Widget _buildValueCell(BuildContext context, String text, {bool isHeader = false, bool isDimmed = false, bool isBold = false, Color? color, double? fontSize, FontWeight? fontWeight}) {
+    return Container(
+      height: 28, alignment: Alignment.center,
+      child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: fontSize ?? 13, fontWeight: fontWeight ?? (isBold ? AppTypography.weightBlack : (isHeader ? AppTypography.weightBold : AppTypography.weightSemibold)), color: color ?? (isHeader ? AppColors.dark200 : (isDimmed ? AppColors.dark300 : AppColors.dark900)))),
+    );
+  }
+
+  Widget _buildTotalCell(BuildContext context, String text, {bool isHeader = false, bool isDimmed = false, bool isBold = false, Color? color, double? fontSize, FontWeight? fontWeight, Color? bgColor}) {
+    return Container(
+      width: 45, height: 28, alignment: Alignment.center,
+      color: bgColor ?? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: AppColors.opacityLow),
+      child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: fontSize ?? 13, fontWeight: fontWeight ?? (isBold ? FontWeight.w900 : FontWeight.normal), color: color ?? (isHeader ? AppColors.dark200 : (isDimmed ? AppColors.dark300 : AppColors.dark900)))),
+    );
+  }
+
+  Widget _buildScoreCell(BuildContext context, int? score, int par) {
+    if (score == null) return _buildValueCell(context, '-');
+    final diff = score - par;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Color? bg; Color fg = Colors.white; BoxBorder? border;
+    if (diff <= -2) { bg = AppColors.amber500; fg = Colors.black; }
+    else if (diff == -1) { bg = AppColors.coral500; }
+    else if (diff == 0) { bg = Colors.transparent; fg = isDark ? AppColors.pureWhite : AppColors.dark900; border = Border.all(color: isDark ? AppColors.dark500 : AppColors.lightBorder, width: 1); }
+    else if (diff == 1) { bg = AppColors.dark900; }
+    else { bg = AppColors.dark600; }
+
+    return Container(height: 28, alignment: Alignment.center,
+      child: Container(
+        width: 22, 
+        height: 22, 
+        decoration: BoxDecoration(
+          color: bg, 
+          shape: diff < 0 ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: diff < 0 ? null : BorderRadius.circular(4), 
+          border: border,
+        ), 
+        alignment: Alignment.center,
+        child: Text('$score', style: AppTypography.labelStrong.copyWith(fontSize: 13, color: fg))),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, {String? sub, Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTypography.nano.copyWith(color: AppColors.dark900, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(value, style: AppTypography.labelStrong.copyWith(fontSize: 16, color: color ?? AppColors.dark900)),
+            if (sub != null) ...[const SizedBox(width: 4), Text(sub, style: AppTypography.nano.copyWith(color: AppColors.dark400, fontSize: 8))],
+          ],
+        ),
       ],
     );
   }
 }
 
 class CourseScoreRow {
-  final String? id; // [NEW] Member ID to match counting attribution
+  final String? id;
   final String playerName;
   final List<int?> scores;
+  final List<int?>? netScores;
+  final List<int?>? points;
   final int? handicap;
   final Color? color;
-  final Set<int>? countingHoles; // [NEW] Hole indices (0-17) that are counting
-  
+  final Set<int>? countingHoles;
+
   const CourseScoreRow({
     this.id,
-    required this.playerName, 
-    required this.scores, 
+    required this.playerName,
+    required this.scores,
+    this.netScores,
+    this.points,
     this.handicap,
     this.color,
     this.countingHoles,

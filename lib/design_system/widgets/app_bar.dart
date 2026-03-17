@@ -62,8 +62,18 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: actions != null ? [
-        ...actions!,
-        const SizedBox(width: AppSpacing.sm), // Reaches 20px total (12 default + 8)
+        ...actions!.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final widget = entry.value;
+          final isLast = idx == actions!.length - 1;
+          
+          return Padding(
+            padding: EdgeInsets.only(
+              right: isLast ? AppSpacing.xl : AppSpacing.sm,
+            ),
+            child: widget,
+          );
+        }),
       ] : null,
       leading: leading ?? (showBack 
         ? Center(
@@ -82,7 +92,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               )
             : null)),
-      leadingWidth: leadingWidth ?? 80,
+      leadingWidth: leadingWidth ?? 80, // Center 40px icon in 80px = 20px edge margin
       centerTitle: centerTitle,
       elevation: 0,
       backgroundColor: backgroundColor ?? (transparent ? Colors.transparent : null),

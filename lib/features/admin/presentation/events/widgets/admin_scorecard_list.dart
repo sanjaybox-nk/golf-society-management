@@ -238,7 +238,7 @@ class AdminScorecardList extends ConsumerWidget {
     return Text(
       text,
       style: AppTypography.label.copyWith(
-        fontSize: AppTypography.sizeCaption,
+        fontSize: AppTypography.sizeLabel,
         color: color,
         fontWeight: AppTypography.weightBlack,
         letterSpacing: 2.0,

@@ -24,4 +24,9 @@ abstract class EventsRepository {
 
   /// Delete an event
   Future<void> deleteEvent(String eventId);
+
+  /// Global Expenses (Non-event specific)
+  Future<void> saveGlobalExpense(EventExpense expense);
+  Future<List<EventExpense>> getGlobalExpenses();
+  Stream<List<EventExpense>> watchGlobalExpenses();
 }

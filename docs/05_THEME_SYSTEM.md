@@ -6,7 +6,7 @@
 -   **`app_colors.dart`**: Fairway v3.1 Primitives (Lime, Coral, Amber) and dark-first neutral scale.
 -   **`app_typography.dart`**: Unified typography tokens using Fredoka (Display) and Inter (Body/Labels).
 -   **`app_shapes.dart`**: Standardized radii (rXs to r2xl) and common UI shapes (Pill, Card).
--   **`app_spacing.dart`**: Layout spacing scale based on an 8pt grid (sm, md, lg, xl, x2l, etc.).
+-   **`app_spacing.dart`**: Layout spacing scale (8pt grid) and semantic layout tokens (`labelToCard`, `cardToLabel`).
 -   **`app_theme.dart`**: Compiles tokens into `ThemeData` for Light and Dark modes.
 
 ## Branding v3.1 Evolution
@@ -35,6 +35,7 @@ The system has transitioned to a **Vivid Emerald** (Lime) primary palette with a
 ### 3. Typography (`AppTypography`)
 -   **Fredoka**: Used strictly for `displayHero` (Large Hero headers).
 -   **Inter**: Switched to **Inter** as the primary typeface for all `body`, `label`, and `caption` styles to ensure a clean, professional, and readable interface.
+-   **Name Styling**: Player names are strictly **Title Case** and use `FontWeight.w800` (ExtraBold) for a high-contrast, premium "pop".
 -   **Weight**: Headers and primary values use `FontWeight.w800` (ExtraBold) with `letterSpacing: -0.8` for a crisp, pro-grade feel. `w900` (Black) is reserved for specialized hero stats.
 
 ## Legend System Taxonomy (BoxyArtPill)
@@ -103,3 +104,11 @@ boxShadow: [
   ),
 ]
 ```
+
+## Motion Standard (v3.9 - BoxyArt Page)
+
+As of v3.9, the application uses a unified transition function to ensure movement feels consistent and premium.
+
+- **Standard Page (`boxyPage`)**: A synchronized **Fade + Subtle Slide Up** (0.05 offset).
+- **Duration**: `AppAnimations.medium` (400ms).
+- **Global Policy**: This transition is applied to all route movements, including bottom navigation switches and back-button pops, creating a "silky" and stable user experience.

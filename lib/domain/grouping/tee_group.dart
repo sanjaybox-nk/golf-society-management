@@ -42,8 +42,11 @@ class TeeGroupParticipant {
     required this.needsBuggy,
     this.buggyStatus = RegistrationStatus.none,
     this.isCaptain = false,
+    this.hasSocietyCut = false,
     this.status = RegistrationStatus.confirmed,
   });
+
+  final bool hasSocietyCut;
 
   Map<String, dynamic> toJson() => {
     'registrationMemberId': registrationMemberId,
@@ -54,6 +57,7 @@ class TeeGroupParticipant {
     'needsBuggy': needsBuggy,
     'buggyStatus': buggyStatus.name,
     'isCaptain': isCaptain,
+    'hasSocietyCut': hasSocietyCut,
     'status': status.name,
   };
 
@@ -69,6 +73,7 @@ class TeeGroupParticipant {
       orElse: () => (json['needsBuggy'] ?? false) ? RegistrationStatus.confirmed : RegistrationStatus.none,
     ),
     isCaptain: json['isCaptain'] ?? false,
+    hasSocietyCut: json['hasSocietyCut'] ?? false,
     status: RegistrationStatus.values.firstWhere(
       (e) => e.name == json['status'],
       orElse: () => RegistrationStatus.confirmed,
@@ -84,6 +89,7 @@ class TeeGroupParticipant {
     bool? needsBuggy,
     RegistrationStatus? buggyStatus,
     bool? isCaptain,
+    bool? hasSocietyCut,
     RegistrationStatus? status,
   }) => TeeGroupParticipant(
     registrationMemberId: registrationMemberId ?? this.registrationMemberId,
@@ -94,6 +100,7 @@ class TeeGroupParticipant {
     needsBuggy: needsBuggy ?? this.needsBuggy,
     buggyStatus: buggyStatus ?? this.buggyStatus,
     isCaptain: isCaptain ?? this.isCaptain,
+    hasSocietyCut: hasSocietyCut ?? this.hasSocietyCut,
     status: status ?? this.status,
   );
 }

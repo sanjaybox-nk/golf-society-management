@@ -42,12 +42,28 @@ class SeedingService {
   }
 
   // Male Names (50)
-  static const maleFirstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel', 'Matthew', 'Anthony', 'Donald', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth', 'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Ronald', 'Timothy', 'Jason', 'Jeffrey', 'Ryan', 'Jacob'];
+  static const maleFirstNames = [
+    'James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 
+    'Daniel', 'Matthew', 'Anthony', 'Donald', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth', 'Joshua', 
+    'Kevin', 'Brian', 'George', 'Edward', 'Ronald', 'Timothy', 'Jason', 'Jeffrey', 'Ryan', 'Jacob',
+    'Gary', 'Nicholas', 'Eric', 'Stephen', 'Jonathan', 'Larry', 'Justin', 'Scott', 'Brandon', 'Frank',
+    'Benjamin', 'Gregory', 'Samuel', 'Raymond', 'Patrick', 'Alexander', 'Jack', 'Dennis', 'Jerry', 'Tyler'
+  ];
   
-  // Female Names (20)
-  static const femaleFirstNames = ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Nancy', 'Lisa', 'Margaret', 'Betty', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna'];
+  // Female Names (25)
+  static const femaleFirstNames = [
+    'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 
+    'Nancy', 'Lisa', 'Margaret', 'Betty', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna',
+    'Michelle', 'Carol', 'Amanda', 'Melissa', 'Deborah'
+  ];
   
-  static const lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King'];
+  static const lastNames = [
+    'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 
+    'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 
+    'Clark', 'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'Hernandez', 'King',
+    'Wright', 'Lopez', 'Hill', 'Scott', 'Green', 'Adams', 'Baker', 'Gonzalez', 'Nelson', 'Carter',
+    'Mitchell', 'Perez', 'Roberts', 'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins'
+  ];
 
   /// The main entry point for seeding high-quality demo data.
   Future<void> seedFullDemoData() async {
@@ -153,10 +169,11 @@ class SeedingService {
       (title: 'Happy New Year Bowl', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
       (title: 'January Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 25), status: EventStatus.completed, isMultiDay: false, endDate: null),
       (title: 'Valentine\'s Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.fourball, date: DateTime(2026, 2, 14), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The Winter Major', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 28), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 28)),
+      (title: 'The Winter Major', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 27), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 28)),
       (title: 'St Patricks Day Special', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 17), status: EventStatus.published, isMultiDay: false, endDate: null),
       (title: 'The April Fools Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 1), status: EventStatus.published, isMultiDay: false, endDate: null),
-      (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 30), status: EventStatus.published, isMultiDay: false, endDate: null),
+      (title: 'Algarve Tour 2026', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 5, 20), status: EventStatus.published, isMultiDay: true, endDate: DateTime(2026, 5, 22)),
+      (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 6, 15), status: EventStatus.published, isMultiDay: false, endDate: null),
     ];
 
     for (int i = 0; i < eventPlan.length; i++) {
@@ -196,6 +213,9 @@ class SeedingService {
 
     // 10. RECALCULATE ALL LEADERBOARDS (Authoritative)
     await ref.read(leaderboardInvokerServiceProvider).recalculateAll(seasonId);
+
+    // 11. Seed Society Overheads
+    await _seedNonEventExpenses();
   }
 
   Future<String> _seedSeason() async {
@@ -257,20 +277,41 @@ class SeedingService {
       joinedDate: DateTime(2023, 1, 1),
       hasPaid: true,
       gender: 'Male',
-      bio: 'The Creator. Loves a tech-infused round of golf.',
+      bio: 'The Society Founder. Passionate about technology and bringing the digital edge to the game of golf.',
       phone: '+44 7700 900000',
     ));
 
+    final committeeRoles = {
+       0: 'Chairman',
+       1: 'Social Secretary',
+       20: 'Treasurer',
+       21: 'Captain',
+       40: 'Handicap Secretary',
+    };
+
+    final bios = [
+      'Short game specialist. Always finds the bunker on the 18th.',
+      'Long hitter with a tendency to find the adjacent fairways.',
+      'Putting maestro. Never met a three-putt they didn’t like.',
+      'Classic swing, steady temperament. The backbone of the society.',
+      'Fierce competitor. Lives for the Sunday singles.',
+      'The eternal optimist. Every drive is a potential eagle.',
+      'Strategic player. Knows every undulation of the home course.',
+      'Social heartbeat of the club. More interested in the 19th hole.',
+      'Relative newcomer with a rapidly falling handicap.',
+      'Senior statesman. Plays the percentages with deadly accuracy.',
+    ];
+
     for (int i = 0; i < 74; i++) {
-        bool isFemale = i < 20;
+        bool isFemale = i < 25;
         final fNameList = isFemale ? femaleFirstNames : maleFirstNames;
         final fName = fNameList[i % fNameList.length];
-        final lName = lastNames[(i + _random.nextInt(10)) % lastNames.length];
         
-        String? role;
-        if (i == 20) role = 'President';
-        if (i == 21) role = 'Captain';
-        if (i == 0) role = 'Social Sec';
+        // Ensure unique last name pairings
+        final lName = lastNames[(i + (i ~/ 10)) % lastNames.length];
+        
+        final role = committeeRoles[i];
+        final bio = bios[i % bios.length];
 
         double hc = (i < 10) ? (1.0 + _random.nextDouble() * 5) : ((i < 40) ? (6.0 + _random.nextDouble() * 14) : (20.0 + _random.nextDouble() * 16));
         if (isFemale) hc += 2.0; 
@@ -279,7 +320,7 @@ class SeedingService {
           id: 'demo_m_$i',
           firstName: fName,
           lastName: lName,
-          email: '${fName.toLowerCase()}.${lName.toLowerCase()}$i@demo.com',
+          email: '${fName.toLowerCase()}.${lName.toLowerCase()}$i@demo.org',
           handicap: double.parse(hc.toStringAsFixed(1)),
           handicapId: 'WHS${300000 + i}',
           societyRole: role,
@@ -288,6 +329,7 @@ class SeedingService {
           hasPaid: true,
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
+          bio: bio,
         ));
     }
   }
@@ -295,46 +337,70 @@ class SeedingService {
   Future<List<Course>> _seedCourses() async {
     final repo = ref.read(courseRepositoryProvider);
     final List<Course> courses = [];
-    final names = ['St Andrews', 'Pebble Beach', 'TPC Sawgrass', 'Augusta', 'Royal County Down', 'Muirfield', 'Shinnecock Hills', 'Oakmont', 'Cypress Point', 'Pine Valley', 'Royal Melbourne'];
+    final names = [
+      'St Andrews', 'Pebble Beach', 'TPC Sawgrass', 'Augusta', 
+      'Royal County Down', 'Muirfield', 'Shinnecock Hills', 'Oakmont', 
+      'Cypress Point', 'Pine Valley', 'Royal Melbourne',
+      'Dom Pedro Old Course', 'Victoria Golf Course'
+    ];
+    
+    final addresses = {
+      'St Andrews': 'West Sands Rd, St Andrews KY16 9XL, Scotland',
+      'Pebble Beach': '1700 17 Mile Dr, Pebble Beach, CA 93953, USA',
+      'TPC Sawgrass': '110 Championship Way, Ponte Vedra Beach, FL 32082, USA',
+      'Augusta': '2604 Washington Rd, Augusta, GA 30904, USA',
+      'Royal County Down': '36 Golf Links Rd, Newcastle BT33 0AN, Northern Ireland',
+      'Muirfield': 'Duncur Rd, Gullane EH31 2EG, Scotland',
+      'Shinnecock Hills': '200 Tuckahoe Rd, Southampton, NY 11968, USA',
+      'Oakmont': '1233 Hulton Rd, Oakmont, PA 15139, USA',
+      'Cypress Point': '3150 17 Mile Dr, Pebble Beach, CA 93953, USA',
+      'Pine Valley': '1 E Atlantic Ave, Pine Hill, NJ 08021, USA',
+      'Royal Melbourne': 'Cheltenham Rd, Black Rock VIC 3193, Australia',
+      'Dom Pedro Old Course': 'Volta do Parque 8125-507, Vilamoura, Portugal',
+      'Victoria Golf Course': 'Av. dos Descobrimentos, 8125-507 Vilamoura, Portugal',
+    };
 
     for (int i = 0; i < names.length; i++) {
+      final name = names[i];
+      final holeData = _getCourseHoleData(name);
+      
       final course = Course(
         id: 'demo_c_$i',
-        name: names[i],
-        address: 'Golf Coast, Demo Land',
+        name: name,
+        address: addresses[name] ?? 'Golf Coast, Demo Land',
         isGlobal: false,
         tees: [
           TeeConfig(
             name: 'White',
-            rating: 71.0 + i % 5, 
-            slope: 128 + (i * 3) % 30,
-            holePars: [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5], 
-            holeSIs: _generateSI(),
-            yardages: List.generate(18, (h) => 380 + _random.nextInt(200)), 
+            rating: 72.5, 
+            slope: 132,
+            holePars: holeData.pars, 
+            holeSIs: holeData.si,
+            yardages: holeData.yards, 
           ),
           TeeConfig(
             name: 'Yellow',
-            rating: 70.0 + i % 5, 
-            slope: 125 + (i * 3) % 30, 
-            holePars: [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5],
-            holeSIs: _generateSI(),
-            yardages: List.generate(18, (h) => 350 + _random.nextInt(200)), 
+            rating: 71.0, 
+            slope: 128, 
+            holePars: holeData.pars,
+            holeSIs: holeData.si,
+            yardages: holeData.yards.map((y) => (y * 0.94).round()).toList(), 
           ),
           TeeConfig(
             name: 'Blue',
-            rating: 69.0 + i % 5, 
-            slope: 122 + (i * 3) % 30, 
-            holePars: [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5],
-            holeSIs: _generateSI(),
-            yardages: List.generate(18, (h) => 320 + _random.nextInt(200)), 
+            rating: 70.0, 
+            slope: 125, 
+            holePars: holeData.pars,
+            holeSIs: holeData.si,
+            yardages: holeData.yards.map((y) => (y * 0.88).round()).toList(), 
           ),
           TeeConfig(
             name: 'Red',
-            rating: 72.0 + i % 4, 
-            slope: 120 + (i * 2) % 30,
-            holePars: [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5], 
-            holeSIs: _generateSI(), 
-            yardages: List.generate(18, (h) => 280 + _random.nextInt(150)), 
+            rating: 72.0, 
+            slope: 124,
+            holePars: holeData.pars, 
+            holeSIs: holeData.si, 
+            yardages: holeData.yards.map((y) => (y * 0.82).round()).toList(), 
           ),
         ],
       );
@@ -344,11 +410,6 @@ class SeedingService {
     return courses;
   }
 
-  List<int> _generateSI() {
-    final sis = List.generate(18, (i) => i + 1);
-    sis.shuffle(_random);
-    return sis;
-  }
 
   Future<List<Map<String, dynamic>>> _createFullEvent({
     required String seasonId,
@@ -371,7 +432,7 @@ class SeedingService {
 
     final yellowTee = course.tees.firstWhere((t) => t.name == 'Yellow');
 
-    final event = GolfEvent(
+    var event = GolfEvent(
       id: 'demo_ev_${title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}',
       title: title,
       seasonId: seasonId,
@@ -383,6 +444,7 @@ class SeedingService {
       isInvitational: isInvitational,
       courseId: course.id,
       courseName: course.name,
+      courseDetails: course.address,
       selectedTeeName: 'Yellow',
       selectedFemaleTeeName: 'Red',
       courseConfig: cfg.CourseConfig(
@@ -411,13 +473,13 @@ class SeedingService {
       description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of $format followed by a group dinner and prize giving ceremony. The course is in excellent condition and we look forward to a great turnout!',
       registrationDeadline: date.subtract(const Duration(days: 7)),
       
-      // Society Costs [NEW]
+      // Society Costs
       societyGreenFee: 40.0 + _random.nextInt(20),
       societyBreakfastCost: 10.0,
       societyLunchCost: 15.0,
       societyDinnerCost: 25.0,
       
-      // Retail Pricing (Cost + 10%) [NEW]
+      // Retail Pricing (Cost + 10%)
       memberCost: ((40.0 + (_random.nextInt(20))) * 1.10).roundToDouble(),
       guestCost: (((40.0 + (_random.nextInt(20))) * 1.10) + 10.0).roundToDouble(),
       breakfastCost: (10.0 * 1.10).roundToDouble(),
@@ -430,7 +492,7 @@ class SeedingService {
       facilities: ['Pro Shop', 'Driving Range', 'Changing Rooms', 'Halfway House'],
       maxParticipants: 40,
 
-      isGroupingPublished: status != EventStatus.draft, // [FIX] Top-level visibility flag
+      isGroupingPublished: status != EventStatus.draft,
       notes: [
         EventNote(
           title: 'Welcome Message',
@@ -447,13 +509,19 @@ class SeedingService {
           ]),
           imageUrl: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80',
         ),
+        _getLocalRulesNote(course.name, date),
       ],
-      galleryUrls: [
-        'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=400&q=80',
-        'https://images.unsplash.com/photo-1623912150935-64903328e19e?auto=format&fit=crop&w=400&q=80',
-      ],
+      galleryUrls: _getGalleryPhotos(course.name),
     );
+
+    if (isMultiDay) {
+      event = event.copyWith(
+        notes: [
+          ...event.notes,
+          ..._getTourNotes(title),
+        ],
+      );
+    }
 
     // Registration Matrix
     final List<EventRegistration> regs = [];
@@ -519,8 +587,9 @@ class SeedingService {
         bool hasGuest = !isWithdrawn && _random.nextDouble() < 0.2;
         String? guestName;
         if (hasGuest) {
-          final guestLastNames = ['Smith', 'Jones', 'Taylor', 'Brown', 'Williams'];
-          guestName = '${guestLastNames[_random.nextInt(guestLastNames.length)]} (Guest)';
+          final guestFirstName = maleFirstNames[_random.nextInt(maleFirstNames.length)];
+          final guestLastName = lastNames[_random.nextInt(lastNames.length)];
+          guestName = '$guestFirstName $guestLastName (G)';
         }
 
         // Calculate Cost [NEW]
@@ -702,9 +771,279 @@ class SeedingService {
       results: results,
       expenses: expenses,
       awards: awards,
+      feedItems: _generateFeedItems(updatedEvent, results),
     ));
     
     return results;
+  }
+
+  List<String> _getGalleryPhotos(String courseName) {
+    if (courseName.contains('St Andrews') || courseName.contains('Royal County Down') || courseName.contains('Muirfield')) {
+      return [
+        'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=800&q=80', // Links dunes
+        'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80', // Green fairway
+        'https://images.unsplash.com/photo-1591492102875-9c59508d508e?auto=format&fit=crop&w=800&q=80', // Bunkers
+      ];
+    }
+    if (courseName.contains('Pebble Beach') || courseName.contains('Cypress Point') || courseName.contains('Royal Melbourne')) {
+      return [
+        'https://images.unsplash.com/photo-1500673397354-9448fefb5acc?auto=format&fit=crop&w=800&q=80', // Ocean view
+        'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=800&q=80', // Coastal green
+        'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80', // Cliff side
+      ];
+    }
+    if (courseName.contains('Dom Pedro') || courseName.contains('Victoria')) {
+      return [
+        'https://images.unsplash.com/photo-1584061556814-7e8c3fc6e4ed?auto=format&fit=crop&w=800&q=80', // Mediterranean pines
+        'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=800&q=80', // Villa background
+        'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80', // Lush green
+      ];
+    }
+    return [
+      'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80', // Parkland
+      'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=800&q=80', // Trees
+      'https://images.unsplash.com/photo-1623912150935-64903328e19e?auto=format&fit=crop&w=800&q=80', // Pond
+    ];
+  }
+
+  List<EventFeedItem> _generateFeedItems(GolfEvent event, List<Map<String, dynamic>> results) {
+    final List<EventFeedItem> items = [];
+    final now = DateTime.now();
+
+    // 1. Post-match report for completed events
+    if (event.status == EventStatus.completed && results.isNotEmpty) {
+      final winner = results[0]['playerName'];
+      final points = results[0]['points'];
+      
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_report',
+        type: FeedItemType.newsletter,
+        title: 'Match Report: ${event.title}',
+        content: 'What a day at ${event.courseName}! $winner took the victory with an impressive score of $points points. The conditions were testing, but the quality of golf remained high throughout. Congratulations to all the prize winners!',
+        imageUrl: event.galleryUrls.isNotEmpty ? event.galleryUrls[0] : null,
+        isPublished: true,
+        createdAt: event.date.add(const Duration(hours: 6)),
+        sortOrder: 10,
+      ));
+    }
+
+    // 2. Poll for recent/upcoming major activities
+    if (event.title.contains('Winter Major') || (event.status == EventStatus.published && event.date.isAfter(now))) {
+      items.add(EventFeedItem(
+        id: 'poll_${event.id}_planning',
+        type: FeedItemType.poll,
+        title: 'Season 2027 Planning',
+        content: 'Where should we go for the 2027 Society Away Trip? Cast your vote below!',
+        isPublished: true,
+        isPinned: true,
+        createdAt: now.subtract(const Duration(days: 1)),
+        pollData: {
+          'options': ['Portugal (Vilamoura)', 'Spain (Marbella)', 'Scotland (East Coast)', 'Ireland (Killarney)'],
+          'totalVotes': 42,
+          'results': {'0': 15, '1': 10, '2': 12, '3': 5},
+          'hasVoted': false,
+        },
+        sortOrder: -10,
+      ));
+    }
+
+    // 3. President's Message for the Season Opener
+    if (event.title.contains('Season Opener')) {
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_president',
+        type: FeedItemType.newsletter,
+        title: 'Word from the President',
+        content: 'Welcome to another fantastic year of golf. I am delighted to see so many returning faces and a few new guests joining our ranks. Let’s play hard, play fair, and enjoy the 19th hole!',
+        isPublished: true,
+        isPinned: true,
+        createdAt: event.date.subtract(const Duration(days: 2)),
+        sortOrder: -20,
+      ));
+    }
+
+    return items;
+  }
+
+
+
+  Future<void> _seedNonEventExpenses() async {
+    final repo = ref.read(eventsRepositoryProvider);
+    final now = DateTime.now();
+    
+    final overheads = [
+      EventExpense(
+        id: 'oh_website',
+        label: 'Annual Website Maintenance',
+        amount: 150.0,
+        category: 'Misc',
+        date: DateTime(now.year, 1, 15),
+      ),
+      EventExpense(
+        id: 'oh_insurance',
+        label: 'Society Public Liability Insurance',
+        amount: 285.0,
+        category: 'Misc',
+        date: DateTime(now.year, 2, 1),
+      ),
+      EventExpense(
+        id: 'oh_trophies',
+        label: 'Majors Trophies Engraving',
+        amount: 45.0,
+        category: 'Misc',
+        date: DateTime(now.year, 3, 20),
+      ),
+    ];
+
+    for (final exp in overheads) {
+      await repo.saveGlobalExpense(exp);
+    }
+  }
+
+  EventNote _getLocalRulesNote(String courseName, DateTime date) {
+    String ruleContent = 'Standard R&A Rules apply. \n\n- Out of Bounds: Beyond any perimeter fence or white stakes.\n- Water Hazards: Defined by yellow/red stakes.\n- Immovable Obstructions: Fixed sprinkler heads and yardage markers.';
+    
+    // Seasonal Rules
+    if (date.month >= 11 || date.month <= 3) {
+      ruleContent += '\n\n- PREFERRED LIES: A ball lying on a closely mown area through the green may be marked, cleaned and replaced within 6 inches.';
+    }
+
+    // Course Specific Rules
+    if (courseName.contains('St Andrews')) {
+      ruleContent += '\n\n- THE ROAD HOLE (#17): The road and wall behind the green are out of bounds. The bunker is an integral part of the course.';
+    } else if (courseName.contains('Sawgrass')) {
+      ruleContent += '\n\n- THE ISLAND GREEN (#17): Drop zone is active to the left of the walkway for balls entering the hazard.';
+    } else if (courseName.contains('Augusta')) {
+      ruleContent += '\n\n- AMEN CORNER (#11-13): Rae’s Creek is a lateral water hazard. Drop zones available for #12 and #13.';
+    }
+
+    return EventNote(
+      title: 'Local Rules & Info',
+      content: jsonEncode([{'insert': '$ruleContent\n'}]),
+    );
+  }
+
+  ({List<int> pars, List<int> si, List<int> yards}) _getCourseHoleData(String courseName) {
+    if (courseName == 'St Andrews') {
+      return (
+        pars: [4, 4, 4, 4, 5, 4, 4, 3, 4, 4, 3, 4, 4, 5, 4, 4, 4, 4],
+        si: [10, 6, 16, 8, 2, 12, 4, 14, 18, 15, 7, 3, 11, 1, 9, 13, 5, 17],
+        yards: [376, 413, 370, 419, 514, 374, 359, 166, 307, 318, 174, 314, 407, 533, 413, 351, 455, 357],
+      );
+    }
+    if (courseName == 'Pebble Beach') {
+      return (
+        pars: [4, 5, 4, 4, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 4, 4, 3, 5],
+        si: [8, 10, 12, 16, 14, 2, 18, 4, 8, 7, 9, 17, 1, 5, 11, 15, 13, 3],
+        yards: [378, 511, 397, 331, 189, 506, 106, 427, 481, 444, 373, 201, 399, 573, 396, 401, 177, 543],
+      );
+    }
+    if (courseName == 'TPC Sawgrass') {
+      return (
+        pars: [4, 5, 3, 4, 4, 4, 4, 3, 5, 4, 5, 4, 3, 4, 4, 5, 3, 4],
+        si: [11, 15, 17, 9, 3, 13, 1, 7, 5, 12, 8, 16, 18, 4, 6, 10, 14, 2],
+        yards: [423, 532, 177, 384, 471, 393, 442, 237, 583, 424, 558, 369, 181, 481, 449, 523, 137, 462],
+      );
+    }
+    if (courseName == 'Augusta') {
+      return (
+        pars: [4, 5, 4, 3, 4, 3, 4, 5, 4, 4, 4, 3, 5, 4, 5, 3, 4, 4],
+        si: [9, 1, 13, 15, 5, 17, 11, 3, 7, 6, 8, 16, 4, 12, 2, 18, 14, 10],
+        yards: [445, 575, 350, 240, 495, 180, 450, 570, 460, 495, 505, 155, 510, 440, 530, 170, 440, 465],
+      );
+    }
+    if (courseName == 'Royal County Down') {
+      return (
+        pars: [5, 4, 4, 3, 4, 4, 3, 4, 4, 3, 4, 5, 4, 3, 4, 4, 4, 5],
+        si: [13, 9, 3, 15, 7, 11, 17, 1, 5, 18, 8, 16, 2, 12, 4, 14, 10, 6],
+        yards: [539, 444, 475, 213, 443, 396, 144, 429, 483, 196, 444, 525, 446, 212, 465, 337, 436, 548],
+      );
+    }
+    if (courseName == 'Muirfield') {
+      return (
+        pars: [4, 4, 4, 3, 5, 4, 5, 3, 4, 4, 5, 3, 4, 4, 5, 3, 4, 4],
+        si: [14, 8, 10, 18, 2, 12, 4, 16, 6, 13, 15, 3, 7, 11, 1, 17, 9, 5],
+        yards: [450, 447, 401, 203, 529, 447, 563, 202, 412, 471, 567, 184, 455, 363, 490, 201, 478, 484],
+      );
+    }
+    if (courseName == 'Shinnecock Hills') {
+      return (
+        pars: [4, 3, 4, 4, 5, 4, 3, 4, 4, 4, 3, 4, 4, 4, 4, 5, 3, 4],
+        si: [11, 17, 3, 7, 9, 1, 15, 13, 5, 4, 16, 2, 12, 6, 14, 8, 18, 10],
+        yards: [399, 226, 500, 475, 589, 491, 189, 439, 485, 415, 158, 469, 370, 444, 419, 540, 175, 485],
+      );
+    }
+    if (courseName == 'Oakmont') {
+      return (
+        pars: [4, 4, 4, 5, 4, 3, 4, 3, 5, 4, 4, 5, 3, 4, 4, 3, 4, 4],
+        si: [3, 7, 1, 13, 11, 17, 9, 5, 15, 4, 10, 2, 16, 18, 8, 12, 14, 6],
+        yards: [482, 340, 428, 609, 379, 194, 479, 252, 477, 462, 379, 667, 183, 358, 499, 231, 313, 484],
+      );
+    }
+    if (courseName == 'Cypress Point') {
+      return (
+        pars: [4, 5, 3, 4, 5, 5, 3, 4, 4, 5, 4, 4, 4, 4, 3, 3, 4, 4],
+        si: [5, 1, 17, 7, 11, 3, 15, 9, 13, 16, 4, 2, 14, 8, 18, 6, 10, 12],
+        yards: [415, 541, 158, 381, 483, 514, 159, 362, 289, 476, 438, 404, 354, 393, 135, 222, 344, 331],
+      );
+    }
+    if (courseName == 'Pine Valley') {
+      return (
+        pars: [4, 4, 3, 4, 3, 4, 5, 4, 4, 3, 4, 4, 4, 3, 5, 4, 4, 4],
+        si: [3, 9, 17, 5, 11, 13, 1, 15, 7, 18, 10, 14, 4, 16, 2, 8, 12, 6],
+        yards: [421, 351, 185, 438, 220, 385, 584, 314, 422, 142, 388, 330, 439, 180, 574, 420, 332, 425],
+      );
+    }
+    if (courseName == 'Royal Melbourne') {
+      return (
+        pars: [4, 5, 4, 4, 3, 4, 3, 4, 4, 4, 4, 4, 4, 5, 4, 3, 5, 4],
+        si: [5, 1, 13, 7, 17, 3, 15, 11, 9, 6, 10, 14, 18, 4, 8, 16, 2, 12],
+        yards: [428, 491, 332, 439, 176, 427, 147, 311, 454, 475, 438, 433, 354, 504, 382, 201, 568, 431],
+      );
+    }
+    if (courseName == 'Dom Pedro Old Course') {
+      return (
+        pars: [4, 4, 4, 3, 5, 4, 4, 3, 4, 4, 4, 3, 4, 5, 4, 4, 5, 4],
+        si: [7, 13, 3, 17, 1, 11, 5, 15, 9, 8, 14, 18, 4, 10, 2, 12, 16, 6],
+        yards: [325, 403, 365, 178, 498, 382, 347, 153, 310, 345, 388, 165, 395, 485, 375, 335, 510, 378],
+      );
+    }
+    if (courseName == 'Victoria Golf Course') {
+      return (
+        pars: [4, 4, 4, 3, 5, 4, 3, 4, 4, 4, 4, 5, 3, 4, 3, 4, 5, 4],
+        si: [9, 5, 13, 17, 1, 3, 15, 11, 7, 10, 6, 2, 18, 4, 16, 12, 8, 14],
+        yards: [375, 420, 365, 185, 530, 440, 165, 410, 435, 390, 415, 560, 155, 450, 175, 430, 520, 445],
+      );
+    }
+    return (
+      pars: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      si: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+      yards: List.generate(18, (h) => 350 + _random.nextInt(100)),
+    );
+  }
+
+  List<EventNote> _getTourNotes(String tourName) {
+    if (tourName.contains('Algarve')) {
+      return [
+        EventNote(
+          title: '🏨 Accommodation: Hilton Vilamoura',
+          content: jsonEncode([{'insert': 'Welcome to the Algarve! We are staying at the Hilton Vilamoura As Cascatas Golf Resort & Spa.\n\nCheck-in: From 3pm on Day 1.\nDinner: 8pm in the Cilantro restaurant.\nDress Code: Smart Casual.\n'}]),
+        ),
+        EventNote(
+          title: '📅 Tour Itinerary',
+          content: jsonEncode([{'insert': 'DAY 1: Arrival & Welcome Round (Dom Pedro Old Course)\nDAY 2: Championship Day (Victoria Golf Course) + Gala Dinner\nDAY 3: Final Round (Victoria Golf Course) + Prize Presentation at 2pm.\n'}]),
+        ),
+        EventNote(
+          title: '🏆 Tour Scoring & Rules',
+          content: jsonEncode([{'insert': 'The "Algarve Tour 2026" uses a cumulative Stableford format over 3 days. \n\nHandicaps: Fixed for the duration of the tour. \nGPS: Devices allowed. \nNo Caddies permitted.\n'}]),
+        ),
+      ];
+    }
+    return [
+      EventNote(
+        title: 'Multi-Day Itinerary',
+        content: jsonEncode([{'insert': 'Check event notices for daily tee times and arrangements.\n'}]),
+      ),
+    ];
   }
 
   Future<void> generateTestMatches(String eventId) async {

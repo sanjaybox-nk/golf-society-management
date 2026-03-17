@@ -232,6 +232,17 @@ class GroupingService {
     // Optimization: Variety & Handicap Optimization (Refinement Pass)
     GroupingOptimizer.optimize(groups, previousEventsInSeason, prioritizeBuggyPairing, strategy);
 
+    // [PHASE 42] Auto-assign one random captain to each group
+    final rand = Random();
+    for (var group in groups) {
+      if (group.players.isNotEmpty) {
+        final captainIdx = rand.nextInt(group.players.length);
+        for (int i = 0; i < group.players.length; i++) {
+          group.players[i].isCaptain = (i == captainIdx);
+        }
+      }
+    }
+
     return groups;
   }
 
@@ -255,6 +266,7 @@ class GroupingService {
     }
 
     double finalHandicap = rawHandicap;
+    bool hasSocietyCut = false;
     if (hcConfig != null && hcConfig.rules != null) {
        final memberId = item.registration.memberId;
        final societyCut = hcConfig.manualCuts[memberId] ?? 0.0;
@@ -267,6 +279,7 @@ class GroupingService {
          societyCut: societyCut,
        );
        finalHandicap = playing.toDouble();
+       hasSocietyCut = societyCut != 0;
     }
 
     final buggyIndex = item.needsBuggy ? buggyQueue.indexOf(item) : -1;
@@ -289,6 +302,7 @@ class GroupingService {
       playingHandicap: finalHandicap,
       needsBuggy: item.needsBuggy,
       buggyStatus: buggyStatus,
+      hasSocietyCut: hasSocietyCut,
       status: item.statusOverride != null && item.statusOverride == 'withdrawn' 
           ? RegistrationStatus.withdrawn 
           : RegistrationStatus.confirmed,
@@ -331,6 +345,7 @@ class GroupingService {
         group.players[i] = p.copyWith(
           handicapIndex: rawHandicap,
           playingHandicap: playing.toDouble(),
+          hasSocietyCut: societyCut != 0,
         );
       }
     }

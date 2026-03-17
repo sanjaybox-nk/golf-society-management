@@ -63,25 +63,32 @@ class ReportingHubStats {
 
 final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) {
   final eventsAsync = ref.watch(adminEventsProvider);
+  final globalExpensesAsync = ref.watch(globalExpensesProvider);
 
-  return eventsAsync.whenData((events) {
-    double revenue = 0;
-    double potentialRevenue = 0;
-    double uncollected = 0;
-    double expenses = 0;
-    double cashPrizes = 0;
-    int cups = 0;
-    int vouchers = 0;
-    double voucherValue = 0;
-    int totalAttendance = 0;
-    int roundsPlayed = 0;
-    int completedCount = 0;
+  return eventsAsync.when(
+    data: (events) => globalExpensesAsync.when(
+      data: (globalExpenses) {
+        double revenue = 0;
+        double potentialRevenue = 0;
+        double uncollected = 0;
+        double expenses = 0;
+        double cashPrizes = 0;
+        int cups = 0;
+        int vouchers = 0;
+        double voucherValue = 0;
+        int totalAttendance = 0;
+        int roundsPlayed = 0;
+        int completedCount = 0;
 
-    final Map<String, double> breakdown = {
-      'Golf': 0,
-      'Buggies': 0,
-      'Catering': 0,
-    };
+        // Add global expenses to total
+        expenses += globalExpenses.fold(0.0, (sum, e) => sum + e.amount);
+
+        final Map<String, double> breakdown = {
+          'Golf': 0,
+          'Buggies': 0,
+          'Catering': 0,
+          'Overheads': globalExpenses.fold(0.0, (sum, e) => sum + e.amount),
+        };
 
     final Map<String, int> attendanceMap = {};
 
@@ -221,7 +228,7 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
     final sortedMembers = attendanceMap.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    return ReportingHubStats(
+    return AsyncValue.data(ReportingHubStats(
       totalRevenue: revenue,
       totalExpenses: expenses,
       totalCashPrizes: cashPrizes,
@@ -243,6 +250,12 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       retentionRate: retention,
       courseDifficultyIndex: courseDifficulty,
       podiumConsistency: sortedPodiums,
-    );
-  });
+    ));
+  },
+  loading: () => const AsyncValue.loading(),
+  error: (err, stack) => AsyncValue.error(err, stack),
+),
+    loading: () => const AsyncValue.loading(),
+    error: (err, stack) => AsyncValue.error(err, stack),
+  );
 });

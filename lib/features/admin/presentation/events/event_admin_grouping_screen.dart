@@ -340,12 +340,14 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         });
       },
       scrollController: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
       itemCount: _localGroups!.length,
       itemBuilder: (context, index) {
         final group = _localGroups![index];
-        return GroupingCard(
+        return Padding(
           key: ValueKey('group_${group.index}_${group.teeTime.millisecondsSinceEpoch}'),
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: GroupingCard(
           group: group,
           memberMap: memberMap,
           history: history,
@@ -422,6 +424,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 ),
               );
             },
+          ),
           ),
         );
       },

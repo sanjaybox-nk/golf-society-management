@@ -174,7 +174,6 @@ class EventRegistrationUserTab extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // METRICS CARD
-        SizedBox(height: AppTheme.cardSpacing),
         const BoxyArtSectionTitle(title: 'Registration Stats'),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.xl),

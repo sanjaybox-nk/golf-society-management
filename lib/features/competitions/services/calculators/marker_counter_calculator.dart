@@ -2,6 +2,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'leaderboard_calculator.dart';
 
 class MarkerCounterCalculator implements LeaderboardCalculator {
@@ -11,45 +12,36 @@ class MarkerCounterCalculator implements LeaderboardCalculator {
     required List<Competition> competitions,
     required List<Scorecard> scorecards,
     Map<String, Map<String, dynamic>>? groupings,
+    Map<String, ProcessedEventData>? processedEvents,
   }) async {
     final markerConfig = config as MarkerCounterConfig;
     final Map<String, _PlayerStats> playerStats = {};
 
-    // 1. Process each competition/event
+    if (processedEvents == null || processedEvents.isEmpty) return [];
+
+    // 1. Process each processed event
     for (var comp in competitions) {
-      // Find associated event to get courseConfig
-      // Assuming 1:1 mapping for now where CompID == EventID or similar
-      // In this system, competitions are often linked to events.
-      // We'll need a way to find the event. For now, let's assume we have access or fallback to default par 72/pars 4.
-      
-      // Filter cards for this competition
-      final compCards = scorecards.where((s) {
-        final isExcluded = comp.rules.oomExcludedRoundIds.contains(s.roundId);
-        return s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok && !isExcluded;
-      }).toList();
+      final processedData = processedEvents[comp.id];
+      if (processedData == null) continue;
 
-      for (var card in compCards) {
-        if (!playerStats.containsKey(card.entryId)) {
-          playerStats[card.entryId] = _PlayerStats(memberId: card.entryId);
+      final pars = processedData.holePars;
+
+      for (var player in processedData.individualScores) {
+        if (player.isGuest) continue;
+
+        if (!playerStats.containsKey(player.playerId)) {
+          playerStats[player.playerId] = _PlayerStats(memberId: player.playerId);
         }
-        final stats = playerStats[card.entryId]!;
+        final stats = playerStats[player.playerId]!;
 
-        // We calculate stats for this specific round
         double roundScore = 0;
         int markersInRound = 0;
 
-        // Try to derive par info
-        // Simple fallback: 18 holes, all par 4
-        List<int> pars = List.generate(18, (index) => 4);
-        
-        // If we had the event, we would do:
-        // if (event.courseConfig['holes'] != null) { ... }
-        
-        for (int i = 0; i < card.holeScores.length; i++) {
-          final gross = card.holeScores[i];
+        for (int i = 0; i < player.holeScores.length; i++) {
+          final gross = player.holeScores[i];
           if (gross == null || gross == 0) continue;
 
-          final holePar = pars[i];
+          final holePar = (pars.length > i) ? pars[i] : 4;
 
           // Apply Hole Filter
           if (markerConfig.holeFilter == HoleFilter.par3 && holePar != 3) continue;
@@ -76,32 +68,17 @@ class MarkerCounterCalculator implements LeaderboardCalculator {
 
           if (isTarget) {
             markersInRound++;
-            
-            if (markerConfig.rankingMethod == MarkerRankingMethod.points) {
-               // Calculate Stableford Points for this hole
-               // This requires handicap/SI which we don't have easily here without a full engine
-               // For "straightforward number of pars on par 3 holes", user likely wants COUNT.
-               // If points requested, we might need to sum the 'points' field if it were per-hole.
-               // Since card only has total points, this is tricky.
-               // Fallback: If points requested but not available per hole, we can't do it accurately.
-               // For now, let's assume 'points' means we sum some value.
-               roundScore += 1; // Placeholder
-            } else {
-               roundScore += 1;
-            }
+            roundScore += 1;
           }
         }
 
         stats.rounds.add(_RoundData(
           totalMarkers: markersInRound,
           score: roundScore,
-          totalRoundStableford: (card.points ?? 0).toDouble(),
+          totalRoundStableford: player.result.score.toDouble(),
         ));
       }
     }
-
-    // [NEW] Filter out guest players - Season Standings are for Society Members only
-    playerStats.removeWhere((id, _) => id.endsWith('_guest'));
 
     // 2. Aggregate Results with BestN
     List<LeaderboardStanding> standings = [];

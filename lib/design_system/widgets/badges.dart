@@ -206,7 +206,7 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
   }) {
     return BoxyArtPill(
-      label: 'HC: $label',
+      label: 'Hc: $label',
       color: AppColors.dark150,
       icon: Icons.show_chart_rounded,
     );
@@ -218,7 +218,7 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
   }) {
     return BoxyArtPill(
-      label: 'PHC: $label',
+      label: 'Phc: $label',
       color: Theme.of(context).primaryColor,
       icon: Icons.flash_on_rounded,
     );
@@ -287,7 +287,7 @@ class BoxyArtPill extends ConsumerWidget {
             const SizedBox(width: AppSpacing.sm),
           ],
           Text(
-            toTitleCase(label),
+            label.contains(':') ? label : toTitleCase(label),
             style: AppTypography.caption.copyWith(
               fontSize: fontSize ?? AppTypography.sizeLabelStrong,
               color: effectiveTextColor,
@@ -338,14 +338,17 @@ class BoxyArtDateBadge extends StatelessWidget {
               fontWeight: AppTypography.weightExtraBold,
             ),
           ),
-          Text(
-            isMultiDay 
-              ? '${date.day}-${endDate!.day}'
-              : DateFormat('d').format(date),
-            style: AppTypography.displayHero.copyWith(
-              fontSize: isMultiDay ? 18 : 28,
-              height: 1.0,
-              color: isDark ? AppColors.pureWhite : AppColors.dark900,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              isMultiDay 
+                ? '${date.day}-${endDate!.day}'
+                : DateFormat('d').format(date),
+              style: AppTypography.displayHero.copyWith(
+                fontSize: 28, // Keep base size large, FittedBox will scale it down if needed
+                height: 1.0,
+                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+              ),
             ),
           ),
           Text(

@@ -12,6 +12,7 @@ import '../features/members/presentation/locker_screen.dart';
 import '../features/members/presentation/members_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/events/presentation/event_feed_detail_screen.dart';
+import '../features/admin/presentation/events/event_field_admin_screen.dart';
 import '../features/admin/presentation/events/admin_events_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
 import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
@@ -34,7 +35,6 @@ import '../features/admin/presentation/seasons/admin_seasons_screen.dart';
 import '../features/events/presentation/event_registration_screen.dart';
 import '../features/admin/presentation/events/event_registrations_admin_screen.dart';
 import '../features/admin/presentation/events/event_admin_shell.dart';
-import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
 import '../features/admin/presentation/events/event_admin_scorecard_editor_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
@@ -76,22 +76,7 @@ final _adminMembersKey = GlobalKey<NavigatorState>(debugLabel: 'adminMembers');
 final _adminCommsKey = GlobalKey<NavigatorState>(debugLabel: 'adminComms');
 final _adminSurveysKey = GlobalKey<NavigatorState>(debugLabel: 'adminSurveys');
 
-/// Standardized Fade Transition for Shells
-CustomTransitionPage fadePage({
-  required LocalKey key,
-  required Widget child,
-}) {
-  return CustomTransitionPage(
-    key: key,
-    child: child,
-    transitionDuration: AppAnimations.fast,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(opacity: animation, child: child);
-    },
-  );
-}
-
-/// Standardized Boxy Art Transition (Fade + Subtle Slide Up) for Leaf Routes
+/// Standardized Boxy Art Transition (Fade + Subtle Slide) for all routes
 CustomTransitionPage boxyPage({
   required LocalKey key,
   required Widget child,
@@ -106,7 +91,7 @@ CustomTransitionPage boxyPage({
         curve: AppAnimations.entranceCurve,
       );
       final slide = Tween<Offset>(
-        begin: AppAnimations.slideUp,
+        begin: const Offset(0, 0.05), // Subtle slide up
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: animation,
@@ -140,7 +125,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/home',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const MemberHomeScreen(),
                 ),
@@ -161,7 +146,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/events',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const EventsScreen(),
                 ),
@@ -173,7 +158,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/members',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const MembersScreen(),
                 ),
@@ -185,7 +170,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/locker',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const LockerScreen(),
                 ),
@@ -206,7 +191,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/archive',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const ArchiveScreen(),
                 ),
@@ -226,7 +211,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const AdminDashboardScreen(),
                 ),
@@ -519,7 +504,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/events',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const AdminEventsScreen(),
                 ),
@@ -637,7 +622,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       ),
                       ShellRoute(
                         pageBuilder: (context, state, child) {
-                          return fadePage(
+                          return boxyPage(
                             key: state.pageKey,
                             child: EventAdminShell(child: child),
                           );
@@ -647,9 +632,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'home',
                             pageBuilder: (context, state) {
                               final eventId = state.pathParameters['id']!;
-                              return fadePage(
+                              return boxyPage(
                                 key: state.pageKey,
                                 child: EventUserHomeTab(eventId: eventId),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'field-hub',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id']!;
+                              return boxyPage(
+                                key: state.pageKey,
+                                child: EventFieldAdminScreen(eventId: id),
                               );
                             },
                           ),
@@ -657,7 +652,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'event',
                             pageBuilder: (context, state) {
                               final eventId = state.pathParameters['id']!;
-                              return fadePage(
+                              return boxyPage(
                                 key: state.pageKey,
                                 child: EventUserDetailsTab(eventId: eventId, useScaffold: false),
                               );
@@ -680,7 +675,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'registrations',
                             pageBuilder: (context, state) {
                               final id = state.pathParameters['id']!;
-                              return fadePage(
+                              return boxyPage(
                                 key: state.pageKey,
                                 child: EventRegistrationsAdminScreen(eventId: id),
                               );
@@ -688,19 +683,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           ),
                           GoRoute(
                             path: 'grouping',
-                            pageBuilder: (context, state) {
+                            redirect: (context, state) {
                               final id = state.pathParameters['id']!;
-                              return fadePage(
-                                key: state.pageKey,
-                                child: EventAdminGroupingScreen(eventId: id),
-                              );
+                              return '/admin/events/manage/$id/field-hub';
                             },
                           ),
                           GoRoute(
                             path: 'scores',
                             pageBuilder: (context, state) {
                               final id = state.pathParameters['id']!;
-                              return fadePage(
+                              return boxyPage(
                                 key: state.pageKey,
                                 child: EventAdminScoresScreen(eventId: id),
                               );
@@ -723,7 +715,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'reporting',
                             pageBuilder: (context, state) {
                               final id = state.pathParameters['id']!;
-                              return fadePage(
+                              return boxyPage(
                                 key: state.pageKey,
                                 child: EventAdminReportsScreen(eventId: id),
                               );
@@ -733,9 +725,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'manual-cuts',
                             pageBuilder: (context, state) {
                               final id = state.pathParameters['id']!;
-                              return fadePage(
+                              return boxyPage(
                                 key: state.pageKey,
-                                child: EventManualCutsScreen(eventId: id),
+                                child: EventManualCutsScreen(
+                                  eventId: id,
+                                  useScaffold: false,
+                                ),
                               );
                             },
                           ),
@@ -753,7 +748,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/members',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const AdminMembersScreen(),
                 ),
@@ -766,7 +761,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/communications',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const NotificationAdminScaffold(),
                 ),
@@ -779,7 +774,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/surveys',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const AdminSurveysScreen(),
                 ),
@@ -817,7 +812,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/admin/reports',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: const AdminReportsScreen(), 
                 ),
@@ -886,14 +881,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
           ShellRoute(
-            pageBuilder: (context, state, child) => fadePage(
+            pageBuilder: (context, state, child) => boxyPage(
               key: state.pageKey,
               child: EventUserShell(child: child),
             ),
             routes: [
               GoRoute(
                 path: 'home',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: EventUserHomeTab(
                     eventId: state.pathParameters['id']!,
@@ -903,7 +898,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: 'details',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: EventUserDetailsTab(
                     eventId: state.pathParameters['id']!,
@@ -913,37 +908,47 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: 'field',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: EventGroupingUserTab(eventId: state.pathParameters['id']!),
                 ),
               ),
               GoRoute(
                 path: 'live',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: EventScoresUserTab(eventId: state.pathParameters['id']!),
                 ),
               ),
               GoRoute(
                 path: 'scores',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: TournamentScoresUserTab(eventId: state.pathParameters['id']!),
                 ),
               ),
               GoRoute(
                 path: 'stats',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: EventStatsUserTab(eventId: state.pathParameters['id']!),
                 ),
               ),
               GoRoute(
                 path: 'photos',
-                pageBuilder: (context, state) => fadePage(
+                pageBuilder: (context, state) => boxyPage(
                   key: state.pageKey,
                   child: EventGalleryUserTab(eventId: state.pathParameters['id']!),
+                ),
+              ),
+              GoRoute(
+                path: 'manual-cuts',
+                pageBuilder: (context, state) => boxyPage(
+                  key: state.pageKey,
+                  child: EventManualCutsScreen(
+                    eventId: state.pathParameters['id']!,
+                    useScaffold: false,
+                  ),
                 ),
               ),
               // Old path redirects for backward compatibility

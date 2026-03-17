@@ -16,7 +16,7 @@ class EventUserShell extends ConsumerWidget {
     
     // Determine index based on current route
     final segments = GoRouterState.of(context).uri.pathSegments;
-    if (segments.contains('details')) {
+    if (segments.contains('details') || segments.contains('manual-cuts')) {
       currentIndex = 0;
     } else if (segments.contains('field')) {
       currentIndex = 1;

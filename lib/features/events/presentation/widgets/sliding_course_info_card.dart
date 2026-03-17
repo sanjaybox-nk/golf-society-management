@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/course_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 
 class SlidingCourseInfoCard extends StatefulWidget {
   final dynamic courseConfig;
@@ -14,6 +15,7 @@ class SlidingCourseInfoCard extends StatefulWidget {
   final MaxScoreConfig? maxScoreConfig;
   final int? holeLimit;
   final List<String>? matchPlayResults;
+  final double? handicapAllowance;
 
   const SlidingCourseInfoCard({
     super.key,
@@ -28,6 +30,7 @@ class SlidingCourseInfoCard extends StatefulWidget {
     this.maxScoreConfig,
     this.holeLimit,
     this.matchPlayResults,
+    this.handicapAllowance,
   });
 
   @override
@@ -46,6 +49,9 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     // Extract course data - standardise to lists
     List<int> holePars = [];
     List<int> holeSIs = [];
@@ -99,31 +105,32 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
     final back9Pars = holePars.skip(9).take(9).fold<int>(0, (a, b) => a + b);
     final totalPar = front9Pars + back9Pars;
 
-    int totalStrokes = 0;
-    int totalPoints = 0;
-    int holesPlayed = 0;
-    
+    // SINGLE SOURCE OF TRUTH: ScoringCalculator
+    final result = ScoringCalculator.calculate(
+      holeScores: widget.scores ?? List.filled(18, null),
+      holes: (widget.courseConfig is CourseConfig) ? (widget.courseConfig as CourseConfig).holes : [],
+      playingHandicap: (widget.playerHandicap ?? 18).toDouble(),
+      format: widget.format ?? (widget.isStableford ? CompetitionFormat.stableford : CompetitionFormat.stroke),
+      maxScoreConfig: widget.maxScoreConfig,
+    );
+
+    int totalStrokes = widget.scores?.whereType<int>().fold<int>(0, (a, b) => a + b) ?? 0;
+    int totalNetStrokes = result.holeNetScores.whereType<int>().fold<int>(0, (a, b) => a + b);
+    int totalPoints = result.score;
+    int holesPlayed = result.holesPlayed;
+    int totalParOfPlayedHoles = 0;
     if (widget.scores != null) {
       for (int i = 0; i < widget.scores!.length; i++) {
-        final s = widget.scores![i];
-        if (s != null) {
-          totalStrokes += s;
-          holesPlayed++;
-          
-          if (widget.isStableford && widget.playerHandicap != null && i < holePars.length) {
-            final par = holePars[i];
-            final si = holeSIs[i];
-            int shots = (widget.playerHandicap! / 18).floor();
-            if (widget.playerHandicap! % 18 >= si) shots++;
-            totalPoints += (par - (s - shots) + 2).clamp(0, 10);
-          }
+        if (widget.scores![i] != null && i < holePars.length) {
+          totalParOfPlayedHoles += holePars[i];
         }
       }
     }
 
     // Calculate dynamic height based on row count
     final bool isStrokePlay = !widget.isStableford && widget.matchPlayResults == null;
-    final bool showNet = isStrokePlay && widget.playerHandicap != null;
+    final bool isGross = widget.handicapAllowance == 0;
+    final bool showNet = isStrokePlay && !isGross && widget.playerHandicap != null;
     
     int rowCount = 5; // HOLE, DIS, PAR, SI, SCR
     if (widget.isStableford) rowCount++;
@@ -132,38 +139,60 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
     
     final double totalViewHeight = (rowCount * 32.0) + (rowCount - 1);
 
+    // Totals Footer (Constant)
+    final int scoreToParBase = isGross ? totalStrokes : totalNetStrokes;
+    final int toPar = scoreToParBase - totalParOfPlayedHoles;
+    final String toParString = toPar == 0 ? 'E' : (toPar > 0 ? '+$toPar' : '$toPar');
+    final Color toParColor = toPar < 0 ? AppColors.coral500 : (toPar == 0 ? AppColors.amber500 : AppColors.dark900);
+
     return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          // Header / Tab row
+          // Header / Tab row (Design 3.1 Grey, Reduced Height)
           Container(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            height: 32,
             decoration: BoxDecoration(
-              color: AppColors.actionGreen,
-              // Removed AppShapes.rLg to rely on parent BoxyArtCard clipping
+              color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
               borderRadius: BorderRadius.zero, 
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Opacity(
-                  opacity: _currentPage == 1 ? 1.0 : 0.3,
-                  child: const Icon(Icons.chevron_left_rounded, color: Colors.black, size: 20),
+                GestureDetector(
+                  onTap: _currentPage == 1 ? () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut) : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    child: Icon(
+                      Icons.chevron_left_rounded, 
+                      color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: _currentPage == 1 ? 0.6 : 0.1), 
+                      size: 18,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                _buildTab(context, 'FRONT 9', 0),
-                const SizedBox(width: AppSpacing.lg),
-                _buildTab(context, 'BACK 9', 1),
-                const SizedBox(width: AppSpacing.sm),
-                Opacity(
-                  opacity: _currentPage == 0 ? 1.0 : 0.3,
-                  child: const Icon(Icons.chevron_right_rounded, color: Colors.black, size: 20),
+                Text(
+                  _currentPage == 0 ? 'FRONT 9' : 'BACK 9',
+                  style: AppTypography.ribbonHeader.copyWith(
+                    color: isDark ? AppColors.dark60 : AppColors.dark900,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _currentPage == 0 ? () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut) : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    child: Icon(
+                      Icons.chevron_right_rounded, 
+                      color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: _currentPage == 0 ? 0.6 : 0.1), 
+                      size: 18,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-
+          
           // Main PageView area
           SizedBox(
             height: totalViewHeight, 
@@ -177,7 +206,8 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                   holePars.take(9).toList(), 
                   holeSIs.take(9).toList(), 
                   holeDistances.take(9).toList(),
-                  front9Pars, 1
+                  front9Pars, 1,
+                  result,
                 ),
                 _buildNineView(
                   context, 
@@ -185,51 +215,51 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                   holePars.skip(9).take(9).toList(), 
                   holeSIs.skip(9).take(9).toList(), 
                   holeDistances.skip(9).take(9).toList(),
-                  back9Pars, 10
+                  back9Pars, 10,
+                  result,
                 ),
               ],
             ),
           ),
 
           // Totals Footer (Constant)
-          _buildTotalsFooter(context, totalPar, totalStrokes, totalPoints, holesPlayed),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTab(BuildContext context, String label, int index) {
-    final bool isActive = _currentPage == index;
-    return GestureDetector(
-      onTap: () => _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: AppTypography.labelStrong.copyWith(
-              fontSize: 12,
-              color: Colors.black.withValues(alpha: isActive ? 1.0 : 0.5),
-              letterSpacing: 1.5,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
+              borderRadius: BorderRadius.zero,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildStatItem(
+                  isGross ? 'TOTAL' : 'GROSS', 
+                  totalStrokes.toString(), 
+                  sub: 'THRU $holesPlayed'
+                ),
+                if (widget.isStableford)
+                  _buildStatItem('POINTS', totalPoints.toString())
+                else if (holesPlayed > 0) ...[
+                  if (!isGross)
+                    _buildStatItem('NET', totalNetStrokes.toString()),
+                  _buildStatItem('TO PAR', toParString, color: toParColor),
+                ],
+                _buildStatItem('PAR', totalPar.toString()),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: isActive ? 20 : 0,
-            height: 2,
-            color: Colors.black,
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildNineView(BuildContext context, String label, List<int> pars, List<int> sis, List<int> distances, int ninePar, int startHole) {
+
+  Widget _buildNineView(BuildContext context, String label, List<int> pars, List<int> sis, List<int> distances, int ninePar, int startHole, ScoringResult result) {
     final String distLabel = widget.distanceUnit.toUpperCase().contains('METRE') ? 'MTR' : 'YDS';
     final int nineDist = distances.fold<int>(0, (a, b) => a + b);
     final bool isStrokePlay = !widget.isStableford && widget.matchPlayResults == null;
-    final bool showNet = isStrokePlay && widget.playerHandicap != null;
+    final bool isGross = widget.handicapAllowance == 0;
+    final bool showNet = isStrokePlay && !isGross && widget.playerHandicap != null;
 
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(), // Handled by PageView
@@ -337,11 +367,26 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                 for (int i = 0; i < 9; i++)
                   (() {
                     final idx = startHole - 1 + i;
-                    final s = (widget.scores != null && idx < widget.scores!.length) ? widget.scores![idx] : null;
-                    final n = _calcNet(s, sis[i]);
+                    final n = (idx < result.holeNetScores.length) ? result.holeNetScores[idx] : null;
                     return Expanded(child: _buildValueCell(context, n != null ? '$n' : '-', isDimmed: true));
                   })(),
-                _buildTotalCell(context, _calcNineNetTotal(startHole, sis), isDimmed: true, isBold: true),
+                _buildTotalCell(context, result.holeNetScores.skip(startHole - 1).take(9).whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
+              ],
+            ),
+          ],
+          if (widget.isStableford) ...[
+            const Divider(height: 1),
+            // Points Row
+            Row(
+              children: [
+                _buildSideLabel(context, 'PTS'),
+                for (int i = 0; i < 9; i++)
+                  (() {
+                    final idx = startHole - 1 + i;
+                    final p = (idx < result.holePoints.length) ? result.holePoints[idx] : null;
+                    return Expanded(child: _buildValueCell(context, p != null ? '$p' : '-', isDimmed: true));
+                  })(),
+                _buildTotalCell(context, result.holePoints.skip(startHole - 1).take(9).whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
               ],
             ),
           ],
@@ -350,27 +395,6 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
     );
   }
 
-  int? _calcNet(int? score, int si) {
-    if (score == null || widget.playerHandicap == null) return null;
-    int shots = (widget.playerHandicap! / 18).floor();
-    if (widget.playerHandicap! % 18 >= si) shots++;
-    return score - shots;
-  }
-
-  String _calcNineNetTotal(int startHole, List<int> sis) {
-    if (widget.scores == null || widget.playerHandicap == null) return '-';
-    int total = 0;
-    bool hasAny = false;
-    for (int i = 0; i < 9; i++) {
-      final idx = startHole - 1 + i;
-      final s = (idx < widget.scores!.length) ? widget.scores![idx] : null;
-      if (s != null) {
-        hasAny = true;
-        total += _calcNet(s, sis[i]) ?? 0;
-      }
-    }
-    return hasAny ? total.toString() : '-';
-  }
 
   Widget _buildMatchTokenCell(BuildContext context, String token) {
     Color? bg;
@@ -501,19 +525,26 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
     if (score == null) return _buildValueCell(context, '-');
     
     final diff = score - par;
+    final isDark = theme.brightness == Brightness.dark;
     
     Color? bg;
     Color fg = Colors.white;
+    BoxBorder? border;
     
     if (diff <= -2) {
-      bg = AppColors.amber500; // Eagle - keep achievement amber
+      bg = AppColors.amber500; // Eagle - Yellow
       fg = Colors.black;
     } else if (diff == -1) {
       bg = AppColors.coral500; // Birdie - Red
     } else if (diff == 0) {
-      bg = AppColors.dark300; // Par - Light Grey
+      bg = Colors.transparent; 
+      fg = theme.colorScheme.onSurface;
+      border = Border.all(
+        color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+        width: 1,
+      );
     } else if (diff == 1) {
-      bg = AppColors.dark900; // Bogey - Blue/Black
+      bg = AppColors.dark900; // Bogey - Black
     } else {
       bg = AppColors.dark600; // Double Bogey+ - Dark Grey
     }
@@ -526,7 +557,9 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
         height: 22,
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(4),
+          shape: diff < 0 ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: diff < 0 ? null : BorderRadius.circular(4),
+          border: border,
         ),
         alignment: Alignment.center,
         child: Text(
@@ -540,33 +573,13 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
     );
   }
 
-  Widget _buildTotalsFooter(BuildContext context, int totalPar, int totalStrokes, int totalPoints, int holesPlayed) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
-        // Removed AppShapes.rLg to rely on parent BoxyArtCard clipping
-        borderRadius: BorderRadius.zero,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildStatItem('TOTAL', totalStrokes.toString(), sub: 'THRU $holesPlayed'),
-          if (widget.isStableford)
-            _buildStatItem('POINTS', totalPoints.toString()),
-          _buildStatItem('PAR', totalPar.toString()),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatItem(String label, String value, {String? sub, Color? color}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: AppTypography.nano.copyWith(color: AppColors.dark300, letterSpacing: 1.0),
+          style: AppTypography.nano.copyWith(color: AppColors.dark900, fontWeight: FontWeight.bold, letterSpacing: 1.2),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -576,14 +589,14 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
               value,
               style: AppTypography.labelStrong.copyWith(
                 fontSize: 17,
-                color: color ?? theme.colorScheme.onSurface,
+                color: color ?? AppColors.dark900,
               ),
             ),
             if (sub != null) ...[
               const SizedBox(width: 4),
               Text(
                 sub,
-                style: AppTypography.nano.copyWith(color: AppColors.dark400, fontSize: 8),
+                style: AppTypography.nano.copyWith(color: AppColors.dark900, fontSize: 8, fontWeight: FontWeight.w600),
               ),
             ],
           ],

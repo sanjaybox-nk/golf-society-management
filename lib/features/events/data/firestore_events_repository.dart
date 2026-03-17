@@ -126,4 +126,25 @@ class FirestoreEventsRepository implements EventsRepository {
   Future<void> deleteEvent(String eventId) async {
     await _eventsRef.doc(eventId).delete();
   }
+
+  @override
+  Future<void> saveGlobalExpense(EventExpense expense) async {
+    await _firestore
+        .collection('global_expenses')
+        .doc(expense.id)
+        .set(expense.toJson());
+  }
+
+  @override
+  Future<List<EventExpense>> getGlobalExpenses() async {
+    final snapshot = await _firestore.collection('global_expenses').get();
+    return snapshot.docs.map((doc) => EventExpense.fromJson({...doc.data(), 'id': doc.id})).toList();
+  }
+
+  @override
+  Stream<List<EventExpense>> watchGlobalExpenses() {
+    return _firestore.collection('global_expenses').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => EventExpense.fromJson({...doc.data(), 'id': doc.id})).toList();
+    });
+  }
 }

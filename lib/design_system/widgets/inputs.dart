@@ -432,7 +432,7 @@ class BoxyArtSwitchTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.20),
+              color: AppColors.actionGreen.withValues(alpha: 0.20),
               borderRadius: AppShapes.md,
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -522,7 +522,7 @@ class BoxyArtNavTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.20),
+                color: AppColors.actionGreen.withValues(alpha: 0.20),
                 borderRadius: AppShapes.md,
               ),
               child: Icon(icon, color: iconColor, size: 22),

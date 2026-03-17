@@ -63,10 +63,10 @@ class EventCourseSection extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.x2l),
                   BoxyArtFormField(
-                    label: 'Course Location (Auto-filled)',
+                    label: 'Course Address',
                     initialValue: state.courseDetails,
-                    readOnly: true,
                     maxLines: 2,
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCourseDetailsManual(v),
                   ),
                   const SizedBox(height: AppSpacing.x2l),
                   // Tee Selection (Simplified for now - can be expanded)

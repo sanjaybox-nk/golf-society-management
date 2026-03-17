@@ -8,6 +8,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
   final Color? activeColor;
   final Color? unselectedColor;
   final Color? borderColor;
+  final bool isAdmin;
 
   const BoxyArtBottomNavBar({
     super.key,
@@ -18,12 +19,12 @@ class BoxyArtBottomNavBar extends StatelessWidget {
     this.activeColor,
     this.unselectedColor,
     this.borderColor,
+    this.isAdmin = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = activeColor ?? theme.primaryColor;
     final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     
@@ -47,15 +48,15 @@ class BoxyArtBottomNavBar extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
               decoration: BoxDecoration(
-                color: backgroundColor ?? (isDark 
-                    ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                    : AppColors.pureWhite.withValues(alpha: 0.65)),
+                color: backgroundColor ?? AppColors.pureWhite,
                 borderRadius: AppShapes.x2l,
                 border: Border.all(
-                  color: isDark 
-                      ? AppColors.pureWhite.withValues(alpha: 0.12) 
-                      : AppColors.dark700.withValues(alpha: AppColors.opacitySubtle),
-                  width: AppShapes.borderThin,
+                  color: isAdmin 
+                      ? AppColors.actionGreen 
+                      : (isDark 
+                          ? AppColors.pureWhite.withValues(alpha: 0.12) 
+                          : AppColors.dark700.withValues(alpha: AppColors.opacitySubtle)),
+                  width: isAdmin ? 1.5 : AppShapes.borderThin,
                 ),
               ),
               child: Stack(
@@ -85,7 +86,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                                 child: Icon(
                                   isSelected ? item.activeIcon : item.icon,
                                   color: isSelected 
-                                    ? (isDark ? AppColors.pureWhite : primaryColor) 
+                                    ? AppColors.dark900 
                                     : unselectedItemColor,
                                   size: AppShapes.iconMd,
                                 ),
@@ -97,7 +98,7 @@ class BoxyArtBottomNavBar extends StatelessWidget {
                                   fontSize: AppTypography.sizeCaption,
                                   fontWeight: isSelected ? AppTypography.weightSemibold : AppTypography.weightRegular,
                                   color: isSelected 
-                                      ? (isDark ? AppColors.pureWhite : primaryColor) 
+                                      ? AppColors.dark900 
                                       : unselectedItemColor,
                                   letterSpacing: 0.2,
                                 ),

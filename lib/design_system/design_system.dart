@@ -36,6 +36,7 @@ export 'widgets/scaffold_with_nav_bar.dart';
 export 'widgets/staggered_entrance.dart';
 export 'widgets/event_cards.dart';
 export 'widgets/scorecard_tile.dart';
+export 'widgets/boxy_art_member_row.dart';
 
 // Theme v3.1 - Source of Truth
 export 'package:golf_society/theme/app_theme.dart';

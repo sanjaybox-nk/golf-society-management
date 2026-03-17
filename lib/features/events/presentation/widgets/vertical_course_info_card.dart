@@ -191,16 +191,17 @@ class VerticalCourseInfoCard extends StatelessWidget {
 
     if (scoreDiff != null) {
       if (scoreDiff <= -2) {
-        bubbleBg = AppColors.amber500;
+        bubbleBg = AppColors.amber500; // Eagle - Yellow
         bubbleText = Colors.black;
       } else if (scoreDiff == -1) {
-        bubbleBg = AppColors.lime500;
+        bubbleBg = AppColors.coral500; // Birdie - Red
       } else if (scoreDiff == 0) {
-        bubbleBg = isDark ? AppColors.dark400 : AppColors.dark150;
+        bubbleBg = isDark ? theme.colorScheme.surfaceContainerHighest : AppColors.dark50;
+        bubbleText = theme.colorScheme.onSurface;
       } else if (scoreDiff == 1) {
-        bubbleBg = AppColors.coral400;
+        bubbleBg = AppColors.dark900; // Bogey - Black
       } else {
-        bubbleBg = AppColors.coral500;
+        bubbleBg = AppColors.dark600; // Double Bogey+ - Dark Grey
       }
     }
 
@@ -255,7 +256,8 @@ class VerticalCourseInfoCard extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: bubbleBg,
-                shape: BoxShape.circle,
+                shape: scoreDiff != null && scoreDiff < 0 ? BoxShape.circle : BoxShape.rectangle,
+                borderRadius: scoreDiff != null && scoreDiff >= 0 ? BorderRadius.circular(4) : null,
                 boxShadow: scoreDiff != null && scoreDiff < 0 
                   ? [BoxShadow(color: bubbleBg!.withValues(alpha: 0.3), blurRadius: 4, spreadRadius: 1)] 
                   : null,

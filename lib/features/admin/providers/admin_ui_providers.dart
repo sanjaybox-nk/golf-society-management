@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../domain/grouping/grouping_service.dart';
+import 'package:golf_society/domain/grouping/grouping_service.dart';
 
 /// Tracks if the current grouping screen has unsaved changes.
 class GroupingDirtyNotifier extends Notifier<bool> {
@@ -35,4 +35,29 @@ class GroupingIsLockedNotifier extends Notifier<bool?> {
   }
 }
 
+
 final groupingIsLockedProvider = NotifierProvider<GroupingIsLockedNotifier, bool?>(GroupingIsLockedNotifier.new);
+
+/// Tracks if the generation options overlay is shown.
+class GroupingShowGenerationOptionsNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool value) => state = value;
+}
+final groupingShowGenerationOptionsProvider = NotifierProvider<GroupingShowGenerationOptionsNotifier, bool>(GroupingShowGenerationOptionsNotifier.new);
+
+/// Tracks the selected player for swap.
+class GroupingSelectedForSwapNotifier extends Notifier<TeeGroupParticipant?> {
+  @override
+  TeeGroupParticipant? build() => null;
+  void set(TeeGroupParticipant? value) => state = value;
+}
+final groupingSelectedForSwapProvider = NotifierProvider<GroupingSelectedForSwapNotifier, TeeGroupParticipant?>(GroupingSelectedForSwapNotifier.new);
+
+/// Tracks if match play mode is active.
+class GroupingMatchPlayModeNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool value) => state = value;
+}
+final groupingMatchPlayModeProvider = NotifierProvider<GroupingMatchPlayModeNotifier, bool>(GroupingMatchPlayModeNotifier.new);

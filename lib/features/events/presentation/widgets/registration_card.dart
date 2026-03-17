@@ -1,5 +1,6 @@
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import '../../domain/registration_logic.dart';
 
 class RegistrationCard extends StatelessWidget {
@@ -141,9 +142,9 @@ class RegistrationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    toTitleCase(name),
                     style: AppTypography.body.copyWith(
-                      fontWeight: AppTypography.weightBlack,
+                      fontWeight: AppTypography.weightExtraBold,
                       fontSize: AppTypography.sizeBody,
                       letterSpacing: -0.4,
                     ),
@@ -387,8 +388,8 @@ class RegistrationCard extends StatelessWidget {
   }
 
   Color _getIconActiveColor(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return isDark ? AppColors.pureWhite : AppColors.dark800;
+    // v3.1 Refining active state: use thematic action color
+    return AppColors.actionGreen;
   }
 
   Color _getIconInactiveColor(BuildContext context) {

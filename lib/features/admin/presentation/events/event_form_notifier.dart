@@ -155,6 +155,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   }
 
   void updateCourseNameManual(String v) => state = AsyncData(state.value!.copyWith(courseName: v));
+  void updateCourseDetailsManual(String v) => state = AsyncData(state.value!.copyWith(courseDetails: v));
   void updateSelectedTeeName(String? v) => state = AsyncData(state.value!.copyWith(selectedTeeName: v));
   void updateSelectedFemaleTeeName(String? v) => state = AsyncData(state.value!.copyWith(selectedFemaleTeeName: v));
   void updateDressCode(String v) => state = AsyncData(state.value!.copyWith(dressCode: v));

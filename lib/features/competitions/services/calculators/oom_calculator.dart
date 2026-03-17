@@ -2,6 +2,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'leaderboard_calculator.dart';
 
 class OOMCalculator implements LeaderboardCalculator {
@@ -11,87 +12,50 @@ class OOMCalculator implements LeaderboardCalculator {
     required List<Competition> competitions,
     required List<Scorecard> scorecards,
     Map<String, Map<String, dynamic>>? groupings,
+    Map<String, ProcessedEventData>? processedEvents,
   }) async {
     final oomConfig = config as OrderOfMeritConfig;
     
     // Map of Member ID -> List of (Event ID, Points)
     final Map<String, List<_EventScore>> memberScores = {};
 
+    if (processedEvents == null || processedEvents.isEmpty) return [];
+
     // Process each competition
     for (var comp in competitions) {
-      final compCards = scorecards.where((s) {
-        final isExcluded = comp.rules.oomExcludedRoundIds.contains(s.roundId);
-        return s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok && !isExcluded;
-      }).toList();
-      
-      // Sort for position if needed
-      if (oomConfig.source == OOMSource.position) {
-         compCards.sort((a, b) {
-            if (oomConfig.rankingBasis == OOMRankingBasis.gross) {
-               final grossA = (a.grossTotal != null && a.grossTotal! > 0) ? a.grossTotal! : 9999;
-               final grossB = (b.grossTotal != null && b.grossTotal! > 0) ? b.grossTotal! : 9999;
-               if (grossA != grossB) return grossA.compareTo(grossB);
-               return _compareCountback(a, b); 
-            } else {
-               final ptsA = a.points ?? 0;
-               final ptsB = b.points ?? 0;
-               if (ptsA != ptsB) return ptsB.compareTo(ptsA);
-               final grossA = (a.grossTotal != null && a.grossTotal! > 0) ? a.grossTotal! : 9999;
-               final grossB = (b.grossTotal != null && b.grossTotal! > 0) ? b.grossTotal! : 9999;
-               return grossA.compareTo(grossB);
-            }
-         });
-      }
+      final processedData = processedEvents[comp.id];
+      if (processedData == null) continue;
 
-      for (int i = 0; i < compCards.length; i++) {
-        final card = compCards[i];
-        final position = i + 1;
+      // Filter out excluded rounds if applicable (though usually OOM captures the whole event)
+      // but if an event has multiple rounds, we might need more granular logic.
+      // For now, we assume 1 event = 1 leaderboard result.
 
-        // Resolve Member IDs (Single or Team)
-        List<String> memberIds = [];
-        final eventGrouping = groupings?[comp.id];
-        
-        if (card.entryId.startsWith('team_') && eventGrouping != null) {
-          final teamData = eventGrouping[card.entryId];
-          if (teamData != null && teamData['members'] is List) {
-            memberIds = List<String>.from(teamData['members']);
-          } else {
-            // Log warning or fallback
-            memberIds = [card.entryId];
-          }
-        } else {
-          memberIds = [card.entryId];
-        }
+      for (var entry in processedData.leaderboard) {
+        final position = entry.position;
 
         // Calculate Points
         double pointsEarned = 0;
         if (oomConfig.source == OOMSource.position) {
-          bool isValid = true;
-          if (oomConfig.rankingBasis == OOMRankingBasis.gross) {
-             if (card.grossTotal == null || card.grossTotal == 0) isValid = false;
-          }
-          if (isValid) {
-             pointsEarned = (oomConfig.positionPointsMap[position] ?? 0).toDouble();
-          }
+          pointsEarned = (oomConfig.positionPointsMap[position] ?? 0).toDouble();
         } else if (oomConfig.source == OOMSource.stableford) {
-          pointsEarned = (card.points ?? 0).toDouble();
+          // If source is stableford, we use the score directly (assuming it's formatted as pts)
+          pointsEarned = entry.score.toDouble();
         } else if (oomConfig.source == OOMSource.gross) {
-          pointsEarned = (card.grossTotal ?? 0).toDouble();
+          pointsEarned = entry.score.toDouble();
         }
         
-        // Participation points added to every finisher
+        // Participation points
         pointsEarned += oomConfig.appearancePoints;
 
-        // Attribute points to each member in the entry
-        for (var mId in memberIds) {
+        // Attribute points to each member in the entry (handles Pairs/Teams)
+        for (var mId in entry.teamMemberIds) {
+          if (mId.endsWith('_guest')) continue; // Skip guests in OOM
+          
           memberScores.putIfAbsent(mId, () => []);
           memberScores[mId]!.add(_EventScore(comp.id, pointsEarned));
         }
       }
     }
-
-    // [NEW] Filter out guest players - Season Standings are for Society Members only
-    memberScores.removeWhere((id, _) => id.endsWith('_guest'));
 
     // Convert scores to Standings, applying Best N rule
     final List<LeaderboardStanding> standings = [];
@@ -122,38 +86,6 @@ class OOMCalculator implements LeaderboardCalculator {
     standings.sort((a, b) => b.points.compareTo(a.points));
 
     return standings;
-  }
-
-  int _compareCountback(Scorecard a, Scorecard b) {
-    if (a.holeScores.length != 18 || b.holeScores.length != 18) return 0;
-
-    int sumRange(Scorecard card, int start, int count) {
-      return card.holeScores
-          .skip(start)
-          .take(count)
-          .whereType<int>()
-          .fold(0, (sum, val) => sum + val);
-    }
-
-    // Back 9
-    int back9A = sumRange(a, 9, 9);
-    int back9B = sumRange(b, 9, 9);
-    if (back9A != back9B) return back9A.compareTo(back9B);
-
-    // Last 6
-    int last6A = sumRange(a, 12, 6);
-    int last6B = sumRange(b, 12, 6);
-    if (last6A != last6B) return last6A.compareTo(last6B);
-
-    // Last 3
-    int last3A = sumRange(a, 15, 3);
-    int last3B = sumRange(b, 15, 3);
-    if (last3A != last3B) return last3A.compareTo(last3B);
-
-    // Last 1
-    int last1A = a.holeScores[17] ?? 0;
-    int last1B = b.holeScores[17] ?? 0;
-    return last1A.compareTo(last1B);
   }
 }
 

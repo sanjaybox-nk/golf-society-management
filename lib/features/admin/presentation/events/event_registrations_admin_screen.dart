@@ -42,6 +42,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, GolfEvent event, List<Member> members) {
+    return buildSliver(context, ref, event, members);
+  }
+
+  static Widget buildSliver(BuildContext context, WidgetRef ref, GolfEvent event, List<Member> members) {
     // Shared Logic for groups/sorting
     final sortedItems = RegistrationLogic.getSortedItems(event);
     final dinnerOnlyItems = RegistrationLogic.getDinnerOnlyItems(event);
@@ -504,11 +508,11 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 isAdmin: true,
                 memberProfile: null, 
                 isGuest: true,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, true),
+                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
+                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
+                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
               ),
             )),
           ],
@@ -532,11 +536,11 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 isAdmin: true,
                 memberProfile: null, 
                 isGuest: true,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, true),
+                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
+                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
+                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
               ),
             )),
           ],
@@ -559,11 +563,11 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 isDinnerOnly: true,
                 isAdmin: true,
                 memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
                 onBuggyToggle: null,
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -585,11 +589,11 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 hasPaid: vm.item.registration.hasPaid,
                 isAdmin: true,
                 memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, false),
+                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
+                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
+                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -601,7 +605,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
   
 
-  void _updateStatus(WidgetRef ref, GolfEvent event, EventRegistration reg, RegistrationStatus newStatus) {
+  static void _updateStatus(WidgetRef ref, GolfEvent event, EventRegistration reg, RegistrationStatus newStatus) {
     String? nextOverride;
     // Map enum to override string
     switch (newStatus) {
@@ -649,10 +653,10 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
       isConfirmed: nextIsConfirmed,
       history: [...(reg.history ?? []), historyItem],
     );
-    _updateRegistration(ref, event, updated);
+    EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 
-  void _toggleBuggyStatus(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
+  static void _toggleBuggyStatus(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
     bool nextNeedsBuggy = isGuest ? reg.guestNeedsBuggy : reg.needsBuggy;
     String? currentOverride = isGuest ? reg.guestBuggyStatusOverride : reg.buggyStatusOverride;
     String? nextOverride;
@@ -679,32 +683,32 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final updated = isGuest 
       ? reg.copyWith(guestNeedsBuggy: nextNeedsBuggy, guestBuggyStatusOverride: nextOverride)
       : reg.copyWith(needsBuggy: nextNeedsBuggy, buggyStatusOverride: nextOverride);
-    _updateRegistration(ref, event, updated);
+    EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 
-  void _toggleBreakfast(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
+  static void _toggleBreakfast(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
     final updated = isGuest 
       ? reg.copyWith(guestAttendingBreakfast: !reg.guestAttendingBreakfast)
       : reg.copyWith(attendingBreakfast: !reg.attendingBreakfast);
-    _updateRegistration(ref, event, updated);
+    EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 
-  void _toggleLunch(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
+  static void _toggleLunch(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
     final updated = isGuest 
       ? reg.copyWith(guestAttendingLunch: !reg.guestAttendingLunch)
       : reg.copyWith(attendingLunch: !reg.attendingLunch);
-    _updateRegistration(ref, event, updated);
+    EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 
 
-  void _toggleDinner(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
+  static void _toggleDinner(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
     final updated = isGuest 
       ? reg.copyWith(guestAttendingDinner: !reg.guestAttendingDinner)
       : reg.copyWith(attendingDinner: !reg.attendingDinner);
-    _updateRegistration(ref, event, updated);
+    EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 
-  void _updateRegistration(WidgetRef ref, GolfEvent event, EventRegistration updated) {
+  static void _updateRegistration(WidgetRef ref, GolfEvent event, EventRegistration updated) {
     final newList = List<EventRegistration>.from(event.registrations);
     final idx = newList.indexWhere((r) => r.memberId == updated.memberId);
     if (idx >= 0) {

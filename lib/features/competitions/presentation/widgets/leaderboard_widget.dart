@@ -1,5 +1,6 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
 
 class LeaderboardWidget extends StatelessWidget {
   final List<LeaderboardEntry> entries;
@@ -18,80 +19,34 @@ class LeaderboardWidget extends StatelessWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
 
     return Column(
-      children: entries.asMap().entries.map((item) {
-        final index = item.key;
-        final entry = item.value;
-        final isTop3 = index < 3;
+      children: entries.map((entry) {
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: BoxyArtScorecardTile(
+          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+          child: BoxyArtMemberRow(
             onTap: () => onPlayerTap?.call(entry),
-            playerName: entry.playerName,
-            secondaryPlayerName: entry.secondaryPlayerName,
-            avatarNames: entry.teamMemberNames,
-            leading: BoxyArtNumberBadge(
-              number: index + 1,
-              size: AppShapes.iconXl,
-              isRanking: true,
-              isFilled: isTop3,
-            ),
-            score: entry.scoreLabel ?? '${entry.score}',
-            status: _buildMetadataRow(context, entry),
+            name: entry.playerName,
+            secondaryName: entry.secondaryPlayerName,
+            initials: (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty)
+                ? entry.teamMemberNames!.first
+                : entry.playerName,
+            ranking: entry.position,
+            isWinner: entry.position == 1,
+            handicapIndex: entry.handicapIndex,
+            playingHandicap: entry.playingHandicap,
+            hasSocietyCut: entry.hasSocietyCut,
+            scoreColor: entry.scoringStatus != ScoringStatus.ok ? AppColors.coral500 : null,
+            score: entry.scoringStatus != ScoringStatus.ok 
+                ? entry.scoringStatus.name.toUpperCase() 
+                : (entry.scoreLabel ?? '${entry.score}'),
+            tieBreakLabel: entry.tieBreakLabel ?? entry.tieBreakDetails,
+            thruLabel: entry.thruLabel ?? ((entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0)
+                ? 'Thru ${entry.holesPlayed}'
+                : null),
+            isGuest: entry.isGuest,
           ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildMetadataRow(BuildContext context, LeaderboardEntry entry) {
-    final isTeam = entry.mode == CompetitionMode.teams || entry.mode == CompetitionMode.pairs;
-    final showThru = entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isTeam) ...[
-              BoxyArtPill.type(label: entry.mode == CompetitionMode.pairs ? 'PAIR' : 'TEAM'),
-              const SizedBox(width: AppSpacing.sm),
-            ],
-            if (entry.isGuest) ...[
-              BoxyArtPill.status(label: 'GUEST', color: AppColors.amber500),
-              const SizedBox(width: AppSpacing.sm),
-            ],
-            if (showThru)
-              _buildProMaxLabel('THRU ${entry.holesPlayed}', AppColors.lime500),
-          ],
-        ),
-        if (entry.playingHandicap != null)
-           Padding(
-             padding: const EdgeInsets.only(top: 6),
-             child: Row(
-               children: [
-                 _buildProMaxLabel('HC: ${entry.handicap}', AppColors.dark150),
-                 const SizedBox(width: AppSpacing.sm),
-                 _buildProMaxLabel('PHC: ${entry.playingHandicap}', AppColors.lime500),
-               ],
-             ),
-           ),
-        if (entry.tieBreakDetails != null)
-          _buildProMaxLabel(entry.tieBreakDetails!.toUpperCase(), AppColors.dark60),
-      ],
-    );
-  }
-
-  Widget _buildProMaxLabel(String text, Color color) {
-    return Text(
-      text,
-      style: AppTypography.label.copyWith(
-        fontSize: AppTypography.sizeCaption,
-        color: color,
-        fontWeight: AppTypography.weightBlack,
-        letterSpacing: 2.0,
-      ),
     );
   }
 }
@@ -102,9 +57,13 @@ class LeaderboardEntry {
   final int score;
   final String? scoreLabel; // [NEW] For Matchplay like "2 & 1"
   final int handicap;
+  final double handicapIndex; // [NEW] Precise index for Hc: label
   final int? playingHandicap;
   final int? holesPlayed;
   final String? tieBreakDetails;
+  final String? tieBreakLabel;
+  final String? thruLabel;
+  final ScoringStatus scoringStatus; // [NEW] WD, DQ, NR
   final bool isGuest;
   final String? secondaryPlayerName; // [NEW] For Pairs/Teams
   final List<String>? teamMemberNames; // [NEW] For larger teams (Scramble etc)
@@ -114,9 +73,16 @@ class LeaderboardEntry {
   final int? adjustedGrossScore; // [NEW] Capped at Net Double Bogey for WHS
   final List<int>? tieBreakMetrics; // [NEW] Pre-calculated values for sorting ties (Back 9, 6, 3, 1)
   final List<int?>? holeScores; // [NEW] Raw scores for direct modal display
+  final List<int?>? holeNetScores; // [NEW] Pre-calculated net scores
+  final List<int?>? holePoints; // [NEW] Pre-calculated points
   final int? teamIndex; // [NEW] For resolving team scorecards
   final List<double>? individualHandicaps; // [UPDATED] Support decimals for Index
   final List<int>? individualPlayingHandicaps;
+  final List<List<int?>>? individualHoleScores; // [NEW]
+  final List<List<int?>>? individualHoleNetScores; // [NEW]
+  final List<List<int?>>? individualHolePoints; // [NEW]
+  final bool hasSocietyCut; // [NEW] Track for display notation (*)
+  final int position;
 
   LeaderboardEntry({
     required this.entryId,
@@ -124,9 +90,12 @@ class LeaderboardEntry {
     required this.score, 
     this.scoreLabel,
     required this.handicap,
+    this.handicapIndex = 0.0,
     this.playingHandicap,
     this.holesPlayed,
     this.tieBreakDetails,
+    this.tieBreakLabel,
+    this.thruLabel,
     this.isGuest = false,
     this.secondaryPlayerName,
     this.teamMemberNames,
@@ -136,9 +105,17 @@ class LeaderboardEntry {
     this.adjustedGrossScore,
     this.tieBreakMetrics,
     this.holeScores,
+    this.holeNetScores,
+    this.holePoints,
     this.teamIndex,
     this.individualHandicaps,
     this.individualPlayingHandicaps,
+    this.individualHoleScores,
+    this.individualHoleNetScores,
+    this.individualHolePoints,
+    this.hasSocietyCut = false,
+    this.position = 0,
+    this.scoringStatus = ScoringStatus.ok,
   });
 
   LeaderboardEntry copyWith({
@@ -150,6 +127,8 @@ class LeaderboardEntry {
     int? playingHandicap,
     int? holesPlayed,
     String? tieBreakDetails,
+    String? tieBreakLabel,
+    String? thruLabel,
     bool? isGuest,
     String? secondaryPlayerName,
     List<String>? teamMemberNames,
@@ -162,6 +141,15 @@ class LeaderboardEntry {
     int? teamIndex,
     List<double>? individualHandicaps,
     List<int>? individualPlayingHandicaps,
+    bool? hasSocietyCut,
+    int? position,
+    double? handicapIndex,
+    ScoringStatus? scoringStatus,
+    List<int?>? holeNetScores,
+    List<int?>? holePoints,
+    List<List<int?>>? individualHoleScores,
+    List<List<int?>>? individualHoleNetScores,
+    List<List<int?>>? individualHolePoints,
   }) {
     return LeaderboardEntry(
       entryId: entryId ?? this.entryId,
@@ -172,6 +160,8 @@ class LeaderboardEntry {
       playingHandicap: playingHandicap ?? this.playingHandicap,
       holesPlayed: holesPlayed ?? this.holesPlayed,
       tieBreakDetails: tieBreakDetails ?? this.tieBreakDetails,
+      tieBreakLabel: tieBreakLabel ?? this.tieBreakLabel,
+      thruLabel: thruLabel ?? this.thruLabel,
       isGuest: isGuest ?? this.isGuest,
       secondaryPlayerName: secondaryPlayerName ?? this.secondaryPlayerName,
       teamMemberNames: teamMemberNames ?? this.teamMemberNames,
@@ -183,7 +173,16 @@ class LeaderboardEntry {
       holeScores: holeScores ?? this.holeScores,
       teamIndex: teamIndex ?? this.teamIndex,
       individualHandicaps: individualHandicaps ?? this.individualHandicaps,
+      handicapIndex: handicapIndex ?? this.handicapIndex,
       individualPlayingHandicaps: individualPlayingHandicaps ?? this.individualPlayingHandicaps,
+      hasSocietyCut: hasSocietyCut ?? this.hasSocietyCut,
+      position: position ?? this.position,
+      scoringStatus: scoringStatus ?? this.scoringStatus,
+      holeNetScores: holeNetScores ?? this.holeNetScores,
+      holePoints: holePoints ?? this.holePoints,
+      individualHoleScores: individualHoleScores ?? this.individualHoleScores,
+      individualHoleNetScores: individualHoleNetScores ?? this.individualHoleNetScores,
+      individualHolePoints: individualHolePoints ?? this.individualHolePoints,
     );
   }
 }

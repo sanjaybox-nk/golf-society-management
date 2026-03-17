@@ -50,8 +50,9 @@ Complex business rules are encapsulated in standalone logic classes within the `
 - **Centralized Scoring Engine**: The system uses authoritative calculators to ensure consistency across Scorecard, Grouping, and Leaderboard views.
     - `MatchPlayCalculator`: Authoritative engine for Match Play (Net Match Play, Relative PHC, Fourball/Foursomes status).
     - `ScoringCalculator`: Authoritative engine for Stroke, Stableford, and Max Score capping logic.
-    - Pattern: **Calculate Once, Display Everywhere**. Views must NOT implement their own scoring logic.
+    - **SSOT Pattern**: *Calculate Once, Display Everywhere*. The `LeaderboardEntry` serves as the primary data vehicle, carrying pre-calculated raw strokes, net scores, and Stableford points for both the main entry and all team members. Views (like `ScorecardModal`) are purely presentational and must NOT re-calculate these values.
 - **RegistrationLogic**: Centralized helper for calculating FCFS positions, status legends, and buggy allocations.
+ing FCFS positions, status legends, and buggy allocations.
 
 ## Complex Form Architecture
 For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modular decomposition strategy:

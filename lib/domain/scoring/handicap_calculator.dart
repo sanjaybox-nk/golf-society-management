@@ -8,6 +8,27 @@ class HandicapCalculator {
   /// - The Competition Rules (Format, Allowance, Cap)
   /// - The Course Configuration (Slope, Rating, Par)
   /// - The System Setting (useWhs)
+  /// 1. WHS BASELINE: Calculates the Course Handicap (100% CH)
+  /// Formula: Index * (Slope / 113) + (Rating - Par)
+  static double calculateCourseHandicap({
+    required double handicapIndex,
+    required CourseConfig courseConfig,
+    bool useWhs = true,
+  }) {
+    double baseHandicap = handicapIndex;
+    if (!useWhs) return baseHandicap;
+
+    final slope = (courseConfig.slope ?? 113).toDouble();
+    final rating = courseConfig.rating ?? (courseConfig.par ?? 72).toDouble();
+    final par = (courseConfig.par ?? 72).toDouble();
+
+    if (slope > 0) {
+      return baseHandicap * (slope / 113) + (rating - par);
+    }
+    return baseHandicap;
+  }
+
+  /// 2. PLAYING HANDICAP: Applies competition rules (Allowance, Cuts, Caps)
   static int calculatePlayingHandicap({
     required double handicapIndex,
     required CompetitionRules rules,
@@ -15,59 +36,45 @@ class HandicapCalculator {
     bool useWhs = true,
     String? teeColor,
     double? baseRating,
-    double societyCut = 0.0, // [NEW] Manual adjustment from event
+    double societyCut = 0.0,
   }) {
-    double baseHandicap = handicapIndex;
+    // A. Apply Hard Cap on INDEX if specified (only if cap is positive)
+    double cappedIndex = (rules.applyCapToIndex && rules.handicapCap > 0 && handicapIndex > rules.handicapCap) 
+        ? rules.handicapCap.toDouble() 
+        : handicapIndex;
+
+    // B. Calculate WHS Baseline (Course Handicap)
+    double rawCourseHandicap = calculateCourseHandicap(
+      handicapIndex: cappedIndex, 
+      courseConfig: courseConfig, 
+      useWhs: useWhs
+    );
+    int baselinePHC = rawCourseHandicap.round();
+
+    // C. Apply Allowance & Cuts
+    if (rules.scoringType == 'GROSS') return 0;
     
-    // 1. Apply Hard Cap on INDEX if specified
-    if (rules.applyCapToIndex && baseHandicap > rules.handicapCap) {
-      baseHandicap = rules.handicapCap.toDouble();
-    }
+    double adjustedPHC = baselinePHC * rules.handicapAllowance;
+    int finalized = (adjustedPHC.round() - societyCut).round();
 
-    double courseHandicap = baseHandicap;
-
-    if (useWhs) {
-       // WHS Formula: Index * (Slope / 113) + (Rating - Par)
-       // Strictly data-driven: If course data is empty/null, we cannot calculate accurately.
-       // We use 0.0 as the 'ignore' value but avoid hidden hardcoding in the formula.
-        final slope = (courseConfig.slope ?? 0).toDouble();
-        final rating = courseConfig.rating ?? 0.0;
-        final par = (courseConfig.par ?? 0).toDouble();
-
-       if (slope > 0) {
-         courseHandicap = baseHandicap * (slope / 113) + (rating - par);
-       }
-    }
-
-    // 2. Apply Allowance (e.g. 95%)
-    // Safety: If allowance is 0 but competition isn't explicitly GROSS mode,
-    // treat it as 1.0 to prevent misconfigured data from zeroing all PHCs.
-    final effectiveAllowance = (rules.handicapAllowance == 0 && rules.subtype != CompetitionSubtype.grossStableford)
-        ? 1.0
-        : rules.handicapAllowance;
-    double playingHandicap = courseHandicap * effectiveAllowance;
-
-    // 3. Rounding (Standard .5 rounds up)
-    int rounded = playingHandicap.round();
-    
-    // Apply manual adjustment (Society Cut)
-    rounded = (rounded - societyCut).round();
-
-    // 4. Apply Mixed Tee Equity Adjustment (CR - BaseRating) 
+    // E. Mixed Tee Equity
     if (useWhs && baseRating != null && rules.useMixedTeeAdjustment && rules.format != CompetitionFormat.stableford) {
-      final rating = courseConfig.rating ?? 0.0;
-      if (rating > 0) {
-        final adjustment = (rating - baseRating).round();
-        rounded += adjustment;
-      }
+      final rating = courseConfig.rating ?? courseConfig.par?.toDouble() ?? 72.0;
+      final adjustment = (rating - baseRating).round();
+      finalized += adjustment;
     }
 
-    // 5. Apply Cap on FINAL result (Safety Gate)
-    if (rounded > rules.handicapCap && rules.handicapCap > 0) {
-      rounded = rules.handicapCap;
+    // F. Final result Cap (only if cap is positive)
+    if (rules.handicapCap > 0 && finalized > rules.handicapCap) {
+      finalized = rules.handicapCap;
     }
 
-    return rounded;
+    // G. Safety check: positive index should usually not result in negative PHC
+    if (handicapIndex >= 0 && finalized < 0) {
+      finalized = 0;
+    }
+
+    return finalized;
   }
 
   /// Calculates a combined team handicap (mostly for Scramble)

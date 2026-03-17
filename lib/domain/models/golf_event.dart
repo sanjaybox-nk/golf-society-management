@@ -148,6 +148,8 @@ abstract class GolfEvent with _$GolfEvent {
     double? eventCost,
   }) = _GolfEvent;
 
+  bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;
+
   bool get isRegistrationClosed {
     if (registrationDeadline == null) return false;
     return DateTime.now().isAfter(registrationDeadline!);

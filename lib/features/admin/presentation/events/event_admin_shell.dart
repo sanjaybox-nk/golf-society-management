@@ -33,47 +33,56 @@ class EventAdminShell extends ConsumerWidget {
 
     final List<_AdminTab> tabs = [
       const _AdminTab(
-        path: 'home',
-        icon: Icons.home_filled,
-        activeIcon: Icons.home,
-        label: 'Home',
-      ),
-      const _AdminTab(
         path: 'event',
         icon: Icons.info_outline_rounded,
         activeIcon: Icons.info_rounded,
-        label: 'Details',
+        label: 'Info',
       ),
-      const _AdminTab(
-        path: 'registrations',
-        icon: Icons.people_outline,
-        activeIcon: Icons.people,
-        label: 'Registration',
-      ),
-      if (isGolfEvent) ...[
+      if (isGolfEvent)
         const _AdminTab(
-          path: 'grouping',
+          path: 'field-hub',
           icon: Icons.grid_view_rounded,
-          activeIcon: Icons.grid_view_sharp,
-          label: 'Groups',
+          activeIcon: Icons.grid_view_rounded,
+          label: 'Field',
         ),
+      const _AdminTab(
+        path: 'home',
+        icon: Icons.edit_note_rounded,
+        activeIcon: Icons.edit_note_rounded,
+        label: 'My Card',
+      ),
+      if (isGolfEvent)
         const _AdminTab(
           path: 'scores',
           icon: Icons.emoji_events_outlined,
-          activeIcon: Icons.emoji_events,
+          activeIcon: Icons.emoji_events_rounded,
           label: 'Scores',
         ),
-      ],
       const _AdminTab(
         path: 'reporting',
-        icon: Icons.bar_chart_outlined,
-        activeIcon: Icons.bar_chart,
-        label: 'Reports',
+        icon: Icons.analytics_outlined,
+        activeIcon: Icons.analytics_rounded,
+        label: 'Stats',
       ),
     ];
 
-    int currentIndex = tabs.indexWhere((t) => segments.contains(t.path));
-    if (currentIndex == -1) currentIndex = 0;
+    // Determine current index based on path segments
+    int currentIndex = 0;
+    if (segments.contains('grouping') || segments.contains('field-hub')) {
+      currentIndex = isGolfEvent ? 1 : 0;
+    } else if (segments.contains('home')) {
+      currentIndex = isGolfEvent ? 2 : 1;
+    } else if (segments.contains('scores')) {
+      currentIndex = isGolfEvent ? 3 : 2;
+    } else if (segments.contains('reporting')) {
+      currentIndex = isGolfEvent ? 4 : 2;
+    } else {
+      // Default to Info if on event, registrations, manual-cuts, or home
+      currentIndex = segments.contains('home') ? (isGolfEvent ? 2 : 1) : 0;
+    }
+
+    // Safety check for index
+    if (currentIndex >= tabs.length) currentIndex = 0;
 
     return Scaffold(
       extendBody: true,
@@ -81,8 +90,6 @@ class EventAdminShell extends ConsumerWidget {
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
         onItemSelected: (index) => _onTap(context, ref, index, currentIndex, tabs, id),
-        activeColor: AppColors.lime500,
-        borderColor: AppColors.lime500,
         items: tabs.map((t) => BoxyArtBottomNavItem(
           icon: t.icon,
           activeIcon: t.activeIcon,

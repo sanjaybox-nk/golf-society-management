@@ -26,7 +26,6 @@ class AdminSettingsScreen extends ConsumerWidget {
             delegate: SliverChildListDelegate([
               // 1. Localisation
               const BoxyArtSectionTitle(title: 'Localisation'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -57,11 +56,10 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.x3l),
+              const SizedBox(height: AppSpacing.cardToLabel),
 
               // 2. Competition Settings
               const BoxyArtSectionTitle(title: 'Competition Settings'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -87,11 +85,10 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.x3l),
+              const SizedBox(height: AppSpacing.cardToLabel),
 
               // 3. Society Configurations
               const BoxyArtSectionTitle(title: 'Society Configurations'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -146,9 +143,8 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.x3l),
+              const SizedBox(height: AppSpacing.cardToLabel),
               const BoxyArtSectionTitle(title: 'Access & Permissions'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -175,9 +171,8 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.x3l),
+              const SizedBox(height: AppSpacing.cardToLabel),
               const BoxyArtSectionTitle(title: 'Danger Zone'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -200,9 +195,8 @@ class AdminSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.x3l),
+              const SizedBox(height: AppSpacing.cardToLabel),
               const BoxyArtSectionTitle(title: 'App Info'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(

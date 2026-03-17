@@ -92,7 +92,7 @@ class EventDetailsContent extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: event.title,
-      subtitle: 'Info Hub',
+      subtitle: 'Event Info Hub',
       subtitleTrailing: _buildStatusBadge(context),
       useScaffold: useScaffold,
       leading: isPreview ? Center(
@@ -121,11 +121,6 @@ class EventDetailsContent extends ConsumerWidget {
         }
       },
       actions: [
-        BoxyArtGlassIconButton(
-          icon: Icons.home_rounded,
-          tooltip: 'Event Home',
-          onPressed: () => context.push('/events/${event.id}/home'),
-        ),
         if (!isPreview) ...[
           if (onEdit != null)
             BoxyArtGlassIconButton(
@@ -149,7 +144,8 @@ class EventDetailsContent extends ConsumerWidget {
                 icon: Icons.tune_rounded,
                 iconSize: 24,
                 onPressed: () {
-                  context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/manual-cuts');
+                  final id = event.id;
+                  context.go('/events/${Uri.encodeComponent(id)}/manual-cuts');
                 },
                 tooltip: 'Manual Handicap Cuts',
               ),
@@ -395,6 +391,22 @@ class EventDetailsContent extends ConsumerWidget {
       customShadows: Theme.of(context).extension<AppShadows>()?.softScale,
       child: Column(
         children: [
+          if (event.courseName != null) ...[
+            ModernInfoRow(
+              label: 'LOCATION',
+              value: event.courseName!,
+              icon: Icons.location_on_outlined,
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+              valueColor: AppColors.pureWhite,
+              iconColor: AppColors.pureWhite,
+              trailing: BoxyArtGlassIconButton(
+                icon: Icons.map_outlined,
+                iconSize: 20,
+                onPressed: () => _launchMap(event.courseName!, event.courseDetails),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
           ModernInfoRow(
             label: event.isMultiDay ? 'START DATE' : 'EVENT DATE',
             value: DateFormat('EEEE, d MMM yyyy').format(event.date),
@@ -415,6 +427,17 @@ class EventDetailsContent extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.xl),
+          ModernInfoRow(
+            label: 'REGISTRATION',
+            value: event.regTime != null 
+                ? DateFormat('h:mm a').format(event.regTime!)
+                : 'TBA',
+            icon: Icons.app_registration_rounded,
+            labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+            valueColor: AppColors.pureWhite,
+            iconColor: AppColors.pureWhite,
+          ),
+          const SizedBox(height: AppSpacing.xl),
           if (event.eventType == EventType.golf) ...[
             ModernInfoRow(
               label: 'TEE-OFF',
@@ -426,18 +449,7 @@ class EventDetailsContent extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.xl),
           ],
-          ModernInfoRow(
-            label: 'REGISTRATION',
-            value: event.regTime != null 
-                ? DateFormat('h:mm a').format(event.regTime!)
-                : 'TBA',
-            icon: Icons.app_registration_rounded,
-            labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
-            valueColor: AppColors.pureWhite,
-            iconColor: AppColors.pureWhite,
-          ),
           if (event.registrationDeadline != null) ...[
-            const SizedBox(height: AppSpacing.xl),
             ModernInfoRow(
               label: 'DEADLINE',
               value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
@@ -460,43 +472,11 @@ class EventDetailsContent extends ConsumerWidget {
         BoxyArtCard(
           child: Column(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: ModernInfoRow(
-                      label: 'Location',
-                      value: event.courseName ?? 'TBA',
-                      icon: Icons.location_on_rounded,
-                    ),
-                  ),
-                  if (event.courseName != null)
-                    IconButton(
-                      icon: Icon(
-                        Icons.map_outlined, 
-                        color: Theme.of(context).primaryColor,
-                        size: AppShapes.iconMd,
-                      ),
-                      onPressed: () => _launchMap(event.courseName!, event.courseDetails),
-                    ),
-                ],
-              ),
               if (event.courseDetails != null && event.courseDetails!.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 52), // Exact offset of ModernInfoRow text (38 icon + 14 spacing)
-                    Expanded(
-                      child: Text(
-                        event.courseDetails!,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: AppTypography.sizeLabelStrong,
-                        ),
-                      ),
-                    ),
-                  ],
+                ModernInfoRow(
+                  label: 'Course Details',
+                  value: event.courseDetails!,
+                  icon: Icons.info_outline_rounded,
                 ),
               ],
               if (event.eventType == EventType.golf && (event.selectedTeeName != null || event.selectedFemaleTeeName != null)) ...[

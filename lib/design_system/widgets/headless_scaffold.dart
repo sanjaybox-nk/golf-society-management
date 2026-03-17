@@ -28,6 +28,7 @@ class HeadlessScaffold extends StatelessWidget {
   final double? leadingWidth;
   final bool useScaffold;
   final Widget? subtitleTrailing;
+  final Widget? pinnedBottom;
 
   const HeadlessScaffold({
     super.key,
@@ -53,6 +54,7 @@ class HeadlessScaffold extends StatelessWidget {
     this.showAdminShortcut = true,
     this.autoPrefix = true,
     this.useScaffold = true,
+    this.pinnedBottom,
   });
 
   final bool autoPrefix;
@@ -110,7 +112,7 @@ class HeadlessScaffold extends StatelessWidget {
                         subtitle!,
                         style: AppTypography.bodySmall.copyWith(
                           color: isDark ? AppColors.dark200 : AppColors.dark400,
-                          fontWeight: AppTypography.weightSemibold,
+                          fontWeight: AppTypography.weightBold,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -127,8 +129,8 @@ class HeadlessScaffold extends StatelessWidget {
         // Content Slivers
         ...slivers,
         
-        // Natural Bottom Spacing
-        const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        // Natural Bottom Spacing (Account for pinned items or nav bar)
+        SliverPadding(padding: EdgeInsets.only(bottom: pinnedBottom != null ? 240 : 100)),
       ],
     );
 
@@ -180,6 +182,13 @@ class HeadlessScaffold extends StatelessWidget {
                 right: AppSpacing.lg,
                 child: floatingActionButton!,
               ),
+            if (pinnedBottom != null)
+              Positioned(
+                bottom: 100, // Above typical dock height (increased for better spacing)
+                left: AppSpacing.xl,
+                right: AppSpacing.xl,
+                child: pinnedBottom!,
+              ),
           ],
         ),
       );
@@ -211,7 +220,18 @@ class HeadlessScaffold extends StatelessWidget {
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
-      body: scrollView,
+      body: Stack(
+        children: [
+          scrollView,
+          if (pinnedBottom != null)
+             Positioned(
+                bottom: (bottomNavigationBar != null) ? 100 : AppSpacing.lg,
+                left: AppSpacing.xl,
+                right: AppSpacing.xl,
+                child: pinnedBottom!,
+             ),
+        ],
+      ),
     );
   }
 }

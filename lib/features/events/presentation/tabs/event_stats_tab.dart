@@ -9,7 +9,9 @@ import 'package:golf_society/domain/models/event_registration.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../widgets/rich_stats_widgets.dart';
 import '../../../../domain/scoring/handicap_calculator.dart';
-import '../../logic/event_analysis_engine.dart';
+import 'package:collection/collection.dart';
+import '../../logic/event_scoring_controller.dart';
+import '../../domain/models/processed_event_data.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
 // Use richStatsModeProvider from debug_providers.dart
@@ -32,33 +34,24 @@ class EventStatsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<Scorecard> scorecards = liveScorecards;
+    final data = ref.watch(eventScoringControllerProvider(event.id));
 
     final effectiveUser = ref.watch(effectiveUserProvider);
     final currentUserId = effectiveUser.id;
     
-    // [Society Mode Only]
     const statsMode = 0; 
     final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
     final isStableford = currentFormat == CompetitionFormat.stableford;
 
-    final myScorecard = scorecards.where((s) => s.entryId.replaceFirst('_guest', '') == currentUserId).firstOrNull;
-
-    // Use finalized stats if available
-    // DEBUG: Force recalculation to test new logic if needed, or just log.
-    final hasFinalizedStats = event.finalizedStats.isNotEmpty;
-    // print('DEBUG: EventStatsTab - hasFinalizedStats: $hasFinalizedStats');
+    // Use the authoritative individual score for personal recap
+    final myScoreEntry = data.individualScores.firstWhereOrNull(
+      (s) => s.playerId.replaceFirst('_guest', '') == currentUserId
+    );
 
     final statsReleased = event.isStatsReleased == true || isAdmin || event.status == EventStatus.completed;
-
-    // Check if scoring has even started
-    final bool isCalculating = scorecards.any((s) => s.status == ScorecardStatus.draft);
-    final bool isCompleted = event.status == EventStatus.completed;
-    final bool hasResults = event.results.isNotEmpty;
     
-    final bool isDataReady = isCompleted || hasResults || scorecards.any((s) => 
-        s.status == ScorecardStatus.submitted || s.status == ScorecardStatus.finalScore
-    ) || hasFinalizedStats;
+    // Simplified ready check
+    final bool isDataReady = data.individualScores.any((p) => p.result.holesPlayed > 0) || data.eventStats.isNotEmpty;
     
     if (!isDataReady || (!isAdmin && !statsReleased)) {
       return BoxyArtCard(
@@ -70,32 +63,21 @@ class EventStatsTab extends ConsumerWidget {
               const Icon(Icons.analytics_outlined, size: AppShapes.iconHero, color: AppColors.textSecondary),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                isCalculating 
-                    ? 'Stats are being calculated as scores come in...' 
-                    : 'Stats will be available after scoring starts.',
+                'Stats will be available after scoring starts.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: const TextStyle(color: AppColors.dark900),
               ),
-              if (isAdmin && scorecards.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.x2l),
-                BoxyArtButton(
-                  title: 'FORCE REFRESH',
-                  onTap: () {
-                    // Trigger recalculation logic or just force a rebuild
-                  },
-                  isSecondary: true,
-                ),
-              ],
             ],
           ),
         ),
       );
     }
 
+    final fs = data.eventStats;
     final holes = event.courseConfig.holes;
-    final totalPlayers = scorecards.length;
+    final totalPlayers = data.individualScores.length;
 
-    // --- Stats Calculation (Same logic as before, just in build for now) ---
+    // --- Extracted Stats from Central Brain ---
     Map<int, double> holeAverages = {};
     int fieldEagles = 0;
     int fieldBirdies = 0;
@@ -129,42 +111,6 @@ class EventStatsTab extends ConsumerWidget {
     int toughestIdx = 0;
     String toughestName = 'Hole 1';
 
-    final fs = hasFinalizedStats 
-        ? event.finalizedStats 
-        : EventAnalysisEngine.calculateFinalStats(
-            scorecards: scorecards,
-            event: event,
-            competition: comp,
-            isStableford: isStableford,
-          );
-
-    // [NEW] Robust Team Name Resolution
-    final Map<String, String> participantNames = {};
-    final isTeamComp = comp?.rules.effectiveMode == CompetitionMode.teams ||
-                      comp?.rules.effectiveMode == CompetitionMode.pairs;
-
-    if (isTeamComp && event.grouping['groups'] != null) {
-        final groups = event.grouping['groups'] as List;
-        final teamSize = comp?.rules.teamSize ?? 2;
-        
-        for (var g in groups) {
-            final players = g['players'] as List;
-            for (int i = 0; i < players.length; i += teamSize) {
-                final chunk = players.skip(i).take(teamSize).toList();
-                if (chunk.isEmpty) continue;
-                
-                final names = chunk.map((p) => p['name'] as String).toList();
-                final teamName = names.join('\n& '); // Multiline for better UI
-                
-                for (var p in chunk) {
-                   final id = p['registrationMemberId'] as String;
-                   participantNames[id] = teamName;
-                   participantNames['${id}_guest'] = teamName; 
-                }
-            }
-        }
-    }
-
     if (fs.isNotEmpty) {
       final dist = fs['scoringDistribution'] as Map?;
       fieldEagles = dist?['EAGLE'] ?? 0;
@@ -197,13 +143,8 @@ class EventStatsTab extends ConsumerWidget {
         for (var award in hof) {
           final type = award['type'];
           final displayVal = award['displayValue'];
-          final pId = award['playerId'];
+          final name = award['playerName'] ?? 'Unknown';
           
-          // [FIX] Resolve Team Name if applicable (overrides stored name)
-          String name = award['playerName'] ?? 'Unknown';
-          if (isTeamComp && pId != null && participantNames.containsKey(pId)) {
-             name = participantNames[pId]!;
-          }
           if (type == 'HOT_STREAK') { 
             hotStreakPlayer = name; 
             maxStreak = (displayVal as num?)?.toInt() ?? 1; 
@@ -214,7 +155,7 @@ class EventStatsTab extends ConsumerWidget {
           }
           else if (type == 'TOP_FINISHER') { 
             finisherPlayer = name; 
-            bestFinishScore = (displayVal as num?)?.toInt() ?? (isStableford ? 6 : 12); // Realistic fallback for old data
+            bestFinishScore = (displayVal as num?)?.toInt() ?? (isStableford ? 6 : 12);
           }
           else if (type == 'BLOB_KING' || type == 'DISASTER_MASTER') { 
             blobKingPlayer = name; 
@@ -244,7 +185,6 @@ class EventStatsTab extends ConsumerWidget {
     }
     toughestName = 'Hole ${toughestIdx + 1}';
 
-    // Standout Awards & Banter logic (Same as before)
     final Map<String, String> awardWinNames = {
       'HOT STREAK': hotStreakPlayer, 
       'BOUNCE BACK': bounceBackPlayer, 
@@ -262,22 +202,11 @@ class EventStatsTab extends ConsumerWidget {
         if (statsMode == 0) ...[
           const BoxyArtSectionTitle(title: 'Society Hero Recap'),
           if (eclecticRound.any((s) => s != null))
-            FieldEclecticCard(eclecticScores: eclecticRound, holes: holes),
-          const SizedBox(height: AppSpacing.sm),
-          BoxyArtCard(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildSmallStat('EAGLES', fieldEagles.toString(), AppColors.teamB),
-                  _buildSmallStat('BIRDIES', fieldBirdies.toString(), AppColors.teamA),
-                  _buildSmallStat('PARS', fieldPars.toString(), AppColors.lime500),
-                ],
-              ),
+            FieldEclecticCard(
+              eclecticScores: eclecticRound, 
+              holes: holes,
             ),
-          ),
-          SizedBox(height: AppTheme.cardSpacing),
+          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Field Competitiveness'),
           ScoringTypeDistributionChart(counts: {
             'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
@@ -286,17 +215,17 @@ class EventStatsTab extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             StablefordDistributionChart(bucketCounts: stablefordBuckets),
           ],
-          SizedBox(height: AppTheme.cardSpacing),
+          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Performance Trends'),
           SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
           const SizedBox(height: AppSpacing.md),
           ParTypeBreakdown(parTypeAverages: parTypeAverages),
-          SizedBox(height: AppTheme.cardSpacing),
+          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Course Analysis'),
           DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
           const SizedBox(height: AppSpacing.md),
           HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
-          SizedBox(height: AppTheme.cardSpacing),
+          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Hall of Fame'),
           if (maxStreak > 0)
             AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: AppColors.amber500),
@@ -306,7 +235,7 @@ class EventStatsTab extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           if (finisherPlayer != 'None')
             AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: AppColors.teamB),
-          SizedBox(height: AppTheme.cardSpacing),
+          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
           if (maxBlobs > 0)
             AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: AppColors.coral500),
@@ -319,20 +248,20 @@ class EventStatsTab extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           if (maxVariance > 3.0)
             AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: AppColors.coral400),
-          SizedBox(height: AppTheme.cardSpacing),
+          const SizedBox(height: AppSpacing.xl),
           SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
         ] else ...[
-          if (myScorecard == null)
+          if (myScoreEntry == null)
             const BoxyArtCard(
               child: Padding(
                 padding: EdgeInsets.all(AppSpacing.x2l),
-                child: Center(child: Text('No personal scorecard found for this event.', style: TextStyle(color: AppColors.textSecondary))),
+                child: Center(child: Text('No personal scorecard found for this event.', style: TextStyle(color: AppColors.dark900))),
               ),
             )
           else
             _buildPersonalRecap(
               context: context, 
-              myScorecard: myScorecard, 
+              myScoreEntry: myScoreEntry, 
               fieldHoleAvgs: holeAverages, 
               fieldParTypeAvgs: parTypeAverages, 
               courseConfig: event.courseConfig, 
@@ -349,18 +278,10 @@ class EventStatsTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildSmallStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontSize: AppTypography.sizeDisplayLocker, fontWeight: AppTypography.weightBlack, color: color)),
-        Text(label, style: TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontWeight: AppTypography.weightSemibold)),
-      ],
-    );
-  }
 
   Widget _buildPersonalRecap({
     required BuildContext context, 
-    required Scorecard myScorecard, 
+    required ProcessedPlayerScore myScoreEntry, 
     required Map<int, double> fieldHoleAvgs, 
     required Map<int, double> fieldParTypeAvgs, 
     required CourseConfig courseConfig, 
@@ -373,11 +294,7 @@ class EventStatsTab extends ConsumerWidget {
     required List<EventRegistration> registrations,
   }) {
     final holes = courseConfig.holes;
-    final reg = registrations.firstWhere(
-      (r) => r.memberId == myScorecard.entryId.replaceFirst('_guest', ''),
-      orElse: () => EventRegistration(memberId: '', memberName: 'Unknown', attendingGolf: true),
-    );
-    final myName = myScorecard.entryId.endsWith('_guest') ? (reg.guestName ?? 'Guest') : reg.memberName;
+    final myName = myScoreEntry.playerName;
 
     Map<int, double> myParTypeSums = {3: 0, 4: 0, 5: 0};
     Map<int, int> myParTypeCounts = {3: 0, 4: 0, 5: 0};
@@ -388,7 +305,7 @@ class EventStatsTab extends ConsumerWidget {
     int myOpportunities = 0;
 
     for (int i = 0; i < 18; i++) {
-        final score = myScorecard.holeScores.length > i ? myScorecard.holeScores[i] : null;
+        final score = myScoreEntry.holeScores.length > i ? myScoreEntry.holeScores[i] : null;
         if (score != null) {
             final par = holes.length > i ? holes[i].par : 4;
             final diff = (score - par).toDouble();
@@ -397,7 +314,7 @@ class EventStatsTab extends ConsumerWidget {
             myDiffs.add(diff);
             if (diff > myMaxDiff) { myMaxDiff = diff; myHardestIdx = i; }
             if (i > 0) {
-              final prevScore = myScorecard.holeScores.length > i-1 ? myScorecard.holeScores[i-1] : null;
+              final prevScore = myScoreEntry.holeScores.length > i-1 ? myScoreEntry.holeScores[i-1] : null;
               if (prevScore != null) {
                 final prevPar = holes.length > i-1 ? holes[i-1].par : 4;
                 if (prevScore > prevPar) { myOpportunities++; if (score <= par) myBounceBacks++; }
@@ -414,7 +331,7 @@ class EventStatsTab extends ConsumerWidget {
       myVariance = myDiffs.map((d) => math.pow(d - mean, 2)).fold<double>(0.0, (a, b) => a + b) / myDiffs.length;
     }
     final myBounceBackRate = myOpportunities > 0 ? (myBounceBacks / myOpportunities) : 0.0;
-    final grossScore = myScorecard.holeScores.whereType<int>().fold(0, (a, b) => a + b);
+    final grossScore = myScoreEntry.result.score; // Authoritative score
     final diff = HandicapCalculator.calculateDifferential(grossScore: grossScore, courseConfig: courseConfig);
 
     List<String> myAwards = [];
@@ -438,7 +355,7 @@ class EventStatsTab extends ConsumerWidget {
               children: [
                 const Icon(Icons.emoji_events, color: AppColors.pureWhite, size: AppShapes.iconXl),
                 const SizedBox(height: AppSpacing.sm),
-                const Text('AWARD EARNED!', style: TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabel, letterSpacing: 1.5)),
+                const Text('AWARD EARNED!', style: TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeLabel, letterSpacing: 1.5)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(myAwards.join(' & '), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody)),
               ],
@@ -448,7 +365,7 @@ class EventStatsTab extends ConsumerWidget {
         ],
         PersonalBenchmarkingCard(myAverages: myParTypeAverages, fieldAverages: fieldParTypeAvgs),
         const SizedBox(height: AppSpacing.md),
-        NetComparisonCard(myNet: myScorecard.netTotal ?? grossScore, fieldAvgNet: fieldAvgNet),
+        NetComparisonCard(myNet: myScoreEntry.result.score, fieldAvgNet: fieldAvgNet),
         const SizedBox(height: AppSpacing.md),
         ConsistencyStatCard(myVariance: myVariance, fieldAvgVariance: fieldAvgVariance),
         const SizedBox(height: AppSpacing.md),
@@ -456,7 +373,8 @@ class EventStatsTab extends ConsumerWidget {
         const SizedBox(height: AppSpacing.md),
         HoleNemesisComparison(myHardestHoleIdx: myHardestIdx, myHardestHoleDiff: myMaxDiff, fieldHardestHoleIdx: fieldToughestHoleIdx, fieldHardestHoleDiff: fieldHardestHoleDiff),
         const SizedBox(height: AppSpacing.md),
-        HoleComparisonHeatmap(myScorecard: myScorecard, fieldAverages: fieldHoleAvgs, holes: holes),
+        // Simplified heatmap use
+        HoleComparisonHeatmap(myHoleScores: myScoreEntry.holeScores, fieldAverages: fieldHoleAvgs, holes: holes),
         const SizedBox(height: AppSpacing.md),
         AchievementTile(title: 'HANDICAP IMPACT', playerName: 'Round Rating', value: 'Net Differential: ${diff.toStringAsFixed(1)}', icon: Icons.analytics, color: Theme.of(context).colorScheme.primary),
       ],

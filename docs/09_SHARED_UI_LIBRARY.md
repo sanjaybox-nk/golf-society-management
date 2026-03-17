@@ -100,10 +100,14 @@ A specialized round icon button with a low-opacity glass background.
 ## 6. Layout Utils (`layout.dart`, `sections.dart`)
 
 ### `BoxyArtSectionTitle`
-Standard Title Case header for grouping content.
-- **Typography**: `AppTypography.label` with increased letter spacing, strictly **Title Case**.
+The authoritative header for grouping content.
+- **Typography**: `AppTypography.label` with `weightBold`, strictly **Title Case**.
 - **Dynamic Counts**: Supports an optional `count` property to display participant totals (e.g., "Guests (4)") within the title.
-- **Spacing Guidelines**: The `padding` property is strictly **deprecated**. Global spacing harmony is now enforced at the component level to ensure consistent vertical rhythm across all screens. Do not inject ad-hoc `EdgeInsets`.
+- **Intrinsic Spacing**: The component automatically handles vertical rhythm using `AppSpacing.sectionTitleTop` (32px) and `AppSpacing.labelToCard` (12px), ensuring absolute alignment across all screens. Do not inject ad-hoc `SizedBox` spacing around this widget.
+
+### `BoxyArtMemberRow`
+The high-density row for displaying individual members or players.
+- **Typography**: Player names are automatically formatted in **Title Case** and rendered with `AppTypography.weightExtraBold` for a premium, high-contrast presence.
 
 ### `BoxyArtScorecardTile`
 The universal component for displaying a player's or team's score.
@@ -120,15 +124,16 @@ High-density data widget for displaying counts (e.g. "Playing: 24/32").
 
 The BoxyArt system uses unified motion patterns to maintain professional stability and premium feedback.
 
-### `fadePage` (Shell Navigation)
-Used for top-level navigation swaps (tabs, major shells).
-- **Effect**: Clean cross-fade.
-- **Duration**: `AppAnimations.fast` (200ms).
-- **Rationale**: Minimal distraction during foundational navigation.
-
-### `boxyPage` (Leaf & Form Navigation)
-Used for all sub-screens, detail views, and edit forms.
-- **Effect**: Fade + Subtle Slide Up.
+### `boxyPage` (Universal Standard)
+The authoritative transition for all screen movements (Tabs, Detail Views, and Forms).
+- **Effect**: Synchronized **Fade + Subtle Slide Up** (0.05 entry offset).
 - **Duration**: `AppAnimations.medium` (400ms).
-- **Curve**: `AppAnimations.entranceCurve`.
-- **Rationale**: Matches the `StaggeredEntrance` logic for a premium "opening" feel.
+- **Rationale**: Provides a stable, elegant, and predictable "opening" feel across the entire application, eliminating jarring layout shifts during navigation.
+
+## 8. Selectors & Grid Components (`selectors.dart`)
+
+### `BoxyHoleSelector`
+A specialized horizontal ribbon for navigating holes in tournament screens.
+- **Features**: Automatic horizontal scrolling. When the `currentHole` changes externally (or via arrows), the ribbon automatically animates to center the selected hole.
+- **Visuals**: Displays hole numbers with selection indicators and optional score markers (dots).
+- **Pro Density**: Items are fixed-width (58px total) to ensure smooth, predictable scrolling performance.

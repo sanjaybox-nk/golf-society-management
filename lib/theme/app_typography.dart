@@ -9,7 +9,7 @@ class AppTypography {
   static const double sizeDisplayMedium = 32.0; // Primary section titles
   static const double sizeDisplaySmall = 26.0;  // Secondary display headers
   static const double sizeDisplayTitle = 40.0;  // Editorial landing titles
-  static const double sizeDisplayPage = 34.0;
+  static const double sizeDisplayPage = 32.0;
   static const double sizeDisplayHeading = 28.0;
   static const double sizeDisplayLocker = 24.0;
   static const double sizeDisplaySubPage = 22.0;
@@ -58,7 +58,7 @@ class AppTypography {
   static const TextStyle displayPage = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeDisplayPage,
-    fontWeight: weightBlack,
+    fontWeight: weightExtraBold,
     letterSpacing: -1.8,
     height: 1.0,
   );
@@ -152,6 +152,15 @@ class AppTypography {
     fontSize: sizeLabel,
     fontWeight: weightBold,
     letterSpacing: 1.0,
+    height: 1.0,
+  );
+
+  // Usage: Section segmented headers / Ribbon headers (12px spaced).
+  static const TextStyle ribbonHeader = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: sizeLabel,
+    fontWeight: weightBold,
+    letterSpacing: 1.5,
     height: 1.0,
   );
 

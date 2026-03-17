@@ -37,13 +37,13 @@ class EventContentSection extends ConsumerWidget {
                   );
                 }),
                 const SizedBox(height: AppSpacing.sm),
-                TextButton.icon(
-                  onPressed: () {
+                BoxyArtButton(
+                  title: 'ADD FACILITY',
+                  onTap: () {
                     final list = List<String>.from(state.facilities)..add('');
                     ref.read(eventFormNotifierProvider.notifier).updateFacilities(list);
                   },
-                  icon: const Icon(Icons.add, color: AppColors.textSecondary, size: AppShapes.iconSm),
-                  label: const Text('Add Facility', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLabelStrong)),
+                  isGhost: true,
                 ),
               ],
             ),

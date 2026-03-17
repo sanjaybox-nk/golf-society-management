@@ -88,6 +88,11 @@ final adminEventsProvider = StreamProvider<List<GolfEvent>>((ref) {
   );
 });
 
+// Global (Non-event) Expenses Stream
+final globalExpensesProvider = StreamProvider<List<EventExpense>>((ref) {
+  return ref.watch(eventsRepositoryProvider).watchGlobalExpenses();
+});
+
 // 3. Derived: Upcoming
 final upcomingEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
   final eventsAsync = ref.watch(eventsProvider);

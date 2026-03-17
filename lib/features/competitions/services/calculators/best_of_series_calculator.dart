@@ -2,6 +2,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 import 'leaderboard_calculator.dart';
 
 class BestOfSeriesCalculator implements LeaderboardCalculator {
@@ -11,83 +12,42 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
     required List<Competition> competitions,
     required List<Scorecard> scorecards,
     Map<String, Map<String, dynamic>>? groupings,
+    Map<String, ProcessedEventData>? processedEvents,
   }) async {
     final seriesConfig = config as BestOfSeriesConfig;
     final Map<String, List<double>> playerScores = {};
 
+    if (processedEvents == null || processedEvents.isEmpty) return [];
+
     // 1. Collect scores per player
     for (var comp in competitions) {
-      final compCards = scorecards.where((s) => s.competitionId == comp.id && s.scoringStatus == ScoringStatus.ok).toList();
-      
-      // Handle Daily Ranking if Ranking Method is Position (or legacy position metric)
-      if (seriesConfig.scoringType == ScoringType.position || seriesConfig.metric == BestOfMetric.position) {
-         compCards.sort((a, b) {
-             // Rank Logic depends on Metric
-             if (seriesConfig.metric == BestOfMetric.gross) {
-                // Gross = Lower is better
-                final grossA = (a.grossTotal != null && a.grossTotal! > 0) ? a.grossTotal! : 9999;
-                final grossB = (b.grossTotal != null && b.grossTotal! > 0) ? b.grossTotal! : 9999;
-                if (grossA != grossB) return grossA.compareTo(grossB);
-                // Countback or Tie break not fully implemented for daily here (using raw score sort)
-                return 0; 
-             } else {
-                // Stableford/Net/Default = Higher Points/Lower Net?
-                // For BestOfSeries, 'Metric: Net' usually implies Net Score stroke play (lower is better) or Stableford (higher is better).
-                // Assuming 'Metric' defines the sort value.
-                if (seriesConfig.metric == BestOfMetric.net) {
-                   final netA = (a.netTotal ?? 999);
-                   final netB = (b.netTotal ?? 999);
-                   return netA.compareTo(netB);
-                }
-                
-                // Fallback / Stableford
-                final ptsA = a.points ?? 0;
-                final ptsB = b.points ?? 0;
-                if (ptsA != ptsB) return ptsB.compareTo(ptsA);
-                
-                // Tie break with Gross
-                final grossA = (a.grossTotal != null && a.grossTotal! > 0) ? a.grossTotal! : 9999;
-                final grossB = (b.grossTotal != null && b.grossTotal! > 0) ? b.grossTotal! : 9999;
-                return grossA.compareTo(grossB);
-             }
-         });
-      }
+      final processedData = processedEvents[comp.id];
+      if (processedData == null) continue;
 
-      for (int i = 0; i < compCards.length; i++) {
-        final card = compCards[i];
+      for (var entry in processedData.leaderboard) {
         double score = 0;
         
         if (seriesConfig.scoringType == ScoringType.position || seriesConfig.metric == BestOfMetric.position) {
-           final rank = i + 1;
+           final rank = entry.position;
            score = (seriesConfig.positionPointsMap[rank] ?? 0).toDouble();
         } else {
            // ScoringType.accumulative
-           if (seriesConfig.metric == BestOfMetric.stableford) {
-              score = (card.points ?? 0).toDouble();
-           } else if (seriesConfig.metric == BestOfMetric.net) {
-              score = (card.netTotal ?? 999).toDouble();
-           } else {
-              score = (card.grossTotal ?? 999).toDouble();
-           }
+           // We assume the pre-calculated score in ProcessedLeaderboardEntry 
+           // already reflects the Metric (Gross, Net, or Stableford)
+           score = entry.score.toDouble();
         }
         
-        playerScores.putIfAbsent(card.entryId, () => []).add(score);
+        for (var mId in entry.teamMemberIds) {
+          if (mId.endsWith('_guest')) continue;
+          playerScores.putIfAbsent(mId, () => []).add(score);
+        }
       }
     }
-
-    // [NEW] Filter out guest players - Season Standings are for Society Members only
-    playerScores.removeWhere((id, _) => id.endsWith('_guest'));
 
     // 2. Aggregate
     List<LeaderboardStanding> standings = [];
     
     playerScores.forEach((memberId, scores) {
-      // Sort scores to determine "Best N"
-      // If ScoringType is Position, Higher Points is Better (Desc)
-      // If ScoringType is Accumulative:
-      //    Stableford -> Higher is Better (Desc)
-      //    Gross/Net -> Lower is Better (Asc)
-      
       bool higherIsBetter = (seriesConfig.scoringType == ScoringType.position || 
                              seriesConfig.metric == BestOfMetric.position || 
                              seriesConfig.metric == BestOfMetric.stableford);
@@ -117,11 +77,6 @@ class BestOfSeriesCalculator implements LeaderboardCalculator {
     });
 
     // 3. Final Sort
-    // Should match the "HigherIsBetter" logic? 
-    // Usually LeaderboardStanding.points is generic.
-    // However, if we are doing Gross Accumulative, the "points" field actually holds "strokes".
-    // So Lower is Better.
-    
     bool finalSortHigherIsBetter = (seriesConfig.scoringType == ScoringType.position || 
                                     seriesConfig.metric == BestOfMetric.position || 
                                     seriesConfig.metric == BestOfMetric.stableford);

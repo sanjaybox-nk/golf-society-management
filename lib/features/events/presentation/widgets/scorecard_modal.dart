@@ -7,7 +7,6 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../competitions/presentation/widgets/leaderboard_widget.dart';
-import '../../../../domain/scoring/handicap_calculator.dart';
 import '../../../../domain/scoring/scoring_calculator.dart';
 import '../../../../domain/models/course_config.dart';
 import '../../../matchplay/domain/match_play_calculator.dart';
@@ -152,7 +151,6 @@ class ScorecardModal {
     // Respect Lab Mode override
     final currentFormat = comp?.rules.format ?? CompetitionFormat.stableford;
     // Determine if this entry is a guest
-    final bool isGuest = entry.isGuest || entry.entryId.endsWith('_guest');
 
     // Dynamic Height Adjustment for Team/Multiple Names
     final nameCount = entry.teamMemberNames?.length ?? 1;
@@ -205,58 +203,6 @@ class ScorecardModal {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Player Name(s) + Guest Pill
-                          // Player Name(s) / Interactive Pills
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (isFourball)
-                                GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => setModalState(() => focusedPlayerId = 'team'),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: AppSpacing.xs, left: AppSpacing.xs),
-                                    child: Text(
-                                      'TEAM VIEW',
-                                      style: AppTypography.label.copyWith(
-                                        fontSize: AppTypography.sizeLabelStrong, 
-                                        color: focusedPlayerId == 'team' ? AppColors.lime500 : AppColors.dark200,
-                                        letterSpacing: 1.0,
-                                        fontWeight: AppTypography.weightBlack,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty)
-                                ...entry.teamMemberNames!.asMap().entries.map((e) {
-                                  final idx = e.key;
-                                  final name = e.value;
-                                  final id = entry.teamMemberIds![idx];
-                                  final isFocused = id == focusedPlayerId;
-                                  final isMemberGuest = id.contains('_guest') || (entry.isGuest && entry.teamMemberIds!.length == 1);
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                                    child: _buildHeaderPill(
-                                      context: context,
-                                      label: name,
-                                      isFocused: isFocused,
-                                      showGuest: isMemberGuest,
-                                      onTap: () => setModalState(() => focusedPlayerId = id),
-                                    ),
-                                  );
-                                })
-                              else
-                                _buildHeaderPill(
-                                  context: context,
-                                  label: entry.playerName,
-                                  isFocused: true,
-                                  showGuest: isGuest,
-                                  onTap: () {},
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
                           (() {
                             final effectiveFocusId = focusedPlayerId == 'team' 
                                 ? (entry.teamMemberIds?.first ?? entry.entryId) 
@@ -271,36 +217,121 @@ class ScorecardModal {
                             final teeName = manualTee ?? (playerTeeConfig.selectedTeeName ?? (event.selectedTeeName ?? 'Yellow'));
                             final teeColor = _getTeeColor(teeName);
 
-                            return Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                BoxyArtPill.hc(label: '${entry.handicap}'),
-                                if (entry.playingHandicap != null)
-                                  BoxyArtPill.phc(context: context, label: '${entry.playingHandicap}'),
-                                BoxyArtPill.tee(label: teeName, teeColor: teeColor),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 4.0),
+                                        child: Text(
+                                          entry.playerName.toUpperCase(),
+                                          style: AppTypography.displayLocker.copyWith(
+                                            color: AppColors.dark900,
+                                            fontWeight: AppTypography.weightBlack,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (isAdmin)
+                                          IconButton(
+                                            icon: const Icon(Icons.edit_note_rounded, color: AppColors.lime500),
+                                            onPressed: () {
+                                              Navigator.pop(context); // Close modal
+                                              context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/${entry.entryId}');
+                                            },
+                                          ),
+                                        IconButton(
+                                          icon: const Icon(Icons.close, color: AppColors.dark150),
+                                          onPressed: () => Navigator.pop(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                if (isFourball || (entry.teamMemberNames != null && entry.teamMemberNames!.length > 1)) ...[
+                                  const SizedBox(height: AppSpacing.sm),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      if (isFourball)
+                                        _buildViewPill(
+                                          label: 'TEAM VIEW',
+                                          isSelected: focusedPlayerId == 'team',
+                                          onTap: () => setModalState(() => focusedPlayerId = 'team'),
+                                        ),
+                                      ...entry.teamMemberNames!.asMap().entries.map((e) {
+                                        final idx = e.key;
+                                        final name = e.value;
+                                        final id = entry.teamMemberIds![idx];
+                                        return _buildViewPill(
+                                          label: name,
+                                          isSelected: focusedPlayerId == id,
+                                          onTap: () => setModalState(() => focusedPlayerId = id),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                ],
+                                const SizedBox(height: AppSpacing.sm),
+                                Row(
+                                  children: [
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'HC: ${entry.handicapIndex}',
+                                      style: AppTypography.labelStrong.copyWith(
+                                        color: AppColors.dark800,
+                                        fontWeight: AppTypography.weightBlack,
+                                      ),
+                                    ),
+                                    if (entry.playingHandicap != null) ...[
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                                        child: Text(
+                                          '•',
+                                          style: TextStyle(
+                                            color: AppColors.dark400,
+                                            fontWeight: AppTypography.weightBlack,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        'PHC: ${entry.playingHandicap}',
+                                        style: AppTypography.labelStrong.copyWith(
+                                          color: AppColors.dark800,
+                                          fontWeight: AppTypography.weightBlack,
+                                        ),
+                                      ),
+                                    ],
+                                    const Spacer(),
+                                    BoxyArtPill.tee(label: teeName, teeColor: teeColor),
+                                  ],
+                                ),
+                                if (entry.thruLabel != null || entry.tieBreakLabel != null) ...[
+                                  const SizedBox(height: AppSpacing.sm),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      if (entry.thruLabel != null)
+                                        BoxyArtPill.status(label: entry.thruLabel!, color: AppColors.lime500),
+                                      if (entry.tieBreakLabel != null)
+                                        BoxyArtPill.status(label: entry.tieBreakLabel!, color: AppColors.dark400),
+                                    ],
+                                  ),
+                                ],
                               ],
                             );
                           })(),
                         ],
                       ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min, // Keep minimal width
-                      children: [
-                        if (isAdmin)
-                          IconButton(
-                            icon: const Icon(Icons.edit_note_rounded, color: AppColors.lime500),
-                            onPressed: () {
-                              Navigator.pop(context); // Close modal
-                              context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/scores/${entry.entryId}');
-                            },
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: AppColors.dark150),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -324,132 +355,114 @@ class ScorecardModal {
                       final isStableford = comp?.rules.format == CompetitionFormat.stableford;
                       final isScrambleFormat = comp?.rules.format == CompetitionFormat.scramble;
                       
-                      if (entry.teamMemberIds != null && entry.teamMemberIds!.isNotEmpty) {
-                         if (isStableford || comp?.rules.scoringType == 'STABLEFORD') {
-                           bestBallPoints = List<int?>.filled(18, null);
-                         }
-
-                         for (int i = 0; i < entry.teamMemberIds!.length; i++) {
-                             final id = entry.teamMemberIds![i];
-                             final name = (entry.teamMemberNames != null && i < entry.teamMemberNames!.length) 
-                                 ? entry.teamMemberNames![i] 
-                                 : 'Player ${i+1}';
-                             
-                             Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == id);
-                             
-                             // Fallback for seeded data
-                             if (card == null) {
-                                final seeded = event.results.firstWhere(
-                                  (r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? 'unknown').toString() == id,
-                                  orElse: () => {},
-                                );
-                                if (seeded.isNotEmpty && seeded['holeScores'] != null) {
-                                   card = Scorecard(
-                                     id: 'temp_$id',
-                                     competitionId: event.id,
-                                     roundId: '1',
-                                     entryId: id,
-                                     submittedByUserId: 'system',
-                                     status: ScorecardStatus.finalScore,
-                                     holeScores: List<int?>.from(seeded['holeScores']),
-                                     createdAt: DateTime.now(),
-                                     updatedAt: DateTime.now(),
-                                   );
-                                }
-                             }
-
-                             if (card != null) {
-                                final Set<int> memberCountingHoles = {};
-                                if (entry.countingMemberIds != null) {
-                                   entry.countingMemberIds!.forEach((holeIdx, memberId) {
-                                      if (memberId == id) memberCountingHoles.add(holeIdx);
-                                   });
-                                }
-
-                                 final manualTee = teeOverrides?[id];
-                                 final playerConfig = ScoringCalculator.resolvePlayerCourseConfig(
-                                   memberId: id, 
-                                   event: event, 
-                                   membersList: membersList, 
-                                   manualTeeName: manualTee,
-                                 );
-                                 final member = membersList.firstWhereOrNull((m) => m.id == id);
-                                final playerPhc = HandicapCalculator.calculatePlayingHandicap(
-                                  handicapIndex: member?.handicap ?? 18.0,
-                                  rules: comp!.rules,
-                                  courseConfig: playerConfig,
-                                );
-
-                                additionalRows.add(CourseScoreRow(
-                                  id: id,
-                                  playerName: name,
-                                  scores: card.holeScores,
-                                  handicap: playerPhc,
-                                  color: i == 0 ? AppColors.teamA : AppColors.lime500,
-                                  countingHoles: memberCountingHoles,
-                                ));
-
-                                // Calculate contribution to Best Ball points
-                                if (isStableford && bestBallPoints != null) {
-                                  final playerHoles = playerConfig.holes;
-                                  for (int h = 0; h < 18; h++) {
-                                    final score = card.holeScores.length > h ? card.holeScores[h] : null;
-                                    if (score != null) {
-                                      final par = playerHoles.length > h ? playerHoles[h].par : 4;
-                                      final si = playerHoles.length > h ? playerHoles[h].si : 18;
-                                      
-                                      int shots = (playerPhc / 18).floor();
-                                      if (playerPhc % 18 >= si) shots++;
-                                      
-                                      final pts = (par - (score - shots) + 2).clamp(0, 8);
-                                      if (bestBallPoints[h] == null || pts > bestBallPoints[h]!) {
-                                        bestBallPoints[h] = pts;
-                                      }
-                                    }
-                                  }
-                                }
-                             }
-                         }
-                         
-                         // Scramble Points Calculation (if not Fourball)
-                         if (!isFourball && (isStableford || comp?.rules.scoringType == 'STABLEFORD') && bestBallPoints != null) {
-                            final teamPhc = entry.playingHandicap ?? 0;
-                             // Use first member's tee context as baseline for team points
-                             final firstId = entry.teamMemberIds?.first ?? '';
-                             final teamManualTee = teeOverrides?[firstId];
-                             final teamTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
-                               memberId: firstId, 
-                               event: event, 
-                               membersList: membersList, 
-                               manualTeeName: teamManualTee,
-                             );
-                             final teamHoles = teamTeeConfig.holes;
-                            
-                            for (int h = 0; h < 18; h++) {
-                              final score = actualScorecard.holeScores.length > h ? actualScorecard.holeScores[h] : null;
-                              if (score != null) {
-                                final par = teamHoles.length > h ? teamHoles[h].par : 4;
-                                final si = teamHoles.length > h ? teamHoles[h].si : 18;
-                                
-                                int shots = (teamPhc / 18).floor();
-                                if (teamPhc % 18 >= si) shots++;
-                                
-                                final pts = (par - (score - shots) + 2).clamp(0, 8);
-                                bestBallPoints[h] = pts;
-                              }
-                            }
-                         }
+                      if (isStableford || comp?.rules.scoringType == 'STABLEFORD') {
+                        bestBallPoints = entry.holePoints;
                       }
 
-                      final totalPoints = bestBallPoints?.where((p) => p != null).fold<int>(0, (sum, p) => sum + (p as int));
+                      final totalPoints = entry.holePoints?.whereType<int>().fold<int>(0, (a, b) => a + b);
+
+                      // --- [NEW] AUTHORITATIVE MATCH PLAY CALCULATION ---
+                      List<String>? matchPlayResults;
+                      String? matchPlaySummary;
+                      if (currentFormat == CompetitionFormat.matchPlay) {
+                        final myIds = entry.teamMemberIds ?? [entry.entryId];
+                        List<String>? myGroupIds;
+                        final groupsData = event.grouping["groups"] as List? ?? [];
+                        for (var g in groupsData) {
+                          final players = g['players'] as List? ?? [];
+                          final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
+                          if (playerIds.any((id) => myIds.contains(id))) {
+                            myGroupIds = playerIds;
+                            break;
+                          }
+                        }
+                        if (myGroupIds != null) {
+                          final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
+                          if (oppIds.isNotEmpty) {
+                            final Map<String, double> playerIndices = {};
+                            final Map<String, CourseConfig> courseConfigs = {};
+                            for (final pid in myGroupIds) {
+                              final manualTee = teeOverrides?[pid];
+                              courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
+                                memberId: pid, 
+                                event: event, 
+                                membersList: membersList, 
+                                manualTeeName: manualTee,
+                              );
+                              if (pid.contains('_guest')) {
+                                final baseId = pid.replaceAll('_guest', '');
+                                final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
+                                playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
+                              } else {
+                                final member = membersList.firstWhereOrNull((m) => m.id == pid);
+                                playerIndices[pid] = member?.handicap ?? 18.0;
+                              }
+                            }
+
+                            final baseRating = event.courseConfig.rating ?? 72.0;
+                            final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
+                              playerIds: myGroupIds,
+                              playerIndices: playerIndices,
+                              courseConfigs: courseConfigs,
+                              rules: comp!.rules,
+                              baseRating: baseRating,
+                            );
+
+                            final virtualMatch = MatchDefinition(
+                              id: 'virtual_modal_${entry.entryId}',
+                              type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
+                              team1Ids: myIds,
+                              team2Ids: oppIds,
+                              strokesReceived: strokesReceived,
+                            );
+
+                            final List<Scorecard> sourceCards = [];
+                            for (var pid in myGroupIds) {
+                              Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
+                              if (card == null) {
+                                final seeded = event.results.firstWhereOrNull((r) => 
+                                  (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == pid
+                                );
+                                if (seeded != null && seeded['holeScores'] != null) {
+                                  card = Scorecard(
+                                    id: 'temp_$pid', competitionId: event.id, roundId: '1', entryId: pid, submittedByUserId: 'system',
+                                    status: ScorecardStatus.finalScore, holeScores: List<int?>.from(seeded['holeScores']),
+                                    createdAt: DateTime.now(), updatedAt: DateTime.now()
+                                  );
+                                }
+                              }
+                              if (card != null) sourceCards.add(card);
+                            }
+
+                            final result = MatchPlayCalculator.calculate(
+                              match: virtualMatch,
+                              scorecards: sourceCards,
+                              courseConfig: event.courseConfig,
+                              holesToPlay: event.courseConfig.holes.length,
+                            );
+
+                            matchPlayResults = result.holeResults.map((r) {
+                              if (r == 1) return 'W';
+                              if (r == -1) return 'L';
+                              return 'H';
+                            }).toList();
+                            
+                            if (result.score == 0) {
+                              matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
+                            } else if (result.score > 0) {
+                              matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
+                            } else {
+                              matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
+                            }
+                          }
+                        }
+                      }
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           (() {
                              // Context resolution
-                             // If 'team' is focused, we use the first player's tee by default for the card (standard for team cards)
-                             // OR we use the event baseline. 
                              final effectiveFocusId = focusedPlayerId == 'team' 
                                  ? (entry.teamMemberIds?.first ?? entry.entryId) 
                                  : focusedPlayerId;
@@ -463,200 +476,39 @@ class ScorecardModal {
                              );
                              final playerTeeName = manualTee ?? (playerTeeConfig.selectedTeeName ?? (event.selectedTeeName ?? 'Yellow'));
 
-                             final focusedName = focusedPlayerId == 'team' 
-                                 ? 'TEAM'
-                                 : ((entry.teamMemberIds != null && entry.teamMemberIds!.contains(focusedPlayerId))
-                                     ? entry.teamMemberNames![entry.teamMemberIds!.indexOf(focusedPlayerId)]
-                                     : entry.playerName);
-
-                             // Scores to show in MAIN GRID
-                             List<int?>? gridScores;
-                             int? gridPhc = entry.playingHandicap;
-
-                             if (focusedPlayerId == 'team') {
-                               gridScores = actualScorecard.holeScores; // Team aggregate
-                             } else {
-                               // Find individual card
-                               final playerCard = scorecards.firstWhereOrNull((s) => s.entryId == focusedPlayerId);
-                               if (playerCard != null) {
-                                 gridScores = playerCard.holeScores;
-                               } else {
-                                 // Seeded fallback
-                                 final seeded = event.results.firstWhereOrNull((r) => 
-                                   (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == focusedPlayerId
-                                 );
-                                 if (seeded != null && seeded['holeScores'] != null) {
-                                   gridScores = List<int?>.from(seeded['holeScores']);
-                                 }
-                               }
-
-                               // For Scramble, we always show the team strokes in the main row
-                               if (comp?.rules.format == CompetitionFormat.scramble) {
-                                  gridScores = actualScorecard.holeScores;
-                               }
-
-                               // Resolve individual PHC for grid calculation
-                               final member = membersList.firstWhereOrNull((m) => m.id == focusedPlayerId);
-                               gridPhc = HandicapCalculator.calculatePlayingHandicap(
-                                  handicapIndex: member?.handicap ?? 18.0,
-                                  rules: comp!.rules,
-                                  courseConfig: playerTeeConfig,
-                               );
-                             }
-
-                             return Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Padding(
-                                   padding: const EdgeInsets.only(bottom: 10.0, left: AppSpacing.xs),
-                                   child: Text(
-                                     "VIEWING ${focusedName.toUpperCase()}'S SI CONTEXT ($playerTeeName TEES)",
-                                     style: AppTypography.label.copyWith(
-                                       fontSize: AppTypography.sizeCaption,
-                                       fontWeight: AppTypography.weightBlack,
-                                       color: AppColors.dark200,
-                                       letterSpacing: 2.0,
-                                     ),
-                                   ),
-                                 ),
-                                 CourseInfoCard(
-                                   courseConfig: playerTeeConfig,
-                                   selectedTeeName: playerTeeName,
-                                   isStableford: isStableford,
-                                   isNet: comp?.rules.scoringType != 'GROSS',
-                                   format: currentFormat,
-                                   maxScoreConfig: effectiveMaxScore,
-                                   playerHandicap: gridPhc,
-                                   scores: gridScores,
-                                   mainRowLabel: focusedPlayerId == 'team' ? (isFourball ? 'BEST BALL' : 'TEAM') : 'Strokes',
-                                   additionalRows: const [], // Cleaned up!
-                                   holeLimit: holeLimit,
-                                   overridePoints: focusedPlayerId == 'team' ? bestBallPoints : null,
-                                   overrideTotalPoints: focusedPlayerId == 'team' ? totalPoints : null,
-                                 ),
-                               ],
+                             return CourseInfoCard(
+                               courseConfig: playerTeeConfig,
+                               selectedTeeName: playerTeeName,
+                               isStableford: isStableford,
+                               isNet: comp?.rules.scoringType != 'GROSS',
+                               format: currentFormat,
+                               maxScoreConfig: effectiveMaxScore,
+                               holeScores: entry.holeScores,
+                               holeNetScores: entry.holeNetScores,
+                               holePoints: entry.holePoints,
+                               holePars: event.courseConfig.holes.map((h) => h.par).toList(),
+                               holeSIs: event.courseConfig.holes.map((h) => h.si).toList(),
+                               holeDistances: event.courseConfig.holes.map((h) => h.yardage ?? 0).toList(),
+                               mainRowLabel: focusedPlayerId == 'team' ? (isFourball ? 'BEST BALL' : 'TEAM') : 'Strokes',
+                               additionalRows: additionalRows, 
+                               holeLimit: holeLimit,
+                               overrideTotalPoints: totalPoints,
+                               matchPlayResults: matchPlayResults,
                              );
                           })(),
                           const SizedBox(height: AppSpacing.x2l),
-                          // Comparison Footer
-                          
-                          (() {
-                             List<String>? matchPlayResults;
-                             String? matchPlaySummary;
-                             if (currentFormat == CompetitionFormat.matchPlay) {
-                                final myIds = entry.teamMemberIds ?? [entry.entryId];
-                                List<String>? myGroupIds;
-                                final groupsData = event.grouping["groups"] as List? ?? [];
-                                for (var g in groupsData) {
-                                    final players = g['players'] as List? ?? [];
-                                    final playerIds = players.map((p) => p['registrationMemberId']?.toString()).whereType<String>().toList();
-                                    if (playerIds.any((id) => myIds.contains(id))) {
-                                        myGroupIds = playerIds;
-                                        break;
-                                    }
-                                }
-                                                                if (myGroupIds != null) {
-                                    final oppIds = myGroupIds.where((id) => !myIds.contains(id)).toList();
-                                    if (oppIds.isNotEmpty) {
-                                        // 1. Resolve relative strokes for the match
-                                        // 1. Resolve relative strokes for the match (Centralized)
-                                        final Map<String, double> playerIndices = {};
-                                         final Map<String, CourseConfig> courseConfigs = {};
-                                         
-                                         for (final pid in myGroupIds) {
-                                              final manualTee = teeOverrides?[pid];
-                                              courseConfigs[pid] = ScoringCalculator.resolvePlayerCourseConfig(
-                                                memberId: pid, 
-                                                event: event, 
-                                                membersList: membersList, 
-                                                manualTeeName: manualTee,
-                                              );
-                                              final member = membersList.firstWhereOrNull((m) => m.id == pid.replaceFirst('_guest', ''));
-                                              if (pid.contains('_guest')) {
-                                                 final baseId = pid.replaceAll('_guest', '');
-                                                 final reg = event.registrations.firstWhereOrNull((r) => r.memberId == baseId);
-                                                 playerIndices[pid] = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
-                                             } else {
-                                                 playerIndices[pid] = member?.handicap ?? 18.0;
-                                             }
-                                         }
- 
-                                         final baseRating = event.courseConfig.rating ?? 72.0;
-                                        final strokesReceived = MatchPlayCalculator.calculateRelativeStrokes(
-                                          playerIds: myGroupIds,
-                                          playerIndices: playerIndices,
-                                          courseConfigs: courseConfigs,
-                                          rules: comp!.rules,
-                                          baseRating: baseRating,
-                                        );
-
-                                        // 2. Build Virtual Match Definition
-                                        final virtualMatch = MatchDefinition(
-                                          id: 'virtual_modal_${entry.entryId}',
-                                           type: comp.rules.subtype == CompetitionSubtype.fourball ? MatchType.fourball : MatchType.foursomes,
-                                          team1Ids: myIds,
-                                          team2Ids: oppIds,
-                                          strokesReceived: strokesReceived,
-                                        );
-
-                                        // 3. Collect all relevant scorecards
-                                        final List<Scorecard> sourceCards = [];
-                                        for (var pid in myGroupIds) {
-                                            Scorecard? card = scorecards.firstWhereOrNull((s) => s.entryId == pid);
-                                            if (card == null) {
-                                               final seeded = event.results.firstWhereOrNull((r) => 
-                                                  (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString() == pid
-                                               );
-                                               if (seeded != null && seeded['holeScores'] != null) {
-                                                   card = Scorecard(
-                                                      id: 'temp_$pid', competitionId: event.id, roundId: '1', entryId: pid, submittedByUserId: 'system',
-                                                      status: ScorecardStatus.finalScore, holeScores: List<int?>.from(seeded['holeScores']),
-                                                      createdAt: DateTime.now(), updatedAt: DateTime.now()
-                                                   );
-                                               }
-                                            }
-                                            if (card != null) sourceCards.add(card);
-                                        }
-
-                                        // 4. Calculate via Authoritative Engine
-                                        final result = MatchPlayCalculator.calculate(
-                                           match: virtualMatch,
-                                           scorecards: sourceCards,
-                                           courseConfig: event.courseConfig,
-                                           holesToPlay: event.courseConfig.holes.length,
-                                         );
-
-                                        // 5. Map to UI expectations
-                                        matchPlayResults = result.holeResults.map((r) {
-                                            if (r == 1) return 'W';
-                                            if (r == -1) return 'L';
-                                            return 'H';
-                                        }).toList();
-                                        
-                                        if (result.score == 0) {
-                                          matchPlaySummary = result.holesPlayed == 0 ? 'AS' : (result.isFinal ? 'HALVED' : 'AS');
-                                        } else if (result.score > 0) {
-                                          matchPlaySummary = result.isFinal ? 'WIN ${result.status}' : '${result.status} (UP)';
-                                        } else {
-                                          matchPlaySummary = result.isFinal ? 'LOSS ${result.status}' : '${result.status} (DN)';
-                                        }
-                                    }
-                                }
-                             }
-
-                             return ScorecardModal.buildUnifiedComparisonFooter(
-                               context,
-                               event: event,
-                               membersList: membersList,
-                               teamPoints: bestBallPoints, // Unified team points
-                               isScramble: isScrambleFormat,
-                               scorecard: actualScorecard,
-                               playerName: isFourball == true ? 'TEAM BEST BALL' : (isTeam == true ? 'TEAM SCORE' : entry.playerName),
-                               matchPlayResults: matchPlayResults,
-                               matchPlaySummary: matchPlaySummary,
-                               mode: comp?.rules.mode,
-                             );
-                          })(),
+                          ScorecardModal.buildUnifiedComparisonFooter(
+                            context,
+                            event: event,
+                            membersList: membersList,
+                            teamPoints: bestBallPoints,
+                            isScramble: isScrambleFormat,
+                            scorecard: actualScorecard,
+                            playerName: isFourball == true ? 'TEAM BEST BALL' : (isTeam == true ? 'TEAM SCORE' : entry.playerName),
+                            matchPlayResults: matchPlayResults,
+                            matchPlaySummary: matchPlaySummary,
+                            mode: comp?.rules.mode,
+                          ),
                         ],
                       );
                     },
@@ -894,50 +746,32 @@ class ScorecardModal {
   }
 
 
-  static Widget _buildHeaderPill({
-    required BuildContext context,
+
+  static Widget _buildViewPill({
     required String label,
-    required bool isFocused,
+    required bool isSelected,
     required VoidCallback onTap,
-    bool showGuest = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(right: AppSpacing.sm, bottom: AppSpacing.xs),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isFocused ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : AppColors.dark600,
-          borderRadius: AppShapes.md,
+          color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
+          borderRadius: AppShapes.pill,
           border: Border.all(
-            color: isFocused ? AppColors.lime500 : AppColors.dark500,
-            width: AppShapes.borderLight,
+            color: isSelected ? AppColors.lime500 : AppColors.dark500,
+            width: AppShapes.borderThin,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label.toUpperCase(),
-              style: AppTypography.label.copyWith(
-                fontWeight: AppTypography.weightBlack,
-                fontSize: AppTypography.sizeLabelStrong,
-                color: isFocused ? AppColors.lime500 : AppColors.dark200,
-                letterSpacing: 1.0,
-              ),
-            ),
-            if (showGuest) ...[
-              const SizedBox(width: AppSpacing.sm),
-              const Text(
-                'G',
-                style: TextStyle(
-                  fontSize: AppTypography.sizeCaptionStrong,
-                  fontWeight: AppTypography.weightBlack,
-                  color: AppColors.amber500,
-                ),
-              ),
-            ],
-          ],
+        child: Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+            color: isSelected ? AppColors.lime500 : AppColors.dark300,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
     );

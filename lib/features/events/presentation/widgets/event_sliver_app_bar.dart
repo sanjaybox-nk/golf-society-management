@@ -35,13 +35,7 @@ class EventSliverAppBar extends ConsumerWidget {
       pinned: true,
       automaticallyImplyLeading: false,
       centerTitle: true,
-      leadingWidth: 70,
-      leading: Center(
-        child: IconButton(
-          icon: const Icon(Icons.home, color: AppColors.pureWhite),
-          onPressed: () => context.go('/home'),
-        ),
-      ),
+      leading: null,
       title: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -73,7 +67,7 @@ class EventSliverAppBar extends ConsumerWidget {
       actions: [
         if (isPreview)
           Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            padding: const EdgeInsets.only(right: AppSpacing.xl),
             child: Container(
               width: AppSpacing.x4l,
               height: AppSpacing.x4l,

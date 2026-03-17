@@ -26,7 +26,7 @@ class RegistrationLogic {
       if (isSocial || r.attendingGolf || (includeWithdrawn && isWithdrawn)) {
         flattenedItems.add(RegistrationItem(
           registration: r,
-          isGuest: false,
+          isGuest: r.isGuest,
           registeredAt: r.registeredAt ?? DateTime.now(),
           hasPaid: r.hasPaid,
           isConfirmed: r.isConfirmed,

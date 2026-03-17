@@ -76,7 +76,7 @@ class ModernMetricStat extends StatelessWidget {
                   ? AppColors.pureWhite 
                   : (isDark ? AppColors.pureWhite : AppColors.dark900),
               letterSpacing: -0.8,
-              fontWeight: AppTypography.weightBlack,
+              fontWeight: AppTypography.weightExtraBold,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

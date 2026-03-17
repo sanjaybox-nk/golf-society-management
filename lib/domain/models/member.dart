@@ -59,7 +59,7 @@ extension MemberStatusX on MemberStatus {
     switch (this) {
       case MemberStatus.member:
       case MemberStatus.active:
-        return StatusColors.positive;
+        return AppColors.actionGreen;
       case MemberStatus.pending:
         return StatusColors.warning;
       case MemberStatus.suspended:

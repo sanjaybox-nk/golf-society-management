@@ -1,3 +1,25 @@
+### Phase 76-77: UI/UX Harmonization & Standardized Motion (2026-03-17)
+- **Standardized Navigation Transitions (Phase 76)**:
+    - **Unified "Boxy Art" Transition**: Replaced all heterogeneous transitions (fades, slides, etc.) with a single, high-fidelity **Fade + Subtle Slide Up** animation (`boxyPage`). 
+    - **Universal Application**: Standardized motion across all shell routes, leaf routes, and bottom navigation switches for a silky-smooth, premium user experience.
+    - **Subtle Slide Polish**: Refined the entry offset to `0.05` to ensure motion remains elegant and non-distracting.
+- **Harmonized Layout & Spacing**:
+    - **Semantic Layout Tokens**: Introduced `labelToCard` (12px) and `cardToLabel` (16px) tokens to `AppSpacing` to enforce a consistent vertical rhythm throughout the app.
+    - **Page Vertical Starts**: Optimized `HeadlessScaffold` to ensure all pages anchor at a consistent vertical offset (120px), preventing "jumpy" navigation.
+    - **Section Title Hardening**: Updated `BoxyArtSectionTitle` to automatically handle its own vertical spacing and enforce **Title Case** globally.
+- **Standardized Player Name Typography (Phase 77)**:
+    - **Premium Punch**: Upgraded all player name displays across Grouping cards, Registration lists, and Member rows to a **Title Case + ExtraBold** style.
+    - **Podium & Stats Polish**: Unified the "Top Results" podium and "Banter" cards (Hot Streak, Blob King, etc.) with the same high-contrast typography standard.
+
+### Phase 17: Leaderboard Rules & Real-time Scoring Sync (2026-03-13)
+- **Real-time Score Synchronization**:
+    - **Dynamic PHC Calculation**: Refactored `EventLeaderboard`, `_GroupScoresView`, and `HoleByHoleScoringWidget` to calculate Playing Handicaps (PHC) on-the-fly instead of relying on stored snapshots.
+    - **Instant Rule Reactions**: Standings and scorecards now pivot instantly when competition rules (e.g. Net vs. Gross) or handicap allowances are modified by an admin.
+    - **Centralized Scoring Alignment**: Ensured 100% parity between the Podium, Leaderboard, Group Cards, and individual Scorecards by routing all calculations through the authoritative `HandicapCalculator` and `ScoringCalculator`.
+- **Centralized Group Scoring**:
+    - **Single Source of Truth**: Moved all group-level ranking and countback logic into `ScoringCalculator.calculateGroupResult`.
+    - **Automated Tie-Breaks**: Implemented 9-6-3-1 countback at the group level to resolve tied podium positions automatically.
+
 ### Phase 6: True Minimal Redesign & Codebase Hardening (2026-03-07)
 - **True Minimal Aesthetic**:
     - **Status Legend Relocation**: Moved status indicators (Active, Pending, etc.) to sit elegantly beneath the name in `BoxyArtMemberHeaderCard` and `MemberTile`.

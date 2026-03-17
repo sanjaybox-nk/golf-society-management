@@ -8,7 +8,12 @@ import 'package:golf_society/domain/grouping/grouping_service.dart';
 
 class EventManualCutsScreen extends ConsumerStatefulWidget {
   final String eventId;
-  const EventManualCutsScreen({super.key, required this.eventId});
+  final bool useScaffold;
+  const EventManualCutsScreen({
+    super.key, 
+    required this.eventId,
+    this.useScaffold = true,
+  });
 
   @override
   ConsumerState<EventManualCutsScreen> createState() => _EventManualCutsScreenState();
@@ -75,9 +80,14 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
     final membersAsync = ref.watch(allMembersProvider);
 
     return eventAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => widget.useScaffold 
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => widget.useScaffold
+          ? Scaffold(body: Center(child: Text('Error: $err')))
+          : Center(child: Text('Error: $err')),
       data: (event) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         // Initialize local state once
         if (_localCuts.isEmpty && event.manualCuts.isNotEmpty) {
@@ -92,6 +102,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
           subtitle: event.title,
           showBack: true,
           onBack: () => context.pop(),
+          useScaffold: widget.useScaffold,
           actions: [
             if (_isSaving)
               const Padding(
@@ -109,15 +120,40 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // 1. Search Bar
+                  // 1. Search Bar (Nested Style)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
-                    child: BoxyArtInputField(
-                      label: 'FIND PARTICIPANT',
-                      hint: 'Search by name...',
-                      controller: _searchController,
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.dark600 : AppColors.lightHeader,
+                        borderRadius: BorderRadius.circular(AppShapes.rLg),
+                        border: Border.all(
+                          color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                          width: 1,
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        style: AppTypography.body.copyWith(
+                          color: isDark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Search by name...',
+                          hintStyle: AppTypography.body.copyWith(
+                            color: isDark ? AppColors.dark400 : AppColors.dark300,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            size: AppShapes.iconMd,
+                            color: isDark ? AppColors.dark200 : AppColors.dark300,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                      ),
                     ),
                   ),
 
@@ -132,79 +168,53 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
 
                   // 3. Participant List
                   ...participants.where((p) => p.memberName.toLowerCase().contains(_searchQuery)).map((reg) {
-                    final member = membersAsync.whenOrNull(data: (list) => list.where((m) => m.id == reg.memberId).firstOrNull);
-                    final controller = _controllers.putIfAbsent(
-                      reg.memberId,
-                      () => TextEditingController(text: _localCuts[reg.memberId]?.toString() ?? '0.0'),
-                    );
+                      final member = membersAsync.whenOrNull(data: (list) => list.where((m) => m.id == reg.memberId).firstOrNull);
+                      final controller = _controllers.putIfAbsent(
+                        reg.memberId,
+                        () => TextEditingController(text: _localCuts[reg.memberId]?.toString() ?? '0.0'),
+                      );
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-                        child: Row(
-                          children: [
-                            BoxyArtAvatar(
-                              initials: reg.memberName.isNotEmpty ? reg.memberName.substring(0, 1).toUpperCase() : '?',
-                              url: member?.avatarUrl,
-                              radius: 22,
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: BoxyArtMemberRow(
+                          key: ValueKey('cut_${reg.memberId}'),
+                          name: reg.memberName,
+                          initials: reg.memberName.isNotEmpty ? reg.memberName.substring(0, 1).toUpperCase() : '?',
+                          avatarUrl: member?.avatarUrl,
+                          handicapIndex: member?.handicap,
+                          isGuest: reg.isGuest,
+                          trailing: Container(
+                            width: 90,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                              borderRadius: AppShapes.sm,
                             ),
-                            const SizedBox(width: AppSpacing.lg),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    reg.memberName.toUpperCase(),
-                                    style: AppTypography.label.copyWith(fontSize: AppTypography.sizeButton),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'INDEX: ${member?.handicap ?? "N/A"}',
-                                    style: AppTypography.caption.copyWith(
-                                      color: AppColors.dark300,
-                                      fontWeight: AppTypography.weightSemibold,
-                                    ),
-                                  ),
-                                ],
+                            alignment: Alignment.center,
+                            child: TextField(
+                              controller: controller,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody),
+                              decoration: InputDecoration(
+                                isDense: true,
+                                suffixText: 'pt',
+                                suffixStyle: AppTypography.caption.copyWith(fontWeight: AppTypography.weightBlack, color: AppColors.dark300),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                                border: InputBorder.none,
                               ),
+                              onChanged: (val) {
+                                final d = double.tryParse(val);
+                                if (d != null) {
+                                  _localCuts[reg.memberId] = d;
+                                } else if (val.isEmpty) {
+                                  _localCuts.remove(reg.memberId);
+                                }
+                              },
                             ),
-                            const SizedBox(width: AppSpacing.lg),
-                            // Refined numeric input container
-                            Container(
-                              width: 90,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                                borderRadius: AppShapes.sm,
-                              ),
-                              alignment: Alignment.center,
-                              child: TextField(
-                                controller: controller,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  suffixText: 'pt',
-                                  suffixStyle: AppTypography.caption.copyWith(fontWeight: AppTypography.weightBlack, color: AppColors.dark300),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                                  border: InputBorder.none,
-                                ),
-                                onChanged: (val) {
-                                  final d = double.tryParse(val);
-                                  if (d != null) {
-                                    _localCuts[reg.memberId] = d;
-                                  } else if (val.isEmpty) {
-                                    _localCuts.remove(reg.memberId);
-                                  }
-                                },
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    );
+                      );
                   }),
                   const SizedBox(height: AppSpacing.x4l),
                   BoxyArtButton(

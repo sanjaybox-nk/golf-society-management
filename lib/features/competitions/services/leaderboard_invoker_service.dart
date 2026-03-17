@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
-import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/features/events/logic/event_scoring_processor.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
+import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
 
 import '../../events/presentation/events_provider.dart';
 import '../../competitions/presentation/competitions_provider.dart'; // For scorecardRepositoryProvider
@@ -38,8 +40,15 @@ class LeaderboardInvokerService {
 
     // 2.5 Fetch All relevant Events for Grouping Context & Invitational Filtering
     final eventRepo = ref.read(eventsRepositoryProvider);
-    final Map<String, Map<String, dynamic>> groupings = {};
     final List<Competition> seasonComps = [];
+    final Map<String, ProcessedEventData> processedEvents = {};
+
+    // 2.6 Fetch Members for name resolution and scoring processing
+    final memberRepo = ref.read(membersRepositoryProvider);
+    final members = await memberRepo.getMembers();
+    final Map<String, String> memberNames = {for (var m in members) m.id: m.displayName};
+
+    final scorecardRepo = ref.read(scorecardRepositoryProvider);
 
     for (var comp in dateFilteredComps) {
       final event = await eventRepo.getEvent(comp.id);
@@ -48,15 +57,24 @@ class LeaderboardInvokerService {
       if (event?.isInvitational == true) continue;
 
       seasonComps.add(comp);
-      if (event != null && event.grouping.isNotEmpty) {
-        groupings[comp.id] = event.grouping;
+      
+      if (event != null) {
+        final cards = await scorecardRepo.getScorecards(comp.id);
+        
+        // Use the CENTRAL SCORING ENGINE logic to process this event's results
+        // This ensures tie-breaks and points match the event-day results exactly.
+        final processedData = EventScoringProcessor.process(
+          eventId: comp.id, 
+          event: event, 
+          comp: comp, 
+          liveScorecards: cards, 
+          members: members, 
+          markerSelection: MarkerSelection(isSelfMarking: true), // In service context, use default marker selection (no overrides)
+        );
+        
+        processedEvents[comp.id] = processedData;
       }
     }
-
-    // 2.6 Fetch Members for name resolution in standings
-    final memberRepo = ref.read(membersRepositoryProvider);
-    final members = await memberRepo.getMembers();
-    final Map<String, String> memberNames = {for (var m in members) m.id: m.displayName};
 
     // 3. For each Leaderboard, calculate
     for (var config in configs) {
@@ -70,24 +88,13 @@ class LeaderboardInvokerService {
       );
 
       if (calculator != null) {
-        // Fetch Scorecards for these competitions
-        List<Scorecard> allScorecards = [];
-        final scorecardRepo = ref.read(scorecardRepositoryProvider);
-
-        for (var comp in seasonComps) {
-           try {
-             // Use getScorecards instead of watch().first for cleaner execution
-             final cards = await scorecardRepo.getScorecards(comp.id);
-             allScorecards.addAll(cards);
-           } catch (_) {}
-        }
-        
-        // Calculate
+        // Calculate using the processed event data
         final standings = await calculator!.calculate(
           config: config,
           competitions: seasonComps,
-          scorecards: allScorecards,
-          groupings: groupings,
+          scorecards: [], // No longer needed if we use processedEvents
+          groupings: {}, // No longer needed if we use processedEvents
+          processedEvents: processedEvents, // NEW: pass the authoritative results
         );
 
         // Update standings with real names

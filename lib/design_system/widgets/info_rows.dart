@@ -9,6 +9,7 @@ class ModernInfoRow extends StatelessWidget {
   final Color? labelColor;
   final Color? valueColor;
   final double? fontSize;
+  final Widget? trailing;
 
   const ModernInfoRow({
     super.key,
@@ -19,6 +20,7 @@ class ModernInfoRow extends StatelessWidget {
     this.labelColor,
     this.valueColor,
     this.fontSize,
+    this.trailing,
   });
 
   @override
@@ -60,6 +62,10 @@ class ModernInfoRow extends StatelessWidget {
             ],
           ),
         ),
+        if (trailing != null) ...[
+          const SizedBox(width: AppSpacing.md),
+          trailing!,
+        ],
       ],
     );
   }

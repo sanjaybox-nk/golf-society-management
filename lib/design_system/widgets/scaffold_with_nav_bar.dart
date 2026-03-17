@@ -29,14 +29,22 @@ class ScaffoldWithNavBar extends StatelessWidget {
         statusBarColor: Colors.transparent, // Let the background shine through
         statusBarIconBrightness: statusBarIconBrightness,
       ),
-      child: Scaffold(
-        extendBody: true,
-        body: navigationShell,
-        bottomNavigationBar: BoxyArtBottomNavBar(
-          selectedIndex: navigationShell.currentIndex,
-          onItemSelected: (index) => _onTap(context, index),
-          items: NavigationConstants.userNavItems,
-        ),
+      child: Builder(
+        builder: (context) {
+          final GoRouterState state = GoRouterState.of(context);
+          final bool isAdmin = state.uri.path.startsWith('/admin');
+          
+          return Scaffold(
+            extendBody: true,
+            body: navigationShell,
+            bottomNavigationBar: BoxyArtBottomNavBar(
+              selectedIndex: navigationShell.currentIndex,
+              onItemSelected: (index) => _onTap(context, index),
+              items: NavigationConstants.userNavItems,
+              isAdmin: isAdmin,
+            ),
+          );
+        },
       ),
     );
   }

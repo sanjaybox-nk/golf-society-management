@@ -280,13 +280,15 @@ class BoxyArtSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Enforce global harmony
-    final effectivePadding = EdgeInsets.only(bottom: AppTheme.sectionSpacing);
-    
-    final displayTitle = count != null ? '$title ($count)' : title;
+    // Enforce Title Case (First letter caps) for elegant, professional rhythm
+    final String formattedTitle = isLevel2 ? title : toTitleCase(title);
+    final displayTitle = count != null ? '$formattedTitle ($count)' : formattedTitle;
 
     return Padding(
-      padding: effectivePadding,
+      padding: EdgeInsets.only(
+        top: isPeeking ? 0 : AppSpacing.sectionTitleTop,
+        bottom: AppSpacing.labelToCard,
+      ),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Row(
@@ -309,12 +311,12 @@ class BoxyArtSectionTitle extends StatelessWidget {
             ],
             Flexible(
               child: Text(
-                toTitleCase(displayTitle),
-                style: AppTypography.caption.copyWith(
-                  fontSize: isLevel2 ? 10 : 11,
-                  fontWeight: AppTypography.weightExtraBold,
-                  color: isDark ? AppColors.dark150 : AppColors.dark300,
-                  letterSpacing: isLevel2 ? 1.5 : 2.0,
+                displayTitle,
+                style: AppTypography.label.copyWith(
+                  fontSize: isLevel2 ? 10 : 12,
+                  fontWeight: AppTypography.weightBold,
+                  color: isDark ? AppColors.dark60 : AppColors.dark900,
+                  letterSpacing: 1.2,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

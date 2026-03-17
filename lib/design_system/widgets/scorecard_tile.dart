@@ -1,4 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 /// A standardized tile for displaying scorecard information, 
 /// primarily used in administrative lists.
@@ -52,10 +53,12 @@ class BoxyArtScorecardTile extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  playerName,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.pureWhite,
+                  toTitleCase(playerName),
+                  style: AppTypography.body.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: AppTypography.weightBlack,
+                    fontSize: AppTypography.sizeBody,
+                    letterSpacing: -0.4,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -64,10 +67,12 @@ class BoxyArtScorecardTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
-                      secondaryPlayerName!,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.pureWhite,
+                      toTitleCase(secondaryPlayerName!),
+                        style: AppTypography.body.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: AppTypography.weightBlack,
+                          fontSize: AppTypography.sizeBody,
+                          letterSpacing: -0.4,
                         ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -93,7 +98,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
                   style: AppTypography.displaySection.copyWith(
                     color: isConfirmed 
                         ? AppColors.lime500 
-                        : AppColors.pureWhite,
+                        : Theme.of(context).colorScheme.onSurface,
                     height: 1.0,
                   ),
                 ),

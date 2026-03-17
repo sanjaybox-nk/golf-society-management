@@ -16,5 +16,8 @@ class AppSpacing {
   static const double cardPadding = lg;
   static const double elementGap = sm;
   static const double sectionGap = x3l;
+  static const double labelToCard = md; // Gap between label and its card
+  static const double cardToLabel = lg; // Gap between card bottom and next label
+  static const double sectionTitleTop = md; // Internal top padding for section headers
   static const double pageBottom = 120.0; // Extra breathing room for floating elements
 }

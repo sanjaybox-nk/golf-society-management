@@ -2,6 +2,7 @@ import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/features/events/domain/models/processed_event_data.dart';
 
 abstract class LeaderboardCalculator {
   /// Calculates the standings for a specific leaderboard configuration
@@ -11,5 +12,6 @@ abstract class LeaderboardCalculator {
     required List<Competition> competitions,
     required List<Scorecard> scorecards,
     Map<String, Map<String, dynamic>>? groupings, // eventId -> groupingMap
+    Map<String, ProcessedEventData>? processedEvents, // eventId -> ProcessedEventData
   });
 }
