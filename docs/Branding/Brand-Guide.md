@@ -173,20 +173,20 @@ All components use semantic tokens only. No hardcoded hex values in component CS
 | pill | 999px | buttons, avatars, badges |
 
 ### Event Card
-- Date badge: `--g-950` bg (dark) or `rgba(74,222,128,0.07)` tint, Syne 800 day numeral
-- Event name: Syne 700 16–20pt
+- Date badge: `--g-950` bg (dark) or `rgba(74,222,128,0.07)` tint, Plus Jakarta Sans 800 day numeral
+- Event name: Plus Jakarta Sans 700 16–20pt
 - Tags: 3-family system only (Format / Type / Status)
 - Hover: `border-color: rgba(74,222,128,0.25)`
 
 ### Member Card
 - Avatar: 46px circle, 4-colour ring system (lime / amber / coral / cyan — assigned by `member_id % 4`)
-- Name: Syne 700 15pt
+- Name: Plus Jakarta Sans 700 15pt
 - HC value: `--lime-500` colour — PHC is the competition number
-- Stats block: tabular-nums, Syne 800
+- Stats block: tabular-nums, Plus Jakarta Sans 800
 
 ### Grouping Card
-- Tee time badge: `--lime-500` bg, Syne 800 dark text, pill shape
-- PHC column: Syne 800 `--lime-500` — larger than HC label
+- Tee time badge: `--lime-500` bg, Plus Jakarta Sans 800 dark text, pill shape
+- PHC column: Plus Jakarta Sans 800 `--lime-500` — larger than HC label
 - Total PHC footer: right-aligned, lime
 
 ### Leaderboard
@@ -194,7 +194,7 @@ All components use semantic tokens only. No hardcoded hex values in component CS
 - Rank #2: `--dark-300` grey
 - Rank #3: `#CD7F32` bronze
 - "You" row: `rgba(74,222,128,0.05)` bg + 2px lime left border
-- Score values: Syne 800 22pt — under = birdie green, over = coral, even = text
+- Score values: Plus Jakarta Sans 800 22pt — under = birdie green, over = coral, even = text
 
 ### Buttons
 ```
@@ -215,7 +215,7 @@ Font: Plus Jakarta Sans 700 14pt
 
 ### Field Stats Grid
 - 4-column, 2-row grid
-- Syne 800 26pt numerals
+- Plus Jakarta Sans 800 26pt numerals
 - Playing/active numbers: `--lime-500`
 - Waitlist/alert numbers: `--coral-400`
 - All icons: SVG only, no emoji
@@ -229,19 +229,19 @@ The most important screen in the app. Redesigned from the ground up.
 ### Score Hero Panel — always dark
 The hero panel (`background: #0A0A0A`) runs dark in both light and dark themes. The score total is a ceremony — `+9` in coral at 80pt needs unconditional dramatic weight. A white hero panel doesn't land the same way.
 
-- Score total: Syne 800 80pt, semantic colour
+- Score total: Plus Jakarta Sans 800 80pt, semantic colour
   - Under par: `#4ADE80`
   - Over par: `#FF7A5C`
   - Level par: `#F0F0F0`
-- Gross: Syne 800 22pt `rgba(255,255,255,0.8)`
-- Nett: Syne 800 22pt `#4ADE80` — nett is the competition number
+- Gross: Plus Jakarta Sans 800 22pt `rgba(255,255,255,0.8)`
+- Nett: Plus Jakarta Sans 800 22pt `#4ADE80` — nett is the competition number
 - Topographic line texture: `repeating-linear-gradient` at 2.5% opacity — atmosphere without noise
 
 ### Scorecard Table — row hierarchy
 
 Visual priority order (top = most important to the golfer):
 
-1. **STK row** — the hero row. Cells 28×28px, Syne 800. Semantic colour for every score state.
+1. **STK row** — the hero row. Cells 28×28px, Plus Jakarta Sans 800. Semantic colour for every score state.
 2. Par row — recedes deliberately. Smaller text, muted colour.
 3. SI row — smallest, quietest. Reference only.
 4. Hole numbers — structural chrome, not data.
@@ -249,7 +249,7 @@ Visual priority order (top = most important to the golfer):
 ### Total Column
 - Dark theme: `#0A0A0A` bg / `#4ADE80` totals
 - Light theme: `#1A2E20` (forest green) bg / `#4ADE80` totals
-- Syne 800 18pt for OUT/IN/Total values
+- Plus Jakarta Sans 800 18pt for OUT/IN/Total values
 
 ### Theme behaviour
 The scorecard supports both dark and light themes via `data-sc-theme` attribute on `.device`. The score hero panel stays `#0A0A0A` in both themes.
@@ -320,10 +320,10 @@ Five interaction moments. Nothing animated while bugs exist — fix before flour
 ```
 Day 1   CSS custom properties for all semantic tokens
 Day 2   Fix PHC: null; apply tabular-nums globally
-Day 3   Load Syne + Plus Jakarta Sans; apply to event names and score heroes
+Day 3   Load Plus Jakarta Sans + Plus Jakarta Sans; apply to event names and score heroes
 Day 4   Apply 3-family tag taxonomy; remove all 8 arbitrary tag colours
 Day 5   Scorecard STK row: semantic cell colours
-Day 6   Score hero 80pt Syne — the moment
+Day 6   Score hero 80pt Plus Jakarta Sans — the moment
 Day 7   Audit — anything using a raw hex is a bug
 ```
 

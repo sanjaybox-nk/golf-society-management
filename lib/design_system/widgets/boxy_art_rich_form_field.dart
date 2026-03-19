@@ -1,5 +1,6 @@
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'dart:convert';
 
 class BoxyArtRichFormField extends StatefulWidget {
@@ -67,14 +68,15 @@ class _BoxyArtRichFormFieldState extends State<BoxyArtRichFormField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.label,
-          style: const TextStyle(
-            fontSize: AppTypography.sizeCaptionStrong,
+          toTitleCase(widget.label),
+          style: AppTypography.label.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
+            fontSize: AppTypography.sizeLabel,
             fontWeight: AppTypography.weightBold,
-            color: AppColors.textSecondary,
+            letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.labelToCard),
         BoxyArtRichEditor(
           controller: _controller,
           placeholder: widget.placeholder,

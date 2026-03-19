@@ -99,25 +99,44 @@ class HeadlessScaffold extends StatelessWidget {
                     ],
                   ],
                 ),
-                if (subtitleWidget != null) ...[
-                  const SizedBox(height: 6),
-                  subtitleWidget!
-                ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
+                if (subtitleWidget != null || (subtitle != null && subtitle!.isNotEmpty)) ...[
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        subtitle!,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark ? AppColors.dark200 : AppColors.dark400,
-                          fontWeight: AppTypography.weightBold,
-                          letterSpacing: -0.5,
+                      Expanded(
+                        child: subtitleWidget ?? Text(
+                          subtitle!,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark ? AppColors.dark200 : AppColors.dark400,
+                            fontWeight: AppTypography.weightBold,
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ),
-                      if (subtitleTrailing != null) 
-                        subtitleTrailing!,
+                      () {
+                        if (subtitleTrailing != null) return subtitleTrailing!;
+                        
+                        final bool isAdmin = () {
+                          try {
+                            return GoRouterState.of(context).uri.path.startsWith('/admin');
+                          } catch (_) {
+                            return false;
+                          }
+                        }();
+
+                        if (isAdmin) {
+                          return Text(
+                            'Admin',
+                            style: AppTypography.label.copyWith(
+                              color: AppColors.actionGreen,
+                              fontWeight: AppTypography.weightBlack,
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }(),
                     ],
                   ),
                 ],

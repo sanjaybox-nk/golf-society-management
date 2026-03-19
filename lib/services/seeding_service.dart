@@ -170,7 +170,8 @@ class SeedingService {
       (title: 'January Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 25), status: EventStatus.completed, isMultiDay: false, endDate: null),
       (title: 'Valentine\'s Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.fourball, date: DateTime(2026, 2, 14), status: EventStatus.completed, isMultiDay: false, endDate: null),
       (title: 'The Winter Major', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 27), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 28)),
-      (title: 'St Patricks Day Special', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 17), status: EventStatus.published, isMultiDay: false, endDate: null),
+      (title: 'St Patricks Day Special', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 17), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: 'LIVE: St Georges Day Opener', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime.now(), status: EventStatus.inPlay, isMultiDay: false, endDate: null),
       (title: 'The April Fools Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 1), status: EventStatus.published, isMultiDay: false, endDate: null),
       (title: 'Algarve Tour 2026', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 5, 20), status: EventStatus.published, isMultiDay: true, endDate: DateTime(2026, 5, 22)),
       (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 6, 15), status: EventStatus.published, isMultiDay: false, endDate: null),
@@ -439,6 +440,7 @@ class SeedingService {
       date: date,
       endDate: endDate,
       isMultiDay: isMultiDay,
+      regTime: date.copyWith(hour: 8),
       teeOffTime: date.copyWith(hour: 9),
       status: status,
       isInvitational: isInvitational,
@@ -470,7 +472,7 @@ class SeedingService {
       hasBreakfast: true,
       hasLunch: _random.nextBool(),
       hasDinner: true,
-      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of $format followed by a group dinner and prize giving ceremony. The course is in excellent condition and we look forward to a great turnout!',
+      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of ${format.name} followed by a group dinner and prize giving ceremony. The course is in excellent condition and we look forward to a great turnout!',
       registrationDeadline: date.subtract(const Duration(days: 7)),
       
       // Society Costs
@@ -493,6 +495,8 @@ class SeedingService {
       maxParticipants: 40,
 
       isGroupingPublished: status != EventStatus.draft,
+      isStatsReleased: status == EventStatus.completed || status == EventStatus.inPlay,
+      isScoringLocked: status == EventStatus.completed,
       notes: [
         EventNote(
           title: 'Welcome Message',
@@ -532,7 +536,6 @@ class SeedingService {
     final eventBreakfastCost = event.breakfastCost ?? 0.0;
     final eventLunchCost = event.lunchCost ?? 0.0;
     final eventDinnerCost = event.dinnerCost ?? 0.0;
-    final eventBuggyCost = event.buggyCost ?? 0.0;
 
     // Sanjay
     final hero = members.firstWhereOrNull((m) => m.id == 'demo_hero_sanjay');
@@ -544,7 +547,7 @@ class SeedingService {
       
       // Hero Sanjay usually takes a buggy
       const needsBuggy = true;
-      if (needsBuggy) totalCost += eventBuggyCost;
+      // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
 
       regs.add(EventRegistration(
         memberId: hero.id,
@@ -599,14 +602,14 @@ class SeedingService {
           if (attendsBreakfast) totalCost += eventBreakfastCost;
           if (attendsLunch) totalCost += eventLunchCost;
           if (attendsDinner) totalCost += eventDinnerCost;
-          if (needsBuggy) totalCost += eventBuggyCost;
+          // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
 
           if (hasGuest) {
             totalCost += eventGuestCost;
             if (attendsBreakfast) totalCost += eventBreakfastCost;
             if (attendsLunch) totalCost += eventLunchCost;
             if (attendsDinner) totalCost += eventDinnerCost;
-            if (needsBuggy) totalCost += eventBuggyCost;
+            // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
           }
         }
 
@@ -693,7 +696,24 @@ class SeedingService {
           int grossTotal = 0;
           int pointsTotal = 0;
 
+          // Calculate holes passed if live
+          int holesPassed = 18;
+          if (status == EventStatus.inPlay) {
+            final now = DateTime.now();
+            final groupTime = group.teeTime;
+            if (now.isAfter(groupTime)) {
+              final minsSince = now.difference(groupTime).inMinutes;
+              holesPassed = (minsSince / 12).floor().clamp(0, 18);
+            } else {
+              holesPassed = 0;
+            }
+          }
+
           for (int h = 0; h < 18; h++) {
+              if (h >= holesPassed) {
+                holeScores.add(null);
+                continue;
+              }
               final par = tee.holePars[h];
               final si = tee.holeSIs[h];
               int shots = (phc / 18).floor();
@@ -710,16 +730,24 @@ class SeedingService {
           await scoreRepo.addScorecard(Scorecard(
               id: 'seed_${updatedEvent.id}_$entryId', competitionId: updatedEvent.id,
               roundId: '1', entryId: entryId, submittedByUserId: 'system_seed',
-              status: cardStatus, holeScores: holeScores,
+              status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
+              holeScores: holeScores,
               points: isStableford ? pointsTotal : null,
               handicapIndex: index, playingHandicap: phc,
-              netTotal: grossTotal - phc.round(),
-              submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) 
+              netTotal: grossTotal - (phc * (holesPassed / 18)).round(), // Scaled net for live view
+              submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
                   ? date.copyWith(hour: 14, minute: _random.nextInt(60)) 
                   : null,
               createdAt: DateTime.now(), updatedAt: DateTime.now(),
           ));
-          results.add({'playerId': entryId, 'playerName': p.name, 'points': isStableford ? pointsTotal : (grossTotal - phc.round()), 'holeScores': holeScores, 'phc': phc});
+          results.add({
+            'playerId': entryId, 
+            'playerName': p.name, 
+            'points': isStableford ? pointsTotal : (grossTotal - (phc * (holesPassed / 18)).round()), 
+            'holeScores': holeScores, 
+            'phc': phc,
+            'holesPlayed': holesPassed,
+          });
       }
     }
 

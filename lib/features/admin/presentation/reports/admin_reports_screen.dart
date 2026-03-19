@@ -141,7 +141,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'SEASON PROGRESS', 
+                'Season Progress', 
                 style: AppTypography.label.copyWith(
                   fontSize: AppTypography.sizeLabel, 
                   color: theme.textTheme.bodySmall?.color, 
@@ -246,7 +246,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('UNCOLLECTED REVENUE', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeCaptionStrong, color: AppColors.amber500)),
+                      const Text('Uncollected Revenue', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeCaptionStrong, color: AppColors.amber500)),
                       Text('£${stats.uncollectedRevenue.toStringAsFixed(2)} is currently outstanding from confirmed registrations.', 
                         style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, color: AppColors.amber500.withValues(alpha: AppColors.opacityHigh))),
                     ],
@@ -501,7 +501,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('SOCIETY BALANCE', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.2)),
+                   const Text('Society Balance', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.2)),
                   Text(
                     '£${stats.netTreasury.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -569,11 +569,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: [
-          _PrizeCircle(count: stats.totalCupsAwarded, label: 'CUPS', icon: Icons.emoji_events_rounded, color: AppColors.amber500),
+          _PrizeCircle(count: stats.totalCupsAwarded, label: 'Cups', icon: Icons.emoji_events_rounded, color: AppColors.amber500),
           const Spacer(),
           const VerticalDivider(),
           const Spacer(),
-          _PrizeCircle(count: stats.totalVouchersAwarded, label: 'VOUCHERS', icon: Icons.confirmation_number_rounded, color: Colors.indigoAccent),
+          _PrizeCircle(count: stats.totalVouchersAwarded, label: 'Vouchers', icon: Icons.confirmation_number_rounded, color: Colors.indigoAccent),
         ],
       ),
     );

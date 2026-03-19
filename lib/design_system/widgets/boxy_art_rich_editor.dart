@@ -1,7 +1,8 @@
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
-class BoxyArtRichEditor extends StatelessWidget {
+class BoxyArtRichEditor extends ConsumerWidget {
   final QuillController controller;
   final String placeholder;
   final double minHeight;
@@ -20,9 +21,18 @@ class BoxyArtRichEditor extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
+
+    double radius;
+    switch (config.brandingStyle) {
+      case 'classic': radius = AppShapes.rSm; break;
+      case 'modern':  radius = AppShapes.rLg; break;
+      case 'boxy':
+      default:        radius = AppShapes.rMd; break;
+    }
 
     return Column(
       children: [
@@ -31,9 +41,9 @@ class BoxyArtRichEditor extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: isDark 
-                  ? AppColors.dark400.withValues(alpha: AppColors.opacityMuted) 
-                  : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rMd)),
+                  ? AppColors.dark500.withValues(alpha: 0.5) 
+                  : AppColors.dark150.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
             ),
             child: SizedBox(
               height: 48,
@@ -94,12 +104,10 @@ class BoxyArtRichEditor extends StatelessWidget {
           constraints: BoxConstraints(minHeight: minHeight),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: isDark 
-                ? AppColors.dark300.withValues(alpha: AppColors.opacityMedium) 
-                : AppColors.pureWhite.withValues(alpha: AppColors.opacityHalf),
+            color: isDark ? AppColors.dark600 : AppColors.lightHeader,
             borderRadius: showToolbar && !readOnly
-                ? const BorderRadius.vertical(bottom: Radius.circular(AppShapes.rMd))
-                : BorderRadius.circular(AppShapes.rMd),
+                ? BorderRadius.vertical(bottom: Radius.circular(radius))
+                : BorderRadius.circular(radius),
             border: readOnly ? null : Border.all(
               color: isDark ? AppColors.dark400 : AppColors.lightBorder,
               width: AppShapes.borderThin,
@@ -114,6 +122,7 @@ class BoxyArtRichEditor extends StatelessWidget {
                 placeHolder: DefaultTextBlockStyle(
                   AppTypography.body.copyWith(
                     color: isDark ? AppColors.dark400 : AppColors.dark300,
+                    fontSize: AppTypography.sizeBody,
                   ),
                   const HorizontalSpacing(0, 0),
                   const VerticalSpacing(0, 0),

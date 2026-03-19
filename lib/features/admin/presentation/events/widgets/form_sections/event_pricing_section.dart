@@ -19,7 +19,6 @@ class EventPricingSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'Event Costs'),
-          const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
             child: Column(
               children: [
@@ -41,11 +40,11 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyFee(double.tryParse(v)),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.x2l),
+                                const SizedBox(width: AppSpacing.lg),
                       const Expanded(child: SizedBox.shrink()),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   Row(
                     children: [
                       Expanded(
@@ -56,7 +55,7 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMemberCost(double.tryParse(v)),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.x2l),
+                                const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: BoxyArtFormField(
                           label: 'Guest Charge ($currency)',
@@ -71,9 +70,8 @@ class EventPricingSection extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.x3l),
+          const SizedBox(height: AppSpacing.cardToLabel),
           const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
-          const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
             child: Column(
               children: [
@@ -95,13 +93,13 @@ class EventPricingSection extends ConsumerWidget {
                   (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerCost(double.tryParse(v) ?? 0),
                 ),
                 if (state.hasDinner) ...[
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Dinner Location',
                     initialValue: state.dinnerLocation,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerLocation(v),
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Dinner Address (Optional)',
                     initialValue: state.dinnerAddress,

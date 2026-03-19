@@ -33,6 +33,7 @@ class ReportingHubStats {
   // Phase 11.4 Additions
   final Map<String, double> courseDifficultyIndex; // Course Name -> Avg Points
   final List<MapEntry<String, int>> podiumConsistency; // Member ID -> Top 3 Count
+  final double totalSocietyCosts;
 
   ReportingHubStats({
     required this.totalRevenue,
@@ -56,9 +57,10 @@ class ReportingHubStats {
     required this.retentionRate,
     required this.courseDifficultyIndex,
     required this.podiumConsistency,
+    required this.totalSocietyCosts,
   });
 
-  double get netTreasury => totalRevenue - totalExpenses - totalCashPrizes;
+  double get netTreasury => totalRevenue - totalExpenses - totalCashPrizes - totalSocietyCosts;
 }
 
 final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) {
@@ -93,6 +95,7 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
     final Map<String, int> attendanceMap = {};
 
     double totalMarkup = 0;
+    double totalSocietyCosts = 0;
     int playingRegistrations = 0;
 
     // Sort events by date to identify "recent" ones
@@ -110,6 +113,9 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       if (event.status == EventStatus.completed) completedCount++;
 
       for (final reg in event.registrations) {
+        // Skip withdrawn
+        if (reg.statusOverride == 'withdrawn') continue;
+
         // Attendance tracking (confirmed only)
         if (reg.isConfirmed && reg.attendingGolf) {
           totalAttendance++;
@@ -117,29 +123,99 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
           playingRegistrations++;
           
           final double memberGolf = event.memberCost ?? 0;
+          final double guestGolf = event.guestCost ?? 0;
           final double societyGolf = event.societyGreenFee ?? 0;
+
+          // Markup for Member
           totalMarkup += (memberGolf - societyGolf);
+          totalSocietyCosts += societyGolf;
           
-          if (reg.attendingBreakfast) totalMarkup += ((event.breakfastCost ?? 0) - (event.societyBreakfastCost ?? 0));
-          if (reg.attendingLunch) totalMarkup += ((event.lunchCost ?? 0) - (event.societyLunchCost ?? 0));
-          if (reg.attendingDinner) totalMarkup += ((event.dinnerCost ?? 0) - (event.societyDinnerCost ?? 0));
+          // Guests (If applicable)
+          if (reg.guestName != null && reg.guestIsConfirmed) {
+            playingRegistrations++;
+            totalAttendance++;
+            totalMarkup += (guestGolf - societyGolf);
+            totalSocietyCosts += societyGolf;
+          }
+          
+          if (reg.attendingBreakfast) {
+            totalMarkup += ((event.breakfastCost ?? 0) - (event.societyBreakfastCost ?? 0));
+            totalSocietyCosts += (event.societyBreakfastCost ?? 0);
+          }
+          if (reg.attendingLunch) {
+            totalMarkup += ((event.lunchCost ?? 0) - (event.societyLunchCost ?? 0));
+            totalSocietyCosts += (event.societyLunchCost ?? 0);
+          }
+          if (reg.attendingDinner) {
+            totalMarkup += ((event.dinnerCost ?? 0) - (event.societyDinnerCost ?? 0));
+            totalSocietyCosts += (event.societyDinnerCost ?? 0);
+          }
+
+          if (reg.guestName != null && reg.guestIsConfirmed) {
+            if (reg.guestAttendingBreakfast) {
+              totalMarkup += ((event.breakfastCost ?? 0) - (event.societyBreakfastCost ?? 0));
+              totalSocietyCosts += (event.societyBreakfastCost ?? 0);
+            }
+            if (reg.guestAttendingLunch) {
+              totalMarkup += ((event.lunchCost ?? 0) - (event.societyLunchCost ?? 0));
+              totalSocietyCosts += (event.societyLunchCost ?? 0);
+            }
+            if (reg.guestAttendingDinner) {
+              totalMarkup += ((event.dinnerCost ?? 0) - (event.societyDinnerCost ?? 0));
+              totalSocietyCosts += (event.societyDinnerCost ?? 0);
+            }
+          }
         }
 
-        final double regCost = reg.cost;
-        potentialRevenue += regCost;
+        // Robust Cost Calculation (Ignoring potentially stale reg.cost snapshot)
+        double calculateCost(bool isGuest) {
+          double total = 0;
+          if (event.eventType == EventType.social) {
+            total += (event.eventCost ?? 0);
+          } else {
+            total += isGuest ? (event.guestCost ?? 0) : (event.memberCost ?? 0);
+          }
+          
+          if (isGuest) {
+            if (reg.guestAttendingBreakfast) total += (event.breakfastCost ?? 0);
+            if (reg.guestAttendingLunch) total += (event.lunchCost ?? 0);
+            if (reg.guestAttendingDinner) total += (event.dinnerCost ?? 0);
+          } else {
+            if (reg.attendingBreakfast) total += (event.breakfastCost ?? 0);
+            if (reg.attendingLunch) total += (event.lunchCost ?? 0);
+            if (reg.attendingDinner) total += (event.dinnerCost ?? 0);
+          }
+          return total;
+        }
+
+        final double memberRegCost = calculateCost(false);
+        final double guestRegCost = reg.guestName != null ? calculateCost(true) : 0;
+        final double totalLineCost = memberRegCost + guestRegCost;
+
+        potentialRevenue += totalLineCost;
         
         if (reg.hasPaid) {
-          revenue += regCost;
+          revenue += totalLineCost;
+          
+          // Breaking down for analytics
           breakdown['Golf'] = (breakdown['Golf'] ?? 0) + (event.memberCost ?? 0);
-          if (reg.needsBuggy) breakdown['Buggies'] = (breakdown['Buggies'] ?? 0) + (event.buggyCost ?? 0);
+          if (reg.guestName != null) {
+            breakdown['Golf'] = (breakdown['Golf'] ?? 0) + (event.guestCost ?? 0);
+          }
           
           double food = 0;
           if (reg.attendingBreakfast) food += (event.breakfastCost ?? 0);
           if (reg.attendingLunch) food += (event.lunchCost ?? 0);
           if (reg.attendingDinner) food += (event.dinnerCost ?? 0);
+          
+          if (reg.guestName != null) {
+            if (reg.guestAttendingBreakfast) food += (event.breakfastCost ?? 0);
+            if (reg.guestAttendingLunch) food += (event.lunchCost ?? 0);
+            if (reg.guestAttendingDinner) food += (event.dinnerCost ?? 0);
+          }
           breakdown['Catering'] = (breakdown['Catering'] ?? 0) + food;
         } else if (reg.isConfirmed) {
-          uncollected += regCost;
+          uncollected += totalLineCost;
         }
       }
       
@@ -250,6 +326,7 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       retentionRate: retention,
       courseDifficultyIndex: courseDifficulty,
       podiumConsistency: sortedPodiums,
+      totalSocietyCosts: totalSocietyCosts,
     ));
   },
   loading: () => const AsyncValue.loading(),

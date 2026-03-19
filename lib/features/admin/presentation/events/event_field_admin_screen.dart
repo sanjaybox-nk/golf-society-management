@@ -9,10 +9,13 @@ import './event_registrations_admin_screen.dart';
 // Reuse the same tab provider for parity
 import '../../../events/presentation/tabs/event_user_placeholders.dart';
 
-import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
-import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
 import './widgets/admin_grouping_toolbar.dart';
+import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
 import './widgets/admin_grouping_hub_content.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'package:golf_society/utils/string_utils.dart';
+import '../../../events/domain/registration_logic.dart';
 
 class EventFieldAdminScreen extends ConsumerWidget {
   final String eventId;
@@ -23,8 +26,6 @@ class EventFieldAdminScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(adminEventsProvider);
     final allMembersAsync = ref.watch(allMembersProvider);
-    final competitionAsync = ref.watch(competitionDetailProvider(eventId));
-    
     return eventAsync.when(
       data: (events) {
         final event = events.firstWhereOrNull((e) => e.id == eventId);
@@ -45,8 +46,6 @@ class EventFieldAdminScreen extends ConsumerWidget {
         }
 
         final selectedTab = ref.watch(eventFieldTabProvider);
-        final members = allMembersAsync.value ?? [];
-        final handicapMap = {for (var m in members) m.id: m.handicap};
 
         return HeadlessScaffold(
           title: event.title,
@@ -77,28 +76,29 @@ class EventFieldAdminScreen extends ConsumerWidget {
                   ModernFilterTab(label: 'Tee Time', value: 1),
                 ],
               ),
-              if (selectedTab == 1) ...[
-                const SizedBox(height: AppSpacing.md),
-                AdminGroupingToolbar(
-                  event: event,
-                  allEvents: events,
-                  handicapMap: handicapMap,
-                  competition: competitionAsync.value,
-                  onReset: () {
-                     // Reset logic
-                  },
-                  onSave: () {
-                     // Save logic
-                  },
-                  onAutoGenerate: () {
-                     // Show generation options
-                     ref.read(groupingShowGenerationOptionsProvider.notifier).set(true);
-                  },
-                ),
-              ],
             ],
           ),
+          pinnedBottom: null,
           slivers: [
+            if (selectedTab == 1)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                  child: AdminGroupingToolbar(
+                    event: event,
+                    onReset: () {
+                      ref.read(groupingLocalGroupsProvider.notifier).setGroups(null);
+                      ref.read(groupingDirtyProvider.notifier).setDirty(true);
+                    },
+                    onSave: () async {
+                      _handleSave(context, ref, event);
+                    },
+                    onAutoGenerate: () {
+                      _showGenerationOptions(context, ref, event);
+                    },
+                  ),
+                ),
+              ),
             if (selectedTab == 0)
               allMembersAsync.when(
                 data: (members) => EventRegistrationsAdminScreen.buildSliver(context, ref, event, members),
@@ -122,10 +122,92 @@ class EventFieldAdminScreen extends ConsumerWidget {
       ),
     );
   }
+
+
+  void _showGenerationOptions(BuildContext context, WidgetRef ref, GolfEvent event) {
+    final strategy = ref.read(groupingStrategyProvider);
+    final hasGroups = (ref.read(groupingLocalGroupsProvider)?.isNotEmpty ?? false);
+
+    if (hasGroups) {
+      showDialog(
+        context: context,
+        builder: (context) => Material(
+        color: Colors.transparent,
+        child: BoxyArtDialog(
+          title: 'Regenerate Tee Time?',
+          message: 'Current groups will be cleared. Strategy: ${toTitleCase(strategy)}.',
+          onConfirm: () {
+            Navigator.pop(context);
+            _executeGeneration(context, ref, strategy);
+          },
+          onCancel: () => Navigator.pop(context),
+          confirmText: 'Regenerate',
+        ),
+      ),
+    );
+  }  else {
+      _executeGeneration(context, ref, strategy);
+    }
+  }
+
+  void _executeGeneration(BuildContext context, WidgetRef ref, String strategy) {
+    final events = ref.read(adminEventsProvider).value ?? [];
+    final event = events.firstWhereOrNull((e) => e.id == eventId);
+    if (event == null) return;
+
+    final members = ref.read(allMembersProvider).value ?? [];
+    final handicapMap = {for (var m in members) m.id: m.handicap};
+    
+    // Get confirmed participants for grouping
+    final participants = RegistrationLogic.getPlayingParticipants(event);
+
+    if (participants.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No confirmed participants to group'), backgroundColor: AppColors.coral500),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Generating groups using $strategy strategy...'), duration: const Duration(seconds: 1)),
+    );
+
+    // Call actual generation service
+    final newGroups = GroupingService.generateInitialGrouping(
+      event: event,
+      participants: participants,
+      previousEventsInSeason: events.where((e) => e.id != eventId).toList(),
+      memberHandicaps: handicapMap,
+      strategy: strategy,
+    );
+
+    // Update local state and trigger UI refresh
+    ref.read(groupingLocalGroupsProvider.notifier).setGroups(newGroups);
+    ref.read(groupingDirtyProvider.notifier).setDirty(true);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Groups Generated Successfully!'), backgroundColor: AppColors.teamA),
+    );
+  }
 }
 
-// Extension methods to be added to the target screens to support Hub integration
-extension EventFieldAdminExtensions on Widget {
-  // This is a placeholder for the refactoring I'm about to do in the actual screens
-  // to support returning slivers instead of a full HeadlessScaffold.
+void _handleSave(BuildContext context, WidgetRef ref, GolfEvent event) async {
+  final groups = ref.read(groupingLocalGroupsProvider);
+  if (groups == null) return;
+
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.showSnackBar(const SnackBar(content: Text('Saving Tee Times...'), duration: Duration(milliseconds: 500)));
+
+  // Save logic: update the event repository
+  await ref.read(eventsRepositoryProvider).updateEvent(
+    event.copyWith(grouping: {...event.grouping, 'groups': groups.map((g) => g.toJson()).toList()}),
+  );
+
+  ref.read(groupingDirtyProvider.notifier).setDirty(false);
+
+  if (context.mounted) {
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Tee Times Saved Successfully'), backgroundColor: AppColors.teamA),
+    );
+  }
 }

@@ -52,7 +52,9 @@ Complex business rules are encapsulated in standalone logic classes within the `
     - `ScoringCalculator`: Authoritative engine for Stroke, Stableford, and Max Score capping logic.
     - **SSOT Pattern**: *Calculate Once, Display Everywhere*. The `LeaderboardEntry` serves as the primary data vehicle, carrying pre-calculated raw strokes, net scores, and Stableford points for both the main entry and all team members. Views (like `ScorecardModal`) are purely presentational and must NOT re-calculate these values.
 - **RegistrationLogic**: Centralized helper for calculating FCFS positions, status legends, and buggy allocations.
-ing FCFS positions, status legends, and buggy allocations.
+- **Automated Financials**: The system automates core society costs to prevent manual ledger errors.
+    - **Club Bill**: Automatically calculated from confirmed registrations and meal preferences.
+    - **Indicative Costs**: Items like "Buggy Cost" are treated as member-direct payments and explicitly excluded from society treasury calculations.
 
 ## Complex Form Architecture
 For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modular decomposition strategy:

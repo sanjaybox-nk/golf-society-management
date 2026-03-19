@@ -48,10 +48,10 @@ class BoxyArtCard extends ConsumerWidget {
       defaultRadius = config.heroRadius;
     } else {
       switch (config.brandingStyle) {
-        case 'classic': defaultRadius = 8.0; break;
-        case 'modern':  defaultRadius = 28.0; break;
+        case 'classic': defaultRadius = AppShapes.rSm; break;
+        case 'modern':  defaultRadius = AppShapes.r2xl; break;
         case 'boxy':
-        default:        defaultRadius = 18.0; break;
+        default:        defaultRadius = AppShapes.rMd; break;
       }
     }
     

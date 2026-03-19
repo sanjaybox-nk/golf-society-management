@@ -364,10 +364,12 @@ class EventScoringProcessor {
   }
 
   static String? calculateTieBreakLabel(ScoringResult result) {
-    // Show back 9 total if any holes are played in that segment for live visibility
-    final back9 = result.holePoints.skip(9).take(9).whereType<int>();
-    final totalB9 = back9.fold<int>(0, (sum, p) => sum + p);
-    return 'B9: $totalB9';
+    // Show progressive countback for tie-break visibility
+    final b9 = _getSegmentTotal(result, 9, 18);
+    final b6 = _getSegmentTotal(result, 12, 18);
+    final b3 = _getSegmentTotal(result, 15, 18);
+    
+    return 'B9: $b9 • B6: $b6 • B3: $b3';
   }
 
   static List<int> _calculateTieBreakMetrics(ScoringResult result) {

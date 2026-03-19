@@ -148,7 +148,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                             context, 
                             ref, 
                             member,
-                            secondaryMetricLabel: 'EVENTS',
+                            secondaryMetricLabel: 'Events',
                             secondaryMetricValue: '$eventCount',
                           ),
                         );

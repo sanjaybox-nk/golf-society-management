@@ -12,6 +12,16 @@ class TeeGroup {
     'teeTime': teeTime.toIso8601String(),
     'players': players.map((p) => p.toJson()).toList(),
   };
+
+  TeeGroup copyWith({
+    int? index,
+    DateTime? teeTime,
+    List<TeeGroupParticipant>? players,
+  }) => TeeGroup(
+    index: index ?? this.index,
+    teeTime: teeTime ?? this.teeTime,
+    players: players ?? this.players,
+  );
   
   static TeeGroup fromJson(Map<String, dynamic> json) => TeeGroup(
     index: json['index'],

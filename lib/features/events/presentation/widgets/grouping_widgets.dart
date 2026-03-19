@@ -210,7 +210,7 @@ class GroupingPlayerTile extends ConsumerWidget {
       score: isScoreMode 
           ? (scoringStatus != ScoringStatus.ok 
               ? scoringStatus.name.toUpperCase() 
-              : (scoreDisplay ?? '-')) 
+              : (scoreDisplay != null && scoreDisplay != '-' && rules?.format == CompetitionFormat.stableford ? '$scoreDisplay pts' : (scoreDisplay ?? '-'))) 
           : null,
       scoreColor: scoringStatus != ScoringStatus.ok ? AppColors.coral500 : null,
       tieBreakLabel: tieBreakLabel,
@@ -224,7 +224,7 @@ class GroupingPlayerTile extends ConsumerWidget {
       isSelected: isSelected,
       onTap: onTap,
       useCard: true,
-      showChevron: isAdmin,
+      showChevron: false,
       accentColor: varietyColor,
     );
   }
@@ -543,7 +543,8 @@ class GroupingCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        backgroundColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
+        padding: const EdgeInsets.all(AppSpacing.x2l),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -552,8 +553,10 @@ class GroupingCard extends StatelessWidget {
               children: [
                 Text(
                   'GROUP ${group.index + 1}',
-                  style: AppTypography.label.copyWith(
-                    color: isDark ? AppColors.dark150 : AppColors.dark900,
+                  style: AppTypography.displaySection.copyWith(
+                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                    fontWeight: AppTypography.weightExtraBold,
+                    fontSize: 18, // Slightly smaller than standard displaySection for cards
                   ),
                 ),
                 Container(
@@ -662,6 +665,7 @@ class GroupingCard extends StatelessWidget {
                 isAdmin: isAdmin,
                 isSelected: isSelected?.call(p) ?? false,
                 onAction: onAction,
+                isScoreMode: isScoreMode,
                 scoreDisplay: showScoring ? scoreForTile : null,
                 isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
                 tieBreakLabel: showScoring ? (tieBreakMap?[id]) : null,
@@ -673,7 +677,7 @@ class GroupingCard extends StatelessWidget {
               );
 
               final isLast = index == group.players.length - 1;
-              final playerWidget = isAdmin && !isLocked
+              final playerWidget = isAdmin
                   ? _wrapWithDraggable(context, p, baseTile)
                   : baseTile;
 
@@ -1002,9 +1006,25 @@ class GroupingCard extends StatelessWidget {
     TeeGroupParticipant p,
     Widget child,
   ) {
+    // Standardized Container that preserves layout footprint (2px border space)
+    Widget decoratedChild = AnimatedContainer(
+      duration: AppAnimations.fast,
+      decoration: BoxDecoration(
+        borderRadius: AppShapes.md,
+        border: Border.all(
+          color: Colors.transparent, // Default transparent
+          width: AppShapes.borderMedium,
+        ),
+      ),
+      child: child,
+    );
+
+    // If locked, return just the decorated container to keep layout stable
+    if (isLocked) return decoratedChild;
+
     return DragTarget<Map<String, dynamic>>(
       onWillAcceptWithDetails: (details) =>
-          !isLocked && details.data['player'] != p,
+          details.data['player'] != p,
       onAcceptWithDetails: (details) {
         final sourcePlayer = details.data['player'] as TeeGroupParticipant;
         final sourceGroup = details.data['group'] as TeeGroup?;
@@ -1028,7 +1048,7 @@ class GroupingCard extends StatelessWidget {
               history: history,
             ),
           ),
-          childWhenDragging: Opacity(opacity: 0.3, child: child),
+          childWhenDragging: Opacity(opacity: 0.3, child: decoratedChild),
           child: AnimatedContainer(
             duration: AppAnimations.fast,
             decoration: BoxDecoration(

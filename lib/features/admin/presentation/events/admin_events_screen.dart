@@ -6,6 +6,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import '../../../competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 class AdminEventsScreen extends ConsumerWidget {
   const AdminEventsScreen({super.key});
@@ -17,6 +18,12 @@ class AdminEventsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Events',
       subtitle: 'Society events and calendar',
+      subtitleTrailing: Text(
+        'ADMIN',
+        style: AppTypography.label.copyWith(
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
       showBack: false,
       leading: Center(
         child: BoxyArtGlassIconButton(
@@ -25,11 +32,13 @@ class AdminEventsScreen extends ConsumerWidget {
           tooltip: 'App Home',
         ),
       ),
-      titleSuffix: BoxyArtGlassIconButton(
-        icon: Icons.add_rounded,
-        tooltip: 'Create Event',
-        onPressed: () => context.push('/admin/events/new'),
-      ),
+      actions: [
+        BoxyArtGlassIconButton(
+          icon: Icons.add_rounded,
+          tooltip: 'Create Event',
+          onPressed: () => context.push('/admin/events/new'),
+        ),
+      ],
       slivers: [
         eventsAsync.when(
           data: (events) {
@@ -44,9 +53,16 @@ class AdminEventsScreen extends ConsumerWidget {
             }
 
             final now = DateTime.now();
-            final upcoming = events.where((e) => e.date.isAfter(now)).toList()
+            final today = DateTime(now.year, now.month, now.day);
+            
+            final upcoming = events.where((e) {
+              final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
+              // Consider it upcoming if it's today or later, OR if it's explicitly marked as inPlay (Live)
+              return eventDate.isAtSameMomentAs(today) || eventDate.isAfter(today) || e.status == EventStatus.inPlay;
+            }).toList()
               ..sort((a, b) => a.date.compareTo(b.date));
-            final past = events.where((e) => e.date.isBefore(now)).toList()
+              
+            final past = events.where((e) => !upcoming.contains(e)).toList()
               ..sort((a, b) => b.date.compareTo(a.date));
 
             return SliverList(
@@ -149,9 +165,12 @@ class _AdminEventRow extends ConsumerWidget {
       },
       child: BoxyArtEventCard(
         event: event,
-        onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
+        onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
         gameTypePill: _buildGameTypePill(context, ref, event.id),
-        statusPill: _buildStatusBadge(context, event),
+        statusPill: GestureDetector(
+          onTap: () => _showStatusSelector(context, ref, event),
+          child: _buildStatusBadge(context, event),
+        ),
       ),
     );
   }
@@ -204,9 +223,81 @@ class _AdminEventRow extends ConsumerWidget {
         statusColor = AppColors.lime500;
     }
 
-    return BoxyArtPill.status(
-      label: statusText,
-      color: statusColor,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        BoxyArtPill.status(
+          label: statusText,
+          color: statusColor,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Icon(
+          Icons.keyboard_arrow_down_rounded,
+          size: 16,
+          color: statusColor.withValues(alpha: 0.7),
+        ),
+      ],
     );
+  }
+
+  void _showStatusSelector(BuildContext context, WidgetRef ref, GolfEvent event) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Change Event Status',
+      isScrollControlled: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: EventStatus.values.map((s) {
+          final isSelected = event.status == s;
+          String label = toTitleCase(s.name);
+          if (s == EventStatus.inPlay) label = 'Live';
+          
+          return Column(
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: BoxyArtIconBadge(
+                  icon: _getStatusIcon(s),
+                  color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
+                  showFill: false,
+                  showBorder: isSelected,
+                  borderColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark300,
+                  iconColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
+                ),
+                title: Text(
+                  label,
+                  style: AppTypography.body.copyWith(
+                    fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
+                    color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
+                    height: 1.0, // Tighter for UI lists
+                  ),
+                ),
+                trailing: isSelected 
+                  ? Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor, size: 22) 
+                  : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  ref.read(eventsRepositoryProvider).updateEvent(
+                    event.copyWith(status: s),
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  IconData _getStatusIcon(EventStatus status) {
+    switch (status) {
+      case EventStatus.draft: return Icons.edit_note_rounded;
+      case EventStatus.published: return Icons.public_rounded;
+      case EventStatus.inPlay: return Icons.play_circle_outline_rounded;
+      case EventStatus.suspended: return Icons.pause_circle_outline_rounded;
+      case EventStatus.completed: return Icons.check_circle_outline_rounded;
+      case EventStatus.cancelled: return Icons.cancel_outlined;
+    }
   }
 }

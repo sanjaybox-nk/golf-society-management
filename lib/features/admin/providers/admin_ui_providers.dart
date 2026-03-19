@@ -61,3 +61,11 @@ class GroupingMatchPlayModeNotifier extends Notifier<bool> {
   void set(bool value) => state = value;
 }
 final groupingMatchPlayModeProvider = NotifierProvider<GroupingMatchPlayModeNotifier, bool>(GroupingMatchPlayModeNotifier.new);
+
+/// Tracks the selected strategy for generation.
+class GroupingStrategyNotifier extends Notifier<String> {
+  @override
+  String build() => 'random';
+  void set(String value) => state = value;
+}
+final groupingStrategyProvider = NotifierProvider<GroupingStrategyNotifier, String>(GroupingStrategyNotifier.new);

@@ -20,7 +20,7 @@ class FloatingBottomSearch extends StatelessWidget {
       height: 60,
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite,
-        borderRadius: AppShapes.lg,
+        borderRadius: AppShapes.md,
         boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: Row(
@@ -30,8 +30,8 @@ class FloatingBottomSearch extends StatelessWidget {
             child: InkWell(
               onTap: onSearchTap,
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppShapes.rLg),
-                bottomLeft: Radius.circular(AppShapes.rLg),
+                topLeft: Radius.circular(AppShapes.rMd),
+                bottomLeft: Radius.circular(AppShapes.rMd),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -57,8 +57,8 @@ class FloatingBottomSearch extends StatelessWidget {
             child: InkWell(
               onTap: onFilterTap,
               borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(AppShapes.rLg),
-                bottomRight: Radius.circular(AppShapes.rLg),
+                topRight: Radius.circular(AppShapes.rMd),
+                bottomRight: Radius.circular(AppShapes.rMd),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -301,13 +301,6 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 color: isDark ? AppColors.dark300 : AppColors.dark400,
               ),
               const SizedBox(width: AppSpacing.sm),
-            ] else if (isPeeking) ...[
-              Icon(
-                Icons.visibility,
-                size: isLevel2 ? 10 : 12,
-                color: isDark ? AppColors.dark300 : AppColors.dark400,
-              ),
-              const SizedBox(width: 6),
             ],
             Flexible(
               child: Text(

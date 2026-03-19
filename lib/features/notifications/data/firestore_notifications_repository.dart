@@ -42,4 +42,14 @@ class FirestoreNotificationsRepository implements NotificationsRepository {
   Future<void> deleteNotification(String notificationId) async {
     await _firestore.collection('notifications').doc(notificationId).delete();
   }
+
+  @override
+  Future<void> sendNotification(AppNotification notification) async {
+    final data = notification.toJson();
+    if (data['id'] != null) {
+      await _firestore.collection('notifications').doc(data['id']).set(data);
+    } else {
+      await _firestore.collection('notifications').add(data);
+    }
+  }
 }

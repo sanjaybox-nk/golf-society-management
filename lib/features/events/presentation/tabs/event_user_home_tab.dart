@@ -4,7 +4,6 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'dart:convert';
 import '../events_provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:golf_society/features/members/presentation/profile_provider.dart';
 
 import '../widgets/event_structural_cards.dart';
 
@@ -100,8 +99,6 @@ class EventHomeContent extends ConsumerWidget {
                       return _buildFlashItem(context, item);
                     case FeedItemType.newsletter:
                       return _buildNewsletterItem(context, item);
-                    case FeedItemType.poll:
-                      return _buildPollItem(context, ref, item);
                     default:
                       return const SizedBox.shrink();
                   }
@@ -231,150 +228,6 @@ class EventHomeContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildPollItem(BuildContext context, WidgetRef ref, EventFeedItem item) {
-    final options = (item.pollData['options'] as List?)?.map((e) => e.toString()).toList() ?? [];
-    final votes = (item.pollData['votes'] as Map?)?.cast<String, String>() ?? {};
-    final user = ref.watch(effectiveUserProvider);
-    final userVote = votes[user.id];
-    final hasVoted = userVote != null;
-    
-    // Calculate percentages
-    final totalVotes = votes.length;
-    final Map<String, int> counts = {};
-    for (var opt in options) {
-      counts[opt] = votes.values.where((v) => v == opt).length;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: BoxyArtCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: AppShapes.iconMd),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  'SOCIETY POLL',
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.lime500,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              item.title ?? 'Quick Question',
-              style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            ...options.map((option) {
-              final count = counts[option] ?? 0;
-              final percent = totalVotes == 0 ? 0.0 : count / totalVotes;
-              final isSelected = userVote == option;
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: GestureDetector(
-                  onTap: hasVoted ? null : () => _vote(ref, item, option),
-                  child: Stack(
-                    children: [
-                      // Progress Bar Background
-                      Container(
-                        height: 48,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                              ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
-                              : Colors.black.withValues(alpha: 0.03),
-                          borderRadius: AppShapes.md,
-                          border: Border.all(
-                            color: isSelected ? AppColors.lime500 : Colors.transparent,
-                            width: AppShapes.borderLight,
-                          ),
-                        ),
-                      ),
-                      // Progress Fill
-                      if (hasVoted)
-                        AnimatedContainer(
-                          duration: AppAnimations.slow,
-                          height: 48,
-                          width: MediaQuery.of(context).size.width * percent,
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityMedium) : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
-                            borderRadius: AppShapes.md,
-                          ),
-                        ),
-                      // Content
-                      Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  option,
-                                  style: TextStyle(
-                                    fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightMedium,
-                                    fontSize: AppTypography.sizeButton,
-                                  ),
-                                ),
-                              ),
-                              if (hasVoted)
-                                Text(
-                                  '${(percent * 100).round()}%',
-                                  style: AppTypography.label.copyWith(
-                                    color: isSelected ? AppColors.lime500 : null,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-            if (hasVoted)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Text(
-                  '$totalVotes vote${totalVotes == 1 ? '' : 's'}',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: Theme.of(context).disabledColor,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _vote(WidgetRef ref, EventFeedItem item, String option) async {
-    final user = ref.read(effectiveUserProvider);
-    final votes = Map<String, String>.from(item.pollData['votes'] ?? {});
-    votes[user.id] = option;
-
-    final updatedItem = item.copyWith(
-      pollData: {
-        ...item.pollData,
-        'votes': votes,
-      },
-    );
-
-    final List<EventFeedItem> updatedItems = List.from(event.feedItems);
-    final index = updatedItems.indexWhere((i) => i.id == item.id);
-    if (index != -1) {
-      updatedItems[index] = updatedItem;
-      final updatedEvent = event.copyWith(feedItems: updatedItems);
-      await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
-    }
-  }
 
   String _getPlainTextSnippet(String quillJson) {
     try {

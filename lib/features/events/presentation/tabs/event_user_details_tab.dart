@@ -1,25 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import '../events_provider.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'dart:convert';
 import 'dart:io';
-import 'package:go_router/go_router.dart';
 import '../../domain/registration_logic.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
+import '../widgets/event_structural_cards.dart';
+
+
+enum EventInfoSubTab {
+  info,
+  notifications,
+}
 
 class EventUserDetailsTab extends ConsumerWidget {
   final String eventId;
   final bool useScaffold;
+  final bool isAdminMode;
 
-  const EventUserDetailsTab({super.key, required this.eventId, this.useScaffold = true});
+  const EventUserDetailsTab({super.key, required this.eventId, this.useScaffold = true, this.isAdminMode = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,7 +36,8 @@ class EventUserDetailsTab extends ConsumerWidget {
       data: (event) {
         final config = ref.watch(themeControllerProvider);
         final user = ref.watch(effectiveUserProvider);
-        final isAdmin = user.role != MemberRole.member;
+        // Determine if we are truly in the admin console context via router flag
+        final isAdmin = user.role != MemberRole.member && isAdminMode;
 
         // Check for preview mode
         bool isPreview = false;
@@ -44,6 +52,7 @@ class EventUserDetailsTab extends ConsumerWidget {
           currencySymbol: config.currencySymbol,
           isPreview: isPreview,
           useScaffold: useScaffold,
+          isAdminMode: isAdminMode,
           onStatusChanged: isAdmin ? (newStatus) {
             ref.read(eventsRepositoryProvider).updateEvent(
               event.copyWith(status: newStatus),
@@ -61,7 +70,7 @@ class EventUserDetailsTab extends ConsumerWidget {
   }
 }
 
-class EventDetailsContent extends ConsumerWidget {
+class EventDetailsContent extends ConsumerStatefulWidget {
   final GolfEvent event;
   final String currencySymbol;
   final bool isPreview;
@@ -70,6 +79,7 @@ class EventDetailsContent extends ConsumerWidget {
   final ValueChanged<EventStatus>? onStatusChanged;
   final Widget? bottomNavigationBar;
   final bool useScaffold;
+  final bool isAdminMode;
   final Competition? competition; // Optional direct competition object for previewing
 
   const EventDetailsContent({
@@ -82,54 +92,74 @@ class EventDetailsContent extends ConsumerWidget {
     this.onStatusChanged,
     this.bottomNavigationBar,
     this.useScaffold = true,
+    this.isAdminMode = false,
     this.competition,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EventDetailsContent> createState() => _EventDetailsContentState();
+}
+
+class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
+  EventInfoSubTab _selectedTab = EventInfoSubTab.notifications;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(effectiveUserProvider);
-    final isAdmin = user.role != MemberRole.member;
+    
+    // Determine if we are truly in the admin console context explicitly
+    final isAdmin = user.role != MemberRole.member && widget.isAdminMode;
+    
+    final event = widget.event;
 
     return HeadlessScaffold(
       title: event.title,
       subtitle: 'Event Info Hub',
-      subtitleTrailing: _buildStatusBadge(context),
-      useScaffold: useScaffold,
-      leading: isPreview ? Center(
+      useScaffold: widget.useScaffold,
+      leading: widget.isPreview ? Center(
         child: BoxyArtGlassIconButton(
           icon: Icons.close_rounded,
           iconSize: 24,
           onPressed: () {
-            if (onCancel != null) {
-              onCancel!();
+            if (widget.onCancel != null) {
+              widget.onCancel!();
             } else {
               Navigator.of(context).pop();
             }
           },
         ),
       ) : null,
-      showBack: !isPreview,
+      showBack: !widget.isPreview,
       onBack: () {
-        if (isPreview && onCancel != null) {
-          onCancel!();
+        if (widget.isPreview && widget.onCancel != null) {
+          widget.onCancel!();
           return;
         }
-        try {
-          context.go('/events');
-        } catch (_) {
-          Navigator.of(context).pop();
+        
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          try {
+            if (widget.isAdminMode) {
+              context.go('/admin/events');
+            } else {
+              context.go('/events');
+            }
+          } catch (_) {
+            Navigator.of(context).pop();
+          }
         }
       },
       actions: [
-        if (!isPreview) ...[
-          if (onEdit != null)
+        if (!widget.isPreview && isAdmin && _selectedTab == EventInfoSubTab.info) ...[
+          if (widget.onEdit != null)
             BoxyArtGlassIconButton(
               icon: Icons.edit_rounded,
               iconSize: 24,
-              onPressed: onEdit,
+              onPressed: widget.onEdit,
               tooltip: 'Edit Event Settings',
             )
-          else if (isAdmin) ...[
+          else ...[
             BoxyArtGlassIconButton(
               icon: Icons.edit_rounded,
               iconSize: 24,
@@ -139,61 +169,65 @@ class EventDetailsContent extends ConsumerWidget {
               },
               tooltip: 'Edit Event Settings',
             ),
-            if (event.eventType == EventType.golf)
-              BoxyArtGlassIconButton(
-                icon: Icons.tune_rounded,
-                iconSize: 24,
-                onPressed: () {
-                  final id = event.id;
-                  context.go('/events/${Uri.encodeComponent(id)}/manual-cuts');
-                },
-                tooltip: 'Manual Handicap Cuts',
-              ),
           ],
         ],
       ],
-      bottomNavigationBar: bottomNavigationBar,
+      bottomNavigationBar: widget.bottomNavigationBar,
       slivers: [
+        SliverToBoxAdapter(
+          child: ModernUnderlinedFilterBar<EventInfoSubTab>(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            isExpanded: true,
+            tabs: const [
+              ModernFilterTab(label: 'News updates', value: EventInfoSubTab.notifications),
+              ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
+            ],
+            selectedValue: _selectedTab,
+            onTabSelected: (tab) => setState(() => _selectedTab = tab),
+          ),
+        ),
         SliverPadding(
           padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-                SizedBox(height: AppTheme.cardSpacing),
-                SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppTheme.cardSpacing),
+              if (_selectedTab == EventInfoSubTab.info) ...[
+                const SizedBox(height: AppTheme.cardSpacing),
                 _buildDateTimeSection(context),
-                SizedBox(height: AppTheme.cardSpacing),
-                _buildRegistrationCard(context),
-                SizedBox(height: AppTheme.cardSpacing),
+                const SizedBox(height: AppTheme.cardSpacing),
                 _buildHeroSection(context),
-                SizedBox(height: AppTheme.cardSpacing),
-              if (event.eventType == EventType.golf) ...[
-                _buildCourseSelectionSection(context),
-                _buildCourseDataHardeningSection(context),
-                SizedBox(height: AppTheme.cardSpacing),
+                const SizedBox(height: AppTheme.cardSpacing),
+                if (event.eventType == EventType.golf) ...[
+                  _buildCourseSelectionSection(context),
+                  _buildCourseDataHardeningSection(context),
+                  const SizedBox(height: AppTheme.cardSpacing),
+                ],
+                if (event.status == EventStatus.published && event.eventType == EventType.golf) ...[
+                   CompetitionRulesCard(
+                    eventId: event.id,
+                    title: 'Competition Rules',
+                    competition: widget.competition,
+                  ),
+                ],
+                if (event.eventType == EventType.golf && event.secondaryTemplateId != null) ...[
+                  const SizedBox(height: AppTheme.cardSpacing),
+                  _buildSecondaryRulesSection(context),
+                ],
+                const SizedBox(height: AppTheme.cardSpacing),
+                _buildPlayingCostsSection(context),
+                const SizedBox(height: AppTheme.cardSpacing),
+                _buildMealCostsSection(context),
+                const SizedBox(height: AppTheme.cardSpacing),
+                _buildDinnerLocationSection(context),
+                const SizedBox(height: AppTheme.cardSpacing),
+                _buildFacilitiesSection(context),
+                const SizedBox(height: AppTheme.cardSpacing),
+                _buildAwardsSection(context, ref),
+                const SizedBox(height: AppTheme.cardSpacing),
+                _buildNotesSection(context),
+              ] else ...[
+                _buildNotificationsSection(context, ref),
               ],
-              if (event.eventType == EventType.golf) ...[
-                CompetitionRulesCard(
-                  eventId: event.id,
-                  title: 'Competition Rules',
-                  competition: competition,
-                ),
-              ],
-              if (event.eventType == EventType.golf && event.secondaryTemplateId != null) ...[
-                SizedBox(height: AppTheme.cardSpacing),
-                _buildSecondaryRulesSection(context),
-              ],
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildPlayingCostsSection(context),
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildMealCostsSection(context),
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildDinnerLocationSection(context),
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildFacilitiesSection(context),
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildAwardsSection(context, ref),
-              SizedBox(height: AppTheme.cardSpacing),
-              _buildNotesSection(context),
             ]),
           ),
         ),
@@ -202,122 +236,192 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
 
-  Widget _buildStatusBadge(BuildContext context) {
-    final displayStatus = event.displayStatus;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    // Member view uses user-friendly labels
-    // Admin view shows technical statuses (draft/published/inplay/completed)
-    String statusText;
-    Color statusColor;
-    
-    if (displayStatus == EventStatus.draft) {
-      statusText = 'Draft';
-      statusColor = AppColors.amber500;
-    } else if (displayStatus == EventStatus.completed) {
-      statusText = 'Completed';
-      statusColor = isDark ? AppColors.dark200 : AppColors.dark400;
-    } else if (displayStatus == EventStatus.inPlay) {
-      statusText = 'Live';
-      statusColor = AppColors.teamA;
-    } else if (displayStatus == EventStatus.suspended) {
-      statusText = 'Suspended';
-      statusColor = Colors.deepOrange;
-    } else if (displayStatus == EventStatus.cancelled) {
-      statusText = 'Cancelled';
-      statusColor = AppColors.coral500;
-    } else {
-      statusText = 'Published';
-      statusColor = Theme.of(context).colorScheme.secondary;
-    }
+  Widget _buildNotificationsSection(BuildContext context, WidgetRef ref) {
+    final event = widget.event;
+    final user = ref.watch(effectiveUserProvider);
+    final isAdmin = user.role != MemberRole.member && widget.isAdminMode;
 
-    final badge = Row(
-      mainAxisSize: MainAxisSize.min,
+    final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
+    
+    // Sort logic same as EventUserHomeTab
+    publishedItems.sort((a, b) {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return a.sortOrder.compareTo(b.sortOrder);
+    });
+
+    final displayItems = publishedItems; // Show all items in current order
+
+    return Column(
       children: [
-        BoxyArtPill.status(
-          label: statusText,
-          color: statusColor,
-          fontSize: 15.0,
-          fontWeight: AppTypography.weightSemibold,
-          letterSpacing: -0.5,
-        ),
-        if (onStatusChanged != null) ...[
-          const SizedBox(width: AppSpacing.xs),
-          Icon(Icons.keyboard_arrow_down_rounded, size: AppShapes.iconXs, color: statusColor),
+        YourGroupCard(event: event),
+        if (displayItems.isEmpty) ...[
+          const SizedBox(height: AppSpacing.x4l),
+          const BoxyArtEmptyState(
+            icon: Icons.notifications_off_rounded,
+            title: 'No Notifications',
+            message: 'Check back later for event updates and newsletters.',
+          ),
+        ] else ...[
+          ...displayItems.map((item) {
+            switch (item.type) {
+              case FeedItemType.headline:
+                return EventHeadlineCard(event: event);
+              case FeedItemType.podium:
+                return EventPodiumCard(event: event, isManagement: isAdmin);
+              case FeedItemType.registration:
+                return EventRegistrationCard(event: event, isManagement: isAdmin);
+              case FeedItemType.gallerySnippet:
+                return EventGalleryCard(event: event, isManagement: isAdmin);
+              case FeedItemType.flash:
+                return _buildFlashItem(context, item);
+              case FeedItemType.newsletter:
+                return _buildNewsletterItem(context, item);
+              default:
+                return const SizedBox.shrink();
+            }
+          }),
         ],
       ],
     );
-
-    if (onStatusChanged == null) return badge;
-
-    return GestureDetector(
-      onTap: () => _showStatusSelector(context),
-      child: badge,
-    );
   }
 
-  void _showStatusSelector(BuildContext context) {
-    BoxyArtBottomSheet.show(
-      context: context,
-      title: 'Change Event Status',
-      isScrollControlled: true,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: EventStatus.values.map((s) {
-          final isSelected = event.status == s;
-          String label = toTitleCase(s.name);
-          if (s == EventStatus.inPlay) label = 'Live';
-          
-          return Column(
-            children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: BoxyArtIconBadge(
-                  icon: _getStatusIcon(s),
-                  color: AppColors.dark600,
-                  showFill: false,
-                  borderColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark300,
-                  iconColor: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                ),
-                title: Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
-                    fontSize: AppTypography.sizeBody,
-                    color: isSelected ? Theme.of(context).primaryColor : AppColors.dark600,
-                  ),
-                ),
-                trailing: isSelected 
-                  ? Icon(Icons.check_circle_rounded, color: Theme.of(context).primaryColor, size: 20) 
-                  : null,
-                onTap: () {
-                  Navigator.pop(context);
-                  if (onStatusChanged != null) {
-                    onStatusChanged!(s);
-                  }
-                },
+  Widget _buildFlashItem(BuildContext context, EventFeedItem item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+        borderRadius: AppShapes.lg,
+        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMuted)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.campaign_rounded, color: AppColors.amber500),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              item.content,
+              style: const TextStyle(
+                fontSize: AppTypography.sizeButton,
+                fontWeight: AppTypography.weightExtraBold,
+                color: AppColors.amber500,
+                height: 1.4,
               ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          );
-        }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  IconData _getStatusIcon(EventStatus status) {
-    switch (status) {
-      case EventStatus.draft: return Icons.edit_note_rounded;
-      case EventStatus.published: return Icons.public_rounded;
-      case EventStatus.inPlay: return Icons.play_circle_outline_rounded;
-      case EventStatus.suspended: return Icons.pause_circle_outline_rounded;
-      case EventStatus.completed: return Icons.check_circle_outline_rounded;
-      case EventStatus.cancelled: return Icons.cancel_outlined;
-    }
+  Widget _buildNewsletterItem(BuildContext context, EventFeedItem item) {
+    final event = widget.event;
+    String snippet = '';
+    try {
+      final decoded = jsonDecode(item.content);
+      if (decoded is List && decoded.isNotEmpty) {
+        final firstNote = EventNote.fromJson(decoded.first as Map<String, dynamic>);
+        snippet = _getPlainTextSnippet(firstNote.content);
+      } else {
+        snippet = _getPlainTextSnippet(item.content);
+      }
+    } catch (_) {}
+
+    return GestureDetector(
+      onTap: () {
+        final isAdmin = GoRouterState.of(context).uri.path.startsWith('/admin');
+        final prefix = isAdmin ? '/admin/events/manage/${event.id}' : '/events/${event.id}';
+        context.push('$prefix/feed/${item.id}', extra: item);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+        child: BoxyArtCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (item.imageUrl != null)
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rXl)),
+                  child: Image.network(
+                    item.imageUrl!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (item.title != null && item.title!.isNotEmpty) ...[
+                      Text(
+                        item.title!,
+                        style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                    ],
+                    if (snippet.isNotEmpty)
+                      Text(
+                        snippet,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: AppTypography.sizeBodySmall,
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
+                          height: 1.5,
+                        ),
+                      ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Row(
+                      children: [
+                        Text(
+                          'READ FULL STORY',
+                          style: TextStyle(
+                            fontSize: AppTypography.sizeCaptionStrong,
+                            fontWeight: AppTypography.weightBlack,
+                            letterSpacing: 1.2,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Icon(Icons.arrow_forward_rounded, size: AppShapes.iconXs, color: Theme.of(context).primaryColor),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getPlainTextSnippet(String quillJson) {
+    try {
+      final delta = jsonDecode(quillJson);
+      if (delta is List) {
+        final buffer = StringBuffer();
+        for (var op in delta) {
+          if (op is Map && op.containsKey('insert') && op['insert'] is String) {
+            buffer.write(op['insert']);
+          }
+        }
+        return buffer.toString().trim();
+      }
+    } catch (_) {}
+    return quillJson.length > 150 ? '${quillJson.substring(0, 147)}...' : quillJson;
   }
 
 
+
   Widget _buildHeroSection(BuildContext context) {
+    final event = widget.event;
     if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
       return BoxyArtCard(
         padding: EdgeInsets.zero,
@@ -333,17 +437,17 @@ class EventDetailsContent extends ConsumerWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            if (event.description != null && event.description!.isNotEmpty)
+            if (widget.event.description != null && widget.event.description!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
-                child: _buildRichDescription(context, event.description!),
+                child: _buildRichDescription(context, widget.event.description!),
               ),
           ],
         ),
       );
-    } else if (event.description != null && event.description!.isNotEmpty) {
+    } else if (widget.event.description != null && widget.event.description!.isNotEmpty) {
       return BoxyArtCard(
-        child: _buildRichDescription(context, event.description!),
+        child: _buildRichDescription(context, widget.event.description!),
       );
     }
     return const SizedBox.shrink();
@@ -382,6 +486,7 @@ class EventDetailsContent extends ConsumerWidget {
 
 
   Widget _buildDateTimeSection(BuildContext context) {
+    final event = widget.event;
     final gradient = AppGradients.brandPrimary(context);
     
     return BoxyArtCard(
@@ -465,6 +570,7 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildCourseSelectionSection(BuildContext context) {
+    final event = widget.event;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -565,8 +671,9 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildCourseDataHardeningSection(BuildContext context) {
+    final event = widget.event;
     // Only show for Admins (based on presence of onStatusChanged callback)
-    if (onStatusChanged == null || event.eventType == EventType.social) return const SizedBox.shrink();
+    if (widget.onStatusChanged == null || event.eventType == EventType.social) return const SizedBox.shrink();
 
     final config = event.courseConfig;
     final slope = config.slope;
@@ -625,6 +732,7 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildManualDataFixer(BuildContext context, WidgetRef ref) {
+    final event = widget.event;
     final config = event.courseConfig;
     final slopeController = TextEditingController(text: config.slope?.toString() ?? '');
     final ratingController = TextEditingController(text: config.rating?.toString() ?? '');
@@ -705,130 +813,17 @@ class EventDetailsContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildRegistrationCard(BuildContext context) {
-    if (!event.showRegistrationButton || 
-        (!isPreview && (
-          event.displayStatus == EventStatus.draft || 
-          event.displayStatus == EventStatus.cancelled ||
-          event.displayStatus == EventStatus.completed ||
-          event.displayStatus == EventStatus.inPlay
-        ))) {
-      return const SizedBox.shrink();
-    }
-
-    // For now, we'll assume the user is a mock member
-    const currentMemberId = 'current-user-id';
-    
-    final myRegistration = event.registrations.where((r) => r.memberId == currentMemberId).firstOrNull;
-    final isRegistered = myRegistration != null;
-    
-    final isPastDeadline = event.registrationDeadline != null && 
-                          DateTime.now().isAfter(event.registrationDeadline!);
-
-    // If past deadline and not registered, hide entire section
-    if (isPastDeadline && !isRegistered) {
-      return const SizedBox.shrink();
-    }
-
-    final stats = RegistrationLogic.getRegistrationStats(event);
-    final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
-
-    return BoxyArtCard(
-      child: Column(
-        children: [
-          BoxyArtButton(
-            title: isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now'),
-            onTap: (isPreview || isPastDeadline) ? null : () {
-              try {
-                GoRouter.of(context).push('/events/${event.id}/register-form');
-              } catch (_) {
-                // Silently fail or handled by isPreview being disabled
-              }
-            },
-          ),
-          
-          if (isRegistered) ...[
-            const SizedBox(height: AppSpacing.x3l),
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: myRegistration.hasPaid ? 'YES' : 'NO',
-                      label: 'Paid',
-                      icon: Icons.payments_rounded,
-                      color: myRegistration.hasPaid ? const Color(0xFF27AE60) : AppColors.dark400,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: myRegistration.attendingBreakfast ? 'YES' : 'NO',
-                      label: 'Breakfast',
-                      icon: Icons.breakfast_dining_rounded,
-                      color: myRegistration.attendingBreakfast ? const Color(0xFF795548) : AppColors.dark400,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: myRegistration.attendingLunch ? 'YES' : 'NO',
-                      label: 'Lunch',
-                      icon: Icons.lunch_dining_rounded,
-                      color: myRegistration.attendingLunch ? const Color(0xFFD35400) : AppColors.dark400,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: myRegistration.attendingDinner ? 'YES' : 'NO',
-                      label: 'Dinner',
-                      icon: Icons.dinner_dining_rounded,
-                      color: myRegistration.attendingDinner ? const Color(0xFF2980B9) : AppColors.dark400,
-                      isCompact: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-
-
-
   Widget _buildSecondaryRulesSection(BuildContext context) {
     return CompetitionRulesCard(
-      eventId: '${event.id}_secondary',
-      title: 'Secondary Game (Overlay)',
-      isSecondary: true,
+      eventId: widget.event.id,
+      title: 'Secondary Rules',
+      competition: widget.competition,
     );
   }
 
-
   Widget _buildPlayingCostsSection(BuildContext context) {
-    if (event.eventType == EventType.social) {
-      if (event.eventCost == null || event.eventCost == 0) return const SizedBox.shrink();
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BoxyArtSectionTitle(title: 'Event Cost'),
-          BoxyArtCard(
-            child: ModernCostRow(
-              label: 'Per Person', 
-              amount: '$currencySymbol${event.eventCost!.toStringAsFixed(2)}',
-            ),
-          ),
-        ],
-      );
-    }
+    final event = widget.event;
+    if (event.memberCost == null && event.guestCost == null) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -837,39 +832,32 @@ class EventDetailsContent extends ConsumerWidget {
         BoxyArtCard(
           child: Column(
             children: [
-              ModernCostRow(
-                label: 'Member Golf', 
-                amount: '$currencySymbol${event.memberCost?.toStringAsFixed(2) ?? 'TBA'}',
-              ),
-              if (event.guestCost != null) ...[
-                const SizedBox(height: 10),
-                ModernCostRow(
-                  label: 'Guest Golf', 
-                  amount: '$currencySymbol${event.guestCost?.toStringAsFixed(2)}',
+              if (event.memberCost != null)
+                ModernInfoRow(
+                  label: 'Member Green Fee',
+                  value: '${widget.currencySymbol}${event.memberCost!.toStringAsFixed(2)}',
+                  icon: Icons.person_rounded,
                 ),
-              ],
-              if (event.buggyCost != null) ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  child: Divider(height: 1),
+              if (event.memberCost != null && event.guestCost != null)
+                const SizedBox(height: AppTheme.cardSpacing),
+              if (event.guestCost != null)
+                ModernInfoRow(
+                  label: 'Guest Green Fee',
+                  value: '${widget.currencySymbol}${event.guestCost!.toStringAsFixed(2)}',
+                  icon: Icons.person_outline_rounded,
                 ),
-                ModernCostRow(
-                  label: 'Buggy Hire', 
-                  amount: '$currencySymbol${event.buggyCost?.toStringAsFixed(2)}',
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Payable to Pro Shop',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf), 
-                      fontSize: AppTypography.sizeLabelStrong,
-                      fontWeight: AppTypography.weightMedium,
-                    ),
+               if (event.buggyCost != null) ...[
+                const SizedBox(height: AppTheme.cardSpacing),
+                ModernInfoRow(
+                  label: 'Buggy Cost (Indicative)',
+                  value: '${widget.currencySymbol}${event.buggyCost!.toStringAsFixed(2)}',
+                  icon: Icons.electric_rickshaw_rounded,
+                  trailing: const Tooltip(
+                    message: 'Paid directly to pro shop',
+                    child: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textSecondary),
                   ),
                 ),
-              ],
+               ],
             ],
           ),
         ),
@@ -877,39 +865,49 @@ class EventDetailsContent extends ConsumerWidget {
     );
   }
 
-
   Widget _buildMealCostsSection(BuildContext context) {
-    final bool hasBreakfast = event.hasBreakfast && event.breakfastCost != null;
-    final bool hasLunch = event.hasLunch && event.lunchCost != null;
-    final bool hasDinner = event.hasDinner && event.dinnerCost != null;
+    final config = widget.event;
+    final List<Widget> children = [];
 
-    if (!hasBreakfast && !hasLunch && !hasDinner) return const SizedBox.shrink();
+    if (config.hasBreakfast && config.breakfastCost != null) {
+      children.add(ModernInfoRow(
+        label: 'Breakfast',
+        value: '${widget.currencySymbol}${config.breakfastCost!.toStringAsFixed(2)}',
+        icon: Icons.breakfast_dining_rounded,
+      ));
+    }
+    if (config.hasLunch && config.lunchCost != null) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: AppTheme.cardSpacing));
+      children.add(ModernInfoRow(
+        label: 'Lunch',
+        value: '${widget.currencySymbol}${config.lunchCost!.toStringAsFixed(2)}',
+        icon: Icons.lunch_dining_rounded,
+      ));
+    }
+    if (config.hasDinner && config.dinnerCost != null) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: AppTheme.cardSpacing));
+      children.add(ModernInfoRow(
+        label: 'Dinner',
+        value: '${widget.currencySymbol}${config.dinnerCost!.toStringAsFixed(2)}',
+        icon: Icons.dinner_dining_rounded,
+      ));
+    }
+
+    if (children.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Meals'),
+        const BoxyArtSectionTitle(title: 'Meal Costs'),
         BoxyArtCard(
-          child: Column(
-            children: [
-              if (hasBreakfast) ...[
-                ModernCostRow(label: 'Breakfast', amount: '$currencySymbol${event.breakfastCost?.toStringAsFixed(2)}'),
-                if (hasLunch || hasDinner) const SizedBox(height: 10),
-              ],
-              if (hasLunch) ...[
-                ModernCostRow(label: 'Lunch', amount: '$currencySymbol${event.lunchCost?.toStringAsFixed(2)}'),
-                if (hasDinner) const SizedBox(height: 10),
-              ],
-              if (hasDinner) ModernCostRow(label: 'Dinner', amount: '$currencySymbol${event.dinnerCost?.toStringAsFixed(2)}'),
-            ],
-          ),
+          child: Column(children: children),
         ),
       ],
     );
   }
 
   Widget _buildFacilitiesSection(BuildContext context) {
-    if (event.facilities.isEmpty) return const SizedBox.shrink();
+    if (widget.event.facilities.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -918,7 +916,7 @@ class EventDetailsContent extends ConsumerWidget {
         BoxyArtCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: event.facilities.map((f) => Padding(
+            children: widget.event.facilities.map((f) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 6.0),
               child: Row(
                 children: [
@@ -949,79 +947,34 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildNotesSection(BuildContext context) {
+    final event = widget.event;
     if (event.notes.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Notes & Content'),
-        ...event.notes.map((note) => _buildNoteCard(context, note)),
+        const BoxyArtSectionTitle(title: 'Additional Notes'),
+        ...event.notes.map((note) => BoxyArtCard(
+          margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (note.title != null) ...[
+                Text(note.title!, style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody)),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              _buildRichDescription(context, note.content),
+            ],
+          ),
+        )),
       ],
     );
   }
 
-  Widget _buildNoteCard(BuildContext context, EventNote note) {
-    quill.QuillController? quillController;
-    try {
-      if (note.content.isNotEmpty) {
-        quillController = quill.QuillController(
-          document: quill.Document.fromJson(jsonDecode(note.content)),
-          selection: const TextSelection.collapsed(offset: 0),
-          readOnly: true,
-        );
-      }
-    } catch (_) {}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-      child: BoxyArtCard(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (note.title != null && note.title!.isNotEmpty) ...[
-              Text(
-                note.title!,
-                style: const TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeLargeBody),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              const Divider(),
-              const SizedBox(height: AppTheme.cardSpacing),
-            ],
-            if (note.imageUrl != null) ...[
-              ClipRRect(
-                borderRadius: AppShapes.lg,
-                child: Image.network(
-                  note.imageUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.fitWidth,
-                  errorBuilder: (_, _, _) => Container(
-                    height: 150,
-                    width: double.infinity,
-                    color: Theme.of(context).cardColor,
-                    child: const Icon(Icons.image, color: AppColors.textSecondary),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppTheme.cardSpacing),
-            ],
-            if (quillController != null)
-              quill.QuillEditor.basic(
-                controller: quillController,
-                config: const quill.QuillEditorConfig(
-                  padding: EdgeInsets.zero,
-                  autoFocus: false,
-                  expands: false,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildDinnerLocationSection(BuildContext context) {
-    if (event.dinnerLocation == null || event.dinnerLocation!.isEmpty) return const SizedBox.shrink();
+    if (widget.event.dinnerLocation == null || widget.event.dinnerLocation!.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1037,22 +990,22 @@ class EventDetailsContent extends ConsumerWidget {
                   Expanded(
                     child: ModernInfoRow(
                       label: 'Location',
-                      value: event.dinnerLocation!,
+                      value: widget.event.dinnerLocation!,
                       icon: Icons.restaurant_rounded,
                     ),
                   ),
-                  if (isPreview == false)
+                  if (widget.isPreview == false)
                     IconButton(
                       icon: Icon(
                         Icons.map_outlined,
                         color: Theme.of(context).primaryColor,
                         size: AppShapes.iconMd,
                       ),
-                      onPressed: () => _launchMap(event.dinnerLocation!, event.dinnerAddress),
+                      onPressed: () => _launchMap(widget.event.dinnerLocation!, widget.event.dinnerAddress),
                     ),
                 ],
               ),
-              if (event.dinnerAddress != null && event.dinnerAddress!.isNotEmpty) ...[
+              if (widget.event.dinnerAddress != null && widget.event.dinnerAddress!.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1060,7 +1013,7 @@ class EventDetailsContent extends ConsumerWidget {
                     const SizedBox(width: 52), // Exact offset of ModernInfoRow text (38 icon + 14 spacing)
                     Expanded(
                       child: Text(
-                        event.dinnerAddress!,
+                        widget.event.dinnerAddress!,
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodySmall?.color,
                           fontSize: AppTypography.sizeLabelStrong,
@@ -1078,7 +1031,7 @@ class EventDetailsContent extends ConsumerWidget {
   }
 
   Widget _buildAwardsSection(BuildContext context, WidgetRef ref) {
-    if (event.eventType == EventType.social || !event.showAwards || event.awards.isEmpty) return const SizedBox.shrink();
+    if (widget.event.eventType == EventType.social || !widget.event.showAwards || widget.event.awards.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1086,8 +1039,8 @@ class EventDetailsContent extends ConsumerWidget {
         const BoxyArtSectionTitle(title: 'Event Prizes'),
         BoxyArtCard(
           child: Column(
-            children: event.awards.map((award) {
-              final isLast = award == event.awards.last;
+            children: widget.event.awards.map((award) {
+              final isLast = award == widget.event.awards.last;
               IconData icon;
               
               switch (award.type.toLowerCase()) {
@@ -1160,7 +1113,6 @@ class EventDetailsContent extends ConsumerWidget {
       ],
     );
   }
-
 
 }
 

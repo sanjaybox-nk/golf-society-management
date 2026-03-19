@@ -121,40 +121,6 @@ class _EventRow extends ConsumerWidget {
       event: event,
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
       gameTypePill: _buildGameTypePill(context, ref, event.id),
-      statusPill: _buildStatusBadge(context, event),
-    );
-  }
-
-  Widget _buildStatusBadge(BuildContext context, GolfEvent event) {
-    final status = event.displayStatus;
-    
-    String statusText;
-    Color statusColor;
-    
-    if (status == EventStatus.draft) {
-      statusText = 'Draft';
-      statusColor = AppColors.amber500;
-    } else if (status == EventStatus.inPlay) {
-      statusText = 'Live';
-      statusColor = AppColors.teamA;
-    } else if (status == EventStatus.suspended) {
-      statusText = 'Suspended';
-      statusColor = Colors.deepOrange;
-    } else if (status == EventStatus.cancelled) {
-      statusText = 'Cancelled';
-      statusColor = AppColors.coral500;
-    } else if (status == EventStatus.completed) {
-      statusText = 'Completed';
-      statusColor = AppColors.textSecondary;
-    } else {
-      // Published = Open for members
-      statusText = 'Published';
-      statusColor = AppColors.lime500;
-    }
-
-    return BoxyArtPill.status(
-      label: statusText,
-      color: statusColor,
     );
   }
 

@@ -15,17 +15,22 @@ class EventUserShell extends ConsumerWidget {
     int currentIndex = 0;
     
     // Determine index based on current route
-    final segments = GoRouterState.of(context).uri.pathSegments;
-    if (segments.contains('details') || segments.contains('manual-cuts')) {
-      currentIndex = 0;
-    } else if (segments.contains('field')) {
-      currentIndex = 1;
-    } else if (segments.contains('live')) {
-      currentIndex = 2;
-    } else if (segments.contains('scores')) {
-      currentIndex = 3;
-    } else if (segments.contains('stats')) {
-      currentIndex = 4;
+    final state = GoRouterState.of(context);
+    final segments = state.uri.pathSegments;
+    final isUserPath = !state.uri.path.startsWith('/admin');
+
+    if (isUserPath) {
+      if (segments.contains('details') || segments.contains('manual-cuts')) {
+        currentIndex = 0;
+      } else if (segments.contains('field')) {
+        currentIndex = 1;
+      } else if (segments.contains('live')) {
+        currentIndex = 2;
+      } else if (segments.contains('scores')) {
+        currentIndex = 3;
+      } else if (segments.contains('stats')) {
+        currentIndex = 4;
+      }
     }
 
     return Scaffold(
@@ -34,28 +39,29 @@ class EventUserShell extends ConsumerWidget {
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
         onItemSelected: (index) => _onTap(context, index),
-        items: const [
-          BoxyArtBottomNavItem(
+        items: [
+          const BoxyArtBottomNavItem(
             icon: Icons.info_outline_rounded,
             activeIcon: Icons.info_rounded,
             label: 'Info',
           ),
-          BoxyArtBottomNavItem(
+          const BoxyArtBottomNavItem(
             icon: Icons.grid_view_rounded,
             activeIcon: Icons.grid_view_rounded,
             label: 'Field',
           ),
-          BoxyArtBottomNavItem(
-            icon: Icons.edit_note_rounded,
-            activeIcon: Icons.edit_note_rounded,
-            label: 'My Card',
-          ),
-          BoxyArtBottomNavItem(
+          if (isUserPath) // Hide My Card in admin contexts if preferred, or globally per plan
+            const BoxyArtBottomNavItem(
+              icon: Icons.edit_note_rounded,
+              activeIcon: Icons.edit_note_rounded,
+              label: 'My Card',
+            ),
+          const BoxyArtBottomNavItem(
             icon: Icons.emoji_events_outlined,
             activeIcon: Icons.emoji_events_rounded,
             label: 'Scores',
           ),
-          BoxyArtBottomNavItem(
+          const BoxyArtBottomNavItem(
             icon: Icons.analytics_outlined,
             activeIcon: Icons.analytics_rounded,
             label: 'Stats',

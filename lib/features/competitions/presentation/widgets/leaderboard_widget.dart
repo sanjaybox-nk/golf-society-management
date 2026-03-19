@@ -18,8 +18,25 @@ class LeaderboardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
 
+    // Only show tiebreak label when a player is genuinely tied with another.
+    // Count how many players share each score so we can selectively show the
+    // B9/B6/B3 tiebreak details only for those who are in a tie group.
+    final scoreFrequency = <int, int>{};
+    for (final e in entries) {
+      if (e.scoringStatus == ScoringStatus.ok) {
+        scoreFrequency[e.score] = (scoreFrequency[e.score] ?? 0) + 1;
+      }
+    }
+    final tiedScores = scoreFrequency.entries
+        .where((kv) => kv.value > 1)
+        .map((kv) => kv.key)
+        .toSet();
+
     return Column(
       children: entries.map((entry) {
+        // Only surface tiebreak details when the player is part of a tied group.
+        final isTied = tiedScores.contains(entry.score) && entry.scoringStatus == ScoringStatus.ok;
+        final effectiveTieBreakLabel = isTied ? (entry.tieBreakLabel ?? entry.tieBreakDetails) : null;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -39,7 +56,7 @@ class LeaderboardWidget extends StatelessWidget {
             score: entry.scoringStatus != ScoringStatus.ok 
                 ? entry.scoringStatus.name.toUpperCase() 
                 : (entry.scoreLabel ?? '${entry.score}'),
-            tieBreakLabel: entry.tieBreakLabel ?? entry.tieBreakDetails,
+            tieBreakLabel: effectiveTieBreakLabel,
             thruLabel: entry.thruLabel ?? ((entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0)
                 ? 'Thru ${entry.holesPlayed}'
                 : null),

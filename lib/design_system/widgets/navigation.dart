@@ -1,4 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 /// A horizontally scrolling, underlined filter bar used as a sleek alternative to pill chips.
 /// Matches the interaction style of the Event Top Menus.
@@ -176,7 +177,7 @@ class _UnderlinedTabItem extends StatelessWidget {
             ],
             Flexible(
               child: Text(
-                label,
+                toTitleCase(label),
                 style: AppTypography.displayMedium.copyWith(
                   fontSize: AppTypography.sizeBodySmall,
                   fontWeight: isSelected ? AppTypography.weightExtraBold : AppTypography.weightSemibold,

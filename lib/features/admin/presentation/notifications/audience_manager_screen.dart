@@ -351,7 +351,6 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                       label: 'Search Members',
                       hint: 'Search by name or email...',
                       onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                      prefixIcon: const Icon(Icons.search_rounded, size: AppShapes.iconMd),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),

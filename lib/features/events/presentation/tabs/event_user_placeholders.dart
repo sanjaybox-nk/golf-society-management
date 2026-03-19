@@ -167,6 +167,10 @@ class EventGroupingUserTab extends ConsumerWidget {
                             final scoringData = ref.watch(eventScoringControllerProvider(eventId));
                             final scoreMap = { for (var s in scoringData.individualScores) s.playerId : s.result.label };
                             final phcMap = { for (var s in scoringData.individualScores) s.playerId : s.playingHandicap };
+                            final thruMap = { for (var s in scoringData.individualScores) if (s.thruLabel != null) s.playerId : s.thruLabel! };
+                            final tieBreakMap = { for (var s in scoringData.individualScores) if (s.tieBreakLabel != null) s.playerId : s.tieBreakLabel! };
+                            final statusMap = { for (var s in scoringData.individualScores) s.playerId : s.scoringStatus };
+                            final winnerMap = { for (var e in scoringData.leaderboard) e.entryId : e.position == 1 };
                             final allScorecards = scorecardsAsync.asData?.value ?? [];
                             final scorecardMap = { for (var s in allScorecards) s.entryId : s };
  
@@ -185,7 +189,11 @@ class EventGroupingUserTab extends ConsumerWidget {
                                   phcMap: phcMap,
                                   hcMap: { for (var s in scoringData.individualScores) s.playerId : s.handicapIndex },
                                    scorecardMap: scorecardMap,
-                                   showScoring: false, // [FIX] Hide results in organization view
+                                   tieBreakMap: tieBreakMap,
+                                   thruMap: thruMap,
+                                   statusMap: statusMap,
+                                   winnerMap: winnerMap,
+                                   showScoring: event.isGroupingPublished, // Surface results once groups are public
                                 ),
                             );
                          },
@@ -495,7 +503,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
 
     // Calculate My Score Hub data (re-used for default case)
     {
-      List<int>? fallbackScores;
+      List<int?>? fallbackScores;
       var seededResultForSelf = event.results.firstWhere(
         (r) => r['playerId'] == effectiveEntryId,
         orElse: () => {},
@@ -508,7 +516,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
         );
       }
       if (seededResultForSelf.isNotEmpty && seededResultForSelf['holeScores'] != null) {
-        fallbackScores = List<int>.from(seededResultForSelf['holeScores']);
+        fallbackScores = List<int?>.from(seededResultForSelf['holeScores']);
       }
 
       List<int?> rawDisplayScores;
@@ -782,7 +790,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     final bool hasSocietyCutActual = (displayScoring?.appliedSocietyCut ?? (event.manualCuts[displayId] ?? 0.0)) != 0;
 
     // [FIX] Always look up seeded data as a baseline layer, even when a live scorecard exists.
-    List<int>? displaySeededScores;
+    List<int?>? displaySeededScores;
     var displaySeededResult = event.results.firstWhere(
        (r) => r['playerId'] == displayId,
        orElse: () => {},
@@ -795,7 +803,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
        );
     }
     if (displaySeededResult.isNotEmpty && displaySeededResult['holeScores'] != null) {
-       displaySeededScores = List<int>.from(displaySeededResult['holeScores']);
+       displaySeededScores = List<int?>.from(displaySeededResult['holeScores']);
     }
 
     // Determine what to show on the Grid (CourseInfoCard)
@@ -1007,6 +1015,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ),
             ),
 
+        const SizedBox(height: AppSpacing.lg),
+
         if (shouldShowCard) ...[
           SlidingCourseInfoCard(
             courseConfig: playerTeeConfig,
@@ -1029,6 +1039,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
       ],
     );
   }
+
 
   Widget _buildInactiveBanner(GolfEvent event) {
     return BoxyArtCard(
@@ -1838,7 +1849,7 @@ class __TournamentGroupScoresViewState extends ConsumerState<_TournamentGroupSco
     // but better to just pull out the logic into a shared method.
     
     // I will refactor _buildGroupScoresTab to be a static-like helper below.
-    return _SharedTournamentLogic.buildGroupScoresTab(
+    return SharedTournamentLogic.buildGroupScoresTab(
       ref: ref,
       eventId: widget.event.id,
       event: widget.event,
@@ -1849,7 +1860,7 @@ class __TournamentGroupScoresViewState extends ConsumerState<_TournamentGroupSco
   }
 }
 
-class _SharedTournamentLogic {
+class SharedTournamentLogic {
   static Widget buildGroupScoresTab({
     required WidgetRef ref,
     required String eventId,
@@ -1868,7 +1879,7 @@ class _SharedTournamentLogic {
             ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
             : [];
 
-        return _GroupScoresView(
+        return GroupScoresView(
           event: event,
           rules: rules,
           groups: groups,
@@ -1884,7 +1895,7 @@ class _SharedTournamentLogic {
   }
 }
 
-class _GroupScoresView extends ConsumerStatefulWidget {
+class GroupScoresView extends ConsumerStatefulWidget {
   final GolfEvent event;
   final CompetitionRules rules;
   final List<TeeGroup> groups;
@@ -1893,7 +1904,8 @@ class _GroupScoresView extends ConsumerStatefulWidget {
   final Map<String, int> playerHoleLimits;
   final Map<String, String> teeOverrides;
 
-  const _GroupScoresView({
+  const GroupScoresView({
+    super.key,
     required this.event,
     required this.rules,
     required this.groups,
@@ -1904,10 +1916,10 @@ class _GroupScoresView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_GroupScoresView> createState() => _GroupScoresViewState();
+  ConsumerState<GroupScoresView> createState() => GroupScoresViewState();
 }
 
-class _GroupScoresViewState extends ConsumerState<_GroupScoresView> {
+class GroupScoresViewState extends ConsumerState<GroupScoresView> {
   late List<GlobalKey> _cardKeys;
 
   @override
@@ -1917,7 +1929,7 @@ class _GroupScoresViewState extends ConsumerState<_GroupScoresView> {
   }
 
   @override
-  void didUpdateWidget(_GroupScoresView oldWidget) {
+  void didUpdateWidget(GroupScoresView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.groups.length != oldWidget.groups.length) {
       _cardKeys = List.generate(widget.groups.length, (index) => GlobalKey(debugLabel: 'GroupCard_$index'));
@@ -1961,10 +1973,29 @@ class _GroupScoresViewState extends ConsumerState<_GroupScoresView> {
     final memberMapForAll = {for (var m in widget.members) m.id: m};
 
     // 1. Map individual scores for easy lookup in cards
+    // First pass: build score frequency map so we can determine who is tied.
+    final scoreFrequency = <int, int>{};
+    for (var e in data.leaderboard) {
+      if (e.scoringStatus == ScoringStatus.ok && e.holesPlayed > 0) {
+        scoreFrequency[e.score] = (scoreFrequency[e.score] ?? 0) + 1;
+      }
+    }
+    final tiedScores = scoreFrequency.entries
+        .where((kv) => kv.value > 1)
+        .map((kv) => kv.key)
+        .toSet();
+    final tiedPlayerIds = data.leaderboard
+        .where((e) => tiedScores.contains(e.score) && e.scoringStatus == ScoringStatus.ok)
+        .map((e) => e.entryId)
+        .toSet();
+
     for (var p in data.individualScores) {
       scoreMap[p.playerId] = p.result.label;
       teamPhcMap[p.playerId] = p.playingHandicap;
-      tieBreakMap[p.playerId] = p.tieBreakLabel ?? '';
+      // Only populate tieBreakMap for players whose score is actually tied.
+      if (tiedPlayerIds.contains(p.playerId) && (p.tieBreakLabel?.isNotEmpty ?? false)) {
+        tieBreakMap[p.playerId] = p.tieBreakLabel!;
+      }
       thruMap[p.playerId] = p.thruLabel ?? '';
       hcMap[p.playerId] = p.handicapIndex;
 

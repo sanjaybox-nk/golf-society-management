@@ -18,13 +18,13 @@ class EventContentSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'Facilities'),
-          const SizedBox(height: AppTheme.sectionSpacing),
+          const SizedBox(height: AppSpacing.labelToCard),
           BoxyArtCard(
             child: Column(
               children: [
                 ...state.facilities.asMap().entries.map((entry) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.cardToLabel),
                     child: BoxyArtFormField(
                       label: 'Facility ${entry.key + 1}',
                       initialValue: entry.value,
@@ -48,14 +48,14 @@ class EventContentSection extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.x3l),
+          const SizedBox(height: AppSpacing.cardToLabel),
           const BoxyArtSectionTitle(title: 'Notes & Content'),
           const SizedBox(height: AppTheme.sectionSpacing),
           ...state.notes.asMap().entries.map((entry) {
              final index = entry.key;
              final note = entry.value;
              return Padding(
-               padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+               padding: const EdgeInsets.only(bottom: AppSpacing.cardToLabel),
                child: BoxyArtRichNoteEditor(
                  key: ValueKey('note_$index'),
                  initialTitle: note.title,

@@ -166,16 +166,16 @@ class BoxyArtMemberRow extends StatelessWidget {
         ],
     );
 
-    final cardContent = accentColor != null && useCard
+    final cardContent = useCard
         ? IntrinsicHeight(
             child: Row(
               children: [
                 Container(
                   width: 6,
                   decoration: BoxDecoration(
-                    color: accentColor,
+                    color: accentColor ?? Colors.transparent, // Always reserve space
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(18), // Matches modern card radius
+                      topLeft: Radius.circular(18),
                       bottomLeft: Radius.circular(18),
                     ),
                   ),
@@ -378,13 +378,15 @@ class BoxyArtMemberRow extends StatelessWidget {
           ),
         ],
         
-        const SizedBox(width: AppSpacing.sm),
-        if (showChevron)
+        
+        if (showChevron) ...[
+          const SizedBox(width: AppSpacing.sm),
           Icon(
             Icons.chevron_right_rounded, 
             color: AppColors.dark400.withValues(alpha: AppColors.opacityMuted), 
             size: 16,
           ),
+        ],
       ],
     );
   }

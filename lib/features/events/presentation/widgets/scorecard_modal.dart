@@ -355,7 +355,7 @@ class ScorecardModal {
                       final isStableford = comp?.rules.format == CompetitionFormat.stableford;
                       final isScrambleFormat = comp?.rules.format == CompetitionFormat.scramble;
                       
-                      if (isStableford || comp?.rules.scoringType == 'STABLEFORD') {
+                      if ((isStableford || comp?.rules.scoringType == 'STABLEFORD') && (isFourball || isTeam)) {
                         bestBallPoints = entry.holePoints;
                       }
 

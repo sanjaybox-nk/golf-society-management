@@ -1,3 +1,13 @@
+### Phase 78: Grouping Hardening & Design 3.1 (2026-03-17)
+- **Grouping Hardening & Design 3.1**:
+    *   **Stable Card Layout**: Fixed horizontal shifts caused by conditional chevron and drag-target borders. Standardized the 6px accent bar and right chevron space to ensure persistent layout "footprints".
+    *   **Duplication Shield**: Implemented a strict uniqueness filter in `GroupingService` to eliminate duplicate player entries.
+    *   **Multi-Guest Suite**: Refactored the grouping engine to support and correctly group members with multiple active guests.
+    *   **Premium Visuals**: Upgraded `GroupingCard` to full **Design 3.1** standards with a white background (`AppColors.pureWhite`), increased `x2l` padding, and bold `displaySection` headers.
+- **Improved Admin Toolbar**:
+    *   **Equal-Width Action Slots**: Standardized the toolbar layout using `Expanded` containers to prevent shifting when toggling states (Locked/Unlocked).
+    *   **Brand Alignment**: Unified icon styles and selection colors to Brand Primary (Green).
+
 ### Phase 76-77: UI/UX Harmonization & Standardized Motion (2026-03-17)
 - **Standardized Navigation Transitions (Phase 76)**:
     - **Unified "Boxy Art" Transition**: Replaced all heterogeneous transitions (fades, slides, etc.) with a single, high-fidelity **Fade + Subtle Slide Up** animation (`boxyPage`). 
@@ -10,6 +20,7 @@
 - **Standardized Player Name Typography (Phase 77)**:
     - **Premium Punch**: Upgraded all player name displays across Grouping cards, Registration lists, and Member rows to a **Title Case + ExtraBold** style.
     - **Podium & Stats Polish**: Unified the "Top Results" podium and "Banter" cards (Hot Streak, Blob King, etc.) with the same high-contrast typography standard.
+
 
 ### Phase 17: Leaderboard Rules & Real-time Scoring Sync (2026-03-13)
 - **Real-time Score Synchronization**:

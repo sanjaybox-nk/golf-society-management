@@ -1,7 +1,6 @@
 import 'package:golf_society/domain/scoring/scoring_calculator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/member.dart';
@@ -115,9 +114,9 @@ class AdminScorecardList extends ConsumerWidget {
     final scorecard = _getScorecard(item: item);
     final status = scorecard?.status ?? ScorecardStatus.draft;
     final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
+    final isPending = status == ScorecardStatus.submitted;
     final id = item.isGuest ? '${item.registration.memberId}_guest' : item.registration.memberId;
 
-    // Resolve PHC for parity
     final member = membersList.firstWhereOrNull((m) => m.id == item.registration.memberId);
     final double baseHcp = item.isGuest 
       ? (double.tryParse(item.registration.guestHandicap ?? '18.0') ?? 18.0)
@@ -135,15 +134,36 @@ class AdminScorecardList extends ConsumerWidget {
       baseRating: baseRating,
     );
 
+    final holesPlayed = scorecard?.holeScores.where((s) => s != null).length ?? 0;
+    final showThru = !isConfirmed && holesPlayed > 0 && holesPlayed < 18;
+
+    final statusLabel = isConfirmed ? 'Confirmed' : (isPending ? 'Pending' : 'Open');
+
+    // Build the score label
+    String? scoreLabel;
+    if (scorecard != null) {
+      final pts = _formatScore(scorecard, comp);
+      final format = comp?.rules.format ?? CompetitionFormat.stableford;
+      scoreLabel = format == CompetitionFormat.stableford ? '$pts pts' : pts;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: BoxyArtScorecardTile(
-        playerName: item.name,
-        isConfirmed: isConfirmed,
-        leading: BoxyArtNumberBadge(number: index, size: AppShapes.iconXl, isFilled: false),
-        status: _buildMetadataRow(status, scorecard, baseHcp.toInt(), phc),
-        score: _formatScore(scorecard, comp),
-        trailingActions: _buildLockAction(ref, scorecard, item.name, status, isConfirmed),
+      child: BoxyArtMemberRow(
+        name: item.name,
+        initials: item.name,
+        avatarUrl: member?.avatarUrl,
+        ranking: index,
+        handicapIndex: baseHcp,
+        playingHandicap: phc,
+        score: scoreLabel,
+        scoreColor: isConfirmed ? AppColors.lime500 : null,
+        thruLabel: showThru ? 'Thru $holesPlayed' : null,
+        tieBreakLabel: statusLabel,
+        isGuest: item.isGuest,
+        useCard: true,
+        showChevron: true,
+        trailing: _buildLockAction(ref, scorecard, item.name, status, isConfirmed),
         onTap: () => _showScorecardModal(context, ref, item, id, scorecard, comp),
       ),
     );
@@ -153,98 +173,55 @@ class AdminScorecardList extends ConsumerWidget {
     final names = team.players.map((p) => p.name).toList();
     final ids = team.players.map((p) => p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId).toList();
     
-    // For teams, we usually look for a scorecard with the teamId or use the first player's card as proxy if not Scramble
-    // For simplicity in Admin List, we fetch the first available card to show status
     Scorecard? scorecard;
     for (final id in ids) {
       scorecard = scorecards.firstWhereOrNull((s) => s.entryId == id);
       if (scorecard != null) break;
     }
-    
-    // If Scramble, look for 'team_X' card
     if (scorecard == null && comp?.rules.format == CompetitionFormat.scramble) {
       scorecard = scorecards.firstWhereOrNull((s) => s.entryId == 'team_${team.index}');
     }
 
     final status = scorecard?.status ?? ScorecardStatus.draft;
     final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
+    final isPending = status == ScorecardStatus.submitted;
+
+    final holesPlayed = scorecard?.holeScores.where((s) => s != null).length ?? 0;
+    final showThru = !isConfirmed && holesPlayed > 0 && holesPlayed < 18;
+    final statusLabel = isConfirmed ? 'Confirmed' : (isPending ? 'Pending' : 'Open');
+
+    String? scoreLabel;
+    if (scorecard != null) {
+      final pts = _formatScore(scorecard, comp);
+      final format = comp?.rules.format ?? CompetitionFormat.stableford;
+      scoreLabel = format == CompetitionFormat.stableford ? '$pts pts' : pts;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: BoxyArtScorecardTile(
-        playerName: names.first,
-        secondaryPlayerName: names.length > 1 ? names[1] : null,
-        avatarNames: names,
-        isConfirmed: isConfirmed,
-        leading: BoxyArtNumberBadge(number: index, size: AppShapes.iconXl, isFilled: false),
-        status: _buildMetadataRow(status, scorecard, null, null), // TODO: Team PHC if needed
-        score: _formatScore(scorecard, comp),
-        trailingActions: _buildLockAction(ref, scorecard, names.join(' / '), status, isConfirmed),
+      child: BoxyArtMemberRow(
+        name: names.first,
+        secondaryName: names.length > 1 ? names.skip(1).join(' / ') : null,
+        initials: names.first,
+        ranking: index,
+        score: scoreLabel,
+        scoreColor: isConfirmed ? AppColors.lime500 : null,
+        thruLabel: showThru ? 'Thru $holesPlayed' : null,
+        tieBreakLabel: statusLabel,
+        useCard: true,
+        showChevron: true,
+        trailing: _buildLockAction(ref, scorecard, names.join(' / '), status, isConfirmed),
         onTap: () {
-           // For team tap, we show the first player's modal which handles team view
-           final item = RegistrationLogic.getSortedItems(event, includeWithdrawn: true)
-               .firstWhereOrNull((i) => i.name == names.first);
-           if (item != null) {
-              _showScorecardModal(context, ref, item, ids.first, scorecard, comp);
-           }
+          final item = RegistrationLogic.getSortedItems(event, includeWithdrawn: true)
+              .firstWhereOrNull((i) => i.name == names.first);
+          if (item != null) {
+            _showScorecardModal(context, ref, item, ids.first, scorecard, comp);
+          }
         },
       ),
     );
   }
 
-  Widget _buildMetadataRow(ScorecardStatus status, Scorecard? card, int? hcp, int? phc) {
-    final isDraft = status == ScorecardStatus.draft;
-    final isConfirmed = status == ScorecardStatus.reviewed || status == ScorecardStatus.finalScore;
-    
-    final label = isConfirmed ? 'CONFIRMED' : (status == ScorecardStatus.submitted ? 'PENDING' : 'OPEN');
-    final color = isConfirmed ? StatusColors.positive : (status == ScorecardStatus.submitted ? StatusColors.warning : StatusColors.neutral);
-
-    final holesPlayed = card?.holeScores.where((s) => s != null).length ?? 0;
-    final showThru = !isConfirmed && holesPlayed > 0 && holesPlayed < 18;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            BoxyArtPill.status(label: label, color: color),
-            if (showThru) ...[
-              const SizedBox(width: AppSpacing.sm),
-              _buildProMaxLabel('THRU $holesPlayed', AppColors.lime500),
-            ],
-          ],
-        ),
-        if (hcp != null && phc != null)
-           Padding(
-             padding: const EdgeInsets.only(top: 6),
-             child: Row(
-               children: [
-                 _buildProMaxLabel('HC: $hcp', AppColors.dark150),
-                 const SizedBox(width: AppSpacing.sm),
-                 _buildProMaxLabel('PHC: $phc', AppColors.lime500),
-               ],
-             ),
-           ),
-        if (!isDraft && card?.submittedAt != null) ...[
-          const SizedBox(height: 6),
-          _buildProMaxLabel('SUBMITTED ${DateFormat('HH:mm').format(card!.submittedAt!)}', AppColors.dark60),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildProMaxLabel(String text, Color color) {
-    return Text(
-      text,
-      style: AppTypography.label.copyWith(
-        fontSize: AppTypography.sizeLabel,
-        color: color,
-        fontWeight: AppTypography.weightBlack,
-        letterSpacing: 2.0,
-      ),
-    );
-  }
 
   String? _formatScore(Scorecard? card, Competition? comp) {
     if (card == null) return null;
@@ -335,6 +312,7 @@ class AdminScorecardList extends ConsumerWidget {
         playingHandicap: phc,
         score: card?.points ?? 0,
         isGuest: item.isGuest,
+        tieBreakLabel: card != null ? _calculateTieBreakLabel(card, comp) : null,
       ), 
       scorecards: scorecards, 
       event: event, 
@@ -363,6 +341,49 @@ class AdminScorecardList extends ConsumerWidget {
   }
 
   // _resolvePlayerCourseConfig removed as we now use ScoringCalculator
+
+  String? _calculateTieBreakLabel(Scorecard card, Competition? comp) {
+    final rules = comp?.rules ?? const CompetitionRules();
+    final playerTeeConfig = ScoringCalculator.resolvePlayerCourseConfig(
+      memberId: card.entryId, 
+      event: event, 
+      membersList: membersList,
+    );
+    
+    final phc = HandicapCalculator.calculatePlayingHandicap(
+      handicapIndex: card.entryId.contains('_guest') 
+          ? (double.tryParse(event.registrations.firstWhereOrNull((r) => '${r.memberId}_guest' == card.entryId)?.guestHandicap ?? '18.0') ?? 18.0)
+          : (membersList.firstWhereOrNull((m) => m.id == card.entryId)?.handicap ?? 18.0),
+      rules: rules,
+      courseConfig: playerTeeConfig,
+      baseRating: event.courseConfig.rating,
+    );
+
+    final result = ScoringCalculator.calculate(
+      holeScores: card.holeScores, 
+      holes: playerTeeConfig.holes, 
+      playingHandicap: phc.toDouble(), 
+      format: rules.format,
+      maxScoreConfig: rules.maxScoreConfig,
+    );
+    
+    // We reuse the logic from the processor for consistency
+    final b9 = _getSegmentTotal(result, 9, 18);
+    final b6 = _getSegmentTotal(result, 12, 18);
+    final b3 = _getSegmentTotal(result, 15, 18);
+    
+    return 'B9: $b9 • B6: $b6 • B3: $b3';
+  }
+
+  int _getSegmentTotal(ScoringResult result, int startHole, int endHole) {
+    int total = 0;
+    for (int i = startHole - 1; i < endHole; i++) {
+      if (i < result.holePoints.length) {
+        total += result.holePoints[i] ?? 0;
+      }
+    }
+    return total;
+  }
 
   Scorecard? _getScorecard({RegistrationItem? item, EventRegistration? reg}) {
     if (item != null) {

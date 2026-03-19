@@ -125,7 +125,7 @@ The percentage of a player's course handicap used for a specific competition (e.
 A team format where every player tees off, the best shot is selected, and all players play their next shot from that position. **Texas** usually requires a minimum number of tee shots per player; **Florida** involves the player whose shot was selected sitting out the next stroke.
 
 **Countback (Tie-Break)**
-The method used to resolve tied scores by looking at the best performance over the final 9, 6, 3, or 1 holes.
+The method used to resolve tied scores by looking at the best performance over the final 9, 6, 3, or 1 holes. To provide clarity on the leaderboard, the system displays these metrics progressively (e.g., `B9: 18 • B6: 12 • B3: 6`).
 
 **Gross Stableford**
 A variation of Stableford scoring where points are awarded based on the raw score without any handicap adjustment.
@@ -165,3 +165,17 @@ A leaderboard format that calculates a player's total based on their best $N$ sc
 
 **Podium View**
 A high-fidelity UI component featuring visual podiums (Gold, Silver, Bronze) for the top 3 players in any seasonal competition.
+
+## 11. Event Financials
+
+**Club Bill**
+The total automated cost owed by the society to the golf club venue. It is calculated dynamically based on confirmed registrations (Green Fees) and confirmed meal choices (Catering). This appears as a single, immutable line item in the event ledger to prevent manual entry errors.
+
+**Miscellaneous Expenses**
+Manual expense entries (e.g., "Engraving", "Taxis") added by an admin via the **Cost Control** screen. These are subtracted from the total revenue to calculate the net financial position.
+
+**Indicative Costs**
+Costs that are tracked for member information but do not impact the society treasury. For example, **Buggy Cost** is an indicative cost usually paid directly by the member to the Pro Shop.
+
+**Control Tower**
+The central administrative hub for an event. It consolidates all management functions—including grouping, registrations, costs, and awards—into a single, card-based interface.

@@ -77,7 +77,6 @@ class AdminSettingsScreen extends ConsumerWidget {
                       label: 'Guest Leaderboards',
                       subtitle: 'Show guests in their own section.',
                       value: config.separateGuestLeaderboard,
-                      iconColor: AppColors.lime500,
                       onChanged: (val) {
                         ref.read(themeControllerProvider.notifier).setSeparateGuestLeaderboard(val);
                       },

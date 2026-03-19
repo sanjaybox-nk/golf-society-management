@@ -38,7 +38,6 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                       label: 'Search History',
                       hint: 'Search by title or message...',
                       onChanged: (v) => setState(() => _searchQuery = v),
-                      prefixIcon: const Icon(Icons.search_rounded, size: AppShapes.iconMd),
                     ),
                     const Divider(height: 1),
                     Padding(

@@ -53,7 +53,7 @@ class ModernMetricStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: isSolid ? effectiveColor : AppColors.actionGreen.withValues(alpha: 0.20),
+        color: isSolid ? effectiveColor : AppColors.actionGreen.withValues(alpha: 0.3),
         borderRadius: AppShapes.lg,
       ),
       child: Column(

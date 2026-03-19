@@ -142,12 +142,10 @@ class BoxyArtEventCard extends StatelessWidget {
                 // Bottom Pill Row
                 if (gameTypePill != null || (statusPill != null && showStatus)) ...[
                   const SizedBox(height: AppSpacing.md),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  Row(
                     children: [
                       if (gameTypePill != null) gameTypePill!,
+                      const Spacer(),
                       if (statusPill != null && showStatus) statusPill!,
                     ],
                   ),

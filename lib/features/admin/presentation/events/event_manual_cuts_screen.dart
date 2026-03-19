@@ -61,7 +61,11 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Manual cuts updated and PHCs recalculated')),
         );
-        context.pop();
+        if (GoRouter.of(context).canPop()) {
+          context.pop();
+        } else {
+          context.go('/admin/events');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -101,7 +105,13 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
           title: 'Manual Cuts',
           subtitle: event.title,
           showBack: true,
-          onBack: () => context.pop(),
+          onBack: () {
+            if (GoRouter.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/admin/events');
+            }
+          },
           useScaffold: widget.useScaffold,
           actions: [
             if (_isSaving)
@@ -110,21 +120,24 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               )
             else
-              IconButton(
-                icon: const Icon(Icons.check_rounded),
-                onPressed: () => _save(event),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: BoxyArtGlassIconButton(
+                  icon: Icons.check_rounded,
+                  onPressed: () => _save(event),
+                ),
               ),
           ],
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // 1. Search Bar (Nested Style)
+                  // 1. Search Bar (3.1 Style)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.dark600 : AppColors.lightHeader,
                         borderRadius: BorderRadius.circular(AppShapes.rLg),
@@ -150,19 +163,22 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                           ),
                           border: InputBorder.none,
                           isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
                       ),
                     ),
                   ),
 
-                  // 2. Info Text
+                  // 2. Info Text (3.1 subtext)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l, left: AppSpacing.xs),
                     child: Text(
                       'Assign individual shot adjustments for this specific event. Negative values act as a handicap cut.',
-                      style: AppTypography.caption.copyWith(color: AppColors.dark300, fontStyle: FontStyle.italic),
+                      style: AppTypography.subtext.copyWith(
+                        color: isDark ? AppColors.dark300 : AppColors.dark400,
+                        height: 1.4,
+                      ),
                     ),
                   ),
 
@@ -179,29 +195,45 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                         child: BoxyArtMemberRow(
                           key: ValueKey('cut_${reg.memberId}'),
                           name: reg.memberName,
+                          showChevron: false,
                           initials: reg.memberName.isNotEmpty ? reg.memberName.substring(0, 1).toUpperCase() : '?',
                           avatarUrl: member?.avatarUrl,
                           handicapIndex: member?.handicap,
                           isGuest: reg.isGuest,
-                          trailing: Container(
-                            width: 90,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                              borderRadius: AppShapes.sm,
-                            ),
-                            alignment: Alignment.center,
+                            trailing: SizedBox(
+                            width: 96,
+                            height: 48,
                             child: TextField(
                               controller: controller,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody),
+                              style: AppTypography.displayLargeBody.copyWith(
+                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                              ),
                               decoration: InputDecoration(
+                                filled: true,
+                                fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
                                 isDense: true,
                                 suffixText: 'pt',
-                                suffixStyle: AppTypography.caption.copyWith(fontWeight: AppTypography.weightBlack, color: AppColors.dark300),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                                border: InputBorder.none,
+                                suffixStyle: AppTypography.caption.copyWith(
+                                  fontWeight: AppTypography.weightExtraBold, 
+                                  color: AppColors.dark400,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 12),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(AppShapes.rLg),
+                                  borderSide: BorderSide(
+                                    color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                                    width: 1,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(AppShapes.rLg),
+                                  borderSide: BorderSide(
+                                    color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                                    width: 1,
+                                  ),
+                                ),
                               ),
                               onChanged: (val) {
                                 final d = double.tryParse(val);
@@ -216,13 +248,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
                         ),
                       );
                   }),
-                  const SizedBox(height: AppSpacing.x4l),
-                  BoxyArtButton(
-                    title: 'SAVE ADJUSTMENTS',
-                    isLoading: _isSaving,
-                    onTap: () => _save(event),
-                    fullWidth: true,
-                  ),
+                  const SizedBox(height: AppSpacing.x6l),
                 ]),
               ),
             ),

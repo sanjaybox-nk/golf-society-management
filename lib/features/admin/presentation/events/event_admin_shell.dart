@@ -45,12 +45,6 @@ class EventAdminShell extends ConsumerWidget {
           activeIcon: Icons.grid_view_rounded,
           label: 'Field',
         ),
-      const _AdminTab(
-        path: 'home',
-        icon: Icons.edit_note_rounded,
-        activeIcon: Icons.edit_note_rounded,
-        label: 'My Card',
-      ),
       if (isGolfEvent)
         const _AdminTab(
           path: 'scores',
@@ -64,21 +58,31 @@ class EventAdminShell extends ConsumerWidget {
         activeIcon: Icons.analytics_rounded,
         label: 'Stats',
       ),
+      const _AdminTab(
+        path: 'controls',
+        icon: Icons.settings_suggest_rounded,
+        activeIcon: Icons.settings_suggest_rounded,
+        label: 'Controls',
+      ),
     ];
 
     // Determine current index based on path segments
     int currentIndex = 0;
-    if (segments.contains('grouping') || segments.contains('field-hub')) {
-      currentIndex = isGolfEvent ? 1 : 0;
-    } else if (segments.contains('home')) {
-      currentIndex = isGolfEvent ? 2 : 1;
-    } else if (segments.contains('scores')) {
-      currentIndex = isGolfEvent ? 3 : 2;
-    } else if (segments.contains('reporting')) {
-      currentIndex = isGolfEvent ? 4 : 2;
-    } else {
-      // Default to Info if on event, registrations, manual-cuts, or home
-      currentIndex = segments.contains('home') ? (isGolfEvent ? 2 : 1) : 0;
+    final isAdminPath = GoRouterState.of(context).uri.path.startsWith('/admin');
+    
+    if (isAdminPath) {
+      if (segments.contains('field-hub')) {
+        currentIndex = isGolfEvent ? 1 : 0;
+      } else if (segments.contains('scores')) {
+        currentIndex = isGolfEvent ? 2 : 0;
+      } else if (segments.contains('reporting')) {
+        currentIndex = isGolfEvent ? 3 : 1;
+      } else if (segments.contains('controls')) {
+        currentIndex = isGolfEvent ? 4 : 1;
+      } else {
+        // Default to Info (0)
+        currentIndex = 0;
+      }
     }
 
     // Safety check for index
@@ -141,8 +145,10 @@ class EventAdminShell extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    final encodedId = Uri.encodeComponent(id);
-    context.go('/admin/events/manage/$encodedId/${nextTab.path}');
+    context.goNamed(
+      'admin-event-${nextTab.path}',
+      pathParameters: {'id': id},
+    );
   }
 
   Future<GroupingExitAction> _showExitConfirmation(BuildContext context) async {

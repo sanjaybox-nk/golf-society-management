@@ -18,7 +18,6 @@ class EventBasicInfoSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'Basic Info'),
-          const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
             child: Column(
               children: [
@@ -76,7 +75,7 @@ class EventBasicInfoSection extends ConsumerWidget {
                           ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.x2l),
+                const SizedBox(height: AppSpacing.cardToLabel),
                 BoxyArtFormField(
                   label: 'Event Title',
                   initialValue: state.title,

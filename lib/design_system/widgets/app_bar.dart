@@ -67,11 +67,13 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
           final widget = entry.value;
           final isLast = idx == actions!.length - 1;
           
-          return Padding(
-            padding: EdgeInsets.only(
-              right: isLast ? AppSpacing.xl : AppSpacing.sm,
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: isLast ? AppSpacing.xl : AppSpacing.sm,
+              ),
+              child: widget,
             ),
-            child: widget,
           );
         }),
       ] : null,

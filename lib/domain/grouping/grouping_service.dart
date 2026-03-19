@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:golf_society/domain/models/member.dart';
 import '../../features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import '../scoring/handicap_calculator.dart';
 import 'tee_group.dart';
@@ -71,17 +72,21 @@ class GroupingService {
     
     if (golfers.isEmpty) return [];
 
-    // 2. Identify Pairs (Member + Guest)
-    // We treat a Member and their Guest as a "Locked Pair" of 2 slots.
+    // 2. Identify Unique Participants and Pair Host/Guest
     final List<_TeeSlot> slots = [];
-    final Set<String> processedMemberIds = {};
+    final Set<String> processedUniqueIds = {}; // Format: memberId_guestName or memberId_host
 
     for (var golfer in golfers) {
       if (!golfer.isGuest) {
-        if (processedMemberIds.contains(golfer.registration.memberId)) continue;
+        final hostUniqueId = '${golfer.registration.memberId}_host';
+        if (processedUniqueIds.contains(hostUniqueId)) continue;
         
         final host = golfer;
-        final guest = golfers.where((g) => g.isGuest && g.registration.memberId == host.registration.memberId).firstOrNull;
+        processedUniqueIds.add(hostUniqueId);
+
+        // Find ALL guests for this host
+        final hostGuests = golfers.where((g) => g.isGuest && g.registration.memberId == host.registration.memberId).toList();
+        final List<TeeGroupParticipant> slotParticipants = [];
         
         final availableBuggies = event.availableBuggies ?? 0;
         final buggyCapacity = availableBuggies * 2;
@@ -89,19 +94,21 @@ class GroupingService {
         final confirmedBuggyCount = participants.where((i) => 
           i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
 
+        slotParticipants.add(_toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig));
 
-        if (guest != null) {
-          slots.add(_TeeSlot(players: [
-            _toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig),
-            _toParticipant(guest, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig),
-          ]));
-        } else {
-          slots.add(_TeeSlot(players: [_toParticipant(host, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig)]));
+        for (var guest in hostGuests) {
+           final guestUniqueId = '${host.registration.memberId}_${guest.name}';
+           if (!processedUniqueIds.contains(guestUniqueId)) {
+              slotParticipants.add(_toParticipant(guest, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig));
+              processedUniqueIds.add(guestUniqueId);
+           }
         }
-        processedMemberIds.add(host.registration.memberId);
+        
+        slots.add(_TeeSlot(players: slotParticipants));
       } else {
-        // Guests are handled with hosts, but if a guest is alone (unlikely in current model)
-        if (!processedMemberIds.contains(golfer.registration.memberId)) {
+        // Standalone guest handling (fallback)
+        final guestUniqueId = '${golfer.registration.memberId}_${golfer.name}';
+        if (!processedUniqueIds.contains(guestUniqueId)) {
            final availableBuggies = event.availableBuggies ?? 0;
            final buggyCapacity = availableBuggies * 2;
            final buggyQueue = participants.where((i) => i.needsBuggy).toList();
@@ -109,7 +116,7 @@ class GroupingService {
              i.buggyStatusOverride == 'confirmed' || (i.isConfirmed && i.needsBuggy)).length;
              
            slots.add(_TeeSlot(players: [_toParticipant(golfer, memberHandicaps, buggyQueue, buggyCapacity, confirmedBuggyCount, hcConfig)]));
-           processedMemberIds.add(golfer.registration.memberId);
+           processedUniqueIds.add(guestUniqueId);
         }
       }
     }
@@ -355,6 +362,172 @@ class GroupingService {
       'groups': groups.map((g) => g.toJson()).toList(),
     };
   }
+
+  /// Automatically fills available slots in existing groups with players from the pool.
+  /// Returns the updated list of groups.
+  static List<TeeGroup> autoFillVacancies({
+    required List<TeeGroup> groups,
+    required List<TeeGroupParticipant> pool,
+    int maxGroupSize = 4,
+  }) {
+    if (pool.isEmpty) return groups;
+    
+    final newGroups = groups.map((g) => g.copyWith(players: List<TeeGroupParticipant>.from(g.players))).toList();
+    final remainingPool = List<TeeGroupParticipant>.from(pool);
+
+    for (var group in newGroups) {
+      while (group.players.length < maxGroupSize && remainingPool.isNotEmpty) {
+        group.players.add(remainingPool.removeAt(0));
+      }
+      if (remainingPool.isEmpty) break;
+    }
+
+    return newGroups;
+  }
+
+  /// Calculates which confirmed players are missing from the given groups.
+  static List<TeeGroupParticipant> getUnassignedPlayers({
+    required GolfEvent event,
+    required List<TeeGroup> groups,
+    required Map<String, double> memberHandicaps,
+    CompetitionRules? rules,
+    required bool useWhs,
+    required Map<String, double> manualCuts,
+    CourseConfig? courseConfig,
+  }) {
+    final assignedIds = groups
+        .expand((g) => g.players)
+        .map((p) => '${p.registrationMemberId}|${p.isGuest}')
+        .toSet();
+
+    final unassigned = <TeeGroupParticipant>[];
+    int rollingConfirmedCount = 0;
+    final capacity = event.maxParticipants ?? 999;
+    final isClosed = event.isRegistrationClosed;
+
+    final hcConfig = _HandicapContext(
+      rules: rules,
+      courseConfig: courseConfig ?? event.courseConfig,
+      useWhs: useWhs,
+      manualCuts: manualCuts,
+    );
+
+    for (final item in RegistrationLogic.getSortedItems(event)) {
+      final status = RegistrationLogic.calculateStatus(
+        isGuest: item.isGuest,
+        isConfirmed: item.isConfirmed,
+        hasPaid: item.hasPaid,
+        capacity: capacity,
+        confirmedCount: rollingConfirmedCount,
+        isEventClosed: isClosed,
+        statusOverride: item.statusOverride,
+      );
+
+      if (status == RegistrationStatus.confirmed) {
+        rollingConfirmedCount++;
+        final playerId = '${item.registration.memberId}|${item.isGuest}';
+        
+        if (!assignedIds.contains(playerId)) {
+          unassigned.add(_toParticipant(
+            item, 
+            memberHandicaps, 
+            [], // No buggy queue needed for simple unassigned check
+            0, 
+            0, 
+            hcConfig,
+          ));
+        }
+      }
+    }
+    return unassigned;
+  }
+
+  /// Handles a withdrawal by updating registrations and backfilling grouping if locked.
+  /// Returns a result containing the updated GolfEvent and any promoted player IDs.
+  static WithdrawalResult handleWithdrawal({
+    required GolfEvent event,
+    required String memberId,
+    required bool isGuest,
+    required List<Member> allMembers,
+    required bool useWhs,
+    CompetitionRules? rules,
+  }) {
+    String? promotedId;
+    final regs = event.registrations.where((r) => r.memberId == memberId).toList();
+    if (regs.isEmpty) throw 'Member not found';
+    final playerName = regs.first.memberName;
+    // 1. Update Registration List
+    final newList = List<EventRegistration>.from(event.registrations);
+    final idx = newList.indexWhere((r) => r.memberId == memberId);
+    if (idx != -1) {
+      final reg = newList[idx];
+      if (isGuest) {
+        newList[idx] = reg.copyWith(
+          guestName: null, // Effective withdrawal for simplicity in this mock
+          guestIsConfirmed: false,
+        );
+      } else {
+        newList[idx] = reg.copyWith(
+          attendingGolf: false,
+          statusOverride: 'withdrawn',
+        );
+      }
+    }
+
+    var updatedEvent = event.copyWith(registrations: newList);
+
+    // 2. If grouping is locked, handle the group vacancy
+    final bool isLocked = event.grouping['locked'] ?? false;
+    if (isLocked) {
+      final groupsData = event.grouping['groups'] as List?;
+      if (groupsData != null) {
+        var groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
+        final playerId = '$memberId|$isGuest';
+
+        // Remove from group
+        for (var group in groups) {
+          group.players.removeWhere((p) => '${p.registrationMemberId}|${p.isGuest}' == playerId);
+        }
+
+        // Calculate Pool (Waitlist promotions happen implicitly via getUnassignedPlayers/RegistrationLogic)
+        final pool = getUnassignedPlayers(
+          event: updatedEvent, 
+          groups: groups, 
+          memberHandicaps: {for (var m in allMembers) m.id: m.handicap}, 
+          rules: rules,
+          useWhs: useWhs, 
+          manualCuts: event.manualCuts,
+        );
+
+        // Auto-Fill
+        final poolBefore = List<TeeGroupParticipant>.from(pool);
+        groups = autoFillVacancies(groups: groups, pool: pool);
+        
+        // Identify if someone was promoted
+        if (poolBefore.isNotEmpty && poolBefore.length > pool.length) {
+            // This logic is simplified; in a production app we'd compare the lists
+            promotedId = poolBefore.first.registrationMemberId;
+        }
+
+        updatedEvent = updatedEvent.copyWith(
+          grouping: {
+            ...updatedEvent.grouping,
+            'groups': groups.map((g) => g.toJson()).toList(),
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+        );
+      }
+    }
+
+    return WithdrawalResult(event: updatedEvent, promotedPlayerId: promotedId, playerName: playerName);
+  }
+}
+
+class WithdrawalResult {
+  final GolfEvent event;
+  final String? promotedPlayerId;
+  final String playerName;
+  WithdrawalResult({required this.event, this.promotedPlayerId, required this.playerName});
 }
 
 class _HandicapContext {

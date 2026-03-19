@@ -8,6 +8,8 @@ import '../../../members/presentation/members_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../events/presentation/widgets/registration_card.dart';
+import '../../../events/presentation/widgets/registration_stats_card.dart';
+
 
 class EventRegistrationsAdminScreen extends ConsumerWidget {
   final String eventId;
@@ -127,255 +129,23 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
       return _RegistrationViewModel(item: item, status: RegistrationStatus.withdrawn, buggyStatus: RegistrationStatus.none, position: 0, memberProfile: profile);
     }).toList();
 
-    // Stats Logic (Standardized)
-    final stats = RegistrationLogic.getRegistrationStats(event);
-
-    final playingValue = stats.confirmedGuests > 0 ? '${stats.confirmedGolfers} (${stats.confirmedGuests})' : '${stats.confirmedGolfers}';
-    final reserveValue = stats.reserveGuests > 0 ? '${stats.reserveGolfers} (${stats.reserveGuests})' : '${stats.reserveGolfers}';
-
-    final config = ref.watch(themeControllerProvider);
-    final currency = config.currencySymbol;
-    final int capacity = event.maxParticipants ?? 0;
-    final double memberDinnerCost = event.dinnerCost ?? 0.0;
-
-    
-    final double totalPaidFees = event.registrations
-        .where((r) => r.hasPaid)
-        .fold(0.0, (sum, r) {
-          double golfCost = 0.0;
-          
-          // Member golf cost
-          if (r.isConfirmed && r.attendingGolf) {
-            golfCost += event.memberCost ?? 0.0;
-          }
-          
-          // Guest golf cost
-          if (r.guestIsConfirmed && r.guestName != null && r.guestName!.isNotEmpty) {
-            golfCost += event.guestCost ?? 0.0;
-          }
-          
-          return sum + golfCost;
-        });
-
-    final double totalDinnerFees = event.registrations
-        .where((r) => r.hasPaid)
-        .fold(0.0, (sum, r) => sum +
-            (r.attendingDinner && r.isConfirmed ? memberDinnerCost : 0.0) +
-            (r.guestAttendingDinner && r.guestIsConfirmed ? memberDinnerCost : 0.0));
-
-    final double totalBreakfastFees = event.registrations
-        .where((r) => r.hasPaid)
-        .fold(0.0, (sum, r) => sum +
-            (r.attendingBreakfast && r.isConfirmed ? (event.breakfastCost ?? 0.0) : 0.0) +
-            (r.guestAttendingBreakfast && r.guestIsConfirmed ? (event.breakfastCost ?? 0.0) : 0.0));
-
-    final double totalLunchFees = event.registrations
-        .where((r) => r.hasPaid)
-        .fold(0.0, (sum, r) => sum +
-            (r.attendingLunch && r.isConfirmed ? (event.lunchCost ?? 0.0) : 0.0) +
-            (r.guestAttendingLunch && r.guestIsConfirmed ? (event.lunchCost ?? 0.0) : 0.0));
-
     final playingMembers = memberModels.where((vm) => vm.status == RegistrationStatus.confirmed).toList();
     final playingGuests = guestModels.where((vm) => vm.status == RegistrationStatus.confirmed).toList();
     final reservedMembers = memberModels.where((vm) => vm.status == RegistrationStatus.reserved).toList();
     final reservedGuests = guestModels.where((vm) => vm.status == RegistrationStatus.reserved).toList();
     final waitlistMembers = memberModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
     final waitlistGuests = guestModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
 
     return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
         sliver: SliverList(
           delegate: SliverChildListDelegate([
             // METRICS CARD
+            // METRICS CARD
             const BoxyArtSectionTitle(title: 'Registration Stats'),
-            BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // REGISTRATION STATS
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '${event.registrations.length}',
-                            label: 'Total',
-                            icon: Icons.groups_rounded,
-                            color: isDark ? AppColors.dark150 : AppColors.dark500,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: playingValue,
-                            label: 'Playing',
-                            icon: Icons.check_circle_rounded,
-                            color: AppColors.lime500,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: reserveValue,
-                            label: 'Reserve',
-                            icon: Icons.hourglass_top_rounded,
-                            color: AppColors.amber500,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
-                            label: 'Guests',
-                            icon: Icons.person_add_rounded,
-                            color: const Color(0xFF8E44AD), // Keeping custom purple but slightly muted, or use dark300
-                            isCompact: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  // ATTENDANCE STATS
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '${stats.buggyCount}/$buggyCapacity',
-                            label: 'Buggies',
-                            icon: Icons.electric_rickshaw_rounded,
-                            color: isDark ? AppColors.dark300 : AppColors.dark600,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '${stats.dinnerCount}',
-                            label: 'Dinner',
-                            icon: Icons.restaurant_rounded,
-                            color: const Color(0xFF673AB7), // Muted Purple
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '${stats.waitlistGolfers}',
-                            label: 'Waitlist',
-                            icon: Icons.priority_high_rounded,
-                            color: AppColors.coral500,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '${stats.breakfastCount}',
-                            label: 'Breakfast',
-                            icon: Icons.breakfast_dining_rounded,
-                            color: const Color(0xFF8D6E63), // Muted Brown
-                            isCompact: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const Divider(),
-                  const SizedBox(height: AppSpacing.xl),
-                  // FINANCIAL STATS
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '$currency${totalPaidFees.toStringAsFixed(0)}',
-                            label: 'Paid',
-                            icon: Icons.payments_rounded,
-                            color: AppColors.lime500,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
-                            label: 'Breakfast',
-                            icon: Icons.breakfast_dining_rounded,
-                            color: const Color(0xFF8D6E63),
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '$currency${totalLunchFees.toStringAsFixed(0)}',
-                            label: 'Lunch',
-                            icon: Icons.lunch_dining_rounded,
-                            color: AppColors.amber500,
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: ModernMetricStat(
-                            value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
-                            label: 'Dinner',
-                            icon: Icons.restaurant_menu_rounded,
-                            color: isDark ? AppColors.dark200 : AppColors.dark600,
-                            isCompact: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.x2l),
-                  const Divider(),
-                  const SizedBox(height: AppSpacing.lg),
-                  // STATUS BAR
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 16,
-                        runSpacing: 8,
-                        children: [
-                          Text(
-                            '${stats.confirmedGolfers}/$capacity spaces',
-                            style: TextStyle(
-                              fontSize: AppTypography.sizeBody,
-                              fontWeight: AppTypography.weightSemibold,
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? AppColors.dark150
-                                  : const Color(0xFF2C3E50),
-                            ),
-                          ),
-                          BoxyArtPill.status(
-                            label: isClosed ? 'Registration Closed' : 'Registration Open',
-                            color: isClosed 
-                                ? (Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark400)
-                                : AppColors.lime500,
-                            icon: isClosed ? Icons.lock_outline_rounded : Icons.timer_outlined,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            RegistrationStatsCard(event: event, isCompact: true),
+
 
           const SizedBox(height: AppSpacing.x2l),
           // MEMBERS - PLAYING

@@ -4,6 +4,10 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 
 class EventRegistrationScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -65,7 +69,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         totalCost += event.eventCost ?? 0.0;
       } else {
         if (_attendingGolf) totalCost += event.memberCost ?? 0.0;
-        if (_needsBuggy) totalCost += event.buggyCost ?? 0.0;
+        // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
       }
       if (_attendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
       if (_attendingLunch) totalCost += event.lunchCost ?? 0.0;
@@ -76,7 +80,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           totalCost += event.eventCost ?? 0.0;
         } else {
           totalCost += event.guestCost ?? 0.0;
-          if (_guestNeedsBuggy) totalCost += event.buggyCost ?? 0.0;
+          // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
         }
         if (_guestAttendingBreakfast) totalCost += event.breakfastCost ?? 0.0;
         if (_guestAttendingLunch) totalCost += event.lunchCost ?? 0.0;
@@ -127,8 +131,46 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         newList.add(registration);
       }
 
-      final updatedEvent = event.copyWith(registrations: newList);
-      await repo.updateEvent(updatedEvent);
+      final result = GroupingService.handleWithdrawal(
+        event: event,
+        memberId: memberId,
+        isGuest: false, 
+        allMembers: ref.read(allMembersProvider).value ?? [],
+        useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
+        rules: ref.read(competitionDetailProvider(event.id)).value?.rules,
+      );
+
+      if (_attendingGolf) {
+          // If they ARE still attending golf (just updating details), use standard update
+          final newList = List<EventRegistration>.from(event.registrations);
+          if (existingIndex >= 0) {
+            newList[existingIndex] = registration;
+          } else {
+            newList.add(registration);
+          }
+          await repo.updateEvent(event.copyWith(registrations: newList));
+      } else {
+          // If they withdrew from golf, use the result
+          await repo.updateEvent(result.event);
+          
+          // Broadcast Notifications
+          final notificationService = ref.read(notificationBroadcastServiceProvider);
+          final allMembers = ref.read(allMembersProvider).value ?? [];
+          
+          await notificationService.notifyCommitteeOfWithdrawal(
+            event: result.event, 
+            playerName: result.playerName, 
+            allMembers: allMembers,
+          );
+
+          if (result.promotedPlayerId != null) {
+            await notificationService.notifyPlayerOfPromotion(
+              event: result.event, 
+              memberId: result.promotedPlayerId!, 
+              groupIndex: 0, // Placeholder, in real logic we'd find the index
+            );
+          }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +195,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       total += event.eventCost ?? 0.0;
     } else {
       if (_attendingGolf) total += event.memberCost ?? 0.0;
-      if (_needsBuggy) total += event.buggyCost ?? 0.0;
+      // Buggy cost is indicative and paid to pro shop directly, so we exclude it from total
     }
     if (_attendingBreakfast) total += event.breakfastCost ?? 0.0;
     if (_attendingLunch) total += event.lunchCost ?? 0.0;
@@ -164,7 +206,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         total += event.eventCost ?? 0.0;
       } else {
         total += event.guestCost ?? 0.0;
-        if (_guestNeedsBuggy) total += event.buggyCost ?? 0.0;
+        // Buggy cost is indicative and paid to pro shop directly, so we exclude it from total
       }
       if (_guestAttendingBreakfast) total += event.breakfastCost ?? 0.0;
       if (_guestAttendingLunch) total += event.lunchCost ?? 0.0;
@@ -185,7 +227,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           _buildMiniCostRow('Event Entry', event.eventCost)
         else ...[
           if (_attendingGolf) _buildMiniCostRow('Member Golf', event.memberCost),
-          if (_needsBuggy) _buildMiniCostRow('Buggy', event.buggyCost),
+          if (_needsBuggy) _buildMiniCostRow('Buggy (Paid to Pro Shop)', event.buggyCost),
         ],
         if (_attendingBreakfast) _buildMiniCostRow('Breakfast', event.breakfastCost),
         if (_attendingLunch) _buildMiniCostRow('Lunch', event.lunchCost),
@@ -196,7 +238,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
             _buildMiniCostRow('Guest Entry', event.eventCost, isGuest: true)
           else ...[
             _buildMiniCostRow('Guest Golf', event.guestCost, isGuest: true),
-            if (_guestNeedsBuggy) _buildMiniCostRow('Guest Buggy', event.buggyCost, isGuest: true),
+            if (_guestNeedsBuggy) _buildMiniCostRow('Guest Buggy (Paid to Pro Shop)', event.buggyCost, isGuest: true),
           ],
           if (_guestAttendingBreakfast) _buildMiniCostRow('Guest Breakfast', event.breakfastCost, isGuest: true),
           if (_guestAttendingLunch) _buildMiniCostRow('Guest Lunch', event.lunchCost, isGuest: true),
@@ -207,6 +249,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   }
 
   Widget _buildMiniCostRow(String label, double? amount, {bool isGuest = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currency = ref.watch(themeControllerProvider).currencySymbol;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -216,12 +259,15 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           Text(
             label,
             style: AppTypography.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.textSecondary : AppColors.dark400,
             ),
           ),
           Text(
             amount == null ? 'TBA' : '$currency${amount.toStringAsFixed(2)}',
-            style: AppTypography.bodySmall,
+            style: AppTypography.bodySmall.copyWith(
+              color: isDark ? AppColors.textPrimary : AppColors.dark900,
+              fontWeight: AppTypography.weightBold,
+            ),
           ),
         ],
       ),
@@ -235,6 +281,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
     return eventsAsync.when(
       data: (events) {
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         
         if (!_isInitialized) {
           const currentMemberId = 'current-user-id';
@@ -278,7 +325,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const BoxyArtSectionTitle(title: 'Your Attendance'),
-                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
                         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Column(
@@ -288,7 +334,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 icon: Icons.golf_course_rounded,
                                 label: 'Playing Golf',
                                 value: _attendingGolf,
-                                iconColor: AppColors.lime500,
                                 onChanged: (val) => setState(() => _attendingGolf = val),
                               ),
                               if (_attendingGolf)
@@ -296,7 +341,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   icon: Icons.electric_rickshaw_rounded,
                                   label: 'Buggy Needed',
                                   value: _needsBuggy,
-                                  iconColor: AppColors.coral500,
                                   onChanged: (val) => setState(() => _needsBuggy = val),
                                 ),
                             ],
@@ -306,7 +350,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 label: 'Attending Breakfast',
                                 subtitle: event.breakfastCost == 0 ? 'Included' : null,
                                 value: _attendingBreakfast,
-                                iconColor: AppColors.amber500,
                                 onChanged: (val) => setState(() => _attendingBreakfast = val),
                               ),
                             if (event.hasLunch == true && event.lunchCost != null)
@@ -315,7 +358,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 label: 'Attending Lunch',
                                 subtitle: event.lunchCost == 0 ? 'Included' : null,
                                 value: _attendingLunch,
-                                iconColor: AppColors.amber500,
                                 onChanged: (val) => setState(() => _attendingLunch = val),
                               ),
                             if (event.hasDinner == true && event.dinnerCost != null)
@@ -324,16 +366,14 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 label: 'Attending Dinner',
                                 subtitle: event.dinnerCost == 0 ? 'Included' : null,
                                 value: _attendingDinner,
-                                iconColor: AppColors.coral500,
                                 onChanged: (val) => setState(() => _attendingDinner = val),
                               ),
                           ],
                         ),
                       ),
   
-                      const SizedBox(height: AppSpacing.x3l),
+                      const SizedBox(height: AppSpacing.cardToLabel),
                       const BoxyArtSectionTitle(title: 'Guest Registration'),
-                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
                         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Column(
@@ -342,49 +382,33 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                               icon: Icons.person_add_rounded,
                               label: 'Add a Guest',
                               value: _registerGuest,
-                              iconColor: const Color(0xFF2ECC71), // Match vibrant green from design
                               onChanged: (val) => setState(() => _registerGuest = val),
                             ),
                             if (_registerGuest) ...[
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-                                child: Text(
-                                  'Guest Name',
-                                  style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                                 child: BoxyArtInputField(
-                                  label: '', // Empty label as we use external Text widget
+                                  label: 'Guest Name',
                                   controller: _guestNameController,
                                   hint: 'Full name',
-                                  prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.dark600),
                                   validator: (val) => _registerGuest && (val == null || val.isEmpty) ? 'Required' : null,
                                 ),
                               ),
+                              const SizedBox(height: AppSpacing.cardToLabel),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-                                child: Text(
-                                  'Guest Handicap',
-                                  style: AppTypography.labelStrong.copyWith(color: AppColors.textSecondary),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                                 child: BoxyArtInputField(
-                                  label: '', // Empty label as we use external Text widget
+                                  label: 'Guest Handicap',
                                   controller: _guestHandicapController,
                                   hint: 'e.g. 18',
-                                  prefixIcon: const Icon(Icons.calculate_outlined, color: AppColors.dark600),
                                 ),
                               ),
+                              const SizedBox(height: AppSpacing.md),
                               if (event.eventType == EventType.golf)
                                 BoxyArtSwitchTile(
                                   icon: Icons.electric_rickshaw_rounded,
                                   label: 'Guest Buggy',
                                   value: _guestNeedsBuggy,
-                                  iconColor: const Color(0xFFFF5252), // Match red from design
                                   onChanged: (val) => setState(() => _guestNeedsBuggy = val),
                                 ),
                               if (event.hasBreakfast == true && event.breakfastCost != null)
@@ -392,7 +416,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   icon: Icons.breakfast_dining_rounded,
                                   label: 'Guest Breakfast',
                                   value: _guestAttendingBreakfast,
-                                  iconColor: const Color(0xFFFFC107), // Match yellow/amber from design
                                   onChanged: (val) => setState(() => _guestAttendingBreakfast = val),
                                 ),
                               if (event.hasLunch == true && event.lunchCost != null)
@@ -400,7 +423,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   icon: Icons.lunch_dining_rounded,
                                   label: 'Guest Lunch',
                                   value: _guestAttendingLunch,
-                                  iconColor: const Color(0xFFFF9800), 
                                   onChanged: (val) => setState(() => _guestAttendingLunch = val),
                                 ),
                               if (event.hasDinner == true && event.dinnerCost != null)
@@ -408,7 +430,6 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   icon: Icons.restaurant_rounded,
                                   label: 'Guest Dinner',
                                   value: _guestAttendingDinner,
-                                  iconColor: const Color(0xFF2980B9),
                                   onChanged: (val) => setState(() => _guestAttendingDinner = val),
                                 ),
                             ],
@@ -416,9 +437,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      const SizedBox(height: AppSpacing.x3l),
+                      const SizedBox(height: AppSpacing.cardToLabel),
                       const BoxyArtSectionTitle(title: 'Notes & Requirements'),
-                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
                         child: Column(
@@ -427,24 +447,21 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                               label: 'Dietary Requirements',
                               controller: _dietaryController,
                               hint: 'Allergies, preferences...',
-                              prefixIcon: const Icon(Icons.set_meal_rounded),
                               maxLines: 2,
                             ),
-                            const SizedBox(height: AppSpacing.xl),
+                            const SizedBox(height: AppSpacing.cardToLabel),
                             BoxyArtInputField(
                               label: 'Other Requests',
                               controller: _specialNeedsController,
                               hint: 'Transportation, pairing requests...',
-                              prefixIcon: const Icon(Icons.more_horiz_rounded),
                               maxLines: 2,
                             ),
                           ],
                         ),
                       ),
   
-                      const SizedBox(height: AppSpacing.x3l),
+                      const SizedBox(height: AppSpacing.cardToLabel),
                       const BoxyArtSectionTitle(title: 'Estimated Fees'),
-                      const SizedBox(height: AppSpacing.md),
                       BoxyArtCard(
                         child: Column(
                           children: [
@@ -462,7 +479,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                 Text(
                                   _formatPrice(_calculateTotal(event), ref),
                                   style: AppTypography.displaySection.copyWith(
-                                    color: Theme.of(context).primaryColor,
+                                    color: isDark ? AppColors.lime500 : AppColors.dark900,
                                   ),
                                 ),
                               ],

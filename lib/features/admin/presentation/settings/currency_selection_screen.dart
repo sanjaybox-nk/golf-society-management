@@ -66,7 +66,6 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 hint: 'Name, code or symbol...',
                 controller: _searchController,
                 onChanged: _filterCurrencies,
-                prefixIcon: const Icon(Icons.search_rounded, size: AppShapes.iconMd),
               ),
               const SizedBox(height: AppSpacing.x3l),
 

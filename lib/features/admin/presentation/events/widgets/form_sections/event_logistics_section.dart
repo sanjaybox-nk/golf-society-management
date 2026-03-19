@@ -18,10 +18,8 @@ class EventLogisticsSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const BoxyArtSectionTitle(title: 'DateTime & Registration'),
-          const SizedBox(height: AppTheme.sectionSpacing),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.x2l),
-            isHero: true,
             child: Column(
               children: [
                 BoxyArtDatePickerField(
@@ -39,7 +37,7 @@ class EventLogisticsSection extends ConsumerWidget {
                     }
                   },
                 ),
-                const SizedBox(height: AppSpacing.x2l),
+                const SizedBox(height: AppSpacing.cardToLabel),
                 if (state.eventType == EventType.golf) ...[
                   BoxyArtSwitchField(
                     label: 'Multi-Day Event', 
@@ -48,7 +46,7 @@ class EventLogisticsSection extends ConsumerWidget {
                   ),
                 ],
                 if (state.isMultiDay) ...[
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                    BoxyArtDatePickerField(
                     label: 'END DATE',
                     value: state.endDate != null ? DateFormat.yMMMd().format(state.endDate!) : 'Select End Date',
@@ -65,59 +63,20 @@ class EventLogisticsSection extends ConsumerWidget {
                     },
                   ),
                 ],
-                const Divider(height: AppSpacing.x3l),
-                Row(
-                  children: [
-                    Expanded(
-                      child: BoxyArtDatePickerField(
-                        label: 'REGISTRATION',
-                        value: state.registrationTime.format(context),
-                        onTap: () async {
-                          final picked = await showTimePicker(
-                            context: context,
-                            initialTime: state.registrationTime,
-                          );
-                          if (picked != null) {
-                            ref.read(eventFormNotifierProvider.notifier).updateTime(picked, isTeeOff: false);
-                          }
-                        },
-                      ),
-                    ),
-                    if (state.eventType == EventType.golf) ...[
-                      const SizedBox(width: AppSpacing.lg),
-                      Expanded(
-                        child: BoxyArtDatePickerField(
-                          label: 'TEE-OFF',
-                          value: state.selectedTime.format(context),
-                          onTap: () async {
-                            final picked = await showTimePicker(
-                              context: context,
-                              initialTime: state.selectedTime,
-                            );
-                            if (picked != null) {
-                              ref.read(eventFormNotifierProvider.notifier).updateTime(picked, isTeeOff: true);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ],
+                BoxyArtDatePickerField(
+                  label: 'REGISTRATION',
+                  value: state.registrationTime.format(context),
+                  onTap: () async {
+                    final picked = await showTimePicker(
+                      context: context,
+                      initialTime: state.registrationTime,
+                    );
+                    if (picked != null) {
+                      ref.read(eventFormNotifierProvider.notifier).updateTime(picked, isTeeOff: false);
+                    }
+                  },
                 ),
-                if (state.eventType == EventType.golf) ...[
-                  const SizedBox(height: AppSpacing.x2l),
-                  BoxyArtFormField(
-                    label: 'Group Tee-off Interval (minutes)',
-                    initialValue: state.teeOffInterval.toString(),
-                    keyboardType: TextInputType.number,
-                    onChanged: (v) {
-                      final val = int.tryParse(v);
-                      if (val != null) {
-                        ref.read(eventFormNotifierProvider.notifier).updateTeeOffInterval(val);
-                      }
-                    },
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.x2l),
+                const SizedBox(height: AppSpacing.cardToLabel),
                 BoxyArtDatePickerField(
                   label: 'REGISTRATION DEADLINE',
                   value: (state.deadlineDate == null || state.deadlineTime == null) 
@@ -141,12 +100,6 @@ class EventLogisticsSection extends ConsumerWidget {
                       }
                     }
                   },
-                ),
-                const SizedBox(height: AppSpacing.x2l),
-                BoxyArtSwitchField(
-                  label: 'Show Registration Button',
-                  value: state.showRegistrationButton,
-                  onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateShowRegistrationButton(v),
                 ),
                 if (state.eventType == EventType.golf) ...[
                   const SizedBox(height: AppSpacing.x2l),

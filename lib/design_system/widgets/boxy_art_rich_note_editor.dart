@@ -2,6 +2,7 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -84,7 +85,18 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final config = ref.watch(themeControllerProvider);
+
+    double radius;
+    switch (config.brandingStyle) {
+      case 'classic': radius = AppShapes.rSm; break;
+      case 'modern':  radius = AppShapes.r2xl; break;
+      case 'boxy':
+      default:        radius = AppShapes.rMd; break;
+    }
+
     return BoxyArtCard(
+      borderRadius: radius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -92,7 +104,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             children: [
               Expanded(
                 child: BoxyArtFormField(
-                  label: widget.titleHint!,
+                  label: toTitleCase(widget.titleHint!),
                   controller: _titleController,
                 ),
               ),
@@ -118,7 +130,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: AppShapes.md,
+                  borderRadius: BorderRadius.circular(radius),
                   child: _imageUrl!.startsWith('http') 
                     ? Image.network(_imageUrl!, width: double.infinity, height: 200, fit: BoxFit.cover)
                     : Image.file(File(_imageUrl!), width: double.infinity, height: 200, fit: BoxFit.cover),
@@ -139,16 +151,17 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             ),
           ],
           
-          const SizedBox(height: AppSpacing.xl),
-          const Text(
+          const SizedBox(height: AppSpacing.lg),
+          Text(
             'Note Content',
-            style: TextStyle(
-              fontSize: AppTypography.sizeCaptionStrong,
+            style: AppTypography.label.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
+              fontSize: AppTypography.sizeLabel,
               fontWeight: AppTypography.weightBold,
-              color: AppColors.textSecondary,
+              letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.labelToCard),
           BoxyArtRichEditor(
             controller: _quillController,
             placeholder: 'Start writing...',

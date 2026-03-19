@@ -32,7 +32,6 @@ class EventCompetitionSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const BoxyArtSectionTitle(title: 'COMPETITION RULES'),
-            const SizedBox(height: AppTheme.sectionSpacing),
             if (!hasGame || displayComp == null)
               BoxyArtCard(
                 child: Column(
@@ -89,7 +88,7 @@ class EventCompetitionSection extends ConsumerWidget {
                                 value: !isExcluded,
                                 onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).toggleOomRound(roundId, v),
                               ),
-                              if (index < displayComp.rules.roundsCount - 1) const Divider(height: AppSpacing.x2l),
+                              if (index < displayComp.rules.roundsCount - 1) const Divider(height: AppSpacing.x3l),
                             ],
                           );
                         }),
@@ -119,9 +118,8 @@ class EventCompetitionSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSpacing.x3l),
+        const SizedBox(height: AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(title: 'SECONDARY GAME (OVERLAY)'),
-        const SizedBox(height: AppTheme.sectionSpacing),
         BoxyArtCard(
           child: state.secondaryTemplateId == null
             ? Center(

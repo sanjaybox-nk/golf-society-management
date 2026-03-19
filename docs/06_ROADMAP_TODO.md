@@ -28,6 +28,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Registration History**: Detailed audit trail for status changes and member edits.
     - [x] **Data Resilience**: Protection against registration data loss during event updates.
     - [x] **Event Form Stability**: TextEditingController & FocusNode refactor for Course Config.
+    - [x] **Control Tower Consolidation (v4.0)**: Fully unified command center with integrated Manual Grouping, Registrations, and Event Editing. Automated "Club Bill" generation for society costs.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [x] **Social & AGM Support**: Tailored admin UI and models for non-golf events.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
@@ -80,7 +81,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Contrast Helper**: Automatic text color calculation for accessibility.
 - [x] **Society Reporting Hub (Premium Suite)**
     - [x] **Executive Dashboard**: Season progress, society pulse, and treasury overview.
-    - [x] **Financial Tracking**: Treasury ledger with markup analysis and uncollected revenue alerts.
+    - [x] **Financial Tracking**: Treasury ledger with automated Club Bill logic (Green Fees/Catering) and centralized Miscellaneous Expense management.
     - [x] **Engagement Analytics**: Retention rates, churn alerts, and attendance rankings.
     - [x] **Professional Exports**: Native Export to PDF and CSV support.
 - [x] **Admin Design 3.1 Hardening**

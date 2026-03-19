@@ -353,7 +353,6 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                       hint: 'Start typing name...',
                       controller: controller,
                       focusNode: focusNode,
-                      prefixIcon: const Icon(Icons.person_search_rounded, size: AppShapes.iconMd),
                     );
                   },
                 ),

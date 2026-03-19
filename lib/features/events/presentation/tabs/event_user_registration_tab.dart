@@ -7,6 +7,8 @@ import '../events_provider.dart';
 
 import '../../domain/registration_logic.dart';
 import '../widgets/registration_card.dart';
+import '../widgets/registration_stats_card.dart';
+
 
 // ... (existing imports)
 
@@ -157,168 +159,16 @@ class EventRegistrationUserTab extends ConsumerWidget {
         return _RegistrationViewModel(item: item, status: RegistrationStatus.withdrawn, buggyStatus: RegistrationStatus.none, position: 0, memberProfile: member);
     }).toList();
 
-    // 3. Stats Logic (Standardized)
-    final stats = RegistrationLogic.getRegistrationStats(event);
-    
-    final playingValue = stats.confirmedGuests > 0 
-        ? '${stats.confirmedGolfers} (${stats.confirmedGuests})' 
-        : '${stats.confirmedGolfers}';
 
-    final reserveValue = stats.reserveGuests > 0 
-        ? '${stats.reserveGolfers} (${stats.reserveGuests})' 
-        : '${stats.reserveGolfers}';
-
-    final int capacity = event.maxParticipants ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // METRICS CARD
         const BoxyArtSectionTitle(title: 'Registration Stats'),
-        BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // REGISTRATION STATS
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: '${stats.totalGolfers}',
-                        label: 'Total',
-                        icon: Icons.groups_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: playingValue,
-                        label: 'Playing',
-                        icon: Icons.check_circle_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: reserveValue,
-                        label: 'Reserve',
-                        icon: Icons.hourglass_top_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: '${stats.totalGuests}',
-                        label: 'Guests',
-                        icon: Icons.person_add_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              // ATTENDANCE STATS
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: '${stats.buggyCount}/$buggyCapacity',
-                        label: 'Buggies',
-                        icon: Icons.electric_rickshaw_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: '${stats.dinnerCount}',
-                        label: 'Dinner',
-                        icon: Icons.restaurant_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: '${stats.waitlistGolfers}',
-                        label: 'Waitlist',
-                        icon: Icons.priority_high_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: ModernMetricStat(
-                        value: '${stats.breakfastCount}',
-                        label: 'Breakfast',
-                        icon: Icons.breakfast_dining_rounded,
-                        color: AppColors.lime500,
-                        iconColor: AppColors.dark900,
-                        isCompact: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              const Divider(),
-              const SizedBox(height: AppSpacing.lg),
-              // STATUS BAR
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          '${stats.confirmedGolfers}/$capacity spaces',
-                          style: const TextStyle(
-                            fontSize: AppTypography.sizeBodySmall,
-                            fontWeight: AppTypography.weightSemibold,
-                            color: Color(0xFF2C3E50),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      BoxyArtPill.status(
-                        label: isClosed ? 'Registration Closed' : (isClosed ? 'Registration Closed' : 'Closing Soon'),
-                        color: isClosed 
-                            ? (Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark400)
-                            : AppColors.coral400,
-                        icon: isClosed ? Icons.lock_outline_rounded : Icons.hourglass_bottom_rounded,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        RegistrationStatsCard(event: event, isCompact: false),
+        const SizedBox(height: AppTheme.cardSpacing),
+
         SizedBox(height: AppTheme.cardSpacing),
 
         // PLAYING MEMBERS

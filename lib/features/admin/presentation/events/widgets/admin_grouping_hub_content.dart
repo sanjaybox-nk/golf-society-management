@@ -6,13 +6,12 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
-import 'package:golf_society/domain/scoring/handicap_calculator.dart';
-import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/events/presentation/widgets/grouping_widgets.dart';
 import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
+import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
 
 class AdminGroupingHubContent extends ConsumerStatefulWidget {
@@ -86,71 +85,9 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         }
         
         // Calculate Unassigned Players
-        final unassignedSquad = <TeeGroupParticipant>[];
-        if (localGroups != null) {
-          int rollingCount = 0;
-          final capacity = event.maxParticipants ?? 999;
-          final isClosed = event.isRegistrationClosed;
-          
-          final assignedPlayerIds = localGroups
-              .expand((g) => g.players)
-              .map((p) => '${p.registrationMemberId}|${p.isGuest}')
-              .toSet();
-
-          for (final item in RegistrationLogic.getSortedItems(event)) {
-             final status = RegistrationLogic.calculateStatus(
-                isGuest: item.isGuest,
-                isConfirmed: item.isConfirmed,
-                hasPaid: item.hasPaid,
-                capacity: capacity,
-                confirmedCount: rollingCount,
-                isEventClosed: isClosed,
-                statusOverride: item.statusOverride,
-             );
-
-             if (status == RegistrationStatus.confirmed) {
-               rollingCount++;
-               final playerId = '${item.registration.memberId}|${item.isGuest}';
-               if (!assignedPlayerIds.contains(playerId)) {
-                  final double rawHandicap;
-                  if (item.isGuest) {
-                     rawHandicap = double.tryParse(item.registration.guestHandicap ?? '') ?? 28.0;
-                  } else {
-                     rawHandicap = handicapMap[item.registration.memberId] ?? 28.0;
-                  }
-
-                  final double playingHandicap;
-                  if (comp?.rules != null) {
-                    playingHandicap = HandicapCalculator.calculatePlayingHandicap(
-                      handicapIndex: rawHandicap,
-                      rules: comp!.rules,
-                      courseConfig: event.courseConfig,
-                      useWhs: config.useWhsHandicaps,
-                    ).toDouble();
-                  } else {
-                    playingHandicap = rawHandicap;
-                  }
-                  
-                  unassignedSquad.add(TeeGroupParticipant(
-                    registrationMemberId: item.registration.memberId,
-                    name: item.name,
-                    isGuest: item.isGuest,
-                    handicapIndex: rawHandicap,
-                    playingHandicap: playingHandicap,
-                    needsBuggy: item.needsBuggy,
-                    buggyStatus: RegistrationStatus.confirmed, 
-                  ));
-               }
-             }
-          }
-        }
-
         return SliverToBoxAdapter(
           child: Column(
             children: [
-              if (unassignedSquad.isNotEmpty) 
-                _buildSquadPool(context, unassignedSquad, memberMap),
-              
               if (localGroups == null)
                 _buildEmptyState(context, event, events, handicapMap)
               else
@@ -170,54 +107,6 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
       title: 'No Tee Time Generated',
       message: 'Your squad hasn\'t been sorted into groups yet.',
       icon: Icons.grid_view_rounded,
-    );
-  }
-
-  Widget _buildSquadPool(BuildContext context, List<TeeGroupParticipant> squad, Map<String, Member> memberMap) {
-    return Container(
-      width: double.infinity,
-      color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          BoxyArtSectionTitle(title: 'SQUAD POOL (${squad.length})'),
-          SizedBox(
-            height: 90,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-              itemCount: squad.length,
-              itemBuilder: (context, idx) {
-                final p = squad[idx];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                  child: LongPressDraggable<Map<String, dynamic>>(
-                    data: {'player': p, 'group': null}, 
-                    delay: AppAnimations.fast,
-                    feedback: Material(
-                      elevation: 4,
-                      borderRadius: AppShapes.x2l,
-                      child: GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: AppShapes.iconHero),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GroupingPlayerAvatar(player: p, member: memberMap[p.registrationMemberId], size: AppShapes.iconXl),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          p.name.split(' ').first, 
-                          style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightMedium),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const Divider(height: 1),
-        ],
-      ),
     );
   }
 
@@ -306,13 +195,51 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     }
   }
 
-  void _handlePlayerAction(WidgetRef ref, List<TeeGroup> groups, String action, TeeGroupParticipant p, TeeGroup currentGroup) {
+  void _handlePlayerAction(WidgetRef ref, List<TeeGroup> groups, String action, TeeGroupParticipant p, TeeGroup currentGroup) async {
     if (action == 'captain') {
        p.isCaptain = !p.isCaptain;
        _updateDirty(true, groups, null);
     } else if (action == 'withdraw') {
-       currentGroup.players.remove(p);
-       _updateDirty(true, groups, null);
+       final eventsAsync = ref.read(adminEventsProvider);
+       final event = eventsAsync.value?.firstWhere((e) => e.id == widget.eventId);
+       if (event == null) return;
+
+       final result = GroupingService.handleWithdrawal(
+         event: event,
+         memberId: p.registrationMemberId,
+         isGuest: p.isGuest,
+         allMembers: ref.read(allMembersProvider).value ?? [],
+         useWhs: ref.read(themeControllerProvider).useWhsHandicaps,
+         rules: ref.read(competitionDetailProvider(event.id)).value?.rules,
+       );
+
+       await ref.read(eventsRepositoryProvider).updateEvent(result.event);
+       
+       // Update local state to reflect the new state (including potential auto-filling)
+       final newGroupsData = result.event.grouping['groups'] as List?;
+       if (newGroupsData != null) {
+          final newGroups = newGroupsData.map((g) => TeeGroup.fromJson(g)).toList();
+          ref.read(groupingLocalGroupsProvider.notifier).setGroups(newGroups);
+          ref.read(groupingDirtyProvider.notifier).setDirty(false); // Saved
+       }
+
+       // Broadcast Notifications
+       final notificationService = ref.read(notificationBroadcastServiceProvider);
+       final allMembers = ref.read(allMembersProvider).value ?? [];
+       
+       await notificationService.notifyCommitteeOfWithdrawal(
+         event: result.event, 
+         playerName: result.playerName, 
+         allMembers: allMembers,
+       );
+
+       if (result.promotedPlayerId != null) {
+         await notificationService.notifyPlayerOfPromotion(
+           event: result.event, 
+           memberId: result.promotedPlayerId!, 
+           groupIndex: 0, 
+         );
+       }
     }
   }
 }

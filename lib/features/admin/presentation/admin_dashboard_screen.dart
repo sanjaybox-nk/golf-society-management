@@ -52,13 +52,57 @@ class AdminDashboardScreen extends ConsumerWidget {
                   if (nextEvent != null) {
                     return DashboardHeroCard(
                       event: nextEvent,
-                      onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(nextEvent.id)}/home'),
+                      onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(nextEvent.id)}/event'),
                     );
                   }
                   return const SizedBox.shrink();
                 },
                 loading: () => const SizedBox(height: 180, child: Center(child: CircularProgressIndicator())),
                 error: (err, stack) => Text('Error loading events: $err'),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+              
+              // 1.5 Active Polls Aggregator (Relocated Phase 3)
+              eventsAsync.when(
+                data: (events) {
+                  final activePolls = events.expand((e) => e.feedItems.where((i) => i.type == FeedItemType.poll && i.isPublished).map((item) => (e, item))).toList();
+                  if (activePolls.isEmpty) return const SizedBox.shrink();
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const BoxyArtSectionTitle(title: 'Active Event Polls'),
+                      ...activePolls.map((pair) {
+                        final event = pair.$1;
+                        final poll = pair.$2;
+                        return BoxyArtCard(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                          onTap: () => context.go('/admin/events/manage/${event.id}/event'),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.poll_rounded, color: AppColors.lime500),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(poll.title ?? 'Poll', style: AppTypography.labelStrong),
+                                    Text('From: ${event.title}', style: AppTypography.bodySmall),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: AppSpacing.xl),
+                    ],
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (e, s) => const SizedBox.shrink(),
               ),
 
               const BoxyArtSectionTitle(

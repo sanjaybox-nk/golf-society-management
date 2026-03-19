@@ -11,6 +11,7 @@ import '../../members/presentation/profile_provider.dart';
 import '../../surveys/presentation/surveys_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/survey.dart';
+import '../../events/presentation/events_provider.dart';
 
 /// Track dismissed survey IDs for the current session to keep the home screen clean.
 class DismissedSurveysNotifier extends Notifier<Set<String>> {
@@ -42,6 +43,7 @@ class MemberHomeScreen extends ConsumerWidget {
     final personalStanding = ref.watch(homeMemberStandingProvider);
     final societyConfig = ref.watch(themeControllerProvider);
     final surveysAsync = ref.watch(activeSurveysProvider);
+    final eventsAsync = ref.watch(eventsProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Match provided aesthetic
@@ -234,6 +236,28 @@ class MemberHomeScreen extends ConsumerWidget {
                             },
                             loading: () => [const SizedBox.shrink()],
                             error: (_, _) => [const SizedBox.shrink()],
+                          ),
+
+                          // Active Event Polls (Relocated Phase 3)
+                          ...eventsAsync.when(
+                            data: (events) {
+                              final activePolls = events.expand((e) => e.feedItems.where((i) => i.type == FeedItemType.poll && i.isPublished).map((item) => (e, item))).toList();
+                              if (activePolls.isEmpty) return [const SizedBox.shrink()];
+                              
+                              return [
+                                BoxyArtSectionTitle(
+                                  title: 'Society Polls',
+                                  isPeeking: isPeeking,
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                ...activePolls.map((pair) => Padding(
+                                  padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                                  child: _GlobalPollCard(event: pair.$1, item: pair.$2),
+                                )),
+                              ];
+                            },
+                            loading: () => [const SizedBox.shrink()],
+                            error: (e, s) => [const SizedBox.shrink()],
                           ),
           
                           // Next Match Hero Card
@@ -895,6 +919,152 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
+    }
+  }
+}
+class _GlobalPollCard extends ConsumerWidget {
+  final GolfEvent event;
+  final EventFeedItem item;
+
+  const _GlobalPollCard({required this.event, required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final options = (item.pollData['options'] as List?)?.map((e) => e.toString()).toList() ?? [];
+    final votes = (item.pollData['votes'] as Map?)?.cast<String, String>() ?? {};
+    final user = ref.watch(effectiveUserProvider);
+    final userVote = votes[user.id];
+    final hasVoted = userVote != null;
+    
+    // Calculate percentages
+    final totalVotes = votes.length;
+    final Map<String, int> counts = {};
+    for (var opt in options) {
+      counts[opt] = votes.values.where((v) => v == opt).length;
+    }
+
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.poll_rounded, color: AppColors.lime500, size: AppShapes.iconMd),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ACTIVE POLL',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.lime500,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.title ?? 'Quick Question',
+                      style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          ...options.map((option) {
+            final count = counts[option] ?? 0;
+            final percent = totalVotes == 0 ? 0.0 : count / totalVotes;
+            final isSelected = userVote == option;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: GestureDetector(
+                onTap: hasVoted ? null : () => _vote(ref, option),
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 48,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: AppShapes.md,
+                        border: Border.all(
+                          color: isSelected ? AppColors.lime500 : Colors.transparent,
+                        ),
+                      ),
+                    ),
+                    if (hasVoted)
+                      AnimatedContainer(
+                        duration: AppAnimations.slow,
+                        height: 48,
+                        width: MediaQuery.of(context).size.width * percent,
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityMedium) : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+                          borderRadius: AppShapes.md,
+                        ),
+                      ),
+                    Positioned.fill(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              option,
+                              style: TextStyle(
+                                fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightMedium,
+                                fontSize: AppTypography.sizeButton,
+                              ),
+                            ),
+                            if (hasVoted)
+                              Text('${(percent * 100).round()}%'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          if (hasVoted)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Text(
+                '$totalVotes vote${totalVotes == 1 ? '' : 's'} • From ${event.title}',
+                style: AppTypography.bodySmall.copyWith(
+                  color: Theme.of(context).disabledColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _vote(WidgetRef ref, String option) async {
+    final user = ref.read(effectiveUserProvider);
+    final votes = Map<String, String>.from(item.pollData['votes'] ?? {});
+    votes[user.id] = option;
+
+    final updatedItem = item.copyWith(
+      pollData: {
+        ...item.pollData,
+        'votes': votes,
+      },
+    );
+
+    final List<EventFeedItem> updatedItems = List.from(event.feedItems);
+    final index = updatedItems.indexWhere((i) => i.id == item.id);
+    if (index != -1) {
+      updatedItems[index] = updatedItem;
+      final updatedEvent = event.copyWith(feedItems: updatedItems);
+      await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
     }
   }
 }

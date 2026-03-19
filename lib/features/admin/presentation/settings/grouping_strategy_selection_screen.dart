@@ -17,25 +17,29 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
         id: 'balanced',
         label: 'Balanced Teams',
         description: 'Balances total handicap across all groups. Best for team events or fair competition.',
-        icon: Icons.balance_rounded,
+        icon: Icons.balance_outlined,
+        selectedIcon: Icons.balance_rounded,
       ),
       _GroupingStrategyOption(
         id: 'progressive',
         label: 'Progressive (Low HC First)',
         description: 'Orders groups by ability (Leaders out first). Great for pace of play.',
         icon: Icons.trending_up_rounded,
+        selectedIcon: Icons.trending_up_rounded,
       ),
       _GroupingStrategyOption(
         id: 'similar',
         label: 'Similar Ability',
         description: 'Groups players of similar skill levels together. Good for peer competition.',
-        icon: Icons.group_work_rounded,
+        icon: Icons.group_work_outlined,
+        selectedIcon: Icons.group_work_rounded,
       ),
       _GroupingStrategyOption(
         id: 'random',
         label: 'Random Draw',
         description: 'Randomly mixes players (respects pairings/buggies). Fun for social events.',
         icon: Icons.shuffle_rounded,
+        selectedIcon: Icons.shuffle_rounded,
       ),
     ];
 
@@ -56,7 +60,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                 final isSelected = strategy.id == current;
                 final theme = Theme.of(context);
                 final isDark = theme.brightness == Brightness.dark;
-                const identityColor = AppColors.teamA;
+                final identityColor = theme.colorScheme.primary;
                 final iconColor = isSelected ? identityColor : (isDark ? AppColors.dark300 : AppColors.dark400);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -79,7 +83,7 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                           ),
                           child: Center(
                             child: Icon(
-                              strategy.icon, 
+                              isSelected ? strategy.selectedIcon : strategy.icon, 
                               color: iconColor, 
                               size: AppShapes.iconLg,
                             ),
@@ -112,8 +116,8 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
                           ),
                         ),
                         if (isSelected)
-                          const Padding(
-                            padding: EdgeInsets.only(left: AppSpacing.sm, top: 2),
+                          Padding(
+                            padding: const EdgeInsets.only(left: AppSpacing.sm, top: 2),
                             child: Icon(
                               Icons.check_circle_rounded,
                               color: identityColor,
@@ -148,11 +152,13 @@ class _GroupingStrategyOption {
   final String label;
   final String description;
   final IconData icon;
-
+  final IconData selectedIcon;
+ 
   _GroupingStrategyOption({
     required this.id,
     required this.label,
     required this.description,
     required this.icon,
+    required this.selectedIcon,
   });
 }

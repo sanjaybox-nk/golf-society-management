@@ -15,25 +15,25 @@ class AdminShell extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     final isEventManagement = location.contains('/admin/events/manage/');
 
-    if (isEventManagement) return navigationShell;
-
     return ResponsiveLayout(
-      mobile: _buildMobile(context),
-      desktop: _buildDesktop(context),
+      mobile: _buildMobile(context, isEventManagement),
+      desktop: _buildDesktop(context, isEventManagement),
     );
   }
 
-  Widget _buildMobile(BuildContext context) {
+  Widget _buildMobile(BuildContext context, bool isEventManagement) {
     final theme = Theme.of(context);
     return Scaffold(
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: BoxyArtBottomNavBar(
-        selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
-        onItemSelected: _onTap,
-        borderColor: theme.primaryColor,
-        items: NavigationConstants.adminNavItems,
-      ),
+      bottomNavigationBar: isEventManagement 
+          ? null 
+          : BoxyArtBottomNavBar(
+              selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
+              onItemSelected: _onTap,
+              borderColor: theme.primaryColor,
+              items: NavigationConstants.adminNavItems,
+            ),
     );
   }
 
@@ -45,27 +45,29 @@ class AdminShell extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktop(BuildContext context) {
+  Widget _buildDesktop(BuildContext context, bool isEventManagement) {
     final theme = Theme.of(context);
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
-            onDestinationSelected: _onTap,
-            labelType: NavigationRailLabelType.all,
-            backgroundColor: Colors.black,
-            selectedIconTheme: IconThemeData(color: theme.primaryColor),
-            unselectedIconTheme: IconThemeData(color: theme.primaryColor.withValues(alpha: 0.4)),
-            selectedLabelTextStyle: TextStyle(color: theme.primaryColor, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold),
-            unselectedLabelTextStyle: TextStyle(color: theme.primaryColor.withValues(alpha: 0.4), fontSize: AppTypography.sizeLabel),
-            destinations: _navItems().map((item) => NavigationRailDestination(
-              icon: item.icon,
-              selectedIcon: item.activeIcon,
-              label: Text(item.label ?? ''),
-            )).toList(),
-          ),
-          VerticalDivider(thickness: 1, width: AppShapes.borderThin, color: AppColors.pureWhite.withValues(alpha: 0.10)),
+          if (!isEventManagement) ...[
+            NavigationRail(
+              selectedIndex: _mapBranchToUiIndex(navigationShell.currentIndex),
+              onDestinationSelected: _onTap,
+              labelType: NavigationRailLabelType.all,
+              backgroundColor: Colors.black,
+              selectedIconTheme: IconThemeData(color: theme.primaryColor),
+              unselectedIconTheme: IconThemeData(color: theme.primaryColor.withValues(alpha: 0.4)),
+              selectedLabelTextStyle: TextStyle(color: theme.primaryColor, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold),
+              unselectedLabelTextStyle: TextStyle(color: theme.primaryColor.withValues(alpha: 0.4), fontSize: AppTypography.sizeLabel),
+              destinations: _navItems().map((item) => NavigationRailDestination(
+                icon: item.icon,
+                selectedIcon: item.activeIcon,
+                label: Text(item.label ?? ''),
+              )).toList(),
+            ),
+            VerticalDivider(thickness: 1, width: AppShapes.borderThin, color: AppColors.pureWhite.withValues(alpha: 0.10)),
+          ],
           Expanded(child: navigationShell),
         ],
       ),

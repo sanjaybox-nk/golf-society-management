@@ -22,7 +22,6 @@ class EventAwardsSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const BoxyArtSectionTitle(title: 'Prizes & Awards'),
-            const SizedBox(height: AppTheme.sectionSpacing),
             BoxyArtCard(
               child: Column(
                 children: [
@@ -44,7 +43,7 @@ class EventAwardsSection extends ConsumerWidget {
                         ref: ref,
                       );
                     }),
-                    const SizedBox(height: AppSpacing.x2l),
+                    const SizedBox(height: AppSpacing.cardToLabel),
                     BoxyArtButton(
                       title: 'ADD AWARD',
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
@@ -129,7 +128,7 @@ class _AwardRowState extends State<_AwardRow> {
                 onChanged: (v) => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(label: v)),
               ),
             ),
-            const SizedBox(width: AppSpacing.x2l),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               flex: 1,
               child: BoxyArtFormField(
@@ -145,7 +144,7 @@ class _AwardRowState extends State<_AwardRow> {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.x2l),
+        const SizedBox(height: AppSpacing.cardToLabel),
         Row(
           children: ['Cup', 'Cash', 'Voucher'].map((type) {
             final isSelected = widget.award.type.toLowerCase() == type.toLowerCase();

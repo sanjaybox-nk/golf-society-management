@@ -35,7 +35,7 @@ class AppTypography {
   static const FontWeight weightMedium = FontWeight.w500;
   static const FontWeight weightRegular = FontWeight.w400;
 
-  // 1. Display (Syne - Expressive)
+  // 1. Display (Plus Jakarta Sans - Expressive)
   // Usage: Massive marketing numbers or "Hero" stats.
   static const TextStyle displayHero = TextStyle(
     fontFamily: 'Plus Jakarta Sans',

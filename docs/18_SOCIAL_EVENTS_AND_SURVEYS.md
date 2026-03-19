@@ -2,6 +2,21 @@
 
 The Golf Society Management system supports both golf and non-golf events, along with a sophisticated feedback engine comprising quick polls and multi-question surveys.
 
+## Society Polls & Surveys
+
+As of the March 2026 Architectural Update, Polls and Surveys have been elevated from event-specific items to **Global Society Features**.
+
+### Global Aggregation
+- **Member Home Screen**: Active polls from all upcoming events are now aggregated in a dedicated "Society Polls" section immediately upon app launch.
+- **Admin Dashboard**: Administrators can now monitor and manage all active surveys across all events from the main Admin Console dashboard.
+
+### Implementation Patterns
+Polls are defined within `EventFeedItem` models with `FeedItemType.poll`. While created in the context of an event (for scoping), they are surfaced globally to maximize engagement and visibility.
+
+1. **MemberHome**: Uses `activeSurveysProvider` to fetch and display polls.
+2. **AdminDashboard**: Surfaces a summary of active surveys for quick oversight.
+3. **Event Hub**: Polls are filtered *out* of event-specific dashboards to prevent redundancy, promoting a centralized communication strategy.
+
 ## Social Events
 Events are no longer restricted to golf competitions. Admins can create "Social" events (covering AGMs, get-togethers, dinners, etc.).
 - **Dynamic Interface**: Social events automatically hide golf-specific fields (Tee Times, Course Selection, Prizes).

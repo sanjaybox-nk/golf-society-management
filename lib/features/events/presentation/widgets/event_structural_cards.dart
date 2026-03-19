@@ -5,6 +5,8 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
+import 'package:golf_society/domain/grouping/tee_group.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 class EventHeadlineCard extends StatelessWidget {
   final GolfEvent event;
@@ -148,28 +150,30 @@ class EventRegistrationCard extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: BoxyArtCard(
-        child: Column(
-          children: [
-            if (!isRegistered) ...[
-              Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isRegistered) ...[
+            BoxyArtCard(
+              child: Column(
                 children: [
                   Text(
                     isFull ? 'Event Full' : 'Secure your spot',
                     style: AppTypography.displayLargeBody.copyWith(
                       fontWeight: AppTypography.weightBlack,
-                      letterSpacing: 0.5,
+                      letterSpacing: -0.5,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   if (event.registrationDeadline != null) ...[
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      isFull ? 'Register to join the waitlist' : 'Closes: ${DateFormat.yMMMd().format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
+                      isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}',
                       style: AppTypography.labelStrong.copyWith(
                         color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh), 
-                        fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: 0.2,
+                        fontWeight: AppTypography.weightBlack,
+                        letterSpacing: 1.2,
+                        fontSize: AppTypography.sizeCaption,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -179,189 +183,199 @@ class EventRegistrationCard extends ConsumerWidget {
                       isFull ? 'Join the waitlist below' : 'Register below to join the event',
                       style: AppTypography.labelStrong.copyWith(
                         color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontWeight: AppTypography.weightExtraBold,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ],
-                ],
-              ),
-              const SizedBox(height: AppSpacing.x2l),
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: AppSpacing.md,
-                    height: AppSpacing.md,
-                    decoration: BoxDecoration(
-                      color: myRegistration.hasPaid ? AppColors.lime500 : const Color(0xFFF39C12),
-                      shape: BoxShape.circle,
-                      boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Text(
-                    myRegistration.hasPaid ? 'Confirmed (Paid)' : 'Registered (Pending)',
-                    style: AppTypography.displayLargeBody.copyWith(
-                      fontWeight: AppTypography.weightBlack,
-                      letterSpacing: 0.5,
-                    ),
+                  const SizedBox(height: AppSpacing.x2l),
+                  BoxyArtButton(
+                    title: isFull ? 'Register (Waitlist)' : 'Register Now',
+                    onTap: () {
+                      try {
+                        GoRouter.of(context).push('/events/${event.id}/register-form');
+                      } catch (_) {}
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.x2l),
-            ],
-            if (isRegistered) ...[
-              const SizedBox(height: AppSpacing.x2l),
-              // Compact Status Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          ] else ...[
+            // MEMBER STATUS SECTION
+            BoxyArtSectionTitle(
+              title: myRegistration.guestName != null ? 'My Status' : 'Registration Status',
+            ),
+            BoxyArtCard(
+              padding: const EdgeInsets.all(AppSpacing.x2l),
+              child: Column(
                 children: [
-                  _buildCompactStatusIcon(
-                    context, 
-                    Icons.payments_rounded, 
-                    myRegistration.hasPaid, 
-                    'Paid',
-                    AppColors.lime500,
+                  _buildSelectionGrid(
+                    context,
+                    isConfirmed: myRegistration.isConfirmed,
+                    statusOverride: myRegistration.statusOverride,
+                    hasPaid: myRegistration.hasPaid,
+                    attendingBreakfast: myRegistration.attendingBreakfast,
+                    attendingLunch: myRegistration.attendingLunch,
+                    attendingDinner: myRegistration.attendingDinner,
+                    needsBuggy: myRegistration.needsBuggy,
                   ),
-                  _buildStatusSeparator(),
-                  _buildCompactStatusIcon(
-                    context, 
-                    Icons.breakfast_dining_rounded, 
-                    myRegistration.attendingBreakfast, 
-                    'Breakfast',
-                    AppColors.amber500,
-                  ),
-                  _buildStatusSeparator(),
-                  _buildCompactStatusIcon(
-                    context, 
-                    Icons.lunch_dining_rounded, 
-                    myRegistration.attendingLunch, 
-                    'Lunch',
-                    AppColors.amber500,
-                  ),
-                  _buildStatusSeparator(),
-                  _buildCompactStatusIcon(
-                    context, 
-                    Icons.restaurant_rounded, 
-                    myRegistration.attendingDinner, 
-                    'Dinner',
-                    AppColors.coral500,
-                  ),
-                  if (myRegistration.needsBuggy) ...[
-                    _buildStatusSeparator(),
-                    _buildCompactStatusIcon(
-                      context, 
-                      Icons.electric_rickshaw_rounded, 
-                      true, 
-                      'Buggy',
-                      Theme.of(context).primaryColor,
+                  if (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.x2l),
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: AppShapes.md,
+                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                      ),
+                      child: _buildDetailSnippet(
+                        context, 
+                        Icons.set_meal_rounded, 
+                        myRegistration.dietaryRequirements!,
+                      ),
                     ),
                   ],
+                  const SizedBox(height: AppSpacing.x2l),
+                  BoxyArtButton(
+                    title: isPastDeadline ? 'Registration Closed' : 'Edit Registration',
+                    onTap: (isPastDeadline && !isManagement) ? null : () {
+                      try {
+                        GoRouter.of(context).push('/events/${event.id}/register-form');
+                      } catch (_) {}
+                    },
+                  ),
                 ],
               ),
-              
-              // Detail Snippets
-              if (myRegistration.guestName != null || 
-                  (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty)) ...[
-                const SizedBox(height: AppSpacing.lg),
-                if (myRegistration.hasPaid)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary.withValues(alpha: AppColors.opacityLow),
-                      borderRadius: AppShapes.sm,
-                      border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: AppColors.opacityMedium)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_rounded, size: 12, color: Theme.of(context).colorScheme.secondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Paid',
-                          style: AppTypography.caption.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
-                        : Colors.black.withValues(alpha: 0.03),
-                    borderRadius: AppShapes.md,
-                  ),
-                  child: Column(
-                    children: [
-                      if (myRegistration.guestName != null)
-                        _buildDetailSnippet(
-                          context, 
-                          Icons.person_add_rounded, 
-                          'Guest: ${myRegistration.guestName}',
-                        ),
-                      if (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty) ...[
-                        if (myRegistration.guestName != null) const SizedBox(height: AppSpacing.sm),
-                        _buildDetailSnippet(
-                          context, 
-                          Icons.set_meal_rounded, 
-                          myRegistration.dietaryRequirements!,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: AppSpacing.x2l),
-            ],
-            
-            BoxyArtButton(
-              title: isPastDeadline 
-                  ? 'Registration Closed' 
-                  : (isRegistered ? 'Edit Registration' : (isFull ? 'Register (Waitlist)' : 'Register Now')),
-              onTap: (isPastDeadline || isManagement) ? null : () {
-                try {
-                  GoRouter.of(context).push('/events/${event.id}/register-form');
-                } catch (_) {}
-              },
             ),
+
+            // GUEST STATUS SECTION (If guest exists)
+            if (myRegistration.guestName != null) ...[
+              const SizedBox(height: AppSpacing.lg), // cardToLabel
+              const BoxyArtSectionTitle(title: 'My Guest Status'),
+              BoxyArtCard(
+                padding: const EdgeInsets.all(AppSpacing.x2l),
+                child: _buildSelectionGrid(
+                  context,
+                  isConfirmed: myRegistration.guestIsConfirmed,
+                  statusOverride: null,
+                  hasPaid: myRegistration.hasPaid,
+                  attendingBreakfast: myRegistration.guestAttendingBreakfast,
+                  attendingLunch: myRegistration.guestAttendingLunch,
+                  attendingDinner: myRegistration.guestAttendingDinner,
+                  needsBuggy: myRegistration.guestNeedsBuggy,
+                ),
+              ),
+            ],
           ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildCompactStatusIcon(BuildContext context, IconData icon, bool active, String label, Color activeColor) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = active ? activeColor : (isDark ? AppColors.dark400 : AppColors.dark200);
-    
+  Widget _buildSelectionGrid(
+    BuildContext context, {
+    required bool isConfirmed,
+    required String? statusOverride,
+    required bool hasPaid,
+    required bool attendingBreakfast,
+    required bool attendingLunch,
+    required bool attendingDinner,
+    required bool needsBuggy,
+  }) {
+    final boxes = [
+      if (statusOverride == 'waitlist')
+        _buildStatusBox(context, Icons.priority_high_rounded, 'Waitlist', 'Status')
+      else if (statusOverride == 'withdrawn')
+        _buildStatusBox(context, Icons.person_remove_rounded, 'Removed', 'Status')
+      else 
+        _buildStatusBox(context, isConfirmed ? Icons.check_circle_rounded : Icons.pending_rounded, isConfirmed ? 'Playing' : 'Pending', 'Status'),
+
+      if (hasPaid)
+        _buildStatusBox(context, Icons.payments_rounded, 'Paid', 'Payment'),
+      if (attendingBreakfast)
+        _buildStatusBox(context, Icons.breakfast_dining_rounded, 'Yes', 'Breakfast'),
+      if (attendingLunch)
+        _buildStatusBox(context, Icons.lunch_dining_rounded, 'Yes', 'Lunch'),
+      if (attendingDinner)
+        _buildStatusBox(context, Icons.restaurant_rounded, 'Yes', 'Dinner'),
+      if (needsBuggy)
+        _buildStatusBox(context, Icons.electric_rickshaw_rounded, 'Yes', 'Buggy'),
+    ];
+
+    if (boxes.isEmpty) return const SizedBox.shrink();
+
+    final rows = <List<Widget>>[];
+    for (var i = 0; i < boxes.length; i += 4) {
+      rows.add(boxes.sublist(i, i + 4 > boxes.length ? boxes.length : i + 4));
+    }
+
     return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: AppShapes.iconMd),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          label,
-          style: AppTypography.micro.copyWith(
-            fontWeight: active ? AppTypography.weightBold : AppTypography.weightRegular,
-            color: color,
+      children: rows.map((row) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: row == rows.last ? 0 : AppSpacing.md),
+          child: Row(
+            children: [
+              ...row.map((box) => Expanded(child: Padding(
+                padding: EdgeInsets.only(right: box == row.last && row.length == 4 ? 0 : AppSpacing.sm),
+                child: box,
+              ))),
+              if (row.length < 4) 
+                ...List.generate(4 - row.length, (index) => const Expanded(child: SizedBox())),
+            ],
           ),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 
-  Widget _buildStatusSeparator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      child: Container(
-        height: AppSpacing.xl,
-        width: AppShapes.borderThin,
-        color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium),
+  Widget _buildStatusBox(BuildContext context, IconData icon, String value, String label) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final neutralColor = isDark ? AppColors.pureWhite : AppColors.dark900;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: AppColors.actionGreen.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(24.0),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon, 
+            size: 20, 
+            color: neutralColor,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            value,
+            style: AppTypography.displayHeading.copyWith(
+              fontSize: AppTypography.sizeBody,
+              color: neutralColor,
+              letterSpacing: -0.2,
+              fontWeight: AppTypography.weightBold,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              fontSize: AppTypography.sizeMicroSmall,
+              color: neutralColor.withValues(alpha: AppColors.opacityHigh),
+              fontWeight: AppTypography.weightSemibold,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -524,6 +538,92 @@ class EventPodiumCard extends StatelessWidget {
           )
         ],
       )
+    );
+  }
+}
+
+class YourGroupCard extends ConsumerWidget {
+  final GolfEvent event;
+  const YourGroupCard({super.key, required this.event});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!event.isGroupingPublished) return const SizedBox.shrink();
+
+    final user = ref.watch(effectiveUserProvider);
+    TeeGroupParticipant? myParticipant;
+    TeeGroup? myGroup;
+
+    final groupsData = event.grouping['groups'] as List?;
+    if (groupsData != null) {
+      for (var gd in groupsData) {
+        try {
+          final group = TeeGroup.fromJson(gd as Map<String, dynamic>);
+          for (var p in group.players) {
+            if (p.registrationMemberId == user.id) {
+              myParticipant = p;
+              myGroup = group;
+              break;
+            }
+          }
+        } catch (_) {}
+        if (myParticipant != null) break;
+      }
+    }
+
+    if (myParticipant == null || myGroup == null) return const SizedBox.shrink();
+
+    final partners = myGroup.players
+        .where((p) => p.registrationMemberId != user.id)
+        .map((p) => toTitleCase(p.name))
+        .join(', ');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(title: 'Your Group'),
+          BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(context, Icons.access_time_rounded, 'TEE TIME: ${DateFormat.Hm().format(myGroup.teeTime)}'),
+                const SizedBox(height: AppSpacing.md),
+                _buildInfoRow(context, Icons.people_alt_rounded, 'PARTNERS: ${partners.isEmpty ? "Alone" : partners}'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: Theme.of(context).primaryColor),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: AppTypography.sizeCaptionStrong,
+              fontWeight: AppTypography.weightExtraBold,
+              letterSpacing: 1.2,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

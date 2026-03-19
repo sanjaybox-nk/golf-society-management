@@ -13,8 +13,6 @@ class EventCourseSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stateAsync = ref.watch(eventFormNotifierProvider);
-    final societyConfig = ref.watch(themeControllerProvider);
-    final currency = societyConfig.currencySymbol;
 
     return stateAsync.when(
       data: (state) {
@@ -24,7 +22,6 @@ class EventCourseSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const BoxyArtSectionTitle(title: 'Course Selection'),
-            const SizedBox(height: AppTheme.sectionSpacing),
             BoxyArtCard(
               child: Column(
                 children: [
@@ -61,27 +58,27 @@ class EventCourseSection extends ConsumerWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Course Address',
                     initialValue: state.courseDetails,
                     maxLines: 2,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCourseDetailsManual(v),
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   // Tee Selection (Simplified for now - can be expanded)
                   BoxyArtFormField(
                     label: 'Starting Tee (Manual)',
                     initialValue: state.selectedTeeName,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSelectedTeeName(v),
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Dress Code',
                     initialValue: state.dressCode,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDressCode(v),
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   Row(
                     children: [
                       Expanded(
@@ -93,17 +90,10 @@ class EventCourseSection extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.lg),
-                      Expanded(
-                        child: BoxyArtFormField(
-                          label: 'Buggy Cost ($currency)',
-                          initialValue: state.buggyCost?.toString() ?? '',
-                          keyboardType: TextInputType.number,
-                          onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateBuggyCost(double.tryParse(v)),
-                        ),
-                      ),
+                      const Expanded(child: SizedBox.shrink()),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.cardToLabel),
                   BoxyArtFormField(
                     label: 'Available Spaces',
                     initialValue: state.maxParticipants?.toString() ?? '',

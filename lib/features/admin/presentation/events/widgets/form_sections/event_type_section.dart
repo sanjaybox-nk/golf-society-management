@@ -19,8 +19,8 @@ class EventTypeSection extends ConsumerWidget {
             onTabSelected: (type) => ref.read(eventFormNotifierProvider.notifier).updateEventType(type),
             isExpanded: true,
             tabs: const [
-              ModernFilterTab(label: 'GOLF', value: EventType.golf, icon: Icons.sports_golf_rounded),
-              ModernFilterTab(label: 'SOCIAL', value: EventType.social, icon: Icons.celebration_rounded),
+              ModernFilterTab(label: 'Golf', value: EventType.golf),
+              ModernFilterTab(label: 'Social', value: EventType.social),
             ],
           ),
         ],

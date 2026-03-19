@@ -174,5 +174,5 @@ For **Stroke Play** and **Stableford** competitions involving mixed tees (e.g., 
 
 ### 6.2 Tie Break Logic Override
 The system supports multiple tie-break methods (Back 9, Back 6, etc.), but now allows for a **Manual Playoff** override.
--   **Standard**: Automatically sorts tied players by Back 9 score.
+-   **Standard**: Automatically sorts tied players using a progressive countback (B9, then B6, then B3, then B1). The leaderboard displays these values (B9 • B6 • B3) to provide transparency on tied rankings.
 -   **Playoff (Manual)**: Disables automatic sorting. Tied players remain in their original order (or entry order) until an admin manually adjusts the result or enters a playoff score.
