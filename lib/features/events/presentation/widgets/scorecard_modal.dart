@@ -215,7 +215,7 @@ class ScorecardModal {
                               manualTeeName: manualTee,
                             );
                             final teeName = manualTee ?? (playerTeeConfig.selectedTeeName ?? (event.selectedTeeName ?? 'Yellow'));
-                            final teeColor = _getTeeColor(teeName);
+                            final teeColor = _getTeeColor(teeName, playerTeeConfig.tees);
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,9 +229,9 @@ class ScorecardModal {
                                         padding: const EdgeInsets.only(left: 4.0),
                                         child: Text(
                                           entry.playerName.toUpperCase(),
-                                          style: AppTypography.displayLocker.copyWith(
+                                          style: AppTypography.display.copyWith(
                                             color: AppColors.dark900,
-                                            fontWeight: AppTypography.weightBlack,
+                                            fontWeight: AppTypography.weightHeavy,
                                             letterSpacing: 1.2,
                                           ),
                                         ),
@@ -284,32 +284,10 @@ class ScorecardModal {
                                 const SizedBox(height: AppSpacing.sm),
                                 Row(
                                   children: [
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'HC: ${entry.handicapIndex}',
-                                      style: AppTypography.labelStrong.copyWith(
-                                        color: AppColors.dark800,
-                                        fontWeight: AppTypography.weightBlack,
-                                      ),
-                                    ),
+                                    BoxyArtPill.hc(label: entry.handicapIndex.toStringAsFixed(1)),
                                     if (entry.playingHandicap != null) ...[
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                                        child: Text(
-                                          '•',
-                                          style: TextStyle(
-                                            color: AppColors.dark400,
-                                            fontWeight: AppTypography.weightBlack,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        'PHC: ${entry.playingHandicap}',
-                                        style: AppTypography.labelStrong.copyWith(
-                                          color: AppColors.dark800,
-                                          fontWeight: AppTypography.weightBlack,
-                                        ),
-                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      BoxyArtPill.phc(context: context, label: '${entry.playingHandicap}'),
                                     ],
                                     const Spacer(),
                                     BoxyArtPill.tee(label: teeName, teeColor: teeColor),
@@ -557,10 +535,9 @@ class ScorecardModal {
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
             isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE"),
-            style: AppTypography.label.copyWith(
-              fontSize: AppTypography.sizeCaption,
-              fontWeight: AppTypography.weightBlack,
-              color: AppColors.dark200,
+            style: AppTypography.micro.copyWith(
+              fontWeight: AppTypography.weightHeavy,
+              color: AppColors.textTertiary,
               letterSpacing: 2.0,
             ),
           ),
@@ -701,11 +678,10 @@ class ScorecardModal {
                   ),
                   child: Text(
                     result.isEmpty ? '-' : result,
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeCaptionStrong,
-                      fontWeight: AppTypography.weightBlack,
-                      color: textColor,
-                    ),
+                      style: AppTypography.label.copyWith(
+                        fontWeight: AppTypography.weightHeavy,
+                        color: textColor,
+                      ),
                   ),
                 ),
               );
@@ -766,9 +742,8 @@ class ScorecardModal {
         ),
         child: Text(
           label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+          style: AppTypography.micro.copyWith(
+            fontWeight: isSelected ? AppTypography.weightHeavy : AppTypography.weightStrong,
             color: isSelected ? AppColors.lime500 : AppColors.dark300,
             letterSpacing: 0.5,
           ),
@@ -777,13 +752,7 @@ class ScorecardModal {
     );
   }
 
-  static Color _getTeeColor(String teeName) {
-    final name = teeName.toLowerCase();
-    if (name.contains('white')) return AppColors.dark400;
-    if (name.contains('yellow')) return const Color(0xFFFFD700);
-    if (name.contains('red')) return const Color(0xFFFF4D4D);
-    if (name.contains('blue')) return const Color(0xFF1E90FF);
-    if (name.contains('black')) return const Color(0xFF2F2F2F);
-    return AppColors.textSecondary;
+  static Color _getTeeColor(String teeName, [List<TeeConfig>? teeConfigs]) {
+    return AppColors.getTeeColor(teeName, teeConfigs);
   }
 }

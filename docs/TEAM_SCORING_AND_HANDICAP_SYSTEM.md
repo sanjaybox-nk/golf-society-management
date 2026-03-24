@@ -121,7 +121,7 @@ To minimize confusion between Match Play and Stableford variants:
 
 #### B. Match Play
 - **Relative PHCs**: Players display PHCs **relative to the lowest player** in the group (who is zeroed).
-- **Themed Display**: Handicaps are shown below names using the standard format: `HC: 14.5 • PHC: 12`, where PHC is highlighted in the primary theme color.
+- **Themed Display**: Handicaps are displayed using the premium `BoxyArtPill.hc()` and `BoxyArtPill.phc()` components. These pills use consistent uppercase labels ("HC:", "PHC:") and ensure the index is always formatted to one decimal place (e.g., `8.4`). PHC is highlighted in the primary theme color.
 - **Reasoning**: In Match Play, only the *difference* in strokes matters. This simplifies on-course tracking.
 
 ### 7.3 Score Propagation (Marker vs. Player)

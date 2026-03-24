@@ -15,6 +15,7 @@ class MemberTile extends ConsumerWidget {
   final bool showFeeStatus;
   final String? secondaryMetricLabel; 
   final String? secondaryMetricValue;
+  final bool isAdminContext;
 
   const MemberTile({
     super.key,
@@ -25,11 +26,13 @@ class MemberTile extends ConsumerWidget {
     this.showFeeStatus = false,
     this.secondaryMetricLabel,
     this.secondaryMetricValue,
+    this.isAdminContext = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final config = ref.watch(themeControllerProvider);
     final primary = theme.colorScheme.primary;
     
     final currentUser = ref.watch(currentUserProvider);
@@ -37,157 +40,227 @@ class MemberTile extends ConsumerWidget {
     final canSeeFees = isAdmin && showFeeStatus;
 
     return BoxyArtCard(
-      onTap: onTap ?? () => MemberDetailsModal.show(context, member),
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: onTap ?? () => MemberDetailsModal.show(context, member, isAdminContext: isAdminContext),
+      onLongPress: onLongPress,
+      padding: const EdgeInsets.all(AppSpacing.large),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar Section
+              // 1. Left Section: Avatar & Since
               Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: primary.withValues(alpha: AppColors.opacityLow),
-                        width: AppShapes.borderMedium,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: AppShapes.pill,
-                      child: member.avatarUrl != null 
-                          ? Image.network(member.avatarUrl!, fit: BoxFit.cover)
-                          : Container(
-                              color: primary.withValues(alpha: AppColors.opacitySubtle),
-                              child: Center(
-                                child: Text(
-                                  '${member.firstName[0]}${member.lastName[0]}',
-                                  style: AppTypography.displaySection.copyWith(
-                                    color: primary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ),
-                            ),
-                    ),
+                  BoxyArtAvatar(
+                    url: member.avatarUrl,
+                    initials: '${member.firstName.isNotEmpty ? member.firstName[0] : ''}${member.lastName.isNotEmpty ? member.lastName[0] : ''}',
+                    radius: 40,
+                    isCircle: true,
                   ),
                   if (member.joinedDate != null) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Since ${member.joinedDate!.year}',
-                      style: AppTypography.caption.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
+                      style: AppTypography.micro.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                       ),
                     ),
                   ],
                 ],
               ),
-              const SizedBox(width: AppSpacing.xl),
-              
-              // Info Section
+
+              // 2. Vertical Divider
+              Container(
+                width: 1,
+                height: 104,
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+              ),
+
+              // 3. Right Section: Information Stack
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      member.displayName,
-                      style: AppTypography.displaySubPage.copyWith(fontSize: 19),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    
-                    // Status (Flush Aligned)
-                    Text(
-                      member.status.displayName,
-                      style: AppTypography.displayUI.copyWith(
-                        color: member.status.color,
-                        fontWeight: AppTypography.weightBold,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // Metrics Grid
-                    Consumer(
-                      builder: (context, ref, child) {
-                        final society = ref.watch(themeControllerProvider);
-                        final system = society.handicapSystem;
-                        
-                        return Row(
-                          children: [
-                            _buildMetricColumn(
-                              context,
-                              toTitleCase('HANDICAP'),
-                              member.handicap.toStringAsFixed(1),
+                child: SizedBox(
+                  height: 104, // Total height to match identity block
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 3a. Top half: Name, Status, Roles
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Member Name
+                          Text(
+                            toTitleCase('${member.firstName} ${member.lastName}'),
+                            style: AppTypography.headline,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          // Status Indicator Row (with green pipe)
+                          Row(
+                            children: [
+                              Container(
+                                width: 3,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: member.status == MemberStatus.active 
+                                      ? theme.colorScheme.primary 
+                                      : AppColors.amber500,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text(
+                                member.status.displayName,
+                                style: AppTypography.label.copyWith(
+                                  color: member.status == MemberStatus.active 
+                                      ? theme.colorScheme.primary 
+                                      : AppColors.amber500,
+                                  fontWeight: AppTypography.weightStrong,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          // Role Pills
+                          if (member.societyRole?.isNotEmpty == true || (isAdmin && member.role != MemberRole.member))
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Wrap(
+                                spacing: AppSpacing.xs,
+                                runSpacing: 4,
+                                children: [
+                                  if (member.societyRole?.isNotEmpty == true)
+                                    BoxyArtPill(
+                                      label: member.societyRole!,
+                                      color: Color(config.iconBadgeFillColor),
+                                      textColor: Color(config.iconBadgeIconColor),
+                                      hasHorizontalMargin: false,
+                                    ),
+                                  if (isAdmin && member.role != MemberRole.member)
+                                    BoxyArtPill(
+                                      label: toTitleCase(member.role.name),
+                                      color: StatusColors.neutral,
+                                      hasHorizontalMargin: false,
+                                    ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(width: AppSpacing.x2l),
-                            _buildMetricColumn(
-                              context,
-                              toTitleCase(secondaryMetricLabel ?? system.idLabel),
-                              secondaryMetricValue ?? (member.handicapId ?? '-'),
+                        ],
+                      ),
+
+                      const Spacer(),
+
+                      // 3b. Bottom half: Stats Row
+                      Padding(
+                        padding: EdgeInsets.only(right: canSeeFees ? 85 : 0), // Leave room for Fee Paid
+                        child: Row(
+                          children: [
+                            BoxyArtPill.hc(
+                              label: member.handicap.toStringAsFixed(1),
+                              hasHorizontalMargin: false,
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Container(
+                              width: 1,
+                              height: 10,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      '${secondaryMetricLabel ?? 'Events'} ',
+                                      style: AppTypography.label.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    secondaryMetricValue ?? '0',
+                                    style: AppTypography.label.copyWith(
+                                      fontWeight: AppTypography.weightHeavy,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
-                        );
-                      },
-                    ),
-                  ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          
-          // Bottom Labels (Collapsing)
-          if (member.societyRole?.isNotEmpty == true || (canSeeFees && member.hasPaid)) ...[
-            const SizedBox(height: AppSpacing.xl),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (member.societyRole?.isNotEmpty == true)
-                  BoxyArtPill(
-                    label: toTitleCase(member.societyRole!),
-                    color: primary,
-                    textColor: AppColors.actionText,
-                  ),
-                if (canSeeFees && member.hasPaid)
-                  BoxyArtFeePill(
-                    isPaid: true,
-                  ),
-              ],
+
+          // 4. Admin Action Button (Top Right)
+          if (isAdmin && isAdminContext)
+            Positioned(
+              top: -AppSpacing.sm,
+              right: -AppSpacing.sm,
+              child: Icon(
+                Icons.more_horiz_rounded,
+                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+              ),
             ),
-          ],
+
+          // 5. Bottom Right: Admin Status (Fee Paid)
+          if (canSeeFees)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    member.hasPaid ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                    size: 18,
+                    color: member.hasPaid ? Color(config.iconBadgeIconColor) : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'Fee Paid',
+                    style: AppTypography.label.copyWith(
+                      fontWeight: AppTypography.weightStrong,
+                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildMetricColumn(BuildContext context, String label, String value) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: AppTypography.microSmall.copyWith(
-            color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
-            fontSize: 11,
+          style: AppTypography.micro.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value,
-          style: AppTypography.displayLargeBody.copyWith(
-            fontWeight: AppTypography.weightExtraBold,
-            fontSize: 20,
-          ),
+          style: AppTypography.headline,
         ),
       ],
     );

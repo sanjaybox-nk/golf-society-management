@@ -4,7 +4,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 
 /// A centralized icon badge for small indicators (location, time, etc.)
-class BoxyArtIconBadge extends StatelessWidget {
+class BoxyArtIconBadge extends ConsumerWidget {
   final IconData icon;
   final Color color;
   final double size;
@@ -33,7 +33,7 @@ class BoxyArtIconBadge extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!isTinted) {
       return SizedBox(
         width: size,
@@ -44,13 +44,28 @@ class BoxyArtIconBadge extends StatelessWidget {
       );
     }
 
+    final config = ref.watch(themeControllerProvider);
+    
+    // Logic: If the provided color is roughly the "Action Color" (default behavior), 
+    // we allow the branding config to override it.
+    final bool isStandardAction = color.toARGB32() == config.secondaryColor || color.toARGB32() == 0xFF4ADE80;
+    
+    // Design 4.x: Always prioritize the global iconBadgeOpacity token for the fill alpha
+    final double effectiveOpacity = fillOpacity ?? config.iconBadgeOpacity;
+    
+    final Color effectiveFill = showFill 
+      ? (isStandardAction ? Color(config.iconBadgeFillColor) : color.withValues(alpha: effectiveOpacity))
+      : Colors.transparent;
+      
+    final Color effectiveIconColor = iconColor ?? (isStandardAction ? Color(config.iconBadgeIconColor) : color);
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: showFill ? color.withValues(alpha: fillOpacity ?? AppColors.opacityLow) : Colors.transparent,
+        color: effectiveFill,
         shape: useCircle ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: useCircle ? null : AppShapes.md,
+        borderRadius: useCircle ? null : BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.accentRadius ?? AppShapes.rMd),
         border: showBorder 
           ? Border.all(
               color: borderColor ?? color.withValues(alpha: 0.25),
@@ -62,7 +77,7 @@ class BoxyArtIconBadge extends StatelessWidget {
         child: Icon(
           icon,
           size: iconSize,
-          color: iconColor ?? color,
+          color: effectiveIconColor.withValues(alpha: config.iconOpacity),
         ),
       ),
     );
@@ -90,16 +105,28 @@ class BoxyArtNumberBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     // Spec: Rank #1 is amber, others are dark/neutral
     Color bg;
     Color fg;
     
-    if (isRanking && number == 1) {
-      bg = AppColors.amber500;
-      fg = AppColors.dark900;
+    if (isRanking) {
+      if (number == 1) {
+        bg = AppColors.amber500;
+        fg = AppColors.pureWhite;
+      } else if (number == 2) {
+        bg = isDark ? AppColors.dark200 : AppColors.dark600;
+        fg = AppColors.pureWhite;
+      } else if (number == 3) {
+        bg = const Color(0xFFCD7F32); // Bronze
+        fg = AppColors.pureWhite;
+      } else {
+        bg = isDark ? AppColors.dark600 : AppColors.dark100;
+        fg = isDark ? AppColors.dark100 : AppColors.dark800;
+      }
     } else {
-      bg = AppColors.actionGreen.withValues(alpha: 0.20);
+      bg = Theme.of(context).primaryColor.withValues(alpha: 0.20);
       fg = AppColors.dark900;
     }
 
@@ -161,7 +188,7 @@ class BoxyArtPill extends ConsumerWidget {
   }) {
     return BoxyArtPill(
       label: label,
-      color: color,
+      color: color ?? AppColors.lime400,
       icon: icon,
     );
   }
@@ -185,6 +212,8 @@ class BoxyArtPill extends ConsumerWidget {
     required String label,
     required Color color,
     IconData? icon,
+    Color? backgroundColor,
+    Color? textColor,
     double? fontSize,
     FontWeight? fontWeight,
     double? letterSpacing,
@@ -194,6 +223,8 @@ class BoxyArtPill extends ConsumerWidget {
       label: label,
       color: color,
       icon: icon,
+      backgroundColor: backgroundColor,
+      textColor: textColor,
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
@@ -204,11 +235,14 @@ class BoxyArtPill extends ConsumerWidget {
   /// Factory for Handicap (HC)
   factory BoxyArtPill.hc({
     required String label,
+    IconData? icon = Icons.show_chart_rounded,
+    bool hasHorizontalMargin = true,
   }) {
     return BoxyArtPill(
-      label: 'Hc: $label',
+      label: 'HC: $label',
       color: AppColors.dark150,
-      icon: Icons.show_chart_rounded,
+      icon: icon,
+      hasHorizontalMargin: hasHorizontalMargin,
     );
   }
 
@@ -216,11 +250,14 @@ class BoxyArtPill extends ConsumerWidget {
   factory BoxyArtPill.phc({
     required BuildContext context,
     required String label,
+    IconData? icon = Icons.flash_on_rounded,
+    bool hasHorizontalMargin = true,
   }) {
     return BoxyArtPill(
-      label: 'Phc: $label',
+      label: 'PHC: $label',
       color: Theme.of(context).primaryColor,
-      icon: Icons.flash_on_rounded,
+      icon: icon,
+      hasHorizontalMargin: hasHorizontalMargin,
     );
   }
 
@@ -255,25 +292,27 @@ class BoxyArtPill extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final config = ref.watch(themeControllerProvider);
-    Color effectiveTextColor = textColor ?? AppColors.dark300;
+    
+    // Effective Colors derived from 'color' if specific ones aren't provided
+    final Color effectiveBgColor = backgroundColor ?? (color?.withValues(alpha: 0.08) ?? Colors.transparent);
+    final Color? effectiveBorderColor = borderColor ?? (color?.withValues(alpha: 0.18));
+    final Color effectiveTextColor = textColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900);
 
     return Container(
       margin: EdgeInsets.only(
         left: hasHorizontalMargin ? AppSpacing.xs : 0,
         right: hasHorizontalMargin ? AppSpacing.xs : 0,
-        top: 4,
-        bottom: 4,
-      ),
-      padding: EdgeInsets.only(
-        left: (backgroundColor != null || icon != null || hasHorizontalMargin) ? AppSpacing.sm : 0,
-        right: AppSpacing.sm,
         top: 2,
         bottom: 2,
       ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
-        color: backgroundColor, // Will be null (transparent) for most pills
+        color: effectiveBgColor,
         borderRadius: BorderRadius.circular(config.pillRadius),
-        border: borderColor != null ? Border.all(color: borderColor!, width: 1) : null,
+        border: effectiveBorderColor != null ? Border.all(color: effectiveBorderColor, width: 1) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -286,13 +325,17 @@ class BoxyArtPill extends ConsumerWidget {
             iconWidget!,
             const SizedBox(width: AppSpacing.sm),
           ],
-          Text(
-            label.contains(':') ? label : toTitleCase(label),
-            style: AppTypography.caption.copyWith(
-              fontSize: fontSize ?? AppTypography.sizeLabelStrong,
-              color: effectiveTextColor,
-              fontWeight: fontWeight ?? (isDark ? AppTypography.weightSemibold : AppTypography.weightBold),
-              letterSpacing: letterSpacing,
+          Flexible(
+            child: Text(
+              label.contains(':') ? label : toTitleCase(label),
+              style: AppTypography.caption.copyWith(
+                fontSize: fontSize ?? AppTypography.sizeLabelStrong,
+                color: effectiveTextColor,
+                fontWeight: fontWeight ?? AppTypography.weightRegular,
+                letterSpacing: letterSpacing,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ],
@@ -321,13 +364,14 @@ class BoxyArtDateBadge extends StatelessWidget {
 
     return Container(
       width: 52,
-      constraints: const BoxConstraints(minHeight: 62),
+      constraints: const BoxConstraints(minHeight: 52),
       decoration: BoxDecoration(
-        color: AppColors.actionGreen.withValues(alpha: 0.20),
-        borderRadius: AppShapes.sm,
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.20),
+        borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.accentRadius ?? AppShapes.rSm),
       ),
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: AppSpacing.xs),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
@@ -336,6 +380,7 @@ class BoxyArtDateBadge extends StatelessWidget {
               fontSize: AppTypography.sizeMicroSmall,
               color: isDark ? AppColors.pureWhite : AppColors.dark900,
               fontWeight: AppTypography.weightExtraBold,
+              height: 1.0,
             ),
           ),
           FittedBox(
@@ -345,7 +390,7 @@ class BoxyArtDateBadge extends StatelessWidget {
                 ? '${date.day}-${endDate!.day}'
                 : DateFormat('d').format(date),
               style: AppTypography.displayHero.copyWith(
-                fontSize: 28, // Keep base size large, FittedBox will scale it down if needed
+                fontSize: 24, 
                 height: 1.0,
                 color: isDark ? AppColors.pureWhite : AppColors.dark900,
               ),
@@ -402,14 +447,14 @@ class BoxyArtFeePill extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark ? AppColors.dark400 : AppColors.dark300,
+                  color: theme.primaryColor,
                   width: 1.2,
                 ),
               ),
               child: Icon(
                 Icons.check,
                 size: 12,
-                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                color: theme.primaryColor,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -417,7 +462,7 @@ class BoxyArtFeePill extends StatelessWidget {
               'Fee Paid',
               style: AppTypography.caption.copyWith(
                 fontSize: AppTypography.sizeLabelStrong,
-                color: isDark ? AppColors.dark150 : AppColors.dark800,
+                color: theme.primaryColor,
                 fontWeight: AppTypography.weightBold,
               ),
             ),
@@ -447,12 +492,13 @@ class BoxyArtSquareBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
+        final theme = Theme.of(context);
         final config = ref.watch(themeControllerProvider);
-        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final isDark = theme.brightness == Brightness.dark;
 
         Color bg = backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50);
         if (isTinted) {
-          bg = AppColors.actionGreen.withValues(alpha: AppColors.opacityMedium);
+          bg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
         }
 
         return Container(
@@ -461,10 +507,20 @@ class BoxyArtSquareBadge extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: BorderRadius.circular(config.pillRadius * 0.4),
+            borderRadius: BorderRadius.circular(config.accentRadius),
           ),
-          child: this.child,
-        );
+          child: Center(
+            child: DefaultTextStyle.merge(
+              style: TextStyle(color: Color(config.iconBadgeIconColor).withValues(alpha: config.iconOpacity)),
+              child: IconTheme.merge(
+                data: IconThemeData(
+                  color: Color(config.iconBadgeIconColor).withValues(alpha: config.iconOpacity),
+                ),
+                child: this.child,
+                ),
+              ),
+            ),
+          );
       },
     );
   }

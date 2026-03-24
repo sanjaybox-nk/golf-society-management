@@ -17,7 +17,7 @@ The primary scoring system used. Points are awarded based on the number of strok
 -   *Net Eagle*: 4 Points
 
 **Handicap (WHS)**
-World Handicap System index. A measure of a golfer's potential ability. The app tracks this in the **Locker Room**.
+World Handicap System index. A measure of a golfer's potential ability. The app tracks this in the **Locker Room** and strictly formats the display to one decimal place (e.g., `8.4`) using the premium `BoxyArtPill.hc()` component.
 
 **Tee-off Time**
 The scheduled start time for a match or specific flight.

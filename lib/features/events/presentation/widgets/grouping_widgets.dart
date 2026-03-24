@@ -82,6 +82,9 @@ class GroupingPlayerTile extends ConsumerWidget {
   final double? handicapIndex;
   final ScoringStatus scoringStatus;
   final bool hasSocietyCut;
+  final bool isStableford;
+  final String? matchSide;
+  final int? phcOverride;
 
   const GroupingPlayerTile({
     super.key,
@@ -101,17 +104,18 @@ class GroupingPlayerTile extends ConsumerWidget {
     this.isScoreMode = false,
     this.scoreDisplay,
     this.isWinner = false,
-    this.matchSide, // 'A' or 'B'
-    this.phcOverride, // [NEW] Explicit override for team games
+    this.matchSide,
+    this.phcOverride,
     this.tieBreakLabel,
     this.thruLabel,
     this.handicapIndex,
     this.scoringStatus = ScoringStatus.ok,
     this.hasSocietyCut = false,
+    this.isStableford = true,
+    this.hasGuestInGroup = false,
   });
 
-  final String? matchSide;
-  final int? phcOverride;
+  final bool hasGuestInGroup; // [NEW] Member who brought a guest
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -136,96 +140,300 @@ class GroupingPlayerTile extends ConsumerWidget {
       }
     }
 
-    // 1. Build Leading (Avatar + Context Menu if Admin)
-    final Widget avatar = GroupingPlayerAvatar(
-      player: player,
-      member: member,
-      groupIndex: group.index,
-      totalGroups: totalGroups,
-      history: history,
-      size: 36,
-    );
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
+    final double cardHeight = vPadding * 4.8; // Increased to 4.8 to prevent vertical overflow with guest info/pills
 
-    final Widget leading = isAdmin
-        ? PopupMenuButton<String>(
-            onSelected: (val) => onAction?.call(val, player, group),
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
-            surfaceTintColor: Colors.transparent,
-            elevation: 8,
-            offset: const Offset(0, 48),
-            shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'move',
-                child: Row(
-                  children: [
-                    Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
-                    SizedBox(width: AppSpacing.md),
-                    Text('Move to Group...'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'remove',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
-                    SizedBox(width: AppSpacing.md),
-                    Text('Remove from Group'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'captain',
-                child: Row(
-                  children: [
-                    Icon(Icons.shield_outlined, size: AppShapes.iconSm),
-                    SizedBox(width: AppSpacing.md),
-                    Text('Toggle Captain'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'withdraw',
-                child: Row(
-                  children: [
-                    Icon(Icons.exit_to_app, size: AppShapes.iconSm, color: AppColors.coral500),
-                    SizedBox(width: AppSpacing.md),
-                    Text('Withdraw Member', style: TextStyle(color: AppColors.coral500)),
-                  ],
-                ),
-              ),
-            ],
-            child: avatar,
-          )
-        : avatar;
+    // Score Text Formatting (v4.0 standardized)
+    final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-');
+    final String rawScore = hasScore ? scoreDisplay! : '';
 
-    return BoxyArtMemberRow(
-      name: player.name,
-      initials: player.name,
-      avatarUrl: member?.avatarUrl,
-      leading: leading,
-      handicapIndex: handicapIndex ?? player.handicapIndex,
-      playingHandicap: displayPhc,
-      score: isScoreMode 
-          ? (scoringStatus != ScoringStatus.ok 
-              ? scoringStatus.name.toUpperCase() 
-              : (scoreDisplay != null && scoreDisplay != '-' && rules?.format == CompetitionFormat.stableford ? '$scoreDisplay pts' : (scoreDisplay ?? '-'))) 
-          : null,
-      scoreColor: scoringStatus != ScoringStatus.ok ? AppColors.coral500 : null,
-      tieBreakLabel: tieBreakLabel,
-      thruLabel: thruLabel,
-      isGuest: player.isGuest,
-      isCaptain: player.isCaptain,
-      needsBuggy: false, // [REFINED] Removed clutter from grouping view
-      isWinner: isScoreMode && isWinner,
-      matchSide: matchSide,
-      hasSocietyCut: hasSocietyCut,
-      isSelected: isSelected,
+    return InkWell(
       onTap: onTap,
-      useCard: true,
-      showChevron: false,
-      accentColor: varietyColor,
+      borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
+      child: BoxyArtCard(
+        // showShadow removed to honor design control
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 1. Avatar Section (Standardized 72x72)
+            SizedBox(
+              width: 72,
+              height: cardHeight,
+              child: isAdmin 
+                ? PopupMenuButton<String>(
+                    onSelected: (val) => onAction?.call(val, player, group),
+                    color: theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 8,
+                    offset: const Offset(0, 48),
+                    shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'move',
+                        child: Row(
+                          children: [
+                            Icon(Icons.drive_file_move_outlined, size: AppShapes.iconSm),
+                            SizedBox(width: AppSpacing.md),
+                            Text('Move to Group...'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'remove',
+                        child: Row(
+                          children: [
+                            Icon(Icons.person_remove_outlined, size: AppShapes.iconSm),
+                            SizedBox(width: AppSpacing.md),
+                            Text('Remove from Group'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'captain',
+                        child: Row(
+                          children: [
+                            Icon(Icons.shield_outlined, size: AppShapes.iconSm),
+                            SizedBox(width: AppSpacing.md),
+                            Text('Toggle Captain'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'withdraw',
+                        child: Row(
+                          children: [
+                            Icon(Icons.exit_to_app, size: AppShapes.iconSm, color: AppColors.coral500),
+                            SizedBox(width: AppSpacing.md),
+                            Text('Withdraw Member', style: TextStyle(color: AppColors.coral500)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: _buildAvatarStack(isScoreMode, varietyColor, hasGuestInGroup),
+                  )
+                : _buildAvatarStack(isScoreMode, varietyColor, hasGuestInGroup),
+            ),
+
+          // 2. Vertical Divider (Scalable)
+          Container(
+            width: 1,
+            height: cardHeight,
+            margin: EdgeInsets.symmetric(horizontal: hPadding),
+            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+          ),
+
+          // 3. Right Section: Content
+          Expanded(
+            child: SizedBox(
+              height: cardHeight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start, // Align with top of divider
+                children: [
+                  // Section 1: Name
+                  Text(
+                    toTitleCase(player.name),
+                    style: AppTypography.displayHeading.copyWith(
+                      fontSize: AppTypography.sizeLargeBody,
+                      fontWeight: AppTypography.weightExtraBold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  
+                  if (player.isGuest && member != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1, bottom: 3),
+                      child: Text(
+                        'Guest of ${member!.displayName}',
+                        style: AppTypography.label.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                          fontStyle: FontStyle.italic,
+                          fontSize: 10,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  
+                  const SizedBox(height: AppSpacing.xs), // Tight spacing under name
+
+                  // Section 2: Handicap Pills (No Icons)
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      BoxyArtPill.hc(
+                        label: (handicapIndex ?? player.handicapIndex).toStringAsFixed(1),
+                        hasHorizontalMargin: false,
+                      ),
+                      BoxyArtPill.phc(
+                        context: context,
+                        label: '$displayPhc',
+                        hasHorizontalMargin: false,
+                      ),
+                      if (hasSocietyCut)
+                        BoxyArtPill(
+                          label: 'CUT',
+                          color: AppColors.coral500,
+                          hasHorizontalMargin: true,
+                          fontSize: 10,
+                          fontWeight: AppTypography.weightBold,
+                        ),
+                    ],
+                  ),
+
+                  const Spacer(),
+                  // Section 3: Performance Metrics (Bottom-Right)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      if (thruLabel != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Text(
+                            thruLabel!,
+                            style: AppTypography.helper.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                              fontStyle: FontStyle.italic,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      if (hasScore) ...[
+                        const SizedBox(width: AppSpacing.sm),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              if (hasScore && tieBreakLabel != null)
+                                TextSpan(
+                                  text: '${tieBreakLabel!}  ',
+                                  style: AppTypography.label.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: AppTypography.weightBold,
+                                    color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              TextSpan(
+                                text: rawScore,
+                                style: AppTypography.displayHeading.copyWith(
+                                  fontSize: 26,
+                                  fontWeight: AppTypography.weightBlack,
+                                  color: theme.colorScheme.primary,
+                                  height: 1,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              if (isStableford)
+                                TextSpan(
+                                  text: ' pts',
+                                  style: AppTypography.label.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: AppTypography.weightMedium,
+                                    color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          if (isSelected) 
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 24),
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+  Widget _buildAvatarStack(bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        BoxyArtAvatar(
+          url: member?.avatarUrl,
+          initials: player.name,
+          radius: 36, // Restored to original size per user request
+          isCircle: true,
+          borderColor: varietyColor,
+          borderWidth: varietyColor != null ? 3.5 : null,
+        ),
+        // Host Badge Overlay (Bottom Left)
+        if (hasGuestInGroup)
+          Positioned(
+            bottom: -2,
+            left: -2,
+            child: BoxyArtIconBadge(
+              icon: Icons.person_add_rounded,
+              color: AppColors.actionGreen,
+              size: 24,
+              iconSize: 14,
+              useCircle: true,
+            ),
+          ),
+        // Captain Badge Overlay (Bottom)
+        if (player.isCaptain && !player.isGuest)
+          Positioned(
+            bottom: -4,
+            right: -4,
+            child: BoxyArtIconBadge(
+              icon: Icons.shield_rounded,
+              color: AppColors.amber500,
+              size: 24,
+              iconSize: 14,
+              useCircle: true,
+            ),
+          ),
+        // Guest Icon Overlay (Bottom Left)
+        if (player.isGuest)
+          Positioned(
+            bottom: -2,
+            left: -2,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: AppColors.amber500,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                'G',
+                style: TextStyle(
+                  color: AppColors.dark900,
+                  fontSize: 12,
+                  fontWeight: AppTypography.weightExtraBold,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -540,15 +748,51 @@ class GroupingCard extends StatelessWidget {
       }
     }
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
+    // --- PRE-CALCULATE TIES FOR DISPLAY ---
+    final Map<String, String?> playerScoresForTies = {};
+    final Map<String, int> scoreFreq = {};
+    for (var p in group.players) {
+      final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+      final score = scoreMap?[id];
+      if (score != null && score != '-') {
+        playerScoresForTies[id] = score;
+        scoreFreq[score] = (scoreFreq[score] ?? 0) + 1;
+      }
+    }
+
+    // --- PRE-CALCULATE GROUP SCORING ---
+    // Reuse existing isStableford and bestX defined above
+    int groupTotalCount = 0;
+    if (showScoring && isScoreMode && scoreMap != null) {
+      final List<int> groupScores = [];
+      for (var p in group.players) {
+        final id = p.isGuest ? '${p.registrationMemberId}_guest' : p.registrationMemberId;
+        final s = scoreMap![id];
+        if (s != null && s != '-') {
+          final val = int.tryParse(s);
+          if (val != null) groupScores.add(val);
+        }
+      }
+      if (groupScores.isNotEmpty) {
+        if (bestX < groupScores.length) {
+          groupScores.sort((a, b) => b.compareTo(a));
+          groupTotalCount = groupScores.take(bestX).fold(0, (sum, val) => sum + val);
+        } else {
+          groupTotalCount = groupScores.fold(0, (sum, val) => sum + val);
+        }
+      }
+    }
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-      child: BoxyArtCard(
-        backgroundColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
-        padding: const EdgeInsets.all(AppSpacing.x2l),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      padding: EdgeInsets.only(bottom: (spacing?.cardToLabel ?? AppSpacing.lg) * 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.zero,
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -589,7 +833,9 @@ class GroupingCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
 
             // --- PLAYERS LIST ---
             ...group.players.asMap().entries.map((entry) {
@@ -651,7 +897,45 @@ class GroupingCard extends StatelessWidget {
                 scoreForTile = scoreMap?[id];
               }
 
+              // Calculate Tie-Break Differentiator (Only if tied)
+              String? relevantTieBreak;
+              if (showScoring && isScoreMode) {
+                final score = playerScoresForTies[id];
+                if (score != null && (scoreFreq[score] ?? 0) > 1) {
+                  // Find all players with this same score in THIS group
+                  final tiedIds = playerScoresForTies.entries
+                      .where((e) => e.value == score)
+                      .map((e) => e.key)
+                      .toList();
+                  
+                  if (tiedIds.length > 1) {
+                    final labels = tiedIds.map((tid) => tieBreakMap?[tid] ?? '').toList();
+                    final segmentsList = labels.map((l) => l.split(RegExp(r'[,•]')).map((s) => s.trim()).toList()).toList();
+                    
+                    int diffIndex = 0;
+                    int maxSegs = segmentsList.isEmpty ? 0 : segmentsList[0].length;
+                    
+                    for (int i = 0; i < maxSegs; i++) {
+                      final currentVals = segmentsList.map((list) => i < list.length ? list[i] : '').toSet();
+                      if (currentVals.length > 1) {
+                        diffIndex = i;
+                        break;
+                      }
+                    }
+                    
+                    final mySegments = (tieBreakMap?[id] ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
+                    if (diffIndex < mySegments.length) {
+                      relevantTieBreak = mySegments[diffIndex];
+                    }
+                  }
+                }
+              }
+
               final ScoringStatus status = statusMap?[id] ?? ScoringStatus.ok;
+
+              // Check if this player is a member who HAS a guest in this group
+              final bool hasGuestInGroup = !p.isGuest && group.players.any((other) => 
+                  other.isGuest && other.registrationMemberId == p.registrationMemberId);
 
               final baseTile = GroupingPlayerTile(
                 player: p,
@@ -668,12 +952,13 @@ class GroupingCard extends StatelessWidget {
                 isScoreMode: isScoreMode,
                 scoreDisplay: showScoring ? scoreForTile : null,
                 isWinner: showScoring ? (internalWinnerMap[id] ?? false) : false,
-                tieBreakLabel: showScoring ? (tieBreakMap?[id]) : null,
+                tieBreakLabel: relevantTieBreak,
                 thruLabel: showScoring ? (thruMap?[id]) : null,
                 handicapIndex: hcMap?[id],
                 scoringStatus: status,
                 onTap: () => onTapParticipant?.call(p, group),
                 hasSocietyCut: p.hasSocietyCut,
+                hasGuestInGroup: hasGuestInGroup,
               );
 
               final isLast = index == group.players.length - 1;
@@ -725,56 +1010,59 @@ class GroupingCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   playerWidget,
-                  if (!isLast) const SizedBox(height: AppSpacing.md),
+                  if (!isLast) SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                 ],
               );
             }),
 
             if (isAdmin && group.players.length < 4)
               emptySlotBuilder?.call(group) ?? const SizedBox.shrink(),
-            SizedBox(height: AppSpacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (isScoreMode && showScoring)
-                  Expanded(
-                    child: _buildScoreFooter(
-                      context,
-                      isStableford,
-                      isScramble,
-                      isSplitTeam,
-                      groupTotal,
-                      bestX,
-                      teamAScore,
-                      teamBScore,
-                      hasScoreA,
-                      hasScoreB,
-                      matchStatus,
+            
+            // Sub-Card Spacing
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+            
+            // Footer (Group Total & PHC)
+            Padding(
+              padding: EdgeInsets.zero,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (showScoring && isScoreMode && groupTotalCount > 0)
+                    Text(
+                      isScramble
+                          ? 'Team Score: $groupTotalCount${isStableford ? ' pts' : ''}'
+                          : 'Group (Best $bestX): $groupTotalCount${isStableford ? ' pts' : ''}',
+                      style: AppTypography.label.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: AppTypography.weightExtraBold,
+                        fontSize: 12,
+                        letterSpacing: -0.2,
+                      ),
                     ),
-                  )
-                else
                   const Spacer(),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  isFourball
-                      ? (rules?.format == CompetitionFormat.matchPlay
-                            ? 'Match Play (Rel)'
-                            : 'Fourball (Pairs)')
-                      : (isScramble
-                            ? 'Team PHC: ${displayTotalHandicap.toInt()}'
-                            : 'Total PHC: ${displayTotalHandicap.toInt()}'),
-                  style: AppTypography.label.copyWith(
-                    color: isDark ? AppColors.dark100 : AppColors.dark900,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ],
+                  if (isFourball)
+                    Text(
+                      rules?.format == CompetitionFormat.matchPlay
+                          ? 'Match Play (Rel)'
+                          : 'Fourball (Pairs)',
+                      style: AppTypography.label.copyWith(
+                        color: isDark ? AppColors.dark100 : AppColors.dark900,
+                        fontWeight: AppTypography.weightBold,
+                        fontSize: 12,
+                        letterSpacing: -0.2,
+                      ),
+                    )
+                  else if (isScramble)
+                    BoxyArtPill.phc(context: context, label: 'Team: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false)
+                  else
+                    BoxyArtPill.phc(context: context, label: 'Total: ${displayTotalHandicap.toInt()}', hasHorizontalMargin: false),
+                ],
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildScoreFooter(
     BuildContext context,
@@ -1076,12 +1364,14 @@ class PodiumEntry {
   final String score;
   final int rank;
   final int groupIndex; // [NEW] Link to actual group
+  final String? tieBreakLabel;
 
   PodiumEntry({
     required this.name,
     required this.score,
     required this.rank,
     required this.groupIndex,
+    this.tieBreakLabel,
   });
 }
 
@@ -1100,7 +1390,7 @@ class GroupingPodiumHeader extends StatelessWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+      padding: const EdgeInsets.only(bottom: AppSpacing.standard),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1129,66 +1419,117 @@ class GroupingPodiumHeader extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isFirst = entry.rank == 1;
 
-    Color rankColor = AppColors.dark300;
+    Color rankColor = isDark ? AppColors.dark400 : AppColors.dark300;
     if (entry.rank == 1) rankColor = AppColors.amber500;
-    if (entry.rank == 2) rankColor = isDark ? AppColors.dark150 : AppColors.dark500;
+    if (entry.rank == 2) rankColor = isDark ? AppColors.dark200 : AppColors.dark600;
     if (entry.rank == 3) rankColor = const Color(0xFFCD7F32); // Bronze
 
     return GestureDetector(
       onTap: () => onTap?.call(entry.groupIndex),
       child: BoxyArtCard(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
+        padding: EdgeInsets.zero,
         showShadow: false,
-        border: isFirst
-            ? Border.all(color: AppColors.amber500.withValues(alpha: 0.5), width: AppShapes.borderMedium)
-            : Border.all(color: isDark ? AppColors.dark500 : AppColors.lightBorder, width: AppShapes.borderThin),
-        backgroundColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isFirst)
-                  const Icon(Icons.emoji_events_rounded,
-                      size: 14, color: AppColors.amber500),
-                if (isFirst) const SizedBox(width: 4),
-                Text(
-                  '#${entry.rank}',
-                  style: AppTypography.label.copyWith(
-                    color: rankColor,
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: AppTypography.weightSemibold,
-                    letterSpacing: 1.0,
+        border: Border.all(
+          color: isFirst 
+              ? AppColors.amber500.withValues(alpha: 0.3) 
+              : (isDark ? AppColors.dark500 : AppColors.lightBorder), 
+          width: AppShapes.borderThin,
+        ),
+        backgroundColor: isDark ? AppColors.dark150 : AppColors.pureWhite,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 1. Ranking Accent (Left)
+              Container(
+                width: 1.5,
+                margin: const EdgeInsets.symmetric(vertical: 0),
+                decoration: BoxDecoration(
+                  color: rankColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(AppShapes.rMd),
+                    bottomLeft: Radius.circular(AppShapes.rMd),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              toTitleCase(entry.name),
-              style: AppTypography.caption.copyWith(
-                fontWeight: AppTypography.weightExtraBold,
-                fontSize: 15,
-                color: isDark ? AppColors.dark150 : AppColors.dark400,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              entry.score,
-              style: AppTypography.displaySection.copyWith(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 22,
-                height: 1.1,
-                letterSpacing: -0.5,
-                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+              const SizedBox(width: AppSpacing.md),
+              
+              // 2. Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (isFirst)
+                            const Icon(Icons.emoji_events_rounded,
+                                size: 14, color: AppColors.amber500),
+                          if (isFirst) const SizedBox(width: 4),
+                          Text(
+                            '#${entry.rank}',
+                            style: AppTypography.label.copyWith(
+                              color: rankColor,
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 14,
+                              fontWeight: AppTypography.weightBlack,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        toTitleCase(entry.name),
+                        style: AppTypography.caption.copyWith(
+                          fontWeight: AppTypography.weightExtraBold,
+                          fontSize: 13,
+                          color: isDark ? AppColors.dark150 : AppColors.dark400,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          if (entry.tieBreakLabel != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: Text(
+                                entry.tieBreakLabel!,
+                                style: AppTypography.label.copyWith(
+                                  fontSize: 10,
+                                  fontWeight: AppTypography.weightBold,
+                                  color: isDark ? AppColors.dark400 : AppColors.dark500,
+                                ),
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: AppSpacing.md),
+                            child: Text(
+                              entry.score,
+                              style: AppTypography.displaySection.copyWith(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 22,
+                                height: 1.1,
+                                fontWeight: AppTypography.weightExtraBold,
+                                letterSpacing: -0.5,
+                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

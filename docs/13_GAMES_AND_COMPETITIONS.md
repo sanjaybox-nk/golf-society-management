@@ -99,7 +99,7 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
 - **Unified Action**: Tapping a player opens the `ScorecardModal` or the `EventAdminScorecardEditorScreen`.
 - **Mirror Layout**: The admin scorecard editor is visually identical to the member "Live" view, including:
     - **Handicap Context**: Real-time display of the player's Index (HC) and Playing Handicap (PHC). Handicaps use **decimal precision** (e.g., 14.5) for transparency.
-    - **Themed Layout**: Player rows on the leaderboard now feature handicaps directly below the name (e.g., `HC: 14.5 • PHC: 12`) with the PHC highlighted in the primary theme color.
+    - **Themed Layout**: Player rows on the leaderboard now feature handicaps directly below the name using the premium `BoxyArtPill.hc()` and `BoxyArtPill.phc()` components. These pills ensure the index is always formatted to one decimal place (e.g., `8.4`).
     - **Explicit Tee Support**: The UI dynamically resolves Par/SI values based on the player's gender and the event's explicit tee configuration (`selectedFemaleTeeName`).
     - **Dual Tee Display**: The Event Info Hub (`EventUserDetailsTab`) now displays both male and female tee positions (e.g., "Yellow / Red") when they differ, ensuring absolute clarity for mixed-gender fields.
     - **Header Sync**: Identical title and subtitle typography.

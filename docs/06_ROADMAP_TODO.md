@@ -91,6 +91,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Universal Title Case**: Elimination of all-caps across entire app interface.
     - [x] **Pill-to-Legend Shift**: Converted badge components to minimalist dot + text indicators.
     - [x] **Member Card Refinement**: Relocated status legends for cleaner data hierarchy.
+- [x] **Handicap Display Standardization (v4.0)**: Consolidated all HC/PHC displays to premium `BoxyArtPill` format with strict 1-decimal index formatting across all modules.
 - [x] **Tournament UX & Radius Hardening (v3.8)**
     - [x] **Flattened Navigation**: Implementation of 5-tab "Tournament Mode" shell.
     - [x] **Radius Sync**: Resolved visual mismatches across cards using authoritative clipping.

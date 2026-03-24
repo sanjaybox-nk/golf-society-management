@@ -181,13 +181,13 @@ All components use semantic tokens only. No hardcoded hex values in component CS
 ### Member Card
 - Avatar: 46px circle, 4-colour ring system (lime / amber / coral / cyan — assigned by `member_id % 4`)
 - Name: Plus Jakarta Sans 700 15pt
-- HC value: `--lime-500` colour — PHC is the competition number
+- Handicap display: Strictly uses the `BoxyArtPill.hc()` and `BoxyArtPill.phc()` components for premium "pill" styling. Index values are strictly formatted to 1 decimal place.
 - Stats block: tabular-nums, Plus Jakarta Sans 800
 
 ### Grouping Card
 - Tee time badge: `--lime-500` bg, Plus Jakarta Sans 800 dark text, pill shape
-- PHC column: Plus Jakarta Sans 800 `--lime-500` — larger than HC label
-- Total PHC footer: right-aligned, lime
+- PHC column: Plus Jakarta Sans 800 `--lime-500` — displayed via `BoxyArtPill.phc()`
+- Total PHC footer: right-aligned, lime via `BoxyArtPill.phc(hasHorizontalMargin: false)`
 
 ### Leaderboard
 - Rank #1: `--amber-500` badge

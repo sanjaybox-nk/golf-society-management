@@ -10,6 +10,8 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
 import '../../../members/presentation/members_provider.dart';
@@ -67,7 +69,8 @@ final eventFieldTabProvider = NotifierProvider<SimpleTabNotifier, int>(() => Sim
 
 class EventGroupingUserTab extends ConsumerWidget {
   final String eventId;
-  const EventGroupingUserTab({super.key, required this.eventId});
+  final bool isAdminMode;
+  const EventGroupingUserTab({super.key, required this.eventId, this.isAdminMode = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -103,27 +106,42 @@ class EventGroupingUserTab extends ConsumerWidget {
             ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
             : [];
 
+        final user = ref.watch(effectiveUserProvider);
+        final isStaff = user.role != MemberRole.member;
+
         return HeadlessScaffold(
           title: event.title,
           subtitle: 'Event Field and Tee Time',
+          showAdminShortcut: false, // Explicitly removed as per user preference
           showBack: true,
           onBack: () => context.go('/events'),
-          useScaffold: false,
-          actions: [],
+
+          actions: [
+            if (isAdminMode && isStaff)
+              BoxyArtGlassIconButton(
+                icon: Icons.edit_rounded,
+                tooltip: 'Manage Pairings',
+                onPressed: () => context.push('/admin/events/manage/${event.id}/event/grouping'),
+              ),
+          ],
           slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.md),
-              sliver: SliverToBoxAdapter(
-                child: _FieldHubToggle(),
+            SliverToBoxAdapter(
+              child: Transform.translate(
+                offset: const Offset(0, -16.0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: _FieldHubToggle(),
+                ),
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
             if (ref.watch(eventFieldTabProvider) == 0) ...[
               // Registrations View
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 sliver: SliverToBoxAdapter(
                   child: membersAsync.when(
-                    data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members),
+                    data: (members) => EventRegistrationUserTab.buildStaticContent(context, ref, event, members, isAdminMode: isAdminMode),
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (error, stackTrace) => BoxyArtEmptyState(
                       title: 'Loading Error',
@@ -146,12 +164,6 @@ class EventGroupingUserTab extends ConsumerWidget {
                   ),
                 )
               else ...[
-                const SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  sliver: SliverToBoxAdapter(
-                    child: BoxyArtSectionTitle(title: 'Groups'),
-                  ),
-                ),
                 SliverPadding(
                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.pageBottom),
                    sliver: SliverList(
@@ -165,17 +177,19 @@ class EventGroupingUserTab extends ConsumerWidget {
                             
                             // Authoritative score/PHC data from central engine
                             final scoringData = ref.watch(eventScoringControllerProvider(eventId));
-                            final scoreMap = { for (var s in scoringData.individualScores) s.playerId : s.result.label };
-                            final phcMap = { for (var s in scoringData.individualScores) s.playerId : s.playingHandicap };
-                            final thruMap = { for (var s in scoringData.individualScores) if (s.thruLabel != null) s.playerId : s.thruLabel! };
-                            final tieBreakMap = { for (var s in scoringData.individualScores) if (s.tieBreakLabel != null) s.playerId : s.tieBreakLabel! };
-                            final statusMap = { for (var s in scoringData.individualScores) s.playerId : s.scoringStatus };
-                            final winnerMap = { for (var e in scoringData.leaderboard) e.entryId : e.position == 1 };
-                            final allScorecards = scorecardsAsync.asData?.value ?? [];
-                            final scorecardMap = { for (var s in allScorecards) s.entryId : s };
+                             final Map<String, String> scoreMap = { for (var s in scoringData.individualScores) s.playerId : s.result.label };
+                             final Map<String, int> phcMap = { for (var s in scoringData.individualScores) s.playerId : s.playingHandicap.round() };
+                             final Map<String, String> thruMap = { for (var s in scoringData.individualScores) if (s.thruLabel != null) s.playerId : s.thruLabel! };
+                             final Map<String, String> tieBreakMap = { for (var s in scoringData.individualScores) if (s.tieBreakLabel != null) s.playerId : s.tieBreakLabel! };
+                             final Map<String, ScoringStatus> statusMap = { for (var s in scoringData.individualScores) s.playerId : s.scoringStatus };
+                             final Map<String, bool> winnerMap = { for (var e in scoringData.leaderboard) e.entryId : e.position == 1 };
+                             final allScorecards = scorecardsAsync.asData?.value ?? [];
+                             final Map<String, Scorecard> scorecardMap = { for (var s in allScorecards) s.entryId : s };
  
+                            final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
                             return Padding(
-                               padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                               padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
                                child: GroupingCard(
                                   group: group,
                                   memberMap: memberMap,
@@ -184,7 +198,7 @@ class EventGroupingUserTab extends ConsumerWidget {
                                   rules: comp?.rules,
                                   courseConfig: event.courseConfig,
                                   isAdmin: false,
-                                  isScoreMode: true,
+                                  isScoreMode: false,
                                   scoreMap: scoreMap,
                                   phcMap: phcMap,
                                   hcMap: { for (var s in scoringData.individualScores) s.playerId : s.handicapIndex },
@@ -251,7 +265,8 @@ class _FieldHubToggle extends ConsumerWidget {
 
 class EventScoresUserTab extends ConsumerStatefulWidget {
   final String eventId;
-  const EventScoresUserTab({super.key, required this.eventId});
+  final bool isAdminMode;
+  const EventScoresUserTab({super.key, required this.eventId, this.isAdminMode = false});
 
   @override
   ConsumerState<EventScoresUserTab> createState() => _EventScoresUserTabState();
@@ -359,13 +374,22 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               headerBadgeColor = AppColors.lime400;
             }
 
+            final isStaff = currentUser.role != MemberRole.member;
+
             return HeadlessScaffold(
               title: event.title,
               subtitle: 'My Event Card',
+              showAdminShortcut: false, // Explicitly removed as per user preference
               showBack: true,
               onBack: () => context.go('/events'),
-              useScaffold: false,
+
               actions: [
+                if (widget.isAdminMode && isStaff)
+                  BoxyArtGlassIconButton(
+                    icon: Icons.edit_rounded,
+                    tooltip: 'Manage Scores',
+                    onPressed: () => context.push('/admin/events/manage/${event.id}/event/scores'),
+                  ),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
@@ -388,12 +412,16 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               pinnedBottom: _buildPinnedScoring(event, comp, scoringData, effectiveRules),
               slivers: [
                 if (event.matches.isNotEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.xl),
-                    sliver: SliverToBoxAdapter(
-                      child: _LiveHubToggle(event: event),
+                  SliverToBoxAdapter(
+                    child: Transform.translate(
+                      offset: const Offset(0, -16.0),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                        child: _LiveHubToggle(event: event),
+                      ),
                     ),
                   ),
+                const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   sliver: SliverToBoxAdapter(
@@ -853,75 +881,60 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+          padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.sm),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // 1. Marker Toggle (Left)
-              GestureDetector(
-                onTap: () => _showMarkerSelectionSheet(event, isScoringActive),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: AppColors.actionGreen,
-                    borderRadius: BorderRadius.circular(config.pillRadius),
-                    boxShadow: config.useShadows ? Theme.of(context).extension<AppShadows>()?.softScale : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        isSelfMarking 
-                            ? 'Marking: SELF' 
-                            : (targetEntryId != null 
-                                ? 'Marking: ${_getDisplayName(event, targetEntryId).split(' ').first.toUpperCase()}' 
-                                : 'Marking: SELECT'),
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.actionText,
-                          fontSize: AppTypography.sizeLabelStrong,
-                          letterSpacing: -0.2,
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _showMarkerSelectionSheet(event, isScoringActive),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.actionGreen,
+                      borderRadius: BorderRadius.circular(config.pillRadius),
+                      boxShadow: config.useShadows ? Theme.of(context).extension<AppShadows>()?.softScale : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            isSelfMarking 
+                                ? 'Marking: SELF' 
+                                : (targetEntryId != null 
+                                    ? 'Marking: ${_getDisplayName(event, targetEntryId).split(' ').first.toUpperCase()}' 
+                                    : 'Marking: SELECT'),
+                            style: AppTypography.label.copyWith(
+                              color: AppColors.actionText,
+                              fontSize: AppTypography.sizeLabelStrong,
+                              letterSpacing: -0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      const Icon(
-                        Icons.keyboard_arrow_down_rounded, 
-                        size: 18, 
-                        color: AppColors.actionText,
-                      ),
-                    ],
+                        const SizedBox(width: AppSpacing.xs),
+                        const Icon(
+                          Icons.keyboard_arrow_down_rounded, 
+                          size: 18, 
+                          color: AppColors.actionText,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
 
+              const SizedBox(width: AppSpacing.md),
+
               // 2. Handicap Info (Right)
               Row(
                 children: [
-                  Text(
-                    'HC: ${_formatHcp(displayBaseHcp)}', 
-                    style: AppTypography.caption.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: AppTypography.sizeCaption + 2,
-                      fontWeight: AppTypography.weightBold,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Container(
-                    width: AppSpacing.xs, 
-                    height: AppSpacing.xs, 
-                    decoration: BoxDecoration(
-                      color: AppColors.dark300, 
-                      shape: BoxShape.circle
-                    )
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    'PHC: $displayPlayingHcp${hasSocietyCutActual ? '*' : ''}', 
-                    style: AppTypography.caption.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: AppTypography.sizeCaption + 2,
-                      fontWeight: AppTypography.weightBold,
-                    ),
-                  ),
+                  BoxyArtPill.hc(label: _formatHcp(displayBaseHcp)),
+                  const SizedBox(width: AppSpacing.xs),
+                  BoxyArtPill.phc(context: context, label: '$displayPlayingHcp${hasSocietyCutActual ? '*' : ''}'),
                 ],
               ),
             ],
@@ -1014,8 +1027,6 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 ),
               ),
             ),
-
-        const SizedBox(height: AppSpacing.lg),
 
         if (shouldShowCard) ...[
           SlidingCourseInfoCard(
@@ -1649,23 +1660,33 @@ class EventStatsUserTab extends ConsumerWidget {
         if (event == null) {
           return const Scaffold(body: Center(child: Text('Event not found')));
         }
+        final user = ref.watch(effectiveUserProvider);
+        final isStaff = user.role != MemberRole.member;
+
         return HeadlessScaffold(
           title: event.title,
           subtitle: 'Event Stats',
+          showAdminShortcut: false, // Explicitly removed as per user preference
           showBack: true,
           onBack: () => context.go('/events'),
-          useScaffold: false,
-          actions: [],
+
+          actions: [
+            if (isStaff)
+              BoxyArtGlassIconButton(
+                icon: Icons.edit_rounded,
+                tooltip: 'Manage Stats',
+                onPressed: () => context.push('/admin/events/manage/${event.id}/broadcast'), // Or dedicated stats edit if it exists
+              ),
+          ],
           slivers: [
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
             SliverToBoxAdapter(
               child: compAsync.when(
                 data: (comp) => scorecardsAsync.when(
                   data: (scorecards) => Padding(
                     padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.pageBottom),
                     child: EventStatsTab(
-                      event: event,
-                      comp: comp,
-                      liveScorecards: scorecards,
+                      eventId: event.id,
                     ),
                   ),
                   loading: () => const Center(child: CircularProgressIndicator()),
@@ -1765,7 +1786,7 @@ class TournamentScoresUserTab extends ConsumerWidget {
               subtitle: 'Event Scores',
               showBack: true,
               onBack: () => context.go('/events'),
-              useScaffold: false,
+
               slivers: [
                 SliverPadding(
                   padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.md),
@@ -2046,18 +2067,51 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
     }
 
     // Populate Podium (Top 3 Groups)
-    for (int i = 0; i < math.min(3, data.groupRankings.length); i++) {
-       final gRes = data.groupRankings[i];
-       final group = widget.groups.firstWhereOrNull((g) => g.index == gRes.groupIndex);
-       
-       if (group != null) {
-          podiumEntries.add(PodiumEntry(
-            name: 'Group ${group.index + 1}',
-            score: gRes.label,
-            rank: i + 1,
-            groupIndex: group.index,
-          ));
-       }
+    final topGRankings = data.groupRankings.take(3).toList();
+    final Map<int, List<int>> scoreFreqGrp = {};
+    for (var g in topGRankings) {
+       scoreFreqGrp[g.totalScore] = (scoreFreqGrp[g.totalScore] ?? []);
+       scoreFreqGrp[g.totalScore]!.add(g.groupIndex);
+    }
+
+    for (int i = 0; i < topGRankings.length; i++) {
+        final gRes = topGRankings[i];
+        final group = widget.groups.firstWhereOrNull((g) => g.index == gRes.groupIndex);
+        
+        if (group != null) {
+           String? tieLabel;
+           final tiedWithSameScore = scoreFreqGrp[gRes.totalScore] ?? [];
+           
+           if (tiedWithSameScore.length > 1) {
+              // Find first differing metric
+              final others = topGRankings.where((g) => g.totalScore == gRes.totalScore && g.groupIndex != gRes.groupIndex).toList();
+              final metrics = gRes.tieBreakMetrics;
+              
+              int diffIdx = -1;
+              for (int m = 0; m < metrics.length; m++) {
+                 final val = metrics[m];
+                 final anyDiff = others.any((o) => m >= o.tieBreakMetrics.length || o.tieBreakMetrics[m] != val);
+                 if (anyDiff) {
+                    diffIdx = m;
+                    break;
+                 }
+              }
+              
+              if (diffIdx != -1 && diffIdx < metrics.length) {
+                 final mNames = ['B9', 'B6', 'B3', 'B1'];
+                 final name = diffIdx < mNames.length ? mNames[diffIdx] : 'Metric';
+                 tieLabel = '$name: ${metrics[diffIdx]}';
+              }
+           }
+
+           podiumEntries.add(PodiumEntry(
+             name: 'Group ${group.index + 1}',
+             score: gRes.label,
+             rank: i + 1,
+             groupIndex: group.index,
+             tieBreakLabel: tieLabel,
+           ));
+        }
     }
 
     return Column(

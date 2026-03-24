@@ -166,12 +166,16 @@ class BoxyArtMemberRow extends StatelessWidget {
         ],
     );
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double horizontalPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+    final double verticalPadding = spacing?.cardVerticalPadding ?? 12.0;
+
     final cardContent = useCard
         ? IntrinsicHeight(
             child: Row(
               children: [
                 Container(
-                  width: 6,
+                  width: 4,
                   decoration: BoxDecoration(
                     color: accentColor ?? Colors.transparent, // Always reserve space
                     borderRadius: const BorderRadius.only(
@@ -182,7 +186,7 @@ class BoxyArtMemberRow extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
                     child: content,
                   ),
                 ),
@@ -190,13 +194,13 @@ class BoxyArtMemberRow extends StatelessWidget {
             ),
           )
         : Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
             child: content,
           );
 
     if (!useCard) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
         child: content,
       );
     }
@@ -274,21 +278,23 @@ class BoxyArtMemberRow extends StatelessWidget {
           children: [
             // HC & PHC Unified Style
             if (handicapIndex != null || playingHandicap != null)
-              Text.rich(
-                TextSpan(
-                  style: metaStyle,
-                  children: [
-                    if (handicapIndex != null)
-                      TextSpan(text: 'HC: ${handicapIndex!.toStringAsFixed(1)}'),
-                    if (handicapIndex != null && playingHandicap != null)
-                      TextSpan(
-                        text: '  •  ',
-                        style: TextStyle(color: metaColor.withValues(alpha: 0.5)),
-                      ),
-                    if (playingHandicap != null)
-                      TextSpan(text: 'PHC: $playingHandicap${hasSocietyCut ? '*' : ''}'),
-                  ],
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (handicapIndex != null)
+                    BoxyArtPill.hc(
+                      label: handicapIndex!.toStringAsFixed(1),
+                      hasHorizontalMargin: false,
+                    ),
+                  if (handicapIndex != null && playingHandicap != null)
+                    const SizedBox(width: AppSpacing.xs),
+                  if (playingHandicap != null)
+                    BoxyArtPill.phc(
+                      context: context,
+                      label: '$playingHandicap${hasSocietyCut ? '*' : ''}',
+                      hasHorizontalMargin: false,
+                    ),
+                ],
               ),
             
             if (thruLabel != null)
@@ -299,14 +305,6 @@ class BoxyArtMemberRow extends StatelessWidget {
               ),
           ],
         ),
-        if (tieBreakLabel != null) ...[
-          const SizedBox(height: AppSpacing.xs),
-          _buildLegendItem(
-            label: tieBreakLabel!,
-            color: metaColor,
-            style: metaStyle,
-          ),
-        ],
       ],
     );
   }
@@ -323,7 +321,9 @@ class BoxyArtMemberRow extends StatelessWidget {
   }
 
   Widget _buildTrailing(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
     
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -331,10 +331,11 @@ class BoxyArtMemberRow extends StatelessWidget {
         // Traits
         if (isGuest)
           _buildTraitBadge(
+            context: context,
             child: Text(
               'G',
               style: AppTypography.micro.copyWith(
-                color: AppColors.actionGreen,
+                color: primaryColor,
                 fontWeight: AppTypography.weightBlack,
                 fontSize: 12,
               ),
@@ -342,20 +343,24 @@ class BoxyArtMemberRow extends StatelessWidget {
           ),
         if (isWinner)
           _buildTraitBadge(
-            child: const Icon(Icons.emoji_events_rounded, size: 14, color: AppColors.actionGreen),
+            context: context,
+            child: Icon(Icons.emoji_events_rounded, size: 14, color: primaryColor),
           ),
         if (needsBuggy)
           _buildTraitBadge(
-            child: Icon(Icons.electric_rickshaw, size: 14, color: AppColors.actionGreen),
+            context: context,
+            child: Icon(Icons.electric_rickshaw, size: 14, color: primaryColor),
           ),
         if (isCaptain && !isGuest)
           _buildTraitBadge(
+            context: context,
             backgroundColor: AppColors.amber500.withValues(alpha: 0.15),
             child: const Icon(Icons.shield, size: 14, color: AppColors.amber500),
           ),
         if (hasMemberGuest)
           _buildTraitBadge(
-            child: const Icon(Icons.person_add, size: 14, color: AppColors.actionGreen),
+            context: context,
+            child: Icon(Icons.person_add, size: 14, color: primaryColor),
           ),
           
         if (trailing != null) ...[
@@ -364,17 +369,35 @@ class BoxyArtMemberRow extends StatelessWidget {
         ],
         if (score != null) ...[
           const SizedBox(width: AppSpacing.sm),
-          Container(
-            constraints: const BoxConstraints(minWidth: 40),
-            alignment: Alignment.centerRight,
-            child: Text(
-              score!,
-              style: AppTypography.displaySection.copyWith(
-                color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
-                height: 1.0,
-                letterSpacing: -0.5,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (tieBreakLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text(
+                    tieBreakLabel!,
+                    style: AppTypography.label.copyWith(
+                      fontSize: 10,
+                      fontWeight: AppTypography.weightBold,
+                      color: isDark ? AppColors.dark400 : AppColors.dark500,
+                    ),
+                  ),
+                ),
+              Container(
+                constraints: const BoxConstraints(minWidth: 40),
+                alignment: Alignment.centerRight,
+                child: Text(
+                  score!,
+                  style: AppTypography.displaySection.copyWith(
+                    color: scoreColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900),
+                    height: 1.0,
+                    letterSpacing: -0.5,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
         
@@ -391,13 +414,14 @@ class BoxyArtMemberRow extends StatelessWidget {
     );
   }
 
-  Widget _buildTraitBadge({required Widget child, Color? backgroundColor}) {
+  Widget _buildTraitBadge({required BuildContext context, required Widget child, Color? backgroundColor}) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.only(left: 4),
       child: BoxyArtSquareBadge(
         size: 24,
         isTinted: true,
-        backgroundColor: backgroundColor ?? AppColors.actionGreen.withValues(alpha: 0.1),
+        backgroundColor: backgroundColor ?? primaryColor.withValues(alpha: 0.1),
         child: child,
       ),
     );

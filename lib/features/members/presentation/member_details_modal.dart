@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:golf_society/services/storage_service.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:go_router/go_router.dart';
 import 'widgets/member_stats_row.dart';
 
 import 'package:golf_society/constants/country_codes.dart';
@@ -12,30 +12,29 @@ import 'profile_provider.dart';
 import 'widgets/member_role_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
-import 'package:golf_society/design_system/constants/navigation_constants.dart';
+import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/domain/models/handicap_system.dart';
 
 class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
-  final Animation<double>? animation;
+  final bool isNewMember;
+  final bool isAdminContext;
 
-  const MemberDetailsModal({super.key, this.member, this.animation});
+  const MemberDetailsModal({super.key, this.member, this.isNewMember = false, this.isAdminContext = false});
 
-  static void show(BuildContext context, Member? member) {
-    showGeneralDialog(
+  static void show(BuildContext context, Member? member, {bool isAdmin = false, bool isNewMember = false, bool isAdminContext = false}) {
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withValues(alpha: 0.54),
-      transitionDuration: AppAnimations.medium,
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return MemberDetailsModal(member: member, animation: animation);
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
+      isScrollControlled: true,
+      useRootNavigator: true, 
+      useSafeArea: false, // Background should cover notch
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      builder: (context) => MemberDetailsModal(
+        member: member,
+        isAdminContext: isAdminContext,
+        isNewMember: isNewMember,
+      ),
     );
   }
 
@@ -75,7 +74,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   String? _societyRole;
   DateTime? _joinedDate;
   bool _isSaving = false;
-  late bool _isNewMember;
 
   // Removed ref.watch wrapper methods to prevent StateError during async build phases.
   String? _gender; // [NEW]
@@ -83,8 +81,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   @override
   void initState() {
     super.initState();
-    _isNewMember = widget.member == null;
-    _isEditing = _isNewMember;
+    _isEditing = widget.isNewMember;
     _initControllers();
     
     // Sanitize URL
@@ -205,7 +202,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         gender: _gender, // [NEW]
       );
 
-      if (_isNewMember) {
+      if (widget.isNewMember) {
         await repo.addMember(memberData);
       } else {
         await repo.updateMember(memberData);
@@ -268,54 +265,40 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     // Cache variables here to satisfy Riverpod's strict ref.watch lifecycle rules
     final currentUser = ref.watch(currentUserProvider);
     final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
-    final isOwner = widget.member != null && currentUser.id == widget.member!.id;
-    final canEdit = isAdmin || isOwner || _isNewMember;
     final canAssignRoles = currentUser.role == MemberRole.superAdmin;
     
-    String title = _isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail');
+    String title = widget.isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail');
 
-    final content = HeadlessScaffold(
-      useScaffold: false,
+    final baseContent = HeadlessScaffold(
+      isModal: true,
       title: title,
       showBack: !_isEditing,
-      showAdminShortcut: false, // Modal context, no shortcut needed
-      backgroundColor: theme.scaffoldBackgroundColor, 
-      
-      // Member-facing Bottom Navigation (Persistent UX)
-      bottomNavigationBar: BoxyArtBottomNavBar(
-        selectedIndex: 2, // Members context
-        items: NavigationConstants.userNavItems,
-        onItemSelected: (index) {
-          Navigator.of(context).pop(); // Close modal
-          final paths = ['/home', '/events', '/members', '/locker', '/archive'];
-          context.go(paths[index]);
-        },
-      ),
+      showAdminShortcut: false, 
+      // Removed redundant bottomNavigationBar to resolve "double bottom nav" issue
+      // Modals should rely on the background shell or explicit close actions.
       leading: _isEditing 
         ? Center(
             child: BoxyArtGlassIconButton(
               icon: Icons.close_rounded,
+              iconSize: 24,
               onPressed: _showExitConfirmation,
-              tooltip: 'Cancel',
             ),
           )
         : null, // Default back button logic handles view mode
 
       // Trailing Actions (Edit / Save)
       actions: [
-        if (!_isEditing && canEdit)
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: BoxyArtGlassIconButton(
-              onPressed: () => setState(() => _isEditing = true),
-              icon: Icons.edit_outlined,
-              tooltip: 'Edit Member',
-            ),
-          ),
+        // Edit Button (Right) - Only in Admin Context
+        if (!_isEditing && widget.isAdminContext)
+          BoxyArtGlassIconButton(
+            icon: Icons.edit_outlined,
+            onPressed: () => setState(() => _isEditing = true),
+          )
+        else
+          const SizedBox(width: AppSpacing.x3l),
         if (_isEditing)
            Padding(
             padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm, bottom: AppSpacing.sm),
@@ -356,7 +339,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: AppTheme.cardSpacing),
                   ListenableBuilder(
                     listenable: Listenable.merge([
                       _firstController,
@@ -370,10 +352,6 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       status: _status,
                       hasPaid: _hasPaid,
                       avatarUrl: _avatarUrl,
-                      handicapController: _handicapController,
-                      handicapIdController: _handicapIdController,
-                      handicapFocusNode: _handicapFocusNode,
-                      handicapIdFocusNode: _handicapIdFocusNode,
                       isEditing: _isEditing,
                       isAdmin: isAdmin,
                       onCameraTap: _isEditing ? _pickImage : null,
@@ -387,33 +365,77 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     ),
                   ),
 
-                  SizedBox(height: AppTheme.cardSpacing),
-                  
-                  // Stats Row
-                  if (!_isNewMember && widget.member != null)
+                  if (!widget.isNewMember) ...[
                     Consumer(
                       builder: (context, ref, _) {
-                         final statsAsync = ref.watch(memberPerformanceProvider(widget.member!.id));
-                         return statsAsync.when(
-                           data: (stats) => MemberStatsRow(
-                             starts: stats.starts,
-                             wins: stats.wins,
-                             top5: stats.top5,
-                             avgPts: stats.avgPts,
-                             bestPts: stats.bestPts,
-                             rank: stats.rank,
-                           ),
-                           loading: () => const SizedBox.shrink(), // Or skeleton
-                           error: (e, s) => const SizedBox.shrink(),
-                         );
+                        final society = ref.watch(themeControllerProvider);
+                        final system = society.handicapSystem;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const BoxyArtSectionTitle(title: 'MEMBERSHIP DETAILS', isLevel2: true),
+                            BoxyArtCard(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _isEditing && isAdmin
+                                      ? BoxyArtInputField(
+                                          label: 'Handicap',
+                                          controller: _handicapController,
+                                          focusNode: _handicapFocusNode,
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        )
+                                      : BoxyArtPill.hc(label: _handicapController.text),
+                                  ),
+                                  const SizedBox(width: AppSpacing.x2l),
+                                  Expanded(
+                                    child: _isEditing && isAdmin
+                                      ? BoxyArtInputField(
+                                          label: toTitleCase(system.idLabel),
+                                          controller: _handicapIdController,
+                                          focusNode: _handicapIdFocusNode,
+                                          hint: system.hintText,
+                                        )
+                                      : _buildValueDisplay(
+                                          context, 
+                                          system.idLabel.toUpperCase(), 
+                                          _handicapIdController.text
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
                       },
                     ),
+                  ],
+                  const SizedBox(height: AppSpacing.standard), // Card2Card spacing
+                  
+                  // Stats Row
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final memberId = widget.member?.id;
+                      if (memberId == null) return const SizedBox.shrink();
+                      
+                      return ref.watch(memberPerformanceProvider(memberId)).when(
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) => Center(child: Text('Error: $err')),
+                        data: (stats) => MemberStatsRow(
+                          starts: stats.starts,
+                          wins: stats.wins,
+                          top5: stats.top5,
+                          avgPts: stats.avgPts,
+                          bestPts: stats.bestPts,
+                          rank: stats.rank,
+                        ),
+                      );
+                    },
+                  ),
 
-                  const SizedBox(height: AppSpacing.x3l),
-                  const BoxyArtSectionTitle(title: 'Personal Details'),
-                  const SizedBox(height: AppSpacing.sm),
+                  // Title handles its own padding
+                  const BoxyArtSectionTitle(title: 'PERSONAL DETAILS', isLevel2: true),
                   BoxyArtCard(
-                    padding: const EdgeInsets.all(AppSpacing.x2l),
                     child: PersonalDetailsForm(
                       isEditing: _isEditing,
                       firstController: _firstController,
@@ -446,6 +468,23 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.x4l),
+
+                  // [DEV/ADMIN] Impersonation / Peek Mode
+                  if (isAdmin && widget.member != null && widget.member!.id != currentUser.id) ...[
+                    BoxyArtButton(
+                      title: 'VIEW AS THIS MEMBER',
+                      isPrimary: false,
+                      isSecondary: true,
+                      fullWidth: true,
+                      icon: Icons.remove_red_eye_rounded,
+                      onTap: () {
+                        ref.read(impersonationProvider.notifier).set(widget.member);
+                        Navigator.of(context).pop();
+                        context.go('/home');
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.x4l),
+                  ],
                 ],
               ),
             ),
@@ -462,7 +501,33 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
           _showExitConfirmation();
         }
       },
-      child: content,
+      child: baseContent,
+    );
+  }
+
+  Widget _buildValueDisplay(BuildContext context, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: AppTypography.label.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+            fontWeight: AppTypography.weightStrong,
+            letterSpacing: AppTypography.lsMicro,
+            fontSize: 11, // Standardized 4.x Meta size
+          ),
+        ),
+        const SizedBox(height: 4), // Tight 4.x rhythm
+        Text(
+          value.isEmpty ? '-' : value,
+          style: AppTypography.body.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: AppTypography.weightStrong,
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
   }
 
@@ -474,12 +539,15 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Keep Editing', style: TextStyle(color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
+          child: Text('Keep Editing', style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+            fontWeight: AppTypography.weightBold,
+          )),
         ),
         TextButton(
           onPressed: () {
              Navigator.of(context).pop();
-             if (_isNewMember) {
+             if (widget.isNewMember) {
                Navigator.of(context).pop();
              } else {
                setState(() {

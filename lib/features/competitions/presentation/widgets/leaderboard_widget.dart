@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 class LeaderboardWidget extends StatelessWidget {
   final List<LeaderboardEntry> entries;
@@ -18,52 +19,317 @@ class LeaderboardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
 
-    // Only show tiebreak label when a player is genuinely tied with another.
-    // Count how many players share each score so we can selectively show the
-    // B9/B6/B3 tiebreak details only for those who are in a tie group.
-    final scoreFrequency = <int, int>{};
+    final Map<int, List<LeaderboardEntry>> tiedGroups = {};
     for (final e in entries) {
       if (e.scoringStatus == ScoringStatus.ok) {
-        scoreFrequency[e.score] = (scoreFrequency[e.score] ?? 0) + 1;
+        tiedGroups[e.score] = (tiedGroups[e.score] ?? []);
+        tiedGroups[e.score]!.add(e);
       }
     }
-    final tiedScores = scoreFrequency.entries
-        .where((kv) => kv.value > 1)
-        .map((kv) => kv.key)
-        .toSet();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isStableford = format == CompetitionFormat.stableford;
 
     return Column(
-      children: entries.map((entry) {
-        // Only surface tiebreak details when the player is part of a tied group.
-        final isTied = tiedScores.contains(entry.score) && entry.scoringStatus == ScoringStatus.ok;
-        final effectiveTieBreakLabel = isTied ? (entry.tieBreakLabel ?? entry.tieBreakDetails) : null;
+      children: entries.asMap().entries.map((mapEntry) {
+        final idx = mapEntry.key;
+        final entry = mapEntry.value;
+        String? differentiatorChain;
+        final tiedWith = tiedGroups[entry.score] ?? [];
+        
+        if (tiedWith.length > 1) {
+          // CHAIN OF DECIDERS LOGIC
+          // 1. Get segments for neighbors with same score
+          List<String> getSegments(LeaderboardEntry e) => 
+              (e.tieBreakDetails ?? e.tieBreakLabel ?? '').split(RegExp(r'[,•]')).map((s) => s.trim()).toList();
+          
+          final mySegments = getSegments(entry);
+          
+          int findFirstDiff(List<String> a, List<String> b) {
+            int k = 0;
+            while (k < a.length && k < b.length && a[k] == b[k]) {
+              k++;
+            }
+            return k; // index of first difference (or end of list)
+          }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-          child: BoxyArtMemberRow(
-            onTap: () => onPlayerTap?.call(entry),
-            name: entry.playerName,
-            secondaryName: entry.secondaryPlayerName,
-            initials: (entry.teamMemberNames != null && entry.teamMemberNames!.isNotEmpty)
-                ? entry.teamMemberNames!.first
-                : entry.playerName,
-            ranking: entry.position,
-            isWinner: entry.position == 1,
-            handicapIndex: entry.handicapIndex,
-            playingHandicap: entry.playingHandicap,
-            hasSocietyCut: entry.hasSocietyCut,
-            scoreColor: entry.scoringStatus != ScoringStatus.ok ? AppColors.coral500 : null,
-            score: entry.scoringStatus != ScoringStatus.ok 
-                ? entry.scoringStatus.name.toUpperCase() 
-                : (entry.scoreLabel ?? '${entry.score}'),
-            tieBreakLabel: effectiveTieBreakLabel,
-            thruLabel: entry.thruLabel ?? ((entry.holesPlayed != null && entry.holesPlayed! < 18 && entry.holesPlayed! > 0)
-                ? 'Thru ${entry.holesPlayed}'
-                : null),
-            isGuest: entry.isGuest,
-          ),
+          int maxDiffNeeded = 0;
+          
+          // Check neighbor above
+          if (idx > 0 && entries[idx-1].score == entry.score) {
+             maxDiffNeeded = findFirstDiff(mySegments, getSegments(entries[idx-1]));
+          }
+          
+          // Check neighbor below
+          if (idx < entries.length - 1 && entries[idx+1].score == entry.score) {
+             final belowDiff = findFirstDiff(mySegments, getSegments(entries[idx+1]));
+             if (belowDiff > maxDiffNeeded) maxDiffNeeded = belowDiff;
+          }
+
+          // Show chain up to maxDiffNeeded
+          if (maxDiffNeeded < mySegments.length) {
+            differentiatorChain = mySegments.take(maxDiffNeeded + 1).join(' • ');
+          } else {
+            differentiatorChain = mySegments.join(' • ');
+          }
+        }
+
+        Color rankColor = isDark ? AppColors.dark500 : AppColors.lightBorder;
+        if (entry.position == 1) rankColor = AppColors.amber500;
+        if (entry.position == 2) rankColor = isDark ? AppColors.dark200 : AppColors.dark600;
+        if (entry.position == 3) rankColor = const Color(0xFFCD7F32);
+        
+        return LeaderboardCard(
+          entry: entry,
+          isStableford: isStableford,
+          rankColor: rankColor,
+          tieBreakLabel: differentiatorChain,
+          onTap: () => onPlayerTap?.call(entry),
         );
       }).toList(),
+    );
+  }
+}
+
+class LeaderboardCard extends StatelessWidget {
+  final LeaderboardEntry entry;
+  final bool isStableford;
+  final Color rankColor;
+  final String? tieBreakLabel;
+  final VoidCallback? onTap;
+
+  const LeaderboardCard({
+    super.key,
+    required this.entry,
+    required this.isStableford,
+    required this.rankColor,
+    this.tieBreakLabel,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final spacing = theme.extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
+    final double cardHeight = vPadding * 4.0; // Same as GroupingPlayerTile
+
+    final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
+    final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.lg),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
+        child: BoxyArtCard(
+          padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 1. Avatar Section
+              SizedBox(
+                width: 72,
+                height: cardHeight,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    BoxyArtAvatar(
+                      url: entry.avatarUrl,
+                      initials: entry.playerName.isNotEmpty ? entry.playerName[0] : '?',
+                      radius: 36,
+                      isCircle: true,
+                      borderColor: rankColor,
+                      borderWidth: 3.5,
+                    ),
+                    // Host Badge (Bottom Left)
+                    if (entry.hasGuest)
+                      Positioned(
+                        bottom: -2,
+                        left: -2,
+                        child: BoxyArtIconBadge(
+                          icon: Icons.person_add_rounded,
+                          color: AppColors.actionGreen,
+                          size: 24,
+                          iconSize: 14,
+                          useCircle: true,
+                        ),
+                      ),
+                    // Rank Badge (Top Left)
+                    Positioned(
+                      top: -4,
+                      left: -4,
+                      child: BoxyArtNumberBadge(
+                        number: entry.position,
+                        size: 24,
+                        isRanking: true,
+                      ),
+                    ),
+                    if (entry.isGuest)
+                      Positioned(
+                        bottom: -2,
+                        left: -2,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: AppColors.amber500,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'G',
+                            style: TextStyle(
+                              color: AppColors.dark900,
+                              fontSize: 12,
+                              fontWeight: AppTypography.weightExtraBold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // 2. Vertical Divider
+              Container(
+                width: 1,
+                height: cardHeight,
+                margin: EdgeInsets.symmetric(horizontal: hPadding),
+                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+              ),
+
+              // 3. Right Content
+              Expanded(
+                child: SizedBox(
+                  height: cardHeight,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        toTitleCase(entry.playerName),
+                        style: AppTypography.displayHeading.copyWith(
+                          fontSize: AppTypography.sizeLargeBody,
+                          fontWeight: AppTypography.weightExtraBold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      
+                      if (entry.isGuest && entry.hostName != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1, bottom: 3),
+                          child: Text(
+                            'Guest of ${entry.hostName}',
+                            style: AppTypography.label.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                              fontStyle: FontStyle.italic,
+                              fontSize: 10,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                      const SizedBox(height: AppSpacing.xs),
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          BoxyArtPill.hc(label: entry.handicapIndex.toStringAsFixed(1), hasHorizontalMargin: false),
+                          if (entry.playingHandicap != null)
+                            BoxyArtPill.phc(
+                              context: context, 
+                              label: '${entry.playingHandicap}',
+                              hasHorizontalMargin: false,
+                            ),
+                          if (entry.hasSocietyCut)
+                            BoxyArtPill(
+                              label: 'CUT',
+                              color: AppColors.coral500,
+                              hasHorizontalMargin: true,
+                              fontSize: 10,
+                              fontWeight: AppTypography.weightBold,
+                            ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          if (entry.thruLabel != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                entry.thruLabel!,
+                                style: AppTypography.helper.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: AppSpacing.sm),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                if (hasScore && tieBreakLabel != null)
+                                  TextSpan(
+                                    text: '$tieBreakLabel  ',
+                                    style: AppTypography.label.copyWith(
+                                      fontSize: 10,
+                                      fontWeight: AppTypography.weightBold,
+                                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                TextSpan(
+                                  text: rawScore,
+                                  style: AppTypography.displayHeading.copyWith(
+                                    fontSize: 26,
+                                    fontWeight: AppTypography.weightBlack,
+                                    color: hasScore ? theme.colorScheme.primary : AppColors.coral500,
+                                    height: 1,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                if (hasScore && isStableford)
+                                  TextSpan(
+                                    text: ' pts',
+                                    style: AppTypography.label.copyWith(
+                                      fontSize: 12,
+                                      fontWeight: AppTypography.weightMedium,
+                                      color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -82,6 +348,9 @@ class LeaderboardEntry {
   final String? thruLabel;
   final ScoringStatus scoringStatus; // [NEW] WD, DQ, NR
   final bool isGuest;
+  final bool hasGuest; // [NEW] Member who brought a guest
+  final String? avatarUrl; // [NEW] Profile Picture Link
+  final String? hostName; // [NEW] Member who brought this guest
   final String? secondaryPlayerName; // [NEW] For Pairs/Teams
   final List<String>? teamMemberNames; // [NEW] For larger teams (Scramble etc)
   final List<String>? teamMemberIds; // [NEW] For linking to multiple scorecards
@@ -114,6 +383,9 @@ class LeaderboardEntry {
     this.tieBreakLabel,
     this.thruLabel,
     this.isGuest = false,
+    this.hasGuest = false,
+    this.avatarUrl,
+    this.hostName,
     this.secondaryPlayerName,
     this.teamMemberNames,
     this.teamMemberIds,
@@ -147,6 +419,9 @@ class LeaderboardEntry {
     String? tieBreakLabel,
     String? thruLabel,
     bool? isGuest,
+    bool? hasGuest,
+    String? avatarUrl,
+    String? hostName,
     String? secondaryPlayerName,
     List<String>? teamMemberNames,
     List<String>? teamMemberIds,
@@ -180,6 +455,9 @@ class LeaderboardEntry {
       tieBreakLabel: tieBreakLabel ?? this.tieBreakLabel,
       thruLabel: thruLabel ?? this.thruLabel,
       isGuest: isGuest ?? this.isGuest,
+      hasGuest: hasGuest ?? this.hasGuest,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      hostName: hostName ?? this.hostName,
       secondaryPlayerName: secondaryPlayerName ?? this.secondaryPlayerName,
       teamMemberNames: teamMemberNames ?? this.teamMemberNames,
       teamMemberIds: teamMemberIds ?? this.teamMemberIds,
