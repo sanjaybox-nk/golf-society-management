@@ -14,6 +14,7 @@ class AdminEventsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(adminEventsProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'Events',
@@ -68,10 +69,7 @@ class AdminEventsScreen extends ConsumerWidget {
             return SliverList(
               delegate: SliverChildListDelegate([
                 // Upcoming Section
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.md),
-                  child: BoxyArtSectionTitle(title: 'Upcoming Events', ),
-                ),
+                const BoxyArtSectionTitle(title: 'Upcoming Events'),
                 if (upcoming.isEmpty)
                   const BoxyArtEmptyState(
                     title: 'No Upcoming Events',
@@ -80,16 +78,17 @@ class AdminEventsScreen extends ConsumerWidget {
                     isCompact: true,
                   )
                 else
-                  ...upcoming.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.lg, left: AppSpacing.xl, right: AppSpacing.xl),
-                    child: _AdminEventRow(event: e),
+                  ...upcoming.asMap().entries.map((entry) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: (entry.key == upcoming.length - 1) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard), 
+                      left: AppSpacing.xl, 
+                      right: AppSpacing.xl
+                    ),
+                    child: _AdminEventRow(event: entry.value),
                   )),
 
                 // Past Section
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x3l, AppSpacing.xl, AppSpacing.md),
-                  child: BoxyArtSectionTitle(title: 'Past Events', ),
-                ),
+                const BoxyArtSectionTitle(title: 'Past Events'),
                 if (past.isEmpty)
                   const BoxyArtEmptyState(
                     title: 'No Past Events',
@@ -98,12 +97,16 @@ class AdminEventsScreen extends ConsumerWidget {
                     isCompact: true,
                   )
                 else
-                  ...past.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.lg, left: AppSpacing.xl, right: AppSpacing.xl),
-                    child: _AdminEventRow(event: e),
+                  ...past.asMap().entries.map((entry) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: (entry.key == past.length - 1) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard), 
+                      left: AppSpacing.xl, 
+                      right: AppSpacing.xl
+                    ),
+                    child: _AdminEventRow(event: entry.value),
                   )),
 
-                const SizedBox(height: 120),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
               ]),
             );
           },

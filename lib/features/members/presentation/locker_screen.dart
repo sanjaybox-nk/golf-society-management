@@ -12,6 +12,7 @@ class LockerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final user = ref.watch(effectiveUserProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
     final primary = Theme.of(context).primaryColor;
@@ -24,10 +25,14 @@ class LockerScreen extends ConsumerWidget {
       onBack: () => context.go('/'),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(AppTheme.pagePadding, 8, AppTheme.pagePadding, 24),
+          padding: EdgeInsets.fromLTRB(
+            AppTheme.pagePadding, 
+            0, // Rely on HeadlessScaffold buffer
+            AppTheme.pagePadding, 
+            AppSpacing.cardToLabel
+          ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              SizedBox(height: AppTheme.cardSpacing),
 
               // Profile Section
               Center(
@@ -67,7 +72,6 @@ class LockerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              SizedBox(height: AppTheme.cardSpacing),
 
               // Handicap Section
               BoxyArtCard(
@@ -83,7 +87,7 @@ class LockerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              SizedBox(height: AppTheme.cardSpacing),
+              SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
               // Season Stakes section
               Consumer(
@@ -136,7 +140,9 @@ class LockerScreen extends ConsumerWidget {
               ),
 
               // Stats Section (Design 3.1 Synchronization)
-              const BoxyArtSectionTitle(title: 'Season Highlights'),
+              const BoxyArtSectionTitle(
+                title: 'Season Highlights',
+              ),
               Consumer(
                 builder: (context, ref, _) {
                   final performanceAsync = ref.watch(memberPerformanceProvider(user.id));
@@ -144,17 +150,17 @@ class LockerScreen extends ConsumerWidget {
                     data: (stats) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        MemberStatsRow(
-                          starts: stats.starts,
-                          wins: stats.wins,
-                          top5: stats.top5,
-                          avgPts: stats.avgPts,
-                          bestPts: stats.bestPts,
-                          rank: stats.rank,
-                        ),
-                        SizedBox(height: AppTheme.cardSpacing),
-                        const BoxyArtSectionTitle(title: 'Season Standing'),
-                        const SizedBox(height: AppSpacing.md),
+                          MemberStatsRow(
+                            starts: stats.starts,
+                            wins: stats.wins,
+                            top5: stats.top5,
+                            avgPts: stats.avgPts,
+                            bestPts: stats.bestPts,
+                            rank: stats.rank,
+                          ),
+                          const BoxyArtSectionTitle(
+                            title: 'Season Standing',
+                          ),
                         BoxyArtCard(
                           padding: const EdgeInsets.all(AppSpacing.lg),
                           child: Column(
@@ -166,7 +172,7 @@ class LockerScreen extends ConsumerWidget {
                                 label: 'Order of Merit',
                                 value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
                               ),
-                              const Divider(height: AppSpacing.x2l, indent: 48),
+                              const BoxyArtDivider(verticalPadding: AppSpacing.sm),
                               _buildHighlightRow(
                                 context,
                                 icon: Icons.grid_view_rounded,
@@ -174,7 +180,7 @@ class LockerScreen extends ConsumerWidget {
                                 label: 'Starts',
                                 value: '${stats.starts} Matches',
                               ),
-                              const Divider(height: AppSpacing.x2l, indent: 48),
+                              const BoxyArtDivider(verticalPadding: AppSpacing.sm),
                               _buildHighlightRow(
                                 context,
                                 icon: Icons.park_rounded,
@@ -192,16 +198,15 @@ class LockerScreen extends ConsumerWidget {
                   );
                 },
               ),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               BoxyArtButton(
                 title: 'Season Standings',
                 icon: Icons.leaderboard_rounded,
                 onTap: () => GoRouter.of(context).push('/locker/standings'),
               ),
-              SizedBox(height: AppTheme.cardSpacing),
-
-              // Settings Section
-              const BoxyArtSectionTitle(title: 'Account Settings'),
+              const BoxyArtSectionTitle(
+                title: 'Account Settings',
+              ),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -237,7 +242,7 @@ class LockerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              SizedBox(height: AppTheme.cardSpacing),
+              SizedBox(height: AppSpacing.standard),
               
               Center(
                 child: TextButton(
@@ -254,7 +259,6 @@ class LockerScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 80), // Extra space for nav bar
             ]),
           ),
         ),

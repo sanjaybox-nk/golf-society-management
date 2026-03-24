@@ -6,12 +6,13 @@ import '../events_provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/event_structural_cards.dart';
+import '../../../members/presentation/profile_provider.dart';
+import 'package:golf_society/domain/models/member.dart';
 
 class EventUserHomeTab extends ConsumerWidget {
   final String eventId;
-  final bool useScaffold;
 
-  const EventUserHomeTab({super.key, required this.eventId, this.useScaffold = true});
+  const EventUserHomeTab({super.key, required this.eventId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,38 +20,36 @@ class EventUserHomeTab extends ConsumerWidget {
     
     return eventAsync.when(
       data: (event) {
-        return EventHomeContent(event: event, useScaffold: useScaffold);
+        return EventHomeContent(event: event);
       },
-      loading: () => useScaffold 
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => useScaffold
-          ? Scaffold(body: Center(child: Text('Error: $err')))
-          : Center(child: Text('Error: $err')),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
     );
   }
 }
 
 class EventHomeContent extends ConsumerWidget {
   final GolfEvent event;
-  final bool useScaffold;
 
   const EventHomeContent({
     super.key,
     required this.event, 
-    this.useScaffold = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = GoRouterState.of(context).uri.path.startsWith('/admin');
+    final user = ref.watch(effectiveUserProvider);
+    final isStaff = user.role != MemberRole.member;
+    final isAdminMode = GoRouterState.of(context).uri.path.startsWith('/admin');
     
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return HeadlessScaffold(
       title: event.title,
       subtitle: 'Event Dashboard',
-      useScaffold: useScaffold,
+      showAdminShortcut: false, // Explicitly removed as requested
       showBack: true,
-      actions: isAdmin
+      actions: isStaff
           ? [
               BoxyArtGlassIconButton(
                 icon: Icons.edit_rounded,
@@ -60,14 +59,10 @@ class EventHomeContent extends ConsumerWidget {
             ]
           : null,
       onBack: () {
-        try {
-          if (isAdmin) {
-            context.go('/admin/events');
-          } else {
-            context.go('/events');
-          }
-        } catch (_) {
-          Navigator.of(context).pop();
+        if (isStaff && isAdminMode) {
+          context.go('/admin/events');
+        } else {
+          context.go('/events');
         }
       },
       slivers: [
@@ -75,7 +70,8 @@ class EventHomeContent extends ConsumerWidget {
           padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const SizedBox(height: AppTheme.cardSpacing),
+              // Tab-to-Content Spacing (Standardized 32px overall visual: 24px header + 8px spacer)
+              const SizedBox(height: AppSpacing.xs),
               _buildActiveShortcuts(context, ref),
               ...() {
                 final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
@@ -85,24 +81,52 @@ class EventHomeContent extends ConsumerWidget {
                   return a.sortOrder.compareTo(b.sortOrder);
                 });
 
-                return publishedItems.map((item) {
-                  switch (item.type) {
-                    case FeedItemType.headline:
-                      return EventHeadlineCard(event: event);
-                    case FeedItemType.podium:
-                      return EventPodiumCard(event: event);
-                    case FeedItemType.registration:
-                      return EventRegistrationCard(event: event, isManagement: isAdmin);
-                    case FeedItemType.gallerySnippet:
-                      return EventGalleryCard(event: event);
-                    case FeedItemType.flash:
-                      return _buildFlashItem(context, item);
-                    case FeedItemType.newsletter:
-                      return _buildNewsletterItem(context, item);
-                    default:
-                      return const SizedBox.shrink();
-                  }
-                }).toList();
+                if (publishedItems.isEmpty) return <Widget>[];
+
+                return [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: publishedItems.length,
+                    separatorBuilder: (context, index) {
+                      final nextItem = publishedItems[index + 1];
+                      // Logic: title handles top padding. 
+                      // If next item includes its own SectionTitle, separator is 0.
+                      if (nextItem.type == FeedItemType.gallerySnippet || 
+                          nextItem.type == FeedItemType.podium || 
+                          nextItem.type == FeedItemType.registration) {
+                        return const SizedBox.shrink();
+                      }
+                      return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
+                    },
+                    itemBuilder: (context, index) {
+                      final item = publishedItems[index];
+                      // Absolute first item in whole scroll view needs peeking if it has a title
+                      final isScoringActive = event.displayStatus != EventStatus.completed && 
+                                            ((event.displayStatus == EventStatus.inPlay) || 
+                                             (DateTime.now().isAfter(event.date) && !(event.isScoringLocked == true)));
+                      final isAbsoluteFirst = index == 0 && (event.eventType != EventType.golf || !isScoringActive);
+
+                      switch (item.type) {
+                        case FeedItemType.headline:
+                          return EventHeadlineCard(event: event);
+                        case FeedItemType.podium:
+                          return EventPodiumCard(event: event, isPeeking: isAbsoluteFirst);
+                        case FeedItemType.registration:
+                          return EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: isAbsoluteFirst);
+                        case FeedItemType.gallerySnippet:
+                          return EventGalleryCard(event: event, isPeeking: isAbsoluteFirst);
+                        case FeedItemType.flash:
+                          return _buildFlashItem(context, item);
+                        case FeedItemType.newsletter:
+                          return _buildNewsletterItem(context, item, ref);
+                        default:
+                          return const SizedBox.shrink();
+                      }
+                    },
+                  ),
+                ];
               }(),
             ]),
           ),
@@ -113,7 +137,6 @@ class EventHomeContent extends ConsumerWidget {
 
   Widget _buildFlashItem(BuildContext context, EventFeedItem item) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
@@ -141,7 +164,7 @@ class EventHomeContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildNewsletterItem(BuildContext context, EventFeedItem item) {
+  Widget _buildNewsletterItem(BuildContext context, EventFeedItem item, WidgetRef ref) {
     String snippet = '';
     try {
       final decoded = jsonDecode(item.content);
@@ -155,15 +178,17 @@ class EventHomeContent extends ConsumerWidget {
       }
     } catch (_) {}
 
+    final user = ref.watch(effectiveUserProvider);
+    final config = ref.watch(themeControllerProvider);
+    final isStaff = user.role != MemberRole.member;
+    final isAdminMode = GoRouterState.of(context).uri.path.startsWith('/admin');
+
     return GestureDetector(
       onTap: () {
-        final isAdmin = GoRouterState.of(context).uri.path.startsWith('/admin');
-        final prefix = isAdmin ? '/admin/events/manage/${event.id}' : '/events/${event.id}';
+        final prefix = isStaff && isAdminMode ? '/admin/events/manage/${event.id}' : '/events/${event.id}';
         context.push('$prefix/feed/${item.id}', extra: item);
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-        child: BoxyArtCard(
+      child: BoxyArtCard(
           padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +205,10 @@ class EventHomeContent extends ConsumerWidget {
                   ),
                 ),
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
+                padding: EdgeInsets.symmetric(
+                  vertical: config.cardVerticalPadding,
+                  horizontal: config.cardHorizontalPadding,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -224,8 +252,7 @@ class EventHomeContent extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
 
@@ -246,6 +273,7 @@ class EventHomeContent extends ConsumerWidget {
   }
 
   Widget _buildActiveShortcuts(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     if (event.eventType != EventType.golf) return const SizedBox.shrink();
 
     final status = event.displayStatus;
@@ -262,12 +290,10 @@ class EventHomeContent extends ConsumerWidget {
 
     if (!isScoringActive) return const SizedBox.shrink();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: GestureDetector(
-        onTap: () => context.go('/events/${event.id}/live'),
-        child: BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+    return GestureDetector(
+      onTap: () => context.go('/events/${event.id}/live'),
+      child: BoxyArtCard(
+          // Using default tokenized padding
           backgroundColor: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
           child: Row(
             children: [
@@ -291,19 +317,17 @@ class EventHomeContent extends ConsumerWidget {
                   children: [
                     Text(
                       'READY TO SCORE?',
-                      style: AppTypography.label.copyWith(
+                      style: AppTypography.micro.copyWith(
                         color: Theme.of(context).primaryColor,
-                        fontWeight: AppTypography.weightBlack,
+                        fontWeight: AppTypography.weightHeavy,
                         letterSpacing: 1.2,
-                        fontSize: AppTypography.sizeCaption,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.atomic),
                     Text(
                       'Enter Scorecard',
-                      style: AppTypography.displayHeading.copyWith(
-                        fontSize: AppTypography.sizeLargeBody,
-                        height: 1.1,
+                      style: AppTypography.headline.copyWith(
+                        fontWeight: AppTypography.weightHeavy,
                       ),
                     ),
                   ],
@@ -317,7 +341,6 @@ class EventHomeContent extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

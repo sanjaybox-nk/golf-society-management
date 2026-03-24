@@ -45,7 +45,10 @@ class HoleScoreCard extends StatelessWidget {
         absorbing: isDisabled,
         child: BoxyArtCard(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+          padding: EdgeInsets.symmetric(
+            horizontal: theme.extension<AppSpacingTokens>()?.cardHorizontalPadding ?? AppSpacing.lg,
+            vertical: theme.extension<AppSpacingTokens>()?.cardVerticalPadding ?? AppSpacing.md,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

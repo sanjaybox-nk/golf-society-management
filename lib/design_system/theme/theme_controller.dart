@@ -12,17 +12,11 @@ final themeControllerProvider = NotifierProvider<ThemeController, SocietyConfig>
 class ThemeController extends Notifier<SocietyConfig> {
   @override
   SocietyConfig build() {
-    _init();
-    return const SocietyConfig();
-  }
-
-  void _init() {
-    // Listen to real-time updates from Firestore via StreamProvider
-    ref.listen<AsyncValue<SocietyConfig>>(societyConfigStreamProvider, (previous, next) {
-      next.whenData((config) {
-        state = config;
-      });
-    });
+    final configAsync = ref.watch(societyConfigStreamProvider);
+    return configAsync.maybeWhen(
+      data: (config) => config,
+      orElse: () => const SocietyConfig(),
+    );
   }
 
   Future<void> setSocietyName(String name) async {
@@ -54,6 +48,41 @@ class ThemeController extends Notifier<SocietyConfig> {
   Future<void> setBackgroundColor(Color color) async {
     final hex = color.toARGB32();
     final newConfig = state.copyWith(backgroundColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setStatusConfirmedColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(statusConfirmedColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setStatusReservedColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(statusReservedColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setStatusWaitlistColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(statusWaitlistColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setStatusWithdrawnColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(statusWithdrawnColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setStatusDinnerColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(statusDinnerColor: hex);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
@@ -100,6 +129,30 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setCardRadius(double radius) async {
+    final newConfig = state.copyWith(cardRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setInputRadius(double radius) async {
+    final newConfig = state.copyWith(inputRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setAccentRadius(double radius) async {
+    final newConfig = state.copyWith(accentRadius: radius);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setAccentOpacity(double opacity) async {
+    final newConfig = state.copyWith(accentOpacity: opacity);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setShadowSpread(double spread) async {
     final newConfig = state.copyWith(shadowSpread: spread);
     state = newConfig;
@@ -112,11 +165,60 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
-  Future<void> setBrandingStyle(String style) async {
-    final newConfig = state.copyWith(brandingStyle: style);
+  Future<void> setLabelToCardSpacing(double spacing) async {
+    final newConfig = state.copyWith(labelToCardSpacing: spacing);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
+
+  Future<void> setCardToLabelSpacing(double spacing) async {
+    final newConfig = state.copyWith(cardToLabelSpacing: spacing);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setCardToCardSpacing(double spacing) async {
+    final newConfig = state.copyWith(cardToCardSpacing: spacing);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setCardVerticalPadding(double padding) async {
+    final newConfig = state.copyWith(cardVerticalPadding: padding);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setCardHorizontalPadding(double padding) async {
+    final newConfig = state.copyWith(cardHorizontalPadding: padding);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setIconBadgeFillColor(Color color) async {
+    final newConfig = state.copyWith(iconBadgeFillColor: color.toARGB32());
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setIconBadgeIconColor(Color color) async {
+    final newConfig = state.copyWith(iconBadgeIconColor: color.toARGB32());
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setIconBadgeOpacity(double opacity) async {
+    final newConfig = state.copyWith(iconBadgeOpacity: opacity);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setIconOpacity(double opacity) async {
+    final newConfig = state.copyWith(iconOpacity: opacity);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
 
   Future<void> setThemeMode(String mode) async {
     final newConfig = state.copyWith(themeMode: mode);

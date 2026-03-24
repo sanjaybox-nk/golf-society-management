@@ -225,7 +225,7 @@ class ProfileInfoRow extends StatelessWidget {
             Icon(
               icon, 
               size: AppShapes.iconMd, 
-              color: isDark ? AppColors.dark300 : AppColors.dark400,
+              color: Theme.of(context).primaryColor,
             ),
             const SizedBox(width: AppSpacing.lg),
             Expanded(
@@ -280,14 +280,17 @@ class BoxyArtSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Enforce Title Case (First letter caps) for elegant, professional rhythm
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final String formattedTitle = isLevel2 ? title : toTitleCase(title);
     final displayTitle = count != null ? '$formattedTitle ($count)' : formattedTitle;
 
+    final double topPadding = isPeeking ? 0 : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
+    final double bottomPadding = spacing?.labelToCard ?? AppSpacing.labelToCard;
+
     return Padding(
       padding: EdgeInsets.only(
-        top: isPeeking ? 0 : AppSpacing.sectionTitleTop,
-        bottom: AppSpacing.labelToCard,
+        top: topPadding,
+        bottom: bottomPadding,
       ),
       child: Align(
         alignment: Alignment.centerLeft,
@@ -297,19 +300,18 @@ class BoxyArtSectionTitle extends StatelessWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                size: isLevel2 ? 12 : 14,
+                size: isLevel2 ? AppShapes.iconXs : AppShapes.iconSm,
                 color: isDark ? AppColors.dark300 : AppColors.dark400,
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.atomic),
             ],
             Flexible(
               child: Text(
                 displayTitle,
-                style: AppTypography.label.copyWith(
-                  fontSize: isLevel2 ? 10 : 12,
-                  fontWeight: AppTypography.weightBold,
+                style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
+                  fontWeight: AppTypography.weightHeavy,
                   color: isDark ? AppColors.dark60 : AppColors.dark900,
-                  letterSpacing: 1.2,
+                  letterSpacing: AppTypography.lsLabel,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -317,6 +319,28 @@ class BoxyArtSectionTitle extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A standardized subtle divider for the Boxy Art design system.
+class BoxyArtDivider extends StatelessWidget {
+  final double verticalPadding;
+
+  const BoxyArtDivider({
+    super.key,
+    this.verticalPadding = AppSpacing.xs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: verticalPadding),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
       ),
     );
   }

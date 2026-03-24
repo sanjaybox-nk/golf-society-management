@@ -260,8 +260,6 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
     return HeadlessScaffold(
       title: widget.existingItem == null ? 'Create Post' : 'Edit Post',
       subtitle: _selectedType.name.toUpperCase(),
-      useScaffold: true,
-      autoPrefix: false,
       showBack: true,
       onBack: () => context.pop(),
       actions: [
@@ -336,7 +334,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppSpacing.standard),
 
               // Visibility Controls
               const BoxyArtSectionTitle(title: 'Placement'),
@@ -351,7 +349,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                   // but BoxyArtSwitchField doesn't have a subtitle parameter like SwitchListTile.
                 ),
               ),
-              const SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppSpacing.standard),
 
               const BoxyArtSectionTitle(title: 'Content'),
               const SizedBox(height: AppTheme.sectionSpacing),
@@ -446,7 +444,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
             maxLines: null,
           ),
         ),
-        const SizedBox(height: AppTheme.cardSpacing),
+        const SizedBox(height: AppSpacing.standard),
         const BoxyArtSectionTitle(title: 'Options'),
         const SizedBox(height: AppTheme.sectionSpacing),
         ..._pollOptionsControllers.asMap().entries.map((entry) {

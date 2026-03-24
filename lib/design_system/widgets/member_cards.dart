@@ -12,10 +12,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
   final MemberStatus status;
   final bool hasPaid;
   final String? avatarUrl;
-  final TextEditingController? handicapController;
-  final TextEditingController? handicapIdController;
-  final FocusNode? handicapFocusNode;
-  final FocusNode? handicapIdFocusNode;
   final VoidCallback? onCameraTap;
   final ValueChanged<bool>? onFeeToggle;
   final ValueChanged<MemberStatus>? onStatusChanged;
@@ -26,6 +22,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
   final String? societyRole;
   final VoidCallback? onSocietyRoleTap;
   final DateTime? joinedDate; 
+  final VoidCallback? onActionTap;
 
   const BoxyArtMemberHeaderCard({
     super.key,
@@ -35,10 +32,6 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     required this.status,
     required this.hasPaid,
     this.avatarUrl,
-    this.handicapController,
-    this.handicapIdController,
-    this.handicapFocusNode,
-    this.handicapIdFocusNode,
     this.onCameraTap,
     this.onFeeToggle,
     this.onStatusChanged,
@@ -49,11 +42,16 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     this.societyRole,
     this.onSocietyRoleTap,
     this.joinedDate,
+    this.onActionTap,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final primary = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
+    final config = ref.watch(themeControllerProvider);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.colorScheme.onSurface;
     
     // Determine status display label
     final String statusLabel = (status == MemberStatus.member || status == MemberStatus.active) 
@@ -62,314 +60,222 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
     
     final bool canEdit = isAdmin && isEditing;
 
-    // Determine Colors from Theme
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = theme.colorScheme.onSurface;
-    final subColor = theme.colorScheme.onSurfaceVariant.withValues(alpha: AppColors.opacityHalf);
-    final inputFill = isDark ? AppColors.dark600 : AppColors.dark50;
-    final inputBorder = isDark ? AppColors.dark500 : AppColors.dark200;
-
     final society = ref.watch(themeControllerProvider);
     final system = society.handicapSystem;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.x2l),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          // Section A: Identity (Top Half)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar Section
+              // 1. Left Section: Avatar & Since
               Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
+                  BoxyArtAvatar(
+                    url: avatarUrl,
+                    initials: (firstName.isNotEmpty ? firstName[0] : '') +
+                              (lastName.isNotEmpty ? lastName[0] : ''),
+                    radius: 40,
+                    isCircle: true,
+                  ),
+                  if (onCameraTap != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    GestureDetector(
+                      onTap: onCameraTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
-                            width: AppShapes.borderMedium,
-                          ),
+                          color: theme.primaryColor,
+                          borderRadius: BorderRadius.circular(AppShapes.rPill),
                         ),
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundColor: isDark ? AppColors.dark600 : AppColors.dark50,
-                          backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                          child: avatarUrl == null
-                              ? Text(
-                                  (firstName.isNotEmpty ? firstName[0] : '') +
-                                  (lastName.isNotEmpty ? lastName[0] : ''),
-                                  style: AppTypography.displayLocker.copyWith(
-                                    color: isDark ? AppColors.dark300 : AppColors.dark400,
-                                  ),
-                                )
-                              : null,
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.camera_alt, size: 10, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text('EDIT', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                          ],
                         ),
                       ),
-                      if (onCameraTap != null) // Allow any member to upload their profile picture
-                        GestureDetector(
-                          onTap: onCameraTap,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              shape: BoxShape.circle,
-                              boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(AppSpacing.xs),
-                              child: Icon(
-                                Icons.camera_alt,
-                                size: AppShapes.iconXs,
-                                color: AppColors.pureWhite,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                   if (joinedDate != null) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Since ${joinedDate!.year}',
-                      style: AppTypography.caption.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
-                      ),
-                    ),
-                  ],
-                  // [NEW] Society Role under Joined Date
-                  if (societyRole?.isNotEmpty == true) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    GestureDetector(
-                      onTap: isAdmin && isEditing ? onSocietyRoleTap : null,
-                      child: BoxyArtPill(
-                        label: societyRole!,
-                        color: primary,
-                        textColor: AppColors.actionText,
-                        icon: isAdmin && isEditing ? Icons.keyboard_arrow_down : null,
-                      ),
-                    ),
-                  ],
-
-                  // [NEW] System Role Badge under Society Role
-                  if (isAdmin && ((role != null && role != MemberRole.member) || onRoleTap != null)) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    GestureDetector(
-                      onTap: isAdmin && isEditing ? onRoleTap : null,
-                      child: BoxyArtPill(
-                        label: toTitleCase(role?.displayName ?? 'Member'),
-                        color: StatusColors.neutral,
+                      style: AppTypography.micro.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                       ),
                     ),
                   ],
                 ],
               ),
-              const SizedBox(width: AppSpacing.x2l),
-              // Name / Stats Section (Top Right)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name
-                    Text(
-                      toTitleCase('$firstName $lastName'),
-                      style: AppTypography.displaySubPage.copyWith(
-                        color: textColor,
-                        fontSize: 19,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    
-                    // 1. Status Indicator (Relocated from bottom)
-                    if (canEdit && isAdmin)
-                      PopupMenuButton<MemberStatus>(
-                        itemBuilder: (context) => MemberStatus.values
-                            .where((s) => s != MemberStatus.active)
-                            .map((s) => PopupMenuItem(
-                                    value: s,
-                                    child: Text(
-                                      s == MemberStatus.member ? "Active" : s.displayName,
-                                      style: TextStyle(
-                                        fontSize: AppTypography.sizeBodySmall,
-                                        fontWeight: s == status ? AppTypography.weightBold : AppTypography.weightSemibold,
-                                        color: s == status 
-                                            ? primary 
-                                            : (s.color == StatusColors.neutral ? textColor : s.color),
-                                      ),
-                                    ),
-                                ))
-                            .toList(),
-                        child: Text(
-                          statusLabel,
-                          style: AppTypography.displayUI.copyWith(
-                            color: status.color,
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                      )
-                    else
-                      Text(
-                        statusLabel,
-                        style: AppTypography.displayUI.copyWith(
-                          color: status.color,
-                          fontWeight: AppTypography.weightBold,
-                        ),
-                      ),
 
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // HC / Handicap ID Stats Row (Under Name)
-                    if (isEditing)
+              // 2. Vertical Divider
+              Container(
+                width: 1,
+                height: 104,
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+              ),
+
+              // 3. Right Section: Information Stack
+              Expanded(
+                child: SizedBox(
+                  height: 104, // Matches identity block
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 3a. Top half: Name, Status, Roles
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs),
-                                child: Text(
-                                  toTitleCase('Handicap'),
-                                  style: AppTypography.micro.copyWith(
-                                    color: isDark ? AppColors.dark150 : AppColors.dark300,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: inputFill,
-                                  borderRadius: AppShapes.md,
-                                  border: Border.all(color: inputBorder),
-                                ),
-                                child: TextFormField(
-                                  controller: handicapController,
-                                  focusNode: handicapFocusNode,
-                                  textAlign: TextAlign.center,
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                  readOnly: !isAdmin,
-                                  decoration: const InputDecoration(
-                                    isDense: true,
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.symmetric(vertical: 10),
-                                  ),
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: isAdmin ? textColor : subColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.xs),
-                                child: Text(
-                                  toTitleCase(system.idLabel),
-                                  style: AppTypography.micro.copyWith(
-                                    color: isDark ? AppColors.dark150 : AppColors.dark300,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: inputFill,
-                                  borderRadius: AppShapes.md,
-                                  border: Border.all(color: inputBorder),
-                                ),
-                                child: TextFormField(
-                                  controller: handicapIdController,
-                                  focusNode: handicapIdFocusNode,
-                                  textAlign: TextAlign.center,
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    border: InputBorder.none,
-                                    hintText: system.hintText,
-                                    hintStyle: AppTypography.micro.copyWith(color: AppColors.textSecondary),
-                                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                                  ),
-                                  style: AppTypography.bodySmall,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Handicap Group
+                          // Member Name
                           Text(
-                            toTitleCase('HANDICAP'),
-                            style: AppTypography.microSmall.copyWith(
-                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
-                              fontSize: 11,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            handicapController?.text ?? '-',
-                            style: AppTypography.displayLargeBody.copyWith(
-                              fontSize: 20,
-                              color: textColor,
-                              fontWeight: AppTypography.weightExtraBold,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          // iGolf Group
-                          Text(
-                            toTitleCase(system.idLabel),
-                            style: AppTypography.microSmall.copyWith(
-                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
-                              fontSize: 11,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            handicapIdController?.text ?? '-',
-                            style: AppTypography.displayLargeBody.copyWith(
-                              fontSize: 20,
-                              color: textColor,
-                              fontWeight: AppTypography.weightExtraBold,
-                            ),
+                            toTitleCase('$firstName $lastName'),
+                            style: AppTypography.headline,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+
+                          const SizedBox(height: 4),
+
+                          // Status Indicator Row (with green pipe)
+                          PopupMenuButton<MemberStatus>(
+                            enabled: isAdmin && isEditing,
+                            color: theme.colorScheme.surfaceContainer,
+                            elevation: 4,
+                            offset: const Offset(0, 24),
+                            shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
+                            itemBuilder: (context) => MemberStatus.values
+                                .where((s) => s != MemberStatus.active)
+                                .map((s) => PopupMenuItem(
+                                        value: s,
+                                        height: 48,
+                                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                                        child: Text(
+                                          s == MemberStatus.member ? "Active" : s.displayName,
+                                          style: AppTypography.body.copyWith(
+                                            fontWeight: s == status ? AppTypography.weightHeavy : AppTypography.weightStrong,
+                                            color: s == status 
+                                                ? primary 
+                                                : (s.color == StatusColors.neutral ? textColor : s.color),
+                                          ),
+                                        ),
+                                    ))
+                                .toList(),
+                            onSelected: onStatusChanged,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 3,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    color: status == MemberStatus.active 
+                                        ? theme.primaryColor 
+                                        : AppColors.amber500,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  statusLabel,
+                                  style: AppTypography.label.copyWith(
+                                    color: status == MemberStatus.active 
+                                        ? theme.primaryColor 
+                                        : AppColors.amber500,
+                                    fontWeight: AppTypography.weightStrong,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Role Pills
+                          if (societyRole?.isNotEmpty == true || (isAdmin && role != null && role != MemberRole.member))
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Wrap(
+                                spacing: AppSpacing.xs,
+                                runSpacing: 4,
+                                children: [
+                                  if (societyRole?.isNotEmpty == true)
+                                    GestureDetector(
+                                      onTap: isAdmin && isEditing ? onSocietyRoleTap : null,
+                                      child: BoxyArtPill(
+                                        label: societyRole!,
+                                        color: Color(config.iconBadgeFillColor),
+                                        textColor: Color(config.iconBadgeIconColor),
+                                        hasHorizontalMargin: false,
+                                      ),
+                                    ),
+                                  if (isAdmin && role != null && role != MemberRole.member)
+                                    GestureDetector(
+                                      onTap: isAdmin && isEditing ? onRoleTap : null,
+                                      child: BoxyArtPill(
+                                        label: toTitleCase(role!.displayName),
+                                        color: StatusColors.neutral,
+                                        hasHorizontalMargin: false,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          
-          const SizedBox(height: AppSpacing.x2l),
-          
-          // Row 3: Bottom Row (Fee Status Only)
-          if (isAdmin)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IgnorePointer(
-                  ignoring: !canEdit,
-                  child: BoxyArtFeePill(
-                    isPaid: hasPaid,
-                    onToggle: () => onFeeToggle?.call(!hasPaid),
-                  ),
+
+          // 4. Admin Action Menu (Top Right)
+          if (onActionTap != null)
+            Positioned(
+              top: -AppSpacing.sm,
+              right: -AppSpacing.sm,
+              child: IconButton(
+                onPressed: onActionTap,
+                icon: Icon(
+                  Icons.more_horiz_rounded,
+                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                 ),
-              ],
+              ),
+            ),
+          
+          // 5. Fee Pill (Bottom Right)
+          if (isAdmin)
+             Positioned(
+              bottom: 0,
+              right: 0,
+              child: BoxyArtFeePill(
+                isPaid: hasPaid,
+                onToggle: () => onFeeToggle?.call(!hasPaid),
+              ),
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMetricCol({required BuildContext context, required String label, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.micro.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+          ),
+        ),
+        const SizedBox(height: 4),
+        child,
+      ],
     );
   }
 }

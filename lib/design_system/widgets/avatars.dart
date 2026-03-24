@@ -8,6 +8,8 @@ class BoxyArtAvatar extends StatelessWidget {
   final double radius;
   final Color? color;
   final bool isCircle; // Allow override if specifically needed
+  final Color? borderColor;
+  final double? borderWidth;
 
   const BoxyArtAvatar({
     super.key,
@@ -16,6 +18,8 @@ class BoxyArtAvatar extends StatelessWidget {
     this.radius = 20,
     this.color,
     this.isCircle = false,
+    this.borderColor,
+    this.borderWidth,
   });
 
   @override
@@ -32,8 +36,8 @@ class BoxyArtAvatar extends StatelessWidget {
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: isCircle ? null : BorderRadius.circular(AppShapes.rMd),
         border: Border.all(
-          color: primary.withValues(alpha: AppColors.opacityMedium),
-          width: AppShapes.borderLight,
+          color: borderColor ?? primary.withValues(alpha: AppColors.opacityMedium),
+          width: borderWidth ?? AppShapes.borderLight,
         ),
       ),
       child: ClipRRect(

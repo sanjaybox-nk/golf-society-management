@@ -43,6 +43,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final config = ref.watch(themeControllerProvider);
     final currentMode = config.societyCutMode;
     final upcomingEventsAsync = ref.watch(upcomingEventsProvider);
@@ -52,16 +53,17 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
       title: 'Society Cuts',
       subtitle: (config.societyCutMode != SocietyCutMode.off) ? 'Active' : 'Disabled',
       showBack: true,
-      autoPrefix: false,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl, 
+            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard
+          ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Mode Selector
               const BoxyArtSectionTitle(title: 'Selection Mode'),
-              const SizedBox(height: AppSpacing.md),
               BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
@@ -111,7 +113,6 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
 
               if (currentMode == SocietyCutMode.global) ...[
                 const BoxyArtSectionTitle(title: 'Cut Rules (Shots)'),
-                const SizedBox(height: AppSpacing.md),
                 BoxyArtCard(
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   child: Column(
@@ -157,14 +158,14 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
 
               if (currentMode == SocietyCutMode.manual) ...[
                 const BoxyArtSectionTitle(title: 'Manual Overrides'),
-                const SizedBox(height: AppSpacing.xs),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  padding: EdgeInsets.zero,
                   child: Text(
                     'Select an upcoming event to apply specific shot adjustments for individual players.',
                     style: AppTypography.caption.copyWith(color: AppColors.dark300),
                   ),
                 ),
+                SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
                 upcomingEventsAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (err, stack) => Center(child: Text('Error: $err')),
@@ -180,7 +181,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                     return Column(
                       children: events.map((event) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.labelToCard),
                           child: BoxyArtNavTile(
                             title: event.title.toUpperCase(),
                             subtitle: 'TAP TO APPLY INDIVIDUAL CUTS',

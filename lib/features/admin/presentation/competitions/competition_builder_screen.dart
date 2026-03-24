@@ -83,7 +83,6 @@ class CompetitionBuilderScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Create $gameName Game',
-      autoPrefix: false,
       subtitle: isTemplate 
           ? 'edit saved game template' 
           : (compToUse != null ? 'event customisation' : 'new competition setup'),

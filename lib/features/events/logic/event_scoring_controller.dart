@@ -3,6 +3,7 @@ import 'package:golf_society/features/competitions/presentation/competitions_pro
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/events/presentation/state/marker_selection_provider.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import '../domain/models/processed_event_data.dart';
 import 'event_scoring_processor.dart';
 import 'package:collection/collection.dart';
@@ -41,6 +42,7 @@ class EventScoringController extends _$EventScoringController {
       liveScorecards: liveScorecards,
       members: members,
       markerSelection: markerSelection,
+      currentUserId: ref.watch(effectiveUserProvider).id,
     );
   }
 }

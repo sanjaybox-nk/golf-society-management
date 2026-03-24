@@ -4,7 +4,9 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
 
 class EventTypeSection extends ConsumerWidget {
-  const EventTypeSection({super.key});
+  final bool isPeeking;
+
+  const EventTypeSection({super.key, this.isPeeking = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -35,6 +35,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final membersAsync = ref.watch(allMembersProvider);
     final searchQuery = ref.watch(memberSearchQueryProvider).toLowerCase();
     final currentFilter = ref.watch(userMemberFilterProvider);
@@ -61,47 +62,70 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         subtitle: 'Members Roster',
         backgroundColor: beigeBackground,
         slivers: [
+          // Baseline Nudge for Tab Bar
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -16.0),
+              child: ModernUnderlinedFilterBar<AdminMemberFilter>(
+                selectedValue: currentFilter,
+                onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                isExpanded: true,
+                tabs: [
+                  ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                  ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                  ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                ],
+              ),
+            ),
+          ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.xl, 
+              0, 
+              AppSpacing.xl, 
+              spacing?.cardToLabel ?? AppSpacing.cardToLabel
+            ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                ModernUnderlinedFilterBar<AdminMemberFilter>(
-                  selectedValue: currentFilter,
-                  onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
-                  tabs: [
-                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
 
                 // Search Card
                 BoxyArtCard(
-                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.search_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
+                      Icon(Icons.search_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: TextField(
                           focusNode: _searchFocusNode,
                           onChanged: (v) => ref.read(memberSearchQueryProvider.notifier).update(v),
-                          decoration: const InputDecoration(
-                            hintText: 'Search roster...',
+                          style: AppTypography.body.copyWith(
+                            fontSize: 18,
+                            height: 1.2,
+                            fontWeight: AppTypography.weightSemibold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Search members...',
+                            hintStyle: AppTypography.body.copyWith(
+                              fontSize: 18,
+                              height: 1.2,
+                              color: AppColors.textSecondary,
+                            ),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
                             isDense: true,
                             filled: false,
-                            contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                            contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.x2l),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
                 // Members List
                 membersAsync.when(
@@ -127,14 +151,16 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
 
                     return Column(
-                      children: sortedMembers.map((m) {
+                      children: sortedMembers.asMap().entries.map((entry) {
+                        final m = entry.value;
+                        final isLast = entry.key == sortedMembers.length - 1;
                         final eventCount = memberStatsAsync.value?[m.id] ?? 0;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
                           child: MemberTile(
                             member: m,
                             onTap: () => MemberDetailsModal.show(context, m),
-                            secondaryMetricLabel: 'EVENTS',
+                            secondaryMetricLabel: 'Events',
                             secondaryMetricValue: '$eventCount',
                           ),
                         );

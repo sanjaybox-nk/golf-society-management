@@ -70,16 +70,14 @@ class MemberRolePicker extends StatelessWidget {
                 children: [
                   Text(
                     _getRoleDisplayName(role),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: AppTypography.weightBold,
-                      color: isSelected ? theme.primaryColor : Colors.black.withValues(alpha: 0.87),
+                    style: AppTypography.labelStrong.copyWith(
+                      color: isSelected ? theme.primaryColor : theme.colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     _getRoleDescription(role),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.dark600,
-                      fontSize: AppTypography.sizeLabel,
+                    style: AppTypography.label.copyWith(
+                      color: isSelected ? theme.primaryColor.withValues(alpha: AppColors.opacitySecondary) : AppColors.textSecondary,
                     ),
                   ),
                 ],

@@ -17,7 +17,6 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
       title: 'Handicap System',
       subtitle: 'Select calculation provider',
       showBack: true,
-      autoPrefix: false, // Fix header overlap
       onBack: () => context.pop(),
       backgroundColor: beigeBackground,
       slivers: [
@@ -30,9 +29,10 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                 final isSelected = system == societyConfig.handicapSystem;
                 final isDark = theme.brightness == Brightness.dark;
                 const identityColor = AppColors.teamA;
+                final spacing = Theme.of(context).extension<AppSpacingTokens>();
                 final iconColor = isSelected ? identityColor : (isDark ? AppColors.dark300 : AppColors.dark400);
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
                   child: BoxyArtCard(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     onTap: () {

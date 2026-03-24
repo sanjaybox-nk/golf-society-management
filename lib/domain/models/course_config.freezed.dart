@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TeeConfig {
 
- String get name; double get rating; int get slope; List<int> get holePars; List<int> get holeSIs; List<int> get yardages;
+ String get name; String? get color; double get rating; int get slope; List<int> get holePars; List<int> get holeSIs; List<int> get yardages;
 /// Create a copy of TeeConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TeeConfigCopyWith<TeeConfig> get copyWith => _$TeeConfigCopyWithImpl<TeeConfig>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeeConfig&&(identical(other.name, name) || other.name == name)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.slope, slope) || other.slope == slope)&&const DeepCollectionEquality().equals(other.holePars, holePars)&&const DeepCollectionEquality().equals(other.holeSIs, holeSIs)&&const DeepCollectionEquality().equals(other.yardages, yardages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeeConfig&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.slope, slope) || other.slope == slope)&&const DeepCollectionEquality().equals(other.holePars, holePars)&&const DeepCollectionEquality().equals(other.holeSIs, holeSIs)&&const DeepCollectionEquality().equals(other.yardages, yardages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,rating,slope,const DeepCollectionEquality().hash(holePars),const DeepCollectionEquality().hash(holeSIs),const DeepCollectionEquality().hash(yardages));
+int get hashCode => Object.hash(runtimeType,name,color,rating,slope,const DeepCollectionEquality().hash(holePars),const DeepCollectionEquality().hash(holeSIs),const DeepCollectionEquality().hash(yardages));
 
 @override
 String toString() {
-  return 'TeeConfig(name: $name, rating: $rating, slope: $slope, holePars: $holePars, holeSIs: $holeSIs, yardages: $yardages)';
+  return 'TeeConfig(name: $name, color: $color, rating: $rating, slope: $slope, holePars: $holePars, holeSIs: $holeSIs, yardages: $yardages)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TeeConfigCopyWith<$Res>  {
   factory $TeeConfigCopyWith(TeeConfig value, $Res Function(TeeConfig) _then) = _$TeeConfigCopyWithImpl;
 @useResult
 $Res call({
- String name, double rating, int slope, List<int> holePars, List<int> holeSIs, List<int> yardages
+ String name, String? color, double rating, int slope, List<int> holePars, List<int> holeSIs, List<int> yardages
 });
 
 
@@ -65,10 +65,11 @@ class _$TeeConfigCopyWithImpl<$Res>
 
 /// Create a copy of TeeConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? rating = null,Object? slope = null,Object? holePars = null,Object? holeSIs = null,Object? yardages = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? color = freezed,Object? rating = null,Object? slope = null,Object? holePars = null,Object? holeSIs = null,Object? yardages = null,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as String,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as double,slope: null == slope ? _self.slope : slope // ignore: cast_nullable_to_non_nullable
 as int,holePars: null == holePars ? _self.holePars : holePars // ignore: cast_nullable_to_non_nullable
 as List<int>,holeSIs: null == holeSIs ? _self.holeSIs : holeSIs // ignore: cast_nullable_to_non_nullable
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  double rating,  int slope,  List<int> holePars,  List<int> holeSIs,  List<int> yardages)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String? color,  double rating,  int slope,  List<int> holePars,  List<int> holeSIs,  List<int> yardages)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeeConfig() when $default != null:
-return $default(_that.name,_that.rating,_that.slope,_that.holePars,_that.holeSIs,_that.yardages);case _:
+return $default(_that.name,_that.color,_that.rating,_that.slope,_that.holePars,_that.holeSIs,_that.yardages);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.name,_that.rating,_that.slope,_that.holePars,_that.holeSIs
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  double rating,  int slope,  List<int> holePars,  List<int> holeSIs,  List<int> yardages)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String? color,  double rating,  int slope,  List<int> holePars,  List<int> holeSIs,  List<int> yardages)  $default,) {final _that = this;
 switch (_that) {
 case _TeeConfig():
-return $default(_that.name,_that.rating,_that.slope,_that.holePars,_that.holeSIs,_that.yardages);case _:
+return $default(_that.name,_that.color,_that.rating,_that.slope,_that.holePars,_that.holeSIs,_that.yardages);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.name,_that.rating,_that.slope,_that.holePars,_that.holeSIs
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  double rating,  int slope,  List<int> holePars,  List<int> holeSIs,  List<int> yardages)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String? color,  double rating,  int slope,  List<int> holePars,  List<int> holeSIs,  List<int> yardages)?  $default,) {final _that = this;
 switch (_that) {
 case _TeeConfig() when $default != null:
-return $default(_that.name,_that.rating,_that.slope,_that.holePars,_that.holeSIs,_that.yardages);case _:
+return $default(_that.name,_that.color,_that.rating,_that.slope,_that.holePars,_that.holeSIs,_that.yardages);case _:
   return null;
 
 }
@@ -214,10 +215,11 @@ return $default(_that.name,_that.rating,_that.slope,_that.holePars,_that.holeSIs
 @JsonSerializable()
 
 class _TeeConfig implements TeeConfig {
-  const _TeeConfig({required this.name, required this.rating, required this.slope, required final  List<int> holePars, required final  List<int> holeSIs, required final  List<int> yardages}): _holePars = holePars,_holeSIs = holeSIs,_yardages = yardages;
+  const _TeeConfig({required this.name, this.color, required this.rating, required this.slope, required final  List<int> holePars, required final  List<int> holeSIs, required final  List<int> yardages}): _holePars = holePars,_holeSIs = holeSIs,_yardages = yardages;
   factory _TeeConfig.fromJson(Map<String, dynamic> json) => _$TeeConfigFromJson(json);
 
 @override final  String name;
+@override final  String? color;
 @override final  double rating;
 @override final  int slope;
  final  List<int> _holePars;
@@ -255,16 +257,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeeConfig&&(identical(other.name, name) || other.name == name)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.slope, slope) || other.slope == slope)&&const DeepCollectionEquality().equals(other._holePars, _holePars)&&const DeepCollectionEquality().equals(other._holeSIs, _holeSIs)&&const DeepCollectionEquality().equals(other._yardages, _yardages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeeConfig&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.slope, slope) || other.slope == slope)&&const DeepCollectionEquality().equals(other._holePars, _holePars)&&const DeepCollectionEquality().equals(other._holeSIs, _holeSIs)&&const DeepCollectionEquality().equals(other._yardages, _yardages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,rating,slope,const DeepCollectionEquality().hash(_holePars),const DeepCollectionEquality().hash(_holeSIs),const DeepCollectionEquality().hash(_yardages));
+int get hashCode => Object.hash(runtimeType,name,color,rating,slope,const DeepCollectionEquality().hash(_holePars),const DeepCollectionEquality().hash(_holeSIs),const DeepCollectionEquality().hash(_yardages));
 
 @override
 String toString() {
-  return 'TeeConfig(name: $name, rating: $rating, slope: $slope, holePars: $holePars, holeSIs: $holeSIs, yardages: $yardages)';
+  return 'TeeConfig(name: $name, color: $color, rating: $rating, slope: $slope, holePars: $holePars, holeSIs: $holeSIs, yardages: $yardages)';
 }
 
 
@@ -275,7 +277,7 @@ abstract mixin class _$TeeConfigCopyWith<$Res> implements $TeeConfigCopyWith<$Re
   factory _$TeeConfigCopyWith(_TeeConfig value, $Res Function(_TeeConfig) _then) = __$TeeConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String name, double rating, int slope, List<int> holePars, List<int> holeSIs, List<int> yardages
+ String name, String? color, double rating, int slope, List<int> holePars, List<int> holeSIs, List<int> yardages
 });
 
 
@@ -292,10 +294,11 @@ class __$TeeConfigCopyWithImpl<$Res>
 
 /// Create a copy of TeeConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? rating = null,Object? slope = null,Object? holePars = null,Object? holeSIs = null,Object? yardages = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? color = freezed,Object? rating = null,Object? slope = null,Object? holePars = null,Object? holeSIs = null,Object? yardages = null,}) {
   return _then(_TeeConfig(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as String,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as double,slope: null == slope ? _self.slope : slope // ignore: cast_nullable_to_non_nullable
 as int,holePars: null == holePars ? _self._holePars : holePars // ignore: cast_nullable_to_non_nullable
 as List<int>,holeSIs: null == holeSIs ? _self._holeSIs : holeSIs // ignore: cast_nullable_to_non_nullable

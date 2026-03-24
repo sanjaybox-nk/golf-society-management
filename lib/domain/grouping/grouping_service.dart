@@ -239,13 +239,20 @@ class GroupingService {
     // Optimization: Variety & Handicap Optimization (Refinement Pass)
     GroupingOptimizer.optimize(groups, previousEventsInSeason, prioritizeBuggyPairing, strategy);
 
-    // [PHASE 42] Auto-assign one random captain to each group
+    // [PHASE 42] Auto-assign one random captain to each group (Members only)
     final rand = Random();
     for (var group in groups) {
       if (group.players.isNotEmpty) {
-        final captainIdx = rand.nextInt(group.players.length);
-        for (int i = 0; i < group.players.length; i++) {
-          group.players[i].isCaptain = (i == captainIdx);
+        final memberIndices = group.players.asMap().entries
+            .where((e) => !e.value.isGuest)
+            .map((e) => e.key)
+            .toList();
+            
+        if (memberIndices.isNotEmpty) {
+          final captainIdx = memberIndices[rand.nextInt(memberIndices.length)];
+          for (int i = 0; i < group.players.length; i++) {
+            group.players[i].isCaptain = (i == captainIdx);
+          }
         }
       }
     }

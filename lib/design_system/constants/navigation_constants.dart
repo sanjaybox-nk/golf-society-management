@@ -24,6 +24,11 @@ class NavigationConstants {
       label: 'Comms',
     ),
     BoxyArtBottomNavItem(
+      icon: Icons.quiz_outlined,
+      activeIcon: Icons.quiz,
+      label: 'Surveys',
+    ),
+    BoxyArtBottomNavItem(
       icon: Icons.analytics_outlined,
       activeIcon: Icons.analytics,
       label: 'Reporting',

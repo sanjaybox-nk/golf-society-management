@@ -13,6 +13,7 @@ class EventCostControlScreen extends ConsumerWidget {
     final eventAsync = ref.watch(eventProvider(eventId));
     final societyConfig = ref.watch(themeControllerProvider);
     final currency = societyConfig.currencySymbol;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
@@ -47,82 +48,83 @@ class EventCostControlScreen extends ConsumerWidget {
                                 onChanged: (v) => _updateEvent(ref, event, societyGreenFee: double.tryParse(v)),
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.lg),
-                            const Expanded(child: SizedBox.shrink()),
-                          ],
+                        const SizedBox(width: AppSpacing.lg),
+                        const Expanded(child: SizedBox.shrink()),
+                      ],
+                    ),
+                    SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BoxyArtFormField(
+                            label: 'Member Charge ($currency)',
+                            initialValue: event.memberCost?.toString() ?? '',
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) => _updateEvent(ref, event, memberCost: double.tryParse(v)),
+                          ),
                         ),
-                        const SizedBox(height: AppSpacing.cardToLabel),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BoxyArtFormField(
-                                label: 'Member Charge ($currency)',
-                                initialValue: event.memberCost?.toString() ?? '',
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => _updateEvent(ref, event, memberCost: double.tryParse(v)),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.lg),
-                            Expanded(
-                              child: BoxyArtFormField(
-                                label: 'Guest Charge ($currency)',
-                                initialValue: event.guestCost?.toString() ?? '',
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => _updateEvent(ref, event, guestCost: double.tryParse(v)),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: BoxyArtFormField(
+                            label: 'Guest Charge ($currency)',
+                            initialValue: event.guestCost?.toString() ?? '',
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) => _updateEvent(ref, event, guestCost: double.tryParse(v)),
+                          ),
                         ),
-                        const SizedBox(height: AppSpacing.cardToLabel),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BoxyArtFormField(
-                                label: 'Buggy Cost (Indicative)',
-                                subtitle: 'Paid directly to pro shop (not collected by society)',
-                                initialValue: event.buggyCost?.toString() ?? '',
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => _updateEvent(ref, event, buggyCost: double.tryParse(v)),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.lg),
-                            const Expanded(child: SizedBox.shrink()),
-                          ],
+                      ],
+                    ),
+                    SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BoxyArtFormField(
+                            label: 'Buggy Cost (Indicative)',
+                            subtitle: 'Paid directly to pro shop (not collected by society)',
+                            initialValue: event.buggyCost?.toString() ?? '',
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) => _updateEvent(ref, event, buggyCost: double.tryParse(v)),
+                          ),
                         ),
+                        const SizedBox(width: AppSpacing.lg),
+                        const Expanded(child: SizedBox.shrink()),
+                      ],
+                    ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.x4l),
                 const BoxyArtSectionTitle(title: 'MEAL OPTIONS'),
                 BoxyArtCard(
                   child: Column(
                     children: [
-                      _buildMealToggle(ref, event, 'Breakfast', event.hasBreakfast, event.societyBreakfastCost, event.breakfastCost, currency,
-                        (v) => _updateEvent(ref, event, hasBreakfast: v),
-                        (v) => _updateEvent(ref, event, societyBreakfastCost: double.tryParse(v) ?? 0),
-                        (v) => _updateEvent(ref, event, breakfastCost: double.tryParse(v) ?? 0),
-                      ),
-                      const Divider(height: AppSpacing.x3l),
-                      _buildMealToggle(ref, event, 'Lunch', event.hasLunch, event.societyLunchCost, event.lunchCost, currency,
-                        (v) => _updateEvent(ref, event, hasLunch: v),
-                        (v) => _updateEvent(ref, event, societyLunchCost: double.tryParse(v) ?? 0),
-                        (v) => _updateEvent(ref, event, lunchCost: double.tryParse(v) ?? 0),
-                      ),
-                      const Divider(height: AppSpacing.x3l),
-                      _buildMealToggle(ref, event, 'Dinner', event.hasDinner, event.societyDinnerCost, event.dinnerCost, currency,
-                        (v) => _updateEvent(ref, event, hasDinner: v),
-                        (v) => _updateEvent(ref, event, societyDinnerCost: double.tryParse(v) ?? 0),
-                        (v) => _updateEvent(ref, event, dinnerCost: double.tryParse(v) ?? 0),
-                      ),
+                        _buildMealToggle(ref, event, 'Breakfast', event.hasBreakfast, event.societyBreakfastCost, event.breakfastCost, currency,
+                          (v) => _updateEvent(ref, event, hasBreakfast: v),
+                          (v) => _updateEvent(ref, event, societyBreakfastCost: double.tryParse(v) ?? 0),
+                          (v) => _updateEvent(ref, event, breakfastCost: double.tryParse(v) ?? 0),
+                        ),
+                        const BoxyArtDivider(),
+                        _buildMealToggle(ref, event, 'Lunch', event.hasLunch, event.societyLunchCost, event.lunchCost, currency,
+                          (v) => _updateEvent(ref, event, hasLunch: v),
+                          (v) => _updateEvent(ref, event, societyLunchCost: double.tryParse(v) ?? 0),
+                          (v) => _updateEvent(ref, event, lunchCost: double.tryParse(v) ?? 0),
+                        ),
+                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+                        const BoxyArtDivider(),
+                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+                        _buildMealToggle(ref, event, 'Dinner', event.hasDinner, event.societyDinnerCost, event.dinnerCost, currency,
+                          (v) => _updateEvent(ref, event, hasDinner: v),
+                          (v) => _updateEvent(ref, event, societyDinnerCost: double.tryParse(v) ?? 0),
+                          (v) => _updateEvent(ref, event, dinnerCost: double.tryParse(v) ?? 0),
+                        ),
                       if (event.hasDinner) ...[
-                        const SizedBox(height: AppSpacing.cardToLabel),
+                        SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
                         BoxyArtFormField(
                           label: 'Dinner Location',
                           initialValue: event.dinnerLocation,
                           onChanged: (v) => _updateEvent(ref, event, dinnerLocation: v),
                         ),
-                        const SizedBox(height: AppSpacing.cardToLabel),
+                        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
                         BoxyArtFormField(
                           label: 'Dinner Address (Optional)',
                           initialValue: event.dinnerAddress,
@@ -132,9 +134,7 @@ class EventCostControlScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.x4l),
                 const BoxyArtSectionTitle(title: 'MISCELLANEOUS EXPENSES'),
-                const SizedBox(height: AppSpacing.md),
                 if (event.expenses.isEmpty)
                   BoxyArtCard(
                     padding: const EdgeInsets.all(AppSpacing.xl),
@@ -146,16 +146,16 @@ class EventCostControlScreen extends ConsumerWidget {
                     ),
                   )
                 else
-                  ...event.expenses.map((e) => _buildExpenseRow(context, ref, event, e)),
+                  ...event.expenses.map((e) => _buildExpenseRow(context, ref, event, e, spacing)),
                 
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                 BoxyArtButton(
                   title: 'ADD EXPENSE',
                   onTap: () => _showExpenseDialog(context, ref, event),
                   isGhost: true,
                   fullWidth: true,
                 ),
-                const SizedBox(height: 120), // Spacing for safe area
+                SizedBox(height: AppSpacing.hero), // Spacing for safe area
               ]),
             ),
           ),
@@ -241,12 +241,12 @@ class EventCostControlScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildExpenseRow(BuildContext context, WidgetRef ref, GolfEvent event, EventExpense expense) {
+  Widget _buildExpenseRow(BuildContext context, WidgetRef ref, GolfEvent event, EventExpense expense, AppSpacingTokens? spacing) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
       child: BoxyArtCard(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(

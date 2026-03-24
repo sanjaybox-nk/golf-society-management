@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -33,7 +32,7 @@ class MemberHomeScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final effectiveUser = ref.watch(effectiveUserProvider);
-    final isPeeking = ref.watch(impersonationProvider) != null;
+    final isImpersonating = ref.watch(impersonationProvider) != null;
     
     // Top 2 unread notifications
     final notificationsAsync = ref.watch(homeNotificationsProvider);
@@ -45,276 +44,285 @@ class MemberHomeScreen extends ConsumerWidget {
     final surveysAsync = ref.watch(activeSurveysProvider);
     final eventsAsync = ref.watch(eventsProvider);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Match provided aesthetic
-      body: Column(
+    return HeadlessScaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      title: effectiveUser.firstName,
+      subtitleWidget: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isPeeking)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.lg),
-              color: AppColors.amber500,
-              child: SafeArea(
-                bottom: false,
+          Row(
+            children: [
+              Text(
+                _getGreeting(),
+                style: AppTypography.labelStrong.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(Icons.waving_hand_rounded, size: 14, color: AppColors.lime500),
+            ],
+          ),
+          if (societyConfig.logoUrl != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.md),
+              child: Image.network(
+                societyConfig.logoUrl!,
+                height: 32,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+            ),
+        ],
+      ),
+      showMenu: true,
+      showAdminShortcut: true,
+      slivers: [
+        if (isImpersonating)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtCard(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                backgroundColor: AppColors.actionGreen.withValues(alpha: 0.1),
                 child: Row(
                   children: [
-                    const Icon(Icons.visibility, color: AppColors.pureWhite, size: AppShapes.iconSm),
+                    const Icon(Icons.visibility_rounded, color: AppColors.actionGreen, size: 20),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: Text(
-                        'Peeking as ${effectiveUser.displayName}',
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.pureWhite,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'VIEWING AS MEMBER',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: AppTypography.weightExtraBold,
+                              letterSpacing: 1.2,
+                              color: AppColors.actionGreen,
+                            ),
+                          ),
+                          Text(
+                            '${effectiveUser.firstName} ${effectiveUser.lastName}',
+                            style: AppTypography.labelStrong,
+                          ),
+                        ],
                       ),
                     ),
-                    GestureDetector(
+                    BoxyArtButton(
+                      title: 'EXIT',
+                      isSecondary: true,
                       onTap: () => ref.read(impersonationProvider.notifier).clear(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: AppColors.opacityMedium),
-                          borderRadius: AppShapes.xs,
-                        ),
-                        child: Text(
-                          'EXIT PEEK',
-                          style: AppTypography.microSmall.copyWith(
-                            color: AppColors.pureWhite,
-                          ),
-                        ),
-                      ),
                     ),
                   ],
                 ),
               ),
             ),
-          Expanded(
-            child: notificationsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-              data: (allNotifications) {
-                final unreadNotifications = allNotifications
-                    .where((n) => !n.isRead)
-                    .toList()
-                  ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-                
-                final homeNotifications = unreadNotifications.take(2).toList();
-                
-                return CustomScrollView(
-                  slivers: [
-                    // App Bar
-                    SliverAppBar(
-                      floating: true,
-                      pinned: true, // Keep it pinned for a premium feel
-                      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: AppColors.opacityStrong),
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 0,
-                      centerTitle: false,
-                      toolbarHeight: 80, // Taller app bar
-                      flexibleSpace: ClipRect(
-                        child:  BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(color: Colors.transparent),
+          ),
+        // Notifications & Content
+        notificationsAsync.when(
+          loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+          error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+          data: (allNotifications) {
+            final spacing = Theme.of(context).extension<AppSpacingTokens>();
+            final unreadNotifications = allNotifications
+                .where((n) => !n.isRead)
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+            
+            final homeNotifications = unreadNotifications.take(2).toList();
+            
+            return SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl, 
+                vertical: spacing?.labelToCard ?? AppSpacing.labelToCard
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // Notifications Section (Dynamic)
+                  if (homeNotifications.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const BoxyArtSectionTitle(
+                          title: 'Notifications',
+                          isPeeking: true, // Tight to top
                         ),
+                          TextButton(
+                            onPressed: () => context.push('/home/notifications'),
+                            child: Text(
+                              'View All', 
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: isDark ? AppColors.lime400 : AppColors.lime700,
+                                fontWeight: AppTypography.weightBold,
+                                inherit: true, // Fix for TextStyle interpolation crash
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    ...homeNotifications.asMap().entries.map((entry) {
+                      final isLast = entry.key == homeNotifications.length - 1;
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
+                        child: StaggeredEntrance(
+                          index: entry.key,
+                          child: HomeNotificationCard(notification: entry.value),
+                        ),
+                      );
+                    }),
+                  ],
+                ]),
+              ),
+            );
+          },
+        ),
+
+        // Upcoming Event Section (Next Match / Live Now)
+        nextMatch.when(
+          data: (event) {
+            if (event == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
+            final isLive = event.status == EventStatus.inPlay;
+                
+            return SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BoxyArtSectionTitle(
+                      title: isLive ? 'LIVE NOW' : 'NEXT FIXTURE', 
+                      isPeeking: true,
+                    ),
+                    const SizedBox(height: AppSpacing.labelToCard),
+                    _NextMatchCard(event: event),
+                  ],
+                ),
+              ),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+        ),
+
+        // Society Polls
+        eventsAsync.when(
+          data: (events) {
+            final activePolls = events.expand((e) => e.feedItems.where((i) => i.type == FeedItemType.poll && i.isPublished).map((item) => (e, item))).toList();
+            if (activePolls.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+            
+            return SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final item = activePolls[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index == 0) ...[
+                            const BoxyArtSectionTitle(title: 'SOCIETY POLLS'),
+                            const SizedBox(height: AppSpacing.labelToCard),
+                          ],
+                          _GlobalPollCard(event: item.$1, item: item.$2),
+                        ],
                       ),
-                      title: Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    );
+                  },
+                  childCount: activePolls.length,
+                ),
+              ),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+        ),
+
+        // Active Surveys
+        surveysAsync.when(
+          data: (surveys) {
+            final dismissed = ref.watch(dismissedSurveyIdsProvider);
+            final active = surveys
+                .where((s) => !dismissed.contains(s.id))
+                .toList();
+
+            if (active.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+            return SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final survey = active[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: BoxyArtCard(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Row(
                           children: [
-                            if (societyConfig.logoUrl != null) ...[
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: AppShapes.md,
-                                  boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: AppShapes.md,
-                                  child: Image.network(
-                                    societyConfig.logoUrl!,
-                                    height: 48,
-                                    width: 48,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.golf_course, size: 42),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.lg),
-                            ],
+                            const Icon(Icons.poll_rounded, color: AppColors.lime500),
+                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _getGreeting(),
-                                    style: AppTypography.labelStrong.copyWith(
-                                      color: Theme.of(context).textTheme.bodySmall?.color,
-                                    ),
+                                    survey.title,
+                                    style: AppTypography.displaySection.copyWith(fontSize: 16),
                                   ),
                                   Text(
-                                    effectiveUser.firstName,
-                                    style: AppTypography.displaySubPage,
-                                    overflow: TextOverflow.ellipsis,
+                                    'Your feedback is requested',
+                                    style: AppTypography.bodySmall.copyWith(color: theme.textTheme.bodySmall?.color),
                                   ),
                                 ],
                               ),
                             ),
+                            BoxyArtGlassIconButton(
+                              icon: Icons.chevron_right_rounded,
+                              onPressed: () => context.push('/surveys/${survey.id}'),
+                            ),
                           ],
                         ),
                       ),
-                      actions: const [
-                        AdminShortcutAction(),
-                        SizedBox(width: AppSpacing.sm),
-                      ],
-                    ),
-          
-                    // Content
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
-                      sliver: SliverList(
-                        delegate: SliverChildListDelegate([
-                          // Notifications Section (Dynamic)
-                          if (homeNotifications.isNotEmpty) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                BoxyArtSectionTitle(
-                                  title: 'Notifications',
-                                  isPeeking: isPeeking,
-                                ),
-                                  TextButton(
-                                    onPressed: () => context.push('/home/notifications'),
-                                    child: Text(
-                                      'View All', 
-                                      style: theme.textTheme.labelLarge?.copyWith(
-                                        color: isDark ? AppColors.lime400 : AppColors.lime700,
-                                        fontWeight: AppTypography.weightBold,
-                                        inherit: true, // Fix for TextStyle interpolation crash
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            ...homeNotifications.asMap().entries.map((entry) => StaggeredEntrance(
-                              index: entry.key,
-                              child: HomeNotificationCard(notification: entry.value),
-                            )),
-                            const SizedBox(height: AppSpacing.x2l),
-                          ],
-
-                          // Society Surveys
-                          ...surveysAsync.when(
-                            data: (surveys) {
-                              final dismissedIds = ref.watch(dismissedSurveyIdsProvider);
-                              final now = DateTime.now();
-                              
-                              final visibleSurveys = surveys.where((s) {
-                                // 1. Filter by dismissal
-                                if (dismissedIds.contains(s.id)) return false;
-                                
-                                // 2. Filter by deadline
-                                if (s.deadline != null && now.isAfter(s.deadline!)) return false;
-                                
-                                return true;
-                              }).toList();
-                              
-                              if (visibleSurveys.isEmpty) return [const SizedBox.shrink()];
-                              return [
-                                BoxyArtSectionTitle(
-                                  title: 'Society Surveys',
-                                  isPeeking: isPeeking,
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                ...visibleSurveys.map((survey) => Padding(
-                                  padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
-                                  child: _SurveyInteractiveCard(
-                                    key: ValueKey('survey_${survey.id}'),
-                                    survey: survey,
-                                  ),
-                                )),
-                              ];
-                            },
-                            loading: () => [const SizedBox.shrink()],
-                            error: (_, _) => [const SizedBox.shrink()],
-                          ),
-
-                          // Active Event Polls (Relocated Phase 3)
-                          ...eventsAsync.when(
-                            data: (events) {
-                              final activePolls = events.expand((e) => e.feedItems.where((i) => i.type == FeedItemType.poll && i.isPublished).map((item) => (e, item))).toList();
-                              if (activePolls.isEmpty) return [const SizedBox.shrink()];
-                              
-                              return [
-                                BoxyArtSectionTitle(
-                                  title: 'Society Polls',
-                                  isPeeking: isPeeking,
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                ...activePolls.map((pair) => Padding(
-                                  padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
-                                  child: _GlobalPollCard(event: pair.$1, item: pair.$2),
-                                )),
-                              ];
-                            },
-                            loading: () => [const SizedBox.shrink()],
-                            error: (e, s) => [const SizedBox.shrink()],
-                          ),
-          
-                          // Next Match Hero Card
-                          BoxyArtSectionTitle(
-                            title: 'Next Match',
-                            isPeeking: isPeeking,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          StaggeredEntrance(
-                            index: homeNotifications.length, // Stagger after notifications
-                            child: nextMatch.when(
-                              data: (event) {
-                                if (event == null) {
-                                  return const Card(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(AppSpacing.lg),
-                                      child: Text('No upcoming matches scheduled.'),
-                                    ),
-                                  );
-                                }
-                                return _NextMatchCard(event: event);
-                              },
-                              loading: () => const Center(child: CircularProgressIndicator()),
-                              error: (err, stack) => Text('Error: $err'),
-                            ),
-                          ),
-                      const SizedBox(height: AppSpacing.x2l),
-
-                      // Leaderboard Snippet
-                      BoxyArtSectionTitle(
-                        title: 'Order of Merit',
-                        isPeeking: isPeeking,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      StaggeredEntrance(
-                        index: homeNotifications.length + 1, // Stagger after match card
-                        child: topPlayers.when(
-                          data: (players) => _LeaderboardSnippet(
-                            topPlayers: players,
-                            personalStanding: personalStanding.value?['standing'] as LeaderboardStanding?,
-                            personalRank: personalStanding.value?['rank'] as int?,
-                          ),
-                          loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (err, stack) => Text('Error loading standings: $err'),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.x4l),
-                    ]),
-                  ),
+                    );
+                  },
+                  childCount: active.length,
                 ),
-              ],
-                );
-              },
-            ),
+              ),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+        ),
+
+        // Leaderboard Snippet
+        const SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+          sliver: SliverToBoxAdapter(
+            child: BoxyArtSectionTitle(title: 'ORDER OF MERIT'),
           ),
-        ],
-      ),
+        ),
+        topPlayers.when(
+          data: (players) {
+            return SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              sliver: SliverToBoxAdapter(
+                child: _LeaderboardSnippet(
+                  topPlayers: players,
+                  personalStanding: personalStanding.value?['standing'] as LeaderboardStanding?,
+                  personalRank: personalStanding.value?['rank'] as int?,
+                ),
+              ),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+        ),
+        
+        // Final spacing
+        const SliverToBoxAdapter(child: SizedBox(height: 140)),
+      ],
     );
   }
 
@@ -396,17 +404,17 @@ class _NextMatchCard extends ConsumerWidget {
                         style: AppTypography.displayLocker,
                       ),
                     ),
-                    if (isPlaying)
+                    if (isLive && isPlaying)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.secondary.withValues(alpha: AppColors.opacityLow),
+                          color: AppColors.actionGreen.withValues(alpha: AppColors.opacityLow),
                           borderRadius: AppShapes.md,
                         ),
                         child: Text(
                           'Playing',
                           style: AppTypography.micro.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: AppColors.actionGreen,
                           ),
                         ),
                       ),
@@ -546,7 +554,7 @@ class _LeaderboardSnippet extends StatelessWidget {
           }),
           
           if (!isPersonalInSnippet && personalStanding != null) ...[
-            const Divider(height: AppSpacing.x2l, color: AppColors.dark600),
+                const BoxyArtDivider(),
             Row(
               children: [
                 BoxyArtNumberBadge(
@@ -598,7 +606,7 @@ class _LeaderboardSnippet extends StatelessWidget {
 
           if (topPlayers.isNotEmpty || personalStanding != null) ...[
             const SizedBox(height: AppSpacing.md),
-            const Divider(height: 1, color: AppColors.dark600),
+            const BoxyArtDivider(verticalPadding: AppSpacing.xs),
             const SizedBox(height: AppSpacing.xs),
             TextButton(
               onPressed: () => context.push('/locker/standings'),
@@ -974,13 +982,16 @@ class _GlobalPollCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          ...options.map((option) {
+          ...options.asMap().entries.map((entry) {
+            final index = entry.key;
+            final option = entry.value;
+            final isLast = index == options.length - 1;
             final count = counts[option] ?? 0;
             final percent = totalVotes == 0 ? 0.0 : count / totalVotes;
             final isSelected = userVote == option;
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
               child: GestureDetector(
                 onTap: hasVoted ? null : () => _vote(ref, option),
                 child: Stack(

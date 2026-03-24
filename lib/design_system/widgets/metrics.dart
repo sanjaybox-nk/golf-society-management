@@ -47,14 +47,29 @@ class ModernMetricStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final effectiveColor = color ?? theme.colorScheme.secondary;
+    final shapeTokens = theme.extension<AppShapeTokens>();
+    final accentRadius = shapeTokens?.accent ?? BorderRadius.circular(12);
+    final accentOpacity = shapeTokens?.accentOpacity ?? 0.15;
+    
+    // Design Standard: Action background + Control Setting Glyph
+    final defaultBg = shapeTokens?.iconBadgeFill ?? theme.colorScheme.secondary;
+    final defaultIconColor = shapeTokens?.iconBadgeIcon ?? 
+                             (isSolid ? AppColors.pureWhite : AppColors.dark900);
+    final badgeOpacity = shapeTokens?.iconBadgeOpacity ?? 1.0;
+
+    final effectiveBgColor = color ?? defaultBg;
+    final effectiveIconColor = iconColor ?? (color != null 
+        ? (isSolid ? AppColors.pureWhite : AppColors.dark900)
+        : defaultIconColor);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+      padding: EdgeInsets.symmetric(
+        vertical: (theme.extension<AppSpacingTokens>()?.cardVerticalPadding ?? AppSpacing.lg) * (isCompact ? 0.6 : 0.8),
+        horizontal: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
-        color: isSolid ? effectiveColor : AppColors.actionGreen.withValues(alpha: 0.3),
-        borderRadius: AppShapes.lg,
+        color: effectiveBgColor.withValues(alpha: badgeOpacity),
+        borderRadius: accentRadius,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,18 +78,16 @@ class ModernMetricStat extends StatelessWidget {
           if (icon != null) ...[
             Icon(
               icon, 
-              size: AppShapes.iconMd, 
-              color: isSolid ? AppColors.pureWhite : AppColors.dark900,
+              size: isCompact ? AppShapes.iconSm : AppShapes.iconMd, 
+              color: effectiveIconColor,
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
           Text(
             value,
             style: AppTypography.displayHeading.copyWith(
-              fontSize: AppTypography.sizeLargeBody,
-              color: isSolid 
-                  ? AppColors.pureWhite 
-                  : (isDark ? AppColors.pureWhite : AppColors.dark900),
+              fontSize: isCompact ? AppTypography.sizeLargeBody : AppTypography.sizeDisplaySubPage,
+              color: isSolid ? AppColors.pureWhite : AppColors.dark900,
               letterSpacing: -0.8,
               fontWeight: AppTypography.weightExtraBold,
             ),
@@ -89,7 +102,7 @@ class ModernMetricStat extends StatelessWidget {
               fontSize: AppTypography.sizeCaption,
               color: isSolid 
                   ? AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh) 
-                  : (isDark ? AppColors.dark200 : AppColors.dark800),
+                  : AppColors.dark800,
               fontWeight: AppTypography.weightSemibold,
             ),
             textAlign: TextAlign.center,

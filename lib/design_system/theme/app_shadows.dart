@@ -106,11 +106,13 @@ class AppShadows extends ThemeExtension<AppShadows> {
   @override
   AppShadows lerp(ThemeExtension<AppShadows>? other, double t) {
     if (other is! AppShadows) return this;
+    final otherShadows = other as dynamic;
+
     return AppShadows(
-      useShadows: t < 0.5 ? useShadows : other.useShadows,
-      intensity: lerpDouble(intensity, other.intensity, t) ?? intensity,
-      spread: lerpDouble(spread, other.spread, t) ?? spread,
-      opacity: lerpDouble(opacity, other.opacity, t) ?? opacity,
+      useShadows: t < 0.5 ? useShadows : ((otherShadows.useShadows as bool?) ?? useShadows),
+      intensity: lerpDouble(intensity, (otherShadows.intensity as double?) ?? intensity, t) ?? intensity,
+      spread: lerpDouble(spread, (otherShadows.spread as double?) ?? spread, t) ?? spread,
+      opacity: lerpDouble(opacity, (otherShadows.opacity as double?) ?? opacity, t) ?? opacity,
     );
   }
 }

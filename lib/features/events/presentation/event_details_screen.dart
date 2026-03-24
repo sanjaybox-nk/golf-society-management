@@ -40,6 +40,7 @@ class _EventDetailsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).primaryColor;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: event.title,
@@ -47,7 +48,7 @@ class _EventDetailsContent extends StatelessWidget {
       onBack: () => context.go('/events'),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               if (event.status == EventStatus.cancelled)
@@ -82,7 +83,7 @@ class _EventDetailsContent extends StatelessWidget {
                   ),
                 ),
               _buildStatusBadge(context),
-              const SizedBox(height: AppSpacing.x2l),
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
               
               // Event Hero Image
               if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
@@ -105,52 +106,64 @@ class _EventDetailsContent extends StatelessWidget {
                     child: Icon(Icons.golf_course, size: AppShapes.iconMassive, color: primary.withValues(alpha: AppColors.opacityMedium)),
                   ),
                 ),
-              SizedBox(height: AppTheme.cardSpacing),
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
 
               // Registration Card
               _buildRegistrationCard(context),
-              SizedBox(height: AppTheme.cardSpacing),
-
+              SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+              
               // When & Where Card
               _buildWhenWhereCard(context),
-              SizedBox(height: AppTheme.cardSpacing),
-
-              // Course Details Card
+              
+              // Course Details Section
+              const BoxyArtSectionTitle(title: 'Course'),
               _buildCourseDetailsCard(context),
-              SizedBox(height: AppTheme.cardSpacing),
 
               // Competition Rules Card
               _buildCompetitionCard(context),
-              SizedBox(height: AppTheme.cardSpacing),
 
               // Costs Card
+              const BoxyArtSectionTitle(title: 'Costs'),
               _buildCostsCard(context),
               
               // Dinner Location Card
               if (event.dinnerLocation != null && event.dinnerLocation!.isNotEmpty) ...[
-                SizedBox(height: AppTheme.cardSpacing),
+                const BoxyArtSectionTitle(title: 'Dinner Location'),
                 _buildDinnerLocationCard(context),
               ],
 
               // Notes Section
               if (event.notes.isNotEmpty) ...[
-                SizedBox(height: AppTheme.cardSpacing),
-                const BoxyArtSectionTitle(title: 'Notes & Content'),
-                ...event.notes.map((note) => _buildNoteCard(context, note)),
+                const BoxyArtSectionTitle(
+                  title: 'Notes & Content',
+                ),
+                ...event.notes.asMap().entries.map((entry) {
+                   final isLast = entry.key == event.notes.length - 1;
+                   return Padding(
+                     padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
+                     child: _buildNoteCard(context, entry.value),
+                   );
+                }),
               ],
 
               // Updates Section
               if (event.flashUpdates.isNotEmpty) ...[
-                SizedBox(height: AppTheme.cardSpacing),
-                const BoxyArtSectionTitle(title: 'Updates'),
-                ...event.flashUpdates.map((update) => _buildUpdateCard(context, update)),
+                const BoxyArtSectionTitle(
+                  title: 'Updates',
+                ),
+                ...event.flashUpdates.map((update) => Padding(
+                  padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                  child: _buildUpdateCard(context, update),
+                )),
               ],
 
               // Gallery Section
               if (event.galleryUrls.isNotEmpty) ...[
-                SizedBox(height: AppTheme.cardSpacing),
-                const BoxyArtSectionTitle(title: 'Gallery'),
+                const BoxyArtSectionTitle(
+                  title: 'Gallery',
+                ),
                 _buildGalleryCard(context),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
               ],
             ]),
           ),
@@ -310,18 +323,20 @@ class _EventDetailsContent extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: AppSpacing.x3l),
+          const BoxyArtDivider(verticalPadding: AppSpacing.md),
           if (isRegistered) ...[
-            const BoxyArtSectionTitle(title: 'Your Status'),
-            Row(
-              children: [
-                Expanded(child: _buildSummaryIcon(Icons.golf_course, 'Golf', myRegistration.attendingGolf)),
-                Expanded(child: _buildSummaryIcon(Icons.electric_rickshaw, 'Buggy', myRegistration.needsBuggy)),
-                Expanded(child: _buildSummaryIcon(Icons.free_breakfast_rounded, 'Breakfast', myRegistration.attendingBreakfast)),
-                Expanded(child: _buildSummaryIcon(Icons.restaurant, 'Dinner', myRegistration.attendingDinner)),
-              ],
+            const BoxyArtSectionTitle(
+              title: 'Your Status',
             ),
-            const SizedBox(height: AppSpacing.x2l),
+             Row(
+               children: [
+                 Expanded(child: _buildSummaryIcon(Icons.golf_course, 'Golf', myRegistration.attendingGolf)),
+                 Expanded(child: _buildSummaryIcon(Icons.electric_rickshaw, 'Buggy', myRegistration.needsBuggy)),
+                 Expanded(child: _buildSummaryIcon(Icons.free_breakfast_rounded, 'Breakfast', myRegistration.attendingBreakfast)),
+                 Expanded(child: _buildSummaryIcon(Icons.restaurant, 'Dinner', myRegistration.attendingDinner)),
+               ],
+             ),
+             SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
           ] else if (event.registrationDeadline != null) ...[
             ModernRuleItem(
               label: 'Deadline',
@@ -357,7 +372,7 @@ class _EventDetailsContent extends StatelessWidget {
             value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
             icon: Icons.schedule_rounded,
           ),
-          const Divider(height: AppSpacing.x3l),
+          const BoxyArtDivider(verticalPadding: AppSpacing.md),
           ModernInfoRow(
             label: 'Course',
             value: event.courseName ?? 'TBA',
@@ -373,7 +388,6 @@ class _EventDetailsContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Course Info'),
           ModernRuleItem(label: 'Dress Code', value: event.dressCode ?? 'Standard Golf Attire'),
           if (event.availableBuggies != null)
             ModernRuleItem(label: 'Buggies', value: '${event.availableBuggies} available'),
@@ -387,7 +401,7 @@ class _EventDetailsContent extends StatelessWidget {
   Widget _buildCompetitionCard(BuildContext context) {
     return CompetitionRulesCard(
       eventId: event.id,
-      title: 'Competition',
+      title: 'Competition Rules',
     );
   }
 
@@ -405,12 +419,11 @@ class _EventDetailsContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Costs'),
           ModernCostRow(label: 'Member Golf', amount: _formatCost(event.memberCost)),
           if (hasBreakfast) ModernCostRow(label: 'Breakfast', amount: _formatCost(event.breakfastCost)),
           if (hasLunch) ModernCostRow(label: 'Lunch', amount: _formatCost(event.lunchCost)),
           if (hasDinner) ModernCostRow(label: 'Dinner', amount: _formatCost(event.dinnerCost)),
-          const Divider(height: AppSpacing.x2l),
+          const BoxyArtDivider(verticalPadding: AppSpacing.sm),
           ModernCostRow(label: 'Member Total', amount: _formatCost(memberSubtotal), isTotal: true),
 
           const SizedBox(height: AppSpacing.md),

@@ -24,7 +24,7 @@ You can now manage members via the **Member List**, including **Profile Pictures
 2.  Tap **Create Event**.
 3.  Enter **Title**, **Course Name** (search existing), **Date**, and **Description**.
 4.  **Course Details**: The location and details are auto-filled when you select a course from the search.
-5.  **Timing**: Set **Registration** and **Tee-off** times, along with the **Interval** and **Deadline**.
+5.  **Timing**: Set **Registration** and **Tee-off** times, along with the **Interval** and **Registration Deadline**.
 6. Tap **Save Event**.
 
 ## 4. Managing Registrations

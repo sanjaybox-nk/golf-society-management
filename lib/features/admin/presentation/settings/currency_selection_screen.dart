@@ -40,6 +40,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final societyConfig = ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -57,7 +58,10 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
       backgroundColor: beigeBackground,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl, 
+            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard
+          ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Search Bar standardized with BoxyArtInputField
@@ -67,7 +71,6 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 controller: _searchController,
                 onChanged: _filterCurrencies,
               ),
-              const SizedBox(height: AppSpacing.x3l),
 
               if (_searchController.text.isEmpty) ...[
                 const BoxyArtSectionTitle(title: 'Popular Currencies', ),
@@ -75,7 +78,6 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                   ref.read(themeControllerProvider.notifier).setCurrency(c.symbol, c.code);
                   context.pop();
                 }),
-                const SizedBox(height: AppSpacing.x3l),
                 const BoxyArtSectionTitle(title: 'All Currencies', ),
               ],
               
@@ -84,7 +86,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 const identityColor = AppColors.lime500;
                 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.labelToCard),
                   child: BoxyArtCard(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     onTap: () {

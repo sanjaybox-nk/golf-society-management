@@ -40,7 +40,7 @@ class EventAdminScoresScreen extends ConsumerWidget {
         return HeadlessScaffold(
           title: 'Scores',
           subtitle: event.title,
-          useScaffold: false,
+
           showBack: true,
           onBack: () => context.go('/admin/events'),
           actions: const [],
@@ -67,8 +67,8 @@ class EventAdminScoresScreen extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const HeadlessScaffold(title: 'Loading...', useScaffold: false, slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
-      error: (err, st) => HeadlessScaffold(title: 'Error', useScaffold: false, slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
+      loading: () => const HeadlessScaffold(title: 'Loading...', slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
+      error: (err, st) => HeadlessScaffold(title: 'Error', slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
     );
   }
 

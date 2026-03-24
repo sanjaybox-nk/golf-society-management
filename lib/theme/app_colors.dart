@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
+import '../domain/models/course_config.dart';
 
 /// Fairway Design System v3.1 Primitives and Semantic Colors
 class AppColors {
@@ -45,6 +47,12 @@ class AppColors {
   static const Color surfaceSubtle = dark900;
   static const Color borderSubtle = dark500;
 
+  // Semantic Entity Colors (Consolidated from Audit)
+  static const Color guestPurple = Color(0xFF8E44AD);
+  static const Color mealBreakfast = Color(0xFF8D6E63);
+  static const Color mealDinner = Color(0xFF673AB7);
+  static const Color mealLunch = Color(0xFF2ECC71); // Standardized to Emerald/Green
+
   // Semantic Action Colors
   static const Color actionGreen = Color(0xFF86AD92);
   static const Color actionText = Color(0xFF0A1A0F); // Dark green-tinted black for lime buttons
@@ -67,14 +75,17 @@ class AppColors {
   static const Color lightBorder = Color(0xFFE2E2DC);
   static const Color forestGreen = Color(0xFF1A2E20); // Light theme total column bg
 
-  // Opacity Tokens (v3.1)
-  static const double opacitySubtle = 0.3; // Ghostly subtle (e.g. card highlights)
-  static const double opacityLow = 0.1;    // Very faint (e.g. subtle overlays)
-  static const double opacityMedium = 0.2; // Visible lift (e.g. soft shadows)
-  static const double opacityMuted = 0.3;  // De-emphasized (e.g. disabled-ish states)
-  static const double opacityHalf = 0.5;   // Semi-transparent (e.g. scrims)
-  static const double opacityHigh = 0.8;   // Substantial (e.g. text on images)
-  static const double opacityStrong = 0.9; // Nearly opaque (e.g. overlays)
+  // Radical Opacity Consolidation (v4.0)
+  static const double opacityStrong = 0.9;    // Primary Text / High Emphasis
+  static const double opacitySecondary = 0.6; // Secondary Text / Medium Emphasis
+  static const double opacitySubtle = 0.3;    // Tertiary Text / Disabled / Hints
+  
+  // Layout Opacities
+  static const double opacityHalf = 0.5;   // Scrims / Overlays
+  static const double opacityMuted = 0.3;  // De-emphasized borders
+  static const double opacityLow = 0.1;    // Surface overlays
+  static const double opacityHigh = 0.8;   // Background-contrast text
+  static const double opacityMedium = opacitySecondary; // Legacy alias
 
   /// Generates the Dark ColorScheme based on v3.1 spec
   static ColorScheme darkScheme() {
@@ -110,9 +121,24 @@ class AppColors {
     );
   }
 
-  /// Returns the brand color associated with a Tee name
-  static Color getTeeColor(String? teeName) {
+  /// Returns the brand color associated with a Tee name, prioritizing dynamic config
+  static Color getTeeColor(String? teeName, [List<TeeConfig>? teeConfigs]) {
     if (teeName == null) return textSecondary;
+    
+    // 1. Try to find dynamic color from course config
+    if (teeConfigs != null) {
+      final config = teeConfigs.firstWhereOrNull((t) => t.name.toLowerCase() == teeName.toLowerCase());
+      if (config != null && config.color != null && config.color!.isNotEmpty) {
+        try {
+          final hex = config.color!.replaceAll('#', '').padLeft(8, 'F');
+          return Color(int.parse(hex, radix: 16));
+        } catch (e) {
+          debugPrint('Error parsing tee color: ${config.color}');
+        }
+      }
+    }
+
+    // 2. Fallback to hardcoded brand colors
     final name = teeName.toLowerCase();
     if (name.contains('white')) return dark400;
     if (name.contains('yellow')) return const Color(0xFFFFD700);

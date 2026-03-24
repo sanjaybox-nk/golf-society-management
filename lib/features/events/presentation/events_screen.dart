@@ -12,8 +12,12 @@ class EventsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final upcomingAsync = ref.watch(upcomingEventsProvider);
-    final pastAsync = ref.watch(pastEventsProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final upcomingSeasonAsync = ref.watch(upcomingSeasonEventsProvider);
+    final pastSeasonAsync = ref.watch(pastSeasonEventsProvider);
+    final socialAsync = ref.watch(socialEventsProvider);
+    final filter = ref.watch(eventFilterProvider);
+    
     final activeSeasonAsync = ref.watch(activeSeasonProvider);
     
     final seasonName = activeSeasonAsync.when(
@@ -29,83 +33,104 @@ class EventsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Events',
       subtitle: subtitle,
+      showAdminShortcut: false, // Explicitly removed as per user preference
       slivers: [
-        // Upcoming Section
-        const SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
-          sliver: SliverToBoxAdapter(
-            child: BoxyArtSectionTitle(title: 'Upcoming Events'),
-          ),
-        ),
-        upcomingAsync.when(
-          data: (events) {
-            if (events.isEmpty) {
-              return const SliverToBoxAdapter(
-                child: BoxyArtEmptyState(
-                  title: 'No Upcoming Events',
-                  message: 'There are no upcoming events scheduled for this season yet.',
-                  icon: Icons.calendar_today_rounded,
-                  isCompact: true,
-                ),
-              );
-            }
-            return SliverPadding(
+        // Filter Bar (Simplified to 2 Tabs - Harmonized with MembersScreen style)
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -16.0),
+            child: ModernUnderlinedFilterBar<EventFilter>(
+              tabs: const [
+                ModernFilterTab(label: 'Events', value: EventFilter.season),
+                ModernFilterTab(label: 'Social', value: EventFilter.social),
+              ],
+              selectedValue: filter,
+              onTabSelected: (val) => ref.read(eventFilterProvider.notifier).update(val),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: _EventRow(event: events[index]),
-                    );
-                  },
-                  childCount: events.length,
-                ),
-              ),
-            );
-          },
-          loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-          error: (err, stack) => SliverToBoxAdapter(child: Text('Error: $err')),
+              isExpanded: true,
+            ),
+          ),
         ),
 
-        // Past Section
-        const SliverPadding(
-          padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x3l, AppSpacing.xl, AppSpacing.sm),
-          sliver: SliverToBoxAdapter(
-            child: BoxyArtSectionTitle(title: 'Past Events'),
-          ),
-        ),
-        pastAsync.when(
-          data: (events) {
-            if (events.isEmpty) {
-              return const SliverToBoxAdapter(
-                child: BoxyArtEmptyState(
-                  title: 'No Past Events',
-                  message: 'You haven\'t participated in any events this season yet.',
-                  icon: Icons.history_rounded,
-                  isCompact: true,
-                ),
-              );
-            }
-            return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: _EventRow(event: events[index]),
-                    );
-                  },
-                  childCount: events.length,
-                ),
+        // 1. Season Events Tab
+        if (filter == EventFilter.season) ...[
+          // Upcoming Section
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(
+                title: 'Upcoming Events',
+                isPeeking: true,
               ),
-            );
-          },
-          loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-          error: (err, stack) => SliverToBoxAdapter(child: Text('Error: $err')),
-        ),
+            ),
+          ),
+          _buildEventList(context, ref, upcomingSeasonAsync, 'Upcoming'),
+
+          // Past Section
+          SliverPadding(
+            padding: EdgeInsets.only(top: spacing?.cardToLabel ?? AppSpacing.xl, left: AppSpacing.xl, right: AppSpacing.xl),
+            sliver: const SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(
+                title: 'Past Events',
+              ),
+            ),
+          ),
+          _buildEventList(context, ref, pastSeasonAsync, 'Past'),
+        ],
+
+        // 2. Social Events Tab
+        if (filter == EventFilter.social) ...[
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(
+                title: 'Social Events',
+                isPeeking: true,
+              ),
+            ),
+          ),
+          _buildEventList(context, ref, socialAsync, 'Social'),
+        ],
       ],
+    );
+  }
+
+  Widget _buildEventList(BuildContext context, WidgetRef ref, AsyncValue<List<GolfEvent>> asyncValue, String type) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    
+    return asyncValue.when(
+      data: (events) {
+        if (events.isEmpty) {
+          return SliverToBoxAdapter(
+            child: BoxyArtEmptyState(
+              title: 'No $type Events',
+              message: 'There are no $type events scheduled yet.',
+              icon: type == 'Past' ? Icons.history_rounded : Icons.calendar_today_rounded,
+              isCompact: true,
+            ),
+          );
+        }
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final isLast = index == events.length - 1;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
+                  child: _EventRow(event: events[index]),
+                );
+              },
+              childCount: events.length,
+            ),
+          ),
+        );
+      },
+      loading: () => const SliverToBoxAdapter(child: Center(child: Padding(
+        padding: EdgeInsets.all(AppSpacing.xl),
+        child: CircularProgressIndicator(),
+      ))),
+      error: (err, stack) => SliverToBoxAdapter(child: Text('Error: $err')),
     );
   }
 }

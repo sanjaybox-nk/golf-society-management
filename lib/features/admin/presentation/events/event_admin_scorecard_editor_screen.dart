@@ -51,7 +51,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
         title: 'Scorecard Editor',
         subtitle: _getDisplayName(event, playerId),
         showBack: true,
-        useScaffold: false, // Nested in EventAdminShell
+ // Nested in EventAdminShell
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.x5l),
@@ -98,7 +98,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
                             BoxyArtPill.phc(context: context, label: '$phc'),
                             const Spacer(),
                             // Tee pill matching design
-                            BoxyArtPill.tee(label: playerTeeName, teeColor: _getTeeColor(playerTeeName)),
+                            BoxyArtPill.tee(label: playerTeeName, teeColor: _getTeeColor(playerTeeName, playerTeeConfig.tees)),
                           ],
                         ),
                       ),
@@ -207,14 +207,8 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     return hcp.truncateToDouble() == hcp ? hcp.toInt().toString() : hcp.toStringAsFixed(1);
   }
 
-  Color _getTeeColor(String teeName) {
-    final name = teeName.toLowerCase();
-    if (name.contains('white')) return AppColors.dark400;
-    if (name.contains('yellow')) return const Color(0xFFFFD700);
-    if (name.contains('red')) return const Color(0xFFFF4D4D);
-    if (name.contains('blue')) return const Color(0xFF1E90FF);
-    if (name.contains('black')) return const Color(0xFF2F2F2F);
-    return AppColors.textSecondary;
+  Color _getTeeColor(String teeName, [List<TeeConfig>? teeConfigs]) {
+    return AppColors.getTeeColor(teeName, teeConfigs);
   }
 
   // _resolvePlayerCourseConfig removed as we now use ScoringCalculator

@@ -42,20 +42,8 @@ class BoxyArtCard extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Style Presets Mapping
-    double defaultRadius;
-    if (isHero) {
-      defaultRadius = config.heroRadius;
-    } else {
-      switch (config.brandingStyle) {
-        case 'classic': defaultRadius = AppShapes.rSm; break;
-        case 'modern':  defaultRadius = AppShapes.r2xl; break;
-        case 'boxy':
-        default:        defaultRadius = AppShapes.rMd; break;
-      }
-    }
-    
-    final radius = borderRadius ?? defaultRadius;
+    // Radical Radius Consolidation (v4.0)
+    final radius = borderRadius ?? (isHero ? config.heroRadius : config.cardRadius);
     
     // Calculate themed background
     final primary = Theme.of(context).primaryColor;
@@ -106,7 +94,10 @@ class BoxyArtCard extends ConsumerWidget {
             onTap: onTap,
             onLongPress: onLongPress,
             child: Padding(
-              padding: padding ?? const EdgeInsets.all(AppSpacing.x2l),
+              padding: padding ?? EdgeInsets.symmetric(
+                vertical: config.cardVerticalPadding,
+                horizontal: config.cardHorizontalPadding,
+              ),
               child: child,
             ),
           ),
@@ -144,11 +135,11 @@ class BoxyArtSettingsCard extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: AppShapes.pill,
+            borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.cardRadius ?? AppShapes.rLg),
             boxShadow: Theme.of(context).extension<AppShadows>()?.inputSoft ?? [],
           ),
           child: ClipRRect(
-            borderRadius: AppShapes.pill,
+            borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.cardRadius ?? AppShapes.rLg),
             child: Column(
               children: children,
             ),

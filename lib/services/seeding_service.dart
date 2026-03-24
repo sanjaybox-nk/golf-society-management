@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:golf_society/design_system/theme/theme_controller.dart';
+import 'package:golf_society/features/settings/data/society_config_repository.dart';
 
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/season.dart';
@@ -65,18 +67,44 @@ class SeedingService {
     'Mitchell', 'Perez', 'Roberts', 'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins'
   ];
 
+  static const avatarUrls = [
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80', // Woman 1
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80', // Man 1
+    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80', // Woman 2
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80', // Man 2
+    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80', // Woman 3
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80', // Man 3
+    'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&w=200&q=80', // Woman 4
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80', // Man 4
+    'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=200&q=80', // Woman 5
+    'https://images.unsplash.com/photo-1521119956141-1051288c9d9d?auto=format&fit=crop&w=200&q=80', // Man 5
+  ];
+
   /// The main entry point for seeding high-quality demo data.
   Future<void> seedFullDemoData() async {
     try {
       debugPrint('--- STARTING UNIFIED WIPE AND SEED ---');
+      
+      // 1. Backup current SocietyConfig to survive any unintended wipes
+      final currentConfig = ref.read(themeControllerProvider);
+      debugPrint('Backing up society branding: ${currentConfig.societyName}');
+
+      // 2. Clear local persistence (SharedPreferences)
       await ref.read(persistenceServiceProvider).clear();
       
+      // 3. Wipe Firestore collections
       debugPrint('Wiping existing Firestore data...');
       await clearAllData();
       debugPrint('Wipe completed.');
 
-      debugPrint('Seeding new demo season...');
+      // 4. Seeding foundation
+      debugPrint('Seeding new demo season foundation...');
       await _seedDemoSeason();
+
+      // 5. Restore SocietyConfig (ensures vertical rhythm and colors persist)
+      debugPrint('Restoring society branding...');
+      await ref.read(societyConfigRepositoryProvider).updateConfig(currentConfig);
+      
       debugPrint('--- UNIFIED WIPE AND SEED COMPLETED ---');
     } catch (e, stack) {
       debugPrint('CRITICAL SEEDER FAILURE: $e');
@@ -154,40 +182,49 @@ class SeedingService {
     final Map<String, double> cumulativeCuts = {};
 
     // 6. Seed Events in Chronological order to apply cuts
-    final List<({String title, CompetitionFormat format, bool isInvitational, CompetitionSubtype subtype, DateTime date, EventStatus status, bool isMultiDay, DateTime? endDate})> eventPlan = [
+    // 6. Seed Events in Chronological order to apply cuts
+    final List<({String title, CompetitionFormat format, bool isInvitational, bool isSeasonEvent, CompetitionSubtype subtype, DateTime date, EventStatus status, bool isMultiDay, DateTime? endDate, EventType eventType})> eventPlan = [
       // 2025 Historical Events
-      (title: '2025 Season Opener', format: CompetitionFormat.stroke, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 3, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Spring Classic 25', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 4, 15), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The Masters Week Sim', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 5, 20), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Summer Stability Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.fourball, date: DateTime(2025, 7, 12), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Autumn Match Play', format: CompetitionFormat.matchPlay, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 9, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The October Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 10, 18), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Winter Series Final 25', format: CompetitionFormat.stroke, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 5), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Christmas Classic', format: CompetitionFormat.stableford, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 28), status: EventStatus.completed, isMultiDay: false, endDate: null),
+      (title: '2025 Season Opener', format: CompetitionFormat.stroke, isInvitational: true, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 3, 10), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Spring Classic 25', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 4, 15), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'The Masters Week Sim', format: CompetitionFormat.maxScore, isInvitational: true, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 5, 20), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Summer Stability Cup', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.fourball, date: DateTime(2025, 7, 12), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Autumn Match Play', format: CompetitionFormat.matchPlay, isInvitational: true, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 9, 5), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'The October Scramble', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 10, 18), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Winter Series Final 25', format: CompetitionFormat.stroke, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 5), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Christmas Classic', format: CompetitionFormat.stableford, isInvitational: true, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2025, 12, 28), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
       
       // 2026 - Current Active Season
-      (title: 'Happy New Year Bowl', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 10), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'January Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 25), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'Valentine\'s Scramble', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.fourball, date: DateTime(2026, 2, 14), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'The Winter Major', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 27), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 28)),
-      (title: 'St Patricks Day Special', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 17), status: EventStatus.completed, isMultiDay: false, endDate: null),
-      (title: 'LIVE: St Georges Day Opener', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime.now(), status: EventStatus.inPlay, isMultiDay: false, endDate: null),
-      (title: 'The April Fools Cup', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 1), status: EventStatus.published, isMultiDay: false, endDate: null),
-      (title: 'Algarve Tour 2026', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 5, 20), status: EventStatus.published, isMultiDay: true, endDate: DateTime(2026, 5, 22)),
-      (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 6, 15), status: EventStatus.published, isMultiDay: false, endDate: null),
+      (title: 'Happy New Year Bowl', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 10), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'January Qualifier', format: CompetitionFormat.maxScore, isInvitational: true, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 1, 25), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Valentine\'s Scramble', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.fourball, date: DateTime(2026, 2, 14), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'The Winter Major', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 2, 27), status: EventStatus.completed, isMultiDay: true, endDate: DateTime(2026, 2, 28), eventType: EventType.golf),
+      (title: 'Society AGM 2026', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 5), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.social),
+      (title: 'St Patricks Day Special', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 3, 17), status: EventStatus.completed, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'St Georges Day Opener', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime.now(), status: EventStatus.inPlay, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'The April Fools Cup', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 4, 1), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.golf),
+      (title: 'Pre-Tour Social Dinner', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: false, subtype: CompetitionSubtype.none, date: DateTime(2026, 5, 5), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.social),
+      (title: 'Algarve Tour 2026', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 5, 20), status: EventStatus.published, isMultiDay: true, endDate: DateTime(2026, 5, 22), eventType: EventType.golf),
+      (title: 'Season Finale: Championship', format: CompetitionFormat.stableford, isInvitational: false, isSeasonEvent: true, subtype: CompetitionSubtype.none, date: DateTime(2026, 6, 15), status: EventStatus.published, isMultiDay: false, endDate: null, eventType: EventType.golf),
     ];
 
     for (int i = 0; i < eventPlan.length; i++) {
       final config = eventPlan[i];
       final course = courses[i % courses.length];
       
+      // Apply user rules: Stableford = Season, Others = Invitational
+      final isStableford = config.format == CompetitionFormat.stableford;
+      final finalIsSeasonEvent = isStableford;
+      final finalIsInvitational = !isStableford;
+
       final results = await _createFullEvent(
         seasonId: seasonId,
         course: course,
         title: config.title,
         date: config.date,
         format: config.format,
-        isInvitational: config.isInvitational,
+        isInvitational: finalIsInvitational,
+        isSeasonEvent: finalIsSeasonEvent,
         subtype: config.subtype,
         members: members,
         appliedCuts: Map<String, double>.from(cumulativeCuts),
@@ -196,6 +233,7 @@ class SeedingService {
         isMultiDay: config.isMultiDay,
         endDate: config.endDate,
         eventIndex: i,
+        eventType: config.eventType,
       );
 
       if (!config.isInvitational && results.isNotEmpty) {
@@ -280,6 +318,7 @@ class SeedingService {
       gender: 'Male',
       bio: 'The Society Founder. Passionate about technology and bringing the digital edge to the game of golf.',
       phone: '+44 7700 900000',
+      avatarUrl: avatarUrls[1], // Sanjay
     ));
 
     final committeeRoles = {
@@ -331,6 +370,7 @@ class SeedingService {
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
           bio: bio,
+          avatarUrl: avatarUrls[i % avatarUrls.length],
         ));
     }
   }
@@ -414,11 +454,12 @@ class SeedingService {
 
   Future<List<Map<String, dynamic>>> _createFullEvent({
     required String seasonId,
-    required Course course,
+    Course? course, // Made optional
     required String title,
     required DateTime date,
     required CompetitionFormat format,
     required bool isInvitational,
+    bool isSeasonEvent = true,
     CompetitionSubtype subtype = CompetitionSubtype.none,
     required List<Member> members,
     required Map<String, double> appliedCuts,
@@ -427,29 +468,33 @@ class SeedingService {
     bool isMultiDay = false,
     DateTime? endDate,
     int eventIndex = 0,
+    EventType eventType = EventType.golf,
   }) async {
     final eventRepo = ref.read(eventsRepositoryProvider);
     final compRepo = ref.read(competitionsRepositoryProvider);
 
-    final yellowTee = course.tees.firstWhere((t) => t.name == 'Yellow');
+    final bool isSocial = eventType == EventType.social;
+    final yellowTee = course?.tees.firstWhereOrNull((t) => t.name == 'Yellow') ?? course?.tees.firstOrNull;
 
     var event = GolfEvent(
       id: 'demo_ev_${title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}',
       title: title,
+      eventType: eventType,
       seasonId: seasonId,
       date: date,
       endDate: endDate,
       isMultiDay: isMultiDay,
-      regTime: date.copyWith(hour: 8),
-      teeOffTime: date.copyWith(hour: 9),
+      regTime: date.copyWith(hour: 18), // Socials usually start in the evening
+      teeOffTime: isSocial ? null : date.copyWith(hour: 9),
       status: status,
       isInvitational: isInvitational,
-      courseId: course.id,
-      courseName: course.name,
-      courseDetails: course.address,
-      selectedTeeName: 'Yellow',
-      selectedFemaleTeeName: 'Red',
-      courseConfig: cfg.CourseConfig(
+      isSeasonEvent: isSeasonEvent,
+      courseId: course?.id,
+      courseName: course?.name,
+      courseDetails: course?.address,
+      selectedTeeName: isSocial ? null : 'Yellow',
+      selectedFemaleTeeName: isSocial ? null : 'Red',
+      courseConfig: (isSocial || course == null) ? const cfg.CourseConfig() : cfg.CourseConfig(
         tees: course.tees.map((t) => cfg.TeeConfig(
           name: t.name,
           rating: t.rating,
@@ -459,7 +504,7 @@ class SeedingService {
           yardages: t.yardages,
         )).toList(),
         selectedTeeName: 'Yellow',
-        holes: yellowTee.holePars.asMap().entries.map((e) => cfg.CourseHole(
+        holes: yellowTee!.holePars.asMap().entries.map((e) => cfg.CourseHole(
           hole: e.key + 1,
           par: e.value,
           si: yellowTee.holeSIs[e.key],
@@ -469,56 +514,50 @@ class SeedingService {
         slope: yellowTee.slope,
         rating: yellowTee.rating,
       ),
-      hasBreakfast: true,
-      hasLunch: _random.nextBool(),
+      hasBreakfast: !isSocial,
+      hasLunch: !isSocial && _random.nextBool(),
       hasDinner: true,
-      description: 'A fantastic day of competitive golf at ${course.name}. Join us for 18 holes of ${format.name} followed by a group dinner and prize giving ceremony. The course is in excellent condition and we look forward to a great turnout!',
+      description: isSocial 
+          ? 'Join us for the $title! A great opportunity for members to socialize and catch up away from the fairways. Looking forward to seeing everyone there.'
+          : 'A fantastic day of competitive golf at ${course?.name}. Join us for 18 holes of ${format.name} followed by a group dinner and prize giving ceremony.',
       registrationDeadline: date.subtract(const Duration(days: 7)),
       
       // Society Costs
-      societyGreenFee: 40.0 + _random.nextInt(20),
-      societyBreakfastCost: 10.0,
-      societyLunchCost: 15.0,
-      societyDinnerCost: 25.0,
+      societyGreenFee: isSocial ? 0.0 : (40.0 + _random.nextInt(20)),
+      societyBreakfastCost: isSocial ? 0.0 : 10.0,
+      societyLunchCost: isSocial ? 0.0 : 15.0,
+      societyDinnerCost: 25.0 + _random.nextInt(10),
       
       // Retail Pricing (Cost + 10%)
-      memberCost: ((40.0 + (_random.nextInt(20))) * 1.10).roundToDouble(),
-      guestCost: (((40.0 + (_random.nextInt(20))) * 1.10) + 10.0).roundToDouble(),
-      breakfastCost: (10.0 * 1.10).roundToDouble(),
-      lunchCost: (15.0 * 1.10).roundToDouble(),
-      dinnerCost: (25.0 * 1.10).roundToDouble(),
-      buggyCost: (15.0 * 1.10).roundToDouble(),
-      availableBuggies: 10 + _random.nextInt(20),
-      dinnerLocation: 'The Clubhouse Restaurant',
-      dressCode: 'Smart Casual / No Jeans',
-      facilities: ['Pro Shop', 'Driving Range', 'Changing Rooms', 'Halfway House'],
-      maxParticipants: 40,
+      memberCost: isSocial ? 30.0 : ((40.0 + (_random.nextInt(20))) * 1.10).roundToDouble(),
+      guestCost: isSocial ? 35.0 : (((40.0 + (_random.nextInt(20))) * 1.10) + 10.0).roundToDouble(),
+      breakfastCost: isSocial ? 0.0 : (10.0 * 1.10).roundToDouble(),
+      lunchCost: isSocial ? 0.0 : (15.0 * 1.10).roundToDouble(),
+      dinnerCost: (30.0 * 1.1).roundToDouble(),
+      buggyCost: isSocial ? 0.0 : (15.0 * 1.10).roundToDouble(),
+      availableBuggies: isSocial ? 0 : (10 + _random.nextInt(20)),
+      dinnerLocation: isSocial ? 'Local Bistro' : 'The Clubhouse Restaurant',
+      dressCode: isSocial ? 'Casual' : 'Smart Casual / No Jeans',
+      facilities: isSocial ? ['Parking', 'Bar', 'Restaurant'] : ['Pro Shop', 'Driving Range', 'Changing Rooms', 'Halfway House'],
+      maxParticipants: isSocial ? 60 : 40,
 
-      isGroupingPublished: status != EventStatus.draft,
-      isStatsReleased: status == EventStatus.completed || status == EventStatus.inPlay,
-      isScoringLocked: status == EventStatus.completed,
+      isGroupingPublished: !isSocial && status != EventStatus.draft,
+      isStatsReleased: !isSocial && (status == EventStatus.completed || status == EventStatus.inPlay),
+      isScoringLocked: !isSocial && status == EventStatus.completed,
       notes: [
         EventNote(
           title: 'Welcome Message',
           content: jsonEncode([
             {'insert': 'Welcome to the '},
             {'insert': title, 'attributes': {'bold': true}},
-            {'insert': '!\n\nPlease arrive at least 45 minutes before your tee time for registration and breakfast. We have some fantastic prizes lined up for the winners and runners-up.\n'}
+            {'insert': '!\n\n${isSocial ? "We are excited to host this social gathering. Please arrive on time as dinner will be served promptly." : "Please arrive at least 45 minutes before your tee time for registration and breakfast."}\n'}
           ]),
         ),
-        EventNote(
-          title: 'Course Update',
-          content: jsonEncode([
-            {'insert': 'The greenkeepers have been working hard to prepare the course. The greens are running fast and true. Enjoy your round!\n'}
-          ]),
-          imageUrl: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=800&q=80',
-        ),
-        _getLocalRulesNote(course.name, date),
       ],
-      galleryUrls: _getGalleryPhotos(course.name),
+      galleryUrls: isSocial ? [] : _getGalleryPhotos(course?.name ?? ''),
     );
 
-    if (isMultiDay) {
+    if (isMultiDay && !isSocial) {
       event = event.copyWith(
         notes: [
           ...event.notes,
@@ -529,65 +568,23 @@ class SeedingService {
 
     // Registration Matrix
     final List<EventRegistration> regs = [];
-    final targetRegCount = 30 + _random.nextInt(15);
+    final targetRegCount = (isSocial ? 45 : 30) + _random.nextInt(15);
     
-    final eventMemberCost = event.memberCost ?? 0.0;
-    final eventGuestCost = event.guestCost ?? 0.0;
-    final eventBreakfastCost = event.breakfastCost ?? 0.0;
-    final eventLunchCost = event.lunchCost ?? 0.0;
-    final eventDinnerCost = event.dinnerCost ?? 0.0;
-
-    // Sanjay
-    final hero = members.firstWhereOrNull((m) => m.id == 'demo_hero_sanjay');
-    if (hero != null) {
-      double totalCost = eventMemberCost;
-      totalCost += eventBreakfastCost; // Always attends breakfast
-      totalCost += eventLunchCost;    // Always attends lunch
-      totalCost += eventDinnerCost;   // Always attends dinner
-      
-      // Hero Sanjay usually takes a buggy
-      const needsBuggy = true;
-      // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
-
-      regs.add(EventRegistration(
-        memberId: hero.id,
-        memberName: hero.displayName,
-        attendingGolf: true,
-        attendingBreakfast: true,
-        attendingLunch: true,
-        attendingDinner: true,
-        needsBuggy: needsBuggy,
-        hasPaid: true,
-        isConfirmed: true,
-        handicap: hero.handicap,
-        registeredAt: date.subtract(const Duration(days: 25)),
-        statusOverride: 'confirmed',
-        cost: totalCost,
-      ));
-    }
-
-    final eventHasBreakfast = event.hasBreakfast;
-    final eventHasLunch = event.hasLunch;
-    final eventHasDinner = event.hasDinner;
-
     for (int i = 0; i < targetRegCount; i++) {
-        // Use a sliding window to ensure all members get picked over the season
-        // Shifting by 5 members per event covers all 75 members every 15 events
         final memberIdx = (eventIndex * 5 + i) % members.length;
         final m = members[memberIdx];
         if (m.id == 'demo_hero_sanjay') continue;
         
         bool isWithdrawn = _random.nextDouble() < 0.05;
-        bool isConfirmed = !isWithdrawn && regs.length < 40;
-        String? regStatus = isWithdrawn ? 'withdrawn' : (regs.length >= 40 ? 'waitlist' : 'confirmed');
+        bool isConfirmed = !isWithdrawn && regs.length < (isSocial ? 60 : 40);
         
-        final attendsBreakfast = eventHasBreakfast && _random.nextDouble() < 0.7;
-        final attendsLunch = eventHasLunch && _random.nextDouble() < 0.3;
-        final attendsDinner = eventHasDinner && _random.nextDouble() < 0.9;
-        final needsBuggy = _random.nextDouble() < 0.25;
+        final attendsBreakfast = !isSocial && event.hasBreakfast && _random.nextDouble() < 0.7;
+        final attendsLunch = !isSocial && event.hasLunch && _random.nextDouble() < 0.3;
+        final attendsDinner = event.hasDinner && _random.nextDouble() < 0.9;
+        final needsBuggy = !isSocial && _random.nextDouble() < 0.25;
 
         // Guest logic (20% chance)
-        bool hasGuest = !isWithdrawn && _random.nextDouble() < 0.2;
+        bool hasGuest = !isWithdrawn && _random.nextDouble() < (isSocial ? 0.4 : 0.2);
         String? guestName;
         if (hasGuest) {
           final guestFirstName = maleFirstNames[_random.nextInt(maleFirstNames.length)];
@@ -595,28 +592,24 @@ class SeedingService {
           guestName = '$guestFirstName $guestLastName (G)';
         }
 
-        // Calculate Cost [NEW]
         double totalCost = 0;
         if (isConfirmed) {
-          totalCost += eventMemberCost;
-          if (attendsBreakfast) totalCost += eventBreakfastCost;
-          if (attendsLunch) totalCost += eventLunchCost;
-          if (attendsDinner) totalCost += eventDinnerCost;
-          // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
-
+          totalCost += event.memberCost ?? 0;
+          if (attendsBreakfast) totalCost += event.breakfastCost ?? 0;
+          if (attendsLunch) totalCost += event.lunchCost ?? 0;
+          if (attendsDinner) totalCost += event.dinnerCost ?? 0;
           if (hasGuest) {
-            totalCost += eventGuestCost;
-            if (attendsBreakfast) totalCost += eventBreakfastCost;
-            if (attendsLunch) totalCost += eventLunchCost;
-            if (attendsDinner) totalCost += eventDinnerCost;
-            // Buggy cost is indicative and paid to pro shop directly, so we exclude it from totalCost
+            totalCost += event.guestCost ?? 0;
+            if (attendsBreakfast) totalCost += event.breakfastCost ?? 0;
+            if (attendsLunch) totalCost += event.lunchCost ?? 0;
+            if (attendsDinner) totalCost += event.dinnerCost ?? 0;
           }
         }
 
         regs.add(EventRegistration(
           memberId: m.id,
           memberName: m.displayName,
-          attendingGolf: isConfirmed,
+          attendingGolf: !isSocial && isConfirmed,
           attendingBreakfast: attendsBreakfast,
           attendingLunch: attendsLunch,
           attendingDinner: attendsDinner,
@@ -632,7 +625,7 @@ class SeedingService {
           guestIsConfirmed: isConfirmed && hasGuest,
           handicap: m.handicap,
           registeredAt: date.subtract(Duration(days: 30 - (i % 20))),
-          statusOverride: regStatus,
+          statusOverride: isWithdrawn ? 'withdrawn' : (isConfirmed ? 'confirmed' : 'waitlist'),
           cost: totalCost,
         ));
     }
@@ -640,6 +633,13 @@ class SeedingService {
     final updatedEvent = event.copyWith(registrations: regs);
     await eventRepo.addEvent(updatedEvent);
 
+    if (isSocial) {
+      // For social events, we skip competitions, grouping, and scorecards
+      return [];
+    }
+
+    // --- EVERYTHING BELOW IS GOLF ONLY ---
+    
     final cardStatus = status == EventStatus.completed ? ScorecardStatus.finalScore : ScorecardStatus.submitted;
 
     // Competition Rules
@@ -680,7 +680,7 @@ class SeedingService {
           final member = members.firstWhereOrNull((m) => m.id == memberId);
           final index = member?.handicap ?? 18.0;
           final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
-          final tee = course.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
+          final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
           
           final phc = HandicapCalculator.calculatePlayingHandicap(
               handicapIndex: index, rules: rules, 

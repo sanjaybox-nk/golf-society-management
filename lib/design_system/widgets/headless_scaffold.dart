@@ -1,6 +1,5 @@
+import 'dart:ui';
 import "package:golf_society/design_system/design_system.dart";
-
-
 
 import 'package:go_router/go_router.dart';
 
@@ -12,7 +11,7 @@ class HeadlessScaffold extends StatelessWidget {
   final Widget? subtitleWidget;
   final Widget? titleSuffix;
   final List<Widget> slivers;
-  final Widget? bottomNavigationBar;
+  final Widget? subtitleTrailing;
   final Color? backgroundColor;
   final EdgeInsetsGeometry? contentPadding;
   final bool showBack;
@@ -21,14 +20,10 @@ class HeadlessScaffold extends StatelessWidget {
   final IconData? backIcon;
   final List<Widget>? actions;
   final Widget? leading;
-  final PreferredSizeWidget? bottom;
-  final Widget? floatingActionButton;
-  final FloatingActionButtonLocation? floatingActionButtonLocation;
-  final bool showAdminShortcut;
   final double? leadingWidth;
-  final bool useScaffold;
-  final Widget? subtitleTrailing;
+  final bool showAdminShortcut;
   final Widget? pinnedBottom;
+  final bool isModal;
 
   const HeadlessScaffold({
     super.key,
@@ -38,7 +33,6 @@ class HeadlessScaffold extends StatelessWidget {
     this.subtitleTrailing,
     this.titleSuffix,
     required this.slivers,
-    this.bottomNavigationBar,
     this.backgroundColor,
     this.contentPadding,
     this.showBack = false,
@@ -48,209 +42,205 @@ class HeadlessScaffold extends StatelessWidget {
     this.actions,
     this.leading,
     this.leadingWidth,
-    this.bottom,
-    this.floatingActionButton,
-    this.floatingActionButtonLocation,
     this.showAdminShortcut = true,
-    this.autoPrefix = true,
-    this.useScaffold = true,
     this.pinnedBottom,
+    this.isModal = false,
   });
-
-  final bool autoPrefix;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final bg = backgroundColor ?? theme.scaffoldBackgroundColor;
     
-    // Calculate top padding: Standard AppBar (56) + Dynamic Gap (64) = 120
-    // This is a fixed absolute offset from the top edge of the screen.
-    final contentTopPadding = 120.0;
-
-    final scrollView = CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        // Headless Header
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: contentPadding ?? EdgeInsets.only(
-              top: contentTopPadding,
-              left: AppSpacing.xl,
-              right: AppSpacing.xl,
-              bottom: AppSpacing.lg,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: AppTypography.displayPage,
-                      ),
-                    ),
-                    if (titleSuffix != null) ...[
-                      const SizedBox(width: AppSpacing.sm),
-                      titleSuffix!,
-                    ],
-                  ],
-                ),
-                if (subtitleWidget != null || (subtitle != null && subtitle!.isNotEmpty)) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // 1. Calculate Notch Clearance (Hardware Padding)
+    // We use viewPaddingOf to detect the physical notch even if we are inside a SafeArea-consuming parent.
+    final double physicalTop = MediaQuery.viewPaddingOf(context).top;
+    final double topPadding = MediaQuery.paddingOf(context).top;
+    
+    // Fallback logic: 
+    // 1. Use actual top padding if it's currently inset (Standard Page)
+    // 2. Use physical notch padding if we are overlapping the notch (Modal Page)
+    // 3. Fallback to 59.0 (iPhone 14/15 Pro Standard) for modals if both are zero
+    final double notchHeight = topPadding > 0 
+        ? topPadding 
+        : (physicalTop > 0 ? physicalTop : (isModal ? 59.0 : 44.0));
+    
+    // 2. The Shared Header & Content Stack
+    final layoutStack = Stack(
+      children: [
+        // Layer 1: Scrolling Content (Forced Zero Insets for Universal Parity)
+        MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Standardized 4.x Headless Header (Absolute Rhythm parity: 120px from Physical Top)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    // Absolute Golden Rhythm: Exactly 120px from Physical Top (Grid-snapped)
+                    // We use a fixed value here because the GlobalAppShell and Modals now all start at Y=0
+                    top: 120.0, 
+                    left: AppSpacing.xl,
+                    right: AppSpacing.xl,
+                    bottom: AppSpacing.large,
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: subtitleWidget ?? Text(
+                      Text(
+                        title.replaceFirst(RegExp(r'LIVE:\s*', caseSensitive: false), ''),
+                        style: AppTypography.displayPage,
+                      ),
+                      if (subtitleWidget != null || (subtitle != null && subtitle!.isNotEmpty)) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        subtitleWidget ?? Text(
                           subtitle!,
-                          style: AppTypography.bodySmall.copyWith(
-                            color: isDark ? AppColors.dark200 : AppColors.dark400,
-                            fontWeight: AppTypography.weightBold,
-                            letterSpacing: -0.5,
+                          style: AppTypography.subtext.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                            fontWeight: AppTypography.weightSemibold, // Semibold token as requested
                           ),
                         ),
-                      ),
-                      () {
-                        if (subtitleTrailing != null) return subtitleTrailing!;
-                        
-                        final bool isAdmin = () {
-                          try {
-                            return GoRouterState.of(context).uri.path.startsWith('/admin');
-                          } catch (_) {
-                            return false;
-                          }
-                        }();
-
-                        if (isAdmin) {
-                          return Text(
-                            'Admin',
-                            style: AppTypography.label.copyWith(
-                              color: AppColors.actionGreen,
-                              fontWeight: AppTypography.weightBlack,
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      }(),
+                      ],
                     ],
                   ),
-                ],
-              ],
-            ),
+                ),
+              ),
+              
+              // Body Content
+              ...slivers,
+              
+              // Bottom Padding
+              SliverPadding(padding: EdgeInsets.only(bottom: pinnedBottom != null ? 140 : 100)),
+            ],
           ),
         ),
-        
-        // Content Slivers
-        ...slivers,
-        
-        // Natural Bottom Spacing (Account for pinned items or nav bar)
-        SliverPadding(padding: EdgeInsets.only(bottom: pinnedBottom != null ? 240 : 100)),
+
+        // Layer 2: Fixed Navigation & Identity (Blurred App Bar)
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Column(
+            children: [
+               // Notch/Sheet margin filler (Blur surface)
+               ClipRect(
+                 child: BackdropFilter(
+                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                   child: Container(
+                     // We fill the exact hardware padding to ensure the blur always covers the status bar
+                     height: notchHeight, 
+                     color: bg.withValues(alpha: 0.8),
+                   ),
+                 ),
+               ),
+                // Layer 2: Actionable Navigation Row (Fixed 48px for 8pt grid parity)
+                SizedBox(
+                  height: 48.0,
+                  child: Row(
+                    children: [
+                      // Leading slot
+                      SizedBox(
+                        width: leadingWidth ?? 72.0,
+                        child: leading ?? (showBack 
+                            ? Center(
+                                child: BoxyArtGlassIconButton(
+                                  icon: backIcon ?? Icons.arrow_back_rounded,
+                                  onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                                  tooltip: 'Back',
+                                  iconColor: AppColors.dark900, // Force contrast
+                                  iconSize: 24,
+                                ),
+                              )
+                            : (showMenu 
+                                ? Center(
+                                    child: BoxyArtGlassIconButton(
+                                      icon: Icons.menu_rounded,
+                                      onPressed: () => Scaffold.of(context).openDrawer(),
+                                      tooltip: 'Menu',
+                                      iconColor: AppColors.dark900, // Force contrast
+                                    ),
+                                  )
+                                : null)),
+                      ),
+
+                      // Spacer
+                      const Expanded(child: SizedBox.shrink()),
+
+                      // Actions slot
+                      if (actions != null || showAdminShortcut)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (showAdminShortcut)
+                              Builder(
+                                builder: (context) {
+                                  final path = GoRouterState.of(context).uri.path;
+                                  // Hide on admin console by default, but allow explicit removal elsewhere
+                                  if (path.contains('/admin')) return const SizedBox.shrink();
+                                  return const AdminShortcutAction();
+                                },
+                              ),
+                            if (actions != null)
+                              ...actions!.asMap().entries.map((entry) {
+                                final idx = entry.key;
+                                final widget = entry.value;
+                                final isLast = idx == actions!.length - 1;
+                                
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    right: isLast ? AppSpacing.xl : AppSpacing.sm,
+                                  ),
+                                  child: widget,
+                                );
+                              }),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        // Layer 3: Overlays
+        if (pinnedBottom != null)
+          Positioned(
+            bottom: AppSpacing.lg,
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            child: pinnedBottom!,
+          ),
+
+        // Layer 4: Modal Grab Handle (Absolute Overlay)
+        if (isModal)
+          Positioned(
+            top: AppSpacing.sm,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                  borderRadius: AppShapes.grabber,
+                ),
+              ),
+            ),
+          ),
       ],
     );
 
-    // When useScaffold=false (e.g. inside EventAdminShell), skip the Scaffold
-    // wrapper to avoid nested Scaffolds causing blank-screen layout failures.
-    // Instead, use a Stack to overlay the AppBar on top of the scroll view,
-    // replicating Scaffold's extendBodyBehindAppBar behavior.
-    if (!useScaffold) {
-      return Material(
-        color: bg,
-        child: Stack(
-          children: [
-            scrollView,
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: BoxyArtAppBar(
-                title: '',
-                transparent: true,
-                showBack: showBack,
-                showLeading: showMenu && !showBack,
-                onBack: onBack,
-                backIcon: backIcon,
-                actions: actions,
-                leading: leading,
-                leadingWidth: leadingWidth,
-                bottom: bottom,
-                showAdminShortcut: () {
-                  if (!showAdminShortcut) return false;
-                  try {
-                    return !GoRouterState.of(context).uri.path.startsWith('/admin');
-                  } catch (_) {
-                    return false;
-                  }
-                }(),
-              ),
-            ),
-            if (bottomNavigationBar != null)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: bottomNavigationBar!,
-              ),
-            if (floatingActionButton != null)
-              Positioned(
-                bottom: AppSpacing.lg,
-                right: AppSpacing.lg,
-                child: floatingActionButton!,
-              ),
-            if (pinnedBottom != null)
-              Positioned(
-                bottom: 100, // Above typical dock height (increased for better spacing)
-                left: AppSpacing.xl,
-                right: AppSpacing.xl,
-                child: pinnedBottom!,
-              ),
-          ],
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: bg,
-      extendBodyBehindAppBar: true,
-      appBar: BoxyArtAppBar(
-        title: '', // Headless
-        transparent: true,
-        showBack: showBack,
-        showLeading: showMenu && !showBack, // Standard logic: Menu if no Back
-        onBack: onBack,
-        backIcon: backIcon,
-        actions: actions,
-        leading: leading,
-        leadingWidth: leadingWidth,
-        bottom: bottom,
-        showAdminShortcut: () {
-          if (!showAdminShortcut) return false;
-          try {
-            return !GoRouterState.of(context).uri.path.startsWith('/admin');
-          } catch (_) {
-            return false; // Safe default for non-router contexts (like preview)
-          }
-        }(),
-      ),
-      bottomNavigationBar: bottomNavigationBar,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: floatingActionButtonLocation,
-      body: Stack(
-        children: [
-          scrollView,
-          if (pinnedBottom != null)
-             Positioned(
-                bottom: (bottomNavigationBar != null) ? 100 : AppSpacing.lg,
-                left: AppSpacing.xl,
-                right: AppSpacing.xl,
-                child: pinnedBottom!,
-             ),
-        ],
-      ),
+    // 3. Final Build (True Headless Zero-Baseline Layout)
+    // We avoid returning a Scaffold here to prevent nested inset consumption. 
+    // HeadlessScaffold assumes its own Y=0 is the coordinate system.
+    return Material(
+      color: bg,
+      borderRadius: isModal ? AppShapes.sheet : null,
+      clipBehavior: isModal ? Clip.antiAlias : Clip.none,
+      child: layoutStack,
     );
   }
 }

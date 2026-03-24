@@ -20,14 +20,19 @@ class AppShapes {
   static const double borderSemi = 2.5;   // Heavy decorative strokes
   static const double borderThick = 3.0;  // Structural highlight borders
 
-  // Icon Sizes - Unified Scale
-  static const double iconXs = 14.0;      // Tiny inline markers
-  static const double iconSm = 16.0;      // Standard button icons
-  static const double iconMd = 20.0;      // List item leading icons
-  static const double iconLg = 24.0;      // Primary action icons
-  static const double iconXl = 32.0;      // Large status indicators
-  static const double iconHero = 48.0;    // Featured section icons
-  static const double iconMassive = 64.0; // Massive decorative icons
+  // Radical Icon Consolidation (v4.0) - 3 Tier Scale
+  static const double iconSmall = 16.0;
+  static const double iconMedium = 24.0;
+  static const double iconLarge = 32.0;
+
+  // Legacy Mapping (Snapped)
+  static const double iconXs = 14.0;
+  static const double iconSm = iconSmall;
+  static const double iconMd = 20.0; // Specialized for list leading
+  static const double iconLg = iconMedium;
+  static const double iconXl = iconLarge;
+  static const double iconHero = 48.0;
+  static const double iconMassive = 64.0;
 
   static const BorderRadius xs = BorderRadius.all(Radius.circular(rXs));
   static const BorderRadius sm = BorderRadius.all(Radius.circular(rSm));

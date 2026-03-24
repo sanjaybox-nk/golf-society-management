@@ -17,6 +17,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double? leadingWidth;
   final bool showAdminShortcut;
   final Color? backgroundColor;
+  final double? toolbarHeight;
 
   const BoxyArtAppBar({
     super.key,
@@ -34,6 +35,7 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leadingWidth,
     this.showAdminShortcut = false,
     this.backgroundColor,
+    this.toolbarHeight,
   });
 
   @override
@@ -94,17 +96,18 @@ class BoxyArtAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               )
             : null)),
-      leadingWidth: leadingWidth ?? 80, // Center 40px icon in 80px = 20px edge margin
+      leadingWidth: leadingWidth ?? 64, // Center icon in 64px = 16px edge margin (Matches AppSpacing.xl)
       centerTitle: centerTitle,
       elevation: 0,
       backgroundColor: backgroundColor ?? (transparent ? Colors.transparent : null),
       scrolledUnderElevation: 0,
+      toolbarHeight: toolbarHeight,
       bottom: bottom,
     );
   }
 
   @override
   Size get preferredSize => Size.fromHeight(
-    (subtitle != null ? 72 : kToolbarHeight) + (bottom?.preferredSize.height ?? 0)
+    (toolbarHeight ?? (subtitle != null ? 72 : kToolbarHeight)) + (bottom?.preferredSize.height ?? 0)
   );
 }

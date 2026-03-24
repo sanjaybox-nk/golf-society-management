@@ -8,11 +8,11 @@ import '../../admin/data/seasons_repository.dart';
 import '../../admin/data/firestore_seasons_repository.dart';
 import '../../admin/data/leaderboard_templates_repository.dart';
 
-enum EventFilter { upcoming, past }
+enum EventFilter { season, social }
 
 class EventFilterNotifier extends Notifier<EventFilter> {
   @override
-  EventFilter build() => EventFilter.upcoming;
+  EventFilter build() => EventFilter.season;
   
   void update(EventFilter filter) => state = filter;
 }
@@ -127,7 +127,55 @@ final pastEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
   });
 });
 
-// Single Event Provider
+// 5. Derived: Social
+final socialEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  final eventsAsync = ref.watch(eventsProvider);
+  return eventsAsync.whenData((events) {
+    // Only social events, regardless of season status
+    final social = events.where((e) => e.eventType == EventType.social).toList();
+    social.sort((a, b) => b.date.compareTo(a.date));
+    return social;
+  });
+});
+
+// 6. Derived: Season Events (Split into Upcoming/Past)
+final seasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  final eventsAsync = ref.watch(eventsProvider);
+  return eventsAsync.whenData((events) {
+    // All non-social events that are part of a season
+    return events.where((e) => e.isSeasonEvent && e.eventType != EventType.social).toList();
+  });
+});
+
+final upcomingSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  final seasonEventsAsync = ref.watch(seasonEventsProvider);
+  return seasonEventsAsync.whenData((events) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final upcoming = events.where((e) {
+      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
+      return eventDate.isAtSameMomentAs(today) || eventDate.isAfter(today);
+    }).toList();
+    upcoming.sort((a, b) => a.date.compareTo(b.date));
+    return upcoming;
+  });
+});
+
+final pastSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
+  final seasonEventsAsync = ref.watch(seasonEventsProvider);
+  return seasonEventsAsync.whenData((events) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final past = events.where((e) {
+      final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
+      return eventDate.isBefore(today);
+    }).toList();
+    past.sort((a, b) => b.date.compareTo(a.date));
+    return past;
+  });
+});
+
+// 7. Single Event Provider
 final eventProvider = StreamProvider.family<GolfEvent, String>((ref, id) {
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.watchEvent(id).map((event) {

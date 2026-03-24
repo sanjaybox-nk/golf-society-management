@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 class MemberStatsRow extends StatelessWidget {
@@ -23,20 +24,19 @@ class MemberStatsRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0),
       child: BoxyArtCard(
-        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             if (wins > 0) ...[
-              Expanded(child: _StatItem(label: 'WINS', value: '$wins')),
-              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _StatItem(label: 'Wins', value: '$wins')),
+              const SizedBox(width: AppSpacing.atomic),
             ],
-            Expanded(child: _StatItem(label: 'TOP 5', value: '$top5')),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: _StatItem(label: 'AVG PTS', value: avgPts.toStringAsFixed(1))),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: _StatItem(label: 'BEST', value: '$bestPts')),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: _StatItem(label: 'RANK', value: rank != null ? '#$rank' : '-')),
+            Expanded(child: _StatItem(label: 'Top 5', value: '$top5')),
+            const SizedBox(width: AppSpacing.atomic),
+            Expanded(child: _StatItem(label: 'Avg Pts', value: avgPts.toStringAsFixed(1))),
+            const SizedBox(width: AppSpacing.atomic),
+            Expanded(child: _StatItem(label: 'Best', value: '$bestPts')),
+            const SizedBox(width: AppSpacing.atomic),
+            Expanded(child: _StatItem(label: 'Rank', value: rank != null ? '#$rank' : '-')),
           ],
         ),
       ),
@@ -44,42 +44,44 @@ class MemberStatsRow extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StatItem extends ConsumerWidget {
   final String label;
   final String value;
   const _StatItem({required this.label, required this.value});
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
     
-    return Container(
+    final badgeBg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
+    const badgeFg = AppColors.dark900; // Overridden to black for these badges
+    
+    return BoxyArtCard(
+      showShadow: false,
+      backgroundColor: isDark 
+          ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+          : badgeBg,
+      borderRadius: config.cardRadius * 0.75,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppShapes.rMd),
-        border: Border.all(
-          color: isDark 
-              ? AppColors.pureWhite.withValues(alpha: 0.12) 
-              : AppColors.dark700.withValues(alpha: AppColors.opacitySubtle),
-          width: AppShapes.borderThin,
-        ),
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             value,
-            style: AppTypography.displaySection.copyWith(
-              fontSize: 20,
-              color: Theme.of(context).colorScheme.onSurface,
+            style: AppTypography.headline.copyWith(
+              color: badgeFg,
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: 4),
           Text(
-            label,
-            style: AppTypography.captionStrong.copyWith(
-              color: AppColors.dark500,
-              fontSize: 11,
+            label.toUpperCase(),
+            style: AppTypography.label.copyWith(
+              color: badgeFg.withValues(alpha: 0.8),
+              fontWeight: AppTypography.weightStrong,
+              fontSize: 10,
+              letterSpacing: AppTypography.lsMicro,
             ),
           ),
         ],

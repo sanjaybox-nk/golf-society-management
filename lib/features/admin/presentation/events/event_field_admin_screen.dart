@@ -52,22 +52,12 @@ class EventFieldAdminScreen extends ConsumerWidget {
           subtitle: 'Event Field and Tee Time',
           showBack: true,
           onBack: () => context.go('/admin/events'),
-          useScaffold: false,
-          subtitleWidget: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Event Field and Tee Time',
-                style: TextStyle(
-                  fontSize: AppTypography.sizeBodySmall,
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                  fontWeight: AppTypography.weightSemibold,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              // Hub Toggle
-              ModernUnderlinedFilterBar<int>(
+
+          pinnedBottom: null,
+          slivers: [
+            SliverToBoxAdapter(
+              child: ModernUnderlinedFilterBar<int>(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 selectedValue: selectedTab,
                 isExpanded: true,
                 onTabSelected: (val) => ref.read(eventFieldTabProvider.notifier).set(val),
@@ -76,10 +66,8 @@ class EventFieldAdminScreen extends ConsumerWidget {
                   ModernFilterTab(label: 'Tee Time', value: 1),
                 ],
               ),
-            ],
-          ),
-          pinnedBottom: null,
-          slivers: [
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             if (selectedTab == 1)
               SliverToBoxAdapter(
                 child: Padding(

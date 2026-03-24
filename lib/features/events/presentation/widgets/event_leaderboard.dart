@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
@@ -42,8 +43,25 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     final currentFormat = widget.comp?.rules.format ?? CompetitionFormat.stableford;
     final isGuestLeaderboardActive = widget.event.isInvitational;
 
+    final memberMap = {for (final m in widget.membersList) m.id: m};
+
     // 2. Map Processed Data to UI-friendly LeaderboardEntry
     final List<LeaderboardEntry> finalEntries = data.leaderboard.map((e) {
+      final String? playerId = e.teamMemberIds.firstOrNull;
+      final member = playerId != null ? memberMap[playerId] : null;
+
+      String? hostName;
+      bool hasGuest = false;
+
+      if (e.isGuest) {
+        // Find the registration that includes this guest
+        final reg = widget.event.registrations.where((r) => r.guestName == e.playerName).firstOrNull;
+        hostName = reg?.memberName;
+      } else if (playerId != null) {
+        // Check if this member has brought a guest
+        hasGuest = widget.event.registrations.any((r) => r.memberId == playerId && r.guestName != null);
+      }
+
       return LeaderboardEntry(
         entryId: e.entryId,
         playerName: e.playerName,
@@ -54,6 +72,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         playingHandicap: e.individualPlayingHandicaps.firstOrNull,
         holesPlayed: e.holesPlayed,
         isGuest: e.isGuest,
+        hasGuest: hasGuest,
+        avatarUrl: member?.avatarUrl,
+        hostName: hostName,
         hasSocietyCut: e.hasSocietyCut,
         holeScores: e.holeScores,
         holeNetScores: e.holeNetScores,
@@ -83,13 +104,9 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
 
     // 3. Handle Guest/Member Separation
-    final guestEntries = isGuestLeaderboardActive
-        ? finalEntries.where((e) => e.isGuest).toList()
-        : <LeaderboardEntry>[];
-    
-    final memberEntries = isGuestLeaderboardActive
-        ? finalEntries.where((e) => !e.isGuest).toList()
-        : finalEntries;
+    final guestEntries = finalEntries.where((e) => e.isGuest).toList();
+    final memberEntries = finalEntries.where((e) => !e.isGuest).toList();
+    final bool hasGuests = guestEntries.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,8 +114,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         if (memberEntries.isNotEmpty) ...[
           if (widget.showTitles) ...[
             BoxyArtSectionTitle(
-              title: isGuestLeaderboardActive ? 'Society Members' : 'Live Standings',
-              count: isGuestLeaderboardActive ? memberEntries.length : null,
+              title: hasGuests ? 'Society Members' : 'Live Standings',
+              count: hasGuests ? memberEntries.length : null,
             ),
           ],
           LeaderboardWidget(

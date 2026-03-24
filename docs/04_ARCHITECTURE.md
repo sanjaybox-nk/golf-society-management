@@ -64,9 +64,10 @@ For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modu
 
 ## Navigation (GoRouter)
 The app uses `StatefulShellRoute` to implement the persistent bottom navigation bar.
--   **Shell**: `ScaffoldWithNavBar` wraps the 5 main tabs.
--   **Routes**: Defined in `lib/router.dart`.
--   **Push**: Use `context.push('/path')` or `context.go('/path')`.
+- **Shell**: `GlobalAppShell` wraps the main navigation branches.
+- **Routes**: Defined in `lib/navigation/app_router.dart`.
+- **Transitions**: All routes are wrapped in the `boxyPage` helper, which implements a **Salted PageKey Strategy** (`state.pageKey` + `state.matchedLocation`) to prevent `HeroControllerScope` assertion failures and ensure unique page identities across the navigation stack.
+- **Push**: Use `context.push('/path')` or `context.go('/path')`.
 
 ## Data Models
 Models are immutable and generated using `freezed`.

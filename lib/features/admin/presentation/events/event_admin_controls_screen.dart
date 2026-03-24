@@ -27,6 +27,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
   Widget build(BuildContext context) {
     final eventAsync = ref.watch(eventProvider(widget.eventId));
     final scorecardsAsync = ref.watch(scorecardsListProvider(widget.eventId));
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return eventAsync.when(
       data: (event) {
@@ -41,7 +42,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         return HeadlessScaffold(
           title: 'Control Tower',
           subtitle: event.title,
-          useScaffold: false,
+
           showBack: true,
           onBack: () => context.goNamed('admin-events'),
           slivers: [
@@ -50,12 +51,10 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // 1. Status Overview Header
-                  _buildStatusHeader(event, scorecardsAsync),
-                  const SizedBox(height: AppSpacing.x3l),
+                  _buildStatusHeader(event, scorecardsAsync, spacing),
 
                   // 2. Lifecycle & Visibility Section
                   const BoxyArtSectionTitle(title: 'LIFECYCLE & VISIBILITY'),
-                  const SizedBox(height: AppSpacing.md),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -72,7 +71,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             );
                           },
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtSwitchTile(
                           icon: Icons.analytics_outlined,
                           label: 'Show Live Stats to Players',
@@ -85,7 +84,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             );
                           },
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtSwitchTile(
                           icon: Icons.cloud_done_outlined,
                           label: 'Show Tee Times to Members',
@@ -98,7 +97,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             );
                           },
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtSwitchTile(
                           icon: Icons.lock_person_outlined,
                           label: 'Lock Grouping',
@@ -106,7 +105,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           value: ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false),
                           onChanged: (val) => _handleLockToggle(event, val),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         Padding(
                           padding: const EdgeInsets.all(AppSpacing.xl),
                           child: Column(
@@ -132,11 +131,9 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.x3l),
-
+                  
                   // 3. Grouping & Tee Times Configuration
                   const BoxyArtSectionTitle(title: 'GROUPING & TEE TIMES'),
-                  const SizedBox(height: AppSpacing.md),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -148,7 +145,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           iconColor: AppColors.actionGreen,
                           onTap: () => GroupingModals.showGroupingRules(context, ref),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         // [NEW] Start Time (Seed) Control
                         BoxyArtNavTile(
                           title: 'Tee-off Time (Seed)',
@@ -179,7 +176,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             }
                           },
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Manual Grouping',
                           subtitle: 'Drag & drop players into tee times',
@@ -190,7 +187,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             pathParameters: {'id': event.id},
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                           child: Row(
@@ -236,11 +233,9 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.x3l),
-
+                  
                   // 4. Administrative Hub
                   const BoxyArtSectionTitle(title: 'ADMINISTRATIVE HUB'),
-                  const SizedBox(height: AppSpacing.md),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -255,7 +250,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             pathParameters: {'id': event.id},
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Field & Registrations',
                           subtitle: 'Confirm attendance & manage guests',
@@ -266,7 +261,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             pathParameters: {'id': event.id},
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Edit Event Details',
                           subtitle: 'Change venue, date, or title',
@@ -277,7 +272,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             extra: event,
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Society Cuts',
                           subtitle: 'Apply manual handicap overrides',
@@ -288,7 +283,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             pathParameters: {'id': event.id},
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Costs & Charges',
                           subtitle: 'Manage member/guest fees & meal options',
@@ -299,7 +294,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             pathParameters: {'id': event.id},
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Prize Pool & Airdrops',
                           subtitle: 'Configure the prize table & award types',
@@ -310,7 +305,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                             pathParameters: {'id': event.id},
                           ),
                         ),
-                        const Divider(height: 1),
+                        const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Broadcasts & Updates',
                           subtitle: 'Post live updates to the feed',
@@ -324,11 +319,9 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.x3l),
-
+                  
                   // 5. Termination / Finalization
                   const BoxyArtSectionTitle(title: 'EVENT TERMINATION'),
-                  const SizedBox(height: AppSpacing.md),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: BoxyArtSwitchTile(
@@ -345,7 +338,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                       },
                     ),
                   ),
-                  const SizedBox(height: 100), // Bottom padding for shell
+                  SizedBox(height: AppSpacing.hero), // Bottom padding for shell
                 ]),
               ),
             ),
@@ -354,12 +347,12 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
       },
       loading: () => const HeadlessScaffold(
         title: 'Loading...', 
-        useScaffold: false, 
+ 
         slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))],
       ),
       error: (err, st) => HeadlessScaffold(
         title: 'Error', 
-        useScaffold: false, 
+ 
         slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))],
       ),
     );
@@ -554,7 +547,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
     );
   }
 
-  Widget _buildStatusHeader(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync) {
+  Widget _buildStatusHeader(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync, AppSpacingTokens? spacing) {
     final Set<String> uniqueGolferIds = {};
     for (final r in event.registrations) {
       if (r.attendingGolf && r.isConfirmed) {
@@ -603,21 +596,22 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
     return Row(
       children: [
         Expanded(
-          child: _buildBadgeCard('Status', status, statusColor),
+          child: _buildBadgeCard('Status', status, statusColor, spacing),
         ),
-        const SizedBox(width: AppSpacing.md),
+        SizedBox(width: spacing?.labelToCard ?? AppSpacing.standard),
         Expanded(
           child: _buildBadgeCard(
             'Submitted', 
             '$submittedCount / $totalGolfers', 
             AppColors.teamA,
+            spacing,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBadgeCard(String label, String value, Color color) {
+  Widget _buildBadgeCard(String label, String value, Color color, AppSpacingTokens? spacing) {
     return BoxyArtCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.lg),
       child: Column(
@@ -631,7 +625,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
           Text(
             value, 
             style: AppTypography.displaySection.copyWith(

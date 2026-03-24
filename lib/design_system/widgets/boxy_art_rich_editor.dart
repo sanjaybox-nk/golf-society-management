@@ -26,13 +26,7 @@ class BoxyArtRichEditor extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
 
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = AppShapes.rSm; break;
-      case 'modern':  radius = AppShapes.rLg; break;
-      case 'boxy':
-      default:        radius = AppShapes.rMd; break;
-    }
+    final radius = config.inputRadius;
 
     return Column(
       children: [
@@ -104,12 +98,14 @@ class BoxyArtRichEditor extends ConsumerWidget {
           constraints: BoxConstraints(minHeight: minHeight),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: isDark ? AppColors.dark600 : AppColors.lightHeader,
+            color: readOnly 
+                ? Colors.transparent 
+                : (isDark ? AppColors.dark600 : AppColors.pureWhite),
             borderRadius: showToolbar && !readOnly
                 ? BorderRadius.vertical(bottom: Radius.circular(radius))
                 : BorderRadius.circular(radius),
             border: readOnly ? null : Border.all(
-              color: isDark ? AppColors.dark400 : AppColors.lightBorder,
+              color: isDark ? AppColors.dark500 : AppColors.lightBorder,
               width: AppShapes.borderThin,
             ),
           ),

@@ -66,19 +66,31 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
           ),
         ),
         slivers: [
+          // Baseline Nudge for Tab Bar
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -16.0),
+              child: ModernUnderlinedFilterBar<AdminMemberFilter>(
+                selectedValue: currentFilter,
+                onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                tabs: [
+                  ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                  ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                  ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                ],
+              ),
+            ),
+          ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.x2l),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.xl, 
+              right: AppSpacing.xl,
+              top: 0, 
+              bottom: AppSpacing.labelToCard,
+            ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                ModernUnderlinedFilterBar<AdminMemberFilter>(
-                  selectedValue: currentFilter,
-                  onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
-                  tabs: [
-                    ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                    ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                    ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
-                  ],
-                ),
                 const SizedBox(height: AppSpacing.lg),
 
                 // Search Card
@@ -210,9 +222,10 @@ Widget _buildDismissibleMember(
       },
       child: MemberTile(
         member: member,
-        onTap: () => MemberDetailsModal.show(context, member),
-        onLongPress: () => MemberDetailsModal.show(context, member),
+        onTap: () => MemberDetailsModal.show(context, member, isAdminContext: true),
+        onLongPress: () => MemberDetailsModal.show(context, member, isAdminContext: true),
         showFeeStatus: true,
+        isAdminContext: true,
         secondaryMetricLabel: secondaryMetricLabel,
         secondaryMetricValue: secondaryMetricValue,
       ),

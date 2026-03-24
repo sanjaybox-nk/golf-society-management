@@ -21,9 +21,13 @@ class ScoringTypeDistributionChart extends StatelessWidget {
     
     final maxCount = counts.values.fold(0, (max, v) => v > max ? v : max).clamp(1, 999);
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -104,9 +108,13 @@ class StablefordDistributionChart extends StatelessWidget {
     final buckets = ['<20', '20-25', '26-30', '31-35', '36+'];
     final maxCount = bucketCounts.values.fold(0, (max, v) => v > max ? v : max).clamp(1, 999);
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -191,9 +199,13 @@ class SplitPerformanceCard extends StatelessWidget {
     final isColapse = isStableford ? diff < 0 : diff > 0;
     final label = isStableford ? 'pts' : 'strokes';
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -288,9 +300,13 @@ class ParTypeBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -373,9 +389,13 @@ class DifficultyHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -477,9 +497,13 @@ class HoleDifficultyChart extends StatelessWidget {
         return diffB.compareTo(diffA); // Toughest first
       });
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -591,10 +615,14 @@ class AchievementTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
+
     return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         decoration: BoxDecoration(
           border: Border(left: BorderSide(color: color, width: AppSpacing.xs)),
         ),
@@ -685,10 +713,14 @@ class FieldEclecticCard extends StatelessWidget {
     final parTotal = holes.fold(0, (sum, h) => sum + ((h is Map ? (h['par'] as int? ?? 4) : h.par) as int));
     final vsPar = totalStrokes - parTotal;
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.xl;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
+
     return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -956,9 +988,13 @@ class PersonalBenchmarkingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1053,9 +1089,13 @@ class HoleComparisonHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1140,9 +1180,13 @@ class ConsistencyStatCard extends StatelessWidget {
     final moreConsistent = myVariance < fieldAvgVariance;
     final color = moreConsistent ? AppColors.lime500 : AppColors.amber500;
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1207,9 +1251,13 @@ class NetComparisonCard extends StatelessWidget {
     final diff = myNet - fieldAvgNet;
     final better = diff < 0;
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Row(
           children: [
             Expanded(
@@ -1280,9 +1328,13 @@ class HoleNemesisComparison extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSame = myHardestHoleIdx == fieldHardestHoleIdx;
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1370,9 +1422,13 @@ class BounceBackStatCard extends StatelessWidget {
     final better = myRate >= fieldRate;
     final color = better ? AppColors.teamA : AppColors.textSecondary;
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.md;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.md;
+
     return BoxyArtCard(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         child: Row(
           children: [
             Container(

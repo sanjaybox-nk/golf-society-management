@@ -8,6 +8,7 @@ part of 'course_config.dart';
 
 _TeeConfig _$TeeConfigFromJson(Map<String, dynamic> json) => _TeeConfig(
   name: json['name'] as String,
+  color: json['color'] as String?,
   rating: (json['rating'] as num).toDouble(),
   slope: (json['slope'] as num).toInt(),
   holePars: (json['holePars'] as List<dynamic>)
@@ -24,6 +25,7 @@ _TeeConfig _$TeeConfigFromJson(Map<String, dynamic> json) => _TeeConfig(
 Map<String, dynamic> _$TeeConfigToJson(_TeeConfig instance) =>
     <String, dynamic>{
       'name': instance.name,
+      'color': instance.color,
       'rating': instance.rating,
       'slope': instance.slope,
       'holePars': instance.holePars,

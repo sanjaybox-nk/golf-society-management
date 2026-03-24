@@ -11,6 +11,7 @@ class AdminSurveysScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final surveysAsync = ref.watch(surveysProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'Society Surveys',
@@ -21,7 +22,7 @@ class AdminSurveysScreen extends ConsumerWidget {
           onPressed: () => context.push('/admin/surveys/new'),
           tooltip: 'Create Survey',
         ),
-        const SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.md),
       ],
       slivers: [
         surveysAsync.when(
@@ -35,14 +36,14 @@ class AdminSurveysScreen extends ConsumerWidget {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: spacing?.labelToCard ?? AppSpacing.standard),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final survey = surveys[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: _SurveyListCard(survey: survey),
+                      padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                      child: _SurveyListCard(survey: survey, spacing: spacing),
                     );
                   },
                   childCount: surveys.length,
@@ -60,8 +61,9 @@ class AdminSurveysScreen extends ConsumerWidget {
 
 class _SurveyListCard extends ConsumerWidget {
   final Survey survey;
+  final AppSpacingTokens? spacing;
 
-  const _SurveyListCard({required this.survey});
+  const _SurveyListCard({required this.survey, this.spacing});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,7 +71,7 @@ class _SurveyListCard extends ConsumerWidget {
     final responseCount = survey.responses.length;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -85,7 +87,7 @@ class _SurveyListCard extends ConsumerWidget {
             ],
           ),
           if (survey.description != null && survey.description!.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
             Text(
               survey.description!,
               style: AppTypography.bodySmall.copyWith(
@@ -95,7 +97,7 @@ class _SurveyListCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
           Row(
             children: [
               _buildInfoItem(
@@ -111,9 +113,9 @@ class _SurveyListCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          const Divider(height: 1),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+          const BoxyArtDivider(),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -128,7 +130,7 @@ class _SurveyListCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -176,7 +178,7 @@ class _SurveyListCard extends ConsumerWidget {
     return Row(
       children: [
         Icon(icon, size: AppShapes.iconXs, color: Theme.of(context).primaryColor),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.md),
         Text(
           label,
           style: AppTypography.label.copyWith(fontSize: AppTypography.sizeLabel),

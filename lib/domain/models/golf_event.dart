@@ -138,6 +138,7 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(false) bool isStatsReleased,
     @Default({}) Map<String, dynamic> finalizedStats,
     String? secondaryTemplateId, // Reference for Match Play overlay
+    @Default(false) bool isSeasonEvent, // [NEW] Distinguishes league events from ad-hoc games
     @Default(false) bool isInvitational,
     @Default(EventStatus.draft) EventStatus status,
     @Default([]) List<EventExpense> expenses,
@@ -150,9 +151,29 @@ abstract class GolfEvent with _$GolfEvent {
 
   bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;
 
+  bool get occursToday {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final eventStart = DateTime(date.year, date.month, date.day);
+
+    if (isMultiDay && endDate != null) {
+      final eventEnd = DateTime(endDate!.year, endDate!.month, endDate!.day);
+      return !today.isBefore(eventStart) && !today.isAfter(eventEnd);
+    }
+
+    return today.isAtSameMomentAs(eventStart);
+  }
+
   bool get isRegistrationClosed {
     if (registrationDeadline == null) return false;
     return DateTime.now().isAfter(registrationDeadline!);
+  }
+
+  bool get isRegistrationOpen {
+    if (isClosed) return false;
+    if (isRegistrationClosed) return false;
+    // Only published events allow registration
+    return status == EventStatus.published;
   }
 
   /// Synthesizes missing system blocks so older events automatically gain them natively

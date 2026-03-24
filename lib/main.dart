@@ -52,14 +52,14 @@ class GolfSocietyApp extends ConsumerWidget {
     if (themeModeStr == 'light') mode = ThemeMode.light;
     if (themeModeStr == 'dark') mode = ThemeMode.dark;
 
-    return BoxyArtErrorHandler(
-      child: MaterialApp.router(
-        title: 'Golf Society',
-        theme: v3.AppTheme.light(societyConfig),
-        darkTheme: v3.AppTheme.dark(societyConfig),
-        themeMode: mode,
-        routerConfig: router,
-        localizationsDelegates: const [
+    return MaterialApp.router(
+      title: 'Golf Society',
+      theme: v3.AppTheme.light(societyConfig),
+      darkTheme: v3.AppTheme.dark(societyConfig),
+      themeMode: mode,
+      routerConfig: router,
+      builder: (context, child) => BoxyArtErrorHandler(child: child!),
+      localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
@@ -69,7 +69,6 @@ class GolfSocietyApp extends ConsumerWidget {
           Locale('en', 'US'),
           Locale('en', 'GB'),
         ],
-      ),
     );
   }
 }

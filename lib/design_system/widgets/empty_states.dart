@@ -62,7 +62,9 @@ class _EmptyStateContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final shapeTokens = theme.extension<AppShapeTokens>();
+    final accentRadius = shapeTokens?.accent ?? BorderRadius.circular(12);
+    final accentOpacity = shapeTokens?.accentOpacity ?? 0.15;
 
     return Padding(
       padding: EdgeInsets.all(isCompact ? AppSpacing.md : AppSpacing.xl),
@@ -72,27 +74,23 @@ class _EmptyStateContent extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(isCompact ? AppSpacing.sm : AppSpacing.md),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.dark700 : AppColors.actionGreen.withValues(alpha: 0.3),
-              borderRadius: AppShapes.md,
-              border: Border.all(
-                color: isDark ? AppColors.dark600 : AppColors.actionGreen.withValues(alpha: 0.1),
-                width: AppShapes.borderThin,
-              ),
+              color: theme.colorScheme.secondary.withValues(alpha: accentOpacity),
+              borderRadius: accentRadius,
             ),
             child: Icon(
               icon,
               size: isCompact ? 16 : 24,
-              color: isDark ? AppColors.dark400 : AppColors.dark900,
+              color: AppColors.dark900,
             ),
           ),
           SizedBox(height: isCompact ? AppSpacing.md : AppSpacing.lg),
           Text(
             toTitleCase(title),
             textAlign: TextAlign.center,
-            style: AppTypography.displayMedium.copyWith(
+            style: AppTypography.headline.copyWith(
               fontSize: isCompact ? 18 : 22,
               fontWeight: AppTypography.weightExtraBold,
-              letterSpacing: -0.5,
+              letterSpacing: AppTypography.lsTight,
               color: theme.colorScheme.onSurface,
             ),
           ),
@@ -101,7 +99,7 @@ class _EmptyStateContent extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
-              color: isDark ? AppColors.dark300 : AppColors.dark900,
+              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
               height: 1.5,
               fontWeight: AppTypography.weightMedium,
             ),

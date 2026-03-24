@@ -112,7 +112,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
               context.go('/admin/events');
             }
           },
-          useScaffold: widget.useScaffold,
+
           actions: [
             if (_isSaving)
               const Padding(

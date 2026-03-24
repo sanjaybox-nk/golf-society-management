@@ -85,7 +85,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
   Widget build(BuildContext context) {
     return HeadlessScaffold(
       title: widget.existingSurvey == null ? 'Create Survey' : 'Edit Survey',
-      useScaffold: true,
+
       showBack: true,
       actions: [
         if (_isSaving)
@@ -125,7 +125,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppSpacing.standard),
               
               const BoxyArtSectionTitle(title: 'Visibility'),
               const SizedBox(height: AppTheme.sectionSpacing),
@@ -137,7 +137,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
                   onChanged: (val) => setState(() => _isPublished = val),
                 ),
               ),
-              const SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppSpacing.standard),
 
               const BoxyArtSectionTitle(title: 'Questions'),
               const SizedBox(height: AppTheme.sectionSpacing),

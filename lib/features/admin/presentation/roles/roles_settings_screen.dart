@@ -23,7 +23,6 @@ class RolesSettingsScreen extends ConsumerWidget {
       title: 'System Roles',
       subtitle: 'View available administrative roles',
       showBack: true,
-      autoPrefix: false,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(

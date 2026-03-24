@@ -34,7 +34,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
         return HeadlessScaffold(
           title: 'Event Analysis',
           subtitle: event.title,
-          useScaffold: false,
+
           showBack: true,
           onBack: () => context.go('/admin/events'),
           slivers: [
@@ -50,36 +50,31 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(
-              child: selectedTab == 0
-                  ? _buildReport(context, ref, event, currency)
-                  : _buildStatsTab(ref, event, scorecardsAsync),
+              child: Padding(
+                padding: EdgeInsets.only(top: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
+                child: selectedTab == 0
+                    ? _buildReport(context, ref, event, currency)
+                    : _buildStatsTab(ref, event, scorecardsAsync),
+              ),
             ),
           ],
         );
       },
-      loading: () => const HeadlessScaffold(title: 'Loading...', useScaffold: false, slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
-      error: (err, _) => HeadlessScaffold(title: 'Error', useScaffold: false, slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
+      loading: () => const HeadlessScaffold(title: 'Loading...', slivers: [SliverFillRemaining(child: Center(child: CircularProgressIndicator()))]),
+      error: (err, _) => HeadlessScaffold(title: 'Error', slivers: [SliverFillRemaining(child: Center(child: Text('Error: $err')))]),
     );
   }
 
   Widget _buildStatsTab(WidgetRef ref, GolfEvent event, AsyncValue<List<dynamic>> scorecardsAsync) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        children: [
-          const SizedBox(height: AppSpacing.lg),
-          EventStatsTab(
-            event: event,
-            comp: ref.watch(competitionDetailProvider(event.id)).value,
-            liveScorecards: (scorecardsAsync.value ?? []).cast(),
-            isAdmin: true,
-            playerHoleLimits: const {},
-          ),
-          const SizedBox(height: 80),
-        ],
-      ),
+    return Column(
+      children: [
+        EventStatsTab(
+          eventId: event.id,
+          isAdmin: true,
+        ),
+        const SizedBox(height: 80),
+      ],
     );
   }
 
@@ -186,10 +181,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
     final totalPotentialRevenue = confirmedPaid + confirmedDue;
 
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        children: [
+    return Column(
+      children: [
           // HEADER SUMMARY
           RegistrationStatsCard(event: event, isCompact: false),
           const SizedBox(height: AppSpacing.cardToLabel),
@@ -244,9 +237,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
           const SizedBox(height: 120), // Extra space for FAB/BottomBar
         ],
-      ),
-    );
-  }
+      );
+    }
 
   // Cost calculation helpers (matching RegistrationScreen logic)
   double _calculateMemberGolfCost(GolfEvent event, dynamic registration) {

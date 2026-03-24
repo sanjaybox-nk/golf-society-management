@@ -11,6 +11,7 @@ class SocietyRolePicker extends StatelessWidget {
   });
 
   static void show(BuildContext context, String? currentRole, ValueChanged<String> onRoleSelected) {
+    final theme = Theme.of(context);
     final defaultRoles = ['President', 'Captain', 'Vice Captain', 'Secretary', 'Treasurer'];
     
     BoxyArtBottomSheet.show(
@@ -43,12 +44,10 @@ class SocietyRolePicker extends StatelessWidget {
                     child: Icon(Icons.add_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),
                   ),
                   const SizedBox(width: AppSpacing.lg),
-                  const Text(
+                  Text(
                     'Create Custom Role',
-                    style: TextStyle(
-                      fontWeight: AppTypography.weightBlack,
-                      fontSize: AppTypography.sizeBody,
-                      letterSpacing: -0.3,
+                    style: AppTypography.labelStrong.copyWith(
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -92,11 +91,8 @@ class SocietyRolePicker extends StatelessWidget {
               Expanded(
                 child: Text(
                   role,
-                  style: TextStyle(
-                    fontWeight: AppTypography.weightBlack,
-                    fontSize: AppTypography.sizeBody,
-                    letterSpacing: -0.3,
-                    color: isSelected ? primary : null,
+                  style: AppTypography.labelStrong.copyWith(
+                    color: isSelected ? primary : theme.colorScheme.onSurface,
                   ),
                 ),
               ),

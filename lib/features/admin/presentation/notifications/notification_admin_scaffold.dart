@@ -25,24 +25,10 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return HeadlessScaffold(
-      useScaffold: false,
-      title: 'Communications',
-      actions: [
-        if (_currentIndex == 0)
-          BoxyArtGlassIconButton(
-            icon: Icons.add_rounded,
-            onPressed: () => setState(() => _currentIndex = 1),
-            tooltip: 'New Notification',
-          ),
-      ],
-      leading: Center(
-        child: BoxyArtGlassIconButton(
-          icon: Icons.home_rounded,
-          onPressed: () => context.go('/home'),
-          tooltip: 'App Home',
-        ),
-      ),
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      primary: false,
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: _currentIndex,
         onItemSelected: (index) => setState(() => _currentIndex = index),
@@ -69,11 +55,29 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
           ),
         ],
       ),
-      slivers: [
-        SliverFillRemaining(
-          child: _tabs[_currentIndex],
+      body: HeadlessScaffold(
+        title: 'Communications',
+        actions: [
+          if (_currentIndex == 0)
+            BoxyArtGlassIconButton(
+              icon: Icons.add_rounded,
+              onPressed: () => setState(() => _currentIndex = 1),
+              tooltip: 'New Notification',
+            ),
+        ],
+        leading: Center(
+          child: BoxyArtGlassIconButton(
+            icon: Icons.home_rounded,
+            onPressed: () => context.go('/home'),
+            tooltip: 'App Home',
+          ),
         ),
-      ],
+        slivers: [
+          SliverFillRemaining(
+            child: _tabs[_currentIndex],
+          ),
+        ],
+      ),
     );
   }
 }

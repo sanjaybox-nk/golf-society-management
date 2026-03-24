@@ -139,12 +139,16 @@ class ModernScoringView extends StatelessWidget {
       }
     }
 
+    final spacing = theme.extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.x2l;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.x2l;
+
     return BoxyArtCard(
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: AppShapes.x2l,
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.x2l),
+          padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

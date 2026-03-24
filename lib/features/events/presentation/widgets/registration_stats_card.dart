@@ -2,16 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 import '../../domain/registration_logic.dart';
 
 class RegistrationStatsCard extends ConsumerWidget {
   final GolfEvent event;
   final bool isCompact;
+  final bool showAdminMetrics;
 
   const RegistrationStatsCard({
     super.key,
     required this.event,
     this.isCompact = false,
+    this.showAdminMetrics = false,
   });
 
   @override
@@ -29,10 +32,10 @@ class RegistrationStatsCard extends ConsumerWidget {
         : '${stats.reserveGolfers}';
 
     if (isCompact) {
-      return _buildCompactVersion(context, stats, isDark, playingValue, reserveValue);
+      return _buildCompactVersion(context, stats, isDark, playingValue, reserveValue, config);
     }
 
-    return _buildFullVersion(context, stats, isDark, playingValue, reserveValue, currency);
+    return _buildFullVersion(context, stats, isDark, playingValue, reserveValue, currency, config);
   }
 
   Widget _buildCompactVersion(
@@ -41,9 +44,14 @@ class RegistrationStatsCard extends ConsumerWidget {
     bool isDark,
     String playingValue,
     String reserveValue,
+    SocietyConfig config,
   ) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
+
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -56,7 +64,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${event.maxParticipants ?? 0}',
                     label: 'Capacity',
                     icon: Icons.groups_rounded,
-                    color: isDark ? AppColors.dark150 : AppColors.dark500,
                     isCompact: true,
                   ),
                 ),
@@ -66,7 +73,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: playingValue,
                     label: 'Playing',
                     icon: Icons.check_circle_rounded,
-                    color: AppColors.lime500,
                     isCompact: true,
                   ),
                 ),
@@ -76,7 +82,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: reserveValue,
                     label: 'Reserve',
                     icon: Icons.hourglass_top_rounded,
-                    color: AppColors.amber500,
                     isCompact: true,
                   ),
                 ),
@@ -86,14 +91,13 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
                     label: 'Guests',
                     icon: Icons.person_add_rounded,
-                    color: const Color(0xFF8E44AD),
                     isCompact: true,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -103,7 +107,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.buggyCount}',
                     label: 'Buggies',
                     icon: Icons.electric_rickshaw_rounded,
-                    color: isDark ? AppColors.dark300 : AppColors.dark600,
                     isCompact: true,
                   ),
                 ),
@@ -113,7 +116,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.waitlistGolfers}',
                     label: 'Waitlist',
                     icon: Icons.priority_high_rounded,
-                    color: AppColors.coral500,
                     isCompact: true,
                   ),
                 ),
@@ -123,7 +125,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.withdrawnCount}',
                     label: 'Withdraw',
                     icon: Icons.person_remove_rounded,
-                    color: AppColors.dark400,
                     isCompact: true,
                   ),
                 ),
@@ -143,10 +144,11 @@ class RegistrationStatsCard extends ConsumerWidget {
     String playingValue,
     String reserveValue,
     String currency,
+    SocietyConfig config,
   ) {
     // Financials calculation (Move logic inside widget or helper)
     final double totalPaidFees = event.registrations
-        .where((r) => r.hasPaid)
+        .where((r) => r.hasPaid == true)
         .fold(0.0, (sum, r) {
           double golfCost = 0.0;
           if (r.isConfirmed && r.attendingGolf) golfCost += event.memberCost ?? 0.0;
@@ -155,30 +157,34 @@ class RegistrationStatsCard extends ConsumerWidget {
         });
 
     final double totalDinnerFees = event.registrations
-        .where((r) => r.hasPaid)
+        .where((r) => r.hasPaid == true)
         .fold(0.0, (sum, r) => sum +
-            (r.attendingDinner && r.isConfirmed ? (event.dinnerCost ?? 0.0) : 0.0) +
-            (r.guestAttendingDinner && r.guestIsConfirmed ? (event.dinnerCost ?? 0.0) : 0.0));
+            (r.attendingDinner == true && r.isConfirmed == true ? (event.dinnerCost ?? 0.0) : 0.0) +
+            (r.guestAttendingDinner == true && r.guestIsConfirmed == true ? (event.dinnerCost ?? 0.0) : 0.0));
 
     final double totalBreakfastFees = event.registrations
-        .where((r) => r.hasPaid)
+        .where((r) => r.hasPaid == true)
         .fold(0.0, (sum, r) => sum +
-            (r.attendingBreakfast && r.isConfirmed ? (event.breakfastCost ?? 0.0) : 0.0) +
-            (r.guestAttendingBreakfast && r.guestIsConfirmed ? (event.breakfastCost ?? 0.0) : 0.0));
+            (r.attendingBreakfast == true && r.isConfirmed == true ? (event.breakfastCost ?? 0.0) : 0.0) +
+            (r.guestAttendingBreakfast == true && r.guestIsConfirmed == true ? (event.breakfastCost ?? 0.0) : 0.0));
 
     final double totalLunchFees = event.registrations
-        .where((r) => r.hasPaid)
+        .where((r) => r.hasPaid == true)
         .fold(0.0, (sum, r) => sum +
-            (r.attendingLunch && r.isConfirmed ? (event.lunchCost ?? 0.0) : 0.0) +
-            (r.guestAttendingLunch && r.guestIsConfirmed ? (event.lunchCost ?? 0.0) : 0.0));
+            (r.attendingLunch == true && r.isConfirmed == true ? (event.lunchCost ?? 0.0) : 0.0) +
+            (r.guestAttendingLunch == true && r.guestIsConfirmed == true ? (event.lunchCost ?? 0.0) : 0.0));
 
     final availableBuggies = event.availableBuggies ?? 0;
     final buggyCapacity = availableBuggies * 2;
     final capacity = event.maxParticipants ?? 0;
     final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
+    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
+
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -191,8 +197,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${event.maxParticipants ?? 0}',
                     label: 'Capacity',
                     icon: Icons.groups_rounded,
-                    color: isDark ? AppColors.dark150 : AppColors.dark500,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -201,8 +205,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: playingValue,
                     label: 'Playing',
                     icon: Icons.check_circle_rounded,
-                    color: AppColors.lime500,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -211,8 +213,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: reserveValue,
                     label: 'Reserve',
                     icon: Icons.hourglass_top_rounded,
-                    color: AppColors.amber500,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -221,14 +221,12 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
                     label: 'Guests',
                     icon: Icons.person_add_rounded,
-                    color: const Color(0xFF8E44AD),
-                    isCompact: true,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -238,8 +236,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.buggyCount}/$buggyCapacity',
                     label: 'Buggies',
                     icon: Icons.electric_rickshaw_rounded,
-                    color: isDark ? AppColors.dark300 : AppColors.dark600,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -248,8 +244,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.breakfastCount}',
                     label: 'Breakfast',
                     icon: Icons.breakfast_dining_rounded,
-                    color: const Color(0xFF8D6E63),
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -258,8 +252,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.lunchCount}',
                     label: 'Lunch',
                     icon: Icons.lunch_dining_rounded,
-                    color: AppColors.amber500,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -268,8 +260,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.dinnerCount}',
                     label: 'Dinner',
                     icon: Icons.restaurant_rounded,
-                    color: const Color(0xFF673AB7),
-                    isCompact: true,
                   ),
                 ),
               ],
@@ -285,8 +275,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.waitlistGolfers}',
                     label: 'Waitlist',
                     icon: Icons.priority_high_rounded,
-                    color: AppColors.coral500,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -295,8 +283,6 @@ class RegistrationStatsCard extends ConsumerWidget {
                     value: '${stats.withdrawnCount}',
                     label: 'Withdrawn',
                     icon: Icons.person_remove_rounded,
-                    color: AppColors.dark400,
-                    isCompact: true,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -306,86 +292,55 @@ class RegistrationStatsCard extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          const Divider(),
-          const SizedBox(height: AppSpacing.xl),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '$currency${totalPaidFees.toStringAsFixed(0)}',
-                    label: 'Paid',
-                    icon: Icons.payments_rounded,
-                    color: AppColors.lime500,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
-                    label: 'Breakfast',
-                    icon: Icons.breakfast_dining_rounded,
-                    color: const Color(0xFF8D6E63),
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '$currency${totalLunchFees.toStringAsFixed(0)}',
-                    label: 'Lunch',
-                    icon: Icons.lunch_dining_rounded,
-                    color: AppColors.amber500,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
-                    label: 'Dinner',
-                    icon: Icons.restaurant_menu_rounded,
-                    color: isDark ? AppColors.dark200 : AppColors.dark600,
-                    isCompact: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.x2l),
-          const Divider(),
-          const SizedBox(height: AppSpacing.lg),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 16,
-                runSpacing: 8,
+          if (showAdminMetrics) ...[
+            SizedBox(height: (spacing?.cardToCard ?? AppSpacing.xl) * 1.5),
+            const Divider(),
+            SizedBox(height: (spacing?.cardToCard ?? AppSpacing.xl) * 1.5),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    '${stats.confirmedGolfers}/$capacity spaces',
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeBody,
-                      fontWeight: AppTypography.weightSemibold,
-                      color: isDark ? AppColors.dark150 : const Color(0xFF2C3E50),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: '$currency${totalPaidFees.toStringAsFixed(0)}',
+                      label: 'Paid',
+                      icon: Icons.payments_rounded,
+                      isCompact: true,
                     ),
                   ),
-                  BoxyArtPill.status(
-                    label: isClosed ? 'Registration Closed' : 'Registration Open',
-                    color: isClosed 
-                        ? (isDark ? AppColors.dark150 : AppColors.dark400)
-                        : AppColors.lime500,
-                    icon: isClosed ? Icons.lock_outline_rounded : Icons.timer_outlined,
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
+                      label: 'Breakfast',
+                      icon: Icons.breakfast_dining_rounded,
+                      isCompact: true,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: '$currency${totalLunchFees.toStringAsFixed(0)}',
+                      label: 'Lunch',
+                      icon: Icons.lunch_dining_rounded,
+                      isCompact: true,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: ModernMetricStat(
+                      value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
+                      label: 'Dinner',
+                      icon: Icons.restaurant_menu_rounded,
+                      isCompact: true,
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
+            const SizedBox(height: AppSpacing.x2l),
+            const Divider(),
+          ],
         ],
       ),
     );

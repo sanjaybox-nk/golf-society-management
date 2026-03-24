@@ -76,7 +76,7 @@ class _BoxyArtRichFormFieldState extends State<BoxyArtRichFormField> {
             letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: AppSpacing.labelToCard),
+        SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.labelToCard),
         BoxyArtRichEditor(
           controller: _controller,
           placeholder: widget.placeholder,

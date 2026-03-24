@@ -87,13 +87,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
   Widget build(BuildContext context) {
     final config = ref.watch(themeControllerProvider);
 
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = AppShapes.rSm; break;
-      case 'modern':  radius = AppShapes.r2xl; break;
-      case 'boxy':
-      default:        radius = AppShapes.rMd; break;
-    }
+    final radius = config.cardRadius;
 
     return BoxyArtCard(
       borderRadius: radius,
@@ -151,7 +145,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             ),
           ],
           
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           Text(
             'Note Content',
             style: AppTypography.label.copyWith(
@@ -161,7 +155,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: AppSpacing.labelToCard),
+          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.labelToCard),
           BoxyArtRichEditor(
             controller: _quillController,
             placeholder: 'Start writing...',

@@ -200,7 +200,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                   _buildToolbar(event, events, handicapMap, comp, config),
                 ],
               ),
-              useScaffold: false,
+
               showBack: true,
               onBack: () async {
                 if (_isDirty) {

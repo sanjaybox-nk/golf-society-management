@@ -31,7 +31,6 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Create $gameName Game',
-      autoPrefix: false,
       subtitle: 'Choose a saved template or start blank',
       showBack: true,
       onBack: () => context.pop(),

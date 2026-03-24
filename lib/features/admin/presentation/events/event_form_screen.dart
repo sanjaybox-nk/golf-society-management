@@ -78,16 +78,11 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const EventTypeSection(),
-                  const SizedBox(height: AppSpacing.cardToLabel),
-                  const EventLogisticsSection(),
-                  const SizedBox(height: AppSpacing.cardToLabel),
+                  const EventTypeSection(isPeeking: true),
+                  const EventLogisticsSection(), 
                   const EventBasicInfoSection(),
-                  const SizedBox(height: AppSpacing.cardToLabel),
                   const EventCourseSection(),
-                  const SizedBox(height: AppSpacing.cardToLabel),
                   const EventCompetitionSection(),
-                  const SizedBox(height: AppSpacing.cardToLabel),
                   const EventContentSection(),
                   const SizedBox(height: AppSpacing.pageBottom),
                 ],

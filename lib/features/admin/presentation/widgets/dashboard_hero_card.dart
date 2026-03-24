@@ -20,7 +20,7 @@ class DashboardHeroCard extends StatelessWidget {
     final gradient = AppGradients.brandPrimary(context);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
+      margin: EdgeInsets.zero, // Spacing handled by SectionTitle
       decoration: BoxDecoration(
         gradient: gradient,
         borderRadius: theme.extension<AppShapeTokens>()?.hero ?? AppShapes.hero,

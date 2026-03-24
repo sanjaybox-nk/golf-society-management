@@ -55,7 +55,7 @@ class PersonalDetailsForm extends StatelessWidget {
       children: [
         if (isEditing) ...[
             BoxyArtFormField(
-              label: 'Bio',
+              label: 'Bio'.toUpperCase(),
               controller: bioController,
               focusNode: bioFocusNode,
               maxLines: 2,
@@ -65,7 +65,7 @@ class PersonalDetailsForm extends StatelessWidget {
               children: [
                 Expanded(
                   child: BoxyArtFormField(
-                    label: 'First Name *',
+                    label: 'First Name *'.toUpperCase(),
                     controller: firstController,
                     focusNode: firstFocusNode,
                     validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
@@ -74,7 +74,7 @@ class PersonalDetailsForm extends StatelessWidget {
                 const SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: BoxyArtFormField(
-                    label: 'Last Name *',
+                    label: 'Last Name *'.toUpperCase(),
                     controller: lastController,
                     focusNode: lastFocusNode,
                     validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
@@ -87,7 +87,7 @@ class PersonalDetailsForm extends StatelessWidget {
               children: [
                 Expanded(
                   child: BoxyArtFormField(
-                    label: 'Nickname',
+                    label: 'Nickname'.toUpperCase(),
                     controller: nicknameController,
                     focusNode: nicknameFocusNode,
                   ),
@@ -103,7 +103,10 @@ class PersonalDetailsForm extends StatelessWidget {
                         child: Text(
                           'Gender'.toUpperCase(),
                           style: AppTypography.label.copyWith(
-                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                            fontWeight: AppTypography.weightStrong,
+                            letterSpacing: AppTypography.lsMicro,
+                            fontSize: 11,
                           ),
                         ),
                       ),
@@ -136,9 +139,9 @@ class PersonalDetailsForm extends StatelessWidget {
                                     DropdownMenuItem(value: 'Female', child: Text('Female', style: AppTypography.bodySmall)),
                                   ],
                                   onChanged: onGenderChanged,
-                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
+                                  dropdownColor: Theme.of(context).colorScheme.surfaceContainer,
                                   style: AppTypography.body.copyWith(
-                                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : const Color(0xFF1A1A1A),
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -153,7 +156,7 @@ class PersonalDetailsForm extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             BoxyArtFormField(
-              label: 'Email *',
+              label: 'Email *'.toUpperCase(),
               controller: emailController,
               focusNode: emailFocusNode,
               validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
@@ -166,7 +169,7 @@ class PersonalDetailsForm extends StatelessWidget {
                  const SizedBox(width: AppSpacing.md),
                  Expanded(
                    child: BoxyArtFormField(
-                     label: 'Phone *',
+                     label: 'Phone *'.toUpperCase(),
                      controller: phoneController,
                      focusNode: phoneFocusNode,
                      validator: (v) => v?.isNotEmpty != true ? 'Required' : null,
@@ -176,7 +179,7 @@ class PersonalDetailsForm extends StatelessWidget {
              ),
              const SizedBox(height: AppSpacing.lg),
              BoxyArtFormField(
-               label: 'Address *',
+               label: 'Address *'.toUpperCase(),
                controller: addressController,
                focusNode: addressFocusNode,
                maxLines: 2,
@@ -184,43 +187,70 @@ class PersonalDetailsForm extends StatelessWidget {
              ),
              const SizedBox(height: AppSpacing.lg),
              BoxyArtDatePickerField(
-               label: 'Member Since',
+               label: 'Member Since'.toUpperCase(),
                value: joinedDate != null 
                    ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' 
                    : 'Tap to select date',
                onTap: onPickDate,
              ),
           ] else ...[
-            // View Mode
-            if (nicknameController.text.isNotEmpty) ...[
-               _buildInfoRow(Icons.short_text_rounded, 'NICKNAME', nicknameController.text),
-               const SizedBox(height: AppSpacing.x2l),
-            ],
-            _buildInfoRow(Icons.email_outlined, 'EMAIL', emailController.text),
-            const SizedBox(height: AppSpacing.x2l),
-            _buildInfoRow(Icons.phone_outlined, 'PHONE', '${countryCodeController.text}${phoneController.text}'),
-            const SizedBox(height: AppSpacing.x2l),
-            _buildInfoRow(Icons.location_on_outlined, 'ADDRESS', addressController.text),
-            const SizedBox(height: AppSpacing.x2l),
-            _buildInfoRow(
-              Icons.calendar_today_outlined, 
-              'MEMBER SINCE', 
-              joinedDate != null ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' : '-'
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (bioController.text.isNotEmpty) ...[
+                  _buildInfoRow(context, null, 'Bio', bioController.text),
+                  const SizedBox(height: AppSpacing.x2l),
+                ],
+                if (nicknameController.text.isNotEmpty) ...[
+                  _buildInfoRow(context, null, 'Nickname', nicknameController.text),
+                  const SizedBox(height: AppSpacing.x2l),
+                ],
+                _buildInfoRow(context, null, 'Email', emailController.text),
+                const SizedBox(height: AppSpacing.x2l),
+                _buildInfoRow(context, null, 'Phone', '${countryCodeController.text}${phoneController.text}'),
+                const SizedBox(height: AppSpacing.x2l),
+                _buildInfoRow(context, null, 'Address', addressController.text),
+                const SizedBox(height: AppSpacing.x2l),
+                _buildInfoRow(
+                  context,
+                  null, 
+                  'Member Since', 
+                  joinedDate != null ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' : '-'
+                ),
+                if (gender != null) ...[
+                  const SizedBox(height: AppSpacing.x2l),
+                  _buildInfoRow(context, null, 'Gender', gender!),
+                ],
+              ],
             ),
-            if (gender != null) ...[
-               const SizedBox(height: AppSpacing.x2l),
-               _buildInfoRow(null, 'GENDER', gender!),
-            ],
           ],
         ],
       );
   }
 
-  Widget _buildInfoRow(IconData? icon, String label, String value) {
-    return ModernInfoRow(
-      icon: null,
-      label: label,
-      value: value,
+  Widget _buildInfoRow(BuildContext context, IconData? icon, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: AppTypography.label.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+            fontWeight: AppTypography.weightStrong,
+            letterSpacing: AppTypography.lsMicro,
+            fontSize: 11, // Standardized 4.x Meta size
+          ),
+        ),
+        const SizedBox(height: 4), // Tight 4.x rhythm
+        Text(
+          value.isEmpty ? '-' : value,
+          style: AppTypography.body.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: AppTypography.weightStrong, // Content remains authoritative
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
   }
 

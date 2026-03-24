@@ -60,7 +60,6 @@ class _SeasonFormScreenState extends ConsumerState<SeasonFormScreen> {
   Widget build(BuildContext context) {
     return HeadlessScaffold(
       title: widget.season == null ? 'Create Season' : 'Edit Season',
-      autoPrefix: false,
       showBack: true,
       onBack: () => context.pop(),
       actions: [

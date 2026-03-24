@@ -45,13 +45,7 @@ class BoxyArtInputField extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
 
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = AppShapes.rSm; break;
-      case 'modern':  radius = AppShapes.rLg; break;
-      case 'boxy':
-      default:        radius = AppShapes.rMd; break;
-    }
+    final radius = config.inputRadius;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +59,7 @@ class BoxyArtInputField extends ConsumerWidget {
                 color: labelColor ?? (isDark ? AppColors.dark60 : AppColors.dark900),
                 fontSize: AppTypography.sizeLabel,
                 fontWeight: AppTypography.weightBold,
-                letterSpacing: 1.2,
+                letterSpacing: AppTypography.lsLabel,
               ),
             ),
           ),
@@ -99,14 +93,34 @@ class BoxyArtInputField extends ConsumerWidget {
               fontSize: AppTypography.sizeBody,
             ),
             filled: true,
-            fillColor: isDark ? AppColors.dark600 : AppColors.lightHeader,
+            fillColor: isDark ? AppColors.dark600 : AppColors.pureWhite,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(
+                color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                width: AppShapes.borderThin,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 16),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(radius),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                width: AppShapes.borderThin,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(radius),
+              borderSide: BorderSide(
+                color: theme.primaryColor,
+                width: AppShapes.borderLight,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, 
+              vertical: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? 16,
+            ),
           ),
         ),
       ],
@@ -266,13 +280,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
 
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = AppShapes.rSm; break;
-      case 'modern':  radius = AppShapes.rLg; break;
-      case 'boxy':
-      default:        radius = AppShapes.rMd; break;
-    }
+    final radius = config.inputRadius;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,16 +301,17 @@ class BoxyArtDatePickerField extends ConsumerWidget {
           onTap: readOnly ? null : onTap,
           borderRadius: BorderRadius.circular(radius),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, 
+              vertical: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? 16,
+            ),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.dark600 : AppColors.lightHeader,
+              color: isDark ? AppColors.dark600 : AppColors.pureWhite,
               borderRadius: BorderRadius.circular(radius),
-              border: config.useBorders 
-                  ? Border.all(
-                      color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
-                      width: config.borderWidth,
-                    )
-                  : null,
+              border: Border.all(
+                color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
+                width: AppShapes.borderThin,
+              ),
             ),
             child: Row(
               children: [
@@ -365,7 +374,7 @@ class BoxyArtSwitchField extends StatelessWidget {
                   color: labelColor ?? (isDark ? AppColors.dark60 : AppColors.dark900),
                   fontSize: AppTypography.sizeLabel,
                   fontWeight: AppTypography.weightBold,
-                  letterSpacing: 1.2,
+                  letterSpacing: AppTypography.lsLabel,
                 ),
               ),
               if (subtitle != null) ...[
@@ -452,7 +461,7 @@ class BoxyArtSlider extends StatelessWidget {
 }
 
 /// A standardized 3.1 settings row with a boxed icon and a switch.
-class BoxyArtSwitchTile extends StatelessWidget {
+class BoxyArtSwitchTile extends ConsumerWidget {
   final IconData icon;
   final String label;
   final String? subtitle;
@@ -469,9 +478,13 @@ class BoxyArtSwitchTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
+
+    final badgeColor = Color(config.iconBadgeFillColor);
+    final iconColor = Color(config.iconBadgeIconColor);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
@@ -482,10 +495,14 @@ class BoxyArtSwitchTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.actionGreen.withValues(alpha: 0.30),
-              borderRadius: AppShapes.md,
+              color: badgeColor.withValues(alpha: config.iconBadgeOpacity),
+              borderRadius: BorderRadius.circular(config.accentRadius),
             ),
-            child: Icon(icon, color: AppColors.dark900, size: 20),
+            child: Icon(
+              icon, 
+              color: iconColor.withValues(alpha: config.iconOpacity), 
+              size: 20,
+            ),
           ),
           const SizedBox(width: AppSpacing.lg),
           // Content
@@ -499,7 +516,7 @@ class BoxyArtSwitchTile extends StatelessWidget {
                   style: AppTypography.label.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontSize: AppTypography.sizeBody,
-                    letterSpacing: -0.3,
+                    letterSpacing: AppTypography.lsStandard,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -539,11 +556,11 @@ class BoxyArtSwitchTile extends StatelessWidget {
 }
 
 /// A standardized 3.1 settings row with a boxed icon that navigates.
-class BoxyArtNavTile extends StatelessWidget {
+class BoxyArtNavTile extends ConsumerWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color iconColor;
+  final Color? iconColor;
   final VoidCallback onTap;
 
   const BoxyArtNavTile({
@@ -551,14 +568,18 @@ class BoxyArtNavTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.iconColor,
+    this.iconColor,
     required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final config = ref.watch(themeControllerProvider);
+
+    final badgeColor = Color(config.iconBadgeFillColor);
+    final fallbackIconColor = Color(config.iconBadgeIconColor);
 
     return InkWell(
       onTap: onTap,
@@ -572,10 +593,14 @@ class BoxyArtNavTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.actionGreen.withValues(alpha: 0.20),
-                borderRadius: AppShapes.md,
+                color: badgeColor.withValues(alpha: config.iconBadgeOpacity),
+                borderRadius: BorderRadius.circular(config.accentRadius),
               ),
-              child: Icon(icon, color: iconColor, size: 22),
+              child: Icon(
+                icon, 
+                color: (iconColor ?? fallbackIconColor).withValues(alpha: config.iconOpacity), 
+                size: 22,
+              ),
             ),
             const SizedBox(width: AppSpacing.lg),
             // Content
@@ -589,7 +614,7 @@ class BoxyArtNavTile extends StatelessWidget {
                     style: AppTypography.label.copyWith(
                       color: theme.colorScheme.onSurface,
                       fontSize: AppTypography.sizeBody,
-                      letterSpacing: -0.3,
+                      letterSpacing: AppTypography.lsStandard,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -684,13 +709,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = AppShapes.rSm; break;
-      case 'modern':  radius = AppShapes.rLg; break;
-      case 'boxy':
-      default:        radius = AppShapes.rMd; break;
-    }
+    final radius = config.inputRadius;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -703,21 +722,19 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
               color: isDark ? AppColors.dark60 : AppColors.dark900,
               fontSize: AppTypography.sizeLabel,
               fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
+              letterSpacing: AppTypography.lsLabel,
             ),
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 4),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.dark600 : AppColors.lightHeader,
+            color: isDark ? AppColors.dark600 : AppColors.pureWhite,
             borderRadius: BorderRadius.circular(radius),
-            border: config.useBorders 
-                ? Border.all(
-                    color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
-                    width: config.borderWidth,
-                  )
-                : null,
+            border: Border.all(
+              color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
+              width: AppShapes.borderThin,
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<T>(

@@ -335,7 +335,10 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
 
               // Consolidated Scoring Content
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: EdgeInsets.symmetric(
+                  horizontal: theme.extension<AppSpacingTokens>()?.cardHorizontalPadding ?? AppSpacing.lg,
+                  vertical: theme.extension<AppSpacingTokens>()?.cardVerticalPadding ?? AppSpacing.lg,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

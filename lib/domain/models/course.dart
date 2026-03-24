@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TeeConfig {
   final String name;
+  final String? color; // Hex code e.g. #FFFFFF
   final double rating;
   final int slope;
   final List<int> holePars;
@@ -10,6 +11,7 @@ class TeeConfig {
 
   TeeConfig({
     required this.name,
+    this.color,
     required this.rating,
     required this.slope,
     required this.holePars,
@@ -20,6 +22,7 @@ class TeeConfig {
   Map<String, dynamic> toMap() {
     return {
       'name': name,
+      'color': color,
       'rating': rating,
       'slope': slope,
       'holePars': holePars,
@@ -31,6 +34,7 @@ class TeeConfig {
   factory TeeConfig.fromMap(Map<String, dynamic> data) {
     return TeeConfig(
       name: data['name'] ?? 'Standard',
+      color: data['color'],
       rating: (data['rating'] as num?)?.toDouble() ?? 72.0,
       slope: (data['slope'] as num?)?.toInt() ?? 113,
       holePars: List<int>.from(data['holePars'] ?? List.filled(18, 4)),
@@ -41,6 +45,7 @@ class TeeConfig {
 
   TeeConfig copyWith({
     String? name,
+    String? color,
     double? rating,
     int? slope,
     List<int>? holePars,
@@ -49,6 +54,7 @@ class TeeConfig {
   }) {
     return TeeConfig(
       name: name ?? this.name,
+      color: color ?? this.color,
       rating: rating ?? this.rating,
       slope: slope ?? this.slope,
       holePars: holePars ?? this.holePars,

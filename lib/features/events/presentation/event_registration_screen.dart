@@ -282,6 +282,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
       data: (events) {
         final event = events.firstWhere((e) => e.id == widget.eventId, orElse: () => throw 'Event not found');
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final spacing = Theme.of(context).extension<AppSpacingTokens>();
         
         if (!_isInitialized) {
           const currentMemberId = 'current-user-id';
@@ -326,7 +327,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                     children: [
                       const BoxyArtSectionTitle(title: 'Your Attendance'),
                       BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        // Removed hardcoded padding to use branding tokens
                         child: Column(
                           children: [
                             if (event.eventType == EventType.golf) ...[
@@ -372,10 +373,10 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      const SizedBox(height: AppSpacing.cardToLabel),
+                      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                       const BoxyArtSectionTitle(title: 'Guest Registration'),
                       BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        // Removed hardcoded padding to use branding tokens
                         child: Column(
                           children: [
                             BoxyArtSwitchTile(
@@ -437,10 +438,10 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                         ),
                       ),
   
-                      const SizedBox(height: AppSpacing.cardToLabel),
+                      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                       const BoxyArtSectionTitle(title: 'Notes & Requirements'),
                       BoxyArtCard(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+                        // Removed hardcoded padding to use branding tokens
                         child: Column(
                           children: [
                             BoxyArtInputField(
@@ -494,7 +495,9 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       else
                         BoxyArtButton(
                           title: 'Confirm Registration',
-                          isPrimary: true,
+                          fullWidth: true,
+                          backgroundColor: Color(ref.read(themeControllerProvider).primaryColor),
+                          textColor: ContrastHelper.getContrastingText(Color(ref.read(themeControllerProvider).primaryColor)),
                           onTap: () => _submit(event),
                         ),
                       const SizedBox(height: AppSpacing.x4l),

@@ -93,7 +93,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
     return SizedBox(
       width: double.infinity,
       child: Container(
-        padding: widget.padding,
+        margin: widget.padding,
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -159,7 +159,7 @@ class _UnderlinedTabItem extends StatelessWidget {
           border: Border(
             bottom: BorderSide(
               color: isSelected ? AppColors.actionGreen : Colors.transparent,
-              width: AppShapes.borderMedium, // Thinner, sharper underline
+              width: AppShapes.borderThick, // 3px thickness
             ),
           ),
         ),

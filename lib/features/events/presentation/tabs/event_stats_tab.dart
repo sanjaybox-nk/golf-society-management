@@ -12,28 +12,56 @@ import '../../../../domain/scoring/handicap_calculator.dart';
 import 'package:collection/collection.dart';
 import '../../logic/event_scoring_controller.dart';
 import '../../domain/models/processed_event_data.dart';
+import '../events_provider.dart';
+import '../../../competitions/presentation/competitions_provider.dart';
 
 // Providers moved from user_placeholders if they were local or needed here
 // Use richStatsModeProvider from debug_providers.dart
 
 class EventStatsTab extends ConsumerWidget {
-  final GolfEvent event;
-  final Competition? comp;
-  final List<Scorecard> liveScorecards;
+  final String eventId;
   final bool isAdmin;
-  final Map<String, int> playerHoleLimits;
 
   const EventStatsTab({
     super.key,
-    required this.event,
-    this.comp,
-    required this.liveScorecards,
+    required this.eventId,
     this.isAdmin = false,
-    this.playerHoleLimits = const {},
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final eventAsync = ref.watch(eventProvider(eventId));
+    final compAsync = ref.watch(competitionDetailProvider(eventId));
+    
+    return eventAsync.when(
+      data: (event) {
+        final comp = compAsync.value;
+        return _EventStatsContent(
+          event: event,
+          comp: comp,
+          isAdmin: isAdmin,
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+    );
+  }
+}
+
+class _EventStatsContent extends ConsumerWidget {
+  final GolfEvent event;
+  final Competition? comp;
+  final bool isAdmin;
+
+  const _EventStatsContent({
+    required this.event,
+    this.comp,
+    this.isAdmin = false,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final data = ref.watch(eventScoringControllerProvider(event.id));
 
     final effectiveUser = ref.watch(effectiveUserProvider);
@@ -206,49 +234,49 @@ class EventStatsTab extends ConsumerWidget {
               eclecticScores: eclecticRound, 
               holes: holes,
             ),
-          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Field Competitiveness'),
           ScoringTypeDistributionChart(counts: {
             'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
           }),
           if (isStableford) ...[
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
             StablefordDistributionChart(bucketCounts: stablefordBuckets),
           ],
-          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Performance Trends'),
           SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
           ParTypeBreakdown(parTypeAverages: parTypeAverages),
-          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Course Analysis'),
           DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
           HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
-          const SizedBox(height: AppSpacing.xl),
           const BoxyArtSectionTitle(title: 'Hall of Fame'),
           if (maxStreak > 0)
             AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: AppColors.amber500),
-          const SizedBox(height: AppSpacing.sm),
-          if (maxBounceBacks > 0)
+          if (maxBounceBacks > 0) ...[
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
             AchievementTile(title: 'BOUNCE BACK', playerName: bounceBackPlayer, value: '$maxBounceBacks recoveries today', icon: Icons.trending_up, color: AppColors.teamA),
-          const SizedBox(height: AppSpacing.sm),
-          if (finisherPlayer != 'None')
+          ],
+          if (finisherPlayer != 'None') ...[
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
             AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: AppColors.teamB),
-          const SizedBox(height: AppSpacing.xl),
+          ],
           const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
           if (maxBlobs > 0)
             AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: AppColors.coral500),
-          const SizedBox(height: AppSpacing.sm),
-          if (maxParsPlayer > 0)
+          if (maxParsPlayer > 0) ...[
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
             AchievementTile(title: 'THE GRINDER', playerName: grinderPlayer, value: 'Most consistent with $maxParsPlayer pars', icon: Icons.shield, color: AppColors.lime500),
-          const SizedBox(height: AppSpacing.sm),
-          if (maxBirdsPlayer > 0)
+          ],
+          if (maxBirdsPlayer > 0) ...[
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
             AchievementTile(title: 'THE SNIPER', playerName: sniperPlayer, value: 'Picked off $maxBirdsPlayer birdies', icon: Icons.gps_fixed, color: Colors.blueGrey),
-          const SizedBox(height: AppSpacing.sm),
-          if (maxVariance > 3.0)
+          ],
+          if (maxVariance > 3.0) ...[
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
             AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: AppColors.coral400),
-          const SizedBox(height: AppSpacing.xl),
+          ],
+          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
           SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
         ] else ...[
           if (myScoreEntry == null)
@@ -339,6 +367,8 @@ class EventStatsTab extends ConsumerWidget {
 
     final fieldHardestHoleDiff = fieldHoleAvgs[fieldToughestHoleIdx] != null ? fieldHoleAvgs[fieldToughestHoleIdx]! - holes[fieldToughestHoleIdx].par.toDouble() : 0.0;
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -361,21 +391,21 @@ class EventStatsTab extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         ],
         PersonalBenchmarkingCard(myAverages: myParTypeAverages, fieldAverages: fieldParTypeAvgs),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         NetComparisonCard(myNet: myScoreEntry.result.score, fieldAvgNet: fieldAvgNet),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         ConsistencyStatCard(myVariance: myVariance, fieldAvgVariance: fieldAvgVariance),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         BounceBackStatCard(myRate: myBounceBackRate, fieldRate: fieldAvgBounceBackRate),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         HoleNemesisComparison(myHardestHoleIdx: myHardestIdx, myHardestHoleDiff: myMaxDiff, fieldHardestHoleIdx: fieldToughestHoleIdx, fieldHardestHoleDiff: fieldHardestHoleDiff),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         // Simplified heatmap use
         HoleComparisonHeatmap(myHoleScores: myScoreEntry.holeScores, fieldAverages: fieldHoleAvgs, holes: holes),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
         AchievementTile(title: 'HANDICAP IMPACT', playerName: 'Round Rating', value: 'Net Differential: ${diff.toStringAsFixed(1)}', icon: Icons.analytics, color: Theme.of(context).colorScheme.primary),
       ],
     );

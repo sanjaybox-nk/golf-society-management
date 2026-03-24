@@ -14,11 +14,17 @@ import '../widgets/registration_stats_card.dart';
 
 import 'package:golf_society/domain/models/member.dart';
 import '../../../members/presentation/members_provider.dart';
+import '../../../members/presentation/profile_provider.dart';
 
 class EventRegistrationUserTab extends ConsumerWidget {
   final String eventId;
+  final bool isAdminMode;
 
-  const EventRegistrationUserTab({super.key, required this.eventId});
+  const EventRegistrationUserTab({
+    super.key,
+    required this.eventId,
+    this.isAdminMode = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,17 +41,28 @@ class EventRegistrationUserTab extends ConsumerWidget {
             ),
           );
         }
+        final user = ref.watch(effectiveUserProvider);
+        final isStaff = user.role != MemberRole.member;
+
         return HeadlessScaffold(
           title: 'Registration',
           subtitle: event.title,
+          showAdminShortcut: false, 
           showBack: true,
           onBack: () => context.go('/events'),
+          actions: (isAdminMode && isStaff) ? [
+            BoxyArtGlassIconButton(
+              icon: Icons.edit_rounded,
+              tooltip: 'Manage Registrations',
+              onPressed: () => context.push('/admin/events/manage/${event.id}/registrations'),
+            ),
+          ] : null,
           slivers: [
             SliverPadding(
               padding: EdgeInsets.symmetric(horizontal: AppTheme.pagePadding),
               sliver: SliverToBoxAdapter(
                 child: allMembersAsync.when(
-                  data: (members) => buildStaticContent(context, ref, event, members),
+                  data: (members) => buildStaticContent(context, ref, event, members, isAdminMode: isAdminMode),
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (error, stackTrace) => const Text('Error loading members'),
                 ),
@@ -59,7 +76,13 @@ class EventRegistrationUserTab extends ConsumerWidget {
     );
   }
 
-  static Widget buildStaticContent(BuildContext context, WidgetRef ref, GolfEvent event, List<Member> members) {
+  static Widget buildStaticContent(
+    BuildContext context, 
+    WidgetRef ref, 
+    GolfEvent event, 
+    List<Member> members,
+    {bool isAdminMode = false}
+  ) {
     if (event.registrations.isEmpty) {
       final String emptyText = event.showRegistrationButton 
           ? 'Registration Open' 
@@ -166,16 +189,13 @@ class EventRegistrationUserTab extends ConsumerWidget {
       children: [
         // METRICS CARD
         const BoxyArtSectionTitle(title: 'Registration Stats'),
-        RegistrationStatsCard(event: event, isCompact: false),
-        const SizedBox(height: AppTheme.cardSpacing),
-
-        SizedBox(height: AppTheme.cardSpacing),
+        RegistrationStatsCard(event: event, isCompact: false, showAdminMetrics: isAdminMode),
 
         // PLAYING MEMBERS
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest)) ...[
-          BoxyArtSectionTitle(title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && !vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false)) ...[
+          BoxyArtSectionTitle(title: 'Playing Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == false).map((vm) => Padding(
+            padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Member',
@@ -195,11 +215,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ],
 
         // PLAYING GUESTS
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest)) ...[
-          SizedBox(height: AppTheme.cardSpacing),
-          BoxyArtSectionTitle(title: 'Playing Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == true)) ...[
+          BoxyArtSectionTitle(title: 'Playing Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == true).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.confirmed && vm.item.isGuest == true).map((vm) => Padding(
+            padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Guest of ${vm.item.registration.memberName}',
@@ -219,11 +238,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ],
 
         // WAITLIST MEMBERS
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest)) ...[
-          SizedBox(height: AppTheme.cardSpacing),
-          BoxyArtSectionTitle(title: 'Waitlist Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && !vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest == false)) ...[
+          BoxyArtSectionTitle(title: 'Waitlist Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest == false).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest == false).map((vm) => Padding(
+            padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Member',
@@ -243,11 +261,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ],
 
         // WAITLIST GUESTS
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest)) ...[
-          SizedBox(height: AppTheme.cardSpacing),
-          BoxyArtSectionTitle(title: 'Waitlist Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest == true)) ...[
+          BoxyArtSectionTitle(title: 'Waitlist Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest == true).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.waitlist && vm.item.isGuest == true).map((vm) => Padding(
+            padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Guest of ${vm.item.registration.memberName}',
@@ -267,11 +284,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ],
 
         // RESERVED MEMBERS
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest)) ...[
-          SizedBox(height: AppTheme.cardSpacing),
-          BoxyArtSectionTitle(title: 'Reserved Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && !vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest == false)) ...[
+          BoxyArtSectionTitle(title: 'Reserved Members (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest == false).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest == false).map((vm) => Padding(
+            padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Member',
@@ -291,11 +307,10 @@ class EventRegistrationUserTab extends ConsumerWidget {
         ],
 
         // RESERVED GUESTS
-        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest)) ...[
-          SizedBox(height: AppTheme.cardSpacing),
-          BoxyArtSectionTitle(title: 'Reserved Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).length})'),
-          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest).map((vm) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        if (itemViewModels.any((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest == true)) ...[
+          BoxyArtSectionTitle(title: 'Reserved Guests (${itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest == true).length})'),
+          ...itemViewModels.where((vm) => vm.status == RegistrationStatus.reserved && vm.item.isGuest == true).map((vm) => Padding(
+            padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.md),
             child: RegistrationCard(
               name: vm.item.name,
               label: 'Guest of ${vm.item.registration.memberName}',
@@ -316,7 +331,6 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
         // DINNER ONLY
         if (dinnerModels.isNotEmpty) ...[
-          SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
           ...dinnerModels.map((vm) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -338,7 +352,6 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
         // WITHDRAWN
         if (withdrawnModels.isNotEmpty) ...[
-          SizedBox(height: AppTheme.cardSpacing),
           BoxyArtSectionTitle(title: 'Withdrawn (${withdrawnModels.length})'),
           ...withdrawnModels.map((vm) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),

@@ -60,16 +60,22 @@ class BoxyArtThemedCircleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = Theme.of(context).primaryColor;
-    final iconColor = ContrastHelper.getContrastingText(backgroundColor);
+    final theme = Theme.of(context);
+    final shapeTokens = theme.extension<AppShapeTokens>();
+    final accentRadius = shapeTokens?.accent ?? BorderRadius.circular(12);
+    final accentOpacity = shapeTokens?.accentOpacity ?? 0.15;
     
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        shape: BoxShape.circle,
+        color: theme.colorScheme.secondary.withValues(alpha: accentOpacity),
+        borderRadius: accentRadius,
       ),
-      child: Icon(icon, color: iconColor, size: AppShapes.iconXs),
+      child: Icon(
+        icon, 
+        color: theme.primaryColor, 
+        size: AppShapes.iconSmall,
+      ),
     );
   }
 }
@@ -106,7 +112,7 @@ class _BoxyArtGlassIconButtonState extends State<BoxyArtGlassIconButton> {
     final isDark = theme.brightness == Brightness.dark;
     
     // Design 3.1: No opacity, no shadows. Solid premium look.
-    final defaultIconColor = widget.iconColor ?? (isDark ? AppColors.pureWhite : AppColors.dark900);
+    final defaultIconColor = widget.iconColor ?? theme.primaryColor;
     final defaultBgColor = widget.backgroundColor ?? (isDark 
         ? AppColors.dark800 
         : AppColors.dark50);

@@ -16,15 +16,19 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final title = (isTemplate || isPicker) ? 'Select Game Type' : 'New Template Type';
-    
+
     return HeadlessScaffold(
       title: title,
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard,
+          ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               if (formatFilter == null || formatFilter == 'stableford') ...[
@@ -35,7 +39,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.amber500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.stableford),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
               ],
               
               if (formatFilter == null || formatFilter == 'stroke') ...[
@@ -46,7 +50,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.teamA,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.stroke),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
               
               if (formatFilter == null || formatFilter == 'maxScore') ...[
@@ -57,11 +61,10 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.lime500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.maxScore),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
-
+ 
               if (formatFilter == null) ...[
-                const SizedBox(height: AppSpacing.lg),
                 const BoxyArtSectionTitle(
                   title: 'HEAD-TO-HEAD',),
                 _TypeTile(
@@ -71,11 +74,10 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: Colors.redAccent,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
-
+ 
               if (formatFilter == null) ...[
-                const SizedBox(height: AppSpacing.lg),
                 const BoxyArtSectionTitle(
                   title: 'PAIRS FORMATS',),
                 _TypeTile(
@@ -85,7 +87,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.teamA,
                   onTap: () => _navigateToBuilder(context, CompetitionSubtype.fourball),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
                 _TypeTile(
                   title: 'Foursomes (Alternate Shot)',
                   subtitle: 'Partners alternate hitting one ball.',
@@ -93,11 +95,10 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: Colors.indigoAccent,
                   onTap: () => _navigateToBuilder(context, CompetitionSubtype.foursomes),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
-
+ 
               if (formatFilter == null) ...[
-                const SizedBox(height: AppSpacing.lg),
                 const BoxyArtSectionTitle(
                   title: 'TEAM FORMATS',),
                 _TypeTile(
@@ -107,7 +108,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.teamB,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.scramble),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
               
               const SizedBox(height: AppSpacing.x4l),

@@ -21,9 +21,9 @@ class RegistrationLogic {
     
     for (var r in event.registrations) {
       final bool isSocial = event.eventType == EventType.social;
-      final bool isWithdrawn = r.statusOverride == 'withdrawn' || (!isSocial && !r.attendingGolf && !r.attendingDinner);
+      final bool isWithdrawn = r.statusOverride == 'withdrawn' || (!isSocial && r.attendingGolf == false && r.attendingDinner == false);
       
-      if (isSocial || r.attendingGolf || (includeWithdrawn && isWithdrawn)) {
+      if (isSocial || r.attendingGolf == true || (includeWithdrawn == true && isWithdrawn == true)) {
         flattenedItems.add(RegistrationItem(
           registration: r,
           isGuest: r.isGuest,
@@ -39,7 +39,7 @@ class RegistrationLogic {
       }
       
       // Add Guest (If host attending golf OR host withdrawn OR social event)
-      if ((isSocial || r.attendingGolf || (includeWithdrawn && isWithdrawn)) && r.guestName != null && r.guestName!.isNotEmpty) {
+      if ((isSocial || r.attendingGolf == true || (includeWithdrawn == true && isWithdrawn == true)) && r.guestName != null && r.guestName!.isNotEmpty) {
         flattenedItems.add(RegistrationItem(
           registration: r,
           isGuest: true,
@@ -253,8 +253,8 @@ class RegistrationLogic {
     return RegistrationStats(
       totalRegistrations: totalRegistrations,
       totalGolfers: sortedPool.length,
-      totalMembers: sortedPool.where((i) => !i.isGuest).length,
-      totalGuests: sortedPool.where((i) => i.isGuest).length,
+      totalMembers: sortedPool.where((i) => i.isGuest == false).length,
+      totalGuests: sortedPool.where((i) => i.isGuest == true).length,
       confirmedGolfers: confirmedGolfers,
       confirmedMembers: confirmedMembers,
       confirmedGuests: confirmedGuests,

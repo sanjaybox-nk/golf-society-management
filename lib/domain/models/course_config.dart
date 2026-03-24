@@ -7,6 +7,7 @@ part 'course_config.g.dart';
 abstract class TeeConfig with _$TeeConfig {
   const factory TeeConfig({
     required String name,
+    String? color,
     required double rating,
     required int slope,
     required List<int> holePars,

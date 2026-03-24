@@ -43,7 +43,7 @@ class EventFeedDetailScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: item.type == FeedItemType.flash ? 'Flash Update' : 'Newsletter',
       subtitle: item.title ?? 'Full Story',
-      useScaffold: true,
+
       showBack: true,
       onBack: () => Navigator.of(context).pop(),
       slivers: [

@@ -130,12 +130,10 @@ class BoxyArtButton extends ConsumerWidget {
           const SizedBox(width: AppSpacing.sm),
         ],
         Text(
-          title, // Removed uppercase here as the label style might handle it or it might be explicit
+          title,
           style: AppTypography.label.copyWith(
             color: color,
-            fontSize: 14.5,
-            fontWeight: AppTypography.weightExtraBold,
-            letterSpacing: -0.2,
+            fontWeight: AppTypography.weightHeavy,
           ),
         ),
       ],

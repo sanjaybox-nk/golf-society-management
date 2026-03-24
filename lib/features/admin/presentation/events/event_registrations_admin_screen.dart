@@ -26,7 +26,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
         return HeadlessScaffold(
           title: 'Registrations',
           subtitle: event.title,
-          useScaffold: false,
+
           showBack: true,
           onBack: () => context.go('/admin/events'),
           slivers: [
@@ -137,22 +137,26 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final waitlistGuests = guestModels.where((vm) => vm.status == RegistrationStatus.waitlist).toList();
 
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl, 
+          vertical: spacing?.labelToCard ?? AppSpacing.standard
+        ),
         sliver: SliverList(
           delegate: SliverChildListDelegate([
             // METRICS CARD
             // METRICS CARD
             const BoxyArtSectionTitle(title: 'Registration Stats'),
-            RegistrationStatsCard(event: event, isCompact: true),
+            RegistrationStatsCard(event: event, isCompact: true, showAdminMetrics: true),
 
 
-          const SizedBox(height: AppSpacing.x2l),
           // MEMBERS - PLAYING
           if (playingMembers.isNotEmpty) ...[
             BoxyArtSectionTitle(title: 'Playing (${playingMembers.length})'),
             ...playingMembers.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Member',
@@ -177,10 +181,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // MEMBERS - WAITLIST
           if (waitlistMembers.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Waitlist (${waitlistMembers.length})'),
             ...waitlistMembers.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Member',
@@ -205,10 +208,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // MEMBERS - RESERVED
           if (reservedMembers.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Reserved (${reservedMembers.length})'),
             ...reservedMembers.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Member',
@@ -233,10 +235,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // GUESTS - PLAYING
           if (playingGuests.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Playing Guests (${playingGuests.length})'),
             ...playingGuests.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name, 
                 label: 'Guest of ${vm.item.registration.memberName}',
@@ -261,10 +262,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // WAITLIST GUESTS
           if (waitlistGuests.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Waitlist Guests (${waitlistGuests.length})'),
             ...waitlistGuests.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name, 
                 label: 'Guest of ${vm.item.registration.memberName}',
@@ -289,10 +289,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // RESERVED GUESTS
           if (reservedGuests.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Reserved Guests (${reservedGuests.length})'),
             ...reservedGuests.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name, 
                 label: 'Guest of ${vm.item.registration.memberName}',
@@ -317,10 +316,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // DINNER ONLY
           if (dinnerModels.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
             ...dinnerModels.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Dinner Only',
@@ -344,10 +342,9 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
 
           // NOT PARTICIPATING
           if (withdrawnModels.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.x2l),
             BoxyArtSectionTitle(title: 'Not Participating (${withdrawnModels.length})'),
             ...withdrawnModels.map((vm) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
               child: RegistrationCard(
                 name: vm.item.name,
                 label: 'Withdrawn',
@@ -367,7 +364,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
               ),
             )),
           ],
-            const SizedBox(height: 100),
+            SizedBox(height: AppSpacing.hero),
           ]),
         ),
     );

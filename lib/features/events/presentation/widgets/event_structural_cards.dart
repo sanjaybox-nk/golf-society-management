@@ -7,6 +7,8 @@ import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/utils/string_utils.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:collection/collection.dart';
 
 class EventHeadlineCard extends StatelessWidget {
   final GolfEvent event;
@@ -16,9 +18,7 @@ class EventHeadlineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool hasImage = event.imageUrl != null && event.imageUrl!.isNotEmpty;
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: BoxyArtCard(
+    return BoxyArtCard(
         padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,25 +42,23 @@ class EventHeadlineCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           DateFormat('EEEE, d MMM yyyy').format(event.date),
-                          style: AppTypography.bodySmall.copyWith(
-                            fontSize: AppTypography.sizeButton,
-                            fontWeight: AppTypography.weightBold,
+                          style: AppTypography.body.copyWith(
+                            fontWeight: AppTypography.weightStrong,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.atomic),
                   Row(
                     children: [
                       const Icon(Icons.location_on_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),
-                      const SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: AppSpacing.atomic),
                       Expanded(
                         child: Text(
                           event.courseName ?? 'Location TBA',
-                          style: AppTypography.bodySmall.copyWith(
-                            fontSize: AppTypography.sizeButton,
-                            fontWeight: AppTypography.weightBold,
+                          style: AppTypography.body.copyWith(
+                            fontWeight: AppTypography.weightStrong,
                           ),
                         ),
                       ),
@@ -73,7 +71,6 @@ class EventHeadlineCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -120,23 +117,34 @@ class EventHeadlineCard extends StatelessWidget {
 class EventRegistrationCard extends ConsumerWidget {
   final GolfEvent event;
   final bool isManagement;
-  const EventRegistrationCard({super.key, required this.event, this.isManagement = false});
+  final bool isPeeking;
+  const EventRegistrationCard({super.key, required this.event, this.isManagement = false, this.isPeeking = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!isManagement) {
-      if (!event.showRegistrationButton || 
-          event.displayStatus == EventStatus.draft || 
-          event.displayStatus == EventStatus.cancelled ||
-          event.displayStatus == EventStatus.completed ||
-          event.displayStatus == EventStatus.inPlay) {
-        return const SizedBox.shrink();
-      }
-    }
-
     final user = ref.watch(effectiveUserProvider);
+    final config = ref.watch(themeControllerProvider);
     final myRegistration = event.registrations.where((r) => r.memberId == user.id).firstOrNull;
     final isRegistered = myRegistration != null;
+
+    if (!isManagement) {
+      if (isRegistered) {
+        // Registered users should always see their status card (except for draft/cancelled)
+        if (event.displayStatus == EventStatus.draft || 
+            event.displayStatus == EventStatus.cancelled) {
+          return const SizedBox.shrink();
+        }
+      } else {
+        // For non-registered users, respect the registration button toggle and status
+        if (!event.showRegistrationButton || 
+            event.displayStatus == EventStatus.draft || 
+            event.displayStatus == EventStatus.cancelled ||
+            event.displayStatus == EventStatus.completed ||
+            event.displayStatus == EventStatus.inPlay) {
+          return const SizedBox.shrink();
+        }
+      }
+    }
     
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
@@ -148,136 +156,140 @@ class EventRegistrationCard extends ConsumerWidget {
     final stats = RegistrationLogic.getRegistrationStats(event);
     final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isRegistered) ...[
-            BoxyArtCard(
-              child: Column(
-                children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!isRegistered) ...[
+          SizedBox(height: isPeeking ? 0 : (Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel)),
+          BoxyArtCard(
+            child: Column(
+              children: [
+                Text(
+                  isFull ? 'Event Full' : 'Secure your spot',
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: AppTypography.weightHeavy,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (event.registrationDeadline != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
-                    isFull ? 'Event Full' : 'Secure your spot',
-                    style: AppTypography.displayLargeBody.copyWith(
-                      fontWeight: AppTypography.weightBlack,
-                      letterSpacing: -0.5,
+                    isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}',
+                    style: AppTypography.micro.copyWith(
+                      color: AppColors.dark600,
+                      fontWeight: AppTypography.weightHeavy,
+                      letterSpacing: 1.2,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (event.registrationDeadline != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}',
-                      style: AppTypography.labelStrong.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh), 
-                        fontWeight: AppTypography.weightBlack,
-                        letterSpacing: 1.2,
-                        fontSize: AppTypography.sizeCaption,
-                      ),
-                      textAlign: TextAlign.center,
+                ] else ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    isFull ? 'Join the waitlist below' : 'Register below to join the event',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.dark600,
+                      fontWeight: AppTypography.weightHeavy,
                     ),
-                  ] else ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      isFull ? 'Join the waitlist below' : 'Register below to join the event',
-                      style: AppTypography.labelStrong.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontWeight: AppTypography.weightExtraBold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                  const SizedBox(height: AppSpacing.x2l),
-                  BoxyArtButton(
-                    title: isFull ? 'Register (Waitlist)' : 'Register Now',
-                    onTap: () {
-                      try {
-                        GoRouter.of(context).push('/events/${event.id}/register-form');
-                      } catch (_) {}
-                    },
+                    textAlign: TextAlign.center,
                   ),
                 ],
-              ),
-            ),
-          ] else ...[
-            // MEMBER STATUS SECTION
-            BoxyArtSectionTitle(
-              title: myRegistration.guestName != null ? 'My Status' : 'Registration Status',
-            ),
-            BoxyArtCard(
-              padding: const EdgeInsets.all(AppSpacing.x2l),
-              child: Column(
-                children: [
-                  _buildSelectionGrid(
-                    context,
-                    isConfirmed: myRegistration.isConfirmed,
-                    statusOverride: myRegistration.statusOverride,
-                    hasPaid: myRegistration.hasPaid,
-                    attendingBreakfast: myRegistration.attendingBreakfast,
-                    attendingLunch: myRegistration.attendingLunch,
-                    attendingDinner: myRegistration.attendingDinner,
-                    needsBuggy: myRegistration.needsBuggy,
-                  ),
-                  if (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.x2l),
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
-                            : Colors.black.withValues(alpha: 0.03),
-                        borderRadius: AppShapes.md,
-                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
-                      ),
-                      child: _buildDetailSnippet(
-                        context, 
-                        Icons.set_meal_rounded, 
-                        myRegistration.dietaryRequirements!,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: AppSpacing.x2l),
-                  BoxyArtButton(
-                    title: isPastDeadline ? 'Registration Closed' : 'Edit Registration',
-                    onTap: (isPastDeadline && !isManagement) ? null : () {
-                      try {
-                        GoRouter.of(context).push('/events/${event.id}/register-form');
-                      } catch (_) {}
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // GUEST STATUS SECTION (If guest exists)
-            if (myRegistration.guestName != null) ...[
-              const SizedBox(height: AppSpacing.lg), // cardToLabel
-              const BoxyArtSectionTitle(title: 'My Guest Status'),
-              BoxyArtCard(
-                padding: const EdgeInsets.all(AppSpacing.x2l),
-                child: _buildSelectionGrid(
-                  context,
-                  isConfirmed: myRegistration.guestIsConfirmed,
-                  statusOverride: null,
-                  hasPaid: myRegistration.hasPaid,
-                  attendingBreakfast: myRegistration.guestAttendingBreakfast,
-                  attendingLunch: myRegistration.guestAttendingLunch,
-                  attendingDinner: myRegistration.guestAttendingDinner,
-                  needsBuggy: myRegistration.guestNeedsBuggy,
+                const SizedBox(height: AppSpacing.x2l),
+                BoxyArtButton(
+                  title: isFull ? 'Register (Waitlist)' : 'Register Now',
+                  fullWidth: true,
+                  backgroundColor: Color(config.primaryColor),
+                  textColor: ContrastHelper.getContrastingText(Color(config.primaryColor)),
+                  onTap: () {
+                    try {
+                      GoRouter.of(context).push('/events/${event.id}/register-form');
+                    } catch (_) {}
+                  },
                 ),
+              ],
+            ),
+          ),
+        ] else ...[
+          // MEMBER STATUS SECTION
+          BoxyArtSectionTitle(
+            title: myRegistration.guestName != null ? 'My Status' : 'Registration Status',
+            isPeeking: isPeeking,
+          ),
+          BoxyArtCard(
+            child: Column(
+              children: [
+                _buildSelectionGrid(
+                  context,
+                  ref,
+                  isConfirmed: myRegistration.isConfirmed,
+                  statusOverride: myRegistration.statusOverride,
+                  hasPaid: myRegistration.hasPaid,
+                  attendingBreakfast: myRegistration.attendingBreakfast,
+                  attendingLunch: myRegistration.attendingLunch,
+                  attendingDinner: myRegistration.attendingDinner,
+                  needsBuggy: myRegistration.needsBuggy,
+                ),
+                if (myRegistration.dietaryRequirements != null && myRegistration.dietaryRequirements!.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.x2l),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
+                          : Colors.black.withValues(alpha: 0.03),
+                      borderRadius: AppShapes.md,
+                      border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                    ),
+                    child: _buildDetailSnippet(
+                      context, 
+                      Icons.set_meal_rounded, 
+                      myRegistration.dietaryRequirements!,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.x2l),
+                BoxyArtButton(
+                  title: isPastDeadline ? 'Registration Closed' : 'Edit Registration',
+                  fullWidth: true,
+                  backgroundColor: Color(config.primaryColor),
+                  textColor: ContrastHelper.getContrastingText(Color(config.primaryColor)),
+                  onTap: (isPastDeadline && !isManagement) ? null : () {
+                    try {
+                      GoRouter.of(context).push('/events/${event.id}/register-form');
+                    } catch (_) {}
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // GUEST STATUS SECTION (If guest exists)
+          if (myRegistration.guestName != null) ...[
+            SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
+            const BoxyArtSectionTitle(title: 'My Guest Status'),
+            BoxyArtCard(
+              child: _buildSelectionGrid(
+                context,
+                ref,
+                isConfirmed: myRegistration.guestIsConfirmed,
+                statusOverride: null,
+                hasPaid: myRegistration.hasPaid,
+                attendingBreakfast: myRegistration.guestAttendingBreakfast,
+                attendingLunch: myRegistration.guestAttendingLunch,
+                attendingDinner: myRegistration.guestAttendingDinner,
+                needsBuggy: myRegistration.guestNeedsBuggy,
               ),
-            ],
+            ),
           ],
         ],
-      ),
+      ],
     );
   }
 
   Widget _buildSelectionGrid(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required bool isConfirmed,
-    required String? statusOverride,
+    String? statusOverride,
     required bool hasPaid,
     required bool attendingBreakfast,
     required bool attendingLunch,
@@ -285,23 +297,30 @@ class EventRegistrationCard extends ConsumerWidget {
     required bool needsBuggy,
   }) {
     final boxes = [
-      if (statusOverride == 'waitlist')
-        _buildStatusBox(context, Icons.priority_high_rounded, 'Waitlist', 'Status')
-      else if (statusOverride == 'withdrawn')
-        _buildStatusBox(context, Icons.person_remove_rounded, 'Removed', 'Status')
-      else 
-        _buildStatusBox(context, isConfirmed ? Icons.check_circle_rounded : Icons.pending_rounded, isConfirmed ? 'Playing' : 'Pending', 'Status'),
-
-      if (hasPaid)
-        _buildStatusBox(context, Icons.payments_rounded, 'Paid', 'Payment'),
+      if (statusOverride == 'playing' || (statusOverride == null && isConfirmed))
+        _buildStatusBox(context, ref, Icons.check_circle_rounded, 'Playing', 'Status')
+      else if (statusOverride == 'reserve')
+        _buildStatusBox(context, ref, Icons.hourglass_empty_rounded, 'Reserve', 'Status')
+      else if (statusOverride == 'waitlist')
+        _buildStatusBox(context, ref, Icons.list_alt_rounded, 'Waitlist', 'Status')
+      else if (statusOverride == null && !isConfirmed)
+        _buildStatusBox(context, ref, Icons.history_edu_rounded, 'Pending', 'Status', color: AppColors.amber500),
       if (attendingBreakfast)
-        _buildStatusBox(context, Icons.breakfast_dining_rounded, 'Yes', 'Breakfast'),
+        _buildStatusBox(context, ref, Icons.breakfast_dining_rounded, 'Yes', 'Breakfast'),
       if (attendingLunch)
-        _buildStatusBox(context, Icons.lunch_dining_rounded, 'Yes', 'Lunch'),
+        _buildStatusBox(context, ref, Icons.lunch_dining_rounded, 'Yes', 'Lunch'),
       if (attendingDinner)
-        _buildStatusBox(context, Icons.restaurant_rounded, 'Yes', 'Dinner'),
+        _buildStatusBox(context, ref, Icons.restaurant_rounded, 'Yes', 'Dinner'),
       if (needsBuggy)
-        _buildStatusBox(context, Icons.electric_rickshaw_rounded, 'Yes', 'Buggy'),
+        _buildStatusBox(context, ref, Icons.electric_rickshaw_rounded, 'Yes', 'Buggy'),
+      _buildStatusBox(
+        context, 
+        ref,
+        hasPaid ? Icons.payments_rounded : Icons.info_outline_rounded, 
+        hasPaid ? 'Paid' : 'Due', 
+        'Payment',
+        color: hasPaid ? AppColors.actionGreen : AppColors.amber500,
+      ),
     ];
 
     if (boxes.isEmpty) return const SizedBox.shrink();
@@ -330,16 +349,22 @@ class EventRegistrationCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBox(BuildContext context, IconData icon, String value, String label) {
+  Widget _buildStatusBox(BuildContext context, WidgetRef ref, IconData icon, String value, String label, {Color? color}) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final neutralColor = isDark ? AppColors.pureWhite : AppColors.dark900;
+    
+    final config = ref.watch(themeControllerProvider);
+    final themeColor = color ?? Color(config.iconBadgeFillColor);
+    final neutralColor = isDark ? AppColors.pureWhite : Color(config.iconBadgeIconColor);
+    
+    // Applying the independent Icon Opacity token to the glyph and text
+    final effectiveNeutralColor = neutralColor.withValues(alpha: config.iconOpacity);
     
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.actionGreen.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(24.0),
+        color: themeColor.withValues(alpha: config.iconBadgeOpacity), // Society Branding Fill Opacity
+        borderRadius: BorderRadius.circular(config.accentRadius), // Dynamic Branding Radius
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -347,17 +372,17 @@ class EventRegistrationCard extends ConsumerWidget {
         children: [
           Icon(
             icon, 
-            size: 20, 
-            color: neutralColor,
+            size: AppShapes.iconMedium, // Standardized 24px icon 
+            color: effectiveNeutralColor,
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.xs), // Standardized 8px gap
           Text(
             value,
             style: AppTypography.displayHeading.copyWith(
-              fontSize: AppTypography.sizeBody,
-              color: neutralColor,
-              letterSpacing: -0.2,
-              fontWeight: AppTypography.weightBold,
+              fontSize: AppTypography.sizeBody, // 16px Heavy (Design 4.x Section Style)
+              color: effectiveNeutralColor,
+              letterSpacing: AppTypography.lsStandard, // Design 4.x standard
+              fontWeight: AppTypography.weightStrong, // w600 Semibold Emphasis
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -366,10 +391,9 @@ class EventRegistrationCard extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: AppTypography.caption.copyWith(
-              fontSize: AppTypography.sizeMicroSmall,
-              color: neutralColor.withValues(alpha: AppColors.opacityHigh),
-              fontWeight: AppTypography.weightSemibold,
+            style: AppTypography.micro.copyWith(
+              color: effectiveNeutralColor.withValues(alpha: AppColors.opacityHigh),
+              fontWeight: AppTypography.weightStrong, // w600 Semibold Helper
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -388,7 +412,7 @@ class EventRegistrationCard extends ConsumerWidget {
         Expanded(
           child: Text(
             text,
-            style: AppTypography.labelStrong.copyWith(fontWeight: AppTypography.weightMedium),
+            style: AppTypography.label.copyWith(fontWeight: AppTypography.weightStrong),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -398,25 +422,26 @@ class EventRegistrationCard extends ConsumerWidget {
   }
 }
 
-class EventGalleryCard extends StatelessWidget {
+class EventGalleryCard extends ConsumerWidget {
   final GolfEvent event;
   final bool isManagement;
-  const EventGalleryCard({super.key, required this.event, this.isManagement = false});
+  final bool isPeeking;
+  const EventGalleryCard({super.key, required this.event, this.isManagement = false, this.isPeeking = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!isManagement && event.galleryUrls.isEmpty) return const SizedBox.shrink();
+    final config = ref.watch(themeControllerProvider);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BoxyArtSectionTitle(title: 'Event Gallery'),
-          BoxyArtCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtSectionTitle(title: 'Event Gallery', isPeeking: isPeeking),
+        BoxyArtCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (event.galleryUrls.isNotEmpty) ...[
                 SizedBox(
                   height: 120,
                   child: ListView.separated(
@@ -443,28 +468,32 @@ class EventGalleryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                BoxyArtButton(
-                  title: event.galleryUrls.length > 5 ? 'View All ${event.galleryUrls.length} Photos' : 'View Gallery',
-                  onTap: isManagement ? null : () {
-                    context.push('/events/${event.id}/photos');
-                  },
-                ),
               ],
-            ),
+              BoxyArtButton(
+                title: event.galleryUrls.length > 5 ? 'View All ${event.galleryUrls.length} Photos' : 'View Gallery',
+                fullWidth: true,
+                backgroundColor: Color(config.primaryColor),
+                textColor: ContrastHelper.getContrastingText(Color(config.primaryColor)),
+                onTap: isManagement ? null : () {
+                  context.push('/events/${event.id}/photos');
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class EventPodiumCard extends StatelessWidget {
+class EventPodiumCard extends ConsumerWidget {
   final GolfEvent event;
   final bool isManagement;
-  const EventPodiumCard({super.key, required this.event, this.isManagement = false});
+  final bool isPeeking;
+  const EventPodiumCard({super.key, required this.event, this.isManagement = false, this.isPeeking = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!isManagement) {
       if (event.displayStatus != EventStatus.completed || event.results.isEmpty) {
         return const SizedBox.shrink();
@@ -472,79 +501,93 @@ class EventPodiumCard extends StatelessWidget {
     }
 
     final topResults = event.results.take(3).toList();
+    final membersAsync = ref.watch(allMembersProvider);
+    final members = membersAsync.value ?? [];
     
     // In management mode, if no results yet, show a dummy/placeholder to represent the block
     if (isManagement && topResults.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const BoxyArtSectionTitle(title: 'Event Recap & Results'),
-            BoxyArtCard(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                child: Center(
-                  child: Text(
-                    'Podium Results Block\n(Visible when event completed)',
-                    textAlign: TextAlign.center,
-                      style: AppTypography.labelStrong.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const BoxyArtSectionTitle(title: 'Event Recap & Results'),
+          BoxyArtCard(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+              child: Center(
+                child: Text(
+                  'Podium Results Block\n(Visible when event completed)',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.label.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     if (topResults.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BoxyArtSectionTitle(title: 'Event Recap & Results'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtSectionTitle(title: 'Event Recap & Results', isPeeking: isPeeking),
           BoxyArtCard(
             child: Column(
               children: [
                 ...topResults.asMap().entries.map((entry) {
                    final rank = entry.key + 1;
                    final res = entry.value;
-                   final memberName = res['memberName'] ?? res['playerName'] ?? 'Player';
+                   final memberId = res['memberId'];
+                   final member = members.firstWhereOrNull((m) => m.id == memberId);
+                   final memberName = member != null ? '${member.firstName} ${member.lastName}' : (res['memberName'] ?? res['playerName'] ?? 'Player');
+                   final photoUrl = member?.avatarUrl ?? res['avatarUrl'] ?? res['photoUrl'];
                    final score = res['totalPoints'] ?? res['score'] ?? res['points'] ?? '-';
-                   
+
                    return ListTile(
                      contentPadding: EdgeInsets.zero,
-                     leading: BoxyArtNumberBadge(number: rank, size: 36, color: rank == 1 ? Theme.of(context).primaryColor : null),
-                     title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold)),
-                     trailing: Text('$score pts', style: AppTypography.displayLargeBody.copyWith(fontWeight: AppTypography.weightBlack, color: Theme.of(context).primaryColor)),
-                   );
+                      leading: SizedBox(
+                        width: 42,
+                        height: 42,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            BoxyArtAvatar(
+                              url: photoUrl,
+                              initials: memberName.isNotEmpty ? memberName[0] : 'P',
+                              radius: 18,
+                              isCircle: true,
+                            ),
+                            Positioned(
+                              right: -2,
+                              bottom: -2,
+                              child: BoxyArtNumberBadge(
+                                number: rank,
+                                size: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightHeavy)),
+                      trailing: Text('$score pts', style: AppTypography.headline.copyWith(fontWeight: AppTypography.weightHeavy, color: Theme.of(context).primaryColor)),
+                    );
                 }),
-                const SizedBox(height: AppSpacing.md),
-                BoxyArtButton(
-                  title: 'View Full Results',
-                  isPrimary: false,
-                  onTap: isManagement ? null : () {
-                    context.push('/events/${event.id}/stats');
-                  },
-                ),
               ],
             ),
-          )
+          ),
         ],
-      )
-    );
+      );
   }
 }
 
 class YourGroupCard extends ConsumerWidget {
   final GolfEvent event;
-  const YourGroupCard({super.key, required this.event});
+  final bool isPeeking;
+  const YourGroupCard({super.key, required this.event, this.isPeeking = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -560,10 +603,24 @@ class YourGroupCard extends ConsumerWidget {
         try {
           final group = TeeGroup.fromJson(gd as Map<String, dynamic>);
           for (var p in group.players) {
-            if (p.registrationMemberId == user.id) {
+            // Logic: Identify 'ME' in the group. 
+            // If there's a Member + Guest, we prefer the Member identity for the 'ME' marker.
+            if (p.registrationMemberId == user.id && !p.isGuest) {
               myParticipant = p;
               myGroup = group;
               break;
+            }
+          }
+          
+          // Fallback: If no pure member match (maybe they are registered as a guest only?), 
+          // take any match with their ID.
+          if (myParticipant == null) {
+            for (var p in group.players) {
+              if (p.registrationMemberId == user.id) {
+                myParticipant = p;
+                myGroup = group;
+                break;
+              }
             }
           }
         } catch (_) {}
@@ -573,54 +630,91 @@ class YourGroupCard extends ConsumerWidget {
 
     if (myParticipant == null || myGroup == null) return const SizedBox.shrink();
 
-    final partners = myGroup.players
-        .where((p) => p.registrationMemberId != user.id)
+    // Fix: Exclude only the specific participant object 'me', not everyone with my registration ID
+    // (This ensures my guest is correctly shown as a partner)
+    final partnersList = myGroup.players
+        .where((p) => p != myParticipant) 
         .map((p) => toTitleCase(p.name))
-        .join(', ');
+        .toList();
+        
+    final partners = partnersList.join(', ');
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BoxyArtSectionTitle(title: 'Your Group'),
-          BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow(context, Icons.access_time_rounded, 'TEE TIME: ${DateFormat.Hm().format(myGroup.teeTime)}'),
-                const SizedBox(height: AppSpacing.md),
-                _buildInfoRow(context, Icons.people_alt_rounded, 'PARTNERS: ${partners.isEmpty ? "Alone" : partners}'),
-              ],
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtSectionTitle(
+          title: 'Your Group',
+          isPeeking: isPeeking,
+        ),
+        BoxyArtCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow(
+                context, 
+                ref,
+                Icons.access_time_rounded, 
+                'Tee Time', 
+                DateFormat.Hm().format(myGroup.teeTime),
+              ),
+              const SizedBox(height: AppSpacing.lg), // Design 4.x standard list gap
+              _buildInfoRow(
+                context, 
+                ref,
+                Icons.people_alt_rounded, 
+                'Partners', 
+                partners.isEmpty ? "Alone" : partners,
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label) {
+  Widget _buildInfoRow(BuildContext context, WidgetRef ref, IconData icon, String label, String value) {
+    final theme = Theme.of(context);
+    final config = ref.watch(themeControllerProvider);
+    
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 16, color: Theme.of(context).primaryColor),
+        BoxyArtIconBadge(
+          icon: icon,
+          color: Color(config.iconBadgeFillColor), 
+          iconColor: Color(config.iconBadgeIconColor), 
+          size: 42,
+          iconSize: 20,
+          fillOpacity: config.iconBadgeOpacity, 
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: AppTypography.sizeCaptionStrong,
-              fontWeight: AppTypography.weightExtraBold,
-              letterSpacing: 1.2,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label.toUpperCase(),
+                style: AppTypography.micro.copyWith(
+                  fontWeight: AppTypography.weightStrong,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  letterSpacing: AppTypography.lsLabel,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                style: label == 'Tee Time' 
+                  ? AppTypography.headline.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: AppTypography.sizeHeadline,
+                    )
+                  : AppTypography.body.copyWith( // Increased to body size (Next size up from labelStrong)
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: AppTypography.weightStrong,
+                    ),
+              ),
+            ],
           ),
         ),
       ],

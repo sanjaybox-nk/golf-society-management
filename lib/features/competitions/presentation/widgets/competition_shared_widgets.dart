@@ -26,6 +26,7 @@ class CompetitionBadgeRow extends StatelessWidget {
         label: rules.format == CompetitionFormat.matchPlay 
             ? rules.gameName 
             : rules.format.name,
+        icon: Icons.emoji_events_rounded,
       ),
     );
 
@@ -33,20 +34,23 @@ class CompetitionBadgeRow extends StatelessWidget {
     pills.add(
       BoxyArtPill.format(
         label: rules.scoringType,
+        icon: Icons.calculate_rounded,
       ),
     );
 
     // 3. Allowance Pill (e.g., 95% HCP)
     pills.add(
-      BoxyArtPill.type(
+      BoxyArtPill.format(
         label: rules.defaultAllowanceLabel,
+        icon: Icons.percent_rounded,
       ),
     );
 
     // 4. Mode Pill (Singles, Pairs, Team)
     pills.add(
-      BoxyArtPill.type(
+      BoxyArtPill.format(
         label: rules.modeLabel,
+        icon: Icons.person_rounded,
       ),
     );
 
@@ -248,7 +252,7 @@ class CompetitionRulesCard extends ConsumerWidget {
                               color: accent,
                               size: 56,
                               iconSize: AppShapes.iconXl,
-                              showFill: false,
+                              showFill: true,
                             ),
                             const SizedBox(width: 18),
                             Expanded(

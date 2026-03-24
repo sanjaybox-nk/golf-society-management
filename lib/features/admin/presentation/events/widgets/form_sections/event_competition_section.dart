@@ -98,8 +98,7 @@ class EventCompetitionSection extends ConsumerWidget {
                 ],
               ),
             
-            // Secondary Game (Match Play)
-            _buildSecondaryGame(context, ref, state, templates),
+
           ],
         );
       },
@@ -108,48 +107,7 @@ class EventCompetitionSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildSecondaryGame(BuildContext context, WidgetRef ref, EventFormState state, List<Competition> templates) {
-    final displayComp = state.eventCompetition ?? templates.where((t) => t.id == state.selectedTemplateId).firstOrNull;
-    if (displayComp == null) return const SizedBox.shrink();
 
-    final format = displayComp.rules.format;
-    if (format != CompetitionFormat.stableford && format != CompetitionFormat.stroke) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: AppSpacing.cardToLabel),
-        const BoxyArtSectionTitle(title: 'SECONDARY GAME (OVERLAY)'),
-        BoxyArtCard(
-          child: state.secondaryTemplateId == null
-            ? Center(
-                child: BoxyArtButton(
-                  title: 'ADD MATCH PLAY OVERLAY',
-                  onTap: () async {
-                    final result = await context.push<String>('/admin/events/competitions/new?format=matchPlay');
-                    if (result != null) {
-                      ref.read(eventFormNotifierProvider.notifier).updateSecondaryTemplateId(result);
-                    }
-                  },
-                ),
-              )
-            : Column(
-                children: [
-                  CompetitionRulesCard(
-                    eventId: state.eventId ?? "",
-                    title: "",
-                    isSecondary: true,
-                    competition: state.secondaryCompetition ?? templates.where((t) => t.id == state.secondaryTemplateId).firstOrNull,
-                    onCustomize: () => _handleSecondaryCustomize(context, ref, state),
-                    onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateSecondaryTemplateId(null),
-                    customizeLabel: state.isSecondaryCustomized ? 'CUSTOMIZED' : 'CUSTOMIZE',
-                  ),
-                ],
-              ),
-        ),
-      ],
-    );
-  }
 
   Future<void> _handleCustomize(BuildContext context, WidgetRef ref, EventFormState state) async {
     final notifier = ref.read(eventFormNotifierProvider.notifier);
@@ -166,20 +124,7 @@ class EventCompetitionSection extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleSecondaryCustomize(BuildContext context, WidgetRef ref, EventFormState state) async {
-    final notifier = ref.read(eventFormNotifierProvider.notifier);
-    if (state.eventId == null) {
-      final confirm = await _showSaveConfirm(context);
-      if (confirm != true) return;
-      await notifier.save();
-    }
-    if (context.mounted) {
-      final currentEventId = ref.read(eventFormNotifierProvider).value?.eventId;
-      if (currentEventId != null) {
-        context.push("/admin/events/competitions/edit/${currentEventId}_secondary");
-      }
-    }
-  }
+
 
   Future<bool?> _showSaveConfirm(BuildContext context) {
     return showDialog<bool>(

@@ -1,9 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../../domain/registration_logic.dart';
 
-class RegistrationCard extends StatelessWidget {
+class RegistrationCard extends ConsumerWidget {
   final String name;
   final String label;
   final int? position;
@@ -50,84 +52,67 @@ class RegistrationCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bool isWithdrawn = status == RegistrationStatus.withdrawn;
-    final Color avatarColor = isGuest ? AppColors.amber500.withValues(alpha: AppColors.opacityLow) : theme.primaryColor.withValues(alpha: AppColors.opacityLow);
-    final Color textColor = isGuest ? AppColors.amber500 : theme.primaryColor;
-
     // Avatar Logic
-    Widget avatarChild;
-    if (memberProfile?.avatarUrl != null && !isGuest) {
-      avatarChild = Container(
-        width: AppSpacing.x4l,
-        height: AppSpacing.x4l,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: theme.primaryColor.withValues(alpha: AppColors.opacityLow), width: AppShapes.borderLight),
-          image: DecorationImage(
-            image: NetworkImage(memberProfile!.avatarUrl!),
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      avatarChild = Container(
-        width: AppSpacing.x4l,
-        height: AppSpacing.x4l,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: avatarColor,
-          border: Border.all(
-            color: textColor.withValues(alpha: AppColors.opacityLow),
-            width: AppShapes.borderLight,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            name.isNotEmpty ? name[0].toUpperCase() : '?',
-            style: TextStyle(
-              color: textColor,
-              fontWeight: AppTypography.weightBlack,
-              fontSize: AppTypography.sizeBody,
-            ),
-          ),
-        ),
-      );
-    }
+    final String initials = name.split(' ').where((s) => s.isNotEmpty).map((s) => s[0]).take(2).join().toUpperCase();
+    final Widget avatarChild = BoxyArtAvatar(
+      url: (memberProfile?.avatarUrl != null && !isGuest) ? memberProfile!.avatarUrl : null,
+      initials: initials,
+      radius: 36, // 72 diameter
+      isCircle: true,
+      color: isGuest ? AppColors.amber500 : theme.primaryColor,
+    );
+
+    final spacing = theme.extension<AppSpacingTokens>();
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.symmetric(
+        vertical: spacing?.cardVerticalPadding ?? AppSpacing.lg,
+        horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg,
+      ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center, // Centered vertically as requested
         children: [
-          // Position Badge or Avatar
-          if (!isDinnerOnly && position != null && position != 0 && !isWithdrawn) ...[
-            BoxyArtNumberBadge(number: position!, size: 36, isRanking: false),
-            const SizedBox(width: AppSpacing.md),
-          ] else ...[
-            // Avatar with optional Guest badge
+          // 1. Left Section: Avatar & Rank
           Stack(
+            clipBehavior: Clip.none,
             children: [
               avatarChild,
-              // Guest badge overlay
+              // Rank icon at the top left of the avatar
+              if (position != null && position != 0)
+                Positioned(
+                  top: -6,
+                  left: -6,
+                  child: BoxyArtNumberBadge(
+                    number: position!,
+                    size: 24,
+                    isRanking: false,
+                    isFilled: true,
+                  ),
+                ),
               if (isGuest)
                 Positioned(
                   right: 0,
                   bottom: 0,
                   child: Container(
-                    width: AppSpacing.lg,
-                    height: AppSpacing.lg,
+                    width: 24,
+                    height: 24,
                     decoration: BoxDecoration(
                       color: AppColors.amber500,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.pureWhite, width: AppShapes.borderLight),
+                      border: Border.all(color: AppColors.pureWhite, width: 2.0),
                     ),
                     child: Center(
                       child: Text(
                         'G',
-                        style: AppTypography.caption.copyWith(
+                        style: AppTypography.micro.copyWith(
                           color: AppColors.pureWhite,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -135,190 +120,121 @@ class RegistrationCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(width: AppSpacing.md),
-        ],
-        Expanded(
-          child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    toTitleCase(name),
-                    style: AppTypography.body.copyWith(
-                      fontWeight: AppTypography.weightExtraBold,
-                      fontSize: AppTypography.sizeBody,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                  Text(
-                    label,
-                    style: AppTypography.subtext.copyWith(
-                      color: isDark ? AppColors.dark150 : AppColors.dark300,
-                      fontSize: AppTypography.sizeLabel, // Keep the density sizing
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.sm),
-                  if (onStatusChanged != null)
-                    PopupMenuButton<RegistrationStatus>(
-                      initialValue: status,
-                      onSelected: onStatusChanged,
-                      color: isDark ? AppColors.textSecondary : AppColors.pureWhite,
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(borderRadius: AppShapes.lg),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: RegistrationStatus.confirmed, 
-                          child: Text('Confirmed', style: TextStyle(color: AppColors.lime500, fontWeight: AppTypography.weightBold))
-                        ),
-                        const PopupMenuItem(
-                          value: RegistrationStatus.reserved, 
-                          child: Text('Reserved', style: TextStyle(color: AppColors.amber500, fontWeight: AppTypography.weightBold))
-                        ),
-                        const PopupMenuItem(
-                          value: RegistrationStatus.waitlist, 
-                          child: Text('Waitlist', style: TextStyle(color: AppColors.coral500, fontWeight: AppTypography.weightBold))
-                        ),
-                        const PopupMenuItem(
-                          value: RegistrationStatus.withdrawn, 
-                          child: Text('Withdrawn', style: TextStyle(color: AppColors.dark400, fontWeight: AppTypography.weightBold))
-                        ),
-                      ],
-                      child: _buildStatusPill(context, status),
-                    )
-                  else
-                    _buildStatusPill(context, status),
-                ],
-              ),
-            ),
-          
-          // Icon Grid Layout - Always 2x3 for consistent alignment
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Row 1: Buggy, Breakfast, Guest
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   // Buggy Icon
-                  _buildLargeIconContainer(
-                    isActive: buggyStatus != RegistrationStatus.none && !isWithdrawn,
-                    child: onBuggyToggle != null
-                        ? InkWell(
-                            onTap: onBuggyToggle,
-                            borderRadius: AppShapes.md,
-                            child: _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
-                          )
-                        : _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  // Breakfast Icon
-                  _buildLargeIconContainer(
-                    isActive: attendingBreakfast && !isWithdrawn,
-                    child: onBreakfastToggle != null
-                        ? InkWell(
-                            onTap: onBreakfastToggle,
-                            borderRadius: AppShapes.md,
-                            child: Icon(
-                              Icons.local_cafe_rounded,
-                              color: attendingBreakfast && !isWithdrawn
-                                  ? _getIconActiveColor(context)
-                                  : _getIconInactiveColor(context),
-                              size: AppShapes.iconMd,
-                            ),
-                          )
-                        : Icon(
-                            Icons.local_cafe_rounded,
-                            color: attendingBreakfast && !isWithdrawn
-                                ? _getIconActiveColor(context)
-                                : _getIconInactiveColor(context),
-                            size: AppShapes.iconMd,
-                          ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  // Guest indicator
-                  _buildLargeIconContainer(
-                    isActive: hasGuest && !isWithdrawn,
-                    child: Icon(
-                      Icons.person_add_alt_1_rounded,
-                      color: hasGuest && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
-                      size: AppShapes.iconMd,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              
-              // Row 2: Lunch, Dinner, Payment
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Lunch Icon
-                  _buildLargeIconContainer(
-                    isActive: attendingLunch && !isWithdrawn,
-                    child: onLunchToggle != null
-                        ? InkWell(
-                            onTap: onLunchToggle,
-                            borderRadius: AppShapes.md,
-                            child: Icon(
-                              Icons.restaurant_menu_rounded,
-                              color: attendingLunch && !isWithdrawn
-                                  ? _getIconActiveColor(context)
-                                  : _getIconInactiveColor(context),
-                              size: AppShapes.iconMd,
-                            ),
-                          )
-                        : Icon(
-                            Icons.restaurant_menu_rounded,
-                            color: attendingLunch && !isWithdrawn
-                                ? _getIconActiveColor(context)
-                                : _getIconInactiveColor(context),
-                            size: AppShapes.iconMd,
-                          ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  // Dinner Icon
-                  _buildLargeIconContainer(
-                    isActive: attendingDinner && !isWithdrawn,
-                    child: onDinnerToggle != null
-                        ? InkWell(
-                            onTap: onDinnerToggle,
-                            borderRadius: AppShapes.md,
-                            child: Icon(
-                              Icons.restaurant_rounded,
-                              color: attendingDinner && !isWithdrawn
-                                  ? _getIconActiveColor(context)
-                                  : _getIconInactiveColor(context),
-                              size: AppShapes.iconMd,
-                            ),
-                          )
-                        : Icon(
-                            Icons.restaurant_rounded,
-                            color: attendingDinner && !isWithdrawn
-                                ? _getIconActiveColor(context)
-                                : _getIconInactiveColor(context),
-                            size: AppShapes.iconMd,
-                          ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  // Payment indicator (Matches Tick in image)
-                  _buildLargeIconContainer(
-                    isActive: hasPaid && !isWithdrawn,
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
-                      size: AppShapes.iconMd,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildStatusPill(BuildContext context, RegistrationStatus status) {
+          // 2. Vertical Divider
+          Container(
+            width: 1,
+            height: (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 4.5, // Scalable height (v4.5 matched to 72dp base)
+            margin: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg),
+            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+          ),
+
+          // 3. Right Section: Content
+          Expanded(
+            child: SizedBox(
+              height: (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 4.5, // Matches divider
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // 3a. Name & Subtext
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        toTitleCase(name),
+                        style: AppTypography.headline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (isGuest)
+                        Text(
+                          label, // "Guest of Host Name"
+                          style: AppTypography.caption.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                            fontSize: AppTypography.sizeMicro,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+
+                  // 3b. Icon Row (Persistent Icons)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Buggy
+                      _buildLargeIconContainer(
+                      isActive: buggyStatus != RegistrationStatus.none && !isWithdrawn,
+                      child: onBuggyToggle != null
+                          ? InkWell(
+                              onTap: onBuggyToggle,
+                              borderRadius: AppShapes.md,
+                              child: _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
+                            )
+                          : _buildBuggyIcon(context, buggyStatus, size: AppShapes.iconMd),
+                    ),
+                    // Breakfast
+                    _buildLargeIconContainer(
+                      isActive: attendingBreakfast && !isWithdrawn,
+                      child: (onBreakfastToggle != null)
+                          ? InkWell(
+                              onTap: onBreakfastToggle,
+                              borderRadius: AppShapes.md,
+                              child: Icon(Icons.local_cafe_rounded, color: attendingBreakfast && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                            )
+                          : Icon(Icons.local_cafe_rounded, color: attendingBreakfast && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                    ),
+                    // Lunch
+                    _buildLargeIconContainer(
+                      isActive: attendingLunch && !isWithdrawn,
+                      child: (onLunchToggle != null)
+                          ? InkWell(
+                              onTap: onLunchToggle,
+                              borderRadius: AppShapes.md,
+                              child: Icon(Icons.restaurant_menu_rounded, color: attendingLunch && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                            )
+                          : Icon(Icons.restaurant_menu_rounded, color: attendingLunch && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                    ),
+                    // Dinner
+                    _buildLargeIconContainer(
+                      isActive: attendingDinner && !isWithdrawn,
+                      child: (onDinnerToggle != null)
+                          ? InkWell(
+                              onTap: onDinnerToggle,
+                              borderRadius: AppShapes.md,
+                              child: Icon(Icons.restaurant_rounded, color: attendingDinner && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                            )
+                          : Icon(Icons.restaurant_rounded, color: attendingDinner && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                    ),
+                    // Guest (Always there now)
+                    _buildLargeIconContainer(
+                      isActive: hasGuest && !isWithdrawn,
+                      child: Icon(Icons.person_add_alt_1_rounded, color: hasGuest && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context), size: AppShapes.iconMd),
+                    ),
+
+                    // Payment Check
+                    _buildLargeIconContainer(
+                      isActive: hasPaid && !isWithdrawn,
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
+                        size: AppShapes.iconMd,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+  Widget _buildStatusPill(BuildContext context, SocietyConfig config, RegistrationStatus status) {
     if (status == RegistrationStatus.none) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -327,15 +243,13 @@ class RegistrationCard extends StatelessWidget {
     String text;
     switch (status) {
       case RegistrationStatus.confirmed:
-        color = AppColors.lime500;
-        text = 'Confirmed';
-        break;
+        return const SizedBox.shrink();
       case RegistrationStatus.reserved:
-        color = AppColors.amber500;
+        color = Color(config.statusReservedColor);
         text = 'Reserve';
         break;
       case RegistrationStatus.waitlist:
-        color = AppColors.coral500;
+        color = Color(config.statusWaitlistColor);
         text = 'Waitlist';
         break;
       case RegistrationStatus.pendingGuest:
@@ -343,11 +257,11 @@ class RegistrationCard extends StatelessWidget {
         text = 'Pending';
         break;
       case RegistrationStatus.withdrawn:
-        color = isDark ? AppColors.dark150 : AppColors.dark500;
+        color = Color(config.statusWithdrawnColor);
         text = 'Withdrawn';
         break;
       case RegistrationStatus.dinner:
-        color = AppColors.teamA; 
+        color = Color(config.statusDinnerColor);
         text = 'Dinner';
         break;
       case RegistrationStatus.none:
@@ -380,10 +294,11 @@ class RegistrationCard extends StatelessWidget {
 
   Widget _buildLargeIconContainer({required Widget child, bool isActive = false}) {
     return Container(
-      width: 44,
-      height: 44,
+      width: 32, // Reduced from 36 to prevent overflow on small screens
+      height: 32,
       color: Colors.transparent,
-      child: Center(child: child),
+      alignment: Alignment.bottomCenter, // v3.2 Align to bottom to match divider
+      child: child,
     );
   }
 

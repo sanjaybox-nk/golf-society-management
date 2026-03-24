@@ -1,4 +1,5 @@
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
@@ -18,6 +19,7 @@ class EventScoringProcessor {
     required List<Scorecard> liveScorecards,
     required List<Member> members,
     required MarkerSelection markerSelection,
+    String? currentUserId,
   }) {
     final rules = comp.rules;
     final teeOverrides = markerSelection.teeOverrides;
@@ -29,39 +31,56 @@ class EventScoringProcessor {
 
     final allPlayerIds = {
       ...event.registrations.map((r) => r.memberId),
-      ...event.results.map((r) => r['playerId'] as String? ?? ''),
-      ...liveScorecards.map((s) => s.entryId.replaceFirst('_guest', '')),
+      ...event.registrations.where((r) => r.guestName != null).map((r) => '${r.memberId}_guest'),
+      ...event.results.map((r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString()),
+      ...liveScorecards.map((s) => s.entryId),
+      if (currentUserId != null) currentUserId,
     }..remove('');
 
-    for (var pid in allPlayerIds) {
-      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == pid);
-      final isGuest = reg?.isGuest ?? pid.contains('_guest');
-      final effectivePid = isGuest ? '${pid}_guest' : pid;
+    for (var effectivePid in allPlayerIds) {
+      final isGuestSuffix = effectivePid.endsWith('_guest');
+      final basePid = isGuestSuffix ? effectivePid.replaceFirst('_guest', '') : effectivePid;
+      
+      final reg = event.registrations.firstWhereOrNull((r) => r.memberId == basePid) ??
+                  event.registrations.firstWhereOrNull((r) => r.memberId == effectivePid);
+      
+      final isGuest = isGuestSuffix || (reg?.isGuest ?? false);
 
       // Resolve Tee
       final courseConfig = ScoringCalculator.resolvePlayerCourseConfig(
-        memberId: pid, 
+        memberId: basePid, 
         event: event, 
         membersList: members, 
         manualTeeName: teeOverrides[effectivePid],
       );
 
       // [NEW] Filter: Only include confirmed players OR players who actually have scores (Live/Seeded)
-      final liveCard = liveScorecards.firstWhereOrNull((s) => s.entryId == effectivePid);
-      final seededResult = event.results.firstWhereOrNull((r) => r['playerId'] == effectivePid);
-      final isConfirmed = reg?.isConfirmed ?? false;
+      // Harden: Check both effectivePid and basePid mapping for flexibility
+      final liveCard = liveScorecards.firstWhereOrNull((s) => s.entryId == effectivePid) ?? 
+                       liveScorecards.firstWhereOrNull((s) => s.entryId == basePid);
       
-      // If not confirmed AND no score data exists, they shouldn't be on the leaderboard
-      if (!isConfirmed && liveCard == null && seededResult == null) {
-        continue;
-      }
+      // Seeded lookup priority: ID match -> Name match against Registration -> Name match against Member profile
+      final seededResult = event.results.firstWhereOrNull((r) => (r['memberId'] ?? r['userId'] ?? r['playerId']) == effectivePid) ?? 
+                           event.results.firstWhereOrNull((r) => (r['memberId'] ?? r['userId'] ?? r['playerId']) == basePid) ??
+                           event.results.firstWhereOrNull((r) => r['playerName'] == (isGuest ? reg?.guestName : reg?.memberName)) ??
+                           event.results.firstWhereOrNull((r) => r['playerName'] == memberMap[basePid]?.displayName);
+      
+      final bool hasScores = (liveCard != null && liveCard.holeScores.any((h) => h != null)) || (seededResult != null);
+      final bool isConfirmed = isGuest ? (reg?.guestIsConfirmed ?? false) : (reg?.isConfirmed ?? false);
+      
+      // Guests MUST have score data to appear on the leaderboard (per user request)
+      if (isGuest && !hasScores) continue;
+
+      // Members stay if they have a registration OR scores OR a live scorecard OR they are the current user (Dev/Test)
+      final bool isMe = currentUserId != null && (effectivePid == currentUserId || basePid == currentUserId);
+      if (!isGuest && reg == null && !hasScores && liveCard == null && !isMe) continue;
 
       // Resolve Handicap Index
       double index = 18.0;
       if (isGuest) {
         index = double.tryParse(reg?.guestHandicap ?? '18') ?? 18.0;
       } else {
-        index = memberMap[pid]?.handicap ?? 18.0;
+        index = memberMap[basePid]?.handicap ?? 18.0;
       }
 
       // Calculate PHC (WHS Baseline -> Playing)
@@ -73,7 +92,7 @@ class EventScoringProcessor {
         handicapIndex: index, 
         rules: rules, 
         courseConfig: courseConfig,
-        societyCut: manualCuts[pid] ?? 0.0,
+        societyCut: manualCuts[basePid] ?? 0.0,
       );
 
       // Merge Scores (Live > Seeded)
@@ -94,14 +113,18 @@ class EventScoringProcessor {
         maxScoreConfig: rules.maxScoreConfig,
       );
 
+      final String resolvedName = isGuest 
+          ? (reg?.guestName ?? seededResult?['playerName'] as String? ?? 'Guest')
+          : (reg?.memberName ?? memberMap[basePid]?.displayName ?? seededResult?['playerName'] as String? ?? (effectivePid.length > 5 ? effectivePid : 'Member'));
+
       individualScores.add(ProcessedPlayerScore(
         playerId: effectivePid,
-        playerName: isGuest ? (reg?.guestName ?? 'Guest') : (reg?.memberName ?? 'Member'),
+        playerName: resolvedName,
         isGuest: isGuest,
         handicapIndex: index,
         courseHandicap: courseHandicap,
         playingHandicap: phc,
-        appliedSocietyCut: manualCuts[pid] ?? 0.0,
+        appliedSocietyCut: manualCuts[basePid] ?? 0.0,
         teeName: courseConfig.name,
         holeScores: holeScores,
         result: result,

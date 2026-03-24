@@ -23,9 +23,10 @@ class AdminDashboardScreen extends ConsumerWidget {
     // final membersAsync = ref.watch(allMembersProvider);
     final eventsAsync = ref.watch(adminEventsProvider);
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return HeadlessScaffold(
       title: 'Admin Console',
-      autoPrefix: false,
       subtitle: 'Command Center',
       leading: Center(
         child: BoxyArtGlassIconButton(
@@ -37,7 +38,7 @@ class AdminDashboardScreen extends ConsumerWidget {
       actions: const [],
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: spacing?.labelToCard ?? AppSpacing.standard),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Next Event Hero
@@ -61,8 +62,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 error: (err, stack) => Text('Error loading events: $err'),
               ),
 
-              const SizedBox(height: AppSpacing.xl),
-              
+
               // 1.5 Active Polls Aggregator (Relocated Phase 3)
               eventsAsync.when(
                 data: (events) {
@@ -72,32 +72,35 @@ class AdminDashboardScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const BoxyArtSectionTitle(title: 'Active Event Polls'),
-                      ...activePolls.map((pair) {
+                      const BoxyArtSectionTitle(title: 'Active Event Polls', isPeeking: true),
+                      ...activePolls.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final pair = entry.value;
                         final event = pair.$1;
                         final poll = pair.$2;
-                        return BoxyArtCard(
-                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                          onTap: () => context.go('/admin/events/manage/${event.id}/event'),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.poll_rounded, color: AppColors.lime500),
-                              const SizedBox(width: AppSpacing.md),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(poll.title ?? 'Poll', style: AppTypography.labelStrong),
-                                    Text('From: ${event.title}', style: AppTypography.bodySmall),
-                                  ],
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: (index == activePolls.length - 1) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
+                          child: BoxyArtCard(
+                            onTap: () => context.go('/admin/events/manage/${event.id}/event'),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.poll_rounded, color: AppColors.lime500),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(poll.title ?? 'Poll', style: AppTypography.labelStrong),
+                                      Text('From: ${event.title}', style: AppTypography.bodySmall),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
-                            ],
+                                const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+                              ],
+                            ),
                           ),
                         );
                       }),
-                      const SizedBox(height: AppSpacing.xl),
                     ],
                   );
                 },
@@ -106,15 +109,15 @@ class AdminDashboardScreen extends ConsumerWidget {
               ),
 
               const BoxyArtSectionTitle(
-                title: 'Quick Actions',),
+                title: 'Quick Actions'),
 
               // 3. Feature Action Grid (2x2)
               LayoutBuilder(
                 builder: (context, constraints) {
                   final cardWidth = (constraints.maxWidth - 16) / 2;
                   return Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
+                    spacing: spacing?.labelToCard ?? AppSpacing.standard,
+                    runSpacing: spacing?.labelToCard ?? AppSpacing.standard,
                     children: [
                       _FeatureGridItem(
                         width: cardWidth,
@@ -151,15 +154,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                 },
               ),
 
-              const SizedBox(height: AppSpacing.x4l),
-
               // 4. Recent Activity Feed
-              const BoxyArtSectionTitle(
-                title: 'Recent Activity',),
               
               const _ActivityFeed(),
-
-              const SizedBox(height: 100),
             ]),
           ),
         ),
@@ -194,6 +191,7 @@ class _FeatureGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return SizedBox(
       width: width,
       child: BoxyArtCard(
@@ -213,7 +211,7 @@ class _FeatureGridItem extends StatelessWidget {
               ),
               child: Icon(icon, color: AppColors.dark600, size: AppShapes.iconLg),
             ),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
             Text(
               title,
               style: AppTypography.labelStrong,
@@ -260,7 +258,7 @@ class _ActivityFeed extends ConsumerWidget {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    padding: const EdgeInsets.all(AppSpacing.xl),
                     child: Row(
                       children: [
                         Container(
@@ -297,11 +295,7 @@ class _ActivityFeed extends ConsumerWidget {
                     ),
                   ),
                   if (index < activities.length - 1)
-                    Divider(
-                      height: 1, 
-                      indent: 64, 
-                      color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                    ),
+                    const BoxyArtDivider(),
                 ],
               );
             }).toList(),
@@ -331,6 +325,7 @@ class _BroadcastEventPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
@@ -340,7 +335,7 @@ class _BroadcastEventPicker extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.atomic),
           Center(
             child: Container(
               width: AppSpacing.x4l,
@@ -360,7 +355,7 @@ class _BroadcastEventPicker extends StatelessWidget {
                   'Select Event',
                   style: AppTypography.displayLocker,
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                SizedBox(height: AppSpacing.atomic),
                 Text(
                   'Choose an event to post an update or newsletter.',
                   style: AppTypography.bodySmall,
@@ -378,19 +373,25 @@ class _BroadcastEventPicker extends StatelessWidget {
                 }).toList();
                 final sortedEvents = filteredEvents.sortedBy((e) => e.date).reversed.toList();
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl, 
+                    vertical: spacing?.labelToCard ?? AppSpacing.standard
+                  ),
                   itemCount: sortedEvents.length,
                   itemBuilder: (context, index) {
                     final event = sortedEvents[index];
                     return BoxyArtCard(
-                      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                      margin: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.standard),
                       padding: EdgeInsets.zero,
                       onTap: () {
                         Navigator.pop(context);
                         context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/broadcast/new');
                       },
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl, 
+                          vertical: spacing?.labelToCard ?? AppSpacing.standard
+                        ),
                         title: Text(
                           event.title,
                           style: AppTypography.displayLargeBody.copyWith(

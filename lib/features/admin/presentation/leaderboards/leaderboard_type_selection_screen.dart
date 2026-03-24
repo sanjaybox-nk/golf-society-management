@@ -33,7 +33,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
                 color: AppColors.amber500,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.orderOfMerit),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
               _TypeTile(
                 title: 'Best of Series',
                 subtitle: 'Count top N scores (e.g. Best 8 of 10).',
@@ -41,7 +41,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
                 color: AppColors.teamA,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.bestOfSeries),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
               _TypeTile(
                 title: 'Eclectic',
                 subtitle: 'Best score per hole across season.',
@@ -49,7 +49,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
                 color: AppColors.teamB,
                 onTap: () => _navigateToBuilder(context, LeaderboardType.eclectic),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToCard ?? AppSpacing.standard),
               _TypeTile(
                 title: 'Birdie Tree',
                 subtitle: 'Track Birdies, Eagles, or Pars.',

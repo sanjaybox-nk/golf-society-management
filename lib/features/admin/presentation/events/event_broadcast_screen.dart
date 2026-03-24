@@ -50,11 +50,12 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
   @override
   Widget build(BuildContext context) {
     final eventAsync = ref.watch(eventProvider(widget.eventId));
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'Event CMS',
       subtitle: 'Updates & Broadcasts',
-      useScaffold: true,
+
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -68,8 +69,13 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
             });
             
             return SliverPadding(
-              padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100, top: AppSpacing.xl),
-              sliver: items.isEmpty ? _buildEmptyState() : _buildReorderableList(event, items),
+              padding: EdgeInsets.only(
+                left: AppSpacing.xl, 
+                right: AppSpacing.xl, 
+                bottom: AppSpacing.hero, 
+                top: spacing?.labelToCard ?? AppSpacing.standard
+              ),
+              sliver: items.isEmpty ? _buildEmptyState() : _buildReorderableList(event, items, spacing),
             );
           },
           loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
@@ -113,7 +119,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
     );
   }
 
-  Widget _buildReorderableList(GolfEvent event, List<EventFeedItem> items) {
+  Widget _buildReorderableList(GolfEvent event, List<EventFeedItem> items, AppSpacingTokens? spacing) {
     return SliverToBoxAdapter(
       child: ReorderableListView.builder(
         shrinkWrap: true,
@@ -132,7 +138,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
           final item = items[index];
           return Container(
             key: ValueKey(item.id),
-            margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+            margin: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.standard),
             child: Stack(
               children: [
                 GestureDetector(
@@ -192,6 +198,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
   }
 
   Widget _buildAdminFeedItemCard(BuildContext context, EventFeedItem item, GolfEvent event) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     if (item.type == FeedItemType.headline) {
       return EventHeadlineCard(event: event);
     } else if (item.type == FeedItemType.podium) {
@@ -257,9 +264,9 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              const Divider(),
-              const SizedBox(height: AppTheme.cardSpacing),
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+              const BoxyArtDivider(),
+              SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
             ],
             if (item.imageUrl != null) ...[
               ClipRRect(
@@ -276,7 +283,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppSpacing.standard),
             ],
             if (quillController != null)
               QuillEditor.basic(

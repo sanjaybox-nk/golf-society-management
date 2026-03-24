@@ -47,7 +47,6 @@ class GroupingStrategySelectionScreen extends ConsumerWidget {
       title: 'Grouping Strategy',
       subtitle: 'Select automatic pairing logic',
       showBack: true,
-      autoPrefix: false, // Fix header overlap
       onBack: () => context.pop(),
       backgroundColor: beigeBackground,
       slivers: [

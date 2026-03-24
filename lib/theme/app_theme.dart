@@ -5,9 +5,9 @@ import 'package:golf_society/design_system/design_system.dart';
 /// Fairway Design System v3.1 Theme Composition
 class AppTheme {
   // Layout Tokens (Maintained for compatibility)
-  static const double cardSpacing = 16.0;
-  static const double sectionSpacing = 8.0;
-  static const double pagePadding = 20.0;
+  static const double cardSpacing = AppSpacing.standard;
+  static const double sectionSpacing = AppSpacing.atomic;
+  static const double pagePadding = AppSpacing.standard;
 
   static const double fieldRadius = 18.0;
 
@@ -34,15 +34,10 @@ class AppTheme {
 
     final textTheme = AppTypography.createTextTheme();
 
-    // Style Presets
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = 8.0; break;
-      case 'modern':  radius = 28.0; break;
-      case 'boxy':
-      default:        radius = 18.0; break;
-    }
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius));
+    // Granular Shapes
+    final cardShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.cardRadius));
+    final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius));
+    final inputRadius = BorderRadius.circular(config.inputRadius);
 
     return ThemeData(
       useMaterial3: true,
@@ -53,12 +48,30 @@ class AppTheme {
       textTheme: textTheme,
       extensions: [
         ScoreColors.dark(),
-        AppShapeTokens(heroRadius: config.heroRadius),
+        AppShapeTokens(
+          heroRadius: config.heroRadius,
+          cardRadius: config.cardRadius,
+          buttonRadius: config.buttonRadius,
+          inputRadius: config.inputRadius,
+          pillRadius: config.pillRadius,
+          accentRadius: config.accentRadius,
+          accentOpacity: config.accentOpacity,
+          iconBadgeFill: Color(config.iconBadgeFillColor),
+          iconBadgeIcon: Color(config.iconBadgeIconColor),
+          iconBadgeOpacity: config.iconBadgeOpacity,
+        ),
         AppShadows(
           useShadows: config.useShadows,
           intensity: config.shadowIntensity,
           spread: config.shadowSpread,
           opacity: config.shadowOpacity,
+        ),
+        AppSpacingTokens(
+          labelToCard: config.labelToCardSpacing,
+          cardToLabel: config.cardToLabelSpacing,
+          cardToCard: config.cardToCardSpacing,
+          cardVerticalPadding: config.cardVerticalPadding,
+          cardHorizontalPadding: config.cardHorizontalPadding,
         ),
       ],
 
@@ -77,7 +90,7 @@ class AppTheme {
       // Components - Cards
       cardTheme: CardThemeData(
         color: AppColors.dark700,
-        shape: shape,
+        shape: cardShape,
         elevation: 0,
         margin: EdgeInsets.zero,
       ),
@@ -88,7 +101,7 @@ class AppTheme {
           backgroundColor: secondaryColor,
           foregroundColor: AppColors.actionText,
           textStyle: AppTypography.label,
-          shape: const StadiumBorder(),
+          shape: buttonShape,
           elevation: 0,
         ),
       ),
@@ -98,7 +111,7 @@ class AppTheme {
           foregroundColor: AppColors.dark60,
           side: const BorderSide(color: AppColors.dark500, width: AppShapes.borderLight),
           textStyle: AppTypography.label,
-          shape: const StadiumBorder(),
+          shape: buttonShape,
         ),
       ),
 
@@ -106,7 +119,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: secondaryColor,
           textStyle: AppTypography.label,
-          shape: const StadiumBorder(),
+          shape: buttonShape,
         ),
       ),
 
@@ -116,11 +129,11 @@ class AppTheme {
         fillColor: AppColors.dark600,
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: config.useBorders 
               ? BorderSide(
                   color: AppColors.dark400, 
@@ -129,11 +142,11 @@ class AppTheme {
               : BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: BorderSide(color: primaryColor, width: config.useBorders ? config.borderWidth.clamp(2.0, 4.0) : 2.0),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: BorderSide(color: AppColors.coral500, width: config.useBorders ? config.borderWidth : 1.0),
         ),
         hintStyle: AppTypography.helper.copyWith(color: AppColors.dark300),
@@ -181,7 +194,7 @@ class AppTheme {
       // Components - Dialog
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.dark700,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius * 1.5)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.cardRadius * 1.5)),
         titleTextStyle: AppTypography.displaySubPage.copyWith(color: AppColors.dark60),
         contentTextStyle: AppTypography.body.copyWith(color: AppColors.dark150),
       ),
@@ -207,15 +220,10 @@ class AppTheme {
 
     final textTheme = AppTypography.createTextTheme();
 
-    // Style Presets
-    double radius;
-    switch (config.brandingStyle) {
-      case 'classic': radius = 8.0; break;
-      case 'modern':  radius = 28.0; break;
-      case 'boxy':
-      default:        radius = 18.0; break;
-    }
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius));
+    // Granular Shapes
+    final cardShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.cardRadius));
+    final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius));
+    final inputRadius = BorderRadius.circular(config.inputRadius);
 
     return ThemeData(
       useMaterial3: true,
@@ -232,7 +240,25 @@ class AppTheme {
           spread: config.shadowSpread,
           opacity: config.shadowOpacity,
         ),
-        AppShapeTokens(heroRadius: config.heroRadius),
+        AppShapeTokens(
+          heroRadius: config.heroRadius,
+          cardRadius: config.cardRadius,
+          buttonRadius: config.buttonRadius,
+          inputRadius: config.inputRadius,
+          pillRadius: config.pillRadius,
+          accentRadius: config.accentRadius,
+          accentOpacity: config.accentOpacity,
+          iconBadgeFill: Color(config.iconBadgeFillColor),
+          iconBadgeIcon: Color(config.iconBadgeIconColor),
+          iconBadgeOpacity: config.iconBadgeOpacity,
+        ),
+        AppSpacingTokens(
+          labelToCard: config.labelToCardSpacing,
+          cardToLabel: config.cardToLabelSpacing,
+          cardToCard: config.cardToCardSpacing,
+          cardVerticalPadding: config.cardVerticalPadding,
+          cardHorizontalPadding: config.cardHorizontalPadding,
+        ),
       ],
 
       // Components - AppBar
@@ -250,7 +276,7 @@ class AppTheme {
       // Components - Cards
       cardTheme: CardThemeData(
         color: AppColors.lightSurface,
-        shape: shape,
+        shape: cardShape,
         elevation: 0,
       ),
 
@@ -260,7 +286,7 @@ class AppTheme {
           backgroundColor: secondaryColor,
           foregroundColor: AppColors.pureWhite,
           textStyle: AppTypography.label,
-          shape: const StadiumBorder(),
+          shape: buttonShape,
           elevation: 0,
         ),
       ),
@@ -271,21 +297,21 @@ class AppTheme {
         fillColor: AppColors.lightHeader,
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: const BorderSide(color: AppColors.lightBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: config.useBorders 
               ? BorderSide(color: AppColors.lightBorder, width: config.borderWidth)
               : BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: BorderSide(color: primaryColor, width: config.useBorders ? config.borderWidth.clamp(2.0, 4.0) : 2.0),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius * 0.8),
+          borderRadius: inputRadius,
           borderSide: BorderSide(color: AppColors.coral500, width: config.useBorders ? config.borderWidth : 1.0),
         ),
         hintStyle: AppTypography.helper.copyWith(color: const Color(0xFF888880)),

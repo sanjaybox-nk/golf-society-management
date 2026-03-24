@@ -7,6 +7,8 @@ import 'package:golf_society/services/storage_service.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../events_provider.dart';
+import '../../../members/presentation/profile_provider.dart';
+import 'package:golf_society/domain/models/member.dart';
 
 class EventGalleryUserTab extends ConsumerStatefulWidget {
   final String eventId;
@@ -73,56 +75,72 @@ class _EventGalleryUserTabState extends ConsumerState<EventGalleryUserTab> {
             ),
           );
         }
-        return HeadlessScaffold(
-          title: event.title,
-          subtitle: 'Photos',
-          showBack: true,
-          onBack: () => context.go('/events'),
-          slivers: [
-            if (event.galleryUrls.isEmpty)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.photo_library, size: AppShapes.iconMassive, color: AppColors.textSecondary),
-                      SizedBox(height: AppSpacing.lg),
-                      Text('No photos yet', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLargeBody)),
-                      SizedBox(height: AppSpacing.sm),
-                      Text('Be the first to upload!', style: TextStyle(color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return ClipRRect(
-                        borderRadius: AppShapes.sm,
-                        child: Image.network(
-                          event.galleryUrls[index],
-                          fit: BoxFit.cover,
-                          loadingBuilder: (ctx, child, loading) {
-                            if (loading == null) return child;
-                            return Container(color: AppColors.dark200);
-                          },
-                        ),
-                      );
-                    },
-                    childCount: event.galleryUrls.length,
-                  ),
-                ),
+        final user = ref.watch(effectiveUserProvider);
+        final isStaff = user.role != MemberRole.member;
+
+        return Scaffold(
+          extendBody: true,
+          extendBodyBehindAppBar: true,
+          primary: false,
+          body: HeadlessScaffold(
+            title: event.title,
+            subtitle: 'Photos',
+            showAdminShortcut: false, // Explicitly removed as per user preference
+            showBack: true,
+            onBack: () => context.go('/events'),
+            actions: isStaff ? [
+              BoxyArtGlassIconButton(
+                icon: Icons.edit_rounded,
+                tooltip: 'Manage Gallery',
+                onPressed: () => context.push('/admin/events/manage/${event.id}/event/gallery'),
               ),
-          ],
+            ] : null,
+            slivers: [
+              if (event.galleryUrls.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.photo_library, size: AppShapes.iconMassive, color: AppColors.textSecondary),
+                        SizedBox(height: AppSpacing.lg),
+                        Text('No photos yet', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLargeBody)),
+                        SizedBox(height: AppSpacing.sm),
+                        Text('Be the first to upload!', style: TextStyle(color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return ClipRRect(
+                          borderRadius: AppShapes.sm,
+                          child: Image.network(
+                            event.galleryUrls[index],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (ctx, child, loading) {
+                              if (loading == null) return child;
+                              return Container(color: AppColors.dark200);
+                            },
+                          ),
+                        );
+                      },
+                      childCount: event.galleryUrls.length,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: _isUploading ? null : () => _pickAndUploadImage(event),
             icon: _isUploading 

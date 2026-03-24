@@ -1,114 +1,111 @@
-# Theme System (BoxyArt v3.7 - True Minimal)
+# Theme System (v4.0 - Radical Simplification)
 
 - **Location**: `lib/theme/`
 
 ## Key Files
--   **`app_colors.dart`**: Fairway v3.1 Primitives (Lime, Coral, Amber) and dark-first neutral scale.
--   **`app_typography.dart`**: Unified typography tokens using Fredoka (Display) and Inter (Body/Labels).
--   **`app_shapes.dart`**: Standardized radii (rXs to r2xl) and common UI shapes (Pill, Card).
--   **`app_spacing.dart`**: Layout spacing scale (8pt grid) and semantic layout tokens (`labelToCard`, `cardToLabel`).
--   **`app_theme.dart`**: Compiles tokens into `ThemeData` for Light and Dark modes.
+-   **`app_colors.dart`**: Unified opacity-based color strategy using `onSurface` base.
+-   **`app_typography.dart`**: 5 Standard Heights / 3 Standard Weights.
+-   **`app_shapes.dart`**: Standardized Icon Scales (Small, Medium, Large).
+-   **`app_spacing.dart`**: 4-Tier Scale (Atomic, Standard, Section, Hero).
 
-## Branding v3.1 Evolution
+## Radical Simplification (v4.0)
 
-The system has transitioned to a **Vivid Emerald** (Lime) primary palette with a heavy emphasis on dark-mode first design, high-contrast accessibility, and **pro-grade administrative hardening**.
+The system has been radically consolidated to ensure 100% UI consistency and predictability.
 
 ### 1. Colors (`AppColors`)
 
-#### Primitives
--   **Primary (Lime 500)**: `#4ADE80` - The high-impact green used for major actions.
--   **Error (Coral 500)**: `#FF5533` - Used for scorecard alerts and destructive actions.
--   **Achievement (Amber 500)**: `#FFAA00` - Used for Rank #1 and high-value indicators.
+#### Opacity-Based Text Strategy
+All text colors are derived from the `onSurface` base color using semantic opacity levels:
+-   **`textPrimary`**: `onSurface` @ 0.9 (`opacityStrong`)
+-   **`textSecondary`**: `onSurface` @ 0.6 (`opacitySecondary`)
+-   **`textTertiary`**: `onSurface` @ 0.3 (`opacitySubtle`)
 
-#### Neutral Scale (Dark-First)
--   **Dark 950 - 800**: Backgrounds and surfaces.
--   **Dark 600 - 400**: Borders and elevated cards.
--   **Dark 150 - 60**: Semantic text hierarchy from Secondary to Primary.
+#### Semantic Entity Colors
+Hardcoded entity colors have been replaced with semantic branding tokens:
+-   **Guest Purple**: `AppColors.guestPurple` (`#8E44AD`)
+-   **Meal Breakfast**: `AppColors.mealBreakfast` (`#8D6E63`)
+-   **Meal Dinner**: `AppColors.mealDinner` (`#673AB7`)
+-   **Meal Lunch**: `AppColors.mealLunch` (`#2ECC71`)
 
-### 2. Shapes (`AppShapes`)
--   **rXs (4.0)**: Subtle corner smoothing.
--   **rMd (12.0)**: Standard component radius.
--   **rLg (18.0)**: The authoritative `BoxyArtCard` radius. Synchronized across all headers and footers using parent-level clipping.
--   **r2xl (28.0)**: High-impact hero containers.
--   **rPill (999.0)**: For buttons and status tags.
+### 2. Typography (`AppTypography`)
 
-### 3. Typography (`AppTypography`)
--   **Fredoka**: Used strictly for `displayHero` (Large Hero headers).
--   **Inter**: Switched to **Inter** as the primary typeface for all `body`, `label`, and `caption` styles to ensure a clean, professional, and readable interface.
--   **Name Styling**: Player names are strictly **Title Case** and use `FontWeight.w800` (ExtraBold) for a high-contrast, premium "pop".
--   **Weight**: Headers and primary values use `FontWeight.w800` (ExtraBold) with `letterSpacing: -0.8` for a crisp, pro-grade feel. `w900` (Black) is reserved for specialized hero stats.
+#### Standard Heights (5 Levels)
+-   **`Display`**: 32.0 (Hero headers)
+-   **`Headline`**: 20.0 (Section titles, Player names)
+-   **`Body`**: 16.0 (Default reading)
+-   **`Label`**: 13.0 (Buttons, Metadata)
+-   **`Micro`**: 10.0 (Captions, Tags)
 
-## Legend System Taxonomy (BoxyArtPill)
+#### Standard Weights (3 Levels)
+-   **`Heavy`**: 800 (ExtraBold) - For headers and emphasized titles.
+-   **`Strong`**: 600 (Semibold) - For labels and secondary emphasis.
+-   **`Regular`**: 400 (Regular) - For body text.
 
-v3.7 introduces the **True Minimal** Legend system, prioritizing a clean **Title Case Text** approach. Leading icons/dots are removed unless functionally required.
+### 3. Spacing (`AppSpacing`)
+Standardized on a 4-tier scale for a predictable, high-density rhythm.
 
-1.  **Format Legend**: `.format()` factory. Used for competition formats (Stableford, Matchplay). Emerald/Lime styling.
-2.  **Type Legend**: `.type()` factory. Used for entity classification (Invitational, Player Badge). Dark/Neutral styling.
-3.  **Status Legend**: `.status(color: ...)` factory. Used for lifecycle and registration states. Semantic color mapping.
-4.  **Tee Legend**: `.tee(color: ...)` factory. Specialized legend for golf tee colors. Uses a **12x12px** distinct indicator with a subtle **1px border** (0.1 opacity) for visibility against all background shades.
+| Tier | Value | Usage |
+| :--- | :--- | :--- |
+| **Atomic** | 8.0 | Internal gaps, Label-to-Card |
+| **Standard** | 16.0 | Page padding, Card padding, Card-to-Card |
+| **Section** | 32.0 | Section breaks, Section Title Top |
+| **Hero** | 64.0 | Large structural void |
 
-## Universal Title Case Policy
+> [!TIP]
+> Use `BoxyArtSectionTitle` to automatically enforce this rhythm.
 
-As of v3.7, **ALL CAPS are strictly deprecated** across the entire application interface. 
-- All labels, headers (`BoxyArtSectionTitle`), and dynamic status text must use clean **Title Case**.
-- This improves legibility and reinforces the premium "True Minimal" aesthetic.
+### 5. Dynamic Spacing Tokens (`AppSpacingTokens`)
+For the **Admin Console** and other density-sensitive areas, the system uses dynamic tokens that respond to branding configuration:
+- **`labelToCard`**: Dynamic vertical gap from a Label to its content Card.
+- **`cardToLabel`**: Dynamic vertical gap from a Card to the next Section Label.
+- **`cardVerticalPadding`**: Internal vertical padding for `BoxyArtCard` (defaults to 16.0).
+- **`cardHorizontalPadding`**: Internal horizontal padding for `BoxyArtCard` (defaults to 16.0).
 
-## Component Implementation Pattern
+> [!IMPORTANT]
+> Always access these via `Theme.of(context).extension<AppSpacingTokens>()` to support "Zero Spacing" and other user-controlled density modes.
 
-**Always use the centralized design system widgets from `lib/design_system/`**:
--   `BoxyArtCard`: Implements authoritative radius and **automatic internal clipping** (`ClipRRect`).
--   `BoxyArtPill`: Implements the 4-family Tag Taxonomy.
--   `BoxyArtInputField`: Handles v3.1 labeling and input decoration.
--   `BoxyArtAppBar`: Standardized header with v3.1 typography.
+### 4. Icons (`AppShapes`)
 
-### Radius Synchronization & "White Corners"
-As of v3.8, inner surfaces (e.g., Header/Footer rows) must NOT declare their own radii if they are flush with the card boundary. `BoxyArtCard` uses `ClipRRect` to ensure all children inherit the authoritative curve, preventing visual artifacts ("white corners") caused by radius mismatches (e.g., 16px nested in 18px).
+#### 3 standard Scales
+-   **`Small`**: 16px
+-   **`Medium`**: 24px (Standard)
+-   **`Large`**: 32px
 
-### Usage Example
-```dart
-BoxyArtCard(
-  padding: const EdgeInsets.all(AppSpacing.lg),
-  child: Column(
-    children: [
-      Text('Stableford', style: AppTypography.displayMedium),
-      const SizedBox(height: AppSpacing.md),
-      BoxyArtPill.status(
-        label: 'Live',
-        color: AppColors.lime500,
-      ),
-    ],
-  ),
-)
-```
+## Branding Console & Granular Control
 
-## Branding Control & Granular Styles (v3.1+)
+The legacy `brandingStyle` presets (`classic`, `boxy`, `modern`) are **deprecated**. The system now uses purely dynamic granular controls:
 
-Societies can fine-tune their visual identity through the **Branding Settings** (Admin suite). This persists a `SocietyConfig` object that dynamically adapts the theme.
+-   **Card Radius**: 0.0 to 40.0
+-   **Input Radius**: 0.0 to 30.0
+-   **Button Radius**: 0.0 to 30.0
+-   **Shadow Intensity/Spread/Opacity**: Fully adjustable.
 
-- **Shadow Intensity**: A granular slider (0.0 to 2.0) that controls the depth and blur of `BoxyArtCard` shadows. 
-- **Border Granularity**: Toggleable borders with adjustable widths.
-- **Corner Smoothing**: Independent sliders for `Pill` and `Button` radii, overriding standard `AppShapes` for local brand flavor.
-- **Branding Style Presets**:
-    - `classic`: 8pt corners, conservative depth.
-    - `boxy`: 18pt corners, medium depth.
-    - `modern`: 28pt corners, high-diffusion air-glass shadows.
+This allows for a single "Theme Console" to control the entire application's aesthetic without maintaining hardcoded presets.
 
-### Dynamic Shadow Implementation
-`BoxyArtCard` automatically scales its `BoxShadow` based on `config.shadowIntensity`:
-```dart
-boxShadow: [
-  BoxShadow(
-    color: Colors.black.withValues(alpha: 0.12 * config.shadowIntensity.clamp(0.0, 1.0)),
-    blurRadius: 15 * config.shadowIntensity,
-    offset: Offset(0, 4 * config.shadowIntensity),
-  ),
-]
-```
+## Hardening & Enforcement
+1.  **Strict Tokenization**: No hardcoded `fontSize` or `Color` outside of theme files.
+2.  **Universal Title Case**: All UI labels must use Title Case.
+3.  **Automatic Clipping**: `BoxyArtCard` ensures all children respect the dynamic `cardRadius`.
 
 ## Motion Standard (v3.9 - BoxyArt Page)
 
 As of v3.9, the application uses a unified transition function to ensure movement feels consistent and premium.
 
-- **Standard Page (`boxyPage`)**: A synchronized **Fade + Subtle Slide Up** (0.05 offset).
-- **Duration**: `AppAnimations.medium` (400ms).
-- **Global Policy**: This transition is applied to all route movements, including bottom navigation switches and back-button pops, creating a "silky" and stable user experience.
+  - **Standard Page (`boxyPage`)**: A synchronized **Fade + Subtle Slide Up** (0.05 offset).
+  - **Duration**: `AppAnimations.medium` (400ms).
+  - **Global Policy**: This transition is applied to all route movements, including bottom navigation switches and back-button pops, creating a "silky" and stable user experience.
+
+## v4.0 UI Audit & Consolidation (March 2026)
+
+A comprehensive audit was performed to identify and eliminate hardcoded UI values. The following policy is now in effect:
+
+### Hardening Policy
+1.  **Zero Hardcoding**: No `Color(0x...)`, `Colors.X`, or `fontSize: X` are permitted in feature widgets.
+2.  **Token Usage**: All styles must reference `AppColors`, `AppTypography`, `AppSpacing`, or `AppShapes`.
+3.  **Semantic Colors**: Use semantic tokens (e.g., `AppColors.textPrimary`) over primitive tokens (`AppColors.dark60`) where available.
+4.  **Consolidated Opacity**: Use the standardized `AppColors.opacityX` tokens instead of `withOpacity(0.X)`.
+
+### Common Deviations (To be avoided)
+- Using `SizedBox(height: 10)` instead of `AppSpacing.md` (12) or `AppSpacing.sm` (8).
+- Using `BorderRadius.circular(10)` instead of `AppShapes.md` (12).
+- Defining local `TextStyle` objects instead of extending `AppTypography`.

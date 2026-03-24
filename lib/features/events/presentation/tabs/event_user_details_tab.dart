@@ -36,8 +36,6 @@ class EventUserDetailsTab extends ConsumerWidget {
       data: (event) {
         final config = ref.watch(themeControllerProvider);
         final user = ref.watch(effectiveUserProvider);
-        // Determine if we are truly in the admin console context via router flag
-        final isAdmin = user.role != MemberRole.member && isAdminMode;
 
         // Check for preview mode
         bool isPreview = false;
@@ -51,9 +49,9 @@ class EventUserDetailsTab extends ConsumerWidget {
           event: event, 
           currencySymbol: config.currencySymbol,
           isPreview: isPreview,
-          useScaffold: useScaffold,
+
           isAdminMode: isAdminMode,
-          onStatusChanged: isAdmin ? (newStatus) {
+          onStatusChanged: (user.role != MemberRole.member) ? (newStatus) {
             ref.read(eventsRepositoryProvider).updateEvent(
               event.copyWith(status: newStatus),
             );
@@ -106,101 +104,102 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(effectiveUserProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
-    // Determine if we are truly in the admin console context explicitly
-    final isAdmin = user.role != MemberRole.member && widget.isAdminMode;
+    final isStaff = user.role != MemberRole.member;
     
     final event = widget.event;
 
-    return HeadlessScaffold(
-      title: event.title,
-      subtitle: 'Event Info Hub',
-      useScaffold: widget.useScaffold,
-      leading: widget.isPreview ? Center(
-        child: BoxyArtGlassIconButton(
-          icon: Icons.close_rounded,
-          iconSize: 24,
-          onPressed: () {
-            if (widget.onCancel != null) {
-              widget.onCancel!();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-      ) : null,
-      showBack: !widget.isPreview,
-      onBack: () {
-        if (widget.isPreview && widget.onCancel != null) {
-          widget.onCancel!();
-          return;
-        }
-        
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          try {
-            if (widget.isAdminMode) {
-              context.go('/admin/events');
-            } else {
-              context.go('/events');
-            }
-          } catch (_) {
-            Navigator.of(context).pop();
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      primary: false,
+      bottomNavigationBar: widget.bottomNavigationBar,
+      body: HeadlessScaffold(
+        title: event.title,
+        subtitle: 'Event Info Hub',
+        showAdminShortcut: false, // Explicitly removed as requested
+  
+        leading: widget.isPreview ? Center(
+          child: BoxyArtGlassIconButton(
+            icon: Icons.close_rounded,
+            iconSize: 24,
+            onPressed: () {
+              if (widget.onCancel != null) {
+                widget.onCancel!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ) : null,
+        showBack: true,
+        onBack: () {
+          if (widget.isPreview && widget.onCancel != null) {
+            widget.onCancel!();
+            return;
           }
-        }
-      },
-      actions: [
-        if (!widget.isPreview && isAdmin && _selectedTab == EventInfoSubTab.info) ...[
-          if (widget.onEdit != null)
-            BoxyArtGlassIconButton(
-              icon: Icons.edit_rounded,
-              iconSize: 24,
-              onPressed: widget.onEdit,
-              tooltip: 'Edit Event Settings',
-            )
-          else ...[
-            BoxyArtGlassIconButton(
-              icon: Icons.edit_rounded,
-              iconSize: 24,
-              onPressed: () {
-                final id = event.id;
-                context.push('/admin/events/manage/${Uri.encodeComponent(id)}/event/edit', extra: event);
-              },
-              tooltip: 'Edit Event Settings',
-            ),
+          
+          if (widget.isAdminMode) {
+            context.go('/admin/events');
+          } else {
+            context.go('/events');
+          }
+        },
+        actions: [
+          if (!widget.isPreview && widget.isAdminMode && isStaff && _selectedTab == EventInfoSubTab.info) ...[
+            if (widget.onEdit != null)
+              BoxyArtGlassIconButton(
+                icon: Icons.edit_rounded,
+                iconSize: 24,
+                onPressed: widget.onEdit,
+                tooltip: 'Edit Event Settings',
+              )
+            else ...[
+              BoxyArtGlassIconButton(
+                icon: Icons.edit_rounded,
+                iconSize: 24,
+                onPressed: () {
+                  final id = event.id;
+                  context.push('/admin/events/manage/${Uri.encodeComponent(id)}/event/edit', extra: event);
+                },
+                tooltip: 'Edit Event Settings',
+              ),
+            ],
           ],
         ],
-      ],
-      bottomNavigationBar: widget.bottomNavigationBar,
-      slivers: [
-        SliverToBoxAdapter(
-          child: ModernUnderlinedFilterBar<EventInfoSubTab>(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            isExpanded: true,
-            tabs: const [
-              ModernFilterTab(label: 'News updates', value: EventInfoSubTab.notifications),
-              ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
-            ],
-            selectedValue: _selectedTab,
-            onTabSelected: (tab) => setState(() => _selectedTab = tab),
+        slivers: [
+          // Baseline Nudge for Tab Bar
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -16.0),
+              child: ModernUnderlinedFilterBar<EventInfoSubTab>(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                isExpanded: true,
+                tabs: const [
+                  ModernFilterTab(label: 'News updates', value: EventInfoSubTab.notifications),
+                  ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
+                ],
+                selectedValue: _selectedTab,
+                onTabSelected: (tab) => setState(() => _selectedTab = tab),
+              ),
+            ),
           ),
-        ),
         SliverPadding(
           padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const SizedBox(height: AppTheme.cardSpacing),
+              // Content Spacing (Standardized 24px overall visual: 16px container space + 8px spacer)
+              const SizedBox(height: AppSpacing.xs),
+              
               if (_selectedTab == EventInfoSubTab.info) ...[
-                const SizedBox(height: AppTheme.cardSpacing),
                 _buildDateTimeSection(context),
-                const SizedBox(height: AppTheme.cardSpacing),
+                const SizedBox(height: AppSpacing.sectionTitleTop), // Manual gap for first two cards (no titles)
                 _buildHeroSection(context),
-                const SizedBox(height: AppTheme.cardSpacing),
+                
                 if (event.eventType == EventType.golf) ...[
                   _buildCourseSelectionSection(context),
                   _buildCourseDataHardeningSection(context),
-                  const SizedBox(height: AppTheme.cardSpacing),
                 ],
                 if (event.status == EventStatus.published && event.eventType == EventType.golf) ...[
                    CompetitionRulesCard(
@@ -209,37 +208,31 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                     competition: widget.competition,
                   ),
                 ],
-                if (event.eventType == EventType.golf && event.secondaryTemplateId != null) ...[
-                  const SizedBox(height: AppTheme.cardSpacing),
-                  _buildSecondaryRulesSection(context),
-                ],
-                const SizedBox(height: AppTheme.cardSpacing),
+
                 _buildPlayingCostsSection(context),
-                const SizedBox(height: AppTheme.cardSpacing),
                 _buildMealCostsSection(context),
-                const SizedBox(height: AppTheme.cardSpacing),
                 _buildDinnerLocationSection(context),
-                const SizedBox(height: AppTheme.cardSpacing),
                 _buildFacilitiesSection(context),
-                const SizedBox(height: AppTheme.cardSpacing),
                 _buildAwardsSection(context, ref),
-                const SizedBox(height: AppTheme.cardSpacing),
                 _buildNotesSection(context),
-              ] else ...[
+              ]
+ else ...[
                 _buildNotificationsSection(context, ref),
               ],
             ]),
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 
 
   Widget _buildNotificationsSection(BuildContext context, WidgetRef ref) {
     final event = widget.event;
     final user = ref.watch(effectiveUserProvider);
-    final isAdmin = user.role != MemberRole.member && widget.isAdminMode;
+    final isStaff = user.role != MemberRole.member;
+    final isAdminMode = widget.isAdminMode && isStaff;
 
     final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
     
@@ -250,37 +243,85 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
       return a.sortOrder.compareTo(b.sortOrder);
     });
 
-    final displayItems = publishedItems; // Show all items in current order
+    // Headline is handled by the scaffold header; others should be allowed to render or self-shrink
+    final displayItems = publishedItems.where((item) => 
+      item.type != FeedItemType.headline 
+    ).toList();
+
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    bool userIsInGroup = false;
+    final groupsData = event.grouping['groups'] as List?;
+    if (groupsData != null) {
+      for (var gd in groupsData) {
+        final players = (gd as Map<String, dynamic>)['players'] as List?;
+        if (players != null && players.any((p) => (p as Map<String, dynamic>)['registrationMemberId'] == user.id)) {
+          userIsInGroup = true;
+          break;
+        }
+      }
+    }
+
+    final bool showYourGroup = event.isGroupingPublished && userIsInGroup;
+    
+    int firstSectionedIndex = -1;
+    if (!showYourGroup) {
+      firstSectionedIndex = displayItems.indexWhere((item) => 
+        item.type == FeedItemType.registration || 
+        item.type == FeedItemType.gallerySnippet || 
+        item.type == FeedItemType.podium
+      );
+    }
 
     return Column(
       children: [
-        YourGroupCard(event: event),
-        if (displayItems.isEmpty) ...[
-          const SizedBox(height: AppSpacing.x4l),
+        if (showYourGroup) YourGroupCard(event: event, isPeeking: true),
+
+        if (displayItems.isEmpty && !showYourGroup) ...[
+          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.x4l),
           const BoxyArtEmptyState(
             icon: Icons.notifications_off_rounded,
             title: 'No Notifications',
             message: 'Check back later for event updates and newsletters.',
           ),
         ] else ...[
-          ...displayItems.map((item) {
-            switch (item.type) {
-              case FeedItemType.headline:
-                return EventHeadlineCard(event: event);
-              case FeedItemType.podium:
-                return EventPodiumCard(event: event, isManagement: isAdmin);
-              case FeedItemType.registration:
-                return EventRegistrationCard(event: event, isManagement: isAdmin);
-              case FeedItemType.gallerySnippet:
-                return EventGalleryCard(event: event, isManagement: isAdmin);
-              case FeedItemType.flash:
-                return _buildFlashItem(context, item);
-              case FeedItemType.newsletter:
-                return _buildNewsletterItem(context, item);
-              default:
+          ListView.separated(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: displayItems.length,
+            separatorBuilder: (context, index) {
+              final nextItem = displayItems[index + 1];
+              // Items with internal section titles handle their own top padding via cardToLabel
+              if (nextItem.type == FeedItemType.gallerySnippet || 
+                  nextItem.type == FeedItemType.podium || 
+                  nextItem.type == FeedItemType.registration) {
                 return const SizedBox.shrink();
-            }
-          }),
+              }
+              // Standard items use cardToCard gap
+              return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
+            },
+            itemBuilder: (context, index) {
+              final item = displayItems[index];
+              final bool shouldPeek = (!showYourGroup && index == firstSectionedIndex);
+
+              switch (item.type) {
+                case FeedItemType.headline:
+                  return const SizedBox.shrink();
+                case FeedItemType.podium:
+                  return EventPodiumCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
+                case FeedItemType.registration:
+                  return EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
+                case FeedItemType.gallerySnippet:
+                  return EventGalleryCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
+                case FeedItemType.flash:
+                  return _buildFlashItem(context, item);
+                case FeedItemType.newsletter:
+                  return _buildNewsletterItem(context, item);
+                default:
+                  return const SizedBox.shrink();
+              }
+            },
+          ),
         ],
       ],
     );
@@ -288,7 +329,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
   Widget _buildFlashItem(BuildContext context, EventFeedItem item) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
@@ -335,9 +375,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
         final prefix = isAdmin ? '/admin/events/manage/${event.id}' : '/events/${event.id}';
         context.push('$prefix/feed/${item.id}', extra: item);
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
-        child: BoxyArtCard(
+      child: BoxyArtCard(
           padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,7 +414,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                           height: 1.5,
                         ),
                       ),
-                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.lg),
                     Row(
                       children: [
                         Text(
@@ -396,7 +434,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 ),
               ),
             ],
-          ),
         ),
       ),
     );
@@ -421,8 +458,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
 
   Widget _buildHeroSection(BuildContext context) {
-    final event = widget.event;
-    if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
+    if (widget.event.imageUrl != null && widget.event.imageUrl!.isNotEmpty) {
       return BoxyArtCard(
         padding: EdgeInsets.zero,
         child: Column(
@@ -431,7 +467,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
             ClipRRect(
               borderRadius: AppShapes.xl,
               child: Image.network(
-                event.imageUrl!,
+                widget.event.imageUrl!,
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
@@ -556,7 +592,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           ],
           if (event.registrationDeadline != null) ...[
             ModernInfoRow(
-              label: 'DEADLINE',
+              label: 'REGISTRATION CLOSES',
               value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
               icon: Icons.timer_outlined,
               iconColor: AppColors.pureWhite,
@@ -586,7 +622,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 ),
               ],
               if (event.eventType == EventType.golf && (event.selectedTeeName != null || event.selectedFemaleTeeName != null)) ...[
-                const SizedBox(height: AppTheme.cardSpacing),
+                const SizedBox(height: AppSpacing.standard),
                 Builder(
                   builder: (context) {
                     final maleTee = event.selectedTeeName;
@@ -610,7 +646,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 ),
               ],
               if (event.maxParticipants != null) ...[
-                const SizedBox(height: AppTheme.cardSpacing),
+                const SizedBox(height: AppSpacing.standard),
                 Builder(
                   builder: (context) {
                     final stats = RegistrationLogic.getRegistrationStats(event);
@@ -624,14 +660,14 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                   }
                 ),
               ],
-              const SizedBox(height: AppTheme.cardSpacing),
+              const SizedBox(height: AppSpacing.standard),
               ModernInfoRow(
                 label: 'Dress Code',
                 value: event.dressCode ?? 'Standard Golf Attire',
                 icon: Icons.checkroom_rounded,
               ),
               if (event.eventType == EventType.golf && event.availableBuggies != null) ...[
-                const SizedBox(height: AppTheme.cardSpacing),
+                const SizedBox(height: AppSpacing.standard),
                 ModernInfoRow(
                   label: 'Buggies',
                   value: '${event.availableBuggies} available',
@@ -685,47 +721,50 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
     return Consumer(
       builder: (context, ref, _) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppTheme.cardSpacing),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                color: AppColors.coral500.withValues(alpha: AppColors.opacitySubtle),
-                borderRadius: AppShapes.xl,
-                border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMedium)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Row(
-                     children: [
-                       const Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconLg),
-                       const SizedBox(width: AppSpacing.md),
-                       Expanded(
-                         child: Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             const Text(
-                               'Missing Course Data',
-                               style: TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeBody, color: AppColors.coral500),
-                             ),
-                             Text(
-                               'Handicaps cannot be accurately calculated.',
-                               style: TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh)),
-                             ),
-                           ],
+        final spacing = Theme.of(context).extension<AppSpacingTokens>();
+        return Padding(
+          padding: EdgeInsets.only(top: spacing?.cardToCard ?? AppSpacing.standard),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                decoration: BoxDecoration(
+                  color: AppColors.coral500.withValues(alpha: AppColors.opacitySubtle),
+                  borderRadius: AppShapes.xl,
+                  border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMedium)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                     Row(
+                       children: [
+                         const Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconLg),
+                         const SizedBox(width: AppSpacing.md),
+                         Expanded(
+                           child: Column(
+                             crossAxisAlignment: CrossAxisAlignment.start,
+                             children: [
+                               const Text(
+                                 'Missing Course Data',
+                                 style: TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeBody, color: AppColors.coral500),
+                               ),
+                               Text(
+                                 'Handicaps cannot be accurately calculated.',
+                                 style: TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh)),
+                               ),
+                             ],
+                           ),
                          ),
-                       ),
-                     ],
-                   ),
-                   const SizedBox(height: AppSpacing.xl),
-                   _buildManualDataFixer(context, ref),
-                ],
+                       ],
+                     ),
+                     const SizedBox(height: AppSpacing.xl),
+                     _buildManualDataFixer(context, ref),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       }
     );
@@ -755,7 +794,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
             ),
           ],
         ),
-        const SizedBox(height: AppTheme.cardSpacing),
+        const SizedBox(height: AppSpacing.standard),
         BoxyArtButton(
           title: 'Apply Course Updates',
           isPrimary: true,
@@ -813,13 +852,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     );
   }
 
-  Widget _buildSecondaryRulesSection(BuildContext context) {
-    return CompetitionRulesCard(
-      eventId: widget.event.id,
-      title: 'Secondary Rules',
-      competition: widget.competition,
-    );
-  }
+
 
   Widget _buildPlayingCostsSection(BuildContext context) {
     final event = widget.event;
@@ -917,23 +950,21 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: widget.event.facilities.map((f) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Row(
                 children: [
-                  BoxyArtIconBadge(
+                   BoxyArtIconBadge(
                     icon: Icons.check_rounded, 
-                    size: 38,
-                    iconSize: 18, 
                     color: AppColors.actionGreen,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       f,
-                      style: TextStyle(
-                        fontWeight: AppTypography.weightSemibold, 
-                        fontSize: AppTypography.sizeBody,
-                        color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: AppColors.opacityStrong),
+                      style: AppTypography.displayMedium.copyWith(
+                        fontSize: 16.5,
+                        fontWeight: AppTypography.weightExtraBold,
+                        letterSpacing: -0.2,
                       ),
                     ),
                   ),
@@ -949,13 +980,14 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
   Widget _buildNotesSection(BuildContext context) {
     final event = widget.event;
     if (event.notes.isEmpty) return const SizedBox.shrink();
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const BoxyArtSectionTitle(title: 'Additional Notes'),
         ...event.notes.map((note) => BoxyArtCard(
-          margin: const EdgeInsets.only(bottom: AppTheme.cardSpacing),
+          margin: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1081,8 +1113,10 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                 Text(
                                   'Value: ${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    fontSize: AppTypography.sizeLabelStrong,
+                                    fontSize: AppTypography.sizeLabel,
+                                    fontWeight: AppTypography.weightExtraBold,
                                     color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
+                                    letterSpacing: 0.5,
                                   ),
                                 )
                               else
