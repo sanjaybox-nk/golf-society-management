@@ -129,11 +129,11 @@ class _StrategyOption extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: isSelected 
-              ? AppColors.actionGreen.withValues(alpha: 0.08) 
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08) 
               : (isDark ? AppColors.dark800 : AppColors.dark50),
           borderRadius: AppShapes.lg,
           border: Border.all(
-            color: isSelected ? AppColors.actionGreen : Colors.transparent,
+            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
             width: 1.5,
           ),
         ),
@@ -141,7 +141,7 @@ class _StrategyOption extends StatelessWidget {
           children: [
             BoxyArtIconBadge(
               icon: icon,
-              color: isSelected ? AppColors.actionGreen : AppColors.dark400,
+              color: isSelected ? Theme.of(context).colorScheme.primary : AppColors.dark400,
               size: 44,
               iconSize: 22,
               isTinted: true,
@@ -156,7 +156,7 @@ class _StrategyOption extends StatelessWidget {
                   style: AppTypography.button.copyWith(
                     fontSize: AppTypography.sizeButton,
                     fontWeight: AppTypography.weightExtraBold,
-                    color: isSelected ? AppColors.actionGreen : AppColors.dark900,
+                    color: isSelected ? Theme.of(context).colorScheme.primary : AppColors.dark900,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -171,7 +171,7 @@ class _StrategyOption extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded, color: AppColors.actionGreen, size: 20),
+              Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary, size: 20),
           ],
         ),
       ),

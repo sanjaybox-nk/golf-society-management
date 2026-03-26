@@ -102,7 +102,9 @@ final upcomingEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref) {
     
     final upcoming = events.where((e) {
       final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isAtSameMomentAs(today) || eventDate.isAfter(today);
+      return eventDate.isAtSameMomentAs(today) || 
+             eventDate.isAfter(today) || 
+             e.status == EventStatus.inPlay;
     }).toList();
     
     upcoming.sort((a, b) => a.date.compareTo(b.date));
@@ -154,7 +156,9 @@ final upcomingSeasonEventsProvider = Provider<AsyncValue<List<GolfEvent>>>((ref)
     final today = DateTime(now.year, now.month, now.day);
     final upcoming = events.where((e) {
       final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-      return eventDate.isAtSameMomentAs(today) || eventDate.isAfter(today);
+      return eventDate.isAtSameMomentAs(today) || 
+             eventDate.isAfter(today) || 
+             e.status == EventStatus.inPlay;
     }).toList();
     upcoming.sort((a, b) => a.date.compareTo(b.date));
     return upcoming;

@@ -52,6 +52,13 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setStatusPublishedColor(Color color) async {
+    final hex = color.toARGB32();
+    final newConfig = state.copyWith(statusPublishedColor: hex);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
   Future<void> setStatusConfirmedColor(Color color) async {
     final hex = color.toARGB32();
     final newConfig = state.copyWith(statusConfirmedColor: hex);
@@ -305,6 +312,24 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setSocietyCutRules(Map<String, double> rules) async {
     final newConfig = state.copyWith(societyCutRules: rules);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setGlobalMembershipEndDate(DateTime? date) async {
+    final newConfig = state.copyWith(globalMembershipEndDate: date);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setRenewalWindowDays(int days) async {
+    final newConfig = state.copyWith(renewalWindowDays: days);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setIsRenewalActive(bool active) async {
+    final newConfig = state.copyWith(isRenewalActive: active);
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

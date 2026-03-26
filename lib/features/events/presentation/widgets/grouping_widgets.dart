@@ -156,13 +156,14 @@ class GroupingPlayerTile extends ConsumerWidget {
       child: BoxyArtCard(
         // showShadow removed to honor design control
         padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             // 1. Avatar Section (Standardized 72x72)
-            SizedBox(
+            Container(
               width: 72,
-              height: cardHeight,
+              constraints: BoxConstraints(minHeight: cardHeight),
               child: isAdmin 
                 ? PopupMenuButton<String>(
                     onSelected: (val) => onAction?.call(val, player, group),
@@ -213,23 +214,23 @@ class GroupingPlayerTile extends ConsumerWidget {
                         ),
                       ),
                     ],
-                    child: _buildAvatarStack(isScoreMode, varietyColor, hasGuestInGroup),
+                    child: _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
                   )
-                : _buildAvatarStack(isScoreMode, varietyColor, hasGuestInGroup),
+                : _buildAvatarStack(context, isScoreMode, varietyColor, hasGuestInGroup),
             ),
 
           // 2. Vertical Divider (Scalable)
           Container(
             width: 1,
-            height: cardHeight,
+            height: double.infinity,
             margin: EdgeInsets.symmetric(horizontal: hPadding),
             color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
           ),
 
           // 3. Right Section: Content
           Expanded(
-            child: SizedBox(
-              height: cardHeight,
+            child: Container(
+              constraints: BoxConstraints(minHeight: cardHeight),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start, // Align with top of divider
@@ -358,13 +359,16 @@ class GroupingPlayerTile extends ConsumerWidget {
               padding: const EdgeInsets.only(left: 8.0),
               child: Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 24),
             ),
-        ],
+          ],
+        ),
       ),
     ),
   );
 }
 
-  Widget _buildAvatarStack(bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
+  Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
+    final theme = Theme.of(context);
+    
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
@@ -384,7 +388,7 @@ class GroupingPlayerTile extends ConsumerWidget {
             left: -2,
             child: BoxyArtIconBadge(
               icon: Icons.person_add_rounded,
-              color: AppColors.actionGreen,
+              color: Theme.of(context).colorScheme.primary,
               size: 24,
               iconSize: 14,
               useCircle: true,
@@ -544,13 +548,15 @@ class GroupingCard extends StatelessWidget {
     final isScramble = rules?.format == CompetitionFormat.scramble;
     final isFourball = rules?.subtype == CompetitionSubtype.fourball;
     final int bestX = rules?.teamBestXCount ?? 2;
-    int groupTotal = 0;
+
+
 
     // [NEW] Relative PHC Map for Match Play formats
     final Map<String, int> relativePhcMap = phcMap != null
         ? Map.from(phcMap!)
         : {};
-    String? matchStatus;
+
+
     // 1. Determine Relative PHCs (Subracting min) - ONLY for Match Play
     final isMatchPlay = rules?.format == CompetitionFormat.matchPlay;
     if (isMatchPlay && rules != null) {
@@ -615,7 +621,7 @@ class GroupingCard extends StatelessWidget {
             courseConfig: courseConfig ?? const CourseConfig(),
             holesToPlay: 18,
           );
-          matchStatus = matchResult.status;
+
         }
       }
     }
@@ -700,12 +706,12 @@ class GroupingCard extends StatelessWidget {
               ? playerScores.length
               : bestX;
           for (int i = 0; i < count; i++) {
-            groupTotal += playerScores[i].value;
+
           }
         } else if (!isSplitTeam) {
           // Standard Scramble (One Team)
           // Score is shared, so just take the first one found
-          groupTotal = playerScores.isNotEmpty ? playerScores.first.value : 0;
+
         } else {
           // Fourball/Pairs: Use better-ball of side A and B to find winner if needed
           if (hasScoreA && hasScoreB) {
@@ -809,7 +815,7 @@ class GroupingCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.actionGreen,
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: AppShapes.xl,
                   ),
                   child: Row(
@@ -1064,226 +1070,7 @@ class GroupingCard extends StatelessWidget {
       );
     }
 
-  Widget _buildScoreFooter(
-    BuildContext context,
-    bool isStableford,
-    bool isScramble,
-    bool isSplitTeam,
-    int groupTotal,
-    int bestX,
-    int scoreA,
-    int scoreB,
-    bool hasScoreA,
-    bool hasScoreB,
-    String? matchStatus,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    String formatScore(int val) {
-      return !isStableford && val == 0
-          ? "E"
-          : (!isStableford && val > 0 ? "+$val" : val.toString());
-    }
 
-    if (isSplitTeam) {
-      // For fourball with betterBallMap, show BB pills in pair colors
-      final isFourball = rules?.subtype == CompetitionSubtype.fourball;
-      if (isFourball && betterBallMap != null && groupIndex != null) {
-        final bbA = betterBallMap!['g${groupIndex}_a'];
-        final bbB = betterBallMap!['g${groupIndex}_b'];
-        return Row(
-          children: [
-            if (matchStatus != null) ...[
-              Text(
-                'Status: ',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.dark700,
-                ),
-              ),
-              Text(
-                matchStatus,
-                style: const TextStyle(
-                  color: AppColors.lime500,
-                  fontSize: AppTypography.sizeLabel,
-                  fontWeight: AppTypography.weightBlack,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              // Remove trailing divider if A/B scores are hidden
-            ],
-            if (matchStatus == null) ...[
-              Text(
-                'A:',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.amber500,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.amber500.withValues(alpha: AppColors.opacitySubtle),
-                  borderRadius: AppShapes.md,
-                ),
-                child: Text(
-                  bbA ?? '-',
-                  style: TextStyle(
-                    color: AppColors.amber500,
-                    fontWeight: AppTypography.weightBlack,
-                    fontSize: AppTypography.sizeLabelStrong,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'B:',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.teamA,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.teamA.withValues(alpha: AppColors.opacitySubtle),
-                  borderRadius: AppShapes.md,
-                ),
-                child: Text(
-                  bbB ?? '-',
-                  style: TextStyle(
-                    color: AppColors.teamA,
-                    fontWeight: AppTypography.weightBlack,
-                    fontSize: AppTypography.sizeLabelStrong,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        );
-      }
-      // Non-fourball split team (e.g. 2-man scramble)
-      return Row(
-        children: [
-          if (matchStatus != null) ...[
-            Text(
-              'Status: ',
-              style: TextStyle(
-                color: AppColors.dark700,
-                fontSize: AppTypography.sizeCaptionStrong,
-                fontWeight: AppTypography.weightSemibold,
-              ),
-            ),
-            Text(
-              matchStatus,
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontSize: AppTypography.sizeLabel,
-                fontWeight: AppTypography.weightBlack,
-                letterSpacing: 0.2,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              width: AppShapes.borderThin,
-              height: AppSpacing.md,
-              color: AppColors.dark300.withValues(alpha: AppColors.opacityHalf),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
-          if (matchStatus == null) ...[
-            Text(
-              'A:',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark700,
-              ),
-            ),
-            const SizedBox(width: AppShapes.borderMedium),
-            Text(
-              hasScoreA ? formatScore(scoreA) : '-',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh),
-                fontSize: AppTypography.sizeCaptionStrong,
-                fontWeight: AppTypography.weightBlack,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              width: AppShapes.borderThin,
-              height: AppSpacing.md,
-              color: AppColors.dark300.withValues(alpha: AppColors.opacityHalf),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              'B:',
-              style: AppTypography.label.copyWith(
-                color: AppColors.dark700,
-              ),
-            ),
-            const SizedBox(width: AppShapes.borderMedium),
-            Text(
-              hasScoreB ? formatScore(scoreB) : '-',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh),
-                fontSize: AppTypography.sizeCaptionStrong,
-                fontWeight: AppTypography.weightBlack,
-              ),
-            ),
-          ],
-        ],
-      );
-    }
-
-    Widget mainScore = Text(
-      isScramble
-          ? 'Team Score: ${formatScore(groupTotal)}'
-          : 'Group Total (Best $bestX): ${formatScore(groupTotal)}',
-      style: AppTypography.label.copyWith(
-        color: isDark ? AppColors.pureWhite : AppColors.dark900,
-      ),
-    );
-
-    // [NEW] Display Scramble Weighting Rule for transparency
-    if (isScramble && (rules?.useWHSScrambleAllowance ?? false)) {
-      final teamCount = group.players
-          .where((p) => p.registrationMemberId != '')
-          .length; // Adjusted check
-      String weightInfo = "";
-      if (teamCount == 4) {
-        weightInfo = "WHS 25/20/15/10%";
-      } else if (teamCount == 3) {
-        weightInfo = "WHS 30/20/10%";
-      } else if (teamCount == 2) {
-        weightInfo = "WHS 35/15%";
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          mainScore,
-          if (weightInfo.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                weightInfo,
-                style: TextStyle(
-                  color: AppColors.dark500,
-                  fontSize: AppTypography.sizeCaption,
-                  fontWeight: AppTypography.weightSemibold,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-        ],
-      );
-    }
-
-    return mainScore;
-  }
 
   String _formatTime(BuildContext context, DateTime time) {
     return TimeOfDay.fromDateTime(time).format(context);

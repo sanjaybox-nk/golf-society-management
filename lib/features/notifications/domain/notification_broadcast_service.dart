@@ -44,6 +44,21 @@ class NotificationBroadcastService {
         'isRead': false,
     });
   }
+
+  /// Notifies a member that their annual membership is due for renewal.
+  Future<void> notifyMemberOfRenewal({
+    required Member member,
+  }) async {
+    await _firestore.collection('notifications').add({
+        'recipientId': member.id,
+        'title': 'Membership Renewal Due',
+        'message': 'Hi ${member.firstName}, your annual membership is due for renewal. Please visit your profile to confirm and update details.',
+        'timestamp': FieldValue.serverTimestamp(),
+        'category': 'Urgent',
+        'isRead': false,
+        'actionUrl': '/members/${member.id}',
+    });
+  }
 }
 
 final notificationBroadcastServiceProvider = Provider<NotificationBroadcastService>((ref) {

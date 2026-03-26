@@ -5,6 +5,7 @@ import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/course_config.dart';
 
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/presentation/widgets/course_info_card.dart';

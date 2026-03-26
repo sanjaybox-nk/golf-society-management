@@ -1,194 +1,75 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../events/presentation/events_provider.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:collection/collection.dart';
-import '../../providers/admin_ui_providers.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
-import './event_admin_grouping_screen.dart'; // For GroupingExitAction
 
 class EventAdminShell extends ConsumerWidget {
+  final String id;
   final Widget child;
 
   const EventAdminShell({
     super.key,
+    required this.id,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final segments = GoRouterState.of(context).uri.pathSegments;
-    // Extract ID from path parameters: /admin/events/manage/:id/...
-    String? id = GoRouterState.of(context).pathParameters['id'];
-    if (id == null) {
-      final manageIndex = segments.indexOf('manage');
-      if (manageIndex != -1 && manageIndex < segments.length - 1) {
-        id = segments[manageIndex + 1];
-      }
-    }
+    final state = GoRouterState.of(context);
+    final segments = state.uri.pathSegments;
 
-    final eventsAsync = ref.watch(adminEventsProvider);
-    final event = eventsAsync.value?.firstWhereOrNull((e) => e.id == id);
-    final isGolfEvent = event == null || event.eventType == EventType.golf;
-
-    final List<_AdminTab> tabs = [
-      const _AdminTab(
-        path: 'event',
-        icon: Icons.info_outline_rounded,
-        activeIcon: Icons.info_rounded,
-        label: 'Info',
-      ),
-      if (isGolfEvent)
-        const _AdminTab(
-          path: 'field-hub',
-          icon: Icons.grid_view_rounded,
-          activeIcon: Icons.grid_view_rounded,
-          label: 'Field',
-        ),
-      if (isGolfEvent)
-        const _AdminTab(
-          path: 'scores',
-          icon: Icons.emoji_events_outlined,
-          activeIcon: Icons.emoji_events_rounded,
-          label: 'Scores',
-        ),
-      const _AdminTab(
-        path: 'reporting',
-        icon: Icons.analytics_outlined,
-        activeIcon: Icons.analytics_rounded,
-        label: 'Stats',
-      ),
-      const _AdminTab(
-        path: 'controls',
-        icon: Icons.settings_suggest_rounded,
-        activeIcon: Icons.settings_suggest_rounded,
-        label: 'Controls',
-      ),
-    ];
-
-    // Determine current index based on path segments
+    // Hard-coded mapping for the 5-tab Admin Spec
     int currentIndex = 0;
-    final isAdminPath = GoRouterState.of(context).uri.path.startsWith('/admin');
-    
-    if (isAdminPath) {
-      if (segments.contains('field-hub')) {
-        currentIndex = isGolfEvent ? 1 : 0;
-      } else if (segments.contains('scores')) {
-        currentIndex = isGolfEvent ? 2 : 0;
-      } else if (segments.contains('reporting')) {
-        currentIndex = isGolfEvent ? 3 : 1;
-      } else if (segments.contains('controls')) {
-        currentIndex = isGolfEvent ? 4 : 1;
-      } else {
-        // Default to Info (0)
-        currentIndex = 0;
-      }
-    }
+    if (segments.contains('details')) currentIndex = 0;
+    else if (segments.contains('gallery')) currentIndex = 1;
+    else if (segments.contains('scores')) currentIndex = 2;
+    else if (segments.contains('stats')) currentIndex = 3;
+    else if (segments.contains('controls')) currentIndex = 4;
 
-    // Safety check for index
-    if (currentIndex >= tabs.length) currentIndex = 0;
+    final String prefix = '/admin/events/manage/$id';
 
     return Scaffold(
-      extendBody: true,
+      primary: true,
+      extendBody: false,
       body: child,
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
-        onItemSelected: (index) => _onTap(context, ref, index, currentIndex, tabs, id),
-        items: tabs.map((t) => BoxyArtBottomNavItem(
-          icon: t.icon,
-          activeIcon: t.activeIcon,
-          label: t.label,
-        )).toList(),
-      ),
-    );
-  }
-
-  void _onTap(BuildContext context, WidgetRef ref, int index, int currentIndex, List<_AdminTab> tabs, String? id) async {
-    if (index == currentIndex || id == null) return;
-    
-    final currentTab = tabs[currentIndex];
-    final nextTab = tabs[index];
-
-    // Check if grouping is dirty before leaving it
-    if (currentTab.path == 'grouping') {
-      final isDirty = ref.read(groupingDirtyProvider);
-      if (isDirty) {
-        final action = await _showExitConfirmation(context);
-        if (action == GroupingExitAction.stay) return;
-        
-        if (action == GroupingExitAction.save) {
-          final groups = ref.read(groupingLocalGroupsProvider);
-          final isLocked = ref.read(groupingIsLockedProvider);
-          
-          if (groups != null) {
-            try {
-              final events = await ref.read(adminEventsProvider.future);
-              final event = events.firstWhere((e) => e.id == id);
-              final updatedEvent = event.copyWith(
-                grouping: {
-                  'groups': groups.map((g) => g.toJson()).toList(),
-                  'updatedAt': DateTime.now().toIso8601String(),
-                  'locked': isLocked ?? false,
-                },
-              );
-              await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
-            } catch (e) {
-              // Error handled by resetting below or could show snackbar
-            }
+        onItemSelected: (index) {
+          switch (index) {
+            case 0: context.go('$prefix/details'); break;
+            case 1: context.go('$prefix/gallery'); break;
+            case 2: context.go('$prefix/scores'); break;
+            case 3: context.go('$prefix/stats'); break;
+            case 4: context.go('$prefix/controls'); break;
           }
-        }
-        
-        // Reset dirty state if discarding or saving
-        ref.read(groupingDirtyProvider.notifier).setDirty(false);
-      }
-    }
-
-    if (!context.mounted) return;
-
-    context.goNamed(
-      'admin-event-${nextTab.path}',
-      pathParameters: {'id': id},
-    );
-  }
-
-  Future<GroupingExitAction> _showExitConfirmation(BuildContext context) async {
-    final result = await showDialog<GroupingExitAction>(
-      context: context,
-      builder: (dialogContext) => BoxyArtDialog(
-        title: 'Unsaved Changes',
-        message: 'You have unsaved groupings. Do you want to save them before exiting?',
-        confirmText: 'Save',
-        cancelText: 'Discard',
-        onConfirm: () => Navigator.of(dialogContext).pop(GroupingExitAction.save),
-        onCancel: () => Navigator.of(dialogContext).pop(GroupingExitAction.discard),
-        actions: [
-          BoxyArtButton(
-            title: 'Discard',
-            onTap: () => Navigator.of(dialogContext).pop(GroupingExitAction.discard),
-            isGhost: true,
+        },
+        items: const [
+          BoxyArtBottomNavItem(
+            icon: Icons.info_outline_rounded,
+            activeIcon: Icons.info_rounded,
+            label: 'Info',
           ),
-          BoxyArtButton(
-            title: 'Save',
-            onTap: () => Navigator.of(dialogContext).pop(GroupingExitAction.save),
-            isPrimary: true,
+          BoxyArtBottomNavItem(
+            icon: Icons.grid_view_rounded,
+            activeIcon: Icons.grid_view_rounded,
+            label: 'Field',
+          ),
+          BoxyArtBottomNavItem(
+            icon: Icons.emoji_events_outlined,
+            activeIcon: Icons.emoji_events_rounded,
+            label: 'Scores',
+          ),
+          BoxyArtBottomNavItem(
+            icon: Icons.analytics_outlined,
+            activeIcon: Icons.analytics_rounded,
+            label: 'Stats',
+          ),
+          BoxyArtBottomNavItem(
+            icon: Icons.settings_rounded,
+            activeIcon: Icons.settings_rounded,
+            label: 'Controls',
           ),
         ],
       ),
     );
-    return result ?? GroupingExitAction.stay;
   }
-}
-
-class _AdminTab {
-  final String path;
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-
-  const _AdminTab({
-    required this.path,
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-  });
 }

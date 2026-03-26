@@ -10,7 +10,6 @@ import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/grouping/tee_group.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/features/competitions/presentation/widgets/leaderboard_widget.dart';
@@ -26,7 +25,6 @@ import '../../../competitions/presentation/competitions_provider.dart';
 // REDACTED: unused imports
 // REDACTED: unused imports
 import 'package:golf_society/services/persistence_service.dart';
-import 'dart:math' as math;
 import '../../../matchplay/presentation/widgets/matches_list_widget.dart';
 import '../../../matchplay/presentation/widgets/matches_bracket_widget.dart';
 import '../../../matchplay/presentation/widgets/match_group_standings_widget.dart';
@@ -101,6 +99,8 @@ class EventGroupingUserTab extends ConsumerWidget {
         var effectiveEvent = event;
         
         final bool isPublished = effectiveEvent.isGroupingPublished;
+        final bool isSocial = effectiveEvent.eventType == EventType.social;
+        
         final groupsData = effectiveEvent.grouping['groups'] as List?;
         final List<TeeGroup> groups = groupsData != null 
             ? groupsData.map((g) => TeeGroup.fromJson(g)).toList()
@@ -135,8 +135,8 @@ class EventGroupingUserTab extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
-            if (ref.watch(eventFieldTabProvider) == 0) ...[
-              // Registrations View
+            if (ref.watch(eventFieldTabProvider) == 0)
+              // Registrations View (Entries)
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 sliver: SliverToBoxAdapter(
@@ -151,19 +151,28 @@ class EventGroupingUserTab extends ConsumerWidget {
                     ),
                   ),
                 ),
-              ),
-            ] else ...[
-              // Pairings View
-              if (!isPublished)
+              )
+            else
+              // Pairings View (Tee Time)
+              if (isSocial)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: BoxyArtEmptyState(
+                    title: 'No Pairings',
+                    message: 'Social events do not typically have formal tee time pairings.',
+                    icon: Icons.favorite_border_rounded,
+                  ),
+                )
+              else if (!isPublished || groups.isEmpty)
                 const SliverFillRemaining(
                   hasScrollBody: false,
                   child: BoxyArtEmptyState(
                     title: 'Tee Time Not Published',
-                    message: 'The Admin will publish the tee time soon. Contact your society secretary if you believe this is an error.',
-                    icon: Icons.unarchive_rounded,
+                    message: 'Official pairings haven\'t been released yet. The Admin will publish them soon.',
+                    icon: Icons.schedule_rounded,
                   ),
                 )
-              else ...[
+              else
                 SliverPadding(
                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.pageBottom),
                    sliver: SliverList(
@@ -215,8 +224,6 @@ class EventGroupingUserTab extends ConsumerWidget {
                       ),
                    ),
                 ),
-              ],
-            ],
           ],
         );
       },
@@ -401,15 +408,13 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                             label: headerBadgeText,
                             color: headerBadgeColor,
                             hasHorizontalMargin: false,
-                            fontSize: 12,
-                            fontWeight: AppTypography.weightBlack,
-                            letterSpacing: 0.8,
                           ),
                     ),
                   ),
                 ),
               ],
               pinnedBottom: _buildPinnedScoring(event, comp, scoringData, effectiveRules),
+              pinnedBottomPadding: 100.0,
               slivers: [
                 if (event.matches.isNotEmpty)
                   SliverToBoxAdapter(
@@ -890,15 +895,20 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 child: GestureDetector(
                   onTap: () => _showMarkerSelectionSheet(event, isScoringActive),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: AppColors.actionGreen,
-                      borderRadius: BorderRadius.circular(config.pillRadius),
-                      boxShadow: config.useShadows ? Theme.of(context).extension<AppShadows>()?.softScale : null,
-                    ),
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.lime500, // Action Emerald
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
                         Flexible(
                           child: Text(
                             isSelfMarking 
@@ -907,19 +917,19 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                                     ? 'Marking: ${_getDisplayName(event, targetEntryId).split(' ').first.toUpperCase()}' 
                                     : 'Marking: SELECT'),
                             style: AppTypography.label.copyWith(
-                              color: AppColors.actionText,
-                              fontSize: AppTypography.sizeLabelStrong,
-                              letterSpacing: -0.2,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: AppTypography.weightStrong,
+                              letterSpacing: AppTypography.lsLabel,
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.xs),
-                        const Icon(
+                        Icon(
                           Icons.keyboard_arrow_down_rounded, 
-                          size: 18, 
-                          color: AppColors.actionText,
+                          size: 16, 
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ],
                     ),
@@ -1182,8 +1192,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                       'SELECT PLAYER TO MARK',
                       style: AppTypography.label.copyWith(
                         color: Theme.of(context).colorScheme.primary,
-                        fontWeight: AppTypography.weightBlack,
-                        letterSpacing: 1.0,
+                        fontWeight: AppTypography.weightHeavy,
+                        letterSpacing: AppTypography.lsLabel,
                       ),
                     ),
                   ],
@@ -1241,23 +1251,27 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
                 child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+                    color: Colors.transparent, // True Minimal style
                     borderRadius: AppShapes.md,
-                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityMedium)),
+                    border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.lightbulb_outline, size: AppShapes.iconSm, color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(width: AppSpacing.sm),
+                      Icon(
+                        Icons.lightbulb_outline_rounded, 
+                        size: 18, 
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
                           'Tee overrides update the scorecard immediately for that player.',
-                          style: AppTypography.caption.copyWith(
-                            fontSize: AppTypography.sizeLabel, 
-                            fontWeight: AppTypography.weightBlack, 
+                          style: AppTypography.micro.copyWith(
+                            fontSize: AppTypography.sizeMicro,
                             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                            height: 1.4,
                           ),
                         ),
                       ),
@@ -1491,7 +1505,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.caption.copyWith(
                               fontSize: AppTypography.sizeBodySmall,
-                              fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightSemibold,
+                              fontWeight: isSelected ? AppTypography.weightHeavy : AppTypography.weightSemibold,
                               color: isSelected 
                                   ? Theme.of(context).colorScheme.onSurface 
                                   : Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
@@ -1534,9 +1548,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
        height: 36,
        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
        decoration: BoxDecoration(
-         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: AppColors.opacityMuted),
+         color: Colors.transparent, // True Minimal Dropdown
          borderRadius: AppShapes.sm,
-         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
+         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
        ),
        child: DropdownButtonHideUnderline(
          child: DropdownButton<String?>(
@@ -1576,7 +1590,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                        overflow: TextOverflow.ellipsis,
                        style: AppTypography.caption.copyWith(
                          fontSize: AppTypography.sizeLabelStrong, 
-                         fontWeight: AppTypography.weightBlack,
+                         fontWeight: AppTypography.weightHeavy,
                          color: Theme.of(context).colorScheme.onSurface,
                        ),
                      ),
@@ -1613,7 +1627,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                          overflow: TextOverflow.ellipsis,
                          style: AppTypography.caption.copyWith(
                            fontSize: AppTypography.sizeLabelStrong, 
-                           fontWeight: AppTypography.weightBlack,
+                           fontWeight: AppTypography.weightHeavy,
                            color: Theme.of(context).colorScheme.onSurface,
                          ),
                        ),
@@ -1621,7 +1635,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                    ],
                  ),
                );
-             }),
+            }),
            ],
          ),
        ),

@@ -32,7 +32,7 @@ class _EventAdminScaffoldState extends State<EventAdminScaffold> {
     return HeadlessScaffold(
       title: _titles[_currentIndex],
       showBack: true,
-      bottomNavigationBar: BoxyArtBottomNavBar(
+      pinnedBottom: BoxyArtBottomNavBar(
         selectedIndex: _currentIndex,
         onItemSelected: (index) => setState(() => _currentIndex = index),
         items: const [

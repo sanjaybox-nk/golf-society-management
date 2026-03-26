@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -14,23 +15,24 @@ class CommitteeRolesScreen extends ConsumerStatefulWidget {
 
 class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
   final List<String> _standardRoles = [
+    'Chairman',      // Matches seeds
     'President',
     'Captain',
     'Vice Captain',
     'Secretary',
     'Treasurer',
+    'Handicap Secretary',
+    'Social Secretary',
   ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final membersAsync = ref.watch(allMembersProvider);
-    final beigeBackground = theme.scaffoldBackgroundColor;
 
     return HeadlessScaffold(
-      title: 'Committee Roles',
-      subtitle: 'Society specific titles',
-      backgroundColor: beigeBackground,
+      title: 'Committee Roles', // Retained original title as widget.role is not defined here
+      subtitle: 'Society specific titles', // Retained original subtitle as widget.role is not defined here
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
@@ -38,7 +40,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
           data: (members) {
             final activeCustomRoles = members
                 .map((m) => m.societyRole)
-                .where((r) => r != null && r.isNotEmpty && !_standardRoles.contains(r))
+                .where((r) => r != null && r.isNotEmpty && !_standardRoles.any((sr) => sr.toLowerCase() == r.toLowerCase()))
                 .cast<String>()
                 .toSet()
                 .toList();
@@ -46,15 +48,31 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
             activeCustomRoles.sort();
             final allRoles = [..._standardRoles, ...activeCustomRoles];
 
+            // Count members per role (case-insensitive)
+            final Map<String, int> roleCounts = {};
+            for (final m in members) {
+              if (m.societyRole != null) {
+                // Find matching standard role or use actual role if custom
+                final matchingStandardRole = _standardRoles.firstWhereOrNull(
+                  (sr) => sr.toLowerCase() == m.societyRole!.toLowerCase()
+                );
+                final roleKey = matchingStandardRole ?? m.societyRole!;
+                roleCounts[roleKey] = (roleCounts[roleKey] ?? 0) + 1;
+              }
+            }
+
             return SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const BoxyArtSectionTitle(title: 'SOCIETY TITLES'),
-                  ...allRoles.map((role) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                    child: _buildRoleCard(context, role),
-                  )),
+                  ...allRoles.map((role) {
+                    final count = roleCounts[role] ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: _buildRoleCard(context, role, count),
+                    );
+                  }),
                   const SizedBox(height: AppSpacing.x3l),
                   _buildCreateButton(context),
                   const SizedBox(height: 100),
@@ -69,7 +87,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     );
   }
 
-  Widget _buildRoleCard(BuildContext context, String role) {
+  Widget _buildRoleCard(BuildContext context, String role, int memberCount) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final description = _getRoleDescription(role);
@@ -79,9 +97,9 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
     return BoxyArtCard(
       onTap: () {
-        context.push('/admin/settings/committee-roles/members/${Uri.encodeComponent(role)}');
+        context.pushNamed('admin-committee-role-members', pathParameters: {'role': role});
       },
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md), // Design 4.1 Refining: Borders removed from member cards
       child: Row(
         children: [
           // Circular Icon Container (56x56)
@@ -107,14 +125,28 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  role.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: AppTypography.sizeButton,
-                    fontWeight: AppTypography.weightExtraBold,
-                    letterSpacing: 0.5,
-                    color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      role.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: AppTypography.sizeButton,
+                        fontWeight: AppTypography.weightExtraBold,
+                        letterSpacing: 0.5,
+                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                      ),
+                    ),
+                    if (memberCount > 0) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      // Branding 4.x Token Badge
+                      BoxyArtPill(
+                        label: '$memberCount',
+                        color: AppColors.scoreEagle,
+                        fontSize: AppTypography.sizeMicroSmall,
+                        hasHorizontalMargin: false,
+                      ),
+                    ],
+                  ],
                 ),
                 if (description.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -129,16 +161,9 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
               ],
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          // Actions
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: AppShapes.iconMd),
-            color: isDark ? AppColors.dark400 : AppColors.dark200,
-            onPressed: () => _showEditRoleDialog(role),
-          ),
-          Icon(
+          const Icon(
             Icons.chevron_right_rounded, 
-            color: isDark ? AppColors.dark400 : AppColors.dark300, 
+            color: AppColors.textSecondary, 
             size: AppShapes.iconMd,
           ),
         ],
@@ -179,81 +204,8 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     );
   }
 
-  void _showEditRoleDialog(String oldName) {
-    final controller = TextEditingController(text: oldName);
-    showBoxyArtDialog(
-      context: context,
-      title: 'Edit Title: $oldName',
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Renaming this role will update the title for ALL members who currently hold it.',
-            style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          BoxyArtFormField(
-            label: 'Role Title',
-            controller: controller,
-          ),
-        ],
-      ),
-      onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
-      onConfirm: () {
-        if (controller.text.trim().isNotEmpty && controller.text.trim() != oldName) {
-          final newName = controller.text.trim();
-          Navigator.of(context, rootNavigator: true).pop();
-          _renameRole(oldName, newName);
-        }
-      },
-      confirmText: 'Save',
-    );
-  }
-
   // --- Helpers ---
 
-  Future<void> _renameRole(String oldName, String newName) async {
-    // Batch update all members with this role
-    final members = ref.read(allMembersProvider).asData?.value ?? [];
-    final membersToUpdate = members.where((m) => m.societyRole == oldName).toList();
-
-    if (membersToUpdate.isEmpty) {
-      // Just a visual change if it was a standard role with no members?
-      // Since we don't store roles separately, there's nothing to update if no members have it.
-      // But for standard roles, we can't "rename" the hardcoded string in the list.
-      // So this only effectively renames it for the people holding it.
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No members held this role, so no updates were needed.')));
-      return;
-    }
-
-    final repo = ref.read(membersRepositoryProvider);
-    int count = 0;
-
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Simple loop for now - optimal for < 500 members
-      for (final member in membersToUpdate) {
-        final updated = member.copyWith(societyRole: newName);
-        await repo.updateMember(updated);
-        count++;
-      }
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop(); // Pop loading
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Updated role for $count members.')));
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating roles: $e')));
-      }
-    }
-  }
 
   IconData _getRoleIcon(String role) {
     switch (role) {
@@ -268,11 +220,14 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
 
   String _getRoleDescription(String role) {
     switch (role) {
-      case 'President': return 'Head of the society and committee chair.';
+      case 'Chairman': return 'Overall leader of the society committee.';
+      case 'President': return 'Honorary head of the society.';
       case 'Captain': return 'Leads the team and manages golf events.';
       case 'Vice Captain': return 'Supports the Captain and deputizes when needed.';
       case 'Secretary': return 'Manages administration, minutes, and membership.';
       case 'Treasurer': return 'Manages finances, payments, and accounts.';
+      case 'Handicap Secretary': return 'Maintains member handicaps and WHS compliance.';
+      case 'Social Secretary': return 'Organizes social events and non-golf gatherings.';
       default: return 'Custom Role';
     }
   }

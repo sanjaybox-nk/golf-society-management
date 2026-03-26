@@ -1,24 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
-import '../../../members/presentation/members_provider.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
 
+class SystemRoleMembersScreen extends ConsumerStatefulWidget {
+  final MemberRole role;
 
-class CommitteeRoleMembersScreen extends ConsumerStatefulWidget {
-  final String role; // e.g. "Captain"
-
-  const CommitteeRoleMembersScreen({
+  const SystemRoleMembersScreen({
     super.key,
     required this.role,
   });
 
   @override
-  ConsumerState<CommitteeRoleMembersScreen> createState() => _CommitteeRoleMembersScreenState();
+  ConsumerState<SystemRoleMembersScreen> createState() => _SystemRoleMembersScreenState();
 }
 
-class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMembersScreen> {
+class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  Color get _roleColor => Theme.of(context).primaryColor;
   String _searchQuery = '';
 
   @override
@@ -38,12 +36,14 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
+    final theme = Theme.of(context);
+    final roleColor = theme.primaryColor;
 
     return HeadlessScaffold(
-      title: widget.role,
-      subtitle: 'Members currently serving as ${widget.role}.', // Design 4.1 Subtext
+      title: widget.role.displayName,
+      subtitle: 'Members assigned to the ${widget.role.displayName} tier.',
       showBack: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       slivers: [
         SliverToBoxAdapter(
           child: Container(
@@ -70,55 +70,53 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
             final isSearching = _searchQuery.isNotEmpty;
 
             if (isSearching) {
-              // Candidates + Holders matching search
               displayList = members.where((m) {
                 final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
                 return name.contains(_searchQuery);
               }).toList();
             } else {
-              // Holders Only
               displayList = members.where((m) {
-                return m.societyRole?.toLowerCase() == widget.role.toLowerCase();
+                return m.role == widget.role;
               }).toList();
             }
 
-            // Sort: Role holders first, then alpha
+            // Sort: Current holders first, then alpha
             displayList.sort((a, b) {
-              final aHasRole = a.societyRole?.toLowerCase() == widget.role.toLowerCase();
-              final bHasRole = b.societyRole?.toLowerCase() == widget.role.toLowerCase();
+              final aHasRole = a.role == widget.role;
+              final bHasRole = b.role == widget.role;
               if (aHasRole && !bHasRole) return -1;
               if (!aHasRole && bHasRole) return 1;
               return a.lastName.compareTo(b.lastName);
             });
 
             if (displayList.isEmpty) {
-              return SliverFillRemaining(
+              return const SliverFillRemaining(
                 child: Center(
-                  child: Text(
-                    isSearching ? 'No members found.' : 'No members have this position.',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                  child: BoxyArtEmptyState(
+                    title: 'No members found',
+                    message: 'Try a different search term.',
                   ),
                 ),
               );
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final member = displayList[index];
-                    final hasRole = member.societyRole?.toLowerCase() == widget.role.toLowerCase();
+                    final hasRole = member.role == widget.role;
 
                     if (!hasRole) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildCandidateTile(member),
+                        child: _buildCandidateTile(member, roleColor),
                       );
                     } else {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildActiveRoleTile(member),
+                        child: _buildActiveRoleTile(member, roleColor),
                       );
                     }
                   },
@@ -135,8 +133,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
     );
   }
 
-  // Tile for someone who CAN be added
-  Widget _buildCandidateTile(Member member) {
+  Widget _buildCandidateTile(Member member, Color roleColor) {
     return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: ListTile(
@@ -152,11 +149,9 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
               : null,
         ),
         title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: AppTypography.weightBold)),
-        subtitle: member.societyRole != null && member.societyRole!.isNotEmpty 
-            ? Text(member.societyRole!, style: TextStyle(fontSize: AppTypography.sizeLabel, color: _roleColor)) 
-            : null,
+        subtitle: Text(member.role.displayName, style: TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
         trailing: IconButton(
-          icon: Icon(Icons.add_circle, color: _roleColor, size: AppShapes.iconXl),
+          icon: Icon(Icons.add_circle, color: roleColor, size: AppShapes.iconXl),
           onPressed: () {
             _updateRole(member, widget.role);
             _searchController.clear();
@@ -166,11 +161,9 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
     );
   }
 
-  // Tile for someone who HAS the role (Premium 3.1 Style - Image 1)
-  Widget _buildActiveRoleTile(Member member) {
+  Widget _buildActiveRoleTile(Member member, Color roleColor) {
     return BoxyArtCard(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-      // Design 4.1 Refining: Borders removed from member cards
       child: Row(
         children: [
           CircleAvatar(
@@ -198,19 +191,18 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
                   ),
                 ),
                 const SizedBox(height: 6),
-                // Labeled Badge (Image 1 Style)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _roleColor.withValues(alpha: 0.12),
+                    color: roleColor.withValues(alpha: 0.12),
                     borderRadius: AppShapes.xs,
                   ),
                   child: Text(
-                    widget.role,
+                    widget.role.displayName.toUpperCase(),
                     style: TextStyle(
                       fontSize: AppTypography.sizeMicro,
                       fontWeight: AppTypography.weightBold,
-                      color: _roleColor,
+                      color: roleColor,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -220,11 +212,14 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
           ),
           Switch(
             value: true,
-            activeTrackColor: _roleColor,
+            activeTrackColor: roleColor,
             thumbColor: const WidgetStatePropertyAll(AppColors.pureWhite),
             trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
             onChanged: (val) {
-               if (!val) _updateRole(member, null);
+               // Revert to 'member' role if unchecked, unless it's already 'member'
+               if (!val && widget.role != MemberRole.member) {
+                 _updateRole(member, MemberRole.member);
+               }
             },
           ),
         ],
@@ -232,10 +227,9 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
     );
   }
 
-  Future<void> _updateRole(Member member, String? newRole) async {
+  Future<void> _updateRole(Member member, MemberRole newRole) async {
     final repo = ref.read(membersRepositoryProvider);
-    // Note: This replaces any existing role. A member can only have ONE society role at a time currently.
-    final updatedMember = member.copyWith(societyRole: newRole);
+    final updatedMember = member.copyWith(role: newRole);
     try {
       await repo.updateMember(updatedMember);
     } catch (e) {

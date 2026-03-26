@@ -175,6 +175,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
                 onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
                 onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -202,6 +203,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
                 onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
                 onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -229,6 +231,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
                 onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
                 onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -256,6 +259,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
                 onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
                 onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, true),
               ),
             )),
           ],
@@ -283,6 +287,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
                 onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
                 onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
+                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, true),
               ),
             )),
           ],
@@ -310,6 +315,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
                 onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
                 onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
+                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, true),
               ),
             )),
           ],
@@ -336,6 +342,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
                 onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
                 onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
+                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -361,6 +368,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
                 onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
                 onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
                 onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
+                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, false),
               ),
             )),
           ],
@@ -472,6 +480,12 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final updated = isGuest 
       ? reg.copyWith(guestAttendingDinner: !reg.guestAttendingDinner)
       : reg.copyWith(attendingDinner: !reg.attendingDinner);
+    EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
+  }
+
+  static void _togglePaid(WidgetRef ref, GolfEvent event, EventRegistration reg, bool isGuest) {
+    // Note: Membership fee paid is member.hasPaid. Event fee is reg.hasPaid.
+    final updated = reg.copyWith(hasPaid: !reg.hasPaid);
     EventRegistrationsAdminScreen._updateRegistration(ref, event, updated);
   }
 

@@ -74,7 +74,7 @@ class _EmptyStateContent extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(isCompact ? AppSpacing.sm : AppSpacing.md),
             decoration: BoxDecoration(
-              color: theme.colorScheme.secondary.withValues(alpha: accentOpacity),
+              color: theme.colorScheme.primary.withValues(alpha: accentOpacity),
               borderRadius: accentRadius,
             ),
             child: Icon(

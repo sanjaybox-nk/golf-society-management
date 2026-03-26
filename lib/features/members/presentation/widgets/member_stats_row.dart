@@ -79,8 +79,8 @@ class _StatItem extends ConsumerWidget {
             label.toUpperCase(),
             style: AppTypography.label.copyWith(
               color: badgeFg.withValues(alpha: 0.8),
-              fontWeight: AppTypography.weightStrong,
-              fontSize: 10,
+              fontWeight: AppTypography.weightHeavy,
+              fontSize: AppTypography.sizeMicro,
               letterSpacing: AppTypography.lsMicro,
             ),
           ),

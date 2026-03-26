@@ -1,3 +1,14 @@
+### Phase 80: Control Tower & Grouping Hub Modernization (v4.0) (2026-03-26)
+- **Control Tower Modernization**:
+    *   **Unified Grouping Hub**: Consolidated fragmented grouping controls (Strategy, Tee Seed, Interval) into a single, process-oriented `AdminGroupingHubCard`.
+    *   **Consolidated Navigation**: Refactored `EventAdminControlsScreen` to replace fragmented buttons with a single "Manage Grouping & Tee Times" navigation tile.
+    *   **Shell Stability**: Switched to `goNamed` for sibling route navigation within the event shell to resolve `GlobalKey` assertion errors.
+- **Vertical Rhythm & Spacing**:
+    *   **Standardized Spacing**: Refactored vertical gaps in `EventFieldAdminScreen` and `AdminGroupingHubContent` to use authoritative `AppSpacing` tokens.
+    *   **Bug Fix**: Resolved `AppSpacing.tabToLabel` build error by standardizing on `AppSpacing.standard` for tab-to-list transitions.
+- **Documentation Sync**:
+    *   Updated `06_ROADMAP_TODO.md` and `11_GROUPING_LOGIC.md` to match the modernized Hub-based architecture.
+
 ### Phase 78: Grouping Hardening & Design 3.1 (2026-03-17)
 - **Grouping Hardening & Design 3.1**:
     *   **Stable Card Layout**: Fixed horizontal shifts caused by conditional chevron and drag-target borders. Standardized the 6px accent bar and right chevron space to ensure persistent layout "footprints".

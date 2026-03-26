@@ -157,35 +157,38 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
               borderRadius: BorderRadius.zero, 
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 GestureDetector(
                   onTap: _currentPage == 1 ? () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut) : null,
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: Icon(
                       Icons.chevron_left_rounded, 
                       color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: _currentPage == 1 ? 0.6 : 0.1), 
-                      size: 18,
+                      size: 20,
                     ),
                   ),
                 ),
                 Text(
                   _currentPage == 0 ? 'FRONT 9' : 'BACK 9',
                   style: AppTypography.ribbonHeader.copyWith(
+                    fontSize: 15,
+                    fontWeight: AppTypography.weightHeavy,
                     color: isDark ? AppColors.dark60 : AppColors.dark900,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 GestureDetector(
                   onTap: _currentPage == 0 ? () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut) : null,
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: Icon(
                       Icons.chevron_right_rounded, 
                       color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: _currentPage == 0 ? 0.6 : 0.1), 
-                      size: 18,
+                      size: 20,
                     ),
                   ),
                 ),

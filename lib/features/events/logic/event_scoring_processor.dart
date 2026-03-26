@@ -1,5 +1,4 @@
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/member.dart';
@@ -66,7 +65,6 @@ class EventScoringProcessor {
                            event.results.firstWhereOrNull((r) => r['playerName'] == memberMap[basePid]?.displayName);
       
       final bool hasScores = (liveCard != null && liveCard.holeScores.any((h) => h != null)) || (seededResult != null);
-      final bool isConfirmed = isGuest ? (reg?.guestIsConfirmed ?? false) : (reg?.isConfirmed ?? false);
       
       // Guests MUST have score data to appear on the leaderboard (per user request)
       if (isGuest && !hasScores) continue;

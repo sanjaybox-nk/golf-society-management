@@ -82,11 +82,10 @@ class BoxyArtMemberRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primaryColor = theme.colorScheme.primary;
-
+    final primary = theme.primaryColor;
     BoxBorder? cardBorder;
     if (isSelected) {
-      cardBorder = Border.all(color: primaryColor, width: AppShapes.borderMedium);
+      cardBorder = Border.all(color: primary, width: AppShapes.borderMedium);
     } else if (matchSide != null) {
       cardBorder = Border.all(
         color: matchSide == 'A' ? AppColors.teamA : AppColors.teamB,
@@ -131,7 +130,7 @@ class BoxyArtMemberRow extends StatelessWidget {
                   toTitleCase(name),
                   style: AppTypography.body.copyWith(
                     color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                    fontWeight: AppTypography.weightExtraBold,
+                    fontWeight: AppTypography.weightBold,
                     fontSize: AppTypography.sizeBody,
                     letterSpacing: -0.4,
                   ),
@@ -210,7 +209,7 @@ class BoxyArtMemberRow extends StatelessWidget {
       padding: EdgeInsets.zero, // Padding handled by internal container
       showShadow: false,
       backgroundColor: isSelected 
-          ? primaryColor.withValues(alpha: AppColors.opacityLow) 
+          ? primary.withValues(alpha: AppColors.opacityLow) 
           : (isDark ? AppColors.dark700 : AppColors.pureWhite),
       border: cardBorder,
       child: cardContent,
@@ -257,10 +256,6 @@ class BoxyArtMemberRow extends StatelessWidget {
   }
 
   Widget _buildMetadata(BuildContext context) {
-    final metaColor = Theme.of(context).brightness == Brightness.dark 
-        ? AppColors.dark150 
-        : AppColors.dark300;
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final metaStyle = AppTypography.subtext.copyWith(
       color: isDark ? AppColors.dark150 : AppColors.dark700,

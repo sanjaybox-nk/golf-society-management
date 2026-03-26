@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
@@ -41,7 +40,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     final data = ref.watch(eventScoringControllerProvider(widget.event.id));
 
     final currentFormat = widget.comp?.rules.format ?? CompetitionFormat.stableford;
-    final isGuestLeaderboardActive = widget.event.isInvitational;
+
 
     final memberMap = {for (final m in widget.membersList) m.id: m};
 

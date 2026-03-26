@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../design_system.dart';
+import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 
@@ -26,13 +26,8 @@ class BoxyArtEventCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.primaryColor;
-    final textSecondary = theme.textTheme.bodySmall?.color;
-    final config = ref.watch(themeControllerProvider);
     final spacing = theme.extension<AppSpacingTokens>();
-
-    final accentColor = event.isInvitational
-        ? AppColors.amber500
-        : (event.eventType == EventType.social ? AppColors.coral500 : primary);
+    final config = ref.watch(themeControllerProvider);
 
     final content = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,8 +42,8 @@ class BoxyArtEventCard extends ConsumerWidget {
                 date: event.date,
                 endDate: event.endDate,
                 highlightColor: event.isInvitational
-                    ? AppColors.amber500
-                    : (event.eventType == EventType.social ? AppColors.coral500 : null),
+                    ? Color(config.secondaryColor)
+                    : (event.eventType == EventType.social ? Color(config.secondaryColor) : null),
               ),
               if (event.isInvitational || event.eventType == EventType.social || event.isSeasonEvent) ...[
                 const SizedBox(height: 8),
@@ -66,12 +61,12 @@ class BoxyArtEventCard extends ConsumerWidget {
                     if (event.isInvitational)
                       _buildTag(
                         label: 'Invite', // Shortened
-                        color: AppColors.amber500,
+                        color: Color(config.secondaryColor),
                       ),
                     if (event.eventType == EventType.social)
                       _buildTag(
                         label: 'Social',
-                        color: AppColors.coral500,
+                        color: Color(config.secondaryColor),
                       ),
                   ],
                 ),
@@ -119,18 +114,7 @@ class BoxyArtEventCard extends ConsumerWidget {
                               child: BoxyArtPill.status(
                                 label: 'Live',
                                 color: AppColors.coral500,
-                                backgroundColor: AppColors.coral500,
-                                textColor: AppColors.pureWhite,
-                              ),
-                            ),
-                          if (event.isRegistrationOpen)
-                            Padding(
-                              padding: const EdgeInsets.only(top: AppSpacing.xs),
-                              child: BoxyArtPill.status(
-                                label: 'Register Now',
-                                color: AppColors.actionGreen,
-                                backgroundColor: AppColors.actionGreen,
-                                textColor: AppColors.pureWhite,
+                                isAction: true,
                               ),
                             ),
                         ],
@@ -143,6 +127,7 @@ class BoxyArtEventCard extends ConsumerWidget {
 
               // Bottom Metadata Row
               Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Column(
@@ -208,6 +193,8 @@ class BoxyArtEventCard extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  
+                  // Bottom Right: Actions and Status
                   if (statusPill != null && showStatus) 
                     Padding(
                       padding: const EdgeInsets.only(left: AppSpacing.sm),

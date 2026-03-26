@@ -19,8 +19,15 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
   final Member? member; // Null = New Member
   final bool isNewMember;
   final bool isAdminContext;
+  final bool isModal;
 
-  const MemberDetailsModal({super.key, this.member, this.isNewMember = false, this.isAdminContext = false});
+  const MemberDetailsModal({
+    super.key, 
+    this.member, 
+    this.isNewMember = false, 
+    this.isAdminContext = false,
+    this.isModal = true,
+  });
 
   static void show(BuildContext context, Member? member, {bool isAdmin = false, bool isNewMember = false, bool isAdminContext = false}) {
     showModalBottomSheet(
@@ -73,6 +80,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   late MemberRole _role;
   String? _societyRole;
   DateTime? _joinedDate;
+  DateTime? _membershipEndDate; // [NEW]
   bool _isSaving = false;
 
   // Removed ref.watch wrapper methods to prevent StateError during async build phases.
@@ -112,6 +120,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _role = m?.role ?? MemberRole.member;
     _societyRole = m?.societyRole;
     _joinedDate = m?.joinedDate;
+    _membershipEndDate = m?.membershipEndDate; // [NEW]
     _gender = m?.gender; // [NEW]
 
     String phone = m?.phone ?? '';
@@ -199,6 +208,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         role: _role,
         societyRole: _societyRole,
         joinedDate: _joinedDate,
+        membershipEndDate: _membershipEndDate, // [NEW]
         gender: _gender, // [NEW]
       );
 
@@ -273,7 +283,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     String title = widget.isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail');
 
     final baseContent = HeadlessScaffold(
-      isModal: true,
+      isModal: widget.isModal,
       title: title,
       showBack: !_isEditing,
       showAdminShortcut: false, 
@@ -362,6 +372,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       societyRole: _societyRole,
                       onSocietyRoleTap: isAdmin ? _showSocietyRolePicker : null,
                       joinedDate: _joinedDate,
+                      showFeeIndicator: false, // Moved to Renewal Hub list
                     ),
                   ),
 
@@ -375,33 +386,63 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                           children: [
                             const BoxyArtSectionTitle(title: 'MEMBERSHIP DETAILS', isLevel2: true),
                             BoxyArtCard(
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: _isEditing && isAdmin
-                                      ? BoxyArtInputField(
-                                          label: 'Handicap',
-                                          controller: _handicapController,
-                                          focusNode: _handicapFocusNode,
-                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                        )
-                                      : BoxyArtPill.hc(label: _handicapController.text),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _isEditing && isAdmin
+                                          ? BoxyArtInputField(
+                                              label: 'Handicap',
+                                              controller: _handicapController,
+                                              focusNode: _handicapFocusNode,
+                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                            )
+                                          : _buildValueDisplay(context, 'HC', _handicapController.text),
+                                      ),
+                                      const SizedBox(width: AppSpacing.x2l),
+                                      Expanded(
+                                        child: _isEditing && isAdmin
+                                          ? BoxyArtInputField(
+                                              label: toTitleCase(system.idLabel),
+                                              controller: _handicapIdController,
+                                              focusNode: _handicapIdFocusNode,
+                                              hint: system.hintText,
+                                            )
+                                          : _buildValueDisplay(
+                                              context, 
+                                              system.idLabel.toUpperCase(), 
+                                              _handicapIdController.text
+                                            ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: AppSpacing.x2l),
-                                  Expanded(
-                                    child: _isEditing && isAdmin
-                                      ? BoxyArtInputField(
-                                          label: toTitleCase(system.idLabel),
-                                          controller: _handicapIdController,
-                                          focusNode: _handicapIdFocusNode,
-                                          hint: system.hintText,
-                                        )
-                                      : _buildValueDisplay(
-                                          context, 
-                                          system.idLabel.toUpperCase(), 
-                                          _handicapIdController.text
-                                        ),
-                                  ),
+                                  const SizedBox(height: AppSpacing.lg),
+                                  if (_isEditing && isAdmin)
+                                    BoxyArtDatePickerField(
+                                      label: 'MEMBERSHIP VALID TILL',
+                                      value: _membershipEndDate != null 
+                                          ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
+                                          : 'Tap to select date',
+                                      onTap: () async {
+                                        final date = await showDatePicker(
+                                          context: context,
+                                          initialDate: _membershipEndDate ?? DateTime.now(),
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2100),
+                                        );
+                                        if (date != null) setState(() => _membershipEndDate = date);
+                                      },
+                                    )
+                                  else
+                                    _buildValueDisplay(
+                                      context, 
+                                      'MEMBERSHIP VALID TILL', 
+                                      _membershipEndDate != null 
+                                          ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
+                                          : '-'
+                                    ),
                                 ],
                               ),
                             ),
@@ -467,6 +508,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       addressFocusNode: _addressFocusNode,
                     ),
                   ),
+
                   const SizedBox(height: AppSpacing.x4l),
 
                   // [DEV/ADMIN] Impersonation / Peek Mode
@@ -475,7 +517,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       title: 'VIEW AS THIS MEMBER',
                       isPrimary: false,
                       isSecondary: true,
-                      fullWidth: true,
+                      isSmall: true,
                       icon: Icons.remove_red_eye_rounded,
                       onTap: () {
                         ref.read(impersonationProvider.notifier).set(widget.member);
@@ -512,10 +554,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         Text(
           label.toUpperCase(),
           style: AppTypography.label.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-            fontWeight: AppTypography.weightStrong,
-            letterSpacing: AppTypography.lsMicro,
-            fontSize: 11, // Standardized 4.x Meta size
+            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+            fontWeight: AppTypography.weightBold,
+            letterSpacing: 1.2,
+            fontSize: AppTypography.sizeMicro, // Standardized 4.x Meta size (10px)
           ),
         ),
         const SizedBox(height: 4), // Tight 4.x rhythm
@@ -523,7 +565,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
           value.isEmpty ? '-' : value,
           style: AppTypography.body.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: AppTypography.weightStrong,
+            fontWeight: AppTypography.weightBold,
             fontSize: 16,
           ),
         ),
@@ -569,9 +611,5 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
       (newRole) => setState(() => _societyRole = newRole),
     );
   }
-
-
-
-
-
 }
+

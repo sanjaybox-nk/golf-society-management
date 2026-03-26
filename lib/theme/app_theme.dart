@@ -156,7 +156,7 @@ class AppTheme {
       // Components - Navigation
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.dark900,
-        indicatorColor: secondaryColor,
+        indicatorColor: primaryColor,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return AppTypography.caption.copyWith(color: AppColors.dark60);
@@ -167,7 +167,7 @@ class AppTheme {
 
       // Components - Tabs
       tabBarTheme: TabBarThemeData(
-        indicatorColor: secondaryColor,
+        indicatorColor: primaryColor,
         labelColor: AppColors.dark60,
         unselectedLabelColor: AppColors.dark300,
         labelStyle: AppTypography.label,
@@ -320,7 +320,7 @@ class AppTheme {
 
       // Components - Tabs
       tabBarTheme: TabBarThemeData(
-        indicatorColor: secondaryColor,
+        indicatorColor: primaryColor,
         labelColor: const Color(0xFF1A1A1A),
         unselectedLabelColor: const Color(0xFF888880),
         labelStyle: AppTypography.label,

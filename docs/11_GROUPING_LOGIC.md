@@ -77,7 +77,7 @@ The grouping system is dynamic. If the field changes after groupings are generat
 - **Manual Assignment (Drag & Drop)**: Admins can drag players from the Squad Pool into any group with an **Empty Slot**. This is the primary interface for fine-tuning the field after auto-generation.
 - **Swapping**: Players can be swapped between groups, or moved from a group back to the pool (by clicking "Remove").
 - **Late Withdrawals**: Admins can "Withdraw" a player directly from their grouping tile. This removes them from the group AND updates their registration status to **Withdrawn** in Firestore.
-- **Control Tower Access**: The Manual Grouping screen is accessed via the **Control Tower** under the "Manual Grouping" navigation card.
+- **Control Tower Access**: The Manual Grouping screen is accessed via the **Control Tower** (EventAdminControlsScreen) under the "Manage Grouping & Tee Times" navigation tile.
 
 ---
 
@@ -103,21 +103,23 @@ The grouping UI reflects the authoritative tee resolved for each player.
 
 ---
 
-## 10. Admin Grouping Toolbar
-The grouping screen features a sleek, unified toolbar for managing the field and publishing the schedule.
+## 10. Admin Grouping Hub Card
+The grouping screen features a unified **Grouping Hub Card** for managing the field generation and publishing the schedule. This replaces the legacy toolbar with a more process-oriented UI.
+
+### Core Controls
+- **Generation Strategy**: Toggle between **Random**, **Balanced**, and **Power Groups** directly on the card.
+- **Tee Time Seed**: High-precision time picker for the first group's tee-off.
+- **Tee Interval**: Configure the gap between groups (e.g., 8, 10, 12 minutes).
 
 ### Core Actions
 - **Lock/Unlock**: Prevents or allows editing of the grouping.
-- **Rules (Strategy Selection)**: Opens a bottom sheet to select from **Random**, **Balanced**, or **Power Groups (Split)** strategies.
 - **Generate**: Executes the selected strategy. It pulls all **Confirmed** participants from the registration list and populates the tee sheet.
 - **Reset**: Clears all current groups and moves all participants back into the **Squad Pool** for manual re-assignment or re-generation.
 - **Publish (Live Toggle)**: A primary action button that toggles the grouping between **Draft** and **Live** status. When "Live", tee times are visible to members in the event home tab.
-- **Save**: Persists any manual swaps or changes to the backend.
+- **Save**: Persists any manual swaps, changes to the seed time, or interval to the backend.
 
 ### UI Consistency & Stability
 The grouping interface follows the **Boxy Art Design 3.1** standards for a premium, editorial feel:
+- **Vertical Rhythm**: Uses standardized `AppSpacing` tokens (e.g., `AppSpacing.standard` for tab-to-list gaps, `AppSpacing.lg` for list padding).
 - **Card Styling**: Grouping cards use a clean **White background** (`AppColors.pureWhite`) with high corner radii and soft shadows.
-- **Premium Spacing**: Increased card padding (`AppSpacing.x2l`) and standardized margins ensure an open, aesthetic layout.
-- **Header Typography**: Group titles use bold `displaySection` typography for maximum legibility.
-- **Layout Persistence**: Containers for player tiles and action indicators (like the interaction chevron) use fixed footprints to prevent horizontal or vertical shifts when toggling the group's "Locked" or "Unlocked" status.
-- **Toolbar Design**: The toolbar uses expanded actions to ensure equal spacing and a stable, non-overflowing UI on all mobile devices.
+- **Full-Width Actions**: Buttons like **Generate** and **Reset** are standardized to full-width for better touch targets and visual balance within the Hub.

@@ -132,105 +132,18 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                     ),
                   ),
                   
-                  // 3. Grouping & Tee Times Configuration
+                  // 3. Grouping & Tee Times Hub
                   const BoxyArtSectionTitle(title: 'GROUPING & TEE TIMES'),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        BoxyArtNavTile(
-                          title: 'Generation Strategy',
-                          subtitle: toTitleCase(ref.watch(groupingStrategyProvider)),
-                          icon: Icons.auto_awesome_rounded,
-                          iconColor: AppColors.actionGreen,
-                          onTap: () => GroupingModals.showGroupingRules(context, ref),
-                        ),
-                        const BoxyArtDivider(),
-                        // [NEW] Start Time (Seed) Control
-                        BoxyArtNavTile(
-                          title: 'Tee-off Time (Seed)',
-                          subtitle: event.teeOffTime != null 
-                              ? TimeOfDay.fromDateTime(event.teeOffTime!).format(context) 
-                              : 'Not Set',
-                          icon: Icons.play_circle_outline_rounded,
-                          iconColor: AppColors.actionGreen,
-                          onTap: () async {
-                            final initialTime = event.teeOffTime != null 
-                                ? TimeOfDay.fromDateTime(event.teeOffTime!) 
-                                : const TimeOfDay(hour: 9, minute: 0);
-                            
-                            final picked = await showTimePicker(
-                              context: context,
-                              initialTime: initialTime,
-                            );
-                            
-                            if (picked != null && mounted) {
-                              final newTeeTime = DateTime(
-                                event.date.year,
-                                event.date.month,
-                                event.date.day,
-                                picked.hour,
-                                picked.minute,
-                              );
-                              _updateEventTimings(event, teeOffTime: newTeeTime);
-                            }
-                          },
-                        ),
-                        const BoxyArtDivider(),
-                        BoxyArtNavTile(
-                          title: 'Manual Grouping',
-                          subtitle: 'Drag & drop players into tee times',
-                          icon: Icons.grid_view_rounded,
-                          iconColor: AppColors.actionGreen,
-                          onTap: () => context.pushNamed(
-                            'admin-event-grouping',
-                            pathParameters: {'id': event.id},
-                          ),
-                        ),
-                        const BoxyArtDivider(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                          child: Row(
-                            children: [
-                              const BoxyArtIconBadge(
-                                icon: Icons.timer_outlined,
-                                color: AppColors.actionGreen,
-                                size: 44,
-                                iconSize: 22,
-                                isTinted: true,
-                              ),
-                              const SizedBox(width: AppSpacing.lg),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('Tee Interval', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: 16)),
-                                    Text('Minutes between groups', style: AppTypography.caption),
-                                  ],
-                                ),
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle_outline, size: 20),
-                                    onPressed: event.teeOffInterval > 5 
-                                        ? () => _updateEventTimings(event, interval: event.teeOffInterval - 1)
-                                        : null,
-                                  ),
-                                  Text('${event.teeOffInterval}m', style: AppTypography.label.copyWith(fontSize: 14, fontWeight: AppTypography.weightExtraBold)),
-                                  IconButton(
-                                    icon: const Icon(Icons.add_circle_outline, size: 20),
-                                    onPressed: event.teeOffInterval < 20 
-                                        ? () => _updateEventTimings(event, interval: event.teeOffInterval + 1)
-                                        : null,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    child: BoxyArtNavTile(
+                      title: 'Manage Grouping & Tee Times',
+                      subtitle: 'Configure strategy, tee times, and manual placement',
+                      icon: Icons.auto_awesome_motion_rounded,
+                      onTap: () => context.goNamed(
+                        'admin-event-gallery',
+                        pathParameters: {'id': event.id},
+                      ),
                     ),
                   ),
                   
@@ -244,7 +157,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Scorecard Management',
                           subtitle: 'Review, unlock or finalize player scores',
                           icon: Icons.assignment_turned_in_rounded,
-                          iconColor: AppColors.actionGreen,
                           onTap: () => context.pushNamed(
                             'admin-event-scorecards',
                             pathParameters: {'id': event.id},
@@ -255,7 +167,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Field & Registrations',
                           subtitle: 'Confirm attendance & manage guests',
                           icon: Icons.people_outline_rounded,
-                          iconColor: AppColors.actionGreen,
                           onTap: () => context.pushNamed(
                             'admin-event-registrations',
                             pathParameters: {'id': event.id},
@@ -266,9 +177,9 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Edit Event Details',
                           subtitle: 'Change venue, date, or title',
                           icon: Icons.settings_applications_outlined,
-                          iconColor: AppColors.actionGreen,
-                          onTap: () => context.push(
-                            '/admin/events/manage/${event.id}/event/edit',
+                          onTap: () => context.pushNamed(
+                            'admin-event-edit-form',
+                            pathParameters: {'id': event.id},
                             extra: event,
                           ),
                         ),
@@ -277,7 +188,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Society Cuts',
                           subtitle: 'Apply manual handicap overrides',
                           icon: Icons.content_cut_rounded,
-                          iconColor: AppColors.actionGreen,
                           onTap: () => context.goNamed(
                             'admin-event-manual-cuts',
                             pathParameters: {'id': event.id},
@@ -288,7 +198,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Costs & Charges',
                           subtitle: 'Manage member/guest fees & meal options',
                           icon: Icons.payments_outlined,
-                          iconColor: AppColors.actionGreen,
                           onTap: () => context.pushNamed(
                             'admin-event-costs',
                             pathParameters: {'id': event.id},
@@ -299,7 +208,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Prize Pool & Airdrops',
                           subtitle: 'Configure the prize table & award types',
                           icon: Icons.emoji_events_outlined,
-                          iconColor: AppColors.actionGreen,
                           onTap: () => context.pushNamed(
                             'admin-event-airdrops',
                             pathParameters: {'id': event.id},
@@ -310,7 +218,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           title: 'Broadcasts & Updates',
                           subtitle: 'Post live updates to the feed',
                           icon: Icons.campaign_rounded,
-                          iconColor: AppColors.actionGreen,
                           onTap: () => context.goNamed(
                             'admin-event-broadcast',
                             pathParameters: {'id': event.id},

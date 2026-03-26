@@ -47,43 +47,49 @@ class MemberRolePicker extends StatelessWidget {
       },
       child: BoxyArtCard(
         margin: const EdgeInsets.only(bottom: AppSpacing.md),
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         border: isSelected ? Border.all(color: theme.primaryColor, width: AppShapes.borderMedium) : null,
+        backgroundColor: isSelected ? theme.primaryColor.withValues(alpha: 0.05) : null,
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: isSelected ? theme.primaryColor.withValues(alpha: AppColors.opacityLow) : AppColors.dark100,
-                shape: BoxShape.circle,
+                color: isSelected ? theme.primaryColor.withValues(alpha: 0.1) : (theme.brightness == Brightness.dark ? AppColors.dark600 : AppColors.dark50),
+                borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.accentRadius ?? AppShapes.rMd),
               ),
               child: Icon(
                 _getRoleIcon(role),
-                color: isSelected ? theme.primaryColor : AppColors.textSecondary,
-                size: AppShapes.iconMd,
+                color: isSelected ? theme.primaryColor : (theme.brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark600),
+                size: 20,
               ),
             ),
-            const SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _getRoleDisplayName(role),
-                    style: AppTypography.labelStrong.copyWith(
+                    style: AppTypography.body.copyWith(
                       color: isSelected ? theme.primaryColor : theme.colorScheme.onSurface,
+                      fontWeight: AppTypography.weightBold,
+                      fontSize: 15,
                     ),
                   ),
+                  const SizedBox(height: 1),
                   Text(
                     _getRoleDescription(role),
                     style: AppTypography.label.copyWith(
-                      color: isSelected ? theme.primaryColor.withValues(alpha: AppColors.opacitySecondary) : AppColors.textSecondary,
+                      color: isSelected ? theme.primaryColor.withValues(alpha: AppColors.opacityHigh) : (theme.brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark500),
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            if (isSelected) Icon(Icons.check_circle, color: theme.primaryColor),
+            if (isSelected) 
+              Icon(Icons.check_circle_rounded, color: theme.primaryColor, size: 20),
           ],
         ),
       ),

@@ -11,6 +11,7 @@ class BoxyArtButton extends ConsumerWidget {
   final IconData? icon;
   final bool isLoading;
   final bool fullWidth;
+  final bool isSmall;
   final Color? backgroundColor;
   final Color? textColor;
 
@@ -21,6 +22,7 @@ class BoxyArtButton extends ConsumerWidget {
     this.isPrimary = true,
     this.isSecondary = false,
     this.isGhost = false,
+    this.isSmall = false,
     this.icon,
     this.isLoading = false,
     this.fullWidth = false,
@@ -41,8 +43,10 @@ class BoxyArtButton extends ConsumerWidget {
     if (isGhost) {
       style = TextButton.styleFrom(
         foregroundColor: isDark ? AppColors.dark200 : AppColors.dark300,
-        textStyle: AppTypography.label,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius)),
+        textStyle: isSmall ? AppTypography.micro : AppTypography.label,
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : null,
+        minimumSize: isSmall ? const Size(0, 32) : null,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else if (isSecondary) {
       style = OutlinedButton.styleFrom(
@@ -53,18 +57,22 @@ class BoxyArtButton extends ConsumerWidget {
                 width: config.borderWidth,
               )
             : BorderSide.none,
-        textStyle: AppTypography.label,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(config.buttonRadius)),
+        textStyle: isSmall ? AppTypography.micro : AppTypography.label,
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : null,
+        minimumSize: isSmall ? const Size(0, 32) : null,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else {
       // Solid Action - map explicitly to User-Defined Action Color (#86AD92)
-      final actionColor = backgroundColor ?? AppColors.actionGreen;
+      final actionColor = backgroundColor ?? AppColors.actionMidnight;
       style = ElevatedButton.styleFrom(
         backgroundColor: actionColor,
         foregroundColor: textColor ?? Colors.white,
-        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightExtraBold),
+        textStyle: (isSmall ? AppTypography.micro : AppTypography.body).copyWith(fontWeight: AppTypography.weightHeavy),
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 48),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(config.buttonRadius),
+          borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius),
           side: config.useBorders 
               ? BorderSide(
                   color: isDark ? AppColors.dark400 : AppColors.lightBorder,
@@ -72,7 +80,7 @@ class BoxyArtButton extends ConsumerWidget {
                 )
               : BorderSide.none,
         ),
-        elevation: config.useShadows ? 2 : 0,
+        elevation: config.useShadows ? (isSmall ? 1 : 2) : 0,
         shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.15),
         // Ensure no default opacity on disabled state - Solid Action
         disabledBackgroundColor: actionColor,
@@ -126,12 +134,12 @@ class BoxyArtButton extends ConsumerWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
         ] else if (icon != null) ...[
-          Icon(icon, color: color, size: AppShapes.iconSm),
+          Icon(icon, color: color, size: isSmall ? AppShapes.iconXs : AppShapes.iconSm),
           const SizedBox(width: AppSpacing.sm),
         ],
         Text(
           title,
-          style: AppTypography.label.copyWith(
+          style: (isSmall ? AppTypography.micro : AppTypography.body).copyWith(
             color: color,
             fontWeight: AppTypography.weightHeavy,
           ),

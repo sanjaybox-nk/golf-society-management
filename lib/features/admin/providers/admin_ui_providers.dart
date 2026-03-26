@@ -69,3 +69,19 @@ class GroupingStrategyNotifier extends Notifier<String> {
   void set(String value) => state = value;
 }
 final groupingStrategyProvider = NotifierProvider<GroupingStrategyNotifier, String>(GroupingStrategyNotifier.new);
+
+/// Tracks the temporary tee-off time (seed) for generation.
+class GroupingTeeTimeNotifier extends Notifier<DateTime?> {
+  @override
+  DateTime? build() => null;
+  void set(DateTime? value) => state = value;
+}
+final groupingTeeTimeProvider = NotifierProvider<GroupingTeeTimeNotifier, DateTime?>(GroupingTeeTimeNotifier.new);
+
+/// Tracks the temporary tee interval for generation.
+class GroupingIntervalNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+  void set(int? value) => state = value;
+}
+final groupingIntervalProvider = NotifierProvider<GroupingIntervalNotifier, int?>(GroupingIntervalNotifier.new);

@@ -62,7 +62,7 @@ class ScoringTypeDistributionChart extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                         height: barHeight.toDouble().clamp(4, 100),
                         decoration: BoxDecoration(
-                          gradient: AppGradients.verticalSurface(color),
+                          gradient: AppGradients.verticalSurface(Theme.of(context).colorScheme.primary),
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(AppShapes.rXs)),
                         ),
                       ),
@@ -358,7 +358,7 @@ class ParTypeBreakdown extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
               borderRadius: AppShapes.x2l,
             ),
             child: Text(
@@ -530,7 +530,7 @@ class HoleDifficultyChart extends StatelessWidget {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
                         borderRadius: AppShapes.xs,
                       ),
                       child: Center(
@@ -632,9 +632,9 @@ class AchievementTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
                 borderRadius: AppShapes.lg,
-                border: Border.all(color: AppColors.actionGreen.withValues(alpha: AppColors.opacityLow)),
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow)),
               ),
               child: Icon(icon, color: color, size: 26),
             ),
@@ -724,8 +724,8 @@ class FieldEclecticCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.actionGreen,
-              AppColors.actionGreen.withValues(alpha: 0.8),
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -860,8 +860,8 @@ class SocietyRecapSummaryCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.actionGreen,
-              AppColors.actionGreen.withValues(alpha: 0.8),
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
             ],
           ),
         ),
@@ -1041,7 +1041,7 @@ class PersonalBenchmarkingCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
               borderRadius: AppShapes.x2l,
             ),
             child: Text(
@@ -1222,7 +1222,7 @@ class ConsistencyStatCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(moreConsistent ? Icons.balance : Icons.auto_graph, color: color),
@@ -1292,7 +1292,7 @@ class NetComparisonCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
                 borderRadius: AppShapes.xl,
               ),
               child: Text(
@@ -1434,7 +1434,7 @@ class BounceBackStatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.actionGreen.withValues(alpha: AppColors.opacitySubtle),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
                 borderRadius: AppShapes.md,
               ),
               child: Icon(Icons.replay_circle_filled, color: color),

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import 'package:golf_society/domain/models/handicap_system.dart';
@@ -56,6 +57,47 @@ class AdminSettingsScreen extends ConsumerWidget {
                       subtitle: (config.societyCutMode != SocietyCutMode.off) ? 'Active' : 'Disabled',
                       iconColor: AppColors.amber500,
                       onTap: () => context.push('/admin/settings/society-cuts'),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 2. [NEW] Membership Renewal
+              const BoxyArtSectionTitle(title: 'Membership Renewal'),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    BoxyArtNavTile(
+                      icon: Icons.hub_rounded,
+                      title: 'Renewal Hub',
+                      subtitle: 'Process annual renewals',
+                      iconColor: theme.colorScheme.primary,
+                      onTap: () => context.pushNamed('admin-member-renewal'),
+                    ),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 4),
+                      leading: const BoxyArtIconBadge(icon: Icons.calendar_today_rounded, color: AppColors.dark600),
+                      title: Text('Global Expiry Date', style: AppTypography.labelStrong),
+                      subtitle: Text(
+                        config.globalMembershipEndDate != null 
+                            ? DateFormat('dd MMM yyyy').format(config.globalMembershipEndDate!)
+                            : 'Not Set',
+                        style: AppTypography.micro.copyWith(color: AppColors.textSecondary),
+                      ),
+                      trailing: TextButton(
+                        child: const Text('CHANGE'),
+                        onPressed: () => _pickGlobalExpiry(context, ref, config.globalMembershipEndDate),
+                      ),
+                    ),
+                    Divider(height: 1, color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle), indent: 76),
+                    BoxyArtSwitchTile(
+                      icon: Icons.rocket_launch_rounded,
+                      label: 'Activate Renewal Window',
+                      subtitle: 'Allow members to select renewal status.',
+                      value: config.isRenewalActive,
+                      onChanged: (val) => ref.read(themeControllerProvider.notifier).setIsRenewalActive(val),
                     ),
                   ],
                 ),
@@ -276,6 +318,19 @@ class AdminSettingsScreen extends ConsumerWidget {
       messenger.showSnackBar(const SnackBar(content: Text('✅ Clean Slate Achieved! All collections wiped.')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _pickGlobalExpiry(BuildContext context, WidgetRef ref, DateTime? current) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current ?? DateTime.now().add(const Duration(days: 365)),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+    );
+
+    if (picked != null) {
+      ref.read(themeControllerProvider.notifier).setGlobalMembershipEndDate(picked);
     }
   }
 

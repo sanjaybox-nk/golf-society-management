@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/domain/models/handicap_system.dart';
 import 'package:golf_society/utils/string_utils.dart';
-import '../member_details_modal.dart';
 import '../profile_provider.dart';
+import '../members_provider.dart';
 
 class MemberTile extends ConsumerWidget {
   final Member member;
@@ -16,6 +16,8 @@ class MemberTile extends ConsumerWidget {
   final String? secondaryMetricLabel; 
   final String? secondaryMetricValue;
   final bool isAdminContext;
+  final bool isEventPaymentContext;
+  final VoidCallback? onFeeToggle;
 
   const MemberTile({
     super.key,
@@ -24,6 +26,8 @@ class MemberTile extends ConsumerWidget {
     this.onLongPress,
     this.trailing,
     this.showFeeStatus = false,
+    this.isEventPaymentContext = false,
+    this.onFeeToggle,
     this.secondaryMetricLabel,
     this.secondaryMetricValue,
     this.isAdminContext = false,
@@ -33,56 +37,56 @@ class MemberTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final config = ref.watch(themeControllerProvider);
-    final primary = theme.colorScheme.primary;
     
     final currentUser = ref.watch(currentUserProvider);
     final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
     final canSeeFees = isAdmin && showFeeStatus;
 
     return BoxyArtCard(
-      onTap: onTap ?? () => MemberDetailsModal.show(context, member, isAdminContext: isAdminContext),
+      onTap: onTap ?? () => context.pushNamed(
+        isAdminContext ? 'admin-member-detail' : 'member-detail', 
+        pathParameters: {'id': member.id},
+      ),
       onLongPress: onLongPress,
       padding: const EdgeInsets.all(AppSpacing.large),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Left Section: Avatar & Since
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BoxyArtAvatar(
-                    url: member.avatarUrl,
-                    initials: '${member.firstName.isNotEmpty ? member.firstName[0] : ''}${member.lastName.isNotEmpty ? member.lastName[0] : ''}',
-                    radius: 40,
-                    isCircle: true,
-                  ),
-                  if (member.joinedDate != null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Since ${member.joinedDate!.year}',
-                      style: AppTypography.micro.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                      ),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Left Section: Avatar & Since
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    BoxyArtAvatar(
+                      url: member.avatarUrl,
+                      initials: '${member.firstName.isNotEmpty ? member.firstName[0] : ''}${member.lastName.isNotEmpty ? member.lastName[0] : ''}',
+                      radius: 40,
+                      isCircle: true,
                     ),
+                    if (member.joinedDate != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Since ${member.joinedDate!.year}',
+                        style: AppTypography.micro.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
+                ),
 
-              // 2. Vertical Divider
-              Container(
-                width: 1,
-                height: 104,
-                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
-              ),
+                // 2. Vertical Divider
+                Container(
+                  width: 1,
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                ),
 
-              // 3. Right Section: Information Stack
-              Expanded(
-                child: SizedBox(
-                  height: 104, // Total height to match identity block
+                // 3. Right Section: Information Stack
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -100,29 +104,61 @@ class MemberTile extends ConsumerWidget {
 
                           const SizedBox(height: 4),
 
-                          // Status Indicator Row (with green pipe)
+                          // Status Indicator Row (with green pipe) & Fee Toggle
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                width: 3,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  color: member.status == MemberStatus.active 
-                                      ? theme.colorScheme.primary 
-                                      : AppColors.amber500,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 3,
+                                    height: 14,
+                                    decoration: BoxDecoration(
+                                      color: member.status == MemberStatus.active 
+                                          ? theme.colorScheme.primary 
+                                          : AppColors.amber500,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Text(
+                                    member.status.displayName,
+                                    style: AppTypography.label.copyWith(
+                                      color: member.status == MemberStatus.active 
+                                          ? theme.colorScheme.primary 
+                                          : AppColors.amber500,
+                                      fontWeight: AppTypography.weightStrong,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: AppSpacing.xs),
-                              Text(
-                                member.status.displayName,
-                                style: AppTypography.label.copyWith(
-                                  color: member.status == MemberStatus.active 
-                                      ? theme.colorScheme.primary 
-                                      : AppColors.amber500,
-                                  fontWeight: AppTypography.weightStrong,
+                              if (canSeeFees)
+                                GestureDetector(
+                                  onTap: onFeeToggle ?? () {
+                                    final repo = ref.read(membersRepositoryProvider);
+                                    repo.updateMember(member.copyWith(hasPaid: !member.hasPaid));
+                                  },
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        member.hasPaid ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                                        size: 16,
+                                        color: member.hasPaid ? Color(config.iconBadgeIconColor) : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      Text(
+                                        isEventPaymentContext ? 'Paid' : 'Fee Paid',
+                                        style: AppTypography.micro.copyWith(
+                                          fontWeight: AppTypography.weightStrong,
+                                          color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
 
@@ -149,6 +185,12 @@ class MemberTile extends ConsumerWidget {
                                       color: StatusColors.neutral,
                                       hasHorizontalMargin: false,
                                     ),
+                                  if (member.renewalStatus != MemberRenewalStatus.none && isAdmin)
+                                    BoxyArtPill(
+                                      label: 'RENEWAL REQUESTED',
+                                      color: StatusColors.warning,
+                                      hasHorizontalMargin: false,
+                                    ),
                                 ],
                               ),
                             ),
@@ -159,7 +201,7 @@ class MemberTile extends ConsumerWidget {
 
                       // 3b. Bottom half: Stats Row
                       Padding(
-                        padding: EdgeInsets.only(right: canSeeFees ? 85 : 0), // Leave room for Fee Paid
+                        padding: EdgeInsets.zero,
                         child: Row(
                           children: [
                             BoxyArtPill.hc(
@@ -173,7 +215,7 @@ class MemberTile extends ConsumerWidget {
                               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
                             ),
                             const SizedBox(width: AppSpacing.md),
-                            Flexible(
+                            Expanded(
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -203,8 +245,8 @@ class MemberTile extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           // 4. Admin Action Button (Top Right)
@@ -218,51 +260,8 @@ class MemberTile extends ConsumerWidget {
               ),
             ),
 
-          // 5. Bottom Right: Admin Status (Fee Paid)
-          if (canSeeFees)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    member.hasPaid ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                    size: 18,
-                    color: member.hasPaid ? Color(config.iconBadgeIconColor) : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    'Fee Paid',
-                    style: AppTypography.label.copyWith(
-                      fontWeight: AppTypography.weightStrong,
-                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMetricColumn(BuildContext context, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTypography.micro.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          value,
-          style: AppTypography.headline,
-        ),
-      ],
     );
   }
 

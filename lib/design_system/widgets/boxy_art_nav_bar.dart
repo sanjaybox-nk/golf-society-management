@@ -39,52 +39,53 @@ class BoxyArtBottomNavBar extends StatelessWidget {
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 56, // Slightly increased for top breathing room
-          child: Row(
-            children: items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isSelected = selectedIndex == index;
-              final Color unselectedItemColor = unselectedColor ?? 
-                  (isDark ? AppColors.dark200 : AppColors.dark600);
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final isSelected = selectedIndex == index;
+          final Color unselectedItemColor = unselectedColor ?? 
+              (isDark ? AppColors.dark200 : AppColors.dark600);
 
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onItemSelected(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8), // Added top spacing as requested
-                      Icon(
-                        isSelected ? item.activeIcon : item.icon,
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onItemSelected(index),
+              behavior: HitTestBehavior.opaque,
+              child: SafeArea(
+                top: false,
+                bottom: true,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 12), // Spacing from top of bar
+                    Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      color: isSelected 
+                        ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
+                        : unselectedItemColor,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.label,
+                      style: AppTypography.micro.copyWith(
+                        fontSize: 11.0,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         color: isSelected 
-                          ? (isDark ? AppColors.actionGreen : AppColors.dark950) 
-                          : unselectedItemColor,
-                        size: 28,
+                            ? (isDark ? theme.colorScheme.primary : AppColors.dark950) 
+                            : unselectedItemColor,
+                        letterSpacing: 0.1,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        item.label,
-                        style: AppTypography.micro.copyWith(
-                          fontSize: 11.0,
-                          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w300,
-                          color: isSelected 
-                              ? (isDark ? AppColors.actionGreen : AppColors.dark950) 
-                              : unselectedItemColor,
-                          letterSpacing: 0.1,
-                        ),
-                        maxLines: 1,
-                      ),
-                    ],
-                  ),
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 12), // Spacing from bottom of clickable area
+                  ],
                 ),
-              );
-            }).toList(),
-          ),
-        ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

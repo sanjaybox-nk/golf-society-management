@@ -265,6 +265,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
   final bool isPeeking;
   final IconData? icon;
   final int? count;
+  final Color? color;
 
   const BoxyArtSectionTitle({
     super.key,
@@ -274,6 +275,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
     this.isPeeking = false,
     this.icon,
     this.count,
+    this.color,
   });
 
   @override
@@ -310,7 +312,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 displayTitle,
                 style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
                   fontWeight: AppTypography.weightHeavy,
-                  color: isDark ? AppColors.dark60 : AppColors.dark900,
+                  color: color ?? (isDark ? AppColors.dark60 : AppColors.dark900),
                   letterSpacing: AppTypography.lsLabel,
                 ),
                 maxLines: 1,

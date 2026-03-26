@@ -67,33 +67,12 @@ class CompetitionBadgeRow extends StatelessWidget {
       );
     }
 
-    // 5. Build list with separators
-    final List<Widget> children = [];
-    for (int i = 0; i < pills.length; i++) {
-      children.add(pills[i]);
-      if (i < pills.length - 1) {
-        children.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              '•',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-                fontSize: AppTypography.sizeLargeBody,
-                fontWeight: AppTypography.weightBold,
-              ),
-            ),
-          ),
-        );
-      }
-    }
-
     return Wrap(
-      spacing: 0, // Using manual padding for dots
+      spacing: AppSpacing.md,
       runSpacing: 4,
       alignment: WrapAlignment.start,
       crossAxisAlignment: WrapCrossAlignment.center,
-      children: children,
+      children: pills,
     );
   }
 }

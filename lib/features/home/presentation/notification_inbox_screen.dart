@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/notification.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
@@ -144,7 +145,9 @@ class _InboxNotificationCard extends StatelessWidget {
 
     return BoxyArtCard(
       onTap: () {
-        // Handle tap - deep link or dialog
+        if (notification.actionUrl != null) {
+          context.push(notification.actionUrl!);
+        }
       },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,6 +175,18 @@ class _InboxNotificationCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 _buildMessageContent(context),
+                if (notification.actionUrl != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  BoxyArtButton(
+                    title: notification.actionUrl!.contains('members') ? 'RENEW NOW' : 'VIEW DETAILS',
+                    isPrimary: true,
+                    fullWidth: false,
+                    isSmall: true,
+                    onTap: () {
+                      context.push(notification.actionUrl!);
+                    },
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [

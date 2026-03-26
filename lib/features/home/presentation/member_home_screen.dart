@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
@@ -83,10 +84,10 @@ class MemberHomeScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                backgroundColor: AppColors.actionGreen.withValues(alpha: 0.1),
+                backgroundColor: AppColors.actionMidnight.withValues(alpha: 0.1),
                 child: Row(
                   children: [
-                    const Icon(Icons.visibility_rounded, color: AppColors.actionGreen, size: 20),
+                    const Icon(Icons.visibility_rounded, color: AppColors.actionMidnight, size: 20),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
@@ -98,7 +99,7 @@ class MemberHomeScreen extends ConsumerWidget {
                               fontSize: 10,
                               fontWeight: AppTypography.weightExtraBold,
                               letterSpacing: 1.2,
-                              color: AppColors.actionGreen,
+                              color: AppColors.actionMidnight,
                             ),
                           ),
                           Text(
@@ -111,6 +112,7 @@ class MemberHomeScreen extends ConsumerWidget {
                     BoxyArtButton(
                       title: 'EXIT',
                       isSecondary: true,
+                      isSmall: true,
                       onTap: () => ref.read(impersonationProvider.notifier).clear(),
                     ),
                   ],
@@ -118,6 +120,87 @@ class MemberHomeScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+        // Membership Status Banner (Society-wide Renewal Model)
+        if (societyConfig.globalMembershipEndDate != null) ...[
+          (() {
+            final now = DateTime.now();
+            final expiry = societyConfig.globalMembershipEndDate!;
+            final window = societyConfig.renewalWindowDays;
+            final difference = expiry.difference(now).inDays;
+            
+            final isExcludedStatus = effectiveUser.status == MemberStatus.archived || 
+                                   effectiveUser.status == MemberStatus.left;
+            
+            if (isExcludedStatus) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+            final isExpired = difference < 0;
+            final isWithinWindow = difference <= window && difference >= 0;
+
+            if (isExpired || isWithinWindow) {
+              final color = isExpired ? AppColors.coral500 : AppColors.amber500;
+              final hasSubmittedPreference = effectiveUser.renewalStatus != MemberRenewalStatus.none;
+
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+                sliver: SliverToBoxAdapter(
+                  child: BoxyArtCard(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    backgroundColor: color.withValues(alpha: 0.08),
+                    child: Row(
+                      children: [
+                        BoxyArtIconBadge(
+                          icon: isExpired ? Icons.error_rounded : Icons.calendar_today_rounded,
+                          color: color,
+                          size: 42,
+                          iconSize: 22,
+                        ),
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isExpired ? 'MEMBERSHIP EXPIRED' : 'RENEWAL PERIOD',
+                                style: AppTypography.micro.copyWith(
+                                  color: color,
+                                  fontWeight: AppTypography.weightHeavy,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                hasSubmittedPreference 
+                                  ? 'Your selection: ${effectiveUser.renewalStatus.name.toUpperCase()}'
+                                  : (isExpired 
+                                      ? 'The season ended on ${DateFormat('MMM d').format(expiry)}'
+                                      : 'Season ends in $difference days (${DateFormat('MMM d').format(expiry)})'),
+                                style: AppTypography.labelStrong.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (societyConfig.isRenewalActive && !hasSubmittedPreference) ...[
+                          const SizedBox(width: AppSpacing.md),
+                          BoxyArtButton(
+                            title: 'RENEW NOW',
+                            isPrimary: true,
+                            isSmall: true,
+                            onTap: () => _showRenewalSelection(context, ref),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+            return const SliverToBoxAdapter(child: SizedBox.shrink());
+          })(),
+        ],
         // Notifications & Content
         notificationsAsync.when(
           loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
@@ -303,6 +386,7 @@ class MemberHomeScreen extends ConsumerWidget {
             child: BoxyArtSectionTitle(title: 'ORDER OF MERIT'),
           ),
         ),
+
         topPlayers.when(
           data: (players) {
             return SliverPadding(
@@ -326,6 +410,156 @@ class MemberHomeScreen extends ConsumerWidget {
     );
   }
 
+  void _showRenewalSelection(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'MEMBERSHIP RENEWAL',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            child: Text(
+              'Please select your status for the upcoming season. Your choice will be sent to the admin for final processing.',
+              style: AppTypography.bodySmall.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                height: 1.4,
+                fontWeight: AppTypography.weightStrong,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          StaggeredEntrance(
+            index: 0,
+            child: _RenewalOptionTile(
+              title: 'Renew Membership',
+              subtitle: 'I want to continue playing for the next season.',
+              icon: Icons.check_circle_outline_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              onTap: () {
+                final user = ref.read(effectiveUserProvider);
+                _updateRenewal(context, ref, user.id, MemberRenewalStatus.renew);
+              },
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          StaggeredEntrance(
+            index: 1,
+            child: _RenewalOptionTile(
+              title: 'Suspend Membership',
+              subtitle: 'I want to take a break but keep my account.',
+              icon: Icons.pause_circle_outline_rounded,
+              color: AppColors.amber500,
+              onTap: () {
+                final user = ref.read(effectiveUserProvider);
+                _updateRenewal(context, ref, user.id, MemberRenewalStatus.suspend);
+              },
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          StaggeredEntrance(
+            index: 2,
+            child: _RenewalOptionTile(
+              title: 'Leave Society',
+              subtitle: 'I want to withdraw from the society.',
+              icon: Icons.exit_to_app_rounded,
+              color: AppColors.coral500,
+              onTap: () {
+                final user = ref.read(effectiveUserProvider);
+                _updateRenewal(context, ref, user.id, MemberRenewalStatus.leave);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateRenewal(BuildContext context, WidgetRef ref, String memberId, MemberRenewalStatus status) async {
+    await ref.read(memberRenewalProvider.notifier).updateStatus(memberId, status);
+    if (context.mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Your selection has been submitted.'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
+  }
+}
+
+class _RenewalOptionTile extends ConsumerWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _RenewalOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BoxyArtCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      backgroundColor: color.withValues(alpha: isDark ? 0.12 : 0.08),
+      border: Border.all(
+        color: color.withValues(alpha: 0.24),
+        width: 1.5,
+      ),
+      child: Row(
+        children: [
+          BoxyArtIconBadge(
+            icon: icon,
+            color: color,
+            size: 44,
+            iconSize: 22,
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: AppTypography.displaySection.copyWith(
+                    fontSize: 15,
+                    letterSpacing: 0.5,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.4),
+                    height: 1.2,
+                    fontWeight: AppTypography.weightStrong,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: color.withValues(alpha: AppColors.opacityHigh),
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _NextMatchCard extends ConsumerWidget {
@@ -408,13 +642,13 @@ class _NextMatchCard extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: AppColors.actionGreen.withValues(alpha: AppColors.opacityLow),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
                           borderRadius: AppShapes.md,
                         ),
                         child: Text(
                           'Playing',
                           style: AppTypography.micro.copyWith(
-                            color: AppColors.actionGreen,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),
@@ -437,21 +671,21 @@ class _NextMatchCard extends ConsumerWidget {
                   BoxyArtButton(
                     title: 'ENTER SCORE',
                     isPrimary: true,
-                    fullWidth: true,
+                    isSmall: true,
                     onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}/live'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   BoxyArtButton(
                     title: 'View Event Hub',
                     isSecondary: true,
-                    fullWidth: true,
+                    isSmall: true,
                     onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
                   ),
                 ] else
                   BoxyArtButton(
                     title: 'View Details',
                     isPrimary: true,
-                    fullWidth: true,
+                    isSmall: true,
                     onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
                   ),
               ],
@@ -641,7 +875,7 @@ String _getGreeting() {
 class _SurveyInteractiveCard extends ConsumerStatefulWidget {
   final Survey survey;
 
-  const _SurveyInteractiveCard({super.key, required this.survey});
+  const _SurveyInteractiveCard({required this.survey});
 
   @override
   ConsumerState<_SurveyInteractiveCard> createState() => _SurveyInteractiveCardState();
@@ -703,6 +937,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                   BoxyArtButton(
                     title: 'Dismiss',
                     isSecondary: true,
+                    isSmall: true,
                     onTap: () {
                       ref.read(dismissedSurveyIdsProvider.notifier).dismiss(widget.survey.id);
                     },
@@ -747,7 +982,7 @@ class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> 
                       BoxyArtButton(
                         title: _isSubmitting ? 'Submitting...' : 'Submit Response',
                         isPrimary: true,
-                        fullWidth: true,
+                        isSmall: true,
                         onTap: _isSubmitting ? null : _submitAll,
                       ),
                     ] else

@@ -32,6 +32,7 @@ class AppTypography {
 
   // 0.5 Consolidated Weights
   static const FontWeight weightHeavy = FontWeight.w800;   // ExtraBold (Pop Headers)
+  static const FontWeight weightBold = FontWeight.w700;    // Bold
   static const FontWeight weightStrong = FontWeight.w600;  // Semibold (Labels/Emphasis)
   static const FontWeight weightRegular = FontWeight.w400; // Regular (Reading)
   static const FontWeight weightLight = FontWeight.w300;   // Light (Elegant Labels)
@@ -118,7 +119,6 @@ class AppTypography {
   // Migration Weights (Internal helpers)
   static const FontWeight weightBlack = weightHeavy;
   static const FontWeight weightExtraBold = weightHeavy;
-  static const FontWeight weightBold = weightHeavy;
   static const FontWeight weightSemibold = weightStrong;
   static const FontWeight weightMedium = weightRegular;
 

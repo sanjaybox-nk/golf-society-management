@@ -1,5 +1,5 @@
-import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/utils/string_utils.dart';
 
@@ -26,7 +26,6 @@ class LeaderboardWidget extends StatelessWidget {
         tiedGroups[e.score]!.add(e);
       }
     }
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isStableford = format == CompetitionFormat.stableford;
 
@@ -110,7 +109,6 @@ class LeaderboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final spacing = theme.extension<AppSpacingTokens>();
     final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
     final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
@@ -152,7 +150,7 @@ class LeaderboardCard extends StatelessWidget {
                         left: -2,
                         child: BoxyArtIconBadge(
                           icon: Icons.person_add_rounded,
-                          color: AppColors.actionGreen,
+                          color: Theme.of(context).colorScheme.primary,
                           size: 24,
                           iconSize: 14,
                           useCircle: true,

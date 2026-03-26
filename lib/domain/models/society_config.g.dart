@@ -14,8 +14,10 @@ _SocietyConfig _$SocietyConfigFromJson(
   primaryColor: (json['primaryColor'] as num?)?.toInt() ?? 0xFFF7D354,
   secondaryColor: (json['secondaryColor'] as num?)?.toInt() ?? 0xFF4ADE80,
   backgroundColor: (json['backgroundColor'] as num?)?.toInt() ?? 0xFFEFEFED,
+  statusPublishedColor:
+      (json['statusPublishedColor'] as num?)?.toInt() ?? 0xFF4ADE80,
   statusConfirmedColor:
-      (json['statusConfirmedColor'] as num?)?.toInt() ?? 0xFF22C55E,
+      (json['statusConfirmedColor'] as num?)?.toInt() ?? 0xFF4ADE80,
   statusReservedColor:
       (json['statusReservedColor'] as num?)?.toInt() ?? 0xFFFFAA00,
   statusWaitlistColor:
@@ -30,9 +32,9 @@ _SocietyConfig _$SocietyConfigFromJson(
   useBorders: json['useBorders'] as bool? ?? true,
   borderWidth: (json['borderWidth'] as num?)?.toDouble() ?? 1.5,
   pillRadius: (json['pillRadius'] as num?)?.toDouble() ?? 30.0,
-  buttonRadius: (json['buttonRadius'] as num?)?.toDouble() ?? 30.0,
+  buttonRadius: (json['buttonRadius'] as num?)?.toDouble() ?? 16.0,
   heroRadius: (json['heroRadius'] as num?)?.toDouble() ?? 28.0,
-  accentRadius: (json['accentRadius'] as num?)?.toDouble() ?? 12.0,
+  accentRadius: (json['accentRadius'] as num?)?.toDouble() ?? 8.0,
   accentOpacity: (json['accentOpacity'] as num?)?.toDouble() ?? 0.15,
   shadowSpread: (json['shadowSpread'] as num?)?.toDouble() ?? 0.0,
   shadowOpacity: (json['shadowOpacity'] as num?)?.toDouble() ?? 0.12,
@@ -78,6 +80,11 @@ _SocietyConfig _$SocietyConfigFromJson(
   globalMarkupPercentage:
       (json['globalMarkupPercentage'] as num?)?.toDouble() ?? 0.10,
   guestMarkupExtra: (json['guestMarkupExtra'] as num?)?.toDouble() ?? 10.0,
+  globalMembershipEndDate: const OptionalTimestampConverter().fromJson(
+    json['globalMembershipEndDate'],
+  ),
+  renewalWindowDays: (json['renewalWindowDays'] as num?)?.toInt() ?? 30,
+  isRenewalActive: json['isRenewalActive'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -87,6 +94,7 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'primaryColor': instance.primaryColor,
       'secondaryColor': instance.secondaryColor,
       'backgroundColor': instance.backgroundColor,
+      'statusPublishedColor': instance.statusPublishedColor,
       'statusConfirmedColor': instance.statusConfirmedColor,
       'statusReservedColor': instance.statusReservedColor,
       'statusWaitlistColor': instance.statusWaitlistColor,
@@ -130,6 +138,11 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'societyCutRules': instance.societyCutRules,
       'globalMarkupPercentage': instance.globalMarkupPercentage,
       'guestMarkupExtra': instance.guestMarkupExtra,
+      'globalMembershipEndDate': const OptionalTimestampConverter().toJson(
+        instance.globalMembershipEndDate,
+      ),
+      'renewalWindowDays': instance.renewalWindowDays,
+      'isRenewalActive': instance.isRenewalActive,
     };
 
 const _$HandicapSystemEnumMap = {

@@ -55,6 +55,7 @@ class AppColors {
 
   // Semantic Action Colors
   static const Color actionGreen = Color(0xFF86AD92);
+  static const Color actionMidnight = Color(0xFF1E3A5F); // [NEW] Global 4.x Action Color
   static const Color actionText = Color(0xFF0A1A0F); // Dark green-tinted black for lime buttons
 
   // Team Participation Colors (v3.1)

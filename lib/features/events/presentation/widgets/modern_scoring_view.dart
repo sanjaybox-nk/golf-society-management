@@ -139,6 +139,7 @@ class ModernScoringView extends StatelessWidget {
       }
     }
 
+    final theme = Theme.of(context);
     final spacing = theme.extension<AppSpacingTokens>();
     final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.x2l;
     final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.x2l;

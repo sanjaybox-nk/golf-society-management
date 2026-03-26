@@ -3,110 +3,71 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 class EventUserShell extends ConsumerWidget {
+  final String id;
   final Widget child;
 
   const EventUserShell({
     super.key,
+    required this.id,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    int currentIndex = 0;
-    
-    // Determine index based on current route
     final state = GoRouterState.of(context);
     final segments = state.uri.pathSegments;
-    final isUserPath = !state.uri.path.startsWith('/admin');
 
-    if (isUserPath) {
-      if (segments.contains('details') || segments.contains('manual-cuts')) {
-        currentIndex = 0;
-      } else if (segments.contains('field')) {
-        currentIndex = 1;
-      } else if (segments.contains('live')) {
-        currentIndex = 2;
-      } else if (segments.contains('scores')) {
-        currentIndex = 3;
-      } else if (segments.contains('stats')) {
-        currentIndex = 4;
-      }
+    final List<_EventTabConfig> tabs = [
+      _EventTabConfig(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded, path: '/events/$id/details'),
+      _EventTabConfig(label: 'Field', icon: Icons.grid_view_rounded, activeIcon: Icons.grid_view_rounded, path: '/events/$id/field'),
+      _EventTabConfig(label: 'My Card', icon: Icons.edit_note_rounded, activeIcon: Icons.edit_note_rounded, path: '/events/$id/live'),
+      _EventTabConfig(label: 'Scores', icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events_rounded, path: '/events/$id/scores'),
+      _EventTabConfig(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded, path: '/events/$id/stats'),
+    ];
+
+    // Determine current index based on the path match
+    int currentIndex = tabs.indexWhere((t) => state.uri.path.endsWith(t.path.split('/').last));
+    if (currentIndex == -1) {
+      if (segments.contains('details')) currentIndex = 0;
+      else if (segments.contains('field')) currentIndex = 1;
+      else if (segments.contains('live')) currentIndex = 2;
+      else if (segments.contains('scores')) currentIndex = 3;
+      else if (segments.contains('stats')) currentIndex = 4;
     }
 
+    if (currentIndex == -1) currentIndex = 0;
+
     return Scaffold(
-      extendBody: true,
+      primary: true,
+      extendBody: false,
       body: child,
       bottomNavigationBar: BoxyArtBottomNavBar(
         selectedIndex: currentIndex,
-        onItemSelected: (index) => _onTap(context, index),
-        items: [
-          const BoxyArtBottomNavItem(
-            icon: Icons.info_outline_rounded,
-            activeIcon: Icons.info_rounded,
-            label: 'Info',
-          ),
-          const BoxyArtBottomNavItem(
-            icon: Icons.grid_view_rounded,
-            activeIcon: Icons.grid_view_rounded,
-            label: 'Field',
-          ),
-          if (isUserPath) // Hide My Card in admin contexts if preferred, or globally per plan
-            const BoxyArtBottomNavItem(
-              icon: Icons.edit_note_rounded,
-              activeIcon: Icons.edit_note_rounded,
-              label: 'My Card',
-            ),
-          const BoxyArtBottomNavItem(
-            icon: Icons.emoji_events_outlined,
-            activeIcon: Icons.emoji_events_rounded,
-            label: 'Scores',
-          ),
-          const BoxyArtBottomNavItem(
-            icon: Icons.analytics_outlined,
-            activeIcon: Icons.analytics_rounded,
-            label: 'Stats',
-          ),
-        ],
+        onItemSelected: (index) {
+          if (index >= 0 && index < tabs.length) {
+            context.go(tabs[index].path);
+          }
+        },
+        items: tabs.map((t) => BoxyArtBottomNavItem(
+          icon: t.icon,
+          activeIcon: t.activeIcon,
+          label: t.label,
+        )).toList(),
       ),
     );
   }
+}
 
-  void _onTap(BuildContext context, int index) {
-    // Extract ID from current location: /events/:id/...
-    final location = GoRouterState.of(context).uri.toString();
-    
-    // We expect /events/:id or /events/:id/subroute
-    final uri = Uri.parse(location);
-    final segments = uri.pathSegments;
-    
-    // segments[0] = events
-    // segments[1] = id
-    
-    if (segments.length < 2) return;
-    final id = Uri.decodeComponent(segments[1]);
-    
-    // Preserve query parameters (e.g. preview=true)
-    final query = uri.query;
-    final suffix = query.isNotEmpty ? '?$query' : '';
+class _EventTabConfig {
+  final String label;
+  final IconData icon;
+  final IconData activeIcon;
+  final String path;
 
-    final encodedId = Uri.encodeComponent(id);
-
-    switch (index) {
-      case 0:
-        context.go('/events/$encodedId/details$suffix');
-        break;
-      case 1:
-        context.go('/events/$encodedId/field$suffix');
-        break;
-      case 2:
-        context.go('/events/$encodedId/live$suffix');
-        break;
-      case 3:
-        context.go('/events/$encodedId/scores$suffix');
-        break;
-      case 4:
-        context.go('/events/$encodedId/stats$suffix');
-        break;
-    }
-  }
+  _EventTabConfig({
+    required this.label,
+    required this.icon,
+    required this.activeIcon,
+    required this.path,
+  });
 }

@@ -2,7 +2,6 @@ import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_state.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';

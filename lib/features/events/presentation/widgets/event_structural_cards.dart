@@ -10,12 +10,12 @@ import 'package:golf_society/utils/string_utils.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:collection/collection.dart';
 
-class EventHeadlineCard extends StatelessWidget {
+class EventHeadlineCard extends ConsumerWidget {
   final GolfEvent event;
   const EventHeadlineCard({super.key, required this.event});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bool hasImage = event.imageUrl != null && event.imageUrl!.isNotEmpty;
     
     return BoxyArtCard(
@@ -65,7 +65,7 @@ class EventHeadlineCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  _buildStatusBadge(context),
+                  _buildStatusBadge(context, ref),
                 ],
               ),
             ),
@@ -74,7 +74,7 @@ class EventHeadlineCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context) {
+  Widget _buildStatusBadge(BuildContext context, WidgetRef ref) {
     final status = event.displayStatus;
     
     String statusText;
@@ -87,11 +87,11 @@ class EventHeadlineCard extends StatelessWidget {
         break;
       case EventStatus.published:
         statusText = 'Published';
-        statusColor = Theme.of(context).colorScheme.secondary;
+        statusColor = Color(ref.watch(themeControllerProvider).statusPublishedColor);
         break;
       case EventStatus.inPlay:
         statusText = 'Live';
-        statusColor = AppColors.teamA;
+        statusColor = Color(ref.watch(themeControllerProvider).statusPublishedColor); // Match lifecycle color
         break;
       case EventStatus.suspended:
         statusText = 'Suspended';
@@ -129,18 +129,9 @@ class EventRegistrationCard extends ConsumerWidget {
 
     if (!isManagement) {
       if (isRegistered) {
-        // Registered users should always see their status card (except for draft/cancelled)
+        // [FIX] Consistently hide the status card if the event is cancelled or draft
         if (event.displayStatus == EventStatus.draft || 
             event.displayStatus == EventStatus.cancelled) {
-          return const SizedBox.shrink();
-        }
-      } else {
-        // For non-registered users, respect the registration button toggle and status
-        if (!event.showRegistrationButton || 
-            event.displayStatus == EventStatus.draft || 
-            event.displayStatus == EventStatus.cancelled ||
-            event.displayStatus == EventStatus.completed ||
-            event.displayStatus == EventStatus.inPlay) {
           return const SizedBox.shrink();
         }
       }
@@ -148,10 +139,6 @@ class EventRegistrationCard extends ConsumerWidget {
     
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
-
-    if (isPastDeadline && !isRegistered) {
-      return const SizedBox.shrink();
-    }
 
     final stats = RegistrationLogic.getRegistrationStats(event);
     final isFull = event.maxParticipants != null && stats.confirmedGolfers >= event.maxParticipants!;
@@ -165,16 +152,18 @@ class EventRegistrationCard extends ConsumerWidget {
             child: Column(
               children: [
                 Text(
-                  isFull ? 'Event Full' : 'Secure your spot',
+                  !event.isRegistrationOpen ? 'Registration Closed' : (isFull ? 'Event Full' : 'Secure your spot'),
                   style: AppTypography.headline.copyWith(
                     fontWeight: AppTypography.weightHeavy,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (event.registrationDeadline != null) ...[
+                if (event.registrationDeadline != null || !event.isRegistrationOpen) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}',
+                    !event.isRegistrationOpen 
+                        ? 'This event is no longer accepting new entries.'
+                        : (isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}'),
                     style: AppTypography.micro.copyWith(
                       color: AppColors.dark600,
                       fontWeight: AppTypography.weightHeavy,
@@ -195,11 +184,13 @@ class EventRegistrationCard extends ConsumerWidget {
                 ],
                 const SizedBox(height: AppSpacing.x2l),
                 BoxyArtButton(
-                  title: isFull ? 'Register (Waitlist)' : 'Register Now',
+                  title: !event.isRegistrationOpen 
+                      ? 'Registration Closed' 
+                      : (isFull ? 'Register (Waitlist)' : 'Register Now'),
                   fullWidth: true,
-                  backgroundColor: Color(config.primaryColor),
-                  textColor: ContrastHelper.getContrastingText(Color(config.primaryColor)),
-                  onTap: () {
+                  backgroundColor: !event.isRegistrationOpen ? AppColors.dark300 : Color(config.primaryColor),
+                  textColor: ContrastHelper.getContrastingText(!event.isRegistrationOpen ? AppColors.dark300 : Color(config.primaryColor)),
+                  onTap: !event.isRegistrationOpen ? null : () {
                     try {
                       GoRouter.of(context).push('/events/${event.id}/register-form');
                     } catch (_) {}
@@ -296,6 +287,7 @@ class EventRegistrationCard extends ConsumerWidget {
     required bool attendingDinner,
     required bool needsBuggy,
   }) {
+    final theme = Theme.of(context);
     final boxes = [
       if (statusOverride == 'playing' || (statusOverride == null && isConfirmed))
         _buildStatusBox(context, ref, Icons.check_circle_rounded, 'Playing', 'Status')
@@ -319,7 +311,7 @@ class EventRegistrationCard extends ConsumerWidget {
         hasPaid ? Icons.payments_rounded : Icons.info_outline_rounded, 
         hasPaid ? 'Paid' : 'Due', 
         'Payment',
-        color: hasPaid ? AppColors.actionGreen : AppColors.amber500,
+        color: hasPaid ? theme.colorScheme.primary : AppColors.amber500,
       ),
     ];
 
@@ -352,10 +344,9 @@ class EventRegistrationCard extends ConsumerWidget {
   Widget _buildStatusBox(BuildContext context, WidgetRef ref, IconData icon, String value, String label, {Color? color}) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
     final config = ref.watch(themeControllerProvider);
-    final themeColor = color ?? Color(config.iconBadgeFillColor);
-    final neutralColor = isDark ? AppColors.pureWhite : Color(config.iconBadgeIconColor);
+    final themeColor = color ?? theme.colorScheme.primary;
+    final neutralColor = isDark ? AppColors.pureWhite : theme.colorScheme.primary;
     
     // Applying the independent Icon Opacity token to the glyph and text
     final effectiveNeutralColor = neutralColor.withValues(alpha: config.iconOpacity);

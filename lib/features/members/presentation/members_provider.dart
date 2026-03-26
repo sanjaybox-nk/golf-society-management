@@ -27,22 +27,51 @@ final memberSearchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
 final adminMemberSearchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
 
 // Filter State for Admin
-enum AdminMemberFilter { current, committee, other }
+class AdminMemberFilterState {
+  final AdminMemberFilter type;
+  final MemberRole? role;
 
-class AdminMemberFilterNotifier extends Notifier<AdminMemberFilter> {
+  const AdminMemberFilterState({
+    required this.type,
+    this.role,
+  });
+
   @override
-  AdminMemberFilter build() => AdminMemberFilter.current;
-  
-  void update(AdminMemberFilter filter) => state = filter;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AdminMemberFilterState &&
+          runtimeType == other.runtimeType &&
+          type == other.type &&
+          role == other.role;
+
+  @override
+  int get hashCode => type.hashCode ^ role.hashCode;
 }
 
-final adminMemberFilterProvider = NotifierProvider<AdminMemberFilterNotifier, AdminMemberFilter>(AdminMemberFilterNotifier.new);
-final userMemberFilterProvider = NotifierProvider<AdminMemberFilterNotifier, AdminMemberFilter>(AdminMemberFilterNotifier.new);
+enum AdminMemberFilter { current, committee, other, role }
+
+class AdminMemberFilterNotifier extends Notifier<AdminMemberFilterState> {
+  @override
+  AdminMemberFilterState build() => const AdminMemberFilterState(type: AdminMemberFilter.current);
+  
+  void update(AdminMemberFilter type, {MemberRole? role}) {
+    state = AdminMemberFilterState(type: type, role: role);
+  }
+}
+
+final adminMemberFilterProvider = NotifierProvider<AdminMemberFilterNotifier, AdminMemberFilterState>(AdminMemberFilterNotifier.new);
+final userMemberFilterProvider = NotifierProvider<AdminMemberFilterNotifier, AdminMemberFilterState>(AdminMemberFilterNotifier.new);
 
 // All Members Data (Stream)
 final allMembersProvider = StreamProvider<List<Member>>((ref) {
   final repo = ref.read(membersRepositoryProvider);
   return repo.watchMembers();
+});
+
+// Single Member by ID
+final memberByIdProvider = Provider.family<AsyncValue<Member?>, String>((ref, id) {
+  final members = ref.watch(allMembersProvider);
+  return members.whenData((list) => list.firstWhereOrNull((m) => m.id == id));
 });
 
 // Filtered List based on Search

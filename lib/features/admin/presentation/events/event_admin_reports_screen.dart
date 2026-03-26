@@ -435,7 +435,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: isDark 
                       ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                      : AppColors.actionGreen.withValues(alpha: 0.12),
+                      : theme.colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -724,7 +724,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
             decoration: BoxDecoration(
                color: isDark 
                   ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                  : AppColors.actionGreen.withValues(alpha: 0.12),
+                  : theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: AppShapes.lg,
             ),
             child: Icon(

@@ -27,6 +27,7 @@ class RegistrationCard extends ConsumerWidget {
   final VoidCallback? onBreakfastToggle;
   final VoidCallback? onLunchToggle;
   final VoidCallback? onDinnerToggle;
+  final VoidCallback? onPaidToggle; // [NEW]
 
   const RegistrationCard({
     super.key,
@@ -49,13 +50,13 @@ class RegistrationCard extends ConsumerWidget {
     this.onBreakfastToggle,
     this.onLunchToggle,
     this.onDinnerToggle,
+    this.onPaidToggle, // [NEW]
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(themeControllerProvider);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final bool isWithdrawn = status == RegistrationStatus.withdrawn;
     // Avatar Logic
     final String initials = name.split(' ').where((s) => s.isNotEmpty).map((s) => s[0]).take(2).join().toUpperCase();
@@ -141,11 +142,18 @@ class RegistrationCard extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        toTitleCase(name),
-                        style: AppTypography.headline,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              toTitleCase(name),
+                              style: AppTypography.headline,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          _buildStatusPill(context, config, status),
+                        ],
                       ),
                       if (isGuest)
                         Text(
@@ -217,11 +225,21 @@ class RegistrationCard extends ConsumerWidget {
                     // Payment Check
                     _buildLargeIconContainer(
                       isActive: hasPaid && !isWithdrawn,
-                      child: Icon(
-                        Icons.check_circle_rounded,
-                        color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
-                        size: AppShapes.iconMd,
-                      ),
+                      child: (isAdmin && onPaidToggle != null)
+                          ? InkWell(
+                              onTap: onPaidToggle,
+                              borderRadius: AppShapes.md,
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
+                                size: AppShapes.iconMd,
+                              ),
+                            )
+                          : Icon(
+                              Icons.check_circle_rounded,
+                              color: hasPaid && !isWithdrawn ? _getIconActiveColor(context) : _getIconInactiveColor(context),
+                              size: AppShapes.iconMd,
+                            ),
                     ),
                   ],
                 ),
@@ -303,8 +321,8 @@ class RegistrationCard extends ConsumerWidget {
   }
 
   Color _getIconActiveColor(BuildContext context) {
-    // v3.1 Refining active state: use thematic action color
-    return AppColors.actionGreen;
+    // v4.5 Follow primary brand token
+    return Theme.of(context).colorScheme.primary;
   }
 
   Color _getIconInactiveColor(BuildContext context) {

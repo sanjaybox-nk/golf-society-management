@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/notification.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -124,7 +125,25 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                       AnimatedSize(
                         duration: AppAnimations.medium,
                         curve: Curves.easeInOut,
-                        child: _buildMessageContent(context),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildMessageContent(context),
+                            if (widget.notification.actionUrl != null && _isExpanded)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.md),
+                                  child: BoxyArtButton(
+                                    title: widget.notification.actionUrl!.contains('members') ? 'RENEW NOW' : 'VIEW DETAILS',
+                                    isPrimary: true,
+                                    fullWidth: false,
+                                    isSmall: true,
+                                    onTap: () {
+                                      context.push(widget.notification.actionUrl!);
+                                    },
+                                  ),
+                              ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

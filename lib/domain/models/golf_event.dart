@@ -170,10 +170,17 @@ abstract class GolfEvent with _$GolfEvent {
   }
 
   bool get isRegistrationOpen {
+    // 1. Explicit Toggle must be ON
+    if (!showRegistrationButton) return false;
+    
+    // 2. Event must not be closed (completed/cancelled)
     if (isClosed) return false;
+    
+    // 3. Deadline must not have passed
     if (isRegistrationClosed) return false;
-    // Only published events allow registration
-    return status == EventStatus.published;
+    
+    // 4. Status must be published or inPlay (Live)
+    return status == EventStatus.published || status == EventStatus.inPlay;
   }
 
   /// Synthesizes missing system blocks so older events automatically gain them natively
@@ -194,10 +201,10 @@ abstract class GolfEvent with _$GolfEvent {
     }
 
     // Default top-down order for initial synthesis:
+    ensureSystemItem(FeedItemType.registration, -110);
     ensureSystemItem(FeedItemType.headline, -100);
     ensureSystemItem(FeedItemType.podium, -90);
-    ensureSystemItem(FeedItemType.registration, -80);
-    ensureSystemItem(FeedItemType.gallerySnippet, -70);
+    ensureSystemItem(FeedItemType.gallerySnippet, -80);
 
     return result;
   }

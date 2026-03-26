@@ -349,27 +349,26 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                           child: IntrinsicHeight(
                             child: Row(
                               children: [
-                                _buildTab(
-                                  context, 
-                                  'PLAYER', 
-                                  null, 
-                                  widget.selectedTab == MarkerTab.player, 
-                                  () => widget.onTabChanged(MarkerTab.player),
-                                  isDisabled: widget.isSelfMarking, 
-                                  activeColor: AppColors.actionGreen,
-                                ),
+                                  _buildTab(
+                                    context, 
+                                    'Player', 
+                                    null, 
+                                    widget.selectedTab == MarkerTab.player, 
+                                    () => widget.onTabChanged(MarkerTab.player),
+                                    isDisabled: widget.isSelfMarking, 
+                                    activeColor: theme.colorScheme.primary,
+                                  ),
                                 
                                 // Hole Info in middle
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                                   child: Center(
                                     child: Text(
-                                      'PAR $par${si != null ? ' • SI $si' : ''}',
-                                      style: AppTypography.caption.copyWith(
-                                        color: theme.colorScheme.onSurface,
-                                        fontWeight: AppTypography.weightBold,
-                                        fontSize: 12,
-                                        letterSpacing: 0.5,
+                                      'Par $par${si != null ? ' • SI $si' : ''}',
+                                      style: AppTypography.label.copyWith(
+                                        color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                                        fontWeight: AppTypography.weightStrong,
+                                        letterSpacing: AppTypography.lsLabel,
                                       ),
                                     ),
                                   ),
@@ -377,11 +376,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
 
                                 _buildTab(
                                   context, 
-                                  'ME', 
+                                  'Me', 
                                   null, 
                                   widget.selectedTab == MarkerTab.verifier, 
                                   () => widget.onTabChanged(MarkerTab.verifier),
-                                  activeColor: AppColors.actionGreen,
+                                  activeColor: theme.colorScheme.primary,
                                 ),
                               ],
                             ),
@@ -401,7 +400,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                 alignment: Alignment.centerLeft,
                                 child: _buildSubtleNavButton(
                                   context,
-                                  '< Prev',
+                                  'Prev',
                                   () => setState(() => _currentHoleIndex--),
                                   isDisabled: _currentHoleIndex <= 0,
                                 ),
@@ -443,7 +442,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                 alignment: Alignment.centerRight,
                                 child: _buildSubtleNavButton(
                                   context,
-                                  'Next >',
+                                  'Next',
                                   () {
                                     if (currentHoleNum < 18) {
                                       setState(() => _currentHoleIndex++);
@@ -511,9 +510,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             ),
             boxShadow: isActive ? [
               BoxShadow(
-                color: Colors.black.withValues(alpha: AppColors.opacityMedium),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               )
             ] : null,
           ),
@@ -523,9 +522,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             children: [
               Text(
                 '$label${score != null ? ': $score' : ''}',
-                style: AppTypography.caption.copyWith(
-                  fontWeight: AppTypography.weightBlack,
-                  letterSpacing: 0.5,
+                style: AppTypography.label.copyWith(
+                  fontWeight: AppTypography.weightStrong,
+                  letterSpacing: AppTypography.lsLabel,
                   color: (hasConflict) 
                       ? AppColors.coral500 
                       : (isActive 

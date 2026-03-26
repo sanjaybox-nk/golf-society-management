@@ -104,9 +104,9 @@ class PersonalDetailsForm extends StatelessWidget {
                           'Gender'.toUpperCase(),
                           style: AppTypography.label.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                            fontWeight: AppTypography.weightStrong,
+                            fontWeight: AppTypography.weightHeavy,
                             letterSpacing: AppTypography.lsMicro,
-                            fontSize: 11,
+                            fontSize: AppTypography.sizeMicro,
                           ),
                         ),
                       ),
@@ -235,10 +235,10 @@ class PersonalDetailsForm extends StatelessWidget {
         Text(
           label.toUpperCase(),
           style: AppTypography.label.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-            fontWeight: AppTypography.weightStrong,
-            letterSpacing: AppTypography.lsMicro,
-            fontSize: 11, // Standardized 4.x Meta size
+            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+            fontWeight: AppTypography.weightBold,
+            letterSpacing: 1.2,
+            fontSize: AppTypography.sizeMicro, // Standardized 4.x Meta size (10px)
           ),
         ),
         const SizedBox(height: 4), // Tight 4.x rhythm
@@ -246,7 +246,7 @@ class PersonalDetailsForm extends StatelessWidget {
           value.isEmpty ? '-' : value,
           style: AppTypography.body.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: AppTypography.weightStrong, // Content remains authoritative
+            fontWeight: AppTypography.weightBold, // Content remains authoritative
             fontSize: 16,
           ),
         ),
@@ -266,6 +266,8 @@ class PersonalDetailsForm extends StatelessWidget {
                 'Code'.toUpperCase(),
                 style: AppTypography.label.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                  fontSize: AppTypography.sizeMicro,
+                  fontWeight: AppTypography.weightHeavy,
                 ),
               ),
             ),

@@ -168,7 +168,10 @@ class _AdminEventRow extends ConsumerWidget {
       },
       child: BoxyArtEventCard(
         event: event,
-        onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
+        onTap: () => context.pushNamed(
+          'admin-event-details',
+          pathParameters: {'id': event.id},
+        ),
         gameTypePill: _buildGameTypePill(context, ref, event.id),
         statusPill: GestureDetector(
           onTap: () => _showStatusSelector(context, ref, event),

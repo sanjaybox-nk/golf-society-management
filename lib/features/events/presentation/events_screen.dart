@@ -6,6 +6,7 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
 
 class EventsScreen extends ConsumerWidget {
   const EventsScreen({super.key});
@@ -142,10 +143,39 @@ class _EventRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(effectiveUserProvider);
+    final isRegistered = event.registrations.any((r) => r.memberId == user.id);
+    final theme = Theme.of(context);
+    final primary = theme.primaryColor;
+
+    Widget? statusPill;
+    if (isRegistered) {
+      statusPill = BoxyArtPill.status(
+        label: 'Confirmed',
+        color: AppColors.lime600,
+      );
+    } else if (event.isRegistrationOpen) {
+      final isFull = event.maxParticipants != null && 
+                    event.playingCount >= event.maxParticipants!;
+      statusPill = BoxyArtPill.status(
+        label: isFull ? 'Register (Waitlist)' : 'Register Now',
+        color: isFull ? AppColors.coral500 : primary,
+        isAction: true,
+      );
+    } else {
+      final isPast = DateTime.now().isAfter(event.date);
+      if (!isPast) {
+        statusPill = BoxyArtPill.status(
+          label: 'Closed',
+          color: AppColors.dark400,
+        );
+      }
+    }
     return BoxyArtEventCard(
       event: event,
       onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
       gameTypePill: _buildGameTypePill(context, ref, event.id),
+      statusPill: statusPill,
     );
   }
 

@@ -273,7 +273,6 @@ class EventHomeContent extends ConsumerWidget {
   }
 
   Widget _buildActiveShortcuts(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(themeControllerProvider);
     if (event.eventType != EventType.golf) return const SizedBox.shrink();
 
     final status = event.displayStatus;

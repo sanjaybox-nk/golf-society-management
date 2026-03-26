@@ -23,7 +23,9 @@ class HeadlessScaffold extends StatelessWidget {
   final double? leadingWidth;
   final bool showAdminShortcut;
   final Widget? pinnedBottom;
+  final double? pinnedBottomPadding;
   final bool isModal;
+  final Widget? floatingActionButton;
 
   const HeadlessScaffold({
     super.key,
@@ -44,7 +46,9 @@ class HeadlessScaffold extends StatelessWidget {
     this.leadingWidth,
     this.showAdminShortcut = true,
     this.pinnedBottom,
+    this.pinnedBottomPadding,
     this.isModal = false,
+    this.floatingActionButton,
   });
 
   @override
@@ -79,9 +83,9 @@ class HeadlessScaffold extends StatelessWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(
-                    // Absolute Golden Rhythm: Exactly 120px from Physical Top (Grid-snapped)
+                    // Absolute Golden Rhythm: Exactly 124px from Physical Top (Grid-snapped + 4px nudge)
                     // We use a fixed value here because the GlobalAppShell and Modals now all start at Y=0
-                    top: 120.0, 
+                    top: 124.0, 
                     left: AppSpacing.xl,
                     right: AppSpacing.xl,
                     bottom: AppSpacing.large,
@@ -207,7 +211,7 @@ class HeadlessScaffold extends StatelessWidget {
         // Layer 3: Overlays
         if (pinnedBottom != null)
           Positioned(
-            bottom: AppSpacing.lg,
+            bottom: pinnedBottomPadding ?? AppSpacing.lg,
             left: AppSpacing.xl,
             right: AppSpacing.xl,
             child: pinnedBottom!,
@@ -229,6 +233,14 @@ class HeadlessScaffold extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+
+        // Layer 5: Floating Action Button
+        if (floatingActionButton != null)
+          Positioned(
+            right: AppSpacing.xl,
+            bottom: (pinnedBottom != null ? 100 : 0) + AppSpacing.xl + MediaQuery.paddingOf(context).bottom,
+            child: floatingActionButton!,
           ),
       ],
     );

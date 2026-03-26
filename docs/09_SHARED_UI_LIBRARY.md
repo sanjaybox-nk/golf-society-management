@@ -19,7 +19,8 @@ The foundational container for all UI blocks.
 ### `BoxyArtInputField`
 The unified design-first input.
 - **Dynamic Radius**: Uses `config.inputRadius` from `SocietyConfig`. Defaults to 12px.
-- **Typography**: Uses `AppTypography.body` for input text and `AppTypography.label` for headers.
+- **Typography**: Uses `AppTypography.body` for input text and `AppTypography.sizeMicro` (10px) with `weightHeavy` (w800) for labels.
+- **Label Case**: Labels are strictly **UPPERCASE** for high-density elegance.
 
 ## 3. Buttons (`buttons.dart`)
 
@@ -34,21 +35,24 @@ Enforces the **32/8 vertical rhythm**. Use for all logical groupings.
 - **Typography**: `Label` (13px) + `Heavy` (800) for standard titles.
 - **Lowercase/Title Case**: Auto-formatted to Title Case for elegance.
 - **Level 2**: `Micro` (10px) style for sub-sections.
+- **Metadata Labels**: Use 10px (`sizeMicro`) + `Heavy` (800) + UPPERCASE for data keys (e.g. in `ModernInfoRow`).
 
 ## 4. Badges & Indicators (`badges.dart`)
 
 ### `BoxyArtPill`
 The standard for highlighting status, format, or type classification.
-- **v4.0 Taxonomy**: Minimalist **Dot + Text** format.
+- **v4.0 Taxonomy**: Minimalist **Dot + Text** format (Legend).
+- **Dot + Text**: Automatically renders a colored 8px dot instead of a background fill for `status`, `format`, and `type` factories.
+- **Iconless**: Icons are suppressed in Legend mode to maintain a cleaner, data-first aesthetic.
 - **Semantic Entities**: Supports `BoxyArtPill.hc()`, `BoxyArtPill.phc()`, `BoxyArtPill.guest()`, `BoxyArtPill.meal()` etc.
-- **Handicap Formatting**: `hc` and `phc` pills use consistent uppercase labels ("HC:", "PHC:") and support a `hasHorizontalMargin` flag for dense layouts. Index values are strictly formatted to 1 decimal place.
+- **Handicap Formatting**: `hc` and `phc` pills use consistent uppercase labels ("HC:", "PHC:") and have no icons per design v4.1. Index values are strictly formatted to 1 decimal place.
 
 ## 5. Typography Standards
 As of v4.0, all components are hard-linked to the following tokens:
 - **Headers/Titles**: `AppTypography.headline` + `weightHeavy`.
 - **Body Content**: `AppTypography.body` + `weightRegular`.
-- **Labels/Metadata**: `AppTypography.label` + `weightStrong`.
-- **Micro UI**: `AppTypography.micro`.
+- **Primary Data/Values**: 16px + `weightBold` (w700).
+- **Labels/Metadata**: `AppTypography.sizeMicro` (10px) + `weightHeavy` (w800) + UPPERCASE.
 
 - **`Section` (32.0)**: Vertical rhythm between blocks.
 

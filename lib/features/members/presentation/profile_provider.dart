@@ -15,7 +15,8 @@ final currentUserProvider = Provider<Member>((ref) {
     role: MemberRole.superAdmin,
     hasPaid: true,
     bio: 'The Creator. Loves a tech-infused round of golf.',
-    gender: 'Male', // [NEW] Ensure gender matches seeding
+    gender: 'Male',
+    renewalStatus: MemberRenewalStatus.none,
   );
 });
 
@@ -68,3 +69,23 @@ final effectiveUserProvider = Provider<Member>((ref) {
 
   return currentUser;
 });
+
+// [NEW] Notifier to handle member-initiated renewal status updates
+class MemberRenewalNotifier extends Notifier<void> {
+  @override
+  void build() {}
+
+  Future<void> updateStatus(String memberId, MemberRenewalStatus status) async {
+    // In a real app, this would call membersRepository.updateMember
+    // For this demo, we'll update the impersonation state if active, 
+    // or just assume the backend update is successful.
+    final impersonated = ref.read(impersonationProvider);
+    if (impersonated != null && impersonated.id == memberId) {
+      ref.read(impersonationProvider.notifier).set(impersonated.copyWith(renewalStatus: status));
+    }
+    
+    // Log for verification
+  }
+}
+
+final memberRenewalProvider = NotifierProvider<MemberRenewalNotifier, void>(MemberRenewalNotifier.new);

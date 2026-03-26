@@ -1,5 +1,4 @@
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Standard branded input field for Fairway v3.1.
@@ -54,12 +53,12 @@ class BoxyArtInputField extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              toTitleCase(label),
+              label.toUpperCase(),
               style: AppTypography.label.copyWith(
-                color: labelColor ?? (isDark ? AppColors.dark60 : AppColors.dark900),
-                fontSize: AppTypography.sizeLabel,
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                fontSize: AppTypography.sizeMicro,
                 fontWeight: AppTypography.weightBold,
-                letterSpacing: AppTypography.lsLabel,
+                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -288,10 +287,10 @@ class BoxyArtDatePickerField extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
           child: Text(
-            toTitleCase(label),
+            label.toUpperCase(),
             style: AppTypography.label.copyWith(
-              color: labelColor ?? (isDark ? AppColors.dark60 : AppColors.dark900),
-              fontSize: AppTypography.sizeLabel,
+              color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              fontSize: AppTypography.sizeMicro,
               fontWeight: AppTypography.weightBold,
               letterSpacing: 1.2,
             ),
@@ -343,7 +342,7 @@ class BoxyArtSwitchField extends StatelessWidget {
   final String label;
   final String? subtitle;
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
   final Color? labelColor;
   final Color? subtitleColor;
 
@@ -352,7 +351,7 @@ class BoxyArtSwitchField extends StatelessWidget {
     required this.label,
     this.subtitle,
     required this.value,
-    required this.onChanged,
+    this.onChanged,
     this.labelColor,
     this.subtitleColor,
   });
@@ -369,12 +368,12 @@ class BoxyArtSwitchField extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                toTitleCase(label),
+                label.toUpperCase(),
                 style: AppTypography.label.copyWith(
-                  color: labelColor ?? (isDark ? AppColors.dark60 : AppColors.dark900),
-                  fontSize: AppTypography.sizeLabel,
+                  color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                  fontSize: AppTypography.sizeMicro,
                   fontWeight: AppTypography.weightBold,
-                  letterSpacing: AppTypography.lsLabel,
+                  letterSpacing: 1.2,
                 ),
               ),
               if (subtitle != null) ...[
@@ -490,19 +489,13 @@ class BoxyArtSwitchTile extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Row(
         children: [
-          // Boxed Icon (Standard 44x44)
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: config.iconBadgeOpacity),
-              borderRadius: BorderRadius.circular(config.accentRadius),
-            ),
-            child: Icon(
-              icon, 
-              color: iconColor.withValues(alpha: config.iconOpacity), 
-              size: 20,
-            ),
+          // Boxed Icon (Standard 4.x via BoxyArtIconBadge)
+          BoxyArtIconBadge(
+            icon: icon,
+            color: Color(config.iconBadgeFillColor), // Unused by logic but good for completeness
+            iconColor: Color(config.iconBadgeIconColor), // THE CORRECT TOKEN MAPPING
+            size: 44,
+            iconSize: 20,
           ),
           const SizedBox(width: AppSpacing.lg),
           // Content
@@ -511,23 +504,25 @@ class BoxyArtSwitchTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  label,
-                  style: AppTypography.label.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontSize: AppTypography.sizeBody,
-                    letterSpacing: AppTypography.lsStandard,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                ...[
                   Text(
-                    subtitle!,
-                    style: AppTypography.caption.copyWith(
-                      color: isDark ? AppColors.dark200 : AppColors.dark400,
-                      fontWeight: AppTypography.weightMedium,
+                    label,
+                    style: AppTypography.label.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: AppTypography.sizeBody,
+                      letterSpacing: AppTypography.lsStandard,
                     ),
                   ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.dark200 : AppColors.dark400,
+                        fontWeight: AppTypography.weightMedium,
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),
@@ -578,9 +573,6 @@ class BoxyArtNavTile extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
 
-    final badgeColor = Color(config.iconBadgeFillColor);
-    final fallbackIconColor = Color(config.iconBadgeIconColor);
-
     return InkWell(
       onTap: onTap,
       borderRadius: AppShapes.lg,
@@ -588,19 +580,13 @@ class BoxyArtNavTile extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         child: Row(
           children: [
-            // Boxed Icon (Standard 44x44)
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: badgeColor.withValues(alpha: config.iconBadgeOpacity),
-                borderRadius: BorderRadius.circular(config.accentRadius),
-              ),
-              child: Icon(
-                icon, 
-                color: (iconColor ?? fallbackIconColor).withValues(alpha: config.iconOpacity), 
-                size: 22,
-              ),
+            // Boxed Icon (Standard 4.x via BoxyArtIconBadge)
+            BoxyArtIconBadge(
+              icon: icon,
+              color: Color(config.iconBadgeFillColor),
+              iconColor: iconColor ?? Color(config.iconBadgeIconColor),
+              size: 44,
+              iconSize: 22,
             ),
             const SizedBox(width: AppSpacing.lg),
             // Content
@@ -647,7 +633,7 @@ class ModernSwitchRow extends StatelessWidget {
   final String? subtitle;
   final bool value;
   final dynamic icon;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   const ModernSwitchRow({
     super.key,
@@ -655,7 +641,7 @@ class ModernSwitchRow extends StatelessWidget {
     this.subtitle,
     required this.value,
     this.icon,
-    required this.onChanged,
+    this.onChanged,
   });
 
   @override
@@ -717,12 +703,12 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
           child: Text(
-            toTitleCase(label),
+            label.toUpperCase(),
             style: AppTypography.label.copyWith(
-              color: isDark ? AppColors.dark60 : AppColors.dark900,
-              fontSize: AppTypography.sizeLabel,
+              color: isDark ? AppColors.dark150 : Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              fontSize: AppTypography.sizeMicro,
               fontWeight: AppTypography.weightBold,
-              letterSpacing: AppTypography.lsLabel,
+              letterSpacing: 1.2,
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:golf_society/utils/json_converters.dart';
 import 'handicap_system.dart';
 
 part 'society_config.freezed.dart';
@@ -18,11 +19,12 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(0xFFF7D354) int primaryColor, // Default: BoxyArt Yellow
     @Default(0xFF4ADE80) int secondaryColor, // Default: Emerald Green (Action)
     @Default(0xFFEFEFED) int backgroundColor, // Default: Light Gray/Neutral
-    @Default(0xFF22C55E) int statusConfirmedColor, // [NEW] Pill Subset
-    @Default(0xFFFFAA00) int statusReservedColor,  // [NEW] Pill Subset
-    @Default(0xFFFF5533) int statusWaitlistColor,  // [NEW] Pill Subset
-    @Default(0xFF6B7280) int statusWithdrawnColor, // [NEW] Pill Subset
-    @Default(0xFF673AB7) int statusDinnerColor,    // [NEW] Pill Subset
+    @Default(0xFF4ADE80) int statusPublishedColor, // [NEW] Pill Subset (Emerald Green - Lifecycle)
+    @Default(0xFF4ADE80) int statusConfirmedColor, // [NEW] Pill Subset (Emerald Green - Registration)
+    @Default(0xFFFFAA00) int statusReservedColor,  // [NEW] Pill Subset (Brand Amber)
+    @Default(0xFFFF5533) int statusWaitlistColor,  // [NEW] Pill Subset (Brand Coral)
+    @Default(0xFF6B7280) int statusWithdrawnColor, // [NEW] Pill Subset (Neutral/Slate)
+    @Default(0xFF673AB7) int statusDinnerColor,    // [NEW] Pill Subset (Purple)
     @Default(18.0) double cardRadius, // [NEW] Granular Card Radius
     @Default(12.0) double inputRadius, // [NEW] Granular Input Radius
     @Default(true) bool useShadows, // [NEW] Toggle Shadows
@@ -30,9 +32,9 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(true) bool useBorders, // [NEW] Toggle Borders
     @Default(1.5) double borderWidth, // [NEW] Granular Border Width
     @Default(30.0) double pillRadius, // [NEW] Granular Pill Radius
-    @Default(30.0) double buttonRadius, // [NEW] Granular Button Radius
+    @Default(16.0) double buttonRadius, // [NEW] Granular Button Radius (4.x Default)
     @Default(28.0) double heroRadius, // [NEW] Granular Hero Radius (Independent)
-    @Default(12.0) double accentRadius, // [NEW] Metric & Icon Radius
+    @Default(8.0) double accentRadius, // [NEW] Metric & Icon Radius (4.x Default)
     @Default(0.15) double accentOpacity, // [NEW] Metric & Icon Background Opacity
     @Default(0.0) double shadowSpread, // [NEW] Granular Shadow Spread
     @Default(0.12) double shadowOpacity, // [NEW] Granular Shadow Opacity
@@ -65,6 +67,9 @@ abstract class SocietyConfig with _$SocietyConfig {
     }) Map<String, double> societyCutRules,
     @Default(0.10) double globalMarkupPercentage, // Default: 10%
     @Default(10.0) double guestMarkupExtra, // Default: £10 extra for guests
+    @OptionalTimestampConverter() DateTime? globalMembershipEndDate, // [NEW] Society-wide expiry date
+    @Default(30) int renewalWindowDays, // [NEW] Days before expiry to show home screen alert
+    @Default(false) bool isRenewalActive, // [NEW] Admin switch to enable the "Renew Now" button
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>

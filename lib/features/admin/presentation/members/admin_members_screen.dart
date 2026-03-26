@@ -4,7 +4,6 @@ import 'package:golf_society/features/members/presentation/members_provider.dart
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/members/presentation/widgets/member_tile.dart';
-import 'package:golf_society/features/members/presentation/member_details_modal.dart';
 
 class AdminMembersScreen extends ConsumerStatefulWidget {
   const AdminMembersScreen({super.key});
@@ -57,12 +56,14 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
       behavior: HitTestBehavior.opaque,
       child: HeadlessScaffold(
         title: 'Members',
-        subtitle: 'Society Roster',
+        subtitle: currentFilter.type == AdminMemberFilter.role && currentFilter.role != null
+            ? 'Assign ${currentFilter.role!.displayName}'
+            : 'Society Roster',
         leading: Center(
           child: BoxyArtGlassIconButton(
-            icon: Icons.home_rounded,
-            onPressed: () => context.go('/home'),
-            tooltip: 'App Home',
+            icon: Icons.arrow_back_rounded,
+            onPressed: () => context.pop(),
+            tooltip: 'Go Back',
           ),
         ),
         slivers: [
@@ -70,14 +71,23 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
           SliverToBoxAdapter(
             child: Transform.translate(
               offset: const Offset(0, -16.0),
-              child: ModernUnderlinedFilterBar<AdminMemberFilter>(
-                selectedValue: currentFilter,
-                onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                tabs: [
-                  ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                  ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                  ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Hide Tabs if Role Filter is active
+                  if (currentFilter.type != AdminMemberFilter.role) ...[
+                    ModernUnderlinedFilterBar<AdminMemberFilter>(
+                      selectedValue: currentFilter.type,
+                      onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      tabs: [
+                        ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                        ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                        ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
                 ],
               ),
             ),
@@ -93,31 +103,13 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
               delegate: SliverChildListDelegate([
                 const SizedBox(height: AppSpacing.lg),
 
-                // Search Card
-                BoxyArtCard(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: TextField(
-                          focusNode: _searchFocusNode,
-                          onChanged: (v) => ref.read(adminMemberSearchQueryProvider.notifier).update(v),
-                          style: AppTypography.label.copyWith(fontSize: AppTypography.sizeButton),
-                          decoration: const InputDecoration(
-                            hintText: 'Search roster...',
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            isDense: true,
-                            filled: false,
-                            contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                // Standardized Search Input
+                // Design 4.1 Search Bar (Image 2)
+                BoxyArtSearchInput(
+                  label: 'Search Members',
+                  hintText: 'Search roster...',
+                  initialValue: searchQuery,
+                  onChanged: (v) => ref.read(adminMemberSearchQueryProvider.notifier).update(v),
                 ),
                 const SizedBox(height: AppSpacing.x2l),
 
@@ -129,12 +121,17 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                       final matchesSearch = name.contains(searchQuery);
                       if (!matchesSearch) return false;
 
-                      if (currentFilter == AdminMemberFilter.current) {
+                      // If search query is present, show matching members regardless of filters (Global Search)
+                      if (searchQuery.isNotEmpty) return true;
+
+                      if (currentFilter.type == AdminMemberFilter.current) {
                         return m.status == MemberStatus.member || m.status == MemberStatus.active;
-                      } else if (currentFilter == AdminMemberFilter.committee) {
+                      } else if (currentFilter.type == AdminMemberFilter.committee) {
                         return m.societyRole != null && m.societyRole!.isNotEmpty;
-                      } else if (currentFilter == AdminMemberFilter.other) {
+                      } else if (currentFilter.type == AdminMemberFilter.other) {
                         return m.status != MemberStatus.member && m.status != MemberStatus.active;
+                      } else if (currentFilter.type == AdminMemberFilter.role) {
+                        return m.role == currentFilter.role;
                       }
                       return true;
                     }).toList();
@@ -154,6 +151,8 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     return Column(
                       children: sortedMembers.map((member) {
                         final eventCount = memberStatsAsync.value?[member.id] ?? 0;
+                        final isAlreadyInRole = member.role == currentFilter.role;
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: _buildDismissibleMember(
@@ -162,6 +161,31 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                             member,
                             secondaryMetricLabel: 'Events',
                             secondaryMetricValue: '$eventCount',
+                            trailing: currentFilter.type == AdminMemberFilter.role && !isAlreadyInRole
+                                ? BoxyArtButton(
+                                    title: 'Assign',
+                                    isSmall: true,
+                                    onTap: () async {
+                                      final messenger = ScaffoldMessenger.of(context);
+                                      final confirmed = await showBoxyArtDialog<bool>(
+                                        context: context,
+                                        title: 'Assign Role?',
+                                        message: 'Assign ${member.firstName} as ${currentFilter.role!.displayName}?',
+                                        confirmText: 'Assign',
+                                      );
+                                      if (confirmed == true) {
+                                        ref.read(membersRepositoryProvider).updateMember(
+                                          member.copyWith(role: currentFilter.role!),
+                                        );
+                                        messenger.showSnackBar(
+                                          SnackBar(content: Text('${member.firstName} is now ${currentFilter.role!.displayName}')),
+                                        );
+                                      }
+                                    },
+                                  )
+                                : isAlreadyInRole 
+                                    ? BoxyArtPill(label: 'Current', color: AppColors.lime500, hasHorizontalMargin: false)
+                                    : null,
                           ),
                         );
                       }).toList(),
@@ -189,6 +213,7 @@ Widget _buildDismissibleMember(
   Member member, {
   String? secondaryMetricLabel,
   String? secondaryMetricValue,
+  Widget? trailing,
 }) {
   return Padding(
     padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -222,12 +247,13 @@ Widget _buildDismissibleMember(
       },
       child: MemberTile(
         member: member,
-        onTap: () => MemberDetailsModal.show(context, member, isAdminContext: true),
-        onLongPress: () => MemberDetailsModal.show(context, member, isAdminContext: true),
-        showFeeStatus: true,
+        onTap: () => context.pushNamed('admin-member-detail', pathParameters: {'id': member.id}),
+        onLongPress: () => context.pushNamed('admin-member-detail', pathParameters: {'id': member.id}),
+        showFeeStatus: false, // [MODIFIED] Hidden in general roster
         isAdminContext: true,
         secondaryMetricLabel: secondaryMetricLabel,
         secondaryMetricValue: secondaryMetricValue,
+        trailing: trailing,
       ),
     ),
   );

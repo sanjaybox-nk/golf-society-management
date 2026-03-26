@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 /// A horizontal metrics bar often used in header sections.
@@ -24,7 +25,7 @@ class ModernMetricBar extends StatelessWidget {
 }
 
 /// A compact or prominent metric used in registration and summary views.
-class ModernMetricStat extends StatelessWidget {
+class ModernMetricStat extends ConsumerWidget {
   final String value;
   final String label;
   final IconData? icon;
@@ -45,31 +46,32 @@ class ModernMetricStat extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final shapeTokens = theme.extension<AppShapeTokens>();
-    final accentRadius = shapeTokens?.accent ?? BorderRadius.circular(12);
-    final accentOpacity = shapeTokens?.accentOpacity ?? 0.15;
+    final config = ref.watch(themeControllerProvider);
     
-    // Design Standard: Action background + Control Setting Glyph
-    final defaultBg = shapeTokens?.iconBadgeFill ?? theme.colorScheme.secondary;
-    final defaultIconColor = shapeTokens?.iconBadgeIcon ?? 
-                             (isSolid ? AppColors.pureWhite : AppColors.dark900);
-    final badgeOpacity = shapeTokens?.iconBadgeOpacity ?? 1.0;
+    // Design 4.x (Boxy Art 4.0) Standard Constants
+    final effectiveBgColor = color ?? theme.colorScheme.primary;
+    final radius = config.cardRadius / 2;
+    final badgeOpacity = isSolid ? 1.0 : 0.1;
+    final borderOpacity = isSolid ? 0.0 : 0.3;
 
-    final effectiveBgColor = color ?? defaultBg;
-    final effectiveIconColor = iconColor ?? (color != null 
-        ? (isSolid ? AppColors.pureWhite : AppColors.dark900)
-        : defaultIconColor);
+    final effectiveIconColor = iconColor ?? (isSolid 
+        ? AppColors.pureWhite 
+        : effectiveBgColor);
 
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: (theme.extension<AppSpacingTokens>()?.cardVerticalPadding ?? AppSpacing.lg) * (isCompact ? 0.6 : 0.8),
-        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.md * (isCompact ? 0.6 : 1.0),
+        horizontal: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
         color: effectiveBgColor.withValues(alpha: badgeOpacity),
-        borderRadius: accentRadius,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: effectiveBgColor.withValues(alpha: borderOpacity),
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -78,18 +80,19 @@ class ModernMetricStat extends StatelessWidget {
           if (icon != null) ...[
             Icon(
               icon, 
-              size: isCompact ? AppShapes.iconSm : AppShapes.iconMd, 
+              size: isCompact ? 14 : 18, 
               color: effectiveIconColor,
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.xs),
           ],
           Text(
             value,
             style: AppTypography.displayHeading.copyWith(
-              fontSize: isCompact ? AppTypography.sizeLargeBody : AppTypography.sizeDisplaySubPage,
+              fontSize: isCompact ? 14 : 18,
               color: isSolid ? AppColors.pureWhite : AppColors.dark900,
-              letterSpacing: -0.8,
-              fontWeight: AppTypography.weightExtraBold,
+              letterSpacing: -1.0,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -97,13 +100,14 @@ class ModernMetricStat extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontSize: AppTypography.sizeCaption,
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 8, // Aggressively reduced to prevent truncation
               color: isSolid 
-                  ? AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh) 
-                  : AppColors.dark800,
-              fontWeight: AppTypography.weightSemibold,
+                  ? AppColors.pureWhite.withValues(alpha: 0.8) 
+                  : (color ?? AppColors.dark800),
+              fontWeight: FontWeight.w800, 
+              letterSpacing: 0.2, // Tighter for long words like WITHDRAWN
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -133,7 +137,7 @@ class ModernSummaryIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = active ? (activeColor ?? theme.colorScheme.secondary) : AppColors.dark300;
+    final color = active ? (activeColor ?? theme.colorScheme.primary) : AppColors.dark300;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

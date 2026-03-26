@@ -1,7 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 /// A structured row for displaying info within a BoxyArtCard.
-class ModernInfoRow extends StatelessWidget {
+class ModernInfoRow extends ConsumerWidget {
   final String label;
   final String value;
   final IconData? icon;
@@ -10,6 +11,7 @@ class ModernInfoRow extends StatelessWidget {
   final Color? valueColor;
   final double? fontSize;
   final Widget? trailing;
+  final bool showFill;
 
   const ModernInfoRow({
     super.key,
@@ -21,19 +23,26 @@ class ModernInfoRow extends StatelessWidget {
     this.valueColor,
     this.fontSize,
     this.trailing,
+    this.showFill = true,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final textPrimary = Theme.of(context).textTheme.bodyLarge?.color;
-    final textSecondary = Theme.of(context).textTheme.bodySmall?.color;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = theme.textTheme.bodyLarge?.color;
+    final textSecondary = theme.textTheme.bodySmall?.color;
+    final config = ref.watch(themeControllerProvider);
 
     return Row(
       children: [
         if (icon != null) ...[
           BoxyArtIconBadge(
             icon: icon!,
-            color: iconColor ?? AppColors.actionGreen,
+            color: iconColor ?? Color(config.iconBadgeFillColor),
+            iconColor: iconColor != null ? null : Color(config.iconBadgeIconColor),
+            fillOpacity: config.iconBadgeOpacity,
+            showFill: showFill,
           ),
           const SizedBox(width: 14),
         ],
@@ -53,8 +62,8 @@ class ModernInfoRow extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.displayMedium.copyWith(
-                  fontSize: fontSize ?? 16.5,
-                  fontWeight: AppTypography.weightExtraBold,
+                  fontSize: fontSize ?? 16.0,
+                  fontWeight: AppTypography.weightBold,
                   color: valueColor ?? textPrimary,
                   letterSpacing: -0.2,
                 ),
@@ -113,7 +122,7 @@ class ModernRuleItem extends StatelessWidget {
             value,
             style: TextStyle(
               fontSize: AppTypography.sizeLabelStrong,
-              fontWeight: AppTypography.weightSemibold,
+              fontWeight: AppTypography.weightBold,
               color: textPrimary,
             ),
           ),
@@ -162,7 +171,7 @@ class ModernCostRow extends StatelessWidget {
             amount,
             style: TextStyle(
               fontSize: isTotal ? 18 : 16,
-              fontWeight: isTotal ? AppTypography.weightBlack : AppTypography.weightBold,
+              fontWeight: AppTypography.weightBold,
               color: color ?? textPrimary,
             ),
           ),

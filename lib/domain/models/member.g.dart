@@ -29,7 +29,16 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
   hasPaid: json['hasPaid'] as bool? ?? false,
   isArchived: json['isArchived'] as bool? ?? false,
   gender: json['gender'] as String?,
-  joinedDate: const TimestampConverter().fromJson(json['joinedDate']),
+  joinedDate: const OptionalTimestampConverter().fromJson(json['joinedDate']),
+  membershipEndDate: const OptionalTimestampConverter().fromJson(
+    json['membershipEndDate'],
+  ),
+  renewalStatus:
+      $enumDecodeNullable(
+        _$MemberRenewalStatusEnumMap,
+        json['renewalStatus'],
+      ) ??
+      MemberRenewalStatus.none,
 );
 
 Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
@@ -51,7 +60,11 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'hasPaid': instance.hasPaid,
   'isArchived': instance.isArchived,
   'gender': instance.gender,
-  'joinedDate': const TimestampConverter().toJson(instance.joinedDate),
+  'joinedDate': const OptionalTimestampConverter().toJson(instance.joinedDate),
+  'membershipEndDate': const OptionalTimestampConverter().toJson(
+    instance.membershipEndDate,
+  ),
+  'renewalStatus': _$MemberRenewalStatusEnumMap[instance.renewalStatus]!,
 };
 
 const _$MemberRoleEnumMap = {
@@ -70,4 +83,13 @@ const _$MemberStatusEnumMap = {
   MemberStatus.suspended: 'suspended',
   MemberStatus.archived: 'archived',
   MemberStatus.left: 'left',
+  MemberStatus.expired: 'expired',
+  MemberStatus.gracePeriod: 'gracePeriod',
+};
+
+const _$MemberRenewalStatusEnumMap = {
+  MemberRenewalStatus.none: 'none',
+  MemberRenewalStatus.renew: 'renew',
+  MemberRenewalStatus.suspend: 'suspend',
+  MemberRenewalStatus.leave: 'leave',
 };

@@ -13,6 +13,8 @@ import 'package:golf_society/features/events/presentation/widgets/grouping_widge
 import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/features/matchplay/domain/golf_event_match_extensions.dart';
+import 'package:golf_society/features/events/domain/registration_logic.dart';
+import './admin_grouping_hub_card.dart';
 
 class AdminGroupingHubContent extends ConsumerStatefulWidget {
   final String eventId;
@@ -86,13 +88,22 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         
         // Calculate Unassigned Players
         return SliverToBoxAdapter(
-          child: Column(
-            children: [
-              if (localGroups == null)
-                _buildEmptyState(context, event, events, handicapMap)
-              else
-                _buildGroupingListLayout(context, ref, event, localGroups, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps, isLocked: isLocked, matchPlayMode: matchPlayMode, selectedForSwap: selectedForSwap),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Column(
+              children: [
+                AdminGroupingHubCard(
+                  event: event,
+                  onGenerate: () => _handleAutoGenerate(context, ref, event, handicapMap, events),
+                  onReset: () => _handleReset(ref),
+                  onSave: () => _handleSave(context, ref, event),
+                ),
+                if (localGroups != null) ...[
+                  const SizedBox(height: AppSpacing.x2l),
+                   _buildGroupingListLayout(context, ref, event, localGroups, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps, isLocked: isLocked, matchPlayMode: matchPlayMode, selectedForSwap: selectedForSwap),
+                ],
+              ],
+            ),
           ),
         );
       },
@@ -101,18 +112,57 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap) {
+  void _handleAutoGenerate(BuildContext context, WidgetRef ref, GolfEvent event, Map<String, double> handicapMap, List<GolfEvent> allEvents) {
+    final strategy = ref.read(groupingStrategyProvider);
+    final teeTime = ref.read(groupingTeeTimeProvider) ?? event.teeOffTime ?? DateTime.now();
+    final interval = ref.read(groupingIntervalProvider) ?? event.teeOffInterval;
+    
+    final participants = RegistrationLogic.getPlayingParticipants(event);
+    if (participants.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No confirmed participants to group')));
+      return;
+    }
 
-    return BoxyArtEmptyState(
-      title: 'No Tee Time Generated',
-      message: 'Your squad hasn\'t been sorted into groups yet.',
-      icon: Icons.grid_view_rounded,
+    final newGroups = GroupingService.generateInitialGrouping(
+      event: event.copyWith(teeOffTime: teeTime, teeOffInterval: interval),
+      participants: participants,
+      previousEventsInSeason: allEvents.where((e) => e.id != event.id).toList(),
+      memberHandicaps: handicapMap,
+      strategy: strategy,
     );
+
+    ref.read(groupingLocalGroupsProvider.notifier).setGroups(newGroups);
+    ref.read(groupingDirtyProvider.notifier).setDirty(true);
+  }
+
+  void _handleReset(WidgetRef ref) {
+    ref.read(groupingLocalGroupsProvider.notifier).setGroups(null);
+    ref.read(groupingDirtyProvider.notifier).setDirty(false);
+  }
+
+  Future<void> _handleSave(BuildContext context, WidgetRef ref, GolfEvent event) async {
+    final groups = ref.read(groupingLocalGroupsProvider);
+    if (groups == null) return;
+
+    final updatedEvent = event.copyWith(
+      grouping: {
+        ...event.grouping,
+        'groups': groups.map((g) => g.toJson()).toList(),
+        'locked': ref.read(groupingIsLockedProvider) ?? false,
+      },
+    );
+
+    await ref.read(eventsRepositoryProvider).updateEvent(updatedEvent);
+    ref.read(groupingDirtyProvider.notifier).setDirty(false);
+    
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grouping Saved!'), backgroundColor: AppColors.teamA));
+    }
   }
 
   Widget _buildGroupingListLayout(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> localGroups, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true, required bool isLocked, required bool matchPlayMode, required TeeGroupParticipant? selectedForSwap}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
+      padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: 100),
       child: Column(
         children: localGroups.mapIndexed((index, group) {
           return Padding(
@@ -148,10 +198,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
   void _handleMove(WidgetRef ref, List<TeeGroup> groups, bool isLocked, TeeGroupParticipant sourceP, TeeGroup? sourceG, TeeGroup targetG, TeeGroupParticipant? targetP) {
     if (isLocked) return;
     
-    // Logic for moving/swapping
     final newGroups = List<TeeGroup>.from(groups);
-    // ... logic implementation (simplified for brevity, should match original)
-    // Actually I should copy it exactly.
     
     if (sourceG == targetG) {
        if (targetP != null && sourceP != targetP) {
@@ -189,8 +236,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     } else if (selected == p) {
       ref.read(groupingSelectedForSwapProvider.notifier).set(null);
     } else {
-      // Swap
-      _handleMove(ref, groups, isLocked, selected, null, g, p); // Simplified sourceG
+      _handleMove(ref, groups, isLocked, selected, null, g, p); 
       ref.read(groupingSelectedForSwapProvider.notifier).set(null);
     }
   }
@@ -215,15 +261,13 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
 
        await ref.read(eventsRepositoryProvider).updateEvent(result.event);
        
-       // Update local state to reflect the new state (including potential auto-filling)
        final newGroupsData = result.event.grouping['groups'] as List?;
        if (newGroupsData != null) {
           final newGroups = newGroupsData.map((g) => TeeGroup.fromJson(g)).toList();
           ref.read(groupingLocalGroupsProvider.notifier).setGroups(newGroups);
-          ref.read(groupingDirtyProvider.notifier).setDirty(false); // Saved
+          ref.read(groupingDirtyProvider.notifier).setDirty(false);
        }
 
-       // Broadcast Notifications
        final notificationService = ref.read(notificationBroadcastServiceProvider);
        final allMembers = ref.read(allMembersProvider).value ?? [];
        

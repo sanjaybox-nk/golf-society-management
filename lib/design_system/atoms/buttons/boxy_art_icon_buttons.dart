@@ -68,7 +68,7 @@ class BoxyArtThemedCircleIcon extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withValues(alpha: accentOpacity),
+        color: theme.colorScheme.primary.withValues(alpha: accentOpacity),
         borderRadius: accentRadius,
       ),
       child: Icon(

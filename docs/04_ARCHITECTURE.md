@@ -63,10 +63,15 @@ For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modu
 - **Persistence Orchestration**: The notifier's `save()` method handles complex multi-repository synchronization (e.g., updating both an Event and its associated Competitions) within a single logical unit.
 
 ## Navigation (GoRouter)
-The app uses `StatefulShellRoute` to implement the persistent bottom navigation bar.
-- **Shell**: `GlobalAppShell` wraps the main navigation branches.
-- **Routes**: Defined in `lib/navigation/app_router.dart`.
-- **Transitions**: All routes are wrapped in the `boxyPage` helper, which implements a **Salted PageKey Strategy** (`state.pageKey` + `state.matchedLocation`) to prevent `HeroControllerScope` assertion failures and ensure unique page identities across the navigation stack.
+The app uses a hierarchical shell architecture to manage global and contextual navigation.
+- **Global Shell**: `GlobalAppShell` wraps the primary navigation branches (Home, Events, Members, Admin).
+- **Nested Event Shells**: Specialized shells manage the 5-tab Event Hub experience:
+    - `EventAdminShell`: Context-aware management for administrators.
+    - `EventUserShell`: Context-aware hub for members.
+- **Stability Strategy**: 
+    - **Stable Keys**: Nested shells use stable `ValueKey` assignments (via a custom `boxyPage` key override) to prevent widget destruction during sub-route transitions.
+    - **Navigator Isolation**: Both shells use dedicated `GlobalKey<NavigatorState>` instances to isolate the event hub stack from the global app shell.
+- **Transitions**: All routes are wrapped in the `boxyPage` helper, which implements a **Salted PageKey Strategy**.
 - **Push**: Use `context.push('/path')` or `context.go('/path')`.
 
 ## Data Models

@@ -8,10 +8,10 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'dart:convert';
 import 'dart:io';
 import '../../domain/registration_logic.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../members/presentation/profile_provider.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/competition.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:golf_society/domain/models/member.dart';
+import '../../../members/presentation/profile_provider.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 import '../widgets/event_structural_cards.dart';
 
@@ -104,8 +104,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(effectiveUserProvider);
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    
     final isStaff = user.role != MemberRole.member;
     
     final event = widget.event;
@@ -159,10 +157,11 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               BoxyArtGlassIconButton(
                 icon: Icons.edit_rounded,
                 iconSize: 24,
-                onPressed: () {
-                  final id = event.id;
-                  context.push('/admin/events/manage/${Uri.encodeComponent(id)}/event/edit', extra: event);
-                },
+                onPressed: () => context.pushNamed(
+                  'admin-event-edit',
+                  pathParameters: {'id': event.id},
+                  extra: event,
+                ),
                 tooltip: 'Edit Event Settings',
               ),
             ],
@@ -232,7 +231,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     final event = widget.event;
     final user = ref.watch(effectiveUserProvider);
     final isStaff = user.role != MemberRole.member;
-    final isAdminMode = widget.isAdminMode && isStaff;
+
 
     final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
     
@@ -655,7 +654,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                       label: 'Field Capacity',
                       value: '$available / ${event.maxParticipants} slots available',
                       icon: Icons.groups_rounded,
-                      iconColor: available == 0 ? Colors.redAccent : null,
                     );
                   }
                 ),
@@ -949,28 +947,21 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
         BoxyArtCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: widget.event.facilities.map((f) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                children: [
-                   BoxyArtIconBadge(
-                    icon: Icons.check_rounded, 
-                    color: AppColors.actionGreen,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      f,
-                      style: AppTypography.displayMedium.copyWith(
-                        fontSize: 16.5,
-                        fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )).toList(),
+            children: widget.event.facilities.asMap().entries.map((entry) {
+              final index = entry.key;
+              final f = entry.value;
+              final isLast = index == widget.event.facilities.length - 1;
+              
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.standard),
+                child: ModernInfoRow(
+                  label: 'Feature',
+                  value: f,
+                  icon: Icons.check_rounded,
+                  showFill: true,
+                ),
+              );
+            }).toList(),
           ),
         ),
       ],
@@ -1094,10 +1085,12 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                       children: [
                         BoxyArtIconBadge(
                           icon: icon,
-                          color: AppColors.actionGreen,
+                          color: Color(ref.watch(themeControllerProvider).iconBadgeFillColor),
+                          iconColor: Color(ref.watch(themeControllerProvider).iconBadgeIconColor),
+                          fillOpacity: ref.watch(themeControllerProvider).iconBadgeOpacity,
                           size: 38,
                         ),
-                        const SizedBox(width: AppSpacing.lg),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1114,7 +1107,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                   'Value: ${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: AppTypography.sizeLabel,
-                                    fontWeight: AppTypography.weightExtraBold,
+                                    fontWeight: AppTypography.weightBold,
                                     color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                                     letterSpacing: 0.5,
                                   ),
@@ -1124,7 +1117,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                   toTitleCase(award.type),
                                   style: TextStyle(
                                     fontSize: AppTypography.sizeLabel,
-                                    fontWeight: AppTypography.weightExtraBold,
+                                    fontWeight: AppTypography.weightBold,
                                     letterSpacing: 0.5,
                                     color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                                   ),

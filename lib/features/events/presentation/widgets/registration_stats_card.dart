@@ -176,8 +176,6 @@ class RegistrationStatsCard extends ConsumerWidget {
 
     final availableBuggies = event.availableBuggies ?? 0;
     final buggyCapacity = availableBuggies * 2;
-    final capacity = event.maxParticipants ?? 0;
-    final isClosed = event.registrationDeadline != null && DateTime.now().isAfter(event.registrationDeadline!);
 
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;

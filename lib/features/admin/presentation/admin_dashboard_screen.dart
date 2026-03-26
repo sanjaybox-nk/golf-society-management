@@ -53,7 +53,10 @@ class AdminDashboardScreen extends ConsumerWidget {
                   if (nextEvent != null) {
                     return DashboardHeroCard(
                       event: nextEvent,
-                      onTap: () => context.go('/admin/events/manage/${Uri.encodeComponent(nextEvent.id)}/event'),
+                      onTap: () => context.goNamed(
+                        'admin-event-manage-tower',
+                        pathParameters: {'id': nextEvent.id},
+                      ),
                     );
                   }
                   return const SizedBox.shrink();
@@ -81,7 +84,10 @@ class AdminDashboardScreen extends ConsumerWidget {
                         return Padding(
                           padding: EdgeInsets.only(bottom: (index == activePolls.length - 1) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
                           child: BoxyArtCard(
-                            onTap: () => context.go('/admin/events/manage/${event.id}/event'),
+                            onTap: () => context.goNamed(
+                              'admin-event-manage-tower',
+                              pathParameters: {'id': event.id},
+                            ),
                             child: Row(
                               children: [
                                 const Icon(Icons.poll_rounded, color: AppColors.lime500),
@@ -123,7 +129,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         width: cardWidth,
                         icon: Icons.add_circle_outline_rounded,
                         title: 'Create Event',
-                        onTap: () => context.push('/admin/events/new'),
+                        onTap: () => context.pushNamed('admin-event-new'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
@@ -141,13 +147,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                         width: cardWidth,
                         icon: Icons.settings_suggest_rounded,
                         title: 'Settings',
-                        onTap: () => context.push('/admin/settings'),
+                        onTap: () => context.pushNamed('admin-settings'),
                       ),
                       _FeatureGridItem(
                         width: cardWidth,
                         icon: Icons.poll_rounded,
                         title: 'Surveys',
-                        onTap: () => context.go('/admin/surveys'),
+                        onTap: () => context.goNamed('admin-surveys'),
+                      ),
+                      _FeatureGridItem(
+                        width: cardWidth,
+                        icon: Icons.autorenew_rounded,
+                        title: 'Renewal Hub',
+                        onTap: () => context.pushNamed('admin-member-renewal'),
                       ),
                     ],
                   );
@@ -385,7 +397,10 @@ class _BroadcastEventPicker extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       onTap: () {
                         Navigator.pop(context);
-                        context.go('/admin/events/manage/${Uri.encodeComponent(event.id)}/broadcast/new');
+                        context.goNamed(
+                          'admin-event-broadcast',
+                          pathParameters: {'id': event.id},
+                        );
                       },
                       child: ListTile(
                         contentPadding: EdgeInsets.symmetric(

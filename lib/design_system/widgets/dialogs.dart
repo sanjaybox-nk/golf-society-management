@@ -30,24 +30,32 @@ class BoxyArtDialog extends StatelessWidget {
     
     final List<Widget> dialogActions = actions ?? [
       if (onCancel != null)
-        TextButton(
-          onPressed: onCancel,
-          child: Text(cancelText ?? 'Cancel'),
+        BoxyArtButton(
+          title: cancelText ?? 'Cancel',
+          isGhost: true,
+          onTap: onCancel,
         ),
       if (onConfirm != null)
-        ElevatedButton(
-          onPressed: onConfirm,
-          child: Text(confirmText ?? 'Confirm'),
+        BoxyArtButton(
+          title: confirmText ?? 'Confirm',
+          isPrimary: true,
+          onTap: onConfirm,
         )
       else if (onCancel == null)
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
+        BoxyArtButton(
+          title: 'Close',
+          isGhost: true,
+          onTap: () => Navigator.pop(context),
+        ),
     ];
 
     return AlertDialog(
-      title: Text(title, style: theme.dialogTheme.titleTextStyle),
+      title: Text(
+        title, 
+        style: AppTypography.displaySubPage.copyWith(
+          color: isDark ? AppColors.dark60 : AppColors.dark900,
+        ),
+      ),
       content: SingleChildScrollView(
         child: content ?? Text(
           message!,
@@ -57,9 +65,11 @@ class BoxyArtDialog extends StatelessWidget {
         ),
       ),
       actions: dialogActions,
-      backgroundColor: theme.dialogTheme.backgroundColor,
-      shape: theme.dialogTheme.shape,
-      actionsPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      backgroundColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppShapes.cardRadius,
+      ),
+      actionsPadding: const EdgeInsets.all(AppSpacing.lg),
     );
   }
 

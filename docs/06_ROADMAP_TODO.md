@@ -28,7 +28,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Registration History**: Detailed audit trail for status changes and member edits.
     - [x] **Data Resilience**: Protection against registration data loss during event updates.
     - [x] **Event Form Stability**: TextEditingController & FocusNode refactor for Course Config.
-    - [x] **Control Tower Consolidation (v4.0)**: Fully unified command center with integrated Manual Grouping, Registrations, and Event Editing. Automated "Club Bill" generation for society costs.
+    - [x] **Control Tower Modernization (v4.0)**: Consolidated fragmented grouping controls into a single "Grouping Hub" navigation tile. Improved vertical rhythm using standardized design tokens.
+    - [x] **Grouping Hub Card**: Implemented a unified UI for generation strategy, tee seed, and interval controls, replacing the legacy toolbar.
     - [ ] **Payment Integration**: Stripe/Apple Pay for event fees.
     - [x] **Social & AGM Support**: Tailored admin UI and models for non-golf events.
     - [ ] **Check-in System**: Scanner or manual toggle for day-of events.
@@ -93,7 +94,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Member Card Refinement**: Relocated status legends for cleaner data hierarchy.
 - [x] **Handicap Display Standardization (v4.0)**: Consolidated all HC/PHC displays to premium `BoxyArtPill` format with strict 1-decimal index formatting across all modules.
 - [x] **Tournament UX & Radius Hardening (v3.8)**
-    - [x] **Flattened Navigation**: Implementation of 5-tab "Tournament Mode" shell.
+    - [x] **Flattened Navigation (v4.0 Update)**: Implementation of unified 5-tab "Tournament Mode" hub with specialized Admin/Player shells, stable router keys, and isolated navigator stacks.
     - [x] **Radius Sync**: Resolved visual mismatches across cards using authoritative clipping.
     - [x] **Direct Scoring Access**: Added "ENTER SCORE" shortcuts to main event hubs.
     - [x] **Refined Logic Display**: Updated scorecard summaries with MATCH status and improved typo hierarchies.

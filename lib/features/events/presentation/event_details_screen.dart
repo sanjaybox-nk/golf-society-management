@@ -348,6 +348,7 @@ class _EventDetailsContent extends StatelessWidget {
             title: isPastDeadline 
                 ? 'Registration closed' 
                 : (isRegistered ? 'Update Registration' : 'Register Now'),
+            backgroundColor: primary,
             onTap: isRegistrationDisabled 
                 ? null 
                 : () => context.push('/events/${Uri.encodeComponent(event.id)}/register'),

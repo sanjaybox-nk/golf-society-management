@@ -536,9 +536,9 @@ class ScorecardModal {
           child: Text(
             isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE"),
             style: AppTypography.micro.copyWith(
-              fontWeight: AppTypography.weightHeavy,
-              color: AppColors.textTertiary,
-              letterSpacing: 2.0,
+              fontWeight: AppTypography.weightBold,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              letterSpacing: 1.2,
             ),
           ),
         ),
@@ -743,9 +743,9 @@ class ScorecardModal {
         child: Text(
           label.toUpperCase(),
           style: AppTypography.micro.copyWith(
-            fontWeight: isSelected ? AppTypography.weightHeavy : AppTypography.weightStrong,
+            fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightStrong,
             color: isSelected ? AppColors.lime500 : AppColors.dark300,
-            letterSpacing: 0.5,
+            letterSpacing: 1.2,
           ),
         ),
       ),

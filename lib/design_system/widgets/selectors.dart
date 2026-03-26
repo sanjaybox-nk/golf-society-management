@@ -117,7 +117,7 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
           color: Colors.transparent,
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? AppColors.actionGreen : Colors.transparent,
+              color: isSelected ? theme.colorScheme.primary : Colors.transparent,
               width: AppShapes.borderMedium,
             ),
           ),
@@ -142,7 +142,7 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.actionGreen : AppColors.actionGreen.withValues(alpha: AppColors.opacityMuted),
+                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: AppColors.opacityMuted),
                     shape: BoxShape.circle,
                   ),
                 ),

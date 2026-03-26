@@ -46,11 +46,18 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 config.shadowOpacity,
                 config.labelToCardSpacing,
                 config.cardToLabelSpacing,
+                config.statusPublishedColor,
                 config.statusConfirmedColor,
                 config.statusReservedColor,
                 config.statusWaitlistColor,
                 config.cardVerticalPadding,
                 config.cardHorizontalPadding,
+                config.iconBadgeFillColor,
+                config.iconBadgeIconColor,
+                config.iconOpacity,
+                config.statusWithdrawnColor,
+                config.statusDinnerColor,
+                config.iconBadgeOpacity,
               ),
 
               const BoxyArtSectionTitle(title: 'App Appearance'),
@@ -299,33 +306,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       ),
                     ],
                     SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-                    Row(
-                      children: [
-                        Text(
-                          'Pills',
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value: config.pillRadius,
-                            min: 0.0,
-                            max: 30.0,
-                            divisions: 15,
-                            label: config.pillRadius.toStringAsFixed(0),
-                            activeColor: Color(config.secondaryColor),
-                            onChanged: (v) => controller.setPillRadius(v),
-                          ),
-                        ),
-                        Text(
-                          config.pillRadius.toStringAsFixed(0),
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBlack,
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Pills Slider moved to Consolidated Badges section
                     Row(
                       children: [
                         Text(
@@ -582,121 +563,203 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    BoxyArtDivider(
-                      verticalPadding:
-                          spacing?.labelToCard ?? AppSpacing.labelToCard,
+                  ],
+                ),
+              ),
+
+              const BoxyArtSectionTitle(title: 'Badges & Status Styling'),
+              BoxyArtCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Configure how status indicators, badges and pills appear across the app.',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: AppTypography.weightMedium,
+                      ),
                     ),
-                    const BoxyArtSectionTitle(title: 'Metric & Icon Branding'),
+                    const SizedBox(height: AppSpacing.lg),
+                    
+                    const BoxyArtSectionTitle(title: 'STATUS COLORS', isLevel2: true),
+                    const SizedBox(height: AppSpacing.md),
+                    _StatusColorRow(
+                      label: 'Published',
+                      color: Color(config.statusPublishedColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Published',
+                        Color(config.statusPublishedColor),
+                        (c) => controller.setStatusPublishedColor(c),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _StatusColorRow(
+                      label: 'Confirmed',
+                      color: Color(config.statusConfirmedColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Confirmed',
+                        Color(config.statusConfirmedColor),
+                        (c) => controller.setStatusConfirmedColor(c),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _StatusColorRow(
+                      label: 'Waitlist',
+                      color: Color(config.statusWaitlistColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Waitlist',
+                        Color(config.statusWaitlistColor),
+                        (c) => controller.setStatusWaitlistColor(c),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _StatusColorRow(
+                      label: 'Reserved',
+                      color: Color(config.statusReservedColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Reserved',
+                        Color(config.statusReservedColor),
+                        (c) => controller.setStatusReservedColor(c),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _StatusColorRow(
+                      label: 'Withdrawn',
+                      color: Color(config.statusWithdrawnColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Withdrawn',
+                        Color(config.statusWithdrawnColor),
+                        (c) => controller.setStatusWithdrawnColor(c),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _StatusColorRow(
+                      label: 'Dinner Only',
+                      color: Color(config.statusDinnerColor),
+                      onTap: () => _pickColor(
+                        context,
+                        'Dinner',
+                        Color(config.statusDinnerColor),
+                        (c) => controller.setStatusDinnerColor(c),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.x2l),
+
+                    const BoxyArtSectionTitle(title: 'PREVIEW BADGE', isLevel2: true),
+                    const SizedBox(height: AppSpacing.md),
+                    Center(
+                      child: BoxyArtIconBadge(
+                        icon: Icons.star_rounded,
+                        color: Color(config.iconBadgeFillColor),
+                        iconColor: Color(config.iconBadgeIconColor),
+                        size: 42,
+                        fillOpacity: config.iconBadgeOpacity,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.x2l),
+
+                    const BoxyArtSectionTitle(title: 'ICON BADGE STYLE', isLevel2: true),
                     Row(
                       children: [
-                        Text(
-                          'Accent Radius',
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
                         Expanded(
-                          child: Slider(
-                            value: config.accentRadius,
-                            min: 0.0,
-                            max: 30.0,
-                            divisions: 15,
-                            label: config.accentRadius.toStringAsFixed(0),
-                            activeColor: Color(config.secondaryColor),
-                            onChanged: (v) => controller.setAccentRadius(v),
+                          child: _CompactColorPicker(
+                            label: 'Badge Fill',
+                            color: Color(config.iconBadgeFillColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Icon Fill',
+                              Color(config.iconBadgeFillColor),
+                              (c) => controller.setIconBadgeFillColor(c),
+                            ),
                           ),
                         ),
-                        Text(
-                          config.accentRadius.toStringAsFixed(0),
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBlack,
+                        SizedBox(width: spacing?.labelToCard ?? AppSpacing.labelToCard),
+                        Expanded(
+                          child: _CompactColorPicker(
+                            label: 'Badge Glyph',
+                            color: Color(config.iconBadgeIconColor),
+                            onTap: () => _pickColor(
+                              context,
+                              'Icon Glyph',
+                              Color(config.iconBadgeIconColor),
+                              (c) => controller.setIconBadgeIconColor(c),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          'Accent Opacity',
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value: config.accentOpacity,
-                            min: 0.0,
-                            max: 0.5,
-                            divisions: 10,
-                            label: config.accentOpacity.toStringAsFixed(2),
-                            activeColor: Color(config.secondaryColor),
-                            onChanged: (v) => controller.setAccentOpacity(v),
-                          ),
-                        ),
-                        Text(
-                          config.accentOpacity.toStringAsFixed(2),
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBlack,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: AppSpacing.x2l),
+
+                    const BoxyArtSectionTitle(title: 'SHAPE & OPACITY', isLevel2: true),
+                    // Pill Radius Slider
+                    _buildRadiusSlider(
+                      label: 'Pill Rounding',
+                      helper: 'Affects status pills and tags',
+                      value: config.pillRadius,
+                      max: 30,
+                      activeColor: Color(config.secondaryColor),
+                      onChanged: (v) => controller.setPillRadius(v),
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          'Icon Badge Opacity',
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value: config.iconBadgeOpacity,
-                            min: 0.0,
-                            max: 1.0,
-                            divisions: 20,
-                            label: config.iconBadgeOpacity.toStringAsFixed(2),
-                            activeColor: Color(config.secondaryColor),
-                            onChanged: (v) => controller.setIconBadgeOpacity(v),
-                          ),
-                        ),
-                        Text(
-                          config.iconBadgeOpacity.toStringAsFixed(2),
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBlack,
-                          ),
-                        ),
-                      ],
+                    // Accent Radius Slider
+                    _buildRadiusSlider(
+                      label: 'Badge Rounding',
+                      helper: 'Affects metric boxes and icons',
+                      value: config.accentRadius,
+                      max: 30,
+                      activeColor: Color(config.secondaryColor),
+                      onChanged: (v) => controller.setAccentRadius(v),
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          'Icon Opacity',
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBold,
-                          ),
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value: config.iconOpacity,
-                            min: 0.0,
-                            max: 1.0,
-                            divisions: 20,
-                            label: config.iconOpacity.toStringAsFixed(2),
-                            activeColor: Color(config.secondaryColor),
-                            onChanged: (v) => controller.setIconOpacity(v),
-                          ),
-                        ),
-                        Text(
-                          config.iconOpacity.toStringAsFixed(2),
-                          style: AppTypography.helper.copyWith(
-                            fontWeight: AppTypography.weightBlack,
-                          ),
-                        ),
-                      ],
+                    // Accent Opacity Slider
+                    _buildRadiusSlider(
+                      label: 'Accent Fill Opacity',
+                      helper: 'Background transparency for general badges',
+                      value: config.accentOpacity,
+                      max: 0.5,
+                      divisions: 10,
+                      isDecimal: true,
+                      activeColor: Color(config.secondaryColor),
+                      onChanged: (v) => controller.setAccentOpacity(v),
+                      trailing: ModernMetricStat(
+                        value: '22',
+                        label: 'Stats',
+                        icon: Icons.analytics_rounded,
+                        isCompact: true,
+                        color: Color(config.secondaryColor),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    // Style Selector Removed in v4.0
+                    // Icon Badge Opacity Slider
+                    _buildRadiusSlider(
+                      label: 'Badge Background Opacity',
+                      helper: 'Transparency for standalone Icon Badges',
+                      value: config.iconBadgeOpacity,
+                      max: 1.0,
+                      divisions: 20,
+                      isDecimal: true,
+                      activeColor: Color(config.secondaryColor),
+                      onChanged: (v) => controller.setIconBadgeOpacity(v),
+                      trailing: BoxyArtIconBadge(
+                        icon: Icons.stars_rounded,
+                        color: Color(config.iconBadgeFillColor),
+                        iconColor: Color(config.iconBadgeIconColor),
+                        fillOpacity: config.iconBadgeOpacity,
+                        size: 38,
+                      ),
+                    ),
+                    // Icon Opacity Slider
+                    _buildRadiusSlider(
+                      label: 'Icon Glyph Opacity',
+                      helper: 'Transparency of the actual icon glyph',
+                      value: config.iconOpacity,
+                      max: 1.0,
+                      divisions: 20,
+                      isDecimal: true,
+                      activeColor: Color(config.secondaryColor),
+                      onChanged: (v) => controller.setIconOpacity(v),
+                    ),
                   ],
                 ),
               ),
@@ -753,130 +816,8 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 ),
               ),
 
-              const BoxyArtSectionTitle(title: 'Functional Status Colors'),
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Confirmed',
-                            color: Color(config.statusConfirmedColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Confirmed',
-                              Color(config.statusConfirmedColor),
-                              (c) => controller.setStatusConfirmedColor(c),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                        ),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Reserved',
-                            color: Color(config.statusReservedColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Reserved',
-                              Color(config.statusReservedColor),
-                              (c) => controller.setStatusReservedColor(c),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Waitlist',
-                            color: Color(config.statusWaitlistColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Waitlist',
-                              Color(config.statusWaitlistColor),
-                              (c) => controller.setStatusWaitlistColor(c),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                        ),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Withdrawn',
-                            color: Color(config.statusWithdrawnColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Withdrawn',
-                              Color(config.statusWithdrawnColor),
-                              (c) => controller.setStatusWithdrawnColor(c),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                    ),
-                    _CompactColorPicker(
-                      label: 'Dinner Only',
-                      color: Color(config.statusDinnerColor),
-                      onTap: () => _pickColor(
-                        context,
-                        'Dinner',
-                        Color(config.statusDinnerColor),
-                        (c) => controller.setStatusDinnerColor(c),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Sections consolidated into 'Badges & Status Styling'
 
-              const BoxyArtSectionTitle(title: 'Icon Badge Styling'),
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Icon Fill',
-                            color: Color(config.iconBadgeFillColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Icon Fill',
-                              Color(config.iconBadgeFillColor),
-                              (c) => controller.setIconBadgeFillColor(c),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: spacing?.labelToCard ?? AppSpacing.labelToCard,
-                        ),
-                        Expanded(
-                          child: _CompactColorPicker(
-                            label: 'Icon Glyph',
-                            color: Color(config.iconBadgeIconColor),
-                            onTap: () => _pickColor(
-                              context,
-                              'Icon Glyph',
-                              Color(config.iconBadgeIconColor),
-                              (c) => controller.setIconBadgeIconColor(c),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
 
               const BoxyArtSectionTitle(title: 'Society Dark Scale'),
               BoxyArtCard(
@@ -933,6 +874,60 @@ class BrandingSettingsScreen extends ConsumerWidget {
     onPicked(result);
   }
 
+  Widget _buildRadiusSlider({
+    required String label,
+    required String helper,
+    required double value,
+    required double max,
+    int divisions = 15,
+    bool isDecimal = false,
+    required Color activeColor,
+    required ValueChanged<double> onChanged,
+    Widget? trailing,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.helper.copyWith(
+            fontWeight: AppTypography.weightBold,
+          ),
+        ),
+        Text(
+          helper,
+          style: AppTypography.caption,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: Slider(
+                value: value,
+                min: 0.0,
+                max: max,
+                divisions: divisions,
+                label: isDecimal ? value.toStringAsFixed(2) : value.toStringAsFixed(0),
+                activeColor: activeColor,
+                onChanged: onChanged,
+              ),
+            ),
+            Text(
+              isDecimal ? value.toStringAsFixed(2) : value.toStringAsFixed(0),
+              style: AppTypography.helper.copyWith(
+                fontWeight: AppTypography.weightBlack,
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: AppSpacing.md),
+              trailing,
+            ],
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+      ],
+    );
+  }
+
   Widget _buildPreviewCard(
     int primaryInt,
     int secondaryInt,
@@ -951,17 +946,29 @@ class BrandingSettingsScreen extends ConsumerWidget {
     double shadowOpacity,
     double labelToCardSpacing,
     double cardToLabelSpacing,
+    int publishedInt,
     int confirmedInt,
     int reservedInt,
     int waitlistInt,
     double cardVerticalPadding,
     double cardHorizontalPadding,
+    int iconBadgeFillInt,
+    int iconBadgeIconInt,
+    double iconOpacity,
+    int withdrawnInt,
+    int dinnerInt,
+    double iconBadgeOpacity,
   ) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
+    final published = Color(publishedInt);
     final confirmed = Color(confirmedInt);
     final reserved = Color(reservedInt);
     final waitlist = Color(waitlistInt);
+    final withdrawn = Color(withdrawnInt);
+    final dinner = Color(dinnerInt);
+    final iconBadgeFill = Color(iconBadgeFillInt);
+    final iconBadgeIcon = Color(iconBadgeIconInt);
     final bool isDark =
         themeMode == 'dark' ||
         (themeMode == 'system' &&
@@ -1009,11 +1016,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: primary.withValues(
+                      backgroundColor: secondary.withValues(
                         alpha: AppColors.opacityMedium,
                       ),
                       radius: 24,
-                      child: Icon(Icons.person, color: primary),
+                      child: Icon(Icons.person, color: secondary),
                     ),
                     const SizedBox(width: AppSpacing.lg),
                     Column(
@@ -1044,12 +1051,12 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: secondary.withValues(alpha: accentOpacity),
+                        color: iconBadgeFill.withValues(alpha: iconBadgeOpacity),
                         borderRadius: BorderRadius.circular(accentRadius),
                       ),
                       child: Icon(
                         Icons.star_rounded,
-                        color: isDark ? textColor : Colors.black,
+                        color: iconBadgeIcon.withValues(alpha: iconOpacity),
                         size: 20,
                       ),
                     ),
@@ -1061,9 +1068,9 @@ class BrandingSettingsScreen extends ConsumerWidget {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: secondary,
+                      backgroundColor: primary,
                       foregroundColor: ContrastHelper.getContrastingText(
-                        secondary,
+                        primary,
                       ),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -1080,20 +1087,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    BoxyArtPill(label: 'Confirmed', color: confirmed),
-                    const SizedBox(width: AppSpacing.sm),
-                    BoxyArtPill(label: 'Waitlist', color: waitlist),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [BoxyArtPill(label: 'Reserved', color: reserved)],
                 ),
               ],
             ),
@@ -1128,6 +1121,80 @@ class BrandingSettingsScreen extends ConsumerWidget {
       children: colors
           .map((c) => _DarkSwatch(label: c.$1, color: c.$2))
           .toList(),
+    );
+  }
+}
+
+class _StatusColorRow extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _StatusColorRow({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
+          borderRadius: AppShapes.md,
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
+          ),
+        ),
+        child: Row(
+          children: [
+            BoxyArtPill.status(label: label, color: color),
+            const Spacer(),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              '#${color.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
+              style: AppTypography.micro.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: AppTypography.weightBold,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

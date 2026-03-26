@@ -102,8 +102,13 @@ class SeedingService {
       await _seedDemoSeason();
 
       // 5. Restore SocietyConfig (ensures vertical rhythm and colors persist)
-      debugPrint('Restoring society branding...');
-      await ref.read(societyConfigRepositoryProvider).updateConfig(currentConfig);
+      debugPrint('Restoring society branding and setting renewal defaults...');
+      final updatedConfig = currentConfig.copyWith(
+        isRenewalActive: true,
+        globalMembershipEndDate: DateTime(DateTime.now().year, 12, 31),
+        renewalWindowDays: 30,
+      );
+      await ref.read(societyConfigRepositoryProvider).updateConfig(updatedConfig);
       
       debugPrint('--- UNIFIED WIPE AND SEED COMPLETED ---');
     } catch (e, stack) {
@@ -311,9 +316,12 @@ class SeedingService {
       email: 'sanjay.patel@demo.com',
       handicap: 14.5,
       handicapId: 'WHS888888',
+      role: MemberRole.superAdmin,
       societyRole: 'Admin',
       status: MemberStatus.active,
       joinedDate: DateTime(2023, 1, 1),
+      membershipEndDate: DateTime.now().add(const Duration(days: 14)), // Expiring soon for demo
+      renewalStatus: MemberRenewalStatus.none,
       hasPaid: true,
       gender: 'Male',
       bio: 'The Society Founder. Passionate about technology and bringing the digital edge to the game of golf.',
@@ -352,9 +360,18 @@ class SeedingService {
         
         final role = committeeRoles[i];
         final bio = bios[i % bios.length];
+        
+        MemberRole systemRole = MemberRole.member;
+        if (i == 0 || i == 20) systemRole = MemberRole.admin;
+        if (i == 1 || i == 21) systemRole = MemberRole.restrictedAdmin;
+        if (i == 36) systemRole = MemberRole.viewer;
 
         double hc = (i < 10) ? (1.0 + _random.nextDouble() * 5) : ((i < 40) ? (6.0 + _random.nextDouble() * 14) : (20.0 + _random.nextDouble() * 16));
-        if (isFemale) hc += 2.0; 
+        if (isFemale) hc += 2.0;         // Create a spread of renewal dates
+        final membershipEnd = DateTime(2026, 1, 1).add(Duration(days: i * 10)); // Spread throughout the year
+        final hasRequested = i % 15 == 0; // Every 15th member has requested renewal
+        final isExpired = membershipEnd.isBefore(DateTime.now());
+        final currentStatus = isExpired ? MemberStatus.expired : MemberStatus.active;
 
         await repo.addMember(Member(
           id: 'demo_m_$i',
@@ -363,10 +380,13 @@ class SeedingService {
           email: '${fName.toLowerCase()}.${lName.toLowerCase()}$i@demo.org',
           handicap: double.parse(hc.toStringAsFixed(1)),
           handicapId: 'WHS${300000 + i}',
+          role: systemRole,
           societyRole: role,
-          status: MemberStatus.active,
+          status: currentStatus,
           joinedDate: DateTime(2023, 1, 1).add(Duration(days: i * 3)),
-          hasPaid: true,
+          membershipEndDate: membershipEnd,
+          renewalStatus: hasRequested ? MemberRenewalStatus.renew : MemberRenewalStatus.none,
+          hasPaid: !isExpired,
           gender: isFemale ? 'Female' : 'Male',
           phone: '+44 7${100000000 + i}',
           bio: bio,
@@ -520,7 +540,7 @@ class SeedingService {
       description: isSocial 
           ? 'Join us for the $title! A great opportunity for members to socialize and catch up away from the fairways. Looking forward to seeing everyone there.'
           : 'A fantastic day of competitive golf at ${course?.name}. Join us for 18 holes of ${format.name} followed by a group dinner and prize giving ceremony.',
-      registrationDeadline: date.subtract(const Duration(days: 7)),
+      registrationDeadline: date, // Keep open until the event day for demo visibility
       
       // Society Costs
       societyGreenFee: isSocial ? 0.0 : (40.0 + _random.nextInt(20)),
@@ -541,6 +561,7 @@ class SeedingService {
       facilities: isSocial ? ['Parking', 'Bar', 'Restaurant'] : ['Pro Shop', 'Driving Range', 'Changing Rooms', 'Halfway House'],
       maxParticipants: isSocial ? 60 : 40,
 
+      showRegistrationButton: !isSocial && status != EventStatus.cancelled,
       isGroupingPublished: !isSocial && status != EventStatus.draft,
       isStatsReleased: !isSocial && (status == EventStatus.completed || status == EventStatus.inPlay),
       isScoringLocked: !isSocial && status == EventStatus.completed,
@@ -664,90 +685,90 @@ class SeedingService {
       memberHandicaps: memberHandicaps, prioritizeBuggyPairing: true,
       strategy: isInvitational ? 'balanced' : 'progressive',
       useWhs: true, rules: CompetitionRules(format: format, subtype: subtype),
-    );
-
-    // Scores
-    final scoreRepo = ref.read(scorecardRepositoryProvider);
-    await scoreRepo.deleteAllScorecards(updatedEvent.id);
-
+    );    // Scores & Results logic (Only for completed or live events)
     final List<Map<String, dynamic>> results = [];
-    final isStableford = rules.format == CompetitionFormat.stableford;
-    
-    for (var group in groups) {
-      for (var p in group.players) {
-          final memberId = p.registrationMemberId;
-          final entryId = p.isGuest ? '${memberId}_guest' : memberId;
-          final member = members.firstWhereOrNull((m) => m.id == memberId);
-          final index = member?.handicap ?? 18.0;
-          final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
-          final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
-          
-          final phc = HandicapCalculator.calculatePlayingHandicap(
-              handicapIndex: index, rules: rules, 
-              courseConfig: cfg.CourseConfig(
-                rating: tee.rating, 
-                slope: tee.slope, 
-                par: tee.holePars.fold<int>(0, (a, b) => a + b), 
-                holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
-              ),
-          );
+    if (status == EventStatus.completed || status == EventStatus.inPlay) {
+      final scoreRepo = ref.read(scorecardRepositoryProvider);
+      await scoreRepo.deleteAllScorecards(updatedEvent.id);
 
-          final holeScores = <int?>[];
-          int grossTotal = 0;
-          int pointsTotal = 0;
+      final isStableford = rules.format == CompetitionFormat.stableford;
+      
+      for (var group in groups) {
+        for (var p in group.players) {
+            final memberId = p.registrationMemberId;
+            final entryId = p.isGuest ? '${memberId}_guest' : memberId;
+            final member = members.firstWhereOrNull((m) => m.id == memberId);
+            final index = member?.handicap ?? 18.0;
+            final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
+            final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
+            
+            final phc = HandicapCalculator.calculatePlayingHandicap(
+                handicapIndex: index, rules: rules, 
+                courseConfig: cfg.CourseConfig(
+                  rating: tee.rating, 
+                  slope: tee.slope, 
+                  par: tee.holePars.fold<int>(0, (a, b) => a + b), 
+                  holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
+                ),
+            );
 
-          // Calculate holes passed if live
-          int holesPassed = 18;
-          if (status == EventStatus.inPlay) {
-            final now = DateTime.now();
-            final groupTime = group.teeTime;
-            if (now.isAfter(groupTime)) {
-              final minsSince = now.difference(groupTime).inMinutes;
-              holesPassed = (minsSince / 12).floor().clamp(0, 18);
-            } else {
-              holesPassed = 0;
-            }
-          }
+            final holeScores = <int?>[];
+            int grossTotal = 0;
+            int pointsTotal = 0;
 
-          for (int h = 0; h < 18; h++) {
-              if (h >= holesPassed) {
-                holeScores.add(null);
-                continue;
+            // Calculate holes passed if live
+            int holesPassed = 18;
+            if (status == EventStatus.inPlay) {
+              final now = DateTime.now();
+              final groupTime = group.teeTime;
+              if (now.isAfter(groupTime)) {
+                final minsSince = now.difference(groupTime).inMinutes;
+                holesPassed = (minsSince / 12).floor().clamp(0, 18);
+              } else {
+                holesPassed = 0;
               }
-              final par = tee.holePars[h];
-              final si = tee.holeSIs[h];
-              int shots = (phc / 18).floor();
-              if (phc % 18 >= si) shots++;
+            }
 
-              final rand = _random.nextDouble();
-              int netScore = (rand < 0.25) ? par - 1 : ((rand < 0.80) ? par : ((rand < 0.95) ? par + 1 : par + 2));
-              final gross = netScore + shots;
-              holeScores.add(gross);
-              grossTotal += gross;
-              pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
-          }
+            for (int h = 0; h < 18; h++) {
+                if (h >= holesPassed) {
+                  holeScores.add(null);
+                  continue;
+                }
+                final par = tee.holePars[h];
+                final si = tee.holeSIs[h];
+                int shots = (phc / 18).floor();
+                if (phc % 18 >= si) shots++;
 
-          await scoreRepo.addScorecard(Scorecard(
-              id: 'seed_${updatedEvent.id}_$entryId', competitionId: updatedEvent.id,
-              roundId: '1', entryId: entryId, submittedByUserId: 'system_seed',
-              status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
-              holeScores: holeScores,
-              points: isStableford ? pointsTotal : null,
-              handicapIndex: index, playingHandicap: phc,
-              netTotal: grossTotal - (phc * (holesPassed / 18)).round(), // Scaled net for live view
-              submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
-                  ? date.copyWith(hour: 14, minute: _random.nextInt(60)) 
-                  : null,
-              createdAt: DateTime.now(), updatedAt: DateTime.now(),
-          ));
-          results.add({
-            'playerId': entryId, 
-            'playerName': p.name, 
-            'points': isStableford ? pointsTotal : (grossTotal - (phc * (holesPassed / 18)).round()), 
-            'holeScores': holeScores, 
-            'phc': phc,
-            'holesPlayed': holesPassed,
-          });
+                final rand = _random.nextDouble();
+                int netScore = (rand < 0.25) ? par - 1 : ((rand < 0.80) ? par : ((rand < 0.95) ? par + 1 : par + 2));
+                final gross = netScore + shots;
+                holeScores.add(gross);
+                grossTotal += gross;
+                pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
+            }
+
+            await scoreRepo.addScorecard(Scorecard(
+                id: 'seed_${updatedEvent.id}_$entryId', competitionId: updatedEvent.id,
+                roundId: '1', entryId: entryId, submittedByUserId: 'system_seed',
+                status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
+                holeScores: holeScores,
+                points: isStableford ? pointsTotal : null,
+                handicapIndex: index, playingHandicap: phc,
+                netTotal: grossTotal - (phc * (holesPassed / 18)).round(), // Scaled net for live view
+                submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
+                    ? date.copyWith(hour: 14, minute: _random.nextInt(60)) 
+                    : null,
+                createdAt: DateTime.now(), updatedAt: DateTime.now(),
+            ));
+            results.add({
+              'playerId': entryId, 
+              'playerName': p.name, 
+              'points': isStableford ? pointsTotal : (grossTotal - (phc * (holesPassed / 18)).round()), 
+              'holeScores': holeScores, 
+              'phc': phc,
+              'holesPlayed': holesPassed,
+            });
+        }
       }
     }
 
@@ -927,28 +948,7 @@ class SeedingService {
     }
   }
 
-  EventNote _getLocalRulesNote(String courseName, DateTime date) {
-    String ruleContent = 'Standard R&A Rules apply. \n\n- Out of Bounds: Beyond any perimeter fence or white stakes.\n- Water Hazards: Defined by yellow/red stakes.\n- Immovable Obstructions: Fixed sprinkler heads and yardage markers.';
-    
-    // Seasonal Rules
-    if (date.month >= 11 || date.month <= 3) {
-      ruleContent += '\n\n- PREFERRED LIES: A ball lying on a closely mown area through the green may be marked, cleaned and replaced within 6 inches.';
-    }
 
-    // Course Specific Rules
-    if (courseName.contains('St Andrews')) {
-      ruleContent += '\n\n- THE ROAD HOLE (#17): The road and wall behind the green are out of bounds. The bunker is an integral part of the course.';
-    } else if (courseName.contains('Sawgrass')) {
-      ruleContent += '\n\n- THE ISLAND GREEN (#17): Drop zone is active to the left of the walkway for balls entering the hazard.';
-    } else if (courseName.contains('Augusta')) {
-      ruleContent += '\n\n- AMEN CORNER (#11-13): Rae’s Creek is a lateral water hazard. Drop zones available for #12 and #13.';
-    }
-
-    return EventNote(
-      title: 'Local Rules & Info',
-      content: jsonEncode([{'insert': '$ruleContent\n'}]),
-    );
-  }
 
   ({List<int> pars, List<int> si, List<int> yards}) _getCourseHoleData(String courseName) {
     if (courseName == 'St Andrews') {

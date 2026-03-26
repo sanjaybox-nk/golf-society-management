@@ -1,27 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/json_converters.dart';
 
 part 'member.freezed.dart';
 part 'member.g.dart';
-
-// Converter to handle Firestore Timestamp objects
-class TimestampConverter implements JsonConverter<DateTime?, Object?> {
-  const TimestampConverter();
-
-  @override
-  DateTime? fromJson(Object? json) {
-    if (json == null) return null;
-    if (json is Timestamp) return json.toDate();
-    if (json is String) return DateTime.parse(json);
-    return null;
-  }
-
-  @override
-  Object? toJson(DateTime? dateTime) {
-    return dateTime?.toIso8601String();
-  }
-}
 
 enum MemberRole { 
   superAdmin,
@@ -49,7 +31,16 @@ enum MemberStatus {
   pending,
   suspended, 
   archived, 
-  left 
+  left,
+  expired, // [NEW] Membership has ended
+  gracePeriod // [NEW] Membership ended but in grace period
+}
+
+enum MemberRenewalStatus {
+  none,
+  renew,
+  suspend,
+  leave
 }
 
 extension MemberStatusX on MemberStatus {
@@ -59,7 +50,7 @@ extension MemberStatusX on MemberStatus {
     switch (this) {
       case MemberStatus.member:
       case MemberStatus.active:
-        return AppColors.actionGreen;
+        return AppColors.dark900;
       case MemberStatus.pending:
         return StatusColors.warning;
       case MemberStatus.suspended:
@@ -68,6 +59,10 @@ extension MemberStatusX on MemberStatus {
       case MemberStatus.inactive:
       case MemberStatus.left:
         return StatusColors.neutral;
+      case MemberStatus.expired:
+        return StatusColors.negative;
+      case MemberStatus.gracePeriod:
+        return StatusColors.warning;
     }
   }
 }
@@ -95,7 +90,9 @@ abstract class Member with _$Member {
     @Default(false) bool hasPaid,
     @Default(false) bool isArchived,
     String? gender, // [NEW] 'Male' or 'Female'
-    @TimestampConverter() DateTime? joinedDate,
+    @OptionalTimestampConverter() DateTime? joinedDate,
+    @OptionalTimestampConverter() DateTime? membershipEndDate, // [NEW] Track annual renewal term
+    @Default(MemberRenewalStatus.none) MemberRenewalStatus renewalStatus, // [NEW] Member renewal choice
   }) = _Member;
 
   String get displayName => '$firstName $lastName';
