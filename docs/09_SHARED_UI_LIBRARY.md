@@ -13,6 +13,7 @@ The foundational container for all UI blocks.
 - **Dynamic Padding**: Uses `config.cardVerticalPadding` and `config.cardHorizontalPadding` from `SocietyConfig`. Defaults to 16px.
 - **Dynamic Shadows**: Automatic scaling based on `config.shadowIntensity`.
 - **Hardening**: Features mandatory **internal clipping** (`ClipRRect`) to ensure all children (like header/footer bands) respect the card's dynamic curve.
+- **Vertical Rhythm (Subtext)**: Card subtext items (e.g. metadata lines, debt items) must follow a consistent **8px** (`AppSpacing.sm`) vertical gap logic to prevent typography "crushing" when multiple items are displayed.
 
 ## 2. Forms & Inputs (`inputs.dart`)
 

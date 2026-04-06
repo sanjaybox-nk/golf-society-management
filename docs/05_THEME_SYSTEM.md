@@ -34,7 +34,7 @@ Hardcoded entity colors have been replaced with semantic branding tokens:
 -   **`Headline`**: 20.0 (Section titles, Player names)
 -   **`Body`**: 16.0 (Default reading)
 -   **`Label`**: 13.0 (Buttons, Metadata)
--   **`Micro`**: 10.0 (Captions, Tags)
+-   **`Micro`**: 10.0 (Captions, Tags, Debt/Financial Subtext)
 
 #### Standard Weights (3 Levels)
 -   **`Heavy`**: 800 (ExtraBold) - For headers and emphasized titles.

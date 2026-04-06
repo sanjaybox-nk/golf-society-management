@@ -179,3 +179,14 @@ Costs that are tracked for member information but do not impact the society trea
 
 **Control Tower**
 The central administrative hub for an event. It consolidates all management functions—including grouping, registrations, costs, and awards—into a single, card-based interface.
+
+## 12. Financial Concepts
+
+**Account Credit**
+A member's positive balance within the society treasury. It can be used to offset future event entry fees or withdrawn as a cash payout.
+
+**Voucher Credit**
+A specialized form of Account Credit often awarded for competition wins. In the app, this is synonymous with a positive `accountCredit` balance.
+
+**Debt Settlement**
+The process of reconciling outstanding event fees and fines against a member's available credit. Accessible via the **Admin Central Debt Ledger**.

@@ -39,11 +39,12 @@ class AdminDebtLedgerScreen extends ConsumerStatefulWidget {
 class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
   String _searchQuery = '';
 
-  void _settleDebts(MemberDebtSummary summary, {double? partialAmount}) async {
-    // If partialAmount is provided, we just add it to the member's credit
+  void _settleDebts(MemberDebtSummary summary, {double? partialAmount, bool isPayout = false}) async {
+    // If partialAmount is provided, we just add it to the member's credit (or subtract if payout)
     if (partialAmount != null) {
+      final adjustment = isPayout ? -partialAmount : partialAmount;
       ref.read(membersRepositoryProvider).updateMember(
-        summary.member.copyWith(accountCredit: summary.member.accountCredit + partialAmount),
+        summary.member.copyWith(accountCredit: summary.member.accountCredit + adjustment),
       );
       return;
     }
@@ -88,78 +89,155 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
   void _showSettlementDialog(MemberDebtSummary summary) {
     final amountController = TextEditingController(text: summary.netBalance.abs().toStringAsFixed(0));
     bool isPartial = false;
+    bool isPayoutMode = summary.netBalance > 0 && summary.totalDebt == 0;
 
     BoxyArtBottomSheet.show(
       context: context,
-      title: 'SETTLE BALANCE',
+      title: 'Settle Balance',
+      initialChildSize: 0.6, // Slightly increased to allow space for the Partial input field
+      minChildSize: 0.45,
       child: StatefulBuilder(
         builder: (context, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Member: ${summary.member.displayName}',
-                style: AppTypography.displaySection.copyWith(fontSize: 14),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Current Net Balance: £${summary.netBalance.abs().toStringAsFixed(0)} ${summary.netBalance < 0 ? 'Owed' : 'Credit'}',
-                style: AppTypography.bodySmall,
+              // 1. Identity Component (Branded Card)
+              BoxyArtCard(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(
+                  children: [
+                    const BoxyArtSquareBadge(
+                      size: 48,
+                      isTinted: true,
+                      child: Icon(Icons.account_balance_wallet_rounded, size: 24),
+                    ),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            summary.member.displayName,
+                            style: AppTypography.cardTitle.copyWith(
+                              color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Current Net Balance: £${summary.netBalance.abs().toStringAsFixed(0)} ${summary.netBalance < 0 ? 'Owed' : 'Credit'}',
+                            style: AppTypography.subtext.copyWith(
+                              color: summary.netBalance < 0 ? AppColors.coral500 : AppColors.lime500,
+                              fontWeight: AppTypography.weightBold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               
-              // Settlement Mode Selection
-              Row(
-                children: [
-                  Expanded(
-                    child: BoxyArtButton(
-                      title: 'FULL SETTLE',
-                      isPrimary: !isPartial,
-                      isSecondary: isPartial,
-                      onTap: () => setModalState(() => isPartial = false),
+              // 2. Settlement Configuration Card (Based on User suggestion)
+              Text(
+                'SETTLEMENT TYPE', 
+                style: AppTypography.micro.copyWith(
+                  color: isDark ? AppColors.dark300 : AppColors.dark400,
+                  fontWeight: AppTypography.weightBold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              BoxyArtCard(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BoxyArtButton(
+                            title: 'Full Settle',
+                            isPrimary: !isPartial,
+                            isSecondary: isPartial,
+                            isGhost: isPartial,
+                            isSmall: true,
+                            onTap: () => setModalState(() => isPartial = false),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: BoxyArtButton(
+                            title: isPayoutMode ? 'Payout' : 'Partial',
+                            isPrimary: isPartial,
+                            isSecondary: !isPartial,
+                            isGhost: !isPartial,
+                            isSmall: true,
+                            onTap: () => setModalState(() => isPartial = true),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: BoxyArtButton(
-                      title: 'PARTIAL',
-                      isPrimary: isPartial,
-                      isSecondary: !isPartial,
-                      onTap: () => setModalState(() => isPartial = true),
-                    ),
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    if (isPartial) ...[
+                      BoxyArtInputField(
+                        label: isPayoutMode ? 'Payout Amount' : 'Payment Amount',
+                        controller: amountController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        prefixIcon: Icon(isPayoutMode ? Icons.redeem_rounded : Icons.payments_rounded),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: Text(
+                          isPayoutMode 
+                            ? 'Deducted from available voucher credit.' 
+                            : 'Added as credit to offset debt.',
+                          style: AppTypography.micro.copyWith(
+                            color: isDark ? AppColors.dark300 : AppColors.dark400,
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.dark800 : AppColors.dark50,
+                          borderRadius: BorderRadius.circular(AppShapes.rLg),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline_rounded, size: 16, color: isDark ? AppColors.dark300 : AppColors.dark400),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                'This will mark all outstanding items as paid using any available credit.',
+                                style: AppTypography.micro.copyWith(
+                                  color: isDark ? AppColors.dark200 : AppColors.dark500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
               
-              if (isPartial) ...[
-                const SizedBox(height: AppSpacing.xl),
-                BoxyArtInputField(
-                  label: 'PARTIAL PAYMENT AMOUNT',
-                  controller: amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  prefixIcon: const Icon(Icons.payments_rounded),
-                ),
-                Text(
-                  'The amount entered will be added as credit to the member\'s account to offset their debt.',
-                  style: AppTypography.micro.copyWith(color: AppColors.textSecondary),
-                ),
-              ] else ...[
-                const SizedBox(height: AppSpacing.xl),
-                Text(
-                  'Full settlement will mark all current outstanding events and fines as paid, consuming any available society credit.',
-                  style: AppTypography.micro.copyWith(color: AppColors.textSecondary),
-                ),
-              ],
-              
-              const SizedBox(height: AppSpacing.x2l),
+              const SizedBox(height: AppSpacing.standard),
               BoxyArtButton(
-                title: isPartial ? 'RECORD PAYMENT' : 'CONFIRM FULL SETTLE',
+                title: isPartial 
+                    ? (isPayoutMode ? 'Confirm Payout' : 'Record Payment')
+                    : 'Confirm Settlement',
                 fullWidth: true,
+                backgroundColor: AppColors.actionMidnight,
                 onTap: () {
                   if (isPartial) {
                     final amount = double.tryParse(amountController.text) ?? 0.0;
                     if (amount > 0) {
-                      _settleDebts(summary, partialAmount: amount);
+                      _settleDebts(summary, partialAmount: amount, isPayout: isPayoutMode);
                       Navigator.pop(context);
                     }
                   } else {
@@ -299,6 +377,7 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
                                 ],
                                 if (s.totalEventFeesOwed > 0) ...[
                                   Text('Event Entry Fees Owed: £${s.totalEventFeesOwed.toStringAsFixed(0)}', style: AppTypography.micro),
+                                  const SizedBox(height: AppSpacing.sm),
                                 ],
                                 if (s.totalFinesOwed > 0) ...[
                                   Text('Accumulated Fines Owed: £${s.totalFinesOwed.toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.coral500)),

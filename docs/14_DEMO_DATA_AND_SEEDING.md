@@ -15,6 +15,11 @@ The Demo Seeding system is a powerful administrative tool used to populate the s
 -   **Multi-Tee Architecture**: All seeded courses feature full **Yellow (Men's Standard)** and **Red (Ladies)** tee sets to verify mixed-gender equity.
 -   **Explicit Mapping**: Seeded events now include an explicit `selectedFemaleTeeName: 'Red'`, ensuring accurate Par/SI resolution even in complex mixed-gender competitions.
 -   **Financial & Fines Seeding**: Generates realistic payment statuses, custom prize distributions, ad-hoc member fines (paid/unpaid), and event-wide charity pots to verify the **Reporting Hub** metrics.
+-   **Voucher & Debt Simulation [NEW]**: 
+    -   Assigns **£50.0 credit** to **Eric Adams** to verify "Use Voucher" flows.
+    -   Assigns varied debts (up to -£100.0) to ~25% of members to populate the **Central Debt Ledger**.
+-   **Registration Registry Exclusions [NEW]**: Explicitly excludes **Eric Adams** from the final event's registration registry. This ensures he is a clean candidate for testing the "Use Voucher" toggle in the registration flow.
+-   **Survey & Poll Seeding**: Automatically generates two modernized member surveys ("Season 2026 Feedback" and "Apparel Design Poll") with a realistic **50-60% participation rate** to demonstrate the survey reporting and engagement features.
 
 ### 2. Historical Data Generation
 The seeding engine populates the society history with various scenarios:

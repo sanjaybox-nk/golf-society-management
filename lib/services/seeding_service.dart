@@ -17,11 +17,13 @@ import 'package:golf_society/domain/models/scorecard.dart';
 import 'package:golf_society/domain/models/event_registration.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/course_config.dart' as cfg;
+import 'package:golf_society/domain/models/survey.dart';
 
 import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
 import 'package:golf_society/features/courses/presentation/courses_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/features/surveys/presentation/surveys_provider.dart';
 import 'package:golf_society/features/events/domain/registration_logic.dart';
 import 'package:golf_society/domain/scoring/handicap_calculator.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
@@ -245,6 +247,16 @@ class SeedingService {
       );
       await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(updatedConfig);
       
+      // 6. Seed Surveys with Member Participation
+      debugPrint('Seeding modernized member surveys...');
+      final surveyRepo = ref.read(surveysRepositoryProvider);
+      final countBefore = (await surveyRepo.getSurveys()).length;
+      final membersList = await ref.read(membersRepositoryProvider).getMembers();
+      await _seedSurveys(membersList);
+      final countAfter = (await surveyRepo.getSurveys()).length;
+      debugPrint('[SURVEY SEED] Collection count before: $countBefore, after: $countAfter');
+      debugPrint('Survey seeding complete.');
+      
       debugPrint('--- UNIFIED WIPE AND SEED COMPLETED ---');
     } catch (e, stack) {
       debugPrint('CRITICAL SEEDER FAILURE: $e');
@@ -396,6 +408,114 @@ class SeedingService {
   @Deprecated('Use clearDemoData() or totalSystemWipe() instead')
   Future<void> clearAllData() async {
     await totalSystemWipe();
+  }
+  
+  Future<void> _seedSurveys(List<Member> members) async {
+    final surveyRepo = ref.read(surveysRepositoryProvider);
+    final now = DateTime.now();
+    
+    // Helper to generate a participation list (50-60%)
+    // CRITICAL: We exclude the Hero user 'demo_hero_sanjay' so the user actually sees the survey as available!
+    List<Member> getParticipants() {
+      final eligibleMembers = members.where((m) => m.id != 'demo_hero_sanjay').toList();
+      final shuffled = List<Member>.from(eligibleMembers)..shuffle(_random);
+      final rate = 0.5 + (_random.nextDouble() * 0.1); // 50% to 60%
+      final count = (eligibleMembers.length * rate).round();
+      return shuffled.take(count).toList();
+    }
+
+    // 1. Season 2026 Feedback Survey
+    final seasonSurvey = Survey(
+      id: 'survey_season_2026',
+      title: 'Season 2026 Feedback',
+      description: 'We value your input! Help us reach new heights in 2027 by sharing your thoughts on the current season organization and event variety.',
+      createdAt: now.subtract(const Duration(days: 5)),
+      deadline: now.add(const Duration(days: 20)),
+      isPublished: true,
+      questions: [
+        const SurveyQuestion(
+          id: 'q1_org',
+          question: 'How would you rate the overall society organization this season?',
+          type: SurveyQuestionType.singleChoice,
+          options: ['Elite (Flawless)', 'Standard (Reliable)', 'Needs Work', 'Poor'],
+        ),
+        const SurveyQuestion(
+          id: 'q2_events',
+          question: 'Which event formats would you like to see more of next year?',
+          type: SurveyQuestionType.multipleChoice,
+          options: ['Stableford Majors', 'Match Play Grudge Matches', 'Texas Scrambles', 'Multi-Day Tours'],
+        ),
+        const SurveyQuestion(
+          id: 'q3_improve',
+          question: 'What is the number one thing we could improve for 2027?',
+          type: SurveyQuestionType.text,
+        ),
+      ],
+      responses: {},
+    );
+
+    // 2. Apparel Design 2026 Poll
+    final apparelSurvey = Survey(
+      id: 'survey_apparel_2026',
+      title: 'New Apparel Design Poll',
+      description: 'Vote for the official society polo shirt design. The winning combination will be our standard uniform for all 2026 Major events.',
+      createdAt: now.subtract(const Duration(days: 2)),
+      deadline: now.add(const Duration(days: 10)),
+      isPublished: true,
+      questions: [
+        const SurveyQuestion(
+          id: 'q1_color',
+          question: 'Choose the primary base color for the 2026 Polo:',
+          type: SurveyQuestionType.singleChoice,
+          options: ['Midnight Navy', 'Forest Green', 'Stealth Charcoal', 'Classic White'],
+        ),
+        const SurveyQuestion(
+          id: 'q2_logo',
+          question: 'Where should the secondary society logo be placed?',
+          type: SurveyQuestionType.singleChoice,
+          options: ['Right Sleeve', 'Left Sleeve', 'Nape of Neck'],
+        ),
+        const SurveyQuestion(
+          id: 'q3_comments',
+          question: 'Any specific material or fit suggestions for the committee?',
+          type: SurveyQuestionType.text,
+        ),
+      ],
+      responses: {},
+    );
+
+    final surveys = [seasonSurvey, apparelSurvey];
+
+    for (var survey in surveys) {
+      final participants = getParticipants();
+      final Map<String, dynamic> responses = {};
+      
+      for (var member in participants) {
+        final Map<String, dynamic> answers = {};
+        for (var q in survey.questions) {
+          if (q.type == SurveyQuestionType.singleChoice) {
+            answers[q.id] = q.options[_random.nextInt(q.options.length)];
+          } else if (q.type == SurveyQuestionType.multipleChoice) {
+            final selectedCount = _random.nextInt(q.options.length) + 1;
+            final shuffledOptions = List<String>.from(q.options)..shuffle(_random);
+            answers[q.id] = shuffledOptions.take(selectedCount).toList();
+          } else if (q.type == SurveyQuestionType.text) {
+            final comments = [
+              'Great season so far, really enjoying the tour events.',
+              'More weekend slots please!',
+              'Love the new design 4.x branding on the app.',
+              'Could we look at more prestige courses next year?',
+              'Excellent work by the committee.',
+            ];
+            answers[q.id] = comments[_random.nextInt(comments.length)];
+          }
+        }
+        responses[member.id] = answers;
+      }
+      
+      await surveyRepo.addSurvey(survey.copyWith(responses: responses));
+      debugPrint('Seeded survey: ${survey.title} with ${responses.length} responses.');
+    }
   }
 
   Future<void> _seedDemoSeason() async {
@@ -645,6 +765,20 @@ class SeedingService {
         final hasRequested = i % 15 == 0; // Every 15th member has requested renewal
         final isExpired = membershipEnd.isBefore(DateTime.now());
         final currentStatus = isExpired ? MemberStatus.expired : MemberStatus.active;
+        
+        // --- NEW: Financial Seeding Logic ---
+        double initialCredit = 0.0;
+        final bool isEricAdams = (i == 32); 
+        
+        if (isEricAdams) {
+          // Rule: Eric Adams is owed a voucher
+          initialCredit = 50.0;
+        } else if (i % 5 == 0 && i != 0) {
+          // Rule: ~20ish% of members (every 5th) owe money
+          // Varied amounts not exceeding £100
+          initialCredit = -1 * (10.0 + _random.nextInt(90).toDouble());
+        }
+        // ------------------------------------
 
         await repo.addMember(Member(
           id: 'demo_m_$i',
@@ -665,6 +799,7 @@ class SeedingService {
           bio: bio,
           avatarUrl: avatarUrls[i % avatarUrls.length],
           allowSocialEventsOnly: false,
+          accountCredit: initialCredit, // [ADDED]
         ));
     }
   }
@@ -911,6 +1046,10 @@ class SeedingService {
         final memberIdx = (eventIndex * 5 + i) % members.length;
         final m = members[memberIdx];
         if (m.id == 'demo_hero_sanjay') continue;
+        
+        // [NEW] Skip Eric Adams for the last event (May Spring Medal, index 16)
+        // to ensure he has credit available and is NOT registered.
+        if (m.id == 'demo_m_32' && eventIndex == 16) continue;
         
         bool isWithdrawn = _random.nextDouble() < 0.05;
         bool isConfirmed = !isWithdrawn && regs.length < (isSocial ? 60 : 40);
@@ -1220,25 +1359,6 @@ class SeedingService {
       ));
     }
 
-    // 3. Poll for recent/upcoming major activities (Only for the Season Finale to avoid duplicates on dashboard)
-    if (event.title.contains('The Season Finale')) {
-      items.add(EventFeedItem(
-        id: 'poll_${event.id}_planning',
-        type: FeedItemType.poll,
-        title: 'Season 2027 Planning',
-        content: 'Where should we go for the 2027 Society Away Trip? Cast your vote below!',
-        isPublished: true,
-        isPinned: true,
-        createdAt: now.subtract(const Duration(days: 1)),
-        pollData: {
-          'options': ['Portugal (Vilamoura)', 'Spain (Marbella)', 'Scotland (East Coast)', 'Ireland (Killarney)'],
-          'totalVotes': 42,
-          'results': {'0': 15, '1': 10, '2': 12, '3': 5},
-          'hasVoted': false,
-        },
-        sortOrder: -10,
-      ));
-    }
 
     // 3. President's Message for the Season Opener
     if (event.title.contains('Season Opener')) {
