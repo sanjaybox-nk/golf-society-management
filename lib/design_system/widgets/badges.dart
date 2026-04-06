@@ -56,7 +56,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
     //    (This allows lists to have specific colored icons on a consistent background)
     
     final Color effectiveFill = showFill 
-      ? Color(config.iconBadgeFillColor).withValues(alpha: effectiveOpacity)
+      ? color.withValues(alpha: effectiveOpacity)
       : Colors.transparent;
       
     final Color effectiveIconColor = iconColor ?? Color(config.iconBadgeIconColor);
@@ -243,7 +243,7 @@ class BoxyArtPill extends ConsumerWidget {
     bool isAction = false,
   }) {
     // For high-contrast Action Pills, we enforce the brand lime color by default
-    final effectiveColor = isAction ? (color ?? AppColors.lime500) : color;
+    final effectiveColor = isAction ? color : color;
     
     return BoxyArtPill(
       label: label,
@@ -286,6 +286,23 @@ class BoxyArtPill extends ConsumerWidget {
       color: Theme.of(context).primaryColor,
       icon: icon,
       hasHorizontalMargin: hasHorizontalMargin,
+    );
+  }
+
+  /// Factory for Committee/Society Roles
+  factory BoxyArtPill.committee({
+    required String label,
+  }) {
+    return BoxyArtPill(
+      label: label.toUpperCase(),
+      color: AppColors.amber500,
+      backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
+      borderColor: AppColors.amber500.withValues(alpha: 0.3),
+      textColor: AppColors.amber500,
+      fontSize: 10,
+      fontWeight: AppTypography.weightBold,
+      letterSpacing: 0.5,
+      hasHorizontalMargin: false,
     );
   }
 
@@ -420,7 +437,6 @@ class BoxyArtDateBadge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isMultiDay = endDate != null && !DateUtils.isSameDay(date, endDate);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
 
     // Design 4.x: Use branding tokens for the date badge background
@@ -488,13 +504,42 @@ class BoxyArtFeePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BoxyArtStatusPill(
+      isPaid: isPaid,
+      onToggle: onToggle,
+      paidLabel: 'Fee Paid',
+      dueLabel: 'Fee due',
+    );
+  }
+}
+
+class BoxyArtStatusPill extends StatelessWidget {
+  final bool isPaid;
+  final String paidLabel;
+  final String dueLabel;
+  final Color? color;
+  final VoidCallback? onToggle;
+
+  const BoxyArtStatusPill({
+    super.key,
+    required this.isPaid,
+    this.paidLabel = 'Paid',
+    this.dueLabel = 'Due',
+    this.color,
+    this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final statusColor = color ?? theme.primaryColor;
 
     final Widget child = isPaid 
       ? Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 4),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 18,
@@ -502,22 +547,22 @@ class BoxyArtFeePill extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: theme.primaryColor,
+                    color: statusColor,
                     width: 1.2,
                   ),
                 ),
                 child: Icon(
                   Icons.check,
                   size: 12,
-                  color: theme.primaryColor,
+                  color: statusColor,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                'Fee Paid',
+                paidLabel,
                 style: AppTypography.caption.copyWith(
                   fontSize: AppTypography.sizeLabelStrong,
-                  color: theme.primaryColor,
+                  color: statusColor,
                   fontWeight: AppTypography.weightBold,
                 ),
               ),
@@ -525,9 +570,9 @@ class BoxyArtFeePill extends StatelessWidget {
           ),
         )
       : BoxyArtPill(
-          label: 'Fee due',
-          color: AppColors.amber500,
-          icon: Icons.info_outline_rounded,
+          label: dueLabel,
+          color: color ?? AppColors.amber500,
+          icon: isPaid ? null : Icons.info_outline_rounded,
         );
 
     return GestureDetector(

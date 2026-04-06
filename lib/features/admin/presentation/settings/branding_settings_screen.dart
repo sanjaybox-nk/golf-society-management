@@ -123,36 +123,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     SizedBox(
                       height: spacing?.labelToCard ?? AppSpacing.labelToCard,
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Use Shadows',
-                                style: AppTypography.bodySmall.copyWith(
-                                  fontWeight: AppTypography.weightBold,
-                                ),
-                              ),
-                              Text(
-                                'Adds depth to cards and buttons',
-                                style: AppTypography.helper.copyWith(
-                                  fontWeight: AppTypography.weightRegular,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Switch(
-                          value: config.useShadows,
-                          onChanged: (v) => controller.setUseShadows(v),
-                          activeThumbColor: Color(config.secondaryColor),
-                          activeTrackColor: Color(
-                            config.secondaryColor,
-                          ).withValues(alpha: AppColors.opacityMedium),
-                        ),
-                      ],
+                    BoxyArtSwitchField(
+                      label: 'Use Shadows',
+                      subtitle: 'Adds depth to cards and buttons',
+                      value: config.useShadows,
+                      onChanged: (v) => controller.setUseShadows(v),
                     ),
                     if (config.useShadows) ...[
                       Row(
@@ -306,7 +281,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       ),
                     ],
                     SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-                    // Pills Slider moved to Consolidated Badges section
                     Row(
                       children: [
                         Text(
@@ -580,7 +554,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     
-                    const BoxyArtSectionTitle(title: 'STATUS COLORS', isLevel2: true),
+                    const BoxyArtSectionTitle(title: 'STATUS PILLS (Lifecycle & Registry)', isLevel2: true),
                     const SizedBox(height: AppSpacing.md),
                     _StatusColorRow(
                       label: 'Published',
@@ -647,20 +621,42 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         (c) => controller.setStatusDinnerColor(c),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.x2l),
-
-                    const BoxyArtSectionTitle(title: 'PREVIEW BADGE', isLevel2: true),
                     const SizedBox(height: AppSpacing.md),
-                    Center(
-                      child: BoxyArtIconBadge(
-                        icon: Icons.star_rounded,
-                        color: Color(config.iconBadgeFillColor),
-                        iconColor: Color(config.iconBadgeIconColor),
-                        size: 42,
-                        fillOpacity: config.iconBadgeOpacity,
-                      ),
+                    _buildRadiusSlider(
+                      label: 'Pill Rounding',
+                      helper: 'Affects status pills and tags',
+                      value: config.pillRadius,
+                      max: 30,
+                      activeColor: Color(config.secondaryColor),
+                      onChanged: (v) => controller.setPillRadius(v),
                     ),
                     const SizedBox(height: AppSpacing.x2l),
+
+                    const BoxyArtSectionTitle(title: 'METRIC & ICON BADGES', isLevel2: true),
+                    const SizedBox(height: AppSpacing.md),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          BoxyArtIconBadge(
+                            icon: Icons.star_rounded,
+                            color: Color(config.iconBadgeFillColor),
+                            iconColor: Color(config.iconBadgeIconColor),
+                            size: 42,
+                            fillOpacity: config.iconBadgeOpacity,
+                          ),
+                          const SizedBox(width: AppSpacing.xl),
+                          ModernMetricStat(
+                            value: '22',
+                            label: 'Stats',
+                            icon: Icons.analytics_rounded,
+                            isCompact: true,
+                            color: Color(config.iconBadgeFillColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
 
                     const BoxyArtSectionTitle(title: 'ICON BADGE STYLE', isLevel2: true),
                     Row(
@@ -694,17 +690,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.x2l),
 
-                    const BoxyArtSectionTitle(title: 'SHAPE & OPACITY', isLevel2: true),
-                    // Pill Radius Slider
-                    _buildRadiusSlider(
-                      label: 'Pill Rounding',
-                      helper: 'Affects status pills and tags',
-                      value: config.pillRadius,
-                      max: 30,
-                      activeColor: Color(config.secondaryColor),
-                      onChanged: (v) => controller.setPillRadius(v),
-                    ),
-                    // Accent Radius Slider
+                    const BoxyArtSectionTitle(title: 'BADGE ROUNDING & OPACITY', isLevel2: true),
                     _buildRadiusSlider(
                       label: 'Badge Rounding',
                       helper: 'Affects metric boxes and icons',
@@ -713,25 +699,16 @@ class BrandingSettingsScreen extends ConsumerWidget {
                       activeColor: Color(config.secondaryColor),
                       onChanged: (v) => controller.setAccentRadius(v),
                     ),
-                    // Accent Opacity Slider
                     _buildRadiusSlider(
                       label: 'Accent Fill Opacity',
-                      helper: 'Background transparency for general badges',
+                      helper: 'Background transparency for general badges (Capacity, Playing, etc.)',
                       value: config.accentOpacity,
-                      max: 0.5,
-                      divisions: 10,
+                      max: 1.0,
+                      divisions: 20,
                       isDecimal: true,
                       activeColor: Color(config.secondaryColor),
                       onChanged: (v) => controller.setAccentOpacity(v),
-                      trailing: ModernMetricStat(
-                        value: '22',
-                        label: 'Stats',
-                        icon: Icons.analytics_rounded,
-                        isCompact: true,
-                        color: Color(config.secondaryColor),
-                      ),
                     ),
-                    // Icon Badge Opacity Slider
                     _buildRadiusSlider(
                       label: 'Badge Background Opacity',
                       helper: 'Transparency for standalone Icon Badges',
@@ -749,7 +726,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         size: 38,
                       ),
                     ),
-                    // Icon Opacity Slider
                     _buildRadiusSlider(
                       label: 'Icon Glyph Opacity',
                       helper: 'Transparency of the actual icon glyph',
@@ -816,9 +792,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Sections consolidated into 'Badges & Status Styling'
-
-
               const BoxyArtSectionTitle(title: 'Society Dark Scale'),
               BoxyArtCard(
                 child: Column(
@@ -863,7 +836,11 @@ class BrandingSettingsScreen extends ConsumerWidget {
       wheelDiameter: 180,
       enableOpacity: false,
       showColorCode: true,
+      colorCodeReadOnly: false,
       colorCodeHasColor: true,
+      colorCodeTextStyle: AppTypography.cardTitle.copyWith(
+        color: AppColors.pureWhite,
+      ),
       pickersEnabled: const {
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
@@ -961,12 +938,6 @@ class BrandingSettingsScreen extends ConsumerWidget {
   ) {
     final primary = Color(primaryInt);
     final secondary = Color(secondaryInt);
-    final published = Color(publishedInt);
-    final confirmed = Color(confirmedInt);
-    final reserved = Color(reservedInt);
-    final waitlist = Color(waitlistInt);
-    final withdrawn = Color(withdrawnInt);
-    final dinner = Color(dinnerInt);
     final iconBadgeFill = Color(iconBadgeFillInt);
     final iconBadgeIcon = Color(iconBadgeIconInt);
     final bool isDark =
@@ -1268,10 +1239,6 @@ class _CompactColorPicker extends StatelessWidget {
   }
 }
 
-// Style Selector Removed in v4.0 in favor of granular controls
-
-// _StyleItem removed
-
 class _ThemeModeTile extends StatelessWidget {
   final String title;
   final String value;
@@ -1530,7 +1497,11 @@ class _ColorPaletteState extends State<_ColorPalette> {
       borderRadius: 8,
       elevation: 4,
       showColorCode: true,
+      colorCodeReadOnly: false,
       colorCodeHasColor: true,
+      colorCodeTextStyle: AppTypography.cardTitle.copyWith(
+        color: AppColors.pureWhite,
+      ),
       pickersEnabled: const {
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
@@ -1543,9 +1514,9 @@ class _ColorPaletteState extends State<_ColorPalette> {
         dialogActionButtons: false,
       ),
       constraints: const BoxConstraints(
-        minHeight: 480,
-        minWidth: 320,
-        maxWidth: 320,
+        minHeight: 520,
+        minWidth: 340,
+        maxWidth: 340,
       ),
     );
 
@@ -1564,7 +1535,11 @@ class _ColorPaletteState extends State<_ColorPalette> {
       borderRadius: 8,
       elevation: 4,
       showColorCode: true,
+      colorCodeReadOnly: false,
       colorCodeHasColor: true,
+      colorCodeTextStyle: AppTypography.cardTitle.copyWith(
+        color: AppColors.pureWhite,
+      ),
       pickersEnabled: const {
         ColorPickerType.both: false,
         ColorPickerType.primary: true,
@@ -1577,9 +1552,9 @@ class _ColorPaletteState extends State<_ColorPalette> {
         dialogActionButtons: false,
       ),
       constraints: const BoxConstraints(
-        minHeight: 480,
-        minWidth: 320,
-        maxWidth: 320,
+        minHeight: 520,
+        minWidth: 340,
+        maxWidth: 340,
       ),
     );
 
@@ -1659,7 +1634,7 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
                 ),
                 image: widget.currentUrl != null
                     ? DecorationImage(
-                        image: NetworkImage(widget.currentUrl!),
+                        image: boxyArtNetworkImage(widget.currentUrl!),
                         fit: BoxFit.cover,
                       )
                     : null,

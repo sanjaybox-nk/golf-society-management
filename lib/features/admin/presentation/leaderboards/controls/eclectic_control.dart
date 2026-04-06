@@ -34,7 +34,7 @@ class _EclecticControlState extends State<EclecticControl> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
+          BoxyArtSectionTitle(title: 'Leaderboard details'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -48,7 +48,7 @@ class _EclecticControlState extends State<EclecticControl> {
             ),
           ),
           const SizedBox(height: AppSpacing.x2l),
-          BoxyArtSectionTitle(title: 'ECLECTIC RULES'),
+          BoxyArtSectionTitle(title: 'Eclectic rules'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -70,7 +70,7 @@ class _EclecticControlState extends State<EclecticControl> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'HANDICAP ALLOWANCE',
+                        'Handicap allowance',
                         style: AppTypography.label.copyWith(
                           color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
                         ),
@@ -112,7 +112,7 @@ class _EclecticControlState extends State<EclecticControl> {
           const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
-              title: 'SAVE CHANGES',
+              title: 'Save changes',
               onTap: _save,
             ),
           ),

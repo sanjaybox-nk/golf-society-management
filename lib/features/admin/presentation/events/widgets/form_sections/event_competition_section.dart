@@ -30,16 +30,16 @@ class EventCompetitionSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BoxyArtSectionTitle(title: 'COMPETITION RULES'),
+            const BoxyArtSectionTitle(title: 'Competition Rules'),
             if (!hasGame || displayComp == null)
               BoxyArtCard(
                 child: Column(
                   children: [
-                    const Text("NO RULES APPLIED", style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold)),
+                    const Text("No rules applied", style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBold)),
                     const SizedBox(height: AppSpacing.md),
                     Center(
                       child: BoxyArtButton(
-                        title: "ADD GAME FORMAT",
+                        title: "Add game format",
                         onTap: () async {
                           final result = await context.push<String>("/admin/events/competitions/new");
                           if (result != null) {
@@ -66,12 +66,12 @@ class EventCompetitionSection extends ConsumerWidget {
                     },
                     onCustomize: () => _handleCustomize(context, ref, state),
                     onRemove: () => ref.read(eventFormNotifierProvider.notifier).updateTemplateId(null),
-                    customizeLabel: state.isCustomized ? "CUSTOMIZED" : "CUSTOMIZE",
+                    customizeLabel: state.isCustomized ? "Customized" : "Customize",
                   ),
                   if (state.isMultiDay && displayComp.rules.roundsCount > 1) ...[
                     const SizedBox(height: AppSpacing.lg),
                     const Text(
-                      'SEASON STANDINGS (OOM/ECLECTIC)',
+                      'Season Standings (OOM/Eclectic)',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBold),
                     ),
                     const SizedBox(height: AppSpacing.sm),

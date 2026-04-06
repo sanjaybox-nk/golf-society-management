@@ -13,6 +13,7 @@ export 'atoms/inputs/boxy_art_search_input.dart';
 
 // Legacy Widgets (to be decomposed)
 export 'widgets/admin_shortcut_action.dart';
+export 'widgets/image.dart';
 export 'widgets/avatars.dart';
 export 'widgets/badges.dart';
 export 'widgets/bottom_sheets.dart';
@@ -22,6 +23,7 @@ export 'widgets/error_handler.dart';
 export 'widgets/floating_action_bar.dart';
 export 'widgets/headless_scaffold.dart';
 export 'widgets/inputs.dart';
+export 'widgets/boxy_art_form.dart';
 export 'widgets/layout.dart';
 export 'widgets/member_cards.dart';
 export 'widgets/metrics.dart';

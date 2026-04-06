@@ -109,6 +109,57 @@ class MemberPerformance {
   });
 }
 
+class MemberFinancialStatus {
+  final double totalEventFeesOwed;
+  final double totalFinesOwed;
+  final double accountCredit;
+
+  const MemberFinancialStatus({
+    this.totalEventFeesOwed = 0.0,
+    this.totalFinesOwed = 0.0,
+    this.accountCredit = 0.0,
+  });
+
+  double get totalDebt => totalEventFeesOwed + totalFinesOwed;
+  double get netBalance => accountCredit - totalDebt;
+}
+
+final memberFinancialStatusProvider = Provider.family<AsyncValue<MemberFinancialStatus>, String>((ref, memberId) {
+  final eventsAsync = ref.watch(eventsProvider);
+  final memberAsync = ref.watch(memberByIdProvider(memberId));
+
+  if (memberAsync is AsyncLoading || eventsAsync is AsyncLoading) return const AsyncValue.loading();
+  if (memberAsync.hasError) return AsyncValue.error(memberAsync.error!, memberAsync.stackTrace!);
+  
+  final member = memberAsync.value;
+  if (member == null) return const AsyncValue.data(MemberFinancialStatus());
+
+  return eventsAsync.whenData((events) {
+    double eventFeesOwed = 0.0;
+    double finesOwed = 0.0;
+
+    for (final evt in events) {
+      if (evt.status == EventStatus.cancelled) continue;
+      
+      final reg = evt.registrations.firstWhereOrNull((r) => r.memberId == memberId);
+      if (reg != null) {
+        if (!reg.hasPaid && reg.cost > 0 && reg.isConfirmed) {
+          eventFeesOwed += reg.cost;
+        }
+        if (!reg.finePaid && reg.fineAmount > 0) {
+          finesOwed += reg.fineAmount;
+        }
+      }
+    }
+
+    return MemberFinancialStatus(
+      totalEventFeesOwed: eventFeesOwed,
+      totalFinesOwed: finesOwed,
+      accountCredit: member.accountCredit,
+    );
+  });
+});
+
 // Detailed Member Stats Provider (Wins, Top 5, etc.)
 final memberPerformanceProvider = Provider.family<AsyncValue<MemberPerformance>, String>((ref, memberId) {
   final eventsAsync = ref.watch(adminEventsProvider);

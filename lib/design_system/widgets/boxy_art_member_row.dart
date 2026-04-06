@@ -128,11 +128,8 @@ class BoxyArtMemberRow extends StatelessWidget {
               children: [
                 Text(
                   toTitleCase(name),
-                  style: AppTypography.body.copyWith(
+                  style: AppTypography.memberName.copyWith(
                     color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                    fontWeight: AppTypography.weightBold,
-                    fontSize: AppTypography.sizeBody,
-                    letterSpacing: -0.4,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

@@ -83,8 +83,8 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           const SizedBox(height: AppSpacing.x2l),
           BoxyArtButton(
             title: widget.isTemplate
-              ? (widget.competition == null ? 'CREATE TEMPLATE' : 'SAVE TEMPLATE')
-              : (widget.competition == null ? 'CREATE COMPETITION' : 'SAVE CHANGES'),
+              ? (widget.competition == null ? 'Create template' : 'Save template')
+              : (widget.competition == null ? 'Create competition' : 'Save changes'),
             onTap: _isSaving ? null : _save,
             isLoading: _isSaving,
             fullWidth: true,
@@ -175,7 +175,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
   Widget buildAllowanceSlider(
     double allowance,
     ValueChanged<double> onChanged, {
-    String label = 'HANDICAP ALLOWANCE',
+    String label = 'Handicap allowance',
     String hint = "Fraction of each player's course handicap used in scoring.",
     bool disabled = false,
   }) {
@@ -190,7 +190,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label.toUpperCase(),
+              label,
               style: AppTypography.label.copyWith(
                 color: isDark ? AppColors.dark150 : AppColors.dark300,
               ),
@@ -223,9 +223,9 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
         ),
         Row(
           children: [
-            Text('MIN', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
+            Text('Min', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
             const Spacer(),
-            Text('MAX', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
+            Text('Max', style: AppTypography.caption.copyWith(color: AppColors.dark300)),
           ],
         ),
         if (hint.isNotEmpty) buildInfoBubble(hint),
@@ -266,7 +266,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label.toUpperCase(),
+              label,
               style: AppTypography.label.copyWith(
                 color: isDark ? AppColors.dark150 : AppColors.dark300,
               ),
@@ -366,7 +366,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'GUEST VISIBILITY'),
+        const BoxyArtSectionTitle(title: 'Guest visibility'),
         const SizedBox(height: AppSpacing.lg),
         BoxyArtDropdownField<bool?>(
           label: 'Leaderboard Strategy',
@@ -375,21 +375,21 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             DropdownMenuItem(
               value: null, 
               child: Text(
-                'AUTO (FOLLOW SOCIETY)', 
+                'Auto (follow society)', 
                 style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0, color: theme.colorScheme.primary),
               ),
             ),
             DropdownMenuItem(
               value: true, 
               child: const Text(
-                'SEPARATE SECTION', 
+                'Separate section', 
                 style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0),
               ),
             ),
             DropdownMenuItem(
               value: false, 
               child: const Text(
-                'HIDDEN (NO GUESTS)', 
+                'Hidden (no guests)', 
                 style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0),
               ),
             ),

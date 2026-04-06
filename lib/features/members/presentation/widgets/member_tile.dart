@@ -1,11 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
+import 'package:golf_society/features/members/data/members_repository.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../profile_provider.dart';
 import '../members_provider.dart';
+import 'member_status_picker.dart';
 
 class MemberTile extends ConsumerWidget {
   final Member member;
@@ -97,7 +101,7 @@ class MemberTile extends ConsumerWidget {
                           // Member Name
                           Text(
                             toTitleCase('${member.firstName} ${member.lastName}'),
-                            style: AppTypography.headline,
+                            style: AppTypography.memberName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -108,56 +112,57 @@ class MemberTile extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 3,
-                                    height: 14,
-                                    decoration: BoxDecoration(
-                                      color: member.status == MemberStatus.active 
-                                          ? theme.colorScheme.primary 
-                                          : AppColors.amber500,
-                                      borderRadius: BorderRadius.circular(2),
+                              GestureDetector(
+                                onTap: isAdminContext ? () {
+                                  MemberStatusPicker.show(context, member.status, (newStatus) {
+                                    ref.read(membersRepositoryProvider).updateMember(
+                                      member.copyWith(status: newStatus),
+                                    );
+                                  });
+                                } : null,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 3,
+                                      height: 14,
+                                      decoration: BoxDecoration(
+                                        color: member.status == MemberStatus.active 
+                                            ? theme.colorScheme.primary 
+                                            : AppColors.amber500,
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Text(
-                                    member.status.displayName,
-                                    style: AppTypography.label.copyWith(
-                                      color: member.status == MemberStatus.active 
-                                          ? theme.colorScheme.primary 
-                                          : AppColors.amber500,
-                                      fontWeight: AppTypography.weightStrong,
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      member.status.displayName,
+                                      style: AppTypography.label.copyWith(
+                                        color: member.status == MemberStatus.active 
+                                            ? theme.colorScheme.primary 
+                                            : AppColors.amber500,
+                                        fontWeight: AppTypography.weightStrong,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    if (isAdminContext) ...[
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        size: 18,
+                                        color: (member.status == MemberStatus.active 
+                                            ? theme.colorScheme.primary 
+                                            : AppColors.amber500).withValues(alpha: 0.7),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                               if (canSeeFees)
-                                GestureDetector(
-                                  onTap: onFeeToggle ?? () {
+                                BoxyArtFeePill(
+                                  isPaid: member.hasPaid,
+                                  onToggle: onFeeToggle ?? () {
                                     final repo = ref.read(membersRepositoryProvider);
                                     repo.updateMember(member.copyWith(hasPaid: !member.hasPaid));
                                   },
-                                  behavior: HitTestBehavior.opaque,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        member.hasPaid ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                                        size: 16,
-                                        color: member.hasPaid ? Color(config.iconBadgeIconColor) : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                      ),
-                                      const SizedBox(width: AppSpacing.xs),
-                                      Text(
-                                        isEventPaymentContext ? 'Paid' : 'Fee Paid',
-                                        style: AppTypography.micro.copyWith(
-                                          fontWeight: AppTypography.weightStrong,
-                                          color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ),
                             ],
                           ),
@@ -165,7 +170,7 @@ class MemberTile extends ConsumerWidget {
                           const SizedBox(height: 4),
 
                           // Role Pills
-                          if (member.societyRole?.isNotEmpty == true || (isAdmin && member.role != MemberRole.member))
+                          if (member.societyRole?.isNotEmpty == true || (isAdminContext && member.role != MemberRole.member))
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Wrap(
@@ -173,15 +178,12 @@ class MemberTile extends ConsumerWidget {
                                 runSpacing: 4,
                                 children: [
                                   if (member.societyRole?.isNotEmpty == true)
-                                    BoxyArtPill(
+                                    BoxyArtPill.committee(
                                       label: member.societyRole!,
-                                      color: Color(config.iconBadgeFillColor),
-                                      textColor: Color(config.iconBadgeIconColor),
-                                      hasHorizontalMargin: false,
                                     ),
-                                  if (isAdmin && member.role != MemberRole.member)
+                                  if (isAdminContext && member.role != MemberRole.member)
                                     BoxyArtPill(
-                                      label: toTitleCase(member.role.name),
+                                      label: member.role.displayName,
                                       color: StatusColors.neutral,
                                       hasHorizontalMargin: false,
                                     ),
@@ -191,6 +193,40 @@ class MemberTile extends ConsumerWidget {
                                       color: StatusColors.warning,
                                       hasHorizontalMargin: false,
                                     ),
+                                  
+                                  // Nudge Status / Action
+                                  if (config.isRenewalActive && 
+                                      member.renewalStatus == MemberRenewalStatus.none && 
+                                      member.status != MemberStatus.suspended &&
+                                      isAdminContext)
+                                    member.lastNudgedAt != null && 
+                                    DateTime.now().difference(member.lastNudgedAt!).inHours < 24
+                                    ? const BoxyArtPill(
+                                        label: 'NUDGED',
+                                        color: StatusColors.neutral,
+                                        hasHorizontalMargin: false,
+                                      )
+                                    : GestureDetector(
+                                        onTap: () async {
+                                          final repo = ref.read(membersRepositoryProvider);
+                                          final messenger = ref.read(renewalNudgeServiceProvider);
+                                          
+                                          await repo.nudgeMember(member.id);
+                                          await messenger.sendRenewalNudge(member: member);
+                                          
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Nudge sent successfully!'))
+                                            );
+                                          }
+                                        },
+                                        child: BoxyArtPill(
+                                          label: 'NUDGE',
+                                          color: theme.colorScheme.primary,
+                                          icon: Icons.notifications_active_outlined,
+                                          hasHorizontalMargin: false,
+                                        ),
+                                      ),
                                 ],
                               ),
                             ),

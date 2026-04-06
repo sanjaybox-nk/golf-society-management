@@ -82,10 +82,19 @@ The legacy `brandingStyle` presets (`classic`, `boxy`, `modern`) are **deprecate
 
 This allows for a single "Theme Console" to control the entire application's aesthetic without maintaining hardcoded presets.
 
-## Hardening & Enforcement
-1.  **Strict Tokenization**: No hardcoded `fontSize` or `Color` outside of theme files.
-2.  **Universal Title Case**: All UI labels must use Title Case.
-3.  **Automatic Clipping**: `BoxyArtCard` ensures all children respect the dynamic `cardRadius`.
+## Design 4.x Standard (v4.1 - True Minimal)
+As of v4.1, the application enforces a "True Minimal" aesthetic characterized by the elimination of all-caps and refined, high-precision indicators.
+
+### 1. Universal Title Case
+-   **Policy**: All UI labels, headers, and buttons must use **Title Case**.
+-   **Exception**: Acronyms (e.g., GPS, OS, ARM) may remain in caps if appropriate.
+-   **Enforcement**: Explicitly prohibited: `ALL-CAPS` section titles, `UPPERCASE` tab labels, and `SHOUTING` status badges.
+
+### 2. Tab Indicator Standard
+-   **Style**: Bold, full-width (with 12px horizontal inset) indicator with rounded top corners.
+-   **Dimensions**: 4px height, spanning the tab area with premium insets.
+-   **Typography**: Labels must use `AppTypography.displayLocker` for a premium, fixed-width feel (optimized for density).
+-   **Implementation**: Use `ModernUnderlinedFilterBar` or `indicatorSize: TabBarIndicatorSize.tab` for standard `TabBar` integrations.
 
 ## Motion Standard (v3.9 - BoxyArt Page)
 

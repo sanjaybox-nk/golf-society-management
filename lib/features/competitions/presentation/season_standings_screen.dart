@@ -490,6 +490,8 @@ class _StandingRow extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      // Use branch navigator so the global bottom nav bar stays visible behind the sheet.
+      useRootNavigator: false,
       backgroundColor: Colors.transparent,
       builder: (context) => _StandingDetailSheet(standing: standing),
     );

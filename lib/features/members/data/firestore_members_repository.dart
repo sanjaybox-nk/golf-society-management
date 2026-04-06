@@ -60,6 +60,13 @@ class FirestoreMembersRepository implements MembersRepository {
   }
 
   @override
+  Future<void> nudgeMember(String memberId) async {
+    await _membersRef().doc(memberId).update({
+      'lastNudgedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
   Future<void> deleteMember(String id) async {
     await _membersRef().doc(id).delete();
   }

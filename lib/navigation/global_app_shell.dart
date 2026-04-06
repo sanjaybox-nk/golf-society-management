@@ -1,4 +1,6 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import 'package:golf_society/design_system/constants/navigation_constants.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
@@ -18,19 +20,38 @@ class GlobalAppShell extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    // 1. Determine Navigation Context from Shell State
-    // Branches 0-4 are User, 5+ are Admin
+    final user = ref.watch(effectiveUserProvider);
+    final bool isDeparted = user.status == MemberStatus.left || user.status == MemberStatus.archived;
     final bool isAdmin = navigationShell.currentIndex >= 5;
-    
+
     // 2. Map indices and select items
-    // This allows the shell to remain robust regardless of the current URL string parsing.
-    final List<BoxyArtBottomNavItem> items = isAdmin 
-        ? NavigationConstants.adminNavItems 
-        : NavigationConstants.userNavItems;
+    List<BoxyArtBottomNavItem> items;
+    Map<int, int> branchMap = {};
+
+    if (isAdmin) {
+      items = NavigationConstants.adminNavItems;
+      for (int i = 0; i < items.length; i++) {
+        branchMap[i] = i + 5;
+      }
+    } else if (isDeparted) {
+      // Locker Room and Archive Only
+      items = [
+        NavigationConstants.userNavItems[3], // Locker
+        NavigationConstants.userNavItems[4], // Archive
+      ];
+      branchMap = {0: 3, 1: 4};
+    } else {
+      items = NavigationConstants.userNavItems;
+      for (int i = 0; i < items.length; i++) {
+        branchMap[i] = i;
+      }
+    }
         
-    final int displayIndex = isAdmin 
-        ? (navigationShell.currentIndex - 5).clamp(0, items.length - 1)
-        : navigationShell.currentIndex;
+    final int displayIndex = isDeparted && !isAdmin
+        ? (navigationShell.currentIndex == 4 ? 1 : 0)
+        : (isAdmin 
+            ? (navigationShell.currentIndex - 5).clamp(0, items.length - 1)
+            : navigationShell.currentIndex);
 
     // 3. Determine "Hub" mode (Event User Tabs use a specific secondary shell)
     // We check the specific branch indices that represent the Event Hub (Branch 1)
@@ -38,16 +59,16 @@ class GlobalAppShell extends ConsumerWidget {
     // rather than the root list (/events).
     final location = GoRouterState.of(context).uri.path;
     
-    // Determine if we should hide the main nav (deep inside an event hub)
-    final bool isUserEventHub = !isAdmin && 
-        navigationShell.currentIndex == 1 && 
-        (location.contains('/details') || location.contains('/field') || location.contains('/live') || location.contains('/scores') || location.contains('/stats'));
-        
-    final bool isAdminEventHub = isAdmin && 
-        navigationShell.currentIndex == 6 && 
-        location.contains('/manage/');
+    // Determine if we should hide the main nav (deep inside an event hub or specific admin pages)
+    // We check for any path that starts with /events/ and contains an ID or sub-route
+    // This is more robust than checking for shell indices.
+    final bool isUserEventHub = location.startsWith('/events/') && location != '/events';
+    final bool isAdminEventHub = location.startsWith('/admin/events/manage/');
+    final bool isSurveyView = location.contains('/surveys/');
+    final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
 
-    final bool shouldHideMainNav = isUserEventHub || isAdminEventHub;
+    final bool isWhiteListed = location.contains('renewal') || location.contains('ledger') || location.contains('/admin/surveys');
+    final bool shouldHideMainNav = (isUserEventHub || isAdminEventHub || isSurveyView || isSpecialForm) && !isWhiteListed;
 
     // 4. Status Bar Styling
     final statusBarIconBrightness = ContrastHelper.getContrastingText(theme.primaryColor) == AppColors.pureWhite
@@ -62,7 +83,6 @@ class GlobalAppShell extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isMobile = constraints.maxWidth < 600;
-          final isDesktop = constraints.maxWidth >= 1024;
           
           if (isMobile) {
             // Bypass global scaffold entirely when sub-hub is active to prevent gesture blocking
@@ -71,14 +91,14 @@ class GlobalAppShell extends ConsumerWidget {
             }
 
             return Scaffold(
-              key: const ValueKey('mobile_scaffold'),
-              extendBody: true,
+              key: ValueKey('mobile_scaffold_$location'),
+              extendBody: false,
               extendBodyBehindAppBar: true,
               primary: false,
               body: navigationShell,
               bottomNavigationBar: BoxyArtBottomNavBar(
                 selectedIndex: displayIndex,
-                onItemSelected: (index) => _onTap(context, index, isAdmin),
+                onItemSelected: (index) => _onTap(context, index, isAdmin, branchMap),
                 items: items,
                 isAdmin: isAdmin,
               ),
@@ -93,7 +113,7 @@ class GlobalAppShell extends ConsumerWidget {
                 if (!shouldHideMainNav)
                   NavigationRail(
                     selectedIndex: displayIndex,
-                    onDestinationSelected: (index) => _onTap(context, index, isAdmin),
+                    onDestinationSelected: (index) => _onTap(context, index, isAdmin, branchMap),
                     labelType: NavigationRailLabelType.all,
                     backgroundColor: isDark ? AppColors.dark900 : AppColors.dark50,
                     selectedIconTheme: IconThemeData(color: theme.primaryColor),
@@ -128,9 +148,9 @@ class GlobalAppShell extends ConsumerWidget {
     );
   }
 
-  void _onTap(BuildContext context, int index, bool isAdmin) {
+  void _onTap(BuildContext context, int index, bool isAdmin, Map<int, int> branchMap) {
     // Map UI index back to Branch index
-    final int branchIndex = isAdmin ? index + 5 : index;
+    final int branchIndex = branchMap[index] ?? (isAdmin ? index + 5 : index);
     
     navigationShell.goBranch(
       branchIndex,

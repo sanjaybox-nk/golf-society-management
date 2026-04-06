@@ -19,11 +19,18 @@ class EventAdminShell extends ConsumerWidget {
 
     // Hard-coded mapping for the 5-tab Admin Spec
     int currentIndex = 0;
-    if (segments.contains('details')) currentIndex = 0;
-    else if (segments.contains('gallery')) currentIndex = 1;
-    else if (segments.contains('scores')) currentIndex = 2;
-    else if (segments.contains('stats')) currentIndex = 3;
-    else if (segments.contains('controls')) currentIndex = 4;
+    if (segments.contains('details')) {
+      currentIndex = 0;
+    } else if (segments.contains('gallery')) {
+      currentIndex = 1;
+    } else if (segments.contains('scores')) {
+      currentIndex = 2;
+    } else if (segments.contains('stats')) {
+      currentIndex = 3;
+    } else if (segments.contains('controls')) {
+      currentIndex = 4;
+    }
+
 
     final String prefix = '/admin/events/manage/$id';
 

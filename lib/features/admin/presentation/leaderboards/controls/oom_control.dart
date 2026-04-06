@@ -60,7 +60,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
+          const BoxyArtSectionTitle(title: 'Leaderboard details'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -74,7 +74,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
             ),
           ),
           const SizedBox(height: AppSpacing.x2l),
-          const BoxyArtSectionTitle(title: 'SCORING RULES'),
+          const BoxyArtSectionTitle(title: 'Scoring rules'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -106,7 +106,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
         
           if (_scoringType == ScoringType.position) ...[
             const SizedBox(height: AppSpacing.x2l),
-            const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
+            const BoxyArtSectionTitle(title: 'Points distribution'),
             BoxyArtCard(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
@@ -123,7 +123,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
                   const SizedBox(height: AppSpacing.lg),
                   Center(
                     child: BoxyArtButton(
-                      title: 'ADD NEXT POSITION',
+                      title: 'Add next position',
                       onTap: _addNextPosition,
                       isSecondary: true,
                     ),
@@ -136,7 +136,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
           const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
-              title: 'SAVE CHANGES',
+              title: 'Save changes',
               onTap: _save,
             ),
           ),
@@ -153,7 +153,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
         children: [
           Expanded(
             child: Text(
-              '${_ordinal(position)} Place'.toUpperCase(),
+              '${_ordinal(position)} Place',
               style: AppTypography.label.copyWith(
                 color: isDark ? AppColors.dark150 : AppColors.dark400,
                 fontWeight: AppTypography.weightBlack,
@@ -193,7 +193,7 @@ class _OrderOfMeritControlState extends State<OrderOfMeritControl> {
             ),
           ),
           const SizedBox(width: AppSpacing.md),
-          Text('PTS', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500, fontWeight: AppTypography.weightBlack)),
+          Text('Pts', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500, fontWeight: AppTypography.weightBlack)),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             icon: const Icon(Icons.close, size: AppShapes.iconSm, color: Colors.redAccent),

@@ -62,7 +62,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── SCRAMBLE FORMAT ───────────────────────────────────
-        const BoxyArtSectionTitle(title: 'SCRAMBLE FORMAT'),
+        const BoxyArtSectionTitle(title: 'Scramble format'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<CompetitionSubtype>(
@@ -140,7 +140,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const BoxyArtSectionTitle(title: 'Handicap'),
         const SizedBox(height: AppSpacing.lg),
 
         _buildTeamHandicapMethodDropdown(),
@@ -149,7 +149,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         buildAllowanceSlider(
           _allowance,
           (val) => setState(() => _allowance = val),
-          label: 'TEAM HCP ALLOWANCE',
+          label: 'Team HCP allowance',
           hint: 'Applied to the combined team course handicap. WHS recommends 10% for a 4-man team.',
         ),
         const SizedBox(height: AppSpacing.x2l),
@@ -165,7 +165,7 @@ class _ScrambleControlState extends BaseCompetitionControlState<ScrambleControl>
         const SizedBox(height: AppSpacing.x2l),
 
         // ── RULES & ATTRIBUTIONS ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'RULES & ATTRIBUTIONS'),
+        const BoxyArtSectionTitle(title: 'Rules & attributions'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtSwitchField(

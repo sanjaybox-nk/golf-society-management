@@ -46,6 +46,13 @@ _EventRegistration _$EventRegistrationFromJson(Map<String, dynamic> json) =>
               )
               .toList() ??
           const [],
+      fines:
+          (json['fines'] as List<dynamic>?)
+              ?.map((e) => EventFine.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      fineAmount: (json['fineAmount'] as num?)?.toDouble() ?? 0.0,
+      finePaid: json['finePaid'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
@@ -80,6 +87,9 @@ Map<String, dynamic> _$EventRegistrationToJson(_EventRegistration instance) =>
       'buggyStatusOverride': instance.buggyStatusOverride,
       'guestBuggyStatusOverride': instance.guestBuggyStatusOverride,
       'history': instance.history?.map((e) => e.toJson()).toList(),
+      'fines': instance.fines.map((e) => e.toJson()).toList(),
+      'fineAmount': instance.fineAmount,
+      'finePaid': instance.finePaid,
     };
 
 _RegistrationHistoryItem _$RegistrationHistoryItemFromJson(
@@ -99,3 +109,18 @@ Map<String, dynamic> _$RegistrationHistoryItemToJson(
   'description': instance.description,
   'actor': instance.actor,
 };
+
+_EventFine _$EventFineFromJson(Map<String, dynamic> json) => _EventFine(
+  id: json['id'] as String,
+  amount: (json['amount'] as num).toDouble(),
+  reason: json['reason'] as String,
+  timestamp: DateTime.parse(json['timestamp'] as String),
+);
+
+Map<String, dynamic> _$EventFineToJson(_EventFine instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'amount': instance.amount,
+      'reason': instance.reason,
+      'timestamp': instance.timestamp.toIso8601String(),
+    };

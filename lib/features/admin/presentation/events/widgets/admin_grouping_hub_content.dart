@@ -74,8 +74,10 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
         // Use providers for state
         var localGroups = ref.watch(groupingLocalGroupsProvider);
         var isLocked = ref.watch(groupingIsLockedProvider) ?? (event.grouping['locked'] ?? false);
-        var matchPlayMode = ref.watch(groupingMatchPlayModeProvider);
         var selectedForSwap = ref.watch(groupingSelectedForSwapProvider);
+
+        // Derive Matchplay Mode from Competition Rules
+        final bool matchPlayMode = comp?.rules.format == CompetitionFormat.matchPlay;
 
         // Initialize if needed
         if (localGroups == null && event.grouping.containsKey('groups')) {
@@ -95,9 +97,8 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                 AdminGroupingHubCard(
                   event: event,
                   onGenerate: () => _handleAutoGenerate(context, ref, event, handicapMap, events),
-                  onReset: () => _handleReset(ref),
-                  onSave: () => _handleSave(context, ref, event),
                 ),
+
                 if (localGroups != null) ...[
                   const SizedBox(height: AppSpacing.x2l),
                    _buildGroupingListLayout(context, ref, event, localGroups, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps, isLocked: isLocked, matchPlayMode: matchPlayMode, selectedForSwap: selectedForSwap),
@@ -112,10 +113,9 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     );
   }
 
+
   void _handleAutoGenerate(BuildContext context, WidgetRef ref, GolfEvent event, Map<String, double> handicapMap, List<GolfEvent> allEvents) {
     final strategy = ref.read(groupingStrategyProvider);
-    final teeTime = ref.read(groupingTeeTimeProvider) ?? event.teeOffTime ?? DateTime.now();
-    final interval = ref.read(groupingIntervalProvider) ?? event.teeOffInterval;
     
     final participants = RegistrationLogic.getPlayingParticipants(event);
     if (participants.isEmpty) {
@@ -124,7 +124,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     }
 
     final newGroups = GroupingService.generateInitialGrouping(
-      event: event.copyWith(teeOffTime: teeTime, teeOffInterval: interval),
+      event: event, // Uses teeOffTime and teeOffInterval directly from event
       participants: participants,
       previousEventsInSeason: allEvents.where((e) => e.id != event.id).toList(),
       memberHandicaps: handicapMap,
@@ -132,13 +132,11 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     );
 
     ref.read(groupingLocalGroupsProvider.notifier).setGroups(newGroups);
-    ref.read(groupingDirtyProvider.notifier).setDirty(true);
+    _handleSave(context, ref, event);
   }
 
-  void _handleReset(WidgetRef ref) {
-    ref.read(groupingLocalGroupsProvider.notifier).setGroups(null);
-    ref.read(groupingDirtyProvider.notifier).setDirty(false);
-  }
+
+
 
   Future<void> _handleSave(BuildContext context, WidgetRef ref, GolfEvent event) async {
     final groups = ref.read(groupingLocalGroupsProvider);
@@ -156,7 +154,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
     ref.read(groupingDirtyProvider.notifier).setDirty(false);
     
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grouping Saved!'), backgroundColor: AppColors.teamA));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grouping saved!'), backgroundColor: AppColors.teamA));
     }
   }
 
@@ -268,7 +266,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
           ref.read(groupingDirtyProvider.notifier).setDirty(false);
        }
 
-       final notificationService = ref.read(notificationBroadcastServiceProvider);
+       final notificationService = ref.read(renewalNudgeServiceProvider);
        final allMembers = ref.read(allMembersProvider).value ?? [];
        
        await notificationService.notifyCommitteeOfWithdrawal(
@@ -280,7 +278,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
        if (result.promotedPlayerId != null) {
          await notificationService.notifyPlayerOfPromotion(
            event: result.event, 
-           memberId: result.promotedPlayerId!, 
+           member: allMembers.where((m) => m.id == result.promotedPlayerId).first, 
            groupIndex: 0, 
          );
        }

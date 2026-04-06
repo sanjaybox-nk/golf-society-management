@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/member.dart';
 import '../../../members/presentation/members_provider.dart';
-import '../../../members/presentation/member_details_modal.dart';
 
 // Local notifier for tracking selection
 class SelectedMemberIdsNotifier extends Notifier<Set<String>> {
@@ -31,7 +31,7 @@ final selectedMemberIdsProvider = NotifierProvider<SelectedMemberIdsNotifier, Se
   SelectedMemberIdsNotifier.new,
 );
 
-enum RenewalFilter { requested, paid, noAction }
+enum RenewalFilter { noAction, requested, paid }
 
 class AdminMemberRenewalScreen extends ConsumerStatefulWidget {
   const AdminMemberRenewalScreen({super.key});
@@ -41,21 +41,196 @@ class AdminMemberRenewalScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScreen> {
-  RenewalFilter _currentFilter = RenewalFilter.requested;
+  RenewalFilter _currentFilter = RenewalFilter.noAction;
+  String _searchQuery = '';
+
+  void _showRenewalSettings(BuildContext context) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Cycle Settings',
+      // Compact content — open at 50% so there's no excess whitespace below the card
+      initialChildSize: 0.50,
+      maxChildSize: 0.60,
+      child: Consumer(
+        builder: (context, ref, child) {
+          final themeConfig = ref.watch(themeControllerProvider);
+          final notifier = ref.read(themeControllerProvider.notifier);
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BoxyArtCard(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. Info Header
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 18, color: isDark ? AppColors.dark300 : AppColors.dark400),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            'Configure society-wide renewal deadlines and active status.',
+                            style: AppTypography.label.copyWith(
+                              color: isDark ? AppColors.dark200 : AppColors.dark500,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const BoxyArtDivider(verticalPadding: AppSpacing.xl),
+                    
+                    // 2. Cycle Timeline
+                    Text(
+                      'CYCLE TIMELINE', 
+                      style: AppTypography.micro.copyWith(
+                        color: isDark ? AppColors.dark300 : AppColors.dark400,
+                        fontWeight: AppTypography.weightBold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _DatePickerTile(
+                            label: 'Expiry',
+                            date: themeConfig.renewalDeadline,
+                            onChanged: (date) => notifier.setRenewalDeadline(date),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: _DatePickerTile(
+                            label: 'Deadline',
+                            date: themeConfig.renewalPaymentDeadline,
+                            onChanged: (date) => notifier.setRenewalPaymentDeadline(date),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const BoxyArtDivider(verticalPadding: AppSpacing.xl),
+                    
+                    // 3. Action Area (v4.x Row - Add Sponsor Style)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BoxyArtButton(
+                            title: themeConfig.isRenewalActive ? 'Cycle Active' : 'Launch Cycle',
+                            isSmall: false,
+                            backgroundColor: AppColors.actionMidnight,
+                            textColor: AppColors.pureWhite,
+                            onTap: themeConfig.isRenewalActive ? null : () async {
+                              final confirmed = await showBoxyArtDialog<bool>(
+                                context: context,
+                                title: 'Launch Cycle?',
+                                message: 'This enables the "Renew Now" button for all members and begins tracking payments.',
+                                actions: [
+                                  BoxyArtButton(
+                                    title: 'Cancel',
+                                    isPrimary: false,
+                                    isGhost: true,
+                                    isSmall: true,
+                                    onTap: () => Navigator.of(context, rootNavigator: true).pop(false),
+                                  ),
+                                  BoxyArtButton(
+                                    title: 'Launch',
+                                    isPrimary: true,
+                                    isSmall: true,
+                                    onTap: () => Navigator.of(context, rootNavigator: true).pop(true),
+                                  ),
+                                ]
+                              );
+                              if (confirmed == true) {
+                                await notifier.setIsRenewalActive(true);
+                                await notifier.setRenewalLaunchDate(DateTime.now());
+                              }
+                            },
+                          ),
+                        ),
+                        if (themeConfig.isRenewalActive) ...[
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: BoxyArtButton(
+                              title: 'End Cycle',
+                              isSmall: false,
+                              isGhost: true,
+                              backgroundColor: isDark ? Colors.transparent : AppColors.dark50,
+                              textColor: AppColors.dark400,
+                              onTap: () async {
+                                 final confirmed = await showBoxyArtDialog<bool>(
+                                    context: context,
+                                    title: 'End Cycle?',
+                                    message: 'This will stop active renewal requests. Member statuses will remain as they are.',
+                                    actions: [
+                                      BoxyArtButton(
+                                        title: 'Cancel',
+                                        isPrimary: false,
+                                        isGhost: true,
+                                        isSmall: true,
+                                        onTap: () => Navigator.of(context, rootNavigator: true).pop(false),
+                                      ),
+                                      BoxyArtButton(
+                                        title: 'End Cycle',
+                                        isPrimary: true,
+                                        isSmall: true,
+                                        backgroundColor: AppColors.coral500, // Explicit end action
+                                        onTap: () => Navigator.of(context, rootNavigator: true).pop(true),
+                                      ),
+                                    ]
+                                  );
+                                  if (confirmed == true) {
+                                    await notifier.setIsRenewalActive(false);
+                                  }
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final selectedIds = ref.watch(selectedMemberIdsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: HeadlessScaffold(
+    return HeadlessScaffold(
         title: 'Renewal Hub',
         subtitle: 'Manage season renewals',
         showBack: true,
         onBack: () => context.pop(),
+        pinnedBottom: selectedIds.isNotEmpty
+            ? BoxyArtButton(
+                title: 'Process ${selectedIds.length} Renewals',
+                icon: Icons.done_all_rounded,
+                fullWidth: true,
+                backgroundColor: AppColors.actionMidnight,
+                onTap: () => _processRenewals(context, ref, membersAsync.asData?.value ?? []),
+              )
+            : null,
+        pinnedBottomPadding: 110, // Lift above the global bottom nav (v4.x Shell)
+        actions: [
+          BoxyArtGlassIconButton(
+            icon: Icons.timer_outlined,
+            tooltip: 'Cycle Settings',
+            onPressed: () => _showRenewalSettings(context),
+          ),
+        ],
         slivers: [
+
           membersAsync.when(
             loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
             error: (err, _) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
@@ -73,46 +248,18 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                 case RenewalFilter.noAction: displayMembers = noAction; break;
               }
 
+              // 3. Filter by search query
+              if (_searchQuery.isNotEmpty) {
+                final query = _searchQuery.toLowerCase();
+                displayMembers = displayMembers.where((m) {
+                  final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
+                  return name.contains(query);
+                }).toList();
+              }
+
               return SliverMainAxisGroup(
                 slivers: [
-                  // 1. Summary Metrics Bar
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
-                      child: ModernMetricBar(
-                        children: [
-                          Expanded(
-                            child: ModernMetricStat(
-                              value: '${requested.length}',
-                              label: 'REQUESTED',
-                              isCompact: true,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: ModernMetricStat(
-                              value: '${paid.length}',
-                              label: 'PAID',
-                              isCompact: true,
-                              color: AppColors.teamA,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: ModernMetricStat(
-                              value: '${noAction.length}',
-                              label: 'NO ACTION',
-                              isCompact: true,
-                              color: AppColors.dark400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 2. Tab Bar
+                  // 1. Tab Bar
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.lg),
@@ -121,11 +268,24 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         onTabSelected: (filter) => setState(() => _currentFilter = filter),
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                         isExpanded: true,
-                        tabs: const [
-                          ModernFilterTab(label: 'Requested', value: RenewalFilter.requested),
-                          ModernFilterTab(label: 'Paid', value: RenewalFilter.paid),
-                          ModernFilterTab(label: 'No Action', value: RenewalFilter.noAction),
+                        tabs: [
+                          ModernFilterTab(label: 'No Action (${noAction.length})', value: RenewalFilter.noAction),
+                          ModernFilterTab(label: 'Requested (${requested.length})', value: RenewalFilter.requested),
+                          ModernFilterTab(label: 'Paid (${paid.length})', value: RenewalFilter.paid),
                         ],
+                      ),
+                    ),
+                  ),
+
+                  // 2. Search Bar (Standardized with Members Screen)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+                      child: BoxyArtSearchInput(
+                        label: 'Search Members',
+                        hintText: 'Search roster...',
+                        initialValue: _searchQuery,
+                        onChanged: (v) => setState(() => _searchQuery = v),
                       ),
                     ),
                   ),
@@ -163,19 +323,6 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
             },
           ),
         ],
-      ),
-      bottomNavigationBar: selectedIds.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, 100),
-              child: BoxyArtButton(
-                title: 'Process ${selectedIds.length} Renewals',
-                icon: Icons.done_all_rounded,
-                fullWidth: true,
-                backgroundColor: AppColors.actionMidnight,
-                onTap: () => _processRenewals(context, ref, membersAsync.value ?? []),
-              ),
-            )
-          : null,
     );
   }
 
@@ -191,14 +338,14 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
       message: 'This will finalize the membership status for ${selectedMembers.length} members. Continue?',
       actions: [
         BoxyArtButton(
-          title: 'CANCEL',
+          title: 'Cancel',
           isPrimary: false,
           isGhost: true,
           isSmall: true,
           onTap: () => Navigator.of(context, rootNavigator: true).pop(false),
         ),
         BoxyArtButton(
-          title: 'CONFIRM',
+          title: 'Confirm',
           isPrimary: true,
           isSmall: true,
           onTap: () => Navigator.of(context, rootNavigator: true).pop(true),
@@ -262,25 +409,25 @@ class _MemberRenewalTile extends ConsumerWidget {
     final selectedIds = ref.watch(selectedMemberIdsProvider);
     final isSelected = selectedIds.contains(member.id);
 
-    Color statusColor;
-    String statusLabel;
+    Color renewalColor;
+    String renewalLabel;
 
     switch (member.renewalStatus) {
       case MemberRenewalStatus.renew:
-        statusColor = Theme.of(context).colorScheme.primary;
-        statusLabel = 'RENEWING';
+        renewalColor = Theme.of(context).colorScheme.primary;
+        renewalLabel = 'Renewing';
         break;
       case MemberRenewalStatus.suspend:
-        statusColor = AppColors.amber500;
-        statusLabel = 'SUSPENDING';
+        renewalColor = AppColors.amber500;
+        renewalLabel = 'Suspending';
         break;
       case MemberRenewalStatus.leave:
-        statusColor = AppColors.coral500;
-        statusLabel = 'LEAVING';
+        renewalColor = AppColors.coral500;
+        renewalLabel = 'Leaving';
         break;
       case MemberRenewalStatus.none:
-        statusColor = AppColors.dark400;
-        statusLabel = 'NO ACTION';
+        renewalColor = AppColors.dark400;
+        renewalLabel = 'No action';
         break;
     }
 
@@ -293,8 +440,9 @@ class _MemberRenewalTile extends ConsumerWidget {
         border: isSelected 
             ? Border.all(color: AppColors.teamA, width: 2)
             : null,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
               radius: 24,
@@ -316,69 +464,141 @@ class _MemberRenewalTile extends ConsumerWidget {
             ),
             const SizedBox(width: AppSpacing.lg),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${member.firstName} ${member.lastName}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900, 
-                      fontSize: AppTypography.sizeBody,
-                      letterSpacing: 0.2,
-                      color: isSelected ? AppColors.teamA : null,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      borderRadius: AppShapes.xs,
-                    ),
-                    child: Text(
-                      statusLabel,
-                      style: TextStyle(
-                        fontSize: AppTypography.sizeMicro,
-                        fontWeight: FontWeight.w900,
-                        color: statusColor,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Text(
+                '${member.firstName} ${member.lastName}',
+                style: AppTypography.memberName.copyWith(
+                  color: isSelected ? AppColors.teamA : null,
+                  fontSize: 16,
+                  letterSpacing: -0.4,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (!isSelected && member.renewalStatus != MemberRenewalStatus.none)
-              BoxyArtFeePill(
-                isPaid: member.hasPaid,
-                onToggle: () {
-                  final newPaidStatus = !member.hasPaid;
-                  ref.read(membersRepositoryProvider).updateMember(
-                    member.copyWith(hasPaid: newPaidStatus),
-                  );
-
-                  // [DEBUG] Log the update for verification
-                  debugPrint('💰 MEMBER UPDATE: ${member.displayName} set hasPaid to $newPaidStatus');
-
-                  // Deselect automatically if marked as paid to follow Design 4.x logical flow
-                  if (newPaidStatus) {
-                    ref.read(selectedMemberIdsProvider.notifier).remove(member.id);
-                  }
-                },
-              )
-            else if (!isSelected)
-              Text(
-                'PENDING',
-                style: AppTypography.micro.copyWith(
-                  color: AppColors.dark400,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                ),
-              ),
+            const SizedBox(width: AppSpacing.lg),
+            // Dedicated Status Column (Matching Sponsorship Hub)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (member.renewalStatus == MemberRenewalStatus.renew) ...[
+                  BoxyArtStatusPill(
+                    isPaid: member.hasPaid,
+                    paidLabel: 'Paid',
+                    dueLabel: 'Renewing',
+                    onToggle: () {
+                      final newPaidStatus = !member.hasPaid;
+                      ref.read(membersRepositoryProvider).updateMember(
+                        member.copyWith(hasPaid: newPaidStatus),
+                      );
+                      if (newPaidStatus) {
+                        ref.read(selectedMemberIdsProvider.notifier).remove(member.id);
+                      }
+                    },
+                  ),
+                  if (!member.hasPaid)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: BoxyArtStatusPill(
+                        isPaid: false,
+                        paidLabel: '', 
+                        dueLabel: 'Nudge',
+                        color: AppColors.dark400,
+                        onToggle: () async {
+                          await ref.read(renewalNudgeServiceProvider).notifyMemberOfPaymentDue(member: member);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Payment reminder sent to ${member.firstName}')),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                ] else
+                  BoxyArtStatusPill(
+                    isPaid: false,
+                    paidLabel: '', 
+                    dueLabel: renewalLabel,
+                    color: renewalColor,
+                    onToggle: null,
+                  ),
+              ],
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DatePickerTile extends StatelessWidget {
+  final String label;
+  final DateTime? date;
+  final ValueChanged<DateTime?> onChanged;
+
+  const _DatePickerTile({
+    required this.label,
+    required this.date,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final displayDate = date != null ? '${date!.day}/${date!.month}/${date!.year}' : 'Set date';
+
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: date ?? DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+        );
+        if (picked != null) onChanged(picked);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(), 
+            style: AppTypography.micro.copyWith(
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.dark800 : AppColors.dark50,
+              borderRadius: BorderRadius.circular(AppSpacing.md),
+              border: Border.all(
+                color: isDark ? AppColors.dark700 : AppColors.dark200,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded, 
+                  size: 16, 
+                  color: theme.primaryColor,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  displayDate,
+                  style: AppTypography.body.copyWith(
+                    fontSize: 14, 
+                    fontWeight: AppTypography.weightSemibold,
+                    color: date == null ? (isDark ? AppColors.dark400 : AppColors.dark300) : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

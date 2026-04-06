@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
@@ -154,7 +155,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           await repo.updateEvent(result.event);
           
           // Broadcast Notifications
-          final notificationService = ref.read(notificationBroadcastServiceProvider);
+          final notificationService = ref.read(renewalNudgeServiceProvider);
           final allMembers = ref.read(allMembersProvider).value ?? [];
           
           await notificationService.notifyCommitteeOfWithdrawal(
@@ -164,11 +165,14 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           );
 
           if (result.promotedPlayerId != null) {
-            await notificationService.notifyPlayerOfPromotion(
-              event: result.event, 
-              memberId: result.promotedPlayerId!, 
-              groupIndex: 0, // Placeholder, in real logic we'd find the index
-            );
+            final promotedMember = allMembers.firstWhereOrNull((m) => m.id == result.promotedPlayerId);
+            if (promotedMember != null) {
+              await notificationService.notifyPlayerOfPromotion(
+                event: result.event, 
+                member: promotedMember, 
+                groupIndex: 0, 
+              );
+            }
           }
       }
 

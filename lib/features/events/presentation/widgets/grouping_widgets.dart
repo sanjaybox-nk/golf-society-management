@@ -238,9 +238,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                   // Section 1: Name
                   Text(
                     toTitleCase(player.name),
-                    style: AppTypography.displayHeading.copyWith(
-                      fontSize: AppTypography.sizeLargeBody,
-                      fontWeight: AppTypography.weightExtraBold,
+                    style: AppTypography.memberName.copyWith(
                       color: theme.colorScheme.onSurface,
                     ),
                     maxLines: 1,
@@ -292,38 +290,47 @@ class GroupingPlayerTile extends ConsumerWidget {
 
                   const Spacer(),
                   // Section 3: Performance Metrics (Bottom-Right)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alignment changed to separate left and right
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      if (thruLabel != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Text(
-                            thruLabel!,
-                            style: AppTypography.helper.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                              fontStyle: FontStyle.italic,
-                              fontSize: 11,
+                      // Left Side: Thru & Tie-break info
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (thruLabel != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                thruLabel!,
+                                style: AppTypography.helper.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          if (thruLabel != null && hasScore && tieBreakLabel != null)
+                            const SizedBox(width: AppSpacing.sm),
+                          if (hasScore && tieBreakLabel != null)
+                            Text(
+                              tieBreakLabel!,
+                              style: AppTypography.label.copyWith(
+                                fontSize: 10,
+                                fontWeight: AppTypography.weightBold,
+                                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      // Right Side: Score
                       if (hasScore) ...[
-                        const SizedBox(width: AppSpacing.sm),
                         RichText(
                           text: TextSpan(
                             children: [
-                              if (hasScore && tieBreakLabel != null)
-                                TextSpan(
-                                  text: '${tieBreakLabel!}  ',
-                                  style: AppTypography.label.copyWith(
-                                    fontSize: 10,
-                                    fontWeight: AppTypography.weightBold,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
                               TextSpan(
                                 text: rawScore,
                                 style: AppTypography.displayHeading.copyWith(
@@ -367,7 +374,6 @@ class GroupingPlayerTile extends ConsumerWidget {
 }
 
   Widget _buildAvatarStack(BuildContext context, bool isScoreMode, Color? varietyColor, bool hasGuestInGroup) {
-    final theme = Theme.of(context);
     
     return Stack(
       alignment: Alignment.center,
@@ -1162,7 +1168,7 @@ class PodiumEntry {
   });
 }
 
-class GroupingPodiumHeader extends StatelessWidget {
+class GroupingPodiumHeader extends ConsumerWidget {
   final List<PodiumEntry> entries;
   final Function(int groupIndex)? onTap; // [NEW] Callback for scrolling
 
@@ -1173,7 +1179,7 @@ class GroupingPodiumHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (entries.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -1244,16 +1250,13 @@ class GroupingPodiumHeader extends StatelessWidget {
               // 2. Content
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: 0),
+                  padding: const EdgeInsets.all(AppSpacing.lg), // Increased from md
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (isFirst)
-                            const Icon(Icons.emoji_events_rounded,
-                                size: 14, color: AppColors.amber500),
-                          if (isFirst) const SizedBox(width: 4),
                           Text(
                             '#${entry.rank}',
                             style: AppTypography.label.copyWith(
@@ -1266,9 +1269,10 @@ class GroupingPodiumHeader extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs), // Standardize gap
                       Text(
                         toTitleCase(entry.name),
+                        textAlign: TextAlign.center,
                         style: AppTypography.caption.copyWith(
                           fontWeight: AppTypography.weightExtraBold,
                           fontSize: 13,
@@ -1277,9 +1281,9 @@ class GroupingPodiumHeader extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const Spacer(),
+                      const SizedBox(height: AppSpacing.md), // Added space between name and score
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
@@ -1295,18 +1299,15 @@ class GroupingPodiumHeader extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.md),
-                            child: Text(
-                              entry.score,
-                              style: AppTypography.displaySection.copyWith(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontSize: 22,
-                                height: 1.1,
-                                fontWeight: AppTypography.weightExtraBold,
-                                letterSpacing: -0.5,
-                                color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                              ),
+                          Text(
+                            entry.score,
+                            style: AppTypography.displaySection.copyWith(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 22,
+                              height: 1.1,
+                              fontWeight: AppTypography.weightExtraBold,
+                              letterSpacing: -0.5,
+                              color: isDark ? AppColors.pureWhite : AppColors.dark900,
                             ),
                           ),
                         ],

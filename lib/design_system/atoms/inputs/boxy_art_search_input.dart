@@ -31,6 +31,16 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    setState(() {});
+  }
+
+  void _clear() {
+    _controller.clear();
+    widget.onChanged('');
   }
 
   @override
@@ -43,6 +53,7 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -74,13 +85,29 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             child: Row(
               children: [
-                Icon(Icons.search_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),
+                GestureDetector(
+                  onTap: _controller.text.isNotEmpty ? _clear : null,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      _controller.text.isNotEmpty ? Icons.close_rounded : Icons.search_rounded,
+                      key: ValueKey(_controller.text.isNotEmpty),
+                      color: _controller.text.isNotEmpty 
+                          ? StatusColors.negative 
+                          : Theme.of(context).primaryColor,
+                      size: AppShapes.iconMd,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     focusNode: widget.focusNode,
-                    onChanged: widget.onChanged,
+                    onChanged: (v) {
+                      // Internal update handled by controller listener
+                      widget.onChanged(v);
+                    },
                     style: AppTypography.body.copyWith(
                       fontSize: 18,
                       height: 1.2,

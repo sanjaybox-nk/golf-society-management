@@ -70,7 +70,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
                 AppSpacing.xl,
                 AppSpacing.x2l,
                 AppSpacing.xl,
-                110, // Extra padding to clear the 76px floating dock + safe area
+                AppSpacing.x2l, // Standard bottom breathing room (SafeArea handles device inset)
               ),
               child: SafeArea(
                 top: false,
@@ -89,15 +89,23 @@ class BoxyArtBottomSheet extends StatelessWidget {
     required String title,
     required Widget child,
     bool isScrollControlled = true,
+    // Default to false so the Global bottom nav bar remains visible behind the sheet.
+    // Set to true only if the sheet must appear above everything (e.g. root-level alerts).
+    bool useRootNavigator = false,
+    double initialChildSize = 0.68,
+    // Capped at 0.80 by default — compact sheets shouldn't cover most of the screen.
+    // For content-heavy sheets (scorecard, member detail) pass a higher value explicitly.
+    double maxChildSize = 0.80,
   }) {
     return showModalBottomSheet<T>(
       context: context,
       isScrollControlled: isScrollControlled,
+      useRootNavigator: useRootNavigator,
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.68,
+        initialChildSize: initialChildSize,
         minChildSize: 0.5,
-        maxChildSize: 0.96,
+        maxChildSize: maxChildSize,
         expand: false,
         builder: (context, scrollController) => BoxyArtBottomSheet(
           title: title,

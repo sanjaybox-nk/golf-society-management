@@ -393,9 +393,9 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                         // Row 3: Mini Keypad + Navigation
                         Row(
                           children: [
-                            // Left Column: Previous Button
-                            Expanded(
-                              flex: 1,
+                            // Left Column: Fixed-width container for symmetry
+                            SizedBox(
+                              width: 80,
                               child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: _buildSubtleNavButton(
@@ -407,7 +407,10 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               ),
                             ),
                             
-                            // Center Column: Keypad
+                            // Flexible Spacer to push keypad to center
+                            const Expanded(child: SizedBox.shrink()),
+                            
+                            // Center Column: Keypad (Exact physical center)
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -423,7 +426,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                   child: Text(
                                     '$currentScore',
                                     style: AppTypography.displayPage.copyWith(
-                                      color: Theme.of(context).primaryColor,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                 ),
@@ -435,9 +438,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               ],
                             ),
                             
-                            // Right Column: Next Button
-                            Expanded(
-                              flex: 1,
+                            // Flexible Spacer to push keypad to center
+                            const Expanded(child: SizedBox.shrink()),
+                            
+                            // Right Column: Fixed-width container for symmetry
+                            SizedBox(
+                              width: 80,
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: _buildSubtleNavButton(
@@ -477,7 +483,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
           style: AppTypography.labelStrong.copyWith(
             fontSize: 14,
             fontWeight: AppTypography.weightBold,
-            color: isDisabled ? AppColors.textSecondary : theme.primaryColor,
+            color: isDisabled ? AppColors.textSecondary : theme.colorScheme.onSurface,
             letterSpacing: 0.5,
           ),
         ),
@@ -522,14 +528,12 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             children: [
               Text(
                 '$label${score != null ? ': $score' : ''}',
-                style: AppTypography.label.copyWith(
-                  fontWeight: AppTypography.weightStrong,
-                  letterSpacing: AppTypography.lsLabel,
+                style: AppTypography.button.copyWith(
                   color: (hasConflict) 
                       ? AppColors.coral500 
                       : (isActive 
                           ? activeTextColor 
-                          : (isDisabled ? AppColors.dark200 : AppColors.dark300)),
+                          : (isDisabled ? AppColors.dark200 : Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh))),
                 ),
               ),
               if (hasConflict) ...[

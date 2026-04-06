@@ -10,6 +10,7 @@ import 'package:golf_society/domain/models/member.dart';
 import 'members_provider.dart';
 import 'profile_provider.dart';
 import 'widgets/member_role_picker.dart';
+import 'widgets/member_status_picker.dart';
 import 'widgets/society_role_picker.dart';
 import 'widgets/personal_details_form.dart';
 import 'package:golf_society/utils/string_utils.dart';
@@ -33,7 +34,8 @@ class MemberDetailsModal extends ConsumerStatefulWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      useRootNavigator: true, 
+      // Use branch navigator so the global bottom nav bar stays visible behind the sheet.
+      useRootNavigator: false,
       useSafeArea: false, // Background should cover notch
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -82,6 +84,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   DateTime? _joinedDate;
   DateTime? _membershipEndDate; // [NEW]
   bool _isSaving = false;
+  late bool _allowSocialEventsOnly; // [NEW]
 
   // Removed ref.watch wrapper methods to prevent StateError during async build phases.
   String? _gender; // [NEW]
@@ -121,6 +124,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     _societyRole = m?.societyRole;
     _joinedDate = m?.joinedDate;
     _membershipEndDate = m?.membershipEndDate; // [NEW]
+    _allowSocialEventsOnly = m?.allowSocialEventsOnly ?? false; // [NEW]
     _gender = m?.gender; // [NEW]
 
     String phone = m?.phone ?? '';
@@ -210,6 +214,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         joinedDate: _joinedDate,
         membershipEndDate: _membershipEndDate, // [NEW]
         gender: _gender, // [NEW]
+        allowSocialEventsOnly: _allowSocialEventsOnly, // [NEW]
       );
 
       if (widget.isNewMember) {
@@ -272,6 +277,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
     );
   }
 
+  void _showStatusPicker() {
+    MemberStatusPicker.show(
+      context, 
+      _status, 
+      (newStatus) => setState(() => _status = newStatus),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -312,31 +325,11 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         if (_isEditing)
            Padding(
             padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm, bottom: AppSpacing.sm),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: AppShapes.xl,
-              ),
-              child: TextButton(
-                onPressed: _isSaving ? null : _save,
-                child: _isSaving
-                    ? const SizedBox(
-                        width: AppSpacing.lg,
-                        height: AppSpacing.lg,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
-                        ),
-                      )
-                    : const Text(
-                        'Save',
-                        style: TextStyle(
-                          color: AppColors.pureWhite,
-                          fontSize: AppTypography.sizeBodySmall,
-                          fontWeight: AppTypography.weightBold,
-                        ),
-                      ),
-              ),
+            child: BoxyArtButton(
+              title: 'Save',
+              isSmall: true,
+              isLoading: _isSaving,
+              onTap: _save,
             ),
           ),
       ],
@@ -366,13 +359,14 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                       isAdmin: isAdmin,
                       onCameraTap: _isEditing ? _pickImage : null,
                       onFeeToggle: (v) => setState(() => _hasPaid = v),
-                      onStatusChanged: (v) => setState(() => _status = v),
+                      onStatusChanged: isAdmin ? (_) => _showStatusPicker() : null,
                       role: _role,
                       onRoleTap: canAssignRoles ? _showRolePicker : null,
                       societyRole: _societyRole,
                       onSocietyRoleTap: isAdmin ? _showSocietyRolePicker : null,
                       joinedDate: _joinedDate,
                       showFeeIndicator: false, // Moved to Renewal Hub list
+                      isAdminContext: widget.isAdminContext,
                     ),
                   ),
 
@@ -443,6 +437,40 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                           ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
                                           : '-'
                                     ),
+                                  if (isAdmin) ...[
+                                    const BoxyArtDivider(verticalPadding: AppSpacing.md),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'ALLOW SOCIAL EVENTS ONLY',
+                                                style: AppTypography.label.copyWith(
+                                                  color: Theme.of(context).colorScheme.onSurface,
+                                                  fontWeight: AppTypography.weightBold,
+                                                  fontSize: AppTypography.sizeMicro,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Permits attendance at social events while suspended.',
+                                                style: AppTypography.caption.copyWith(
+                                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: _allowSocialEventsOnly,
+                                          activeColor: Theme.of(context).primaryColor,
+                                          onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -574,33 +602,33 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   void _showExitConfirmation() {
-    showBoxyArtDialog(
+    showDialog(
       context: context,
-      title: 'Discard Changes?',
-      message: 'You have unsaved changes. Are you sure you want to leave?',
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Keep Editing', style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-            fontWeight: AppTypography.weightBold,
-          )),
-        ),
-        TextButton(
-          onPressed: () {
-             Navigator.of(context).pop();
-             if (widget.isNewMember) {
-               Navigator.of(context).pop();
-             } else {
-               setState(() {
-                 _isEditing = false;
-                 _initControllers(); // Reset to original values
-               });
-             }
-          },
-          child: Text('Discard', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: AppTypography.weightBold)),
-        ),
-      ],
+      builder: (dialogContext) => BoxyArtDialog(
+        title: 'Discard Changes?',
+        message: 'You have unsaved changes. Are you sure you want to leave?',
+        actions: [
+          BoxyArtButton(
+            title: 'Keep Editing',
+            isSecondary: true,
+            onTap: () => Navigator.of(dialogContext).pop(),
+          ),
+          BoxyArtButton(
+            title: 'Discard',
+            onTap: () {
+               Navigator.of(dialogContext).pop(); // Close dialog
+               if (widget.isNewMember) {
+                 Navigator.of(context).pop(); // Exit screen
+               } else {
+                 setState(() {
+                   _isEditing = false;
+                   _initControllers(); // Reset to original values
+                 });
+               }
+            },
+          ),
+        ],
+      ),
     );
   }
 

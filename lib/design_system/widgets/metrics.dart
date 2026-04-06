@@ -51,14 +51,25 @@ class ModernMetricStat extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
     
     // Design 4.x (Boxy Art 4.0) Standard Constants
-    final effectiveBgColor = color ?? theme.colorScheme.primary;
-    final radius = config.cardRadius / 2;
-    final badgeOpacity = isSolid ? 1.0 : 0.1;
-    final borderOpacity = isSolid ? 0.0 : 0.3;
+    final radius = config.accentRadius;
+    
+    // 1. Background Logic: Default to iconBadgeFillColor (which has baked-in opacity)
+    final Color baseBgColor = color ?? (isSolid 
+        ? theme.colorScheme.primary 
+        : Color(config.iconBadgeFillColor));
+    
+    // 2. Opacity Logic: If isSolid = 1.0. 
+    // Otherwise, strictly use the accentOpacity token from design configuration.
+    final double effectiveAlpha = isSolid ? 1.0 : config.accentOpacity;
+    
+    // Applying alpha to the solid version of the base color
+    final Color effectiveBgColor = baseBgColor.withValues(alpha: effectiveAlpha);
+    final borderOpacity = isSolid ? 0.0 : (config.accentOpacity * 2).clamp(0.0, 1.0);
 
-    final effectiveIconColor = iconColor ?? (isSolid 
+    // 3. Icon/Glyph Color logic: Default to iconBadgeIconColor
+    final Color effectiveIconColor = iconColor ?? (isSolid 
         ? AppColors.pureWhite 
-        : effectiveBgColor);
+        : Color(config.iconBadgeIconColor));
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -66,7 +77,7 @@ class ModernMetricStat extends ConsumerWidget {
         horizontal: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: effectiveBgColor.withValues(alpha: badgeOpacity),
+        color: effectiveBgColor.withValues(alpha: effectiveAlpha),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: effectiveBgColor.withValues(alpha: borderOpacity),

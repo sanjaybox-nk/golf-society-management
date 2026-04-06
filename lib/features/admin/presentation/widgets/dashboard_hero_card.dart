@@ -47,7 +47,7 @@ class DashboardHeroCard extends StatelessWidget {
                           borderRadius: AppShapes.xl,
                         ),
                         child: Text(
-                          'NEXT EVENT',
+                          'Next Event',
                           style: AppTypography.micro.copyWith(
                             color: AppColors.pureWhite,
                           ),
@@ -99,13 +99,13 @@ class DashboardHeroCard extends StatelessWidget {
                   Row(
                     children: [
                       _buildMiniStat(
-                        'PLAYING',
+                        'Playing',
                         '${event.playingCount}',
                         '/${event.maxParticipants ?? 40}',
                       ),
                       const SizedBox(width: AppSpacing.x3l),
                       _buildMiniStat(
-                        'WAITLIST',
+                        'Waitlist',
                         '${event.waitlistCount}',
                         '',
                       ),

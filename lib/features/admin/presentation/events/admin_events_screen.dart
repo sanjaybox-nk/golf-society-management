@@ -13,14 +13,17 @@ class AdminEventsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventsAsync = ref.watch(adminEventsProvider);
+    final filter = ref.watch(adminEventFilterProvider);
+    final upcomingSeasonAsync = ref.watch(adminUpcomingSeasonEventsProvider);
+    final pastSeasonAsync = ref.watch(adminPastSeasonEventsProvider);
+    final socialAsync = ref.watch(adminSocialEventsProvider);
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'Events',
       subtitle: 'Society events and calendar',
       subtitleTrailing: Text(
-        'ADMIN',
+        'Admin',
         style: AppTypography.label.copyWith(
           color: Theme.of(context).primaryColor,
         ),
@@ -41,87 +44,102 @@ class AdminEventsScreen extends ConsumerWidget {
         ),
       ],
       slivers: [
-        eventsAsync.when(
-          data: (events) {
-            if (events.isEmpty) {
-              return const SliverFillRemaining(
-                child: BoxyArtEmptyState(
-                  title: 'No Events Found',
-                  message: 'Your society hasn\'t created any events yet. Start by creating your first event.',
-                  icon: Icons.event_busy_rounded,
-                ),
-              );
-            }
-
-            final now = DateTime.now();
-            final today = DateTime(now.year, now.month, now.day);
-            
-            final upcoming = events.where((e) {
-              final eventDate = DateTime(e.date.year, e.date.month, e.date.day);
-              // Consider it upcoming if it's today or later, OR if it's explicitly marked as inPlay (Live)
-              return eventDate.isAtSameMomentAs(today) || eventDate.isAfter(today) || e.status == EventStatus.inPlay;
-            }).toList()
-              ..sort((a, b) => a.date.compareTo(b.date));
-              
-            final past = events.where((e) => !upcoming.contains(e)).toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-
-            return SliverList(
-              delegate: SliverChildListDelegate([
-                // Upcoming Section
-                const BoxyArtSectionTitle(title: 'Upcoming Events'),
-                if (upcoming.isEmpty)
-                  const BoxyArtEmptyState(
-                    title: 'No Upcoming Events',
-                    message: 'There are no future events scheduled on the calendar.',
-                    icon: Icons.calendar_today_rounded,
-                    isCompact: true,
-                  )
-                else
-                  ...upcoming.asMap().entries.map((entry) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom: (entry.key == upcoming.length - 1) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard), 
-                      left: AppSpacing.xl, 
-                      right: AppSpacing.xl
-                    ),
-                    child: _AdminEventRow(event: entry.value),
-                  )),
-
-                // Past Section
-                const BoxyArtSectionTitle(title: 'Past Events'),
-                if (past.isEmpty)
-                  const BoxyArtEmptyState(
-                    title: 'No Past Events',
-                    message: 'No events have been completed in this season archive.',
-                    icon: Icons.history_rounded,
-                    isCompact: true,
-                  )
-                else
-                  ...past.asMap().entries.map((entry) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom: (entry.key == past.length - 1) ? 0 : (spacing?.cardToCard ?? AppSpacing.standard), 
-                      left: AppSpacing.xl, 
-                      right: AppSpacing.xl
-                    ),
-                    child: _AdminEventRow(event: entry.value),
-                  )),
-
-                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
-              ]),
-            );
-          },
-          loading: () => const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (err, stack) => SliverFillRemaining(
-            child: BoxyArtEmptyState(
-              title: 'Unexpected Error',
-              message: err.toString(),
-              icon: Icons.warning_amber_rounded,
+        // Filter Bar (Harmonized with main EventsScreen)
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -16.0),
+            child: ModernUnderlinedFilterBar<EventFilter>(
+              tabs: const [
+                ModernFilterTab(label: 'Events', value: EventFilter.season),
+                ModernFilterTab(label: 'Social', value: EventFilter.social),
+              ],
+              selectedValue: filter,
+              onTabSelected: (val) => ref.read(adminEventFilterProvider.notifier).update(val),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              isExpanded: true,
             ),
           ),
         ),
+
+        if (filter == EventFilter.season) ...[
+          // Upcoming Section
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(
+                title: 'Upcoming Events',
+                isPeeking: true,
+              ),
+            ),
+          ),
+          _buildEventList(context, ref, upcomingSeasonAsync, 'Upcoming'),
+
+          // Past Section
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(
+                title: 'Past Events',
+              ),
+            ),
+          ),
+          _buildEventList(context, ref, pastSeasonAsync, 'Past'),
+        ],
+
+        if (filter == EventFilter.social) ...[
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtSectionTitle(
+                title: 'Social Events',
+                isPeeking: true,
+              ),
+            ),
+          ),
+          _buildEventList(context, ref, socialAsync, 'Social'),
+        ],
+
+        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section)),
       ],
+    );
+  }
+
+  Widget _buildEventList(BuildContext context, WidgetRef ref, AsyncValue<List<GolfEvent>> asyncValue, String type) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    
+    return asyncValue.when(
+      data: (events) {
+        if (events.isEmpty) {
+          return SliverToBoxAdapter(
+            child: BoxyArtEmptyState(
+              title: 'No $type Events',
+              message: 'There are no $type events scheduled yet.',
+              icon: type == 'Past' ? Icons.history_rounded : Icons.calendar_today_rounded,
+              isCompact: true,
+            ),
+          );
+        }
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final isLast = index == events.length - 1;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
+                  child: _AdminEventRow(event: events[index]),
+                );
+              },
+              childCount: events.length,
+            ),
+          ),
+        );
+      },
+      loading: () => const SliverToBoxAdapter(child: Center(child: Padding(
+        padding: EdgeInsets.all(AppSpacing.xl),
+        child: CircularProgressIndicator(),
+      ))),
+      error: (err, stack) => SliverToBoxAdapter(child: Text('Error: $err')),
     );
   }
 }

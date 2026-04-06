@@ -414,7 +414,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 ),
               ],
               pinnedBottom: _buildPinnedScoring(event, comp, scoringData, effectiveRules),
-              pinnedBottomPadding: 100.0,
+              pinnedBottomPadding: AppSpacing.md,
               slivers: [
                 if (event.matches.isNotEmpty)
                   SliverToBoxAdapter(

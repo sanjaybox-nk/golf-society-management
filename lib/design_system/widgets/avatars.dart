@@ -43,10 +43,10 @@ class BoxyArtAvatar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: isCircle ? BorderRadius.circular(radius) : BorderRadius.circular(AppShapes.rMd),
         child: url != null && url!.isNotEmpty
-            ? Image.network(
-                url!,
+            ? BoxyArtImage(
+                url: url!,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildInitials(primary),
+                errorWidget: _buildInitials(primary),
               )
             : _buildInitials(primary),
       ),

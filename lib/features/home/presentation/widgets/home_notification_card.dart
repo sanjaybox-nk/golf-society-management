@@ -104,10 +104,7 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                           Expanded(
                             child: Text(
                               widget.notification.title,
-                              style: const TextStyle(
-                                fontWeight: AppTypography.weightBold,
-                                fontSize: AppTypography.sizeBody,
-                              ),
+                              style: AppTypography.cardTitle,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),

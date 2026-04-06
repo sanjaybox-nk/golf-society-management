@@ -51,7 +51,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── SCORE CAP SETTINGS ────────────────────────────────
-        const BoxyArtSectionTitle(title: 'SCORE CAP SETTINGS'),
+        const BoxyArtSectionTitle(title: 'Score cap settings'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<MaxScoreType>(
@@ -92,7 +92,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const BoxyArtSectionTitle(title: 'Handicap'),
         const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
@@ -107,7 +107,8 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         const SizedBox(height: AppSpacing.x2l),
 
         BoxyArtSwitchField(
-          label: 'Hard Cap Playing HC\nOff = Max Cap Index + WHS ·\nOn = HC + WHS',
+          label: 'Hard cap playing HC',
+          subtitle: 'Off = Max cap index + WHS\nOn = HCP + WHS',
           value: !_applyCapToIndex,
           onChanged: (val) => setState(() => _applyCapToIndex = !val),
         ),
@@ -120,7 +121,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         const SizedBox(height: AppSpacing.x2l),
 
         // ── TIE BREAK ─────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        const BoxyArtSectionTitle(title: 'Tie break'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<TieBreakMethod>(
@@ -139,7 +140,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
+        const BoxyArtSectionTitle(title: 'Series / multi-round'),
         const SizedBox(height: AppSpacing.lg),
 
         buildSliderField(
@@ -169,7 +170,7 @@ class _MaxScoreControlState extends BaseCompetitionControlState<MaxScoreControl>
         const SizedBox(height: AppSpacing.x2l),
 
         // ── TEAM / GROUP SCORING ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
+        const BoxyArtSectionTitle(title: 'Team / group scoring'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<int>(

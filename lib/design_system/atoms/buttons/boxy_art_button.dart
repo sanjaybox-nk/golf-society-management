@@ -63,12 +63,14 @@ class BoxyArtButton extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else {
-      // Solid Action - map explicitly to User-Defined Action Color (#86AD92)
-      final actionColor = backgroundColor ?? AppColors.actionMidnight;
+      // Solid Action - map to theme primary color (Lime)
+      final actionColor = backgroundColor ?? theme.colorScheme.primary;
+      final foregroundColor = textColor ?? theme.colorScheme.onPrimary;
+      
       style = ElevatedButton.styleFrom(
         backgroundColor: actionColor,
-        foregroundColor: textColor ?? Colors.white,
-        textStyle: (isSmall ? AppTypography.micro : AppTypography.body).copyWith(fontWeight: AppTypography.weightHeavy),
+        foregroundColor: foregroundColor,
+        textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
         padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         minimumSize: isSmall ? const Size(0, 32) : const Size(0, 48),
         shape: RoundedRectangleBorder(
@@ -139,9 +141,10 @@ class BoxyArtButton extends ConsumerWidget {
         ],
         Text(
           title,
-          style: (isSmall ? AppTypography.micro : AppTypography.body).copyWith(
+          style: AppTypography.body.copyWith(
             color: color,
             fontWeight: AppTypography.weightHeavy,
+            fontSize: 16,
           ),
         ),
       ],

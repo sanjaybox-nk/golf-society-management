@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/survey.dart';
-import 'surveys_provider.dart';
+import 'package:golf_society/features/surveys/presentation/surveys_provider.dart';
 import 'survey_form_screen.dart';
 
 class SurveyManagerScreen extends ConsumerWidget {
@@ -9,74 +9,79 @@ class SurveyManagerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final surveys = ref.watch(surveysProvider);
+    final surveysAsync = ref.watch(surveysProvider);
+    final theme = Theme.of(context);
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const BoxyArtSectionTitle(title: 'Society Surveys'),
-            BoxyArtGlassIconButton(
-              icon: Icons.add_rounded,
-              onPressed: () => _openSurveyForm(context),
-              tooltip: 'Create New Survey',
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        if (surveys.isEmpty)
-          _buildEmptyState()
-        else
-          ...surveys.map((survey) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: BoxyArtCard(
-                onTap: () => _openSurveyForm(context, survey: survey),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
-                        borderRadius: AppShapes.md,
-                      ),
-                      child: const Icon(Icons.assignment_rounded, color: AppColors.lime500),
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            survey.title,
-                            style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeBody),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            '${survey.questions.length} Questions • ${survey.responses.length} Responses',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: Theme.of(context).disabledColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (survey.isPublished)
-                      BoxyArtPill.status(label: 'LIVE', color: AppColors.lime500)
-                    else
-                      BoxyArtPill.status(label: 'DRAFT', color: AppColors.amber500),
-                    const SizedBox(width: AppSpacing.sm),
-                    const Icon(Icons.chevron_right_rounded, color: AppColors.dark150),
-                  ],
-                ),
+    return surveysAsync.when(
+      data: (surveys) => ListView(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const BoxyArtSectionTitle(title: 'Society Surveys'),
+              BoxyArtGlassIconButton(
+                icon: Icons.add_rounded,
+                onPressed: () => _openSurveyForm(context),
+                tooltip: 'Create New Survey',
               ),
-            );
-          }),
-        const SizedBox(height: 130),
-      ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          if (surveys.isEmpty)
+            _buildEmptyState()
+          else
+            ...surveys.map((survey) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: BoxyArtCard(
+                  onTap: () => _openSurveyForm(context, survey: survey),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                          borderRadius: AppShapes.md,
+                        ),
+                        child: const Icon(Icons.assignment_rounded, color: AppColors.lime500),
+                      ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              survey.title,
+                              style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeBody),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '${survey.questions.length} Questions • ${survey.responses.length} Responses',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: theme.disabledColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (survey.isPublished)
+                        BoxyArtPill.status(label: 'LIVE', color: AppColors.lime500)
+                      else
+                        BoxyArtPill.status(label: 'DRAFT', color: AppColors.amber500),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Icon(Icons.chevron_right_rounded, color: AppColors.dark150),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          const SizedBox(height: 130),
+        ],
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, stack) => Center(child: Text('Error loading surveys: $e')),
     );
   }
 

@@ -88,6 +88,7 @@ abstract class EventFormState with _$EventFormState {
     
     // Content
     @Default([]) List<EventNote> notes,
+    @Default([]) List<EventExtraCost> extraCosts,
   }) = _EventFormState;
 
   factory EventFormState.initial() => EventFormState(
@@ -99,5 +100,6 @@ abstract class EventFormState with _$EventFormState {
       const EventAward(id: 'prize_2', label: '2nd Place', type: 'Cup'),
       const EventAward(id: 'prize_3', label: '3rd Place', type: 'Cup'),
     ],
+    extraCosts: [],
   );
 }

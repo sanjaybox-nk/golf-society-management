@@ -226,6 +226,38 @@ class ThemeController extends Notifier<SocietyConfig> {
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }
 
+  Future<void> setStartingBalance(double balance) async {
+    final newConfig = state.copyWith(startingBalance: balance);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> addLedgerEntry(FinancialEntry entry) async {
+    final currentEntries = List<FinancialEntry>.from(state.ledgerEntries);
+    currentEntries.add(entry);
+    final newConfig = state.copyWith(ledgerEntries: currentEntries);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> updateLedgerEntry(FinancialEntry entry) async {
+    final currentEntries = List<FinancialEntry>.from(state.ledgerEntries);
+    final index = currentEntries.indexWhere((e) => e.id == entry.id);
+    if (index == -1) return;
+    currentEntries[index] = entry;
+    final newConfig = state.copyWith(ledgerEntries: currentEntries);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> removeLedgerEntry(String id) async {
+    final currentEntries = List<FinancialEntry>.from(state.ledgerEntries);
+    currentEntries.removeWhere((e) => e.id == id);
+    final newConfig = state.copyWith(ledgerEntries: currentEntries);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
 
   Future<void> setThemeMode(String mode) async {
     final newConfig = state.copyWith(themeMode: mode);
@@ -330,6 +362,50 @@ class ThemeController extends Notifier<SocietyConfig> {
 
   Future<void> setIsRenewalActive(bool active) async {
     final newConfig = state.copyWith(isRenewalActive: active);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setRenewalLaunchDate(DateTime? date) async {
+    final newConfig = state.copyWith(renewalLaunchDate: date);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setRenewalDeadline(DateTime? date) async {
+    final newConfig = state.copyWith(renewalDeadline: date);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> setRenewalPaymentDeadline(DateTime? date) async {
+    final newConfig = state.copyWith(renewalPaymentDeadline: date);
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  // --- Sponsorship Hub Management ---
+
+  Future<void> addSponsor(Sponsor sponsor) async {
+    final newConfig = state.copyWith(
+      sponsors: [...state.sponsors, sponsor],
+    );
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> updateSponsor(Sponsor sponsor) async {
+    final newConfig = state.copyWith(
+      sponsors: state.sponsors.map((s) => s.id == sponsor.id ? sponsor : s).toList(),
+    );
+    state = newConfig;
+    await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
+  }
+
+  Future<void> removeSponsor(String id) async {
+    final newConfig = state.copyWith(
+      sponsors: state.sponsors.where((s) => s.id != id).toList(),
+    );
     state = newConfig;
     await ref.read(societyConfigRepositoryProvider).updateConfig(newConfig);
   }

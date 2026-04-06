@@ -90,7 +90,10 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
       );
     }).toList();
 
-    if (finalEntries.isEmpty) {
+    final bool hasAnyScores = finalEntries.any((e) => e.holesPlayed != null && e.holesPlayed! > 0);
+    final bool isCompleted = widget.event.status == EventStatus.completed;
+
+    if (finalEntries.isEmpty || (!hasAnyScores && !isCompleted)) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(AppSpacing.x3l),
@@ -103,8 +106,8 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
     }
 
     // 3. Handle Guest/Member Separation
-    final guestEntries = finalEntries.where((e) => e.isGuest).toList();
-    final memberEntries = finalEntries.where((e) => !e.isGuest).toList();
+    final guestEntries = _recalculatePositions(finalEntries.where((e) => e.isGuest).toList());
+    final memberEntries = _recalculatePositions(finalEntries.where((e) => !e.isGuest).toList());
     final bool hasGuests = guestEntries.isNotEmpty;
 
     return Column(
@@ -139,5 +142,43 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
         ],
       ],
     );
+  }
+
+  /// Recalculates relative positions (1, 2, 3...) for a sub-list.
+  /// 1. Entries are already sorted by the central scoring brain.
+  /// 2. Handles ties by comparing score and tie-break metrics.
+  List<LeaderboardEntry> _recalculatePositions(List<LeaderboardEntry> entries) {
+    if (entries.isEmpty) return [];
+
+    final List<LeaderboardEntry> reRanked = [];
+    int currentPos = 1;
+
+    for (int i = 0; i < entries.length; i++) {
+       if (i > 0) {
+          final prev = entries[i - 1];
+          final curr = entries[i];
+
+          // If current score is different, or tie-break metrics differ, update position
+          final bool isTied = curr.score == prev.score && _areMetricsEqual(curr.tieBreakMetrics, prev.tieBreakMetrics);
+          
+          if (!isTied) {
+            currentPos = i + 1; // Standard competition ranking: if two people tie for 1st, next person is 3rd.
+          }
+       }
+       
+       reRanked.add(entries[i].copyWith(position: currentPos));
+    }
+
+    return reRanked;
+  }
+
+  bool _areMetricsEqual(List<int>? m1, List<int>? m2) {
+    if (m1 == null && m2 == null) return true;
+    if (m1 == null || m2 == null) return false;
+    if (m1.length != m2.length) return false;
+    for (int i = 0; i < m1.length; i++) {
+      if (m1[i] != m2[i]) return false;
+    }
+    return true;
   }
 }

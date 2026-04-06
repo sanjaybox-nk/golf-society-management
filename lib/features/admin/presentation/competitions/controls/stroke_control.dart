@@ -48,7 +48,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── MEDAL SETTINGS ───────────────────────────────────
-        const BoxyArtSectionTitle(title: 'MEDAL SETTINGS'),
+        const BoxyArtSectionTitle(title: 'Medal settings'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<bool>(
@@ -66,7 +66,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
           const SizedBox(height: AppSpacing.x2l),
 
           // ── HANDICAP ──────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'HANDICAP'),
+          const BoxyArtSectionTitle(title: 'Handicap'),
           const SizedBox(height: AppSpacing.lg),
 
           buildAllowanceSlider(
@@ -104,7 +104,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
         const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
+        const BoxyArtSectionTitle(title: 'Series / multi-round'),
         const SizedBox(height: AppSpacing.lg),
 
         buildSliderField(
@@ -134,7 +134,7 @@ class _StrokePlayControlState extends BaseCompetitionControlState<StrokePlayCont
         const SizedBox(height: AppSpacing.x2l),
 
         // ── TEAM / GROUP SCORING ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
+        const BoxyArtSectionTitle(title: 'Team / group scoring'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<int>(

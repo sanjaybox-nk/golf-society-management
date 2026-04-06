@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../events/presentation/widgets/registration_stats_card.dart';
@@ -188,22 +189,22 @@ class EventAdminReportsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.cardToLabel),
 
           // FINANCIALS
-          const BoxyArtSectionTitle(title: 'FINANCIAL SUMMARY'),
+          const BoxyArtSectionTitle(title: 'Financial summary'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               children: [
-                _buildReportRow(context, Icons.check_circle_rounded, 'Fees Collected (Paid)', '$currency${confirmedPaid.toStringAsFixed(0)}'),
-                _buildReportRow(context, Icons.pending_rounded, 'Fees Outstanding (Due)', '$currency${confirmedDue.toStringAsFixed(0)}'),
+                _buildReportRow(context, Icons.check_circle_rounded, 'Fees collected (Paid)', '$currency${confirmedPaid.toStringAsFixed(0)}'),
+                _buildReportRow(context, Icons.pending_rounded, 'Fees outstanding (Due)', '$currency${confirmedDue.toStringAsFixed(0)}'),
                 if (unconfirmedPaid > 0)
-                  _buildReportRow(context, Icons.undo_rounded, 'Possible Reimbursements', '$currency${unconfirmedPaid.toStringAsFixed(0)}'),
+                  _buildReportRow(context, Icons.undo_rounded, 'Possible reimbursements', '$currency${unconfirmedPaid.toStringAsFixed(0)}'),
                 
                 const Divider(height: AppSpacing.x3l, color: AppColors.dark400),
                 _buildMinorRow('Golf Total', '$currency${golfTotal.toStringAsFixed(0)}'),
                 _buildMinorRow('Catering Total', '$currency${foodTotal.toStringAsFixed(0)}'),
                 const Divider(height: AppSpacing.x3l, color: AppColors.dark400),
                 
-                _buildReportRow(context, Icons.account_balance_wallet_rounded, 'Potential Event Income', '$currency${totalPotentialRevenue.toStringAsFixed(0)}', isBold: true),
+                _buildReportRow(context, Icons.account_balance_wallet_rounded, 'Potential event income', '$currency${totalPotentialRevenue.toStringAsFixed(0)}', isBold: true),
                 const SizedBox(height: AppSpacing.sm),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -218,10 +219,10 @@ class EventAdminReportsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.cardToLabel),
 
           // LEDGER SECTION (Merged from Financials)
-          const BoxyArtSectionTitle(title: 'EVENT LEDGER'),
+          const BoxyArtSectionTitle(title: 'Event ledger'),
           _buildBalanceOverview(context, event, confirmedPaid, totalClubBill),
           const SizedBox(height: AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(title: 'MISC EXPENSES'),
+          const BoxyArtSectionTitle(title: 'Misc expenses'),
           const SizedBox(height: AppSpacing.md),
           ...event.expenses.where((e) {
             // Filter out manual entries that are now automated
@@ -230,7 +231,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
           }).map((e) => _buildExpenseRow(context, ref, event, e)),
           _buildAddExpenseButton(context, ref, event),
           const SizedBox(height: AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(title: 'PRIZES & AWARDS'),
+          const BoxyArtSectionTitle(title: 'Prizes & awards'),
           const SizedBox(height: AppSpacing.md),
           ...event.awards.map((a) => _buildAwardRow(context, ref, event, a)),
           _buildAddAwardButton(context, ref, event),
@@ -296,7 +297,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
                Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('NET POSITION', 
+                  Text('Net position', 
                     style: AppTypography.caption.copyWith(
                       color: AppColors.dark600, 
                       letterSpacing: 1.0,
@@ -332,10 +333,10 @@ class EventAdminReportsScreen extends ConsumerWidget {
           const Divider(height: 1, color: AppColors.dark400),
           const SizedBox(height: AppSpacing.lg),
           const SizedBox(height: AppSpacing.lg),
-          _buildReportRow(context, Icons.payments_outlined, 'Member Revenue', '£${registrationRevenue.toStringAsFixed(2)}'),
-          _buildReportRow(context, Icons.account_balance_rounded, 'Club Bill (Auto)', '-£${clubBill.toStringAsFixed(2)}'),
-          _buildReportRow(context, Icons.receipt_long_outlined, 'Misc Expenses', '-£${miscExpenses.toStringAsFixed(2)}'),
-          _buildReportRow(context, Icons.emoji_events_outlined, 'Cash Payouts', '-£${cashPrizes.toStringAsFixed(2)}'),
+          _buildReportRow(context, Icons.payments_outlined, 'Member revenue', '£${registrationRevenue.toStringAsFixed(2)}'),
+          _buildReportRow(context, Icons.account_balance_rounded, 'Club bill (Auto)', '-£${clubBill.toStringAsFixed(2)}'),
+          _buildReportRow(context, Icons.receipt_long_outlined, 'Misc expenses', '-£${miscExpenses.toStringAsFixed(2)}'),
+          _buildReportRow(context, Icons.emoji_events_outlined, 'Cash payouts', '-£${cashPrizes.toStringAsFixed(2)}'),
         ],
       ),
     );
@@ -376,19 +377,19 @@ class EventAdminReportsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      expense.label, 
-                      style: AppTypography.labelStrong.copyWith(
-                        color: isDark ? AppColors.pureWhite : AppColors.dark950,
+                      toSentenceCase(expense.label), 
+                      style: AppTypography.body.copyWith(
+                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
                         fontWeight: AppTypography.weightBold,
+                        fontSize: AppTypography.sizeBody,
+                        letterSpacing: -0.4,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      expense.category.toUpperCase(), 
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.dark600, 
-                        letterSpacing: 0.5,
-                        fontWeight: AppTypography.weightBold,
+                      toSentenceCase(expense.category),
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark300,
                       ),
                     ),
                   ],
@@ -450,18 +451,19 @@ class EventAdminReportsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      award.label, 
-                      style: AppTypography.labelStrong.copyWith(
-                        color: isDark ? AppColors.pureWhite : AppColors.dark950,
+                      toSentenceCase(award.label), 
+                      style: AppTypography.body.copyWith(
+                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
                         fontWeight: AppTypography.weightBold,
+                        fontSize: AppTypography.sizeBody,
+                        letterSpacing: -0.4,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      award.winnerName?.toUpperCase() ?? 'UNASSIGNED', 
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.dark600, 
-                        letterSpacing: 0.5,
+                      toTitleCase(award.winnerName ?? 'Unassigned'), 
+                      style: AppTypography.label.copyWith(
+                        color: award.winnerName != null ? AppColors.lime500 : AppColors.amber500,
                         fontWeight: AppTypography.weightBold,
                       ),
                     ),
@@ -494,7 +496,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
   Widget _buildAddExpenseButton(BuildContext context, WidgetRef ref, GolfEvent event) {
     return BoxyArtButton(
-      title: 'ADD EXPENSE',
+      title: 'Add expense',
       onTap: () => _showExpenseDialog(context, ref, event),
       isGhost: true,
       fullWidth: true,
@@ -503,7 +505,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
   Widget _buildAddAwardButton(BuildContext context, WidgetRef ref, GolfEvent event) {
     return BoxyArtButton(
-      title: 'ADD PRIZE SLOT',
+      title: 'Add prize slot',
       onTap: () => _showAwardDialog(context, ref, event),
       isGhost: true,
       fullWidth: true,

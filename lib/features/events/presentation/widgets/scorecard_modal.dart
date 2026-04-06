@@ -170,12 +170,14 @@ class ScorecardModal {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      // Use branch navigator so the global bottom nav bar stays visible behind the sheet.
+      useRootNavigator: false,
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => DraggableScrollableSheet(
           initialChildSize: dynamicInitialSize,
           minChildSize: 0.60,
-          maxChildSize: 0.98,
+          maxChildSize: 0.92, // Cap below 1.0 so the nav bar is never fully occluded
           builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,

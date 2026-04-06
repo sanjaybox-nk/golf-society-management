@@ -89,10 +89,13 @@ abstract class Member with _$Member {
     @Default(MemberStatus.member) MemberStatus status,
     @Default(false) bool hasPaid,
     @Default(false) bool isArchived,
+    @Default(0.0) double accountCredit, // Account credit for vouchers or overpayments
     String? gender, // [NEW] 'Male' or 'Female'
     @OptionalTimestampConverter() DateTime? joinedDate,
     @OptionalTimestampConverter() DateTime? membershipEndDate, // [NEW] Track annual renewal term
     @Default(MemberRenewalStatus.none) MemberRenewalStatus renewalStatus, // [NEW] Member renewal choice
+    @Default(false) bool allowSocialEventsOnly, // [NEW] Master switch for suspended members
+    @OptionalTimestampConverter() DateTime? lastNudgedAt, // [NEW] Track recent renewal nudges
   }) = _Member;
 
   String get displayName => '$firstName $lastName';

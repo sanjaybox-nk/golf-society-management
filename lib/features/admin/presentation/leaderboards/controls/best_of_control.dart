@@ -71,7 +71,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
+          const BoxyArtSectionTitle(title: 'Leaderboard details'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -85,7 +85,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
             ),
           ),
           const SizedBox(height: AppSpacing.x2l),
-          const BoxyArtSectionTitle(title: 'LEAGUE RULES'),
+          const BoxyArtSectionTitle(title: 'League rules'),
           BoxyArtCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +122,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
 
           if (_scoringType == ScoringType.position) ...[
             const SizedBox(height: AppSpacing.x2l),
-            const BoxyArtSectionTitle(title: 'POINTS DISTRIBUTION'),
+            const BoxyArtSectionTitle(title: 'Points distribution'),
             BoxyArtCard(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
@@ -139,7 +139,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
                   const SizedBox(height: AppSpacing.lg),
                   Center(
                     child: BoxyArtButton(
-                      title: 'ADD NEXT POSITION',
+                      title: 'Add next position',
                       onTap: _addNextPosition,
                       isSecondary: true,
                     ),
@@ -152,7 +152,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
           const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
-              title: 'SAVE CHANGES',
+              title: 'Save changes',
               onTap: _save,
             ),
           ),
@@ -168,7 +168,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
         children: [
           Expanded(
             child: Text(
-              '${_ordinal(position)} Place'.toUpperCase(),
+              '${_ordinal(position)} Place',
               style: AppTypography.label.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark400,
               ),
@@ -201,7 +201,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Text('PTS', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500)),
+          Text('Pts', style: AppTypography.label.copyWith(fontSize: AppTypography.sizeCaption, color: AppColors.lime500)),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             icon: const Icon(Icons.close, size: AppShapes.iconSm, color: AppColors.textSecondary),

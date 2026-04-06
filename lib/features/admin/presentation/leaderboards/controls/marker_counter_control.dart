@@ -45,7 +45,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'LEADERBOARD DETAILS'),
+          const BoxyArtSectionTitle(title: 'Leaderboard details'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -59,14 +59,14 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
             ),
           ),
           const SizedBox(height: AppSpacing.x2l),
-          const BoxyArtSectionTitle(title: 'TRACKING RULES'),
+          const BoxyArtSectionTitle(title: 'Tracking rules'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'TARGET MARKERS',
+                  'Target markers',
                   style: AppTypography.label.copyWith(
                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
                   ),
@@ -78,7 +78,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                   children: MarkerType.values.map((type) {
                     final isSelected = _targetTypes.contains(type);
                     return ChoiceChip(
-                      label: Text(_formatEnum(type.name).toUpperCase()),
+                      label: Text(_formatEnum(type.name)),
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
@@ -148,7 +148,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
           const SizedBox(height: AppSpacing.x2l),
           Center(
             child: BoxyArtButton(
-              title: 'SAVE CHANGES',
+              title: 'Save changes',
               onTap: _save,
             ),
           ),

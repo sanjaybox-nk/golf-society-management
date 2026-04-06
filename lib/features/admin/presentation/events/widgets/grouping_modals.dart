@@ -43,6 +43,8 @@ class GroupingModals {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      // Use branch navigator so the global bottom nav bar stays visible behind the sheet.
+      useRootNavigator: false,
       builder: (context) => Material(
         color: theme.cardColor,
         borderRadius: AppShapes.sheet,

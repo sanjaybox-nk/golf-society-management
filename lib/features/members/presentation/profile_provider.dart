@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/services/persistence_service.dart';
+import 'package:collection/collection.dart';
 import 'dart:convert';
 
 // Mock Provider for the current logged-in user
@@ -10,13 +12,13 @@ final currentUserProvider = Provider<Member>((ref) {
     firstName: 'Sanjay',
     lastName: 'Patel',
     email: 'sanjay.patel@demo.com',
-    handicap: 14.5,
-    handicapId: 'WHS888888',
+    handicap: 0.0,
+    handicapId: null,
     role: MemberRole.superAdmin,
     hasPaid: true,
     bio: 'The Creator. Loves a tech-infused round of golf.',
     gender: 'Male',
-    renewalStatus: MemberRenewalStatus.none,
+    allowSocialEventsOnly: false,
   );
 });
 
@@ -58,16 +60,33 @@ final impersonationProvider = NotifierProvider<ImpersonationNotifier, Member?>(I
 
 // The provider that all UI components should watch to get the current "identity"
 final effectiveUserProvider = Provider<Member>((ref) {
-  final currentUser = ref.watch(currentUserProvider);
+  final fallback = ref.watch(currentUserProvider);
   final impersonatedMember = ref.watch(impersonationProvider);
 
   if (impersonatedMember != null) {
-    // Return the impersonated member, but force the role to 'member' 
-    // to hide admin UI even if impersonating another admin.
     return impersonatedMember.copyWith(role: MemberRole.member);
   }
 
-  return currentUser;
+  // Check if the "Hero" exists in the real member registry
+  final membersAsync = ref.watch(allMembersProvider);
+  return membersAsync.maybeWhen(
+    data: (list) {
+      final registered = list.firstWhereOrNull((m) => m.id == fallback.id || m.email == fallback.email);
+      if (registered != null) {
+        // Return registered data but keep the SuperAdmin role from fallback
+        return registered.copyWith(role: fallback.role);
+      }
+      
+      // If NOT registered, return fallback with cleared playing data
+      return fallback.copyWith(
+        handicap: 0.0,
+        handicapId: null,
+        firstName: fallback.firstName,
+        lastName: fallback.lastName,
+      );
+    },
+    orElse: () => fallback.copyWith(handicap: 0.0, handicapId: null), // Loading/Error/Wiped state = reset playing data
+  );
 });
 
 // [NEW] Notifier to handle member-initiated renewal status updates

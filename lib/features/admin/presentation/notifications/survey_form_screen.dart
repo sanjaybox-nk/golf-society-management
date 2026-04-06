@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/survey.dart';
-import 'surveys_provider.dart';
+import 'package:golf_society/features/surveys/presentation/surveys_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class SurveyFormScreen extends ConsumerStatefulWidget {
@@ -63,10 +63,11 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
       responses: widget.existingSurvey?.responses ?? {},
     );
 
+    final repo = ref.read(surveysRepositoryProvider);
     if (widget.existingSurvey != null) {
-      ref.read(surveysProvider.notifier).updateSurvey(survey);
+      await repo.updateSurvey(survey);
     } else {
-      ref.read(surveysProvider.notifier).addSurvey(survey);
+      await repo.addSurvey(survey);
     }
 
     ScaffoldMessenger.of(context).showSnackBar(

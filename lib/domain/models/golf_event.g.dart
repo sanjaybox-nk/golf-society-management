@@ -37,6 +37,20 @@ Map<String, dynamic> _$EventExpenseToJson(_EventExpense instance) =>
       'date': const OptionalTimestampConverter().toJson(instance.date),
     };
 
+_EventExtraCost _$EventExtraCostFromJson(Map<String, dynamic> json) =>
+    _EventExtraCost(
+      id: json['id'] as String,
+      label: json['label'] as String,
+      amount: (json['amount'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$EventExtraCostToJson(_EventExtraCost instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'label': instance.label,
+      'amount': instance.amount,
+    };
+
 _EventAward _$EventAwardFromJson(Map<String, dynamic> json) => _EventAward(
   id: json['id'] as String,
   label: json['label'] as String,
@@ -203,6 +217,12 @@ _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
       ) ??
       const {},
   eventCost: (json['eventCost'] as num?)?.toDouble(),
+  extraCosts:
+      (json['extraCosts'] as List<dynamic>?)
+          ?.map((e) => EventExtraCost.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  charityPot: (json['charityPot'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$GolfEventToJson(
@@ -269,6 +289,8 @@ Map<String, dynamic> _$GolfEventToJson(
   'eventType': _$EventTypeEnumMap[instance.eventType]!,
   'manualCuts': instance.manualCuts,
   'eventCost': instance.eventCost,
+  'extraCosts': instance.extraCosts.map((e) => e.toJson()).toList(),
+  'charityPot': instance.charityPot,
 };
 
 const _$EventStatusEnumMap = {

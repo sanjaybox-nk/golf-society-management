@@ -62,10 +62,17 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
         leading: Center(
           child: BoxyArtGlassIconButton(
             icon: Icons.arrow_back_rounded,
-            onPressed: () => context.pop(),
-            tooltip: 'Go Back',
+            onPressed: () => context.canPop() ? context.pop() : context.go('/admin'),
+            tooltip: 'Back to Dashboard',
           ),
         ),
+        actions: [
+          BoxyArtGlassIconButton(
+            icon: Icons.person_add_alt_1_rounded,
+            tooltip: 'Add Member',
+            onPressed: () => context.push('/admin/members/new'),
+          ),
+        ],
         slivers: [
           // Baseline Nudge for Tab Bar
           SliverToBoxAdapter(
@@ -80,6 +87,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                       selectedValue: currentFilter.type,
                       onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      isExpanded: true,
                       tabs: [
                         ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
                         ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
@@ -249,7 +257,7 @@ Widget _buildDismissibleMember(
         member: member,
         onTap: () => context.pushNamed('admin-member-detail', pathParameters: {'id': member.id}),
         onLongPress: () => context.pushNamed('admin-member-detail', pathParameters: {'id': member.id}),
-        showFeeStatus: false, // [MODIFIED] Hidden in general roster
+        showFeeStatus: true,
         isAdminContext: true,
         secondaryMetricLabel: secondaryMetricLabel,
         secondaryMetricValue: secondaryMetricValue,

@@ -11,6 +11,8 @@ class BoxyArtEventCard extends ConsumerWidget {
   final Widget? gameTypePill;
   final Widget? statusPill;
   final bool showStatus;
+  final bool isHighlighted;
+  final Gradient? gradient;
 
   const BoxyArtEventCard({
     super.key,
@@ -19,6 +21,8 @@ class BoxyArtEventCard extends ConsumerWidget {
     this.gameTypePill,
     this.statusPill,
     this.showStatus = true,
+    this.isHighlighted = false,
+    this.gradient,
   });
 
   @override
@@ -28,6 +32,17 @@ class BoxyArtEventCard extends ConsumerWidget {
     final primary = theme.primaryColor;
     final spacing = theme.extension<AppSpacingTokens>();
     final config = ref.watch(themeControllerProvider);
+
+    final isHighContrast = isHighlighted || gradient != null;
+    final textColor = isHighContrast 
+        ? AppColors.pureWhite 
+        : (isDark ? AppColors.pureWhite : AppColors.dark900);
+    final subtextColor = isHighContrast 
+        ? AppColors.pureWhite.withValues(alpha: 0.8) 
+        : (isDark ? AppColors.dark150 : AppColors.dark700);
+    final iconColor = isHighContrast 
+        ? AppColors.pureWhite.withValues(alpha: 0.6) 
+        : AppColors.dark300;
 
     final content = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -89,12 +104,8 @@ class BoxyArtEventCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       toTitleCase(event.title),
-                      style: AppTypography.body.copyWith(
-                        color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                        fontWeight: AppTypography.weightExtraBold,
-                        fontSize: AppTypography.sizeBody,
-                        letterSpacing: -0.4,
-                        height: 1.1,
+                      style: AppTypography.cardTitle.copyWith(
+                        color: textColor,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -137,7 +148,7 @@ class BoxyArtEventCard extends ConsumerWidget {
                         Text.rich(
                           TextSpan(
                             style: AppTypography.subtext.copyWith(
-                              color: isDark ? AppColors.dark150 : AppColors.dark700,
+                              color: subtextColor,
                               fontSize: 13,
                               fontWeight: AppTypography.weightSemibold,
                             ),
@@ -146,13 +157,13 @@ class BoxyArtEventCard extends ConsumerWidget {
                                 alignment: PlaceholderAlignment.middle,
                                 child: Padding(
                                   padding: const EdgeInsets.only(right: 6),
-                                  child: Icon(Icons.flag_rounded, size: 14, color: AppColors.dark300),
+                                  child: Icon(Icons.flag_rounded, size: 14, color: iconColor),
                                 ),
                               ),
                               TextSpan(
                                 text: event.courseName ?? 'TBA',
                                 style: TextStyle(
-                                  color: AppColors.dark300,
+                                  color: subtextColor,
                                   fontWeight: AppTypography.weightBold,
                                 ),
                               ),
@@ -167,7 +178,7 @@ class BoxyArtEventCard extends ConsumerWidget {
                         Text.rich(
                           TextSpan(
                             style: AppTypography.subtext.copyWith(
-                              color: isDark ? AppColors.dark150 : AppColors.dark700,
+                              color: subtextColor,
                               fontSize: 13,
                               fontWeight: AppTypography.weightSemibold,
                             ),
@@ -176,13 +187,13 @@ class BoxyArtEventCard extends ConsumerWidget {
                                 alignment: PlaceholderAlignment.middle,
                                 child: Padding(
                                   padding: const EdgeInsets.only(right: 6),
-                                  child: Icon(Icons.timer_rounded, size: 14, color: AppColors.dark300),
+                                  child: Icon(Icons.timer_rounded, size: 14, color: iconColor),
                                 ),
                               ),
                               TextSpan(
                                 text: DateFormat('h:mm a').format(event.regTime ?? event.date),
                                 style: TextStyle(
-                                  color: AppColors.dark300,
+                                  color: subtextColor,
                                   fontWeight: AppTypography.weightBold,
                                 ),
                               ),
@@ -214,6 +225,7 @@ class BoxyArtEventCard extends ConsumerWidget {
     return BoxyArtCard(
       onTap: onTap,
       padding: EdgeInsets.zero,
+      gradient: isHighlighted ? AppGradients.brandPrimary(context) : gradient,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 124),
         child: IntrinsicHeight(

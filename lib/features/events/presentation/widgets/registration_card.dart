@@ -123,11 +123,9 @@ class RegistrationCard extends ConsumerWidget {
           ),
 
           // 2. Vertical Divider
-          Container(
-            width: 1,
-            height: (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 4.5, // Scalable height (v4.5 matched to 72dp base)
-            margin: EdgeInsets.symmetric(horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.lg),
-            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+          BoxyArtVerticalDivider(
+            horizontalPadding: spacing?.cardHorizontalPadding ?? AppSpacing.lg,
+            height: (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 4.5,
           ),
 
           // 3. Right Section: Content

@@ -1,6 +1,9 @@
-# Walkthrough: Global Brand Token Standardization (v5.2)
+# Walkthrough: Design 4.x "True Minimal" Refactor (v5.4)
 
 I have successfully performed a comprehensive UI audit and refactor to enforce the society's primary brand color across the entire application. All legacy hardcoded `actionGreen` references have been replaced with dynamic brand tokens, and initial compilation issues have been resolved.
+
+## Location
+- **Settings Hub** (Gear Icon) > **INFRASTRUCTURE**
 
 ## Changes Implemented
 
@@ -15,20 +18,30 @@ I have successfully performed a comprehensive UI audit and refactor to enforce t
 - **`Registration`**: Standardized active icon states in `registration_card.dart` and regional registration widgets.
 - **`Home Screen`**: Standardized the primary actions and badges on the `member_home_screen.dart`.
 
-### 3. Stability & Compilation Fixes
-- **Context Management**: Fixed missing `context` access in helper methods across `grouping_widgets.dart` and `event_structural_cards.dart`.
-- **Constant Expressions**: Resolved compilation errors in `grouping_modals.dart` by removing invalid `const` keywords from widgets using dynamic theme colors.
+### 2. High-Productivity Admin Dashboard (Title Case)
+Refactored the Admin Console to follow **Design 4.x "True Minimal"** standards:
 
-### 4. Admin & Domain Layers
-- **`Admin Console`**: Standardized the Renewal Hub, Admin Reports, Grouping Toolbars, and Selection Modals.
-- **`Domain Models`**: Updated defaults in `MemberStatus` to neutral colors to ensure brand compliance in un-overridden UI states.
+- **Universal Title Case**: Eliminated ALL-CAPS across the dashboard.
+    - **Overview**: Real-time monitoring with refined "Next Event" hero.
+    - **Operations**: High-frequency terminal with standardized "Daily Operations" section.
+- **Tab Indicator Standard**: Implemented the premium, bold, fixed-width (80px) indicator style for all navigation tabs. Universal parity achieved across **Admin Dashboard**, **Events**, **Members**, and **Renewals** hubs by adopting a **Shared UI** architecture (`ModernUnderlinedTabBar`).
+- **Action Hubs**:
+    - **Sponsorship Hub**: Managed via Title Case "Partners" sections.
+    - **Member Renewals**: Terminal for seasonal roster rollovers.
+    - **Reports & Insights**: Direct Society Hub integration.
 
-## Verification Results
-- **Clean Build**: All compilation errors identified in the terminal have been resolved.
-- **Global Audit**: A final search confirms **0 hardcoded green references** remain in the presentation or domain layers.
-- **Theming**: The application now dynamically responds to changes in the primary brand color across all screens and states.
+### 3. Settings Hub: True Minimal Standardization
+Converged the Settings Hub with the v4.1 aesthetic:
+- **Section Titles**: All headers (e.g., "Society Config", "Global Management") updated to Title Case.
+- **System Diagnostics**: "Version" and "Os" labels standardized to eliminate upper-case shouting.
+- **Infrastructure**: Maintenance vault (Seed/Wipe) securely nested under "Maintenance".
+
+## Visual Verification
+The separation of concerns ensures that administrators spend 90% of their time in the **Operations** tab, while complex configurations and "danger zone" tools (Seed/Wipe) are nested securely in the **Settings Hub**.
 
 ---
+**Status**: Feature Redistribution Complete & Verified.
+
 **Resolved Issues:**
 - Icons and backgrounds correctly reflect the primary brand color.
 - Legacy green overrides have been eliminated.

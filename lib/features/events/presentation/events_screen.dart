@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:collection/collection.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
@@ -13,14 +14,11 @@ class EventsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final upcomingSeasonAsync = ref.watch(upcomingSeasonEventsProvider);
     final pastSeasonAsync = ref.watch(pastSeasonEventsProvider);
     final socialAsync = ref.watch(socialEventsProvider);
-    final filter = ref.watch(eventFilterProvider);
-    
     final activeSeasonAsync = ref.watch(activeSeasonProvider);
-    
+    final filter = ref.watch(eventFilterProvider);
     final seasonName = activeSeasonAsync.when(
       data: (s) => s?.name ?? '',
       loading: () => '',
@@ -34,7 +32,8 @@ class EventsScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Events',
       subtitle: subtitle,
-      showAdminShortcut: false, // Explicitly removed as per user preference
+      showAdminShortcut: false, 
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       slivers: [
         // Filter Bar (Simplified to 2 Tabs - Harmonized with MembersScreen style)
         SliverToBoxAdapter(
@@ -65,12 +64,12 @@ class EventsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          _buildEventList(context, ref, upcomingSeasonAsync, 'Upcoming'),
+          _buildEventList(context, ref, upcomingSeasonAsync, 'Upcoming', allowHighlight: true),
 
           // Past Section
-          SliverPadding(
-            padding: EdgeInsets.only(top: spacing?.cardToLabel ?? AppSpacing.xl, left: AppSpacing.xl, right: AppSpacing.xl),
-            sliver: const SliverToBoxAdapter(
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
               child: BoxyArtSectionTitle(
                 title: 'Past Events',
               ),
@@ -90,13 +89,19 @@ class EventsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          _buildEventList(context, ref, socialAsync, 'Social'),
+          _buildEventList(context, ref, socialAsync, 'Social', allowHighlight: true),
         ],
       ],
     );
   }
 
-  Widget _buildEventList(BuildContext context, WidgetRef ref, AsyncValue<List<GolfEvent>> asyncValue, String type) {
+  Widget _buildEventList(
+    BuildContext context, 
+    WidgetRef ref, 
+    AsyncValue<List<GolfEvent>> asyncValue, 
+    String type, 
+    {bool allowHighlight = false}
+  ) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
     return asyncValue.when(
@@ -111,15 +116,28 @@ class EventsScreen extends ConsumerWidget {
             ),
           );
         }
+
+        // Determine the "Featured" event to highlight in this list
+        String? featuredEventId;
+        if (allowHighlight && events.isNotEmpty) {
+          final liveEvent = events.firstWhereOrNull((e) => e.status == EventStatus.inPlay && e.occursToday);
+          featuredEventId = liveEvent?.id ?? events.first.id;
+        }
+
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final isLast = index == events.length - 1;
+                final event = events[index];
+                final isHighlighted = event.id == featuredEventId;
                 return Padding(
                   padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
-                  child: _EventRow(event: events[index]),
+                  child: _EventRow(
+                    event: event, 
+                    isHighlighted: isHighlighted,
+                  ),
                 );
               },
               childCount: events.length,
@@ -138,8 +156,12 @@ class EventsScreen extends ConsumerWidget {
 
 class _EventRow extends ConsumerWidget {
   final GolfEvent event;
+  final bool isHighlighted;
 
-  const _EventRow({required this.event});
+  const _EventRow({
+    required this.event,
+    this.isHighlighted = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -166,29 +188,41 @@ class _EventRow extends ConsumerWidget {
       final isPast = DateTime.now().isAfter(event.date);
       if (!isPast) {
         statusPill = BoxyArtPill.status(
-          label: 'Closed',
+          label: 'Registration Closed',
           color: AppColors.dark400,
         );
       }
     }
     return BoxyArtEventCard(
       event: event,
-      onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
-      gameTypePill: _buildGameTypePill(context, ref, event.id),
+      onTap: () => context.go('/events/${Uri.encodeComponent(event.id)}'),
+      gameTypePill: _buildGameTypePill(context, ref, event.id, isHighlighted),
       statusPill: statusPill,
+      isHighlighted: isHighlighted,
     );
   }
 
-  Widget _buildGameTypePill(BuildContext context, WidgetRef ref, String eventId) {
+  Widget _buildGameTypePill(BuildContext context, WidgetRef ref, String eventId, bool isHighlighted) {
     final compAsync = ref.watch(competitionDetailProvider(eventId));
 
     return compAsync.when(
       data: (comp) {
         if (comp == null) return const SizedBox.shrink();
         final gameName = comp.rules.gameName;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         
-        return BoxyArtPill.format(
-          label: gameName,
+        final color = isHighlighted 
+            ? AppColors.pureWhite
+            : (isDark ? AppColors.pureWhite : AppColors.dark400);
+
+        return Text(
+          toTitleCase(gameName),
+          style: AppTypography.label.copyWith(
+            fontSize: 11.0,
+            color: color,
+            fontWeight: AppTypography.weightStrong,
+            letterSpacing: -0.2,
+          ),
         );
       },
       loading: () => const SizedBox.shrink(),

@@ -31,14 +31,14 @@ class EventDetailsScreen extends ConsumerWidget {
   }
 }
 
-class _EventDetailsContent extends StatelessWidget {
+class _EventDetailsContent extends ConsumerWidget {
   final GolfEvent event;
   final String currencySymbol;
 
   const _EventDetailsContent({required this.event, required this.currencySymbol});
   
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final primary = Theme.of(context).primaryColor;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
@@ -109,7 +109,7 @@ class _EventDetailsContent extends StatelessWidget {
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
 
               // Registration Card
-              _buildRegistrationCard(context),
+              _buildRegistrationCard(context, ref),
               SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               
               // When & Where Card
@@ -260,15 +260,29 @@ class _EventDetailsContent extends StatelessWidget {
     }).join(' ');
   }
 
-  Widget _buildRegistrationCard(BuildContext context) {
-    const currentMemberId = 'current-user-id';
-    final myRegistration = event.registrations.where((r) => r.memberId == currentMemberId).firstOrNull;
+  Widget _buildRegistrationCard(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(effectiveUserProvider);
+    final myRegistration = event.registrations.where((r) => r.memberId == user.id).firstOrNull;
     final isRegistered = myRegistration != null;
     final primary = Theme.of(context).primaryColor;
     
     final isPastDeadline = event.registrationDeadline != null && 
                           DateTime.now().isAfter(event.registrationDeadline!);
-    final isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
+    
+    bool isRegistrationDisabled = isPastDeadline || !event.showRegistrationButton;
+    String buttonTitle = isPastDeadline 
+        ? 'Registration closed' 
+        : (isRegistered ? 'Update Registration' : 'Register Now');
+
+    if (user.status == MemberStatus.suspended && !isRegistered) {
+      if (event.eventType == EventType.golf) {
+        isRegistrationDisabled = true;
+        buttonTitle = 'Registration restricted';
+      } else if (event.eventType == EventType.social && !user.allowSocialEventsOnly) {
+        isRegistrationDisabled = true;
+        buttonTitle = 'Social access required';
+      }
+    }
 
     return BoxyArtCard(
       child: Column(
@@ -345,9 +359,7 @@ class _EventDetailsContent extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
           ],
           BoxyArtButton(
-            title: isPastDeadline 
-                ? 'Registration closed' 
-                : (isRegistered ? 'Update Registration' : 'Register Now'),
+            title: buttonTitle,
             backgroundColor: primary,
             onTap: isRegistrationDisabled 
                 ? null 

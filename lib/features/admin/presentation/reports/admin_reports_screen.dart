@@ -7,9 +7,10 @@ import 'package:golf_society/features/events/presentation/events_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:collection/collection.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'reporting_hub_provider.dart';
 
-enum ReportingTab { overview, treasury, engagement, prizes }
+enum ReportingTab { financials, competition, pulse }
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
   const AdminReportsScreen({super.key});
@@ -19,7 +20,7 @@ class AdminReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
-  ReportingTab _activeTab = ReportingTab.overview;
+  ReportingTab _activeTab = ReportingTab.financials;
 
   @override
   Widget build(BuildContext context) {
@@ -60,12 +61,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         // 1. Tab Bar (Standard Position)
         SliverToBoxAdapter(
           child: ModernUnderlinedFilterBar<ReportingTab>(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
+            isExpanded: true,
             tabs: const [
-              ModernFilterTab(label: 'OVERVIEW', value: ReportingTab.overview, icon: Icons.dashboard_outlined),
-              ModernFilterTab(label: 'TREASURY', value: ReportingTab.treasury, icon: Icons.account_balance_outlined),
-              ModernFilterTab(label: 'ENGAGEMENT', value: ReportingTab.engagement, icon: Icons.group_outlined),
-              ModernFilterTab(label: 'PRIZES', value: ReportingTab.prizes, icon: Icons.emoji_events_outlined),
+              ModernFilterTab(label: 'Financials', value: ReportingTab.financials),
+              ModernFilterTab(label: 'Competition', value: ReportingTab.competition),
+              ModernFilterTab(label: 'Pulse', value: ReportingTab.pulse),
             ],
             selectedValue: _activeTab,
             onTabSelected: (tab) => setState(() => _activeTab = tab),
@@ -74,10 +75,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
 
         statsAsync.when(
           data: (stats) => SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildTabContent(context, stats, eventsAsync, membersAsync),
+                KeyedSubtree(
+                  key: ValueKey(_activeTab),
+                  child: _buildTabContent(context, stats, eventsAsync, membersAsync),
+                ),
                 const SizedBox(height: 100),
               ]),
             ),
@@ -91,355 +95,155 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
 
   Widget _buildTabContent(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync, AsyncValue<List<Member>> membersAsync) {
     switch (_activeTab) {
-      case ReportingTab.overview:
-        return _buildOverviewTab(context, stats, eventsAsync);
-      case ReportingTab.treasury:
-        return _buildTreasuryTab(context, stats, eventsAsync);
-      case ReportingTab.engagement:
-        return _buildEngagementTab(context, stats, membersAsync);
-      case ReportingTab.prizes:
-        return _buildPrizesTab(context, stats, eventsAsync, membersAsync);
+      case ReportingTab.financials:
+        return _buildFinancialsTab(context, stats, eventsAsync);
+      case ReportingTab.competition:
+        return _buildCompetitionTab(context, stats, membersAsync, eventsAsync);
+      case ReportingTab.pulse:
+        return _buildPulseTab(context, stats, eventsAsync, membersAsync);
     }
   }
 
-  Widget _buildOverviewTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync) {
+  Widget _buildFinancialsTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSeasonProgress(context, stats),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'SOCIETY PULSE'),
-        _buildQuickStats(context, stats),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'NEXT MILESTONE'),
-        eventsAsync.when(
-          data: (events) {
-            final now = DateTime.now();
-            final next = events.where((e) => e.date.isAfter(now) || DateUtils.isSameDay(e.date, now)).sortedBy((e) => e.date).firstOrNull;
-            if (next == null) return const Center(child: Text('No upcoming events', style: TextStyle(color: AppColors.textSecondary)));
-            return _buildNextEventCard(context, next);
-          },
-          loading: () => const CircularProgressIndicator(),
-          error: (e, s) => Text('Error: $e'),
-        ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'FINANCIAL SNAPSHOT'),
+        const BoxyArtSectionTitle(title: 'Balance summary'),
         _buildTreasuryOverview(context, stats),
-      ],
-    );
-  }
-
-  Widget _buildSeasonProgress(BuildContext context, ReportingHubStats stats) {
-    final theme = Theme.of(context);
-    final progress = stats.totalCount == 0 ? 0.0 : stats.completedCount / stats.totalCount;
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Season Progress', 
-                style: AppTypography.label.copyWith(
-                  fontSize: AppTypography.sizeLabel, 
-                  color: theme.textTheme.bodySmall?.color, 
-                  letterSpacing: 1.5,
-                ),
-              ),
-              Text(
-                '${(progress * 100).toInt()}%', 
-                style: AppTypography.displayHero.copyWith(
-                  fontSize: AppTypography.sizeBodySmall, 
-                  color: AppColors.lime500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ClipRRect(
-            borderRadius: AppShapes.xs,
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle),
-              color: AppColors.lime500,
-              minHeight: 8,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '${stats.completedCount} of ${stats.totalCount} Events Completed',
-            style: const TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNextEventCard(BuildContext context, GolfEvent event) {
-    return BoxyArtCard(
-      onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(color: AppColors.lime500.withValues(alpha: AppColors.opacityLow), shape: BoxShape.circle),
-            child: const Icon(Icons.event_available_rounded, color: AppColors.lime500, size: AppShapes.iconLg),
-          ),
-          const SizedBox(width: AppSpacing.xl),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(event.title, style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
-                Text(DateFormat.yMMMMd().format(event.date), style: const TextStyle(fontSize: AppTypography.sizeBodySmall, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTreasuryTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'SEASON BUDGET'),
+        const BoxyArtSectionTitle(title: 'Season budget'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
             children: [
-              _buildHubRow('Potential Revenue', '£${stats.totalPotentialRevenue.toStringAsFixed(0)}', Icons.payments_outlined, AppColors.textSecondary),
-              const SizedBox(height: AppSpacing.md),
-              _buildHubRow('Collected Revenue', '£${stats.totalRevenue.toStringAsFixed(0)}', Icons.check_circle_outline_rounded, AppColors.lime500),
+              _buildHubRow('Potential revenue', '£${(stats.totalPotentialRevenue + stats.totalUnpaidLedgerRevenue).toStringAsFixed(0)}', Icons.payments_outlined),
+              const SizedBox(height: AppSpacing.atomic),
+              _buildHubRow('Collected revenue', '£${(stats.totalRevenue + stats.totalLedgerRevenue).toStringAsFixed(0)}', Icons.check_circle_outline_rounded),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'FINANCIAL HEALTH'),
+        const BoxyArtSectionTitle(title: 'Financial health'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
             children: [
-              _buildHubRow('Society Margin', '£${stats.greenFeeMarkup.toStringAsFixed(0)}', Icons.trending_up_rounded, Colors.blueAccent),
-              const SizedBox(height: AppSpacing.md),
-              _buildHubRow('Avg. Member Spend', '£${stats.averageEventCostPerMember.toStringAsFixed(0)}', Icons.person_pin_circle_outlined, Colors.purpleAccent),
+              _buildHubRow('Net margin', '£${stats.greenFeeMarkup.toStringAsFixed(0)}', Icons.trending_up_rounded),
+              const SizedBox(height: AppSpacing.standard),
+              _buildHubRow('Prize payouts', '£${stats.totalCashPrizes.toStringAsFixed(0)}', Icons.auto_awesome_rounded),
+              if (stats.totalLedgerRevenue > 0) ...[
+                const SizedBox(height: AppSpacing.standard),
+                _buildHubRow('Ledger revenue', '£${stats.totalLedgerRevenue.toStringAsFixed(0)}', Icons.handshake_rounded),
+              ],
+              if (stats.totalVoucherValue > 0) ...[
+                const SizedBox(height: AppSpacing.standard),
+                _buildHubRow('Voucher liabilities', '£${stats.totalVoucherValue.toStringAsFixed(0)}', Icons.confirmation_number_outlined),
+              ],
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.x3l),
-        
-        if (stats.uncollectedRevenue > 0) ...[
-          BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            backgroundColor: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
-            border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMedium)),
-            child: Row(
-              children: [
-                const Icon(Icons.warning_amber_rounded, color: AppColors.amber500, size: AppShapes.iconMd),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Uncollected Revenue', style: TextStyle(fontWeight: AppTypography.weightBold, fontSize: AppTypography.sizeCaptionStrong, color: AppColors.amber500)),
-                      Text('£${stats.uncollectedRevenue.toStringAsFixed(2)} is currently outstanding from confirmed registrations.', 
-                        style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, color: AppColors.amber500.withValues(alpha: AppColors.opacityHigh))),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.x3l),
-        ],
-
-        const BoxyArtSectionTitle(title: 'REVENUE BREAKDOWN'),
+        const BoxyArtSectionTitle(title: 'Revenue breakdown'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
-            children: stats.revenueBreakdown.entries.map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            children: stats.revenueBreakdown.entries.where((e) => e.value > 0).map((e) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.atomic),
               child: _buildHubRow(e.key, '£${e.value.toStringAsFixed(0)}', 
-                e.key == 'Golf' ? Icons.sports_golf_rounded : e.key == 'Buggies' ? Icons.electric_rickshaw_rounded : Icons.restaurant_rounded, 
-                AppColors.textSecondary),
+                e.key == 'Golf' ? Icons.sports_golf_rounded : 
+                e.key == 'Buggies' ? Icons.electric_rickshaw_rounded : 
+                e.key == 'Catering' ? Icons.restaurant_rounded :
+                e.key == 'Sponsorships' ? Icons.handshake_rounded :
+                e.key == 'Donations' ? Icons.volunteer_activism_rounded :
+                Icons.payments_outlined),
             )).toList(),
           ),
         ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'EVENT ARCHIVE'),
-        _buildEventArchive(context, eventsAsync),
       ],
     );
   }
 
-  Widget _buildEngagementTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<Member>> membersAsync) {
+  Widget _buildCompetitionTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<Member>> membersAsync, AsyncValue<List<GolfEvent>> eventsAsync) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'RETENTION & GROWTH'),
+        const BoxyArtSectionTitle(title: 'Prize distribution'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            children: [
-              _buildHubRow('Retention Rate', '${stats.retentionRate.toStringAsFixed(1)}%', Icons.loop_rounded, AppColors.lime500),
-              const SizedBox(height: AppSpacing.md),
-              _buildHubRow('Ever-Present Members', '${stats.everPresentMemberIds.length}', Icons.auto_awesome_rounded, AppColors.amber500),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'ATTENDANCE LEADERBOARD'),
-        BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            children: stats.topMembers.mapIndexed((index, entry) {
-              final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == entry.key);
-              final name = member != null ? '${member.firstName} ${member.lastName}' : 'Member ID: ${entry.key.substring(0, 8)}...';
-              
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Row(
-                  children: [
-                    Container(
-                      width: AppSpacing.x2l,
-                      height: AppSpacing.x2l,
-                      decoration: BoxDecoration(
-                        color: index == 0 ? AppColors.amber500.withValues(alpha: AppColors.opacityLow) : AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text('${index + 1}', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: index == 0 ? AppColors.amber500 : AppColors.textSecondary)),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(child: Text(name, style: const TextStyle(fontSize: AppTypography.sizeButton, fontWeight: AppTypography.weightSemibold))),
-                    Text('${entry.value} Events', style: const TextStyle(fontSize: AppTypography.sizeBodySmall, fontWeight: AppTypography.weightBlack, color: AppColors.lime500)),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        
-        if (stats.churnAlertMemberIds.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.x3l),
-          const BoxyArtSectionTitle(title: 'CHURN ALERTS'),
-          BoxyArtCard(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            backgroundColor: AppColors.coral500.withValues(alpha: AppColors.opacitySubtle),
-            border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityLow)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: AppColors.coral500, size: AppShapes.iconMd),
-                    SizedBox(width: AppSpacing.sm),
-                    Text('RE-ENGAGEMENT REQUIRED', style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeCaptionStrong, color: AppColors.coral500)),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                ...stats.churnAlertMemberIds.take(3).map((id) {
-                  final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == id);
-                  final name = member != null ? '${member.firstName} ${member.lastName}' : 'Member ID: ${id.substring(0, 8)}...';
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: Text('• $name has missed the last 2 events.', style: const TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ],
-
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'SOCIETY ENGAGEMENT'),
-        _buildQuickStats(context, stats),
-      ],
-    );
-  }
-
-  Widget _buildPrizesTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync, AsyncValue<List<Member>> membersAsync) {
-    final double cashRatio = stats.totalRevenue == 0 ? 0 : (stats.totalCashPrizes / stats.totalRevenue) * 100;
-
-    // Phase 11.4 Data
-    final toughest = stats.courseDifficultyIndex.entries.isEmpty 
-        ? null 
-        : stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).first;
-    final easiest = stats.courseDifficultyIndex.entries.isEmpty 
-        ? null 
-        : stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).last;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'PRIZE DISTRIBUTION'),
-        BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
             children: [
               _buildPrizeOverview(context, stats),
-              const Divider(height: AppSpacing.x4l),
-              _buildHubRow('Total Cash Payouts', '£${stats.totalCashPrizes.toStringAsFixed(0)}', Icons.payments_outlined, Colors.blueAccent),
-              const SizedBox(height: AppSpacing.md),
-              _buildHubRow('Payout Ratio', '${cashRatio.toStringAsFixed(1)}% of Revenue', Icons.analytics_outlined, Colors.purpleAccent),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.standard),
+                child: BoxyArtDivider(),
+              ),
+              _buildHubRow('Total cash payouts', '£${stats.totalCashPrizes.toStringAsFixed(0)}', Icons.payments_outlined),
+              const SizedBox(height: AppSpacing.atomic),
+              _buildHubRow('Payout ratio', '${((stats.totalRevenue == 0 ? 0 : stats.totalCashPrizes / stats.totalRevenue) * 100).toStringAsFixed(1)}%', Icons.analytics_outlined),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'COMPETITIVE ANALYTICS'),
+        const BoxyArtSectionTitle(title: 'Attendance leaderboard'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          onTap: () => _showFullAttendanceModal(context, stats, membersAsync, isDark),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.xs),
+          child: Column(
+            children: stats.topMembers.take(3).mapIndexed((index, entry) {
+              final isLast = index == stats.topMembers.take(3).length - 1;
+              return _buildLeaderboardRow(index, entry, membersAsync, isDark, showDivider: !isLast);
+            }).toList(),
+          ),
+        ),
+        const BoxyArtSectionTitle(title: 'Competitive analytics'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
             children: [
-              if (toughest != null)
-                _buildHubRow('Toughest Course', '${toughest.key} (${toughest.value.toStringAsFixed(1)} pts)', Icons.terrain_rounded, Colors.redAccent),
-              if (easiest != null) ...[
-                const SizedBox(height: AppSpacing.md),
-                _buildHubRow('Easiest Course', '${easiest.key} (${easiest.value.toStringAsFixed(1)} pts)', Icons.wb_sunny_rounded, AppColors.lime500),
+              if (stats.courseDifficultyIndex.entries.isNotEmpty) ...[ 
+                _buildHubRow('Toughest course', '${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).first.key} (${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).first.value.toStringAsFixed(1)} pts)', Icons.terrain_rounded),
+                const SizedBox(height: AppSpacing.atomic),
+                _buildHubRow('Easiest course', '${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).last.key} (${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).last.value.toStringAsFixed(1)} pts)', Icons.wb_sunny_rounded),
               ],
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'PODIUM CONSISTENCY'),
+        const BoxyArtSectionTitle(title: 'Podium consistency'),
         BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: stats.podiumConsistency.isEmpty 
-            ? const Center(child: Text('No podium finishes recorded.', style: TextStyle(color: AppColors.textSecondary)))
+            ? Center(child: Text('No podium finishes recorded', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)))
             : Column(
                 children: stats.podiumConsistency.take(3).mapIndexed((index, entry) {
                   final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == entry.key);
                   final name = member != null ? '${member.firstName} ${member.lastName}' : 'Member ID: ${entry.key.substring(0, 8)}...';
+                  final isLast = index == (stats.podiumConsistency.take(3).length - 1);
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: _buildHubRow(name, '${entry.value} Top 3s', Icons.workspace_premium_outlined, index == 0 ? AppColors.amber500 : AppColors.textSecondary),
+                    padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.standard),
+                    child: _buildHubRow(name, '${entry.value} top 3s', Icons.workspace_premium_outlined),
                   );
                 }).toList(),
               ),
         ),
-        const SizedBox(height: AppSpacing.x3l),
-        const BoxyArtSectionTitle(title: 'AWARD LOG'),
+        const BoxyArtSectionTitle(title: 'Award log'),
         eventsAsync.when(
           data: (events) {
             final eventsWithPrizes = events
                 .where((e) => e.awards.isNotEmpty)
                 .sortedBy((e) => e.date)
                 .reversed
-                .take(10)
                 .toList();
 
             if (eventsWithPrizes.isEmpty) {
-              return const Center(child: Text('No awards logged yet.', style: TextStyle(color: AppColors.textSecondary)));
+              return Center(child: Text('No awards logged yet', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)));
             }
 
-            return Column(
-              children: eventsWithPrizes.map((e) => _buildEventAwardRow(context, e)).toList(),
+            return BoxyArtCard(
+              onTap: () => _showFullAwardsModal(context, eventsWithPrizes, isDark),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.xs),
+              child: Column(
+                children: eventsWithPrizes.take(3).mapIndexed((index, e) {
+                  final isLast = index == (eventsWithPrizes.take(3).length - 1);
+                  return _buildAwardRow(context, e, isDark, showDivider: !isLast, isDetailed: false);
+                }).toList(),
+              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -449,41 +253,274 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
     );
   }
 
-  Widget _buildEventAwardRow(BuildContext context, GolfEvent event) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: BoxyArtCard(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildPulseTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync, AsyncValue<List<Member>> membersAsync) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSeasonProgress(context, stats),
+        const BoxyArtSectionTitle(title: 'Next milestone'),
+        eventsAsync.when(
+          data: (events) {
+            final now = DateTime.now();
+            final next = events.where((e) => e.date.isAfter(now) || DateUtils.isSameDay(e.date, now)).sortedBy((e) => e.date).firstOrNull;
+            if (next == null) return Center(child: Text('No upcoming events', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)));
+            return _buildNextEventCard(context, next);
+          },
+          loading: () => const CircularProgressIndicator(),
+          error: (e, s) => Text('Error: $e'),
+        ),
+        const BoxyArtSectionTitle(title: 'Retention & growth'),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.standard),
+          child: Column(
+            children: [
+              _buildHubRow('RETENTION RATE', '${stats.retentionRate.toStringAsFixed(1)}%', Icons.loop_rounded),
+              const SizedBox(height: AppSpacing.atomic),
+              _buildHubRow('EVER-PRESENT MEMBERS', '${stats.everPresentMemberIds.length}', Icons.auto_awesome_rounded),
+            ],
+          ),
+        ),
+        if (stats.churnAlertMemberIds.isNotEmpty) ...[ 
+          const BoxyArtSectionTitle(title: 'Churn alerts'),
+          BoxyArtCard(
+            padding: const EdgeInsets.all(AppSpacing.standard),
+            backgroundColor: AppColors.coral500.withValues(alpha: 0.1),
+            border: Border.all(color: AppColors.coral500.withValues(alpha: 0.4)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(event.title, style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
-                Text(DateFormat.yMMMd().format(event.date), style: const TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
+                Row(
+                  children: [
+                    BoxyArtIconBadge(
+                      icon: Icons.warning_amber_rounded,
+                      color: AppColors.coral500,
+                      isTinted: true,
+                    ),
+                    const SizedBox(width: AppSpacing.standard),
+                    Text('Re-engagement required', 
+                      style: AppTypography.micro.copyWith(
+                        fontWeight: AppTypography.weightHeavy, 
+                        color: AppColors.dark700,
+                        letterSpacing: AppTypography.lsMicro,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.standard),
+                ...stats.churnAlertMemberIds.take(3).map((id) {
+                  final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == id);
+                  final name = member != null ? '${member.firstName} ${member.lastName}' : 'Member ID: ${id.substring(0, 8)}...';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: Text('• $name has missed the last 2 events.', 
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.dark700,
+                        fontWeight: AppTypography.weightBold,
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
-            const Divider(height: AppSpacing.x2l),
-            ...event.awards.map((award) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Row(
-                children: [
-                  Icon(
-                    award.type == 'Cup' ? Icons.emoji_events_rounded : Icons.monetization_on_rounded,
-                    size: AppShapes.iconXs,
-                    color: award.type == 'Cup' ? AppColors.amber500 : Colors.blueAccent,
+          ),
+        ],
+        const BoxyArtSectionTitle(title: 'Society engagement'),
+        _buildQuickStats(context, stats),
+        const BoxyArtSectionTitle(title: 'Event archive'),
+        _buildEventArchive(context, eventsAsync),
+      ],
+    );
+  }
+
+  Widget _buildSeasonProgress(BuildContext context, ReportingHubStats stats) {
+    final progress = stats.totalCount == 0 ? 0.0 : stats.completedCount / stats.totalCount;
+    return BoxyArtCard(
+      padding: const EdgeInsets.all(AppSpacing.standard),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Season progress', 
+                style: AppTypography.micro.copyWith(
+                  color: AppColors.dark500,
+                  letterSpacing: AppTypography.lsMicro,
+                ),
+              ),
+              Text(
+                '${(progress * 100).toInt()}%', 
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.lime500,
+                  fontWeight: AppTypography.weightHeavy,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.standard),
+          ClipRRect(
+            borderRadius: AppShapes.xs,
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppColors.lime500.withValues(alpha: 0.15),
+              color: AppColors.lime500,
+              minHeight: 12,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.standard),
+          Text(
+            '${stats.completedCount} of ${stats.totalCount} events completed',
+            style: AppTypography.micro.copyWith(
+              color: AppColors.dark500,
+              letterSpacing: AppTypography.lsMicro,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullAwardsModal(BuildContext context, List<GolfEvent> events, bool isDark) {
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Awards Roll Call',
+      child: Column(
+        children: events.mapIndexed((index, e) {
+          final isLast = index == events.length - 1;
+          return _buildAwardRow(context, e, isDark, showDivider: !isLast, isDetailed: true);
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildNextEventCard(BuildContext context, GolfEvent event) {
+    return BoxyArtCard(
+      onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
+      padding: const EdgeInsets.all(AppSpacing.standard),
+      child: Row(
+        children: [
+          BoxyArtIconBadge(
+            icon: Icons.calendar_today_rounded,
+            color: const Color(0xFF0EA5E9), // Sky/teal brand color
+            isTinted: true,
+          ),
+          const SizedBox(width: AppSpacing.standard),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.title, 
+                  style: AppTypography.body.copyWith(
+                    fontWeight: AppTypography.weightHeavy,
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(award.label, style: const TextStyle(fontSize: AppTypography.sizeButton, fontWeight: AppTypography.weightMedium)),
-                  const Spacer(),
-                  if (award.value > 0)
-                    Text('£${award.value.toStringAsFixed(0)}', style: const TextStyle(fontSize: AppTypography.sizeButton, fontWeight: AppTypography.weightBlack)),
+                ),
+                Text(
+                  DateFormat.yMMMMd().format(event.date), 
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: AppTypography.weightRegular,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAwardRow(BuildContext context, GolfEvent event, bool isDark, {bool showDivider = true, bool isDetailed = false}) {
+    // Group awards by position (1st, 2nd, 3rd)
+    final firstPlace = event.awards.where((a) => a.label.contains('1st')).toList();
+    final secondPlace = event.awards.where((a) => a.label.contains('2nd')).toList();
+    final thirdPlace = event.awards.where((a) => a.label.contains('3rd')).toList();
+
+    String formatAward(List<EventAward> awards) {
+      if (awards.isEmpty) return 'No Winner';
+      final winner = awards.first.winnerName ?? 'Member';
+      final details = awards.map((a) {
+        if (a.value > 0) return '£${a.value.toStringAsFixed(0)} ${a.type}';
+        return a.type;
+      }).join(', ');
+      return '$winner ($details)';
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.standard),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      event.title, 
+                      style: AppTypography.body.copyWith(fontWeight: AppTypography.weightHeavy),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    DateFormat.yMMMd().format(event.date), 
+                    style: AppTypography.micro.copyWith(
+                      color: isDark ? AppColors.dark300 : AppColors.dark500,
+                      letterSpacing: AppTypography.lsMicro,
+                    ),
+                  ),
                 ],
               ),
-            )),
-          ],
+              const SizedBox(height: AppSpacing.atomic),
+              if (!isDetailed)
+                Text(
+                  formatAward(firstPlace), 
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.dark200 : AppColors.dark400,
+                    fontWeight: AppTypography.weightSemibold,
+                  ),
+                ),
+              if (isDetailed) ...[
+                _buildPodiumLine('1st', formatAward(firstPlace), isDark),
+                if (secondPlace.isNotEmpty) _buildPodiumLine('2nd', formatAward(secondPlace), isDark),
+                if (thirdPlace.isNotEmpty) _buildPodiumLine('3rd', formatAward(thirdPlace), isDark),
+              ],
+            ],
+          ),
         ),
+        if (showDivider)
+          Divider(
+            height: 1, 
+            color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
+          ),
+      ],
+    );
+  }
+
+  Widget _buildPodiumLine(String pos, String detail, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 28,
+            child: Text(pos, style: AppTypography.micro.copyWith(
+              color: pos == '1st' ? AppColors.amber500 : (isDark ? AppColors.dark400 : AppColors.dark500),
+              fontWeight: AppTypography.weightHeavy,
+            )),
+          ),
+          Expanded(
+            child: Text(detail, style: AppTypography.caption.copyWith(
+              color: isDark ? AppColors.dark100 : AppColors.dark600,
+              fontWeight: AppTypography.weightMedium,
+            )),
+          ),
+        ],
       ),
     );
   }
@@ -492,49 +529,77 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
     final isProfit = stats.netTreasury >= 0;
     
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.x2l),
+      padding: const EdgeInsets.all(AppSpacing.standard),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   const Text('Society Balance', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.2)),
-                  Text(
-                    '£${stats.netTreasury.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeDisplayMedium, 
-                      fontWeight: AppTypography.weightBlack, 
-                      color: isProfit ? AppColors.lime500 : Colors.redAccent,
-                      letterSpacing: -1.5,
+               Expanded(
+                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                     Text(
+                       'Balance', 
+                       style: AppTypography.micro.copyWith(
+                         color: AppColors.dark400,
+                         letterSpacing: AppTypography.lsMicro,
+                         fontWeight: AppTypography.weightStrong,
+                       ),
+                     ),
+                    Text(
+                      '£${stats.netTreasury.toStringAsFixed(2)}',
+                      style: AppTypography.display.copyWith(
+                        color: isProfit ? AppColors.lime500 : AppColors.coral500,
+                        fontWeight: AppTypography.weightHeavy,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: (isProfit ? AppColors.lime500 : Colors.redAccent).withValues(alpha: AppColors.opacityLow),
-                  shape: BoxShape.circle,
+                  ],
                 ),
-                child: Icon(
-                  isProfit ? Icons.account_balance_rounded : Icons.account_balance_wallet_rounded,
-                  color: isProfit ? AppColors.lime500 : Colors.redAccent,
-                  size: AppShapes.iconLg,
-                ),
+               ),
+               const SizedBox(width: AppSpacing.standard),
+              BoxyArtIconBadge(
+                icon: isProfit ? Icons.account_balance_rounded : Icons.account_balance_wallet_rounded,
+                color: isProfit ? AppColors.lime500 : AppColors.coral500,
+                isTinted: true,
+                size: 64,
+                iconSize: AppShapes.iconLg,
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.x2l),
-          const Divider(),
-          const SizedBox(height: AppSpacing.xl),
-          _buildHubRow('Total Revenue', '£${stats.totalRevenue.toStringAsFixed(2)}', Icons.arrow_upward_rounded, AppColors.lime500),
-          const SizedBox(height: AppSpacing.md),
-          _buildHubRow('Operating Costs', '-£${stats.totalExpenses.toStringAsFixed(2)}', Icons.arrow_downward_rounded, Colors.redAccent),
-          const SizedBox(height: AppSpacing.md),
-          _buildHubRow('Cash Payouts', '-£${stats.totalCashPrizes.toStringAsFixed(2)}', Icons.emoji_events_outlined, AppColors.amber500),
+          const SizedBox(height: AppSpacing.standard),
+          const BoxyArtDivider(),
+          const SizedBox(height: AppSpacing.standard),
+          _buildHubRow('Opening balance', '£${stats.startingBalance.toStringAsFixed(0)}', Icons.input_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Session revenue', '£${stats.totalRevenue.toStringAsFixed(0)}', Icons.arrow_upward_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Sponsorships & donations', '£${stats.totalLedgerRevenue.toStringAsFixed(0)}', Icons.handshake_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Collected fines', '£${stats.totalCollectedFines.toStringAsFixed(0)}', Icons.gavel_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Charity collection', '£${stats.totalCharity.toStringAsFixed(0)}', Icons.favorite_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Event costs', '-£${stats.totalSocietyCosts.toStringAsFixed(0)}', Icons.arrow_downward_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Society expenses', '-£${stats.totalExpenses.toStringAsFixed(0)}', Icons.info_outline_rounded),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow('Cash payouts', '-£${stats.totalCashPrizes.toStringAsFixed(0)}', Icons.emoji_events_outlined),
+          const SizedBox(height: AppSpacing.standard),
+          const BoxyArtDivider(),
+          const SizedBox(height: AppSpacing.standard),
+          _buildHubRow(
+            'Yet to collect', 
+            '£${(stats.uncollectedRevenue + stats.totalUnpaidFines + stats.totalUnpaidLedgerRevenue).toStringAsFixed(0)}', 
+            Icons.hourglass_empty_rounded, 
+          ),
+          const SizedBox(height: AppSpacing.atomic),
+          _buildHubRow(
+            'Projected position', 
+            '£${(stats.netTreasury + stats.uncollectedRevenue + stats.totalUnpaidFines + stats.totalUnpaidLedgerRevenue).toStringAsFixed(0)}', 
+            Icons.account_balance_rounded, 
+          ),
         ],
       ),
     );
@@ -545,19 +610,19 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
       children: [
         Expanded(
           child: _HubMetricSmall(
-            label: 'AVG ATTENDANCE',
+            label: 'Avg attendance',
             value: stats.averageAttendance.toStringAsFixed(1),
             icon: Icons.people_rounded,
-            color: Colors.blueAccent,
+            color: AppColors.lime500,
           ),
         ),
-        const SizedBox(width: AppSpacing.lg),
+        const SizedBox(width: AppSpacing.standard),
         Expanded(
           child: _HubMetricSmall(
-            label: 'ROUNDS PLAYED',
+            label: 'Rounds played',
             value: stats.totalRoundsPlayed.toString(),
             icon: Icons.sports_golf_rounded,
-            color: Colors.purpleAccent,
+            color: AppColors.amber500,
           ),
         ),
       ],
@@ -565,17 +630,24 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildPrizeOverview(BuildContext context, ReportingHubStats stats) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Row(
-        children: [
-          _PrizeCircle(count: stats.totalCupsAwarded, label: 'Cups', icon: Icons.emoji_events_rounded, color: AppColors.amber500),
-          const Spacer(),
-          const VerticalDivider(),
-          const Spacer(),
-          _PrizeCircle(count: stats.totalVouchersAwarded, label: 'Vouchers', icon: Icons.confirmation_number_rounded, color: Colors.indigoAccent),
-        ],
-      ),
+    return Column(
+      children: [
+        Row(
+          children: [
+            _PrizeBadge(value: stats.totalCupsAwarded.toString(), label: 'Cups', icon: Icons.emoji_events_rounded, color: AppColors.amber500),
+            const SizedBox(width: AppSpacing.standard),
+            _PrizeBadge(value: stats.totalVouchersAwarded.toString(), label: 'Vouchers', icon: Icons.confirmation_number_rounded, color: AppColors.lime500),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.standard),
+        Row(
+          children: [
+            _PrizeBadge(value: stats.totalCashAwardsCount.toString(), label: 'Cash wins', icon: Icons.payments_rounded, color: AppColors.lime500),
+            const SizedBox(width: AppSpacing.standard),
+            _PrizeBadge(value: stats.totalUniqueWinners.toString(), label: 'Unique winners', icon: Icons.people_outline_rounded, color: AppColors.amber500),
+          ],
+        ),
+      ],
     );
   }
 
@@ -585,7 +657,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         final completed = events.where((e) => e.status == EventStatus.completed || e.results.isNotEmpty).sortedBy((e) => e.date).reversed.toList();
         
         if (completed.isEmpty) {
-          return const Center(child: Text('No completed events in archive', style: TextStyle(color: AppColors.textSecondary)));
+          return Center(child: Text('No completed events in archive', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)));
         }
 
         return Column(
@@ -595,35 +667,59 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                                (event.awards.where((a) => a.type == 'Cash').fold(0.0, (sum, a) => sum + a.value));
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              padding: const EdgeInsets.only(bottom: AppSpacing.standard),
               child: BoxyArtCard(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.all(AppSpacing.standard),
                 child: InkWell(
-                  onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/financials'),
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(event.title, style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
-                          Text(DateFormat.yMMMd().format(event.date), style: const TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                      const Spacer(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${eventProfit >= 0 ? '+' : ''}£${eventProfit.toStringAsFixed(0)}',
-                            style: TextStyle(fontWeight: AppTypography.weightBlack, color: eventProfit >= 0 ? AppColors.lime500 : Colors.redAccent),
+                    onTap: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/financials'),
+                    child: Row(
+                      children: [
+                        BoxyArtIconBadge(
+                          icon: Icons.history_rounded,
+                          color: AppColors.lime500,
+                          isTinted: true,
+                        ),
+                        const SizedBox(width: AppSpacing.standard),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event.title, 
+                                style: AppTypography.body.copyWith(fontWeight: AppTypography.weightStrong),
+                              ),
+                              Text(
+                                DateFormat.yMMMd().format(event.date), 
+                                style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro),
+                              ),
+                            ],
                           ),
-                          Text('${event.results.length} PLYRS', style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: AppShapes.iconMd),
-                    ],
-                  ),
+                        ),
+                        const SizedBox(width: AppSpacing.standard),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${eventProfit >= 0 ? '+' : ''}£${eventProfit.toStringAsFixed(0)}',
+                              style: AppTypography.body.copyWith(
+                                color: eventProfit >= 0 ? AppColors.lime500 : AppColors.coral500,
+                                fontWeight: AppTypography.weightHeavy,
+                              ),
+                            ),
+                            Text(
+                              '${event.results.length} Plyrs', 
+                              style: AppTypography.micro.copyWith(
+                                color: AppColors.dark500,
+                                fontWeight: AppTypography.weightHeavy,
+                                letterSpacing: AppTypography.lsMicro,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: AppSpacing.atomic),
+                        const Icon(Icons.chevron_right_rounded, color: AppColors.dark300, size: AppShapes.iconMd),
+                      ],
+                    ),
                 ),
               ),
             );
@@ -635,14 +731,86 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
     );
   }
 
-  Widget _buildHubRow(String label, String value, IconData icon, Color color) {
+  void _showFullAttendanceModal(BuildContext context, ReportingHubStats stats, AsyncValue<List<Member>> membersAsync, bool isDark) {
+    final allMembers = membersAsync.asData?.value ?? [];
+    
+    // Build a complete roll call list of all members, sorted by attendance
+    final rollCall = allMembers.map((m) {
+      final count = stats.attendanceMap[m.id] ?? 0;
+      return MapEntry<String, int>(m.id, count);
+    }).sortedBy<num>((e) => e.value).reversed.toList();
+
+    BoxyArtBottomSheet.show(
+      context: context,
+      title: 'Member Roll Call',
+      child: Column(
+        children: rollCall.mapIndexed((index, entry) {
+          final isLast = index == rollCall.length - 1;
+          return _buildLeaderboardRow(index, entry, membersAsync, isDark, showDivider: !isLast);
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildLeaderboardRow(int index, MapEntry<String, int> entry, AsyncValue<List<Member>> membersAsync, bool isDark, {bool showDivider = true}) {
+    final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == entry.key);
+    final name = member != null ? '${member.firstName} ${member.lastName}' : 'Member ID: ${entry.key.substring(0, 8)}...';
+    final initials = member != null ? '${member.firstName.characters.take(1)}${member.lastName.characters.take(1)}' : '?';
+
+    return Column(
+      children: [
+        BoxyArtMemberRow(
+          name: name,
+          initials: initials,
+          avatarUrl: member?.avatarUrl,
+          ranking: index + 1,
+          useCard: false,
+          showChevron: false,
+          trailing: Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.xs),
+            child: Text(
+              '${entry.value} events', 
+              style: AppTypography.caption.copyWith(
+                color: isDark ? AppColors.dark200 : AppColors.dark500,
+                fontWeight: AppTypography.weightSemibold,
+              ),
+            ),
+          ),
+        ),
+        if (showDivider)
+          Divider(
+            height: 1, 
+            color: isDark ? AppColors.dark500 : AppColors.lightBorder, 
+            indent: 52, // Align with the start of the name (Avatar width 44 + Spacing)
+          ),
+      ],
+    );
+  }
+
+  Widget _buildHubRow(String label, String value, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: AppShapes.iconXs, color: color),
-        const SizedBox(width: AppSpacing.sm),
-        Text(label, style: const TextStyle(fontSize: AppTypography.sizeButton, color: AppColors.textSecondary, fontWeight: AppTypography.weightMedium)),
-        const Spacer(),
-        Text(value, style: const TextStyle(fontSize: AppTypography.sizeBody, fontWeight: AppTypography.weightBlack)),
+        Icon(icon, size: 20, color: AppColors.textSecondary),
+        const SizedBox(width: AppSpacing.standard),
+        Expanded(
+          child: Text(
+            toSentenceCase(label), 
+            style: AppTypography.body.copyWith(
+              color: AppColors.dark600,
+              fontWeight: AppTypography.weightStrong,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.standard),
+        Text(
+          value, 
+          style: AppTypography.body.copyWith(
+            fontWeight: AppTypography.weightHeavy,
+            color: AppColors.dark900,
+          ),
+        ),
       ],
     );
   }
@@ -658,52 +826,99 @@ class _HubMetricSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: AppShapes.iconMd, color: color),
-          const SizedBox(height: AppSpacing.md),
-          Text(value, style: const TextStyle(fontSize: AppTypography.sizeDisplayHeading, fontWeight: AppTypography.weightBlack, letterSpacing: -1)),
-          Text(label, style: const TextStyle(fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 0.8)),
-        ],
+    const cyanBg = Color(0xFFE0F7FA);
+    const cyanBorder = Color(0xFF26C6DA);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.standard),
+        decoration: BoxDecoration(
+          color: isDark ? cyanBorder.withValues(alpha: 0.15) : cyanBg,
+          borderRadius: AppShapes.md,
+          border: Border.all(
+            color: cyanBorder,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label.toUpperCase(), 
+              style: AppTypography.micro.copyWith(
+                color: isDark ? AppColors.dark200 : AppColors.dark950,
+                fontWeight: AppTypography.weightExtraBold,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              value, 
+              style: AppTypography.displaySmall.copyWith(
+                fontWeight: AppTypography.weightHeavy,
+                color: isDark ? AppColors.dark60 : AppColors.dark950,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _PrizeCircle extends StatelessWidget {
-  final int count;
+class _PrizeBadge extends StatelessWidget {
+  final String value;
   final String label;
   final IconData icon;
   final Color color;
 
-  const _PrizeCircle({required this.count, required this.label, required this.icon, required this.color});
+  const _PrizeBadge({
+    required this.value, 
+    required this.label, 
+    required this.icon, 
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
+    const cyanBg = Color(0xFFE0F7FA);
+    const cyanBorder = Color(0xFF26C6DA);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.standard),
+        decoration: BoxDecoration(
+          color: isDark ? cyanBorder.withValues(alpha: 0.15) : cyanBg,
+          borderRadius: AppShapes.md,
+          border: Border.all(
+            color: cyanBorder,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 60,
-              height: 60,
-              child: CircularProgressIndicator(
-                value: 1.0,
-                strokeWidth: 3,
-                color: color.withValues(alpha: AppColors.opacityLow),
+            Text(
+              value, 
+              style: AppTypography.displaySmall.copyWith(
+                fontWeight: AppTypography.weightHeavy,
+                color: isDark ? AppColors.dark60 : AppColors.dark950,
               ),
             ),
-            Icon(icon, color: color, size: AppShapes.iconLg),
+            Text(
+              label.toUpperCase(), 
+              style: AppTypography.micro.copyWith(
+                color: isDark ? AppColors.dark200 : AppColors.dark950,
+                fontWeight: AppTypography.weightExtraBold,
+                letterSpacing: 0.5,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
-        Text(count.toString(), style: const TextStyle(fontSize: AppTypography.sizeLargeBody, fontWeight: AppTypography.weightBlack)),
-        Text(label, style: const TextStyle(fontSize: AppTypography.sizeCaptionStrong, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.0)),
-      ],
+      ),
     );
   }
 }

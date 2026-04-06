@@ -26,7 +26,7 @@ class EventCostControlScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.xl),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const BoxyArtSectionTitle(title: 'EVENT PRICING'),
+                const BoxyArtSectionTitle(title: 'Event pricing'),
                 BoxyArtCard(
                   child: Column(
                     children: [
@@ -94,7 +94,7 @@ class EventCostControlScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const BoxyArtSectionTitle(title: 'MEAL OPTIONS'),
+                const BoxyArtSectionTitle(title: 'Meal options'),
                 BoxyArtCard(
                   child: Column(
                     children: [
@@ -134,7 +134,7 @@ class EventCostControlScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const BoxyArtSectionTitle(title: 'MISCELLANEOUS EXPENSES'),
+                const BoxyArtSectionTitle(title: 'Miscellaneous expenses'),
                 if (event.expenses.isEmpty)
                   BoxyArtCard(
                     padding: const EdgeInsets.all(AppSpacing.xl),
@@ -150,7 +150,7 @@ class EventCostControlScreen extends ConsumerWidget {
                 
                 SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
                 BoxyArtButton(
-                  title: 'ADD EXPENSE',
+                  title: 'Add expense',
                   onTap: () => _showExpenseDialog(context, ref, event),
                   isGhost: true,
                   fullWidth: true,

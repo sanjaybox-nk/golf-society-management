@@ -180,12 +180,12 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Target Audience'),
+          const BoxyArtSectionTitle(title: 'Target audience'),
           const SizedBox(height: AppSpacing.md),
           _buildTargetSelector(totalRecipients),
           const SizedBox(height: AppSpacing.x3l),
           
-          const BoxyArtSectionTitle(title: 'Message Content'),
+          const BoxyArtSectionTitle(title: 'Message content'),
           const SizedBox(height: AppSpacing.md),
           _buildMessageForm(),
           const SizedBox(height: AppSpacing.x4l),
@@ -390,7 +390,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
              ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          const BoxyArtSectionTitle(title: 'CONTENT'),
+          const BoxyArtSectionTitle(title: 'Content'),
           const SizedBox(height: AppSpacing.md),
           BoxyArtRichEditor(
             controller: _quillController,

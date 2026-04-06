@@ -4,10 +4,10 @@ class AppTypography {
   // Radical Theme Simplification (BoxyArt v4.0)
 
   // 0. Consolidated Heights
-  static const double sizeDisplay = 32.0;   // Hero headers (Previously 64-32)
+  static const double sizeDisplay = 30.0;   // Hero headers (Previously 64-32)
   static const double sizeHeadline = 20.0;  // Section headers (Previously 28-20)
   static const double sizeBody = 16.0;      // Primary reading (Previously 18-16)
-  static const double sizeLabel = 13.0;     // Secondary metadata (Previously 15-12)
+  static const double sizeLabel = 12.0;     // Secondary metadata (Standardized to 12pt)
   static const double sizeMicro = 10.0;     // Captions & Micro-UI (Previously 11-8)
 
   // Legacy Size Aliases
@@ -57,6 +57,14 @@ class AppTypography {
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeHeadline,
     fontWeight: weightHeavy,
+    letterSpacing: lsTight,
+    height: 1.1,
+  );
+
+  static const TextStyle memberName = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 18.0,
+    fontWeight: weightBold,
     letterSpacing: lsTight,
     height: 1.1,
   );
@@ -126,6 +134,12 @@ class AppTypography {
   static TextStyle get displayMedium => display;
   
   static TextTheme createTextTheme() => textTheme;
+
+  static TextStyle get cardTitle => body.copyWith(
+    fontWeight: weightBold,
+    letterSpacing: -0.4,
+    height: 1.1,
+  );
 
   static TextTheme get textTheme {
     return const TextTheme(

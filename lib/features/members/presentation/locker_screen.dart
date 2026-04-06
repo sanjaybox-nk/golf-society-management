@@ -60,12 +60,24 @@ class LockerScreen extends ConsumerWidget {
                         builder: (context, ref, child) {
                           final society = ref.watch(themeControllerProvider);
                           final system = society.handicapSystem;
+                          
+                          if (user.handicapId == null) {
                             return Text(
-                              '${system.shortName}: ${user.handicapId ?? "N/A"}',
+                              'SYSTEM ADMINISTRATOR',
                               style: AppTypography.label.copyWith(
                                 color: AppColors.lime500,
+                                fontWeight: AppTypography.weightHeavy,
+                                letterSpacing: 1.2,
                               ),
                             );
+                          }
+
+                          return Text(
+                            '${system.shortName}: ${user.handicapId ?? "N/A"}',
+                            style: AppTypography.label.copyWith(
+                              color: AppColors.lime500,
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -73,22 +85,100 @@ class LockerScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Handicap Section
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
-                    Text(
-                      user.handicap.toStringAsFixed(1),
-                      style: AppTypography.displayHero.copyWith(
-                        color: primary,
+              // Handicap Section OR Registration Call
+              if (user.handicapId != null) 
+                BoxyArtCard(
+                  child: Column(
+                    children: [
+                      const BoxyArtSectionTitle(title: 'Current Handicap', isLevel2: true),
+                      Text(
+                        user.handicap.toStringAsFixed(1),
+                        style: AppTypography.displayHero.copyWith(
+                          color: primary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                )
+              else
+                BoxyArtCard(
+                  backgroundColor: AppColors.lime500.withValues(alpha: 0.05),
+                  child: Column(
+                    children: [
+                      Icon(Icons.sports_golf_rounded, color: AppColors.lime500, size: 40),
+                      SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Not Registered',
+                        style: AppTypography.labelStrong.copyWith(color: AppColors.lime500),
+                      ),
+                      SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'You are managing this society but are not currently listed as a playing member.',
+                        style: AppTypography.micro.copyWith(color: AppColors.dark400),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
+              // Financial Status Section
+              Consumer(
+                builder: (context, ref, _) {
+                  final statusAsync = ref.watch(memberFinancialStatusProvider(user.id));
+                  return statusAsync.when(
+                    data: (status) {
+                      if (status.totalDebt == 0 && status.accountCredit == 0) return const SizedBox.shrink();
+
+                      final isCredit = status.netBalance > 0;
+                      final isDebt = status.netBalance < 0;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                        child: BoxyArtCard(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Finances', style: AppTypography.displayLocker),
+                                  if (isCredit)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                                      decoration: BoxDecoration(color: AppColors.lime500, borderRadius: BorderRadius.circular(AppShapes.rSm)),
+                                      child: Text('CREDIT: +£${status.netBalance.toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.dark400, fontWeight: AppTypography.weightHeavy)),
+                                    )
+                                  else if (isDebt)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                                      decoration: BoxDecoration(color: AppColors.coral500, borderRadius: BorderRadius.circular(AppShapes.rSm)),
+                                      child: Text('OWES: £${status.netBalance.abs().toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.pureWhite, fontWeight: AppTypography.weightHeavy)),
+                                    )
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              if (status.accountCredit > 0) ...[
+                                Text('Available Voucher Credit: £${status.accountCredit.toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.lime500, fontWeight: AppTypography.weightBold)),
+                                const SizedBox(height: AppSpacing.sm),
+                              ],
+                              if (status.totalEventFeesOwed > 0) ...[
+                                Text('Event Entry Fees Owed: £${status.totalEventFeesOwed.toStringAsFixed(0)}', style: AppTypography.micro),
+                              ],
+                              if (status.totalFinesOwed > 0) ...[
+                                Text('Accumulated Fines Owed: £${status.totalFinesOwed.toStringAsFixed(0)}', style: AppTypography.micro.copyWith(color: AppColors.coral500)),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (e, s) => const SizedBox.shrink(),
+                  );
+                },
+              ),
               // Season Stakes section
               Consumer(
                 builder: (context, ref, _) {
@@ -139,71 +229,73 @@ class LockerScreen extends ConsumerWidget {
                 },
               ),
 
-              // Stats Section (Design 3.1 Synchronization)
-              const BoxyArtSectionTitle(
-                title: 'Season Highlights',
-              ),
-              Consumer(
-                builder: (context, ref, _) {
-                  final performanceAsync = ref.watch(memberPerformanceProvider(user.id));
-                  return performanceAsync.when(
-                    data: (stats) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                          MemberStatsRow(
-                            starts: stats.starts,
-                            wins: stats.wins,
-                            top5: stats.top5,
-                            avgPts: stats.avgPts,
-                            bestPts: stats.bestPts,
-                            rank: stats.rank,
+              // Stats Section (Only if registered)
+              if (user.handicapId != null) ...[
+                const BoxyArtSectionTitle(
+                  title: 'Season Highlights',
+                ),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final performanceAsync = ref.watch(memberPerformanceProvider(user.id));
+                    return performanceAsync.when(
+                      data: (stats) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                            MemberStatsRow(
+                              starts: stats.starts,
+                              wins: stats.wins,
+                              top5: stats.top5,
+                              avgPts: stats.avgPts,
+                              bestPts: stats.bestPts,
+                              rank: stats.rank,
+                            ),
+                            const BoxyArtSectionTitle(
+                              title: 'Season Standing',
+                            ),
+                          BoxyArtCard(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            child: Column(
+                              children: [
+                                _buildHighlightRow(
+                                  context,
+                                  icon: Icons.emoji_events_rounded,
+                                  color: AppColors.amber500,
+                                  label: 'Order of Merit',
+                                  value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
+                                ),
+                                const BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                                _buildHighlightRow(
+                                  context,
+                                  icon: Icons.grid_view_rounded,
+                                  color: AppColors.teamA,
+                                  label: 'Starts',
+                                  value: '${stats.starts} Matches',
+                                ),
+                                const BoxyArtDivider(verticalPadding: AppSpacing.sm),
+                                _buildHighlightRow(
+                                  context,
+                                  icon: Icons.park_rounded,
+                                  color: AppColors.lime500,
+                                  label: 'Best Score',
+                                  value: stats.bestPts > 0 ? '${stats.bestPts} Pts' : '-',
+                                ),
+                              ],
+                            ),
                           ),
-                          const BoxyArtSectionTitle(
-                            title: 'Season Standing',
-                          ),
-                        BoxyArtCard(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: Column(
-                            children: [
-                              _buildHighlightRow(
-                                context,
-                                icon: Icons.emoji_events_rounded,
-                                color: AppColors.amber500,
-                                label: 'Order of Merit',
-                                value: stats.rank != null ? 'Rank #${stats.rank}' : 'Unranked',
-                              ),
-                              const BoxyArtDivider(verticalPadding: AppSpacing.sm),
-                              _buildHighlightRow(
-                                context,
-                                icon: Icons.grid_view_rounded,
-                                color: AppColors.teamA,
-                                label: 'Starts',
-                                value: '${stats.starts} Matches',
-                              ),
-                              const BoxyArtDivider(verticalPadding: AppSpacing.sm),
-                              _buildHighlightRow(
-                                context,
-                                icon: Icons.park_rounded,
-                                color: AppColors.lime500,
-                                label: 'Best Score',
-                                value: stats.bestPts > 0 ? '${stats.bestPts} Pts' : '-',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
-                    error: (e, s) => const SizedBox.shrink(),
-                  );
-                },
-              ),
-              SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
-              BoxyArtButton(
-                title: 'Season Standings',
-                icon: Icons.leaderboard_rounded,
-                onTap: () => GoRouter.of(context).push('/locker/standings'),
-              ),
+                        ],
+                      ),
+                      loading: () => const SizedBox(height: 240, child: Center(child: CircularProgressIndicator())),
+                      error: (e, s) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                BoxyArtButton(
+                  title: 'Season Standings',
+                  icon: Icons.leaderboard_rounded,
+                  onTap: () => GoRouter.of(context).push('/locker/standings'),
+                ),
+              ],
               const BoxyArtSectionTitle(
                 title: 'Account Settings',
               ),

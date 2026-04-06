@@ -1,6 +1,4 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:ui';
 
 
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -64,37 +62,7 @@ class EventSliverAppBar extends ConsumerWidget {
           ],
         ],
       ),
-      actions: [
-        if (isPreview)
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.xl),
-            child: Container(
-              width: AppSpacing.x4l,
-              height: AppSpacing.x4l,
-              decoration: BoxDecoration(
-                color: AppColors.pureWhite.withValues(alpha: AppColors.opacityLow),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.pureWhite.withValues(alpha: AppColors.opacityMedium),
-                  width: AppShapes.borderThin,
-                ),
-              ),
-              child: ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: IconButton(
-                    icon: const Icon(Icons.edit),
-                    iconSize: 20,
-                    color: AppColors.pureWhite,
-                    onPressed: () => context.push('/admin/events/manage/${Uri.encodeComponent(event.id)}/event'),
-                    padding: EdgeInsets.zero,
-                    tooltip: 'Edit Event',
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
+      actions: const [],
     );
   }
 }

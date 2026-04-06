@@ -2,6 +2,7 @@ import 'package:golf_society/design_system/design_system.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
+import 'package:collection/collection.dart';
 import '../../../../features/events/presentation/events_provider.dart';
 
 import 'controls/oom_control.dart';
@@ -10,42 +11,74 @@ import 'controls/eclectic_control.dart';
 import 'controls/marker_counter_control.dart';
 
 class LeaderboardBuilderScreen extends ConsumerWidget {
-  final LeaderboardType type;
-  final LeaderboardConfig? existingConfig; // If editing
+  final LeaderboardType? type;
+  final String? configId;
+  final LeaderboardConfig? existingConfig; // If passed as extra
   final bool isTemplate; // If saving to Templates repo instead of returning
 
   const LeaderboardBuilderScreen({
     super.key,
-    required this.type,
+    this.type,
+    this.configId,
     this.existingConfig,
     this.isTemplate = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // If we have an ID but no config, we need to load it. 
+    // In this app's pattern, we usually pass extra, but if we don't, we can look it up in the repository's watch stream.
+    LeaderboardConfig? effectiveConfig = existingConfig;
+    
+    if (configId != null && effectiveConfig == null) {
+      final templatesStream = ref.watch(leaderboardTemplatesRepositoryProvider).watchTemplates();
+      return StreamBuilder<List<LeaderboardConfig>>(
+        stream: templatesStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          
+          final list = snapshot.data ?? [];
+          effectiveConfig = list.firstWhereOrNull((c) => c.id == configId);
+          if (effectiveConfig == null) return const Center(child: Text('Template not found'));
+          return _buildScaffold(context, ref, effectiveConfig);
+        },
+      );
+    }
+
+    return _buildScaffold(context, ref, effectiveConfig);
+  }
+
+  Widget _buildScaffold(BuildContext context, WidgetRef ref, LeaderboardConfig? effectiveConfig) {
+    final effectiveType = type ?? (effectiveConfig != null ? _getTypeFromConfig(effectiveConfig) : LeaderboardType.orderOfMerit);
+
     return HeadlessScaffold(
-      title: _formatEnum(type.name),
-      subtitle: existingConfig != null ? 'Edit Configuration' : 'New Configuration',
+      title: _formatEnum(effectiveType.name),
+      subtitle: effectiveConfig != null ? 'Edit configuration' : 'New configuration',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
           sliver: SliverToBoxAdapter(
-            child: _buildControl(context, ref),
+            child: _buildControl(context, ref, effectiveType, effectiveConfig),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildControl(BuildContext context, WidgetRef ref) {
+  Widget _buildControl(BuildContext context, WidgetRef ref, LeaderboardType effectiveType, LeaderboardConfig? effectiveConfig) {
     Future<void> handleSave(LeaderboardConfig config) async {
       if (isTemplate) {
         // Save to Repo
         try {
           final repo = ref.read(leaderboardTemplatesRepositoryProvider);
-          if (existingConfig != null) {
+          if (effectiveConfig != null) {
             await repo.updateTemplate(config);
           } else {
             await repo.addTemplate(config);
@@ -65,15 +98,15 @@ class LeaderboardBuilderScreen extends ConsumerWidget {
       }
     }
 
-    switch (type) {
+    switch (effectiveType) {
       case LeaderboardType.orderOfMerit:
-        return OrderOfMeritControl(existingConfig: existingConfig, onSave: handleSave);
+        return OrderOfMeritControl(existingConfig: effectiveConfig is OrderOfMeritConfig ? effectiveConfig : null, onSave: handleSave);
       case LeaderboardType.bestOfSeries:
-        return BestOfSeriesControl(existingConfig: existingConfig, onSave: handleSave);
+        return BestOfSeriesControl(existingConfig: effectiveConfig is BestOfSeriesConfig ? effectiveConfig : null, onSave: handleSave);
       case LeaderboardType.eclectic:
-        return EclecticControl(existingConfig: existingConfig, onSave: handleSave);
+        return EclecticControl(existingConfig: effectiveConfig is EclecticConfig ? effectiveConfig : null, onSave: handleSave);
       case LeaderboardType.markerCounter:
-        return MarkerCounterControl(existingConfig: existingConfig, onSave: handleSave);
+        return MarkerCounterControl(existingConfig: effectiveConfig is MarkerCounterConfig ? effectiveConfig : null, onSave: handleSave);
     }
   }
 
@@ -81,5 +114,14 @@ class LeaderboardBuilderScreen extends ConsumerWidget {
     final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
     String result = val.replaceAllMapped(exp, (Match m) => ' ${m.group(0)}');
     return result[0].toUpperCase() + result.substring(1);
+  }
+
+  LeaderboardType _getTypeFromConfig(LeaderboardConfig config) {
+    return config.map(
+      orderOfMerit: (_) => LeaderboardType.orderOfMerit,
+      bestOfSeries: (_) => LeaderboardType.bestOfSeries,
+      eclectic: (_) => LeaderboardType.eclectic,
+      markerCounter: (_) => LeaderboardType.markerCounter,
+    );
   }
 }

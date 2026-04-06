@@ -9,16 +9,16 @@ import '../../../events/logic/event_analysis_engine.dart';
 import '../../../admin/providers/admin_ui_providers.dart';
 import 'package:golf_society/domain/grouping/grouping_service.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
-import 'widgets/grouping_modals.dart';
-import 'package:golf_society/utils/string_utils.dart';
 
 class EventAdminControlsScreen extends ConsumerStatefulWidget {
   final String eventId;
+
   const EventAdminControlsScreen({super.key, required this.eventId});
 
   @override
   ConsumerState<EventAdminControlsScreen> createState() => _EventAdminControlsScreenState();
 }
+
 
 class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScreen> {
   final Map<String, bool> _optimisticToggles = {};
@@ -47,14 +47,14 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
           onBack: () => context.goNamed('admin-events'),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, top: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // 1. Status Overview Header
                   _buildStatusHeader(event, scorecardsAsync, spacing),
 
-                  // 2. Lifecycle & Visibility Section
-                  const BoxyArtSectionTitle(title: 'LIFECYCLE & VISIBILITY'),
+                  // 2. Player Visibility Section
+                  const BoxyArtSectionTitle(title: 'Player visibility'),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -73,19 +73,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                         ),
                         const BoxyArtDivider(),
                         BoxyArtSwitchTile(
-                          icon: Icons.analytics_outlined,
-                          label: 'Show Live Stats to Players',
-                          subtitle: 'Allow players to see calculated analytics during the event.',
-                          value: _optimisticToggles['isStatsReleased'] ?? (event.isStatsReleased == true),
-                          onChanged: (val) {
-                            setState(() => _optimisticToggles['isStatsReleased'] = val);
-                            ref.read(eventsRepositoryProvider).updateEvent(
-                              event.copyWith(isStatsReleased: val),
-                            );
-                          },
-                        ),
-                        const BoxyArtDivider(),
-                        BoxyArtSwitchTile(
                           icon: Icons.cloud_done_outlined,
                           label: 'Show Tee Times to Members',
                           subtitle: 'Publish the grouping and tee times to the member event hub.',
@@ -98,6 +85,28 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                           },
                         ),
                         const BoxyArtDivider(),
+                        BoxyArtSwitchTile(
+                          icon: Icons.analytics_outlined,
+                          label: 'Show Live Stats to Players',
+                          subtitle: 'Allow players to see calculated analytics during the event.',
+                          value: _optimisticToggles['isStatsReleased'] ?? (event.isStatsReleased == true),
+                          onChanged: (val) {
+                            setState(() => _optimisticToggles['isStatsReleased'] = val);
+                            ref.read(eventsRepositoryProvider).updateEvent(
+                              event.copyWith(isStatsReleased: val),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 3. Workbench Safety Section
+                  const BoxyArtSectionTitle(title: 'Workbench safety'),
+                  BoxyArtCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
                         BoxyArtSwitchTile(
                           icon: Icons.lock_person_outlined,
                           label: 'Lock Grouping',
@@ -113,76 +122,74 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                               BoxyArtButton(
                                 title: 'Recalculate Stats',
                                 fullWidth: true,
-                                isSecondary: true,
+                                isPrimary: true,
                                 onTap: () => _recalculateStats(event, scorecardsAsync),
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              Text(
-                                'Last Finalized: ${event.finalizedStats.isNotEmpty ? "Ready" : "Never"}',
-                                style: const TextStyle(
-                                  fontSize: AppTypography.sizeCaption, 
-                                  color: AppColors.textSecondary, 
-                                  fontWeight: AppTypography.weightBold,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Status:',
+                                    style: AppTypography.caption.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: AppTypography.weightBold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  BoxyArtPill.status(
+                                    label: event.finalizedStats.isNotEmpty ? 'Ready' : 'Never finalized',
+                                    color: event.finalizedStats.isNotEmpty ? Theme.of(context).primaryColor : AppColors.amber500,
+                                    isAction: true,
+                                  ),
+                                ],
                               ),
+
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
-                  // 3. Grouping & Tee Times Hub
-                  const BoxyArtSectionTitle(title: 'GROUPING & TEE TIMES'),
-                  BoxyArtCard(
-                    padding: EdgeInsets.zero,
-                    child: BoxyArtNavTile(
-                      title: 'Manage Grouping & Tee Times',
-                      subtitle: 'Configure strategy, tee times, and manual placement',
-                      icon: Icons.auto_awesome_motion_rounded,
-                      onTap: () => context.goNamed(
-                        'admin-event-gallery',
-                        pathParameters: {'id': event.id},
-                      ),
-                    ),
-                  ),
-                  
-                  // 4. Administrative Hub
-                  const BoxyArtSectionTitle(title: 'ADMINISTRATIVE HUB'),
+
+                ]),
+              ),
+            ),
+
+            // 3. Administrative Hub
+            SliverPadding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const BoxyArtSectionTitle(title: 'Event configuration'),
+
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
                       children: [
                         BoxyArtNavTile(
-                          title: 'Scorecard Management',
-                          subtitle: 'Review, unlock or finalize player scores',
-                          icon: Icons.assignment_turned_in_rounded,
-                          onTap: () => context.pushNamed(
-                            'admin-event-scorecards',
-                            pathParameters: {'id': event.id},
-                          ),
-                        ),
-                        const BoxyArtDivider(),
-                        BoxyArtNavTile(
-                          title: 'Field & Registrations',
-                          subtitle: 'Confirm attendance & manage guests',
-                          icon: Icons.people_outline_rounded,
-                          onTap: () => context.pushNamed(
-                            'admin-event-registrations',
-                            pathParameters: {'id': event.id},
-                          ),
-                        ),
-                        const BoxyArtDivider(),
-                        BoxyArtNavTile(
                           title: 'Edit Event Details',
+
                           subtitle: 'Change venue, date, or title',
                           icon: Icons.settings_applications_outlined,
                           onTap: () => context.pushNamed(
-                            'admin-event-edit-form',
+                            'admin-event-edit',
                             pathParameters: {'id': event.id},
                             extra: event,
                           ),
                         ),
+
+                        const BoxyArtDivider(),
+                        BoxyArtNavTile(
+                          title: 'Fines & Charity',
+                          subtitle: 'Record ad-hoc penalties & collections',
+                          icon: Icons.gavel_rounded,
+                          onTap: () => context.pushNamed(
+                            'admin-event-fines',
+                            pathParameters: {'id': event.id},
+                          ),
+                        ),
+
                         const BoxyArtDivider(),
                         BoxyArtNavTile(
                           title: 'Society Cuts',
@@ -228,7 +235,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                   ),
                   
                   // 5. Termination / Finalization
-                  const BoxyArtSectionTitle(title: 'EVENT TERMINATION'),
+                  const BoxyArtSectionTitle(title: 'Event termination'),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: BoxyArtSwitchTile(
@@ -314,8 +321,8 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         title: const Text('Close Event?'),
         content: const Text('This will lock all scorecards, finalize the results, and mark the event as completed.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('CLOSE', style: TextStyle(color: AppColors.coral500))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Close', style: TextStyle(color: AppColors.coral500))),
         ],
       ),
     );
@@ -368,8 +375,8 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         builder: (context) => BoxyArtDialog(
           title: 'Unassigned Players Found',
           message: 'The following confirmed players are not in any group: $names. \n\nWould you like to auto-fill them into vacancies before locking?',
-          confirmText: 'AUTO-FILL & LOCK',
-          cancelText: 'JUST LOCK',
+          confirmText: 'Auto-fill & lock',
+          cancelText: 'Just lock',
           onConfirm: () => Navigator.pop(context, true),
           onCancel: () => Navigator.pop(context, false),
         ),
@@ -426,33 +433,6 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
     }
   }
 
-  Future<void> _updateEventTimings(GolfEvent event, {DateTime? teeOffTime, int? interval}) async {
-    final newTeeOffTime = teeOffTime ?? event.teeOffTime;
-    final newInterval = interval ?? event.teeOffInterval;
-
-    Map<String, dynamic> updatedGrouping = Map.from(event.grouping);
-    if (updatedGrouping.containsKey('groups')) {
-      final List<dynamic> groupsData = updatedGrouping['groups'];
-      List<TeeGroup> groups = groupsData.map((g) => TeeGroup.fromJson(g)).toList();
-
-      DateTime currentSeed = newTeeOffTime ?? DateTime.now();
-      for (int i = 0; i < groups.length; i++) {
-        groups[i] = groups[i].copyWith(teeTime: currentSeed);
-        currentSeed = currentSeed.add(Duration(minutes: newInterval));
-      }
-
-      updatedGrouping['groups'] = groups.map((g) => g.toJson()).toList();
-      updatedGrouping['updatedAt'] = DateTime.now().toIso8601String();
-    }
-
-    await ref.read(eventsRepositoryProvider).updateEvent(
-      event.copyWith(
-        teeOffTime: newTeeOffTime,
-        teeOffInterval: newInterval,
-        grouping: updatedGrouping,
-      ),
-    );
-  }
 
   Widget _buildStatusHeader(GolfEvent event, AsyncValue<List<Scorecard>> scorecardsAsync, AppSpacingTokens? spacing) {
     final Set<String> uniqueGolferIds = {};
@@ -524,7 +504,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
       child: Column(
         children: [
           Text(
-            label.toUpperCase(), 
+            label, 
             style: const TextStyle(
               fontSize: 11, 
               fontWeight: AppTypography.weightBlack, 

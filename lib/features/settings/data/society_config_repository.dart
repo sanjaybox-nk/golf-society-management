@@ -22,4 +22,12 @@ class SocietyConfigRepository {
   Future<void> updateConfig(SocietyConfig config) async {
     await _docRef.set(config.toJson(), SetOptions(merge: true));
   }
+
+  Future<void> forceReplaceConfig(SocietyConfig config) async {
+    await _docRef.set(config.toJson(), SetOptions(merge: false));
+  }
+
+  Future<void> deleteConfig() async {
+    await _docRef.delete();
+  }
 }

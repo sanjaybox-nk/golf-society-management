@@ -18,18 +18,13 @@ class EventPricingSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Event Costs'),
+          BoxyArtSectionTitle(
+            title: state.eventType == EventType.social ? 'Event Costs' : 'Playing Costs',
+          ),
           BoxyArtCard(
             child: Column(
               children: [
-                if (state.eventType == EventType.social) ...[
-                  BoxyArtFormField(
-                    label: 'Event Cost ($currency)',
-                    initialValue: state.eventCost?.toString() ?? '',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateEventCost(double.tryParse(v)),
-                  ),
-                ] else ...[
+                if (state.eventType == EventType.golf) ...[
                   Row(
                     children: [
                       Expanded(
@@ -40,11 +35,11 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyFee(double.tryParse(v)),
                         ),
                       ),
-                                const SizedBox(width: AppSpacing.lg),
+                      const SizedBox(width: AppSpacing.lg),
                       const Expanded(child: SizedBox.shrink()),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.cardToLabel),
+                  const SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
                       Expanded(
@@ -55,7 +50,7 @@ class EventPricingSection extends ConsumerWidget {
                           onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateMemberCost(double.tryParse(v)),
                         ),
                       ),
-                                const SizedBox(width: AppSpacing.lg),
+                      const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: BoxyArtFormField(
                           label: 'Guest Charge ($currency)',
@@ -66,42 +61,100 @@ class EventPricingSection extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: AppSpacing.lg),
+                  BoxyArtFormField(
+                    label: 'Indicative Buggy Cost ($currency)',
+                    initialValue: state.buggyCost?.toString() ?? '',
+                    keyboardType: TextInputType.number,
+                    onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateBuggyCost(double.tryParse(v)),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
+                // Dynamic Costs
+                if (state.extraCosts.isNotEmpty) ...[
+                  const BoxyArtDivider(),
+                  ...state.extraCosts.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final cost = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: BoxyArtFormField(
+                              label: 'Cost Label',
+                              initialValue: cost.label,
+                              onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCost(index, cost.copyWith(label: v)),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            flex: 3,
+                            child: BoxyArtFormField(
+                              label: 'Amount ($currency)',
+                              initialValue: cost.amount == 0 ? '' : cost.amount.toString(),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateCost(index, cost.copyWith(amount: double.tryParse(v) ?? 0.0)),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+                            onPressed: () => ref.read(eventFormNotifierProvider.notifier).removeCost(index),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+                const SizedBox(height: AppSpacing.md),
+                BoxyArtButton(
+                  title: 'Add cost',
+                  onTap: () => ref.read(eventFormNotifierProvider.notifier).addCost(),
+                  isSecondary: true,
+                  isPrimary: false,
+                  icon: Icons.add_circle_outline_rounded,
+                  fullWidth: true,
+                ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(title: 'Meal Options & Costs'),
+          BoxyArtSectionTitle(
+            title: state.eventType == EventType.social ? 'Event Details' : 'Meal Options & Costs',
+          ),
           BoxyArtCard(
             child: Column(
               children: [
-                _buildMealToggle(ref, 'Breakfast', state.hasBreakfast, state.societyBreakfastCost, state.breakfastCost, currency, 
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateHasBreakfast(v),
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyBreakfastCost(double.tryParse(v) ?? 0),
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateBreakfastCost(double.tryParse(v) ?? 0),
-                ),
-                const Divider(height: AppSpacing.x3l),
-                _buildMealToggle(ref, 'Lunch', state.hasLunch, state.societyLunchCost, state.lunchCost, currency, 
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateHasLunch(v),
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyLunchCost(double.tryParse(v) ?? 0),
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateLunchCost(double.tryParse(v) ?? 0),
-                ),
-                const Divider(height: AppSpacing.x3l),
-                _buildMealToggle(ref, 'Dinner', state.hasDinner, state.societyDinnerCost, state.dinnerCost, currency, 
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateHasDinner(v),
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyDinnerCost(double.tryParse(v) ?? 0),
-                  (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerCost(double.tryParse(v) ?? 0),
-                ),
-                if (state.hasDinner) ...[
-                  const SizedBox(height: AppSpacing.cardToLabel),
+                if (state.eventType == EventType.golf) ...[
+                  _buildMealToggle(ref, 'Breakfast', state.hasBreakfast, state.societyBreakfastCost, state.breakfastCost, currency, 
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateHasBreakfast(v),
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyBreakfastCost(double.tryParse(v) ?? 0),
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateBreakfastCost(double.tryParse(v) ?? 0),
+                  ),
+                  const Divider(height: AppSpacing.x3l),
+                  _buildMealToggle(ref, 'Lunch', state.hasLunch, state.societyLunchCost, state.lunchCost, currency, 
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateHasLunch(v),
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyLunchCost(double.tryParse(v) ?? 0),
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateLunchCost(double.tryParse(v) ?? 0),
+                  ),
+                  const Divider(height: AppSpacing.x3l),
+                  _buildMealToggle(ref, 'Dinner', state.hasDinner, state.societyDinnerCost, state.dinnerCost, currency, 
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateHasDinner(v),
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateSocietyDinnerCost(double.tryParse(v) ?? 0),
+                    (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerCost(double.tryParse(v) ?? 0),
+                  ),
+                ],
+                if (state.hasDinner || state.eventType == EventType.social) ...[
+                  if (state.eventType == EventType.golf) const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
-                    label: 'Dinner Location',
+                    label: state.eventType == EventType.social ? 'Event Location' : 'Dinner Location',
                     initialValue: state.dinnerLocation,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerLocation(v),
                   ),
-                  const SizedBox(height: AppSpacing.cardToLabel),
+                  const SizedBox(height: AppSpacing.lg),
                   BoxyArtFormField(
-                    label: 'Dinner Address (Optional)',
+                    label: state.eventType == EventType.social ? 'Event Address' : 'Dinner Address (Optional)',
                     initialValue: state.dinnerAddress,
                     onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateDinnerAddress(v),
                   ),
@@ -131,14 +184,14 @@ class EventPricingSection extends ConsumerWidget {
       children: [
         BoxyArtSwitchField(label: 'Offer $label', value: value, onChanged: onToggle),
         if (value) ...[
-          const SizedBox(height: AppSpacing.x2l),
+          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Society $label Cost ($currency)',
             initialValue: societyCost?.toString() ?? '',
             keyboardType: TextInputType.number,
             onChanged: onSocietyCostChanged,
           ),
-          const SizedBox(height: AppSpacing.x2l),
+          const SizedBox(height: AppSpacing.lg),
           BoxyArtFormField(
             label: 'Member Charge ($currency)',
             initialValue: memberCost?.toString() ?? '',

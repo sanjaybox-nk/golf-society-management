@@ -43,9 +43,9 @@ class EventAwardsSection extends ConsumerWidget {
                         ref: ref,
                       );
                     }),
-                    const SizedBox(height: AppSpacing.cardToLabel),
+                    const SizedBox(height: AppSpacing.lg),
                     BoxyArtButton(
-                      title: 'ADD AWARD',
+                      title: 'Add award',
                       onTap: () => ref.read(eventFormNotifierProvider.notifier).addAward(),
                       isGhost: true,
                     ),
@@ -121,16 +121,16 @@ class _AwardRowState extends State<_AwardRow> {
         Row(
           children: [
             Expanded(
-              flex: 2,
+              flex: 5,
               child: BoxyArtFormField(
                 label: 'Award Label',
                 controller: _labelController,
                 onChanged: (v) => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(label: v)),
               ),
             ),
-            const SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
-              flex: 1,
+              flex: 3,
               child: BoxyArtFormField(
                 label: 'Value (${widget.currency})',
                 controller: _valueController,
@@ -144,19 +144,20 @@ class _AwardRowState extends State<_AwardRow> {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.cardToLabel),
+        const SizedBox(height: AppSpacing.lg),
         Row(
           children: ['Cup', 'Cash', 'Voucher'].map((type) {
             final isSelected = widget.award.type.toLowerCase() == type.toLowerCase();
             return Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                padding: const EdgeInsets.symmetric(horizontal: 2.0),
                 child: SizedBox(
-                  height: AppSpacing.x3l,
+                  height: 36, // Compact height for smaller buttons
                   child: BoxyArtButton(
-                    title: type.toUpperCase(),
+                    title: type,
                     onTap: () => widget.ref.read(eventFormNotifierProvider.notifier).updateAward(widget.index, widget.award.copyWith(type: type)),
                     isGhost: !isSelected,
+                    isSmall: true,
                   ),
                 ),
               ),

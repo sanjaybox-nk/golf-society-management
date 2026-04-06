@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import '../../../events/presentation/events_provider.dart';
 
 class EventAdminFinancialsScreen extends ConsumerWidget {
@@ -18,23 +19,21 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
         return HeadlessScaffold(
           title: 'Event Ledger',
           subtitle: 'Financials & Prizes',
-          showBack: false,
+          showBack: true,
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  const SizedBox(height: AppSpacing.standard),
                   _buildBalanceOverview(context, event),
-                  const SizedBox(height: AppSpacing.x2l),
                   const BoxyArtSectionTitle(title: 'Expenses'),
-                  const SizedBox(height: AppSpacing.md),
                   ...event.expenses.map((e) => _buildExpenseRow(context, ref, event, e)),
                   _buildAddExpenseButton(context, ref, event),
-                  const SizedBox(height: AppSpacing.x3l),
                   const BoxyArtSectionTitle(title: 'Prizes & Awards'),
-                  const SizedBox(height: AppSpacing.md),
                   ...event.awards.map((a) => _buildAwardRow(context, ref, event, a)),
                   _buildAddAwardButton(context, ref, event),
+                  const SizedBox(height: AppSpacing.pageBottom),
                 ]),
               ),
             ),
@@ -52,9 +51,10 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
     final cashPrizes = event.awards.where((a) => a.type == 'Cash').fold(0.0, (sum, a) => sum + a.value);
     
     final netProfit = registrationRevenue - totalExpenses - cashPrizes;
+    final isProfit = netProfit >= 0;
 
     return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.standard),
       child: Column(
         children: [
           Row(
@@ -63,39 +63,37 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
                Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('NET POSITION', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBlack, color: AppColors.textSecondary, letterSpacing: 1.2)),
                   Text(
-                    '${netProfit >= 0 ? '+' : ''}£${netProfit.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: AppTypography.sizeDisplayMedium, 
-                      fontWeight: AppTypography.weightBlack, 
-                      color: netProfit >= 0 ? AppColors.lime500 : Colors.redAccent,
-                      letterSpacing: -1,
+                    'Net position',
+                    style: AppTypography.micro.copyWith(
+                      color: AppColors.dark500,
+                      letterSpacing: AppTypography.lsMicro,
+                    ),
+                  ),
+                  Text(
+                    '${isProfit ? '+' : ''}£${netProfit.toStringAsFixed(2)}',
+                    style: AppTypography.display.copyWith(
+                      color: isProfit ? AppColors.lime500 : AppColors.coral500,
                     ),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: (netProfit >= 0 ? AppColors.lime500 : Colors.redAccent).withValues(alpha: AppColors.opacityLow),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  netProfit >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                  color: netProfit >= 0 ? AppColors.lime500 : Colors.redAccent,
-                  size: AppShapes.iconLg,
-                ),
+              BoxyArtIconBadge(
+                icon: isProfit ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                color: isProfit ? AppColors.lime500 : AppColors.coral500,
+                isTinted: true,
+                size: 56,
+                iconSize: AppShapes.iconLg,
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.x2l),
-          const Divider(),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.standard),
+          const BoxyArtDivider(),
+          const SizedBox(height: AppSpacing.standard),
           _buildMetricRow('Registration Revenue', '£${registrationRevenue.toStringAsFixed(2)}', Icons.payments_outlined),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.atomic),
           _buildMetricRow('Operational Costs', '-£${totalExpenses.toStringAsFixed(2)}', Icons.receipt_long_outlined),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.atomic),
           _buildMetricRow('Cash Payouts', '-£${cashPrizes.toStringAsFixed(2)}', Icons.emoji_events_outlined),
         ],
       ),
@@ -105,46 +103,73 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
   Widget _buildMetricRow(String label, String value, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: AppShapes.iconSm, color: AppColors.textSecondary),
-        const SizedBox(width: AppSpacing.sm),
-        Text(label, style: const TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.textSecondary, fontWeight: AppTypography.weightSemibold)),
+        Icon(icon, size: AppShapes.iconXs, color: AppColors.dark500),
+        const SizedBox(width: AppSpacing.atomic),
+        Text(
+          label, 
+          style: AppTypography.micro.copyWith(
+            color: AppColors.dark500,
+            letterSpacing: AppTypography.lsMicro,
+          ),
+        ),
         const Spacer(),
-        Text(value, style: const TextStyle(fontSize: AppTypography.sizeBodySmall, fontWeight: AppTypography.weightBlack)),
+        Text(
+          value, 
+          style: AppTypography.body.copyWith(
+            fontWeight: AppTypography.weightHeavy,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildExpenseRow(BuildContext context, WidgetRef ref, GolfEvent event, EventExpense expense) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.only(bottom: AppSpacing.atomic),
       child: GestureDetector(
         onTap: () => _showExpenseDialog(context, ref, event, expense: expense),
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: AppColors.dark700.withValues(alpha: AppColors.opacityLow),
-                  borderRadius: AppShapes.md,
-                ),
-                child: Icon(_getCategoryIcon(expense.category), size: AppShapes.iconSm, color: AppColors.textSecondary),
+              BoxyArtIconBadge(
+                icon: _getCategoryIcon(expense.category),
+                color: AppColors.textSecondary,
+                isTinted: true,
               ),
-              const SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: AppSpacing.standard),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(expense.label, style: const TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeButton)),
-                    Text(expense.category.toUpperCase(), style: const TextStyle(fontSize: AppTypography.sizeCaption, color: AppColors.textSecondary, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5)),
+                    Text(
+                      toSentenceCase(expense.label),
+                      style: AppTypography.body.copyWith(
+                        color: theme.brightness == Brightness.dark ? AppColors.pureWhite : AppColors.dark900,
+                        fontWeight: AppTypography.weightBold,
+                        fontSize: AppTypography.sizeBody,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    Text(
+                      toSentenceCase(expense.category),
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.dark300,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Text('£${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
-              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '£${expense.amount.toStringAsFixed(2)}',
+                style: AppTypography.body.copyWith(
+                  fontWeight: AppTypography.weightHeavy,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconMd, color: Colors.redAccent),
+                icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconMd, color: AppColors.coral500),
                 onPressed: () => _deleteExpense(ref, event, expense.id),
               ),
             ],
@@ -155,37 +180,53 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
   }
 
   Widget _buildAwardRow(BuildContext context, WidgetRef ref, GolfEvent event, EventAward award) {
-     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.atomic),
       child: GestureDetector(
         onTap: () => _showAwardDialog(context, ref, event, award: award),
         child: BoxyArtCard(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.standard),
           child: Row(
             children: [
-               Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
-                  borderRadius: AppShapes.md,
-                ),
-                child: Icon(award.type == 'Cup' ? Icons.emoji_events_rounded : Icons.account_balance_wallet_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
+              BoxyArtIconBadge(
+                icon: award.type == 'Cup' ? Icons.emoji_events_rounded : Icons.account_balance_wallet_rounded,
+                color: AppColors.lime500,
+                isTinted: true,
               ),
-              const SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: AppSpacing.standard),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(award.label, style: const TextStyle(fontWeight: AppTypography.weightExtraBold, fontSize: AppTypography.sizeButton)),
-                    Text(award.winnerName ?? 'UNASSIGNED', style: TextStyle(fontSize: AppTypography.sizeCaption, color: award.winnerName != null ? AppColors.lime500 : AppColors.amber500, fontWeight: AppTypography.weightBlack, letterSpacing: 0.5)),
+                    Text(
+                      toSentenceCase(award.label),
+                      style: AppTypography.body.copyWith(
+                        color: theme.brightness == Brightness.dark ? AppColors.pureWhite : AppColors.dark900,
+                        fontWeight: AppTypography.weightBold,
+                        fontSize: AppTypography.sizeBody,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    Text(
+                      toTitleCase(award.winnerName ?? 'Unassigned'),
+                      style: AppTypography.label.copyWith(
+                        color: award.winnerName != null ? AppColors.lime500 : AppColors.amber500,
+                      ),
+                    ),
                   ],
                 ),
               ),
               if (award.value > 0)
-                Text('£${award.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeBody)),
-              const SizedBox(width: AppSpacing.sm),
+                Text(
+                  '£${award.value.toStringAsFixed(2)}',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: AppTypography.weightHeavy,
+                  ),
+                ),
+              const SizedBox(width: AppSpacing.xs),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconMd, color: Colors.redAccent),
+                icon: const Icon(Icons.delete_outline_rounded, size: AppShapes.iconMd, color: AppColors.coral500),
                 onPressed: () => _deleteAward(ref, event, award.id),
               ),
             ],
@@ -197,18 +238,16 @@ class EventAdminFinancialsScreen extends ConsumerWidget {
 
   Widget _buildAddExpenseButton(BuildContext context, WidgetRef ref, GolfEvent event) {
     return BoxyArtButton(
-      title: 'ADD EXPENSE',
+      title: 'Add expense',
       onTap: () => _showExpenseDialog(context, ref, event),
-      isGhost: true,
       fullWidth: true,
     );
   }
 
   Widget _buildAddAwardButton(BuildContext context, WidgetRef ref, GolfEvent event) {
     return BoxyArtButton(
-      title: 'ADD PRIZE SLOT',
+      title: 'Add prize slot',
       onTap: () => _showAwardDialog(context, ref, event),
-      isGhost: true,
       fullWidth: true,
     );
   }

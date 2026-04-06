@@ -104,6 +104,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       showAwards: e.showAwards,
       awards: e.awards,
       notes: e.notes,
+      extraCosts: e.extraCosts,
     );
   }
 
@@ -214,6 +215,37 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
   void updateDinnerLocation(String v) => state = AsyncData(state.value!.copyWith(dinnerLocation: v));
   void updateDinnerAddress(String v) => state = AsyncData(state.value!.copyWith(dinnerAddress: v));
 
+  // Extra Costs Logic
+  void addCost() {
+    final currentCosts = state.value?.extraCosts ?? [];
+    state = AsyncData(state.value!.copyWith(
+      extraCosts: [
+        ...currentCosts, 
+        EventExtraCost(
+          id: 'cost_${DateTime.now().millisecondsSinceEpoch}', 
+          label: '', 
+          amount: 0,
+        ),
+      ],
+    ));
+  }
+
+  void updateCost(int index, EventExtraCost cost) {
+    final current = List<EventExtraCost>.from(state.value?.extraCosts ?? []);
+    if (index >= 0 && index < current.length) {
+      current[index] = cost;
+      state = AsyncData(state.value!.copyWith(extraCosts: current));
+    }
+  }
+
+  void removeCost(int index) {
+    final current = List<EventExtraCost>.from(state.value?.extraCosts ?? []);
+    if (index >= 0 && index < current.length) {
+      current.removeAt(index);
+      state = AsyncData(state.value!.copyWith(extraCosts: current));
+    }
+  }
+
   // Awards Logic
   void updateShowAwards(bool v) => state = AsyncData(state.value!.copyWith(showAwards: v));
   void addAward() {
@@ -297,6 +329,32 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
     final regTime = DateTime(s.selectedDate.year, s.selectedDate.month, s.selectedDate.day, s.registrationTime.hour, s.registrationTime.minute);
     final teeOffTime = DateTime(s.selectedDate.year, s.selectedDate.month, s.selectedDate.day, s.selectedTime.hour, s.selectedTime.minute);
 
+    // [MOD] Timing Propagation Logic
+    // If we have an existing grouping, we must ensure individual group times 
+    // stay in sync with the event-level start time and interval.
+    Map<String, dynamic> updatedGrouping = Map.from(s.initialEvent?.grouping ?? {});
+    final List<dynamic>? groups = updatedGrouping['groups'];
+    
+    if (groups != null && groups.isNotEmpty) {
+      final bool timeChanged = s.initialEvent?.teeOffTime != teeOffTime;
+      final bool intervalChanged = s.initialEvent?.teeOffInterval != s.teeOffInterval;
+      
+      if (timeChanged || intervalChanged) {
+        DateTime currentSeed = teeOffTime;
+        final List<Map<String, dynamic>> updatedGroupsData = [];
+        
+        for (var gData in groups) {
+          final Map<String, dynamic> gMap = Map.from(gData as Map);
+          gMap['teeTime'] = currentSeed.toIso8601String();
+          updatedGroupsData.add(gMap);
+          currentSeed = currentSeed.add(Duration(minutes: s.teeOffInterval));
+        }
+        
+        updatedGrouping['groups'] = updatedGroupsData;
+        updatedGrouping['updatedAt'] = DateTime.now().toIso8601String();
+      }
+    }
+
     if (s.initialEvent != null) {
       return s.initialEvent!.copyWith(
         title: s.title,
@@ -343,8 +401,11 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
         isMultiDay: s.isMultiDay,
         endDate: s.endDate,
         secondaryTemplateId: s.secondaryTemplateId,
+        grouping: updatedGrouping,
+        extraCosts: s.extraCosts,
       );
     }
+
 
     return GolfEvent(
       id: s.eventId ?? '',
@@ -392,6 +453,7 @@ class EventFormNotifier extends AsyncNotifier<EventFormState> {
       isMultiDay: s.isMultiDay,
       endDate: s.endDate,
       secondaryTemplateId: s.secondaryTemplateId,
+      extraCosts: s.extraCosts,
     );
   }
 

@@ -12,6 +12,7 @@ class ModernInfoRow extends ConsumerWidget {
   final double? fontSize;
   final Widget? trailing;
   final bool showFill;
+  final int? maxLines;
 
   const ModernInfoRow({
     super.key,
@@ -24,23 +25,24 @@ class ModernInfoRow extends ConsumerWidget {
     this.fontSize,
     this.trailing,
     this.showFill = true,
+    this.maxLines,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final textPrimary = theme.textTheme.bodyLarge?.color;
     final textSecondary = theme.textTheme.bodySmall?.color;
     final config = ref.watch(themeControllerProvider);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (icon != null) ...[
           BoxyArtIconBadge(
             icon: icon!,
-            color: iconColor ?? Color(config.iconBadgeFillColor),
-            iconColor: iconColor != null ? null : Color(config.iconBadgeIconColor),
+            color: Color(config.iconBadgeFillColor), // Always use theme for background unless explicitly overridden outside this row
+            iconColor: iconColor ?? Color(config.iconBadgeIconColor), // Icon override
             fillOpacity: config.iconBadgeOpacity,
             showFill: showFill,
           ),
@@ -61,6 +63,8 @@ class ModernInfoRow extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(
                 value,
+                maxLines: maxLines,
+                overflow: maxLines != null ? TextOverflow.ellipsis : null,
                 style: AppTypography.displayMedium.copyWith(
                   fontSize: fontSize ?? 16.0,
                   fontWeight: AppTypography.weightBold,

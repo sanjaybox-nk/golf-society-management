@@ -16,6 +16,14 @@ class MemberDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (id == 'new') {
+      return MemberDetailsModal(
+        isNewMember: true,
+        isAdminContext: isAdminContext,
+        isModal: false,
+      );
+    }
+
     final memberAsync = ref.watch(memberByIdProvider(id));
 
     return memberAsync.when(

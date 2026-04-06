@@ -14,6 +14,7 @@ import 'package:golf_society/domain/models/member.dart';
 import '../../../members/presentation/profile_provider.dart';
 import '../../../competitions/presentation/widgets/competition_shared_widgets.dart';
 import '../widgets/event_structural_cards.dart';
+import 'package:collection/collection.dart';
 
 
 enum EventInfoSubTab {
@@ -200,7 +201,10 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                   _buildCourseSelectionSection(context),
                   _buildCourseDataHardeningSection(context),
                 ],
-                if (event.status == EventStatus.published && event.eventType == EventType.golf) ...[
+                if ((event.status == EventStatus.published || 
+                     event.status == EventStatus.inPlay || 
+                     event.status == EventStatus.completed) && 
+                    event.eventType == EventType.golf) ...[
                    CompetitionRulesCard(
                     eventId: event.id,
                     title: 'Competition Rules',
@@ -209,8 +213,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 ],
 
                 _buildPlayingCostsSection(context),
-                _buildMealCostsSection(context),
-                _buildDinnerLocationSection(context),
+                _buildMealDetailsSection(context),
                 _buildFacilitiesSection(context),
                 _buildAwardsSection(context, ref),
                 _buildNotesSection(context),
@@ -309,7 +312,12 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 case FeedItemType.podium:
                   return EventPodiumCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
                 case FeedItemType.registration:
-                  return EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
+                  return Column(
+                    children: [
+                      EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: shouldPeek),
+                      ..._buildEventSponsors(context, ref, event),
+                    ],
+                  );
                 case FeedItemType.gallerySnippet:
                   return EventGalleryCard(event: event, isManagement: isStaff, isPeeking: shouldPeek);
                 case FeedItemType.flash:
@@ -413,7 +421,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                           height: 1.5,
                         ),
                       ),
-                    SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.lg),
                     Row(
                       children: [
                         Text(
@@ -568,7 +576,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           ],
           const SizedBox(height: AppSpacing.xl),
           ModernInfoRow(
-            label: 'REGISTRATION',
+            label: event.eventType == EventType.social ? 'EVENT TIME' : 'REGISTRATION',
             value: event.regTime != null 
                 ? DateFormat('h:mm a').format(event.regTime!)
                 : 'TBA',
@@ -601,6 +609,65 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildMealDetailsSection(BuildContext context) {
+    final event = widget.event;
+    final hasMealInfo = event.hasBreakfast || event.hasLunch || event.hasDinner || event.dinnerLocation != null;
+    
+    // For social events, we show this as 'Event Details' regardless of meal flags
+    if (!hasMealInfo && event.eventType != EventType.social) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtSectionTitle(title: event.eventType == EventType.social ? 'Event Details' : 'Meal Details'),
+        BoxyArtCard(
+          child: Column(
+            children: [
+              if (event.eventType == EventType.golf) ...[
+                if (event.hasBreakfast)
+                  _buildMealRow('Breakfast', event.breakfastCost, Icons.flatware_rounded),
+                if (event.hasLunch) ...[
+                  if (event.hasBreakfast) const SizedBox(height: AppTheme.cardSpacing),
+                  _buildMealRow('Lunch', event.lunchCost, Icons.restaurant_rounded),
+                ],
+                if (event.hasDinner) ...[
+                  if (event.hasBreakfast || event.hasLunch) const SizedBox(height: AppTheme.cardSpacing),
+                  _buildMealRow('Dinner', event.dinnerCost, Icons.dinner_dining_rounded),
+                ],
+              ],
+              if (event.dinnerLocation != null || event.eventType == EventType.social) ...[
+                if (event.eventType == EventType.golf && (event.hasBreakfast || event.hasLunch || event.hasDinner))
+                  const SizedBox(height: AppTheme.cardSpacing),
+                ModernInfoRow(
+                  label: event.eventType == EventType.social ? 'Event Location' : 'Dinner Location',
+                  value: event.dinnerLocation ?? 'TBC',
+                  icon: Icons.location_on_rounded,
+                ),
+                if (event.dinnerAddress != null) ...[
+                  const SizedBox(height: AppTheme.cardSpacing),
+                  ModernInfoRow(
+                    label: event.eventType == EventType.social ? 'Event Address' : 'Dinner Address',
+                    value: event.dinnerAddress!,
+                    icon: Icons.map_rounded,
+                    maxLines: 10,
+                  ),
+                ],
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMealRow(String label, double? cost, IconData icon) {
+    return ModernInfoRow(
+      label: label,
+      value: cost != null ? '${widget.currencySymbol}${cost.toStringAsFixed(2)}' : 'TBC',
+      icon: icon,
     );
   }
 
@@ -854,18 +921,21 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
   Widget _buildPlayingCostsSection(BuildContext context) {
     final event = widget.event;
-    if (event.memberCost == null && event.guestCost == null) return const SizedBox.shrink();
+    
+    // For social events, we might rely entirely on extraCosts
+    final hasCosts = event.memberCost != null || event.guestCost != null || event.extraCosts.isNotEmpty;
+    if (!hasCosts) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Playing Costs'),
+        BoxyArtSectionTitle(title: event.eventType == EventType.social ? 'Event Costs' : 'Playing Costs'),
         BoxyArtCard(
           child: Column(
             children: [
               if (event.memberCost != null)
                 ModernInfoRow(
-                  label: 'Member Green Fee',
+                  label: event.eventType == EventType.social ? 'Member Event Cost' : 'Member Green Fee',
                   value: '${widget.currencySymbol}${event.memberCost!.toStringAsFixed(2)}',
                   icon: Icons.person_rounded,
                 ),
@@ -873,11 +943,11 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 const SizedBox(height: AppTheme.cardSpacing),
               if (event.guestCost != null)
                 ModernInfoRow(
-                  label: 'Guest Green Fee',
+                  label: event.eventType == EventType.social ? 'Guest Event Cost' : 'Guest Green Fee',
                   value: '${widget.currencySymbol}${event.guestCost!.toStringAsFixed(2)}',
                   icon: Icons.person_outline_rounded,
                 ),
-               if (event.buggyCost != null) ...[
+               if (event.buggyCost != null && event.eventType == EventType.golf) ...[
                 const SizedBox(height: AppTheme.cardSpacing),
                 ModernInfoRow(
                   label: 'Buggy Cost (Indicative)',
@@ -889,6 +959,19 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                   ),
                 ),
                ],
+               // Dynamic Extra Costs
+               ...event.extraCosts.map((extra) {
+                 return Column(
+                   children: [
+                     const SizedBox(height: AppTheme.cardSpacing),
+                     ModernInfoRow(
+                       label: extra.label,
+                       value: '${widget.currencySymbol}${extra.amount.toStringAsFixed(2)}',
+                       icon: Icons.add_circle_outline_rounded,
+                     ),
+                   ],
+                 );
+               }),
             ],
           ),
         ),
@@ -896,46 +979,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     );
   }
 
-  Widget _buildMealCostsSection(BuildContext context) {
-    final config = widget.event;
-    final List<Widget> children = [];
-
-    if (config.hasBreakfast && config.breakfastCost != null) {
-      children.add(ModernInfoRow(
-        label: 'Breakfast',
-        value: '${widget.currencySymbol}${config.breakfastCost!.toStringAsFixed(2)}',
-        icon: Icons.breakfast_dining_rounded,
-      ));
-    }
-    if (config.hasLunch && config.lunchCost != null) {
-      if (children.isNotEmpty) children.add(const SizedBox(height: AppTheme.cardSpacing));
-      children.add(ModernInfoRow(
-        label: 'Lunch',
-        value: '${widget.currencySymbol}${config.lunchCost!.toStringAsFixed(2)}',
-        icon: Icons.lunch_dining_rounded,
-      ));
-    }
-    if (config.hasDinner && config.dinnerCost != null) {
-      if (children.isNotEmpty) children.add(const SizedBox(height: AppTheme.cardSpacing));
-      children.add(ModernInfoRow(
-        label: 'Dinner',
-        value: '${widget.currencySymbol}${config.dinnerCost!.toStringAsFixed(2)}',
-        icon: Icons.dinner_dining_rounded,
-      ));
-    }
-
-    if (children.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'Meal Costs'),
-        BoxyArtCard(
-          child: Column(children: children),
-        ),
-      ],
-    );
-  }
 
   Widget _buildFacilitiesSection(BuildContext context) {
     if (widget.event.facilities.isEmpty) return const SizedBox.shrink();
@@ -996,62 +1039,6 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
 
 
-  Widget _buildDinnerLocationSection(BuildContext context) {
-    if (widget.event.dinnerLocation == null || widget.event.dinnerLocation!.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const BoxyArtSectionTitle(title: 'Dinner Info'),
-        BoxyArtCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: ModernInfoRow(
-                      label: 'Location',
-                      value: widget.event.dinnerLocation!,
-                      icon: Icons.restaurant_rounded,
-                    ),
-                  ),
-                  if (widget.isPreview == false)
-                    IconButton(
-                      icon: Icon(
-                        Icons.map_outlined,
-                        color: Theme.of(context).primaryColor,
-                        size: AppShapes.iconMd,
-                      ),
-                      onPressed: () => _launchMap(widget.event.dinnerLocation!, widget.event.dinnerAddress),
-                    ),
-                ],
-              ),
-              if (widget.event.dinnerAddress != null && widget.event.dinnerAddress!.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 52), // Exact offset of ModernInfoRow text (38 icon + 14 spacing)
-                    Expanded(
-                      child: Text(
-                        widget.event.dinnerAddress!,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: AppTypography.sizeLabelStrong,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildAwardsSection(BuildContext context, WidgetRef ref) {
     if (widget.event.eventType == EventType.social || !widget.event.showAwards || widget.event.awards.isEmpty) return const SizedBox.shrink();
@@ -1141,6 +1128,68 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     );
   }
 
+  List<Widget> _buildEventSponsors(BuildContext context, WidgetRef ref, GolfEvent event) {
+    final societyConfig = ref.watch(themeControllerProvider);
+    final sponsors = societyConfig.ledgerEntries
+        .where((e) => e.type == 'Sponsorship' && e.scope == 'event' && e.eventId == event.id && e.isPaid)
+        .toList();
+
+    if (sponsors.isEmpty) return [];
+
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+
+    return [
+      const BoxyArtSectionTitle(title: 'OFFICIAL EVENT SPONSOR'),
+      ...sponsors.mapIndexed((index, s) => Padding(
+        padding: EdgeInsets.only(bottom: index < sponsors.length - 1 ? (spacing?.cardToCard ?? AppSpacing.standard) : 0),
+        child: BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: [
+              if (s.logoUrl != null && s.logoUrl!.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    s.logoUrl!,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const BoxyArtIconBadge(
+                      icon: Icons.handshake_rounded,
+                      color: AppColors.lime500,
+                      isTinted: true,
+                      size: 48,
+                    ),
+                  ),
+                )
+              else
+                const BoxyArtIconBadge(
+                  icon: Icons.handshake_rounded,
+                  color: AppColors.lime500,
+                  isTinted: true,
+                  size: 48,
+                ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.source.toUpperCase(), style: AppTypography.displaySection.copyWith(fontSize: 15)),
+                    if (s.description != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: _buildRichDescription(context, s.description!),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      )),
+    ];
+  }
 }
 
 

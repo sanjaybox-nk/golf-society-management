@@ -2,38 +2,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../../domain/models/golf_event.dart';
+import '../../../../domain/models/society_config.dart';
+import '../../../../design_system/theme/theme_controller.dart';
 
 class ReportingHubStats {
-  final double totalRevenue; // Paid
+  final double totalRevenue;
   final double totalExpenses;
   final double totalCashPrizes;
   final int totalCupsAwarded;
   final int totalVouchersAwarded;
+  final int totalCashAwardsCount;
+  final int totalUniqueWinners;
   final double totalVoucherValue;
   final double averageAttendance;
   final int totalRoundsPlayed;
   final int totalCount;
   final int completedCount;
-  
-  // Phase 11.1 Additions
   final Map<String, double> revenueBreakdown;
   final List<MapEntry<String, int>> topMembers;
-  
-  // Phase 11.2 Additions
+  final Map<String, int> attendanceMap;
   final double uncollectedRevenue;
   final double totalPotentialRevenue;
   final double greenFeeMarkup;
   final double averageEventCostPerMember;
-
-  // Phase 11.3 Additions
   final List<String> everPresentMemberIds;
   final List<String> churnAlertMemberIds;
   final double retentionRate;
-
-  // Phase 11.4 Additions
-  final Map<String, double> courseDifficultyIndex; // Course Name -> Avg Points
-  final List<MapEntry<String, int>> podiumConsistency; // Member ID -> Top 3 Count
+  final Map<String, double> courseDifficultyIndex;
+  final List<MapEntry<String, int>> podiumConsistency;
   final double totalSocietyCosts;
+  final double totalCollectedFines;
+  final double totalUnpaidFines;
+  final double totalCharity;
+  final double startingBalance;
+  final List<FinancialEntry> ledgerEntries;
 
   ReportingHubStats({
     required this.totalRevenue,
@@ -41,6 +43,8 @@ class ReportingHubStats {
     required this.totalCashPrizes,
     required this.totalCupsAwarded,
     required this.totalVouchersAwarded,
+    required this.totalCashAwardsCount,
+    required this.totalUniqueWinners,
     required this.totalVoucherValue,
     required this.averageAttendance,
     required this.totalRoundsPlayed,
@@ -48,6 +52,7 @@ class ReportingHubStats {
     required this.completedCount,
     required this.revenueBreakdown,
     required this.topMembers,
+    required this.attendanceMap,
     required this.uncollectedRevenue,
     required this.totalPotentialRevenue,
     required this.greenFeeMarkup,
@@ -58,14 +63,23 @@ class ReportingHubStats {
     required this.courseDifficultyIndex,
     required this.podiumConsistency,
     required this.totalSocietyCosts,
+    required this.totalCollectedFines,
+    required this.totalUnpaidFines,
+    required this.totalCharity,
+    required this.startingBalance,
+    required this.ledgerEntries,
   });
 
-  double get netTreasury => totalRevenue - totalExpenses - totalCashPrizes - totalSocietyCosts;
+  double get totalLedgerRevenue => ledgerEntries.where((e) => e.isPaid).fold(0.0, (sum, e) => sum + e.amount);
+  double get totalUnpaidLedgerRevenue => ledgerEntries.where((e) => !e.isPaid).fold(0.0, (sum, e) => sum + e.amount);
+
+  double get netTreasury => startingBalance + totalRevenue + totalCollectedFines + totalCharity + totalLedgerRevenue - totalExpenses - totalCashPrizes - totalSocietyCosts;
 }
 
 final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) {
   final eventsAsync = ref.watch(adminEventsProvider);
   final globalExpensesAsync = ref.watch(globalExpensesProvider);
+  final config = ref.watch(themeControllerProvider);
 
   return eventsAsync.when(
     data: (events) => globalExpensesAsync.when(
@@ -77,10 +91,14 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
         double cashPrizes = 0;
         int cups = 0;
         int vouchers = 0;
+        int cashAwardsCount = 0;
         double voucherValue = 0;
         int totalAttendance = 0;
         int roundsPlayed = 0;
         int completedCount = 0;
+        double collectedFines = 0;
+        double unpaidFines = 0;
+        double charityPot = 0;
 
         // Add global expenses to total
         expenses += globalExpenses.fold(0.0, (sum, e) => sum + e.amount);
@@ -89,8 +107,23 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
           'Golf': 0,
           'Buggies': 0,
           'Catering': 0,
+          'Fines': 0,
+          'Sponsorships': 0,
+          'Donations': 0,
+          'Charity': 0,
           'Overheads': globalExpenses.fold(0.0, (sum, e) => sum + e.amount),
         };
+
+        // Aggregating Ledger Entries (Sponsorships/Donations)
+        for (var entry in config.ledgerEntries) {
+          if (entry.isPaid) {
+            if (entry.type == 'Sponsorship') {
+              breakdown['Sponsorships'] = (breakdown['Sponsorships'] ?? 0) + entry.amount;
+            } else if (entry.type == 'Donation') {
+              breakdown['Donations'] = (breakdown['Donations'] ?? 0) + entry.amount;
+            }
+          }
+        }
 
     final Map<String, int> attendanceMap = {};
 
@@ -111,6 +144,8 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
 
     for (final event in events) {
       if (event.status == EventStatus.completed) completedCount++;
+      charityPot += event.charityPot;
+      breakdown['Charity'] = (breakdown['Charity'] ?? 0) + event.charityPot;
 
       for (final reg in event.registrations) {
         // Skip withdrawn
@@ -214,8 +249,16 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
             if (reg.guestAttendingDinner) food += (event.dinnerCost ?? 0);
           }
           breakdown['Catering'] = (breakdown['Catering'] ?? 0) + food;
-        } else if (reg.isConfirmed) {
+        } else {
           uncollected += totalLineCost;
+        }
+
+        // Fines Processing
+        if (reg.finePaid) {
+          collectedFines += reg.fineAmount;
+          breakdown['Fines'] = (breakdown['Fines'] ?? 0) + reg.fineAmount;
+        } else {
+          unpaidFines += reg.fineAmount;
         }
       }
       
@@ -224,6 +267,7 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       for (final award in event.awards) {
         if (award.type == 'Cash') {
           cashPrizes += award.value;
+          cashAwardsCount++;
         } else if (award.type == 'Cup' && award.winnerId != null) {
           cups++;
         } else if (award.type == 'Voucher') {
@@ -310,6 +354,8 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       totalCashPrizes: cashPrizes,
       totalCupsAwarded: cups,
       totalVouchersAwarded: vouchers,
+      totalCashAwardsCount: cashAwardsCount,
+      totalUniqueWinners: podiumMap.length,
       totalVoucherValue: voucherValue,
       averageAttendance: avgAttendance,
       totalRoundsPlayed: roundsPlayed,
@@ -317,6 +363,7 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       completedCount: completedCount,
       revenueBreakdown: breakdown,
       topMembers: sortedMembers.take(5).toList(),
+      attendanceMap: attendanceMap,
       uncollectedRevenue: uncollected,
       totalPotentialRevenue: potentialRevenue,
       greenFeeMarkup: totalMarkup,
@@ -327,6 +374,11 @@ final reportingHubStatsProvider = Provider<AsyncValue<ReportingHubStats>>((ref) 
       courseDifficultyIndex: courseDifficulty,
       podiumConsistency: sortedPodiums,
       totalSocietyCosts: totalSocietyCosts,
+      totalCollectedFines: collectedFines,
+      totalUnpaidFines: unpaidFines,
+      totalCharity: charityPot,
+      startingBalance: config.startingBalance,
+      ledgerEntries: config.ledgerEntries,
     ));
   },
   loading: () => const AsyncValue.loading(),

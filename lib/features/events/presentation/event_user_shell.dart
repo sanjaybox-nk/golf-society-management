@@ -15,7 +15,6 @@ class EventUserShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = GoRouterState.of(context);
-    final segments = state.uri.pathSegments;
 
     final List<_EventTabConfig> tabs = [
       _EventTabConfig(label: 'Info', icon: Icons.info_outline_rounded, activeIcon: Icons.info_rounded, path: '/events/$id/details'),
@@ -25,14 +24,9 @@ class EventUserShell extends ConsumerWidget {
       _EventTabConfig(label: 'Stats', icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded, path: '/events/$id/stats'),
     ];
 
-    // Determine current index based on the path match
     int currentIndex = tabs.indexWhere((t) => state.uri.path.endsWith(t.path.split('/').last));
     if (currentIndex == -1) {
-      if (segments.contains('details')) currentIndex = 0;
-      else if (segments.contains('field')) currentIndex = 1;
-      else if (segments.contains('live')) currentIndex = 2;
-      else if (segments.contains('scores')) currentIndex = 3;
-      else if (segments.contains('stats')) currentIndex = 4;
+      currentIndex = 0;
     }
 
     if (currentIndex == -1) currentIndex = 0;

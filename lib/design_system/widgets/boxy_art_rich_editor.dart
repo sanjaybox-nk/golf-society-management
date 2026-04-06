@@ -9,6 +9,8 @@ class BoxyArtRichEditor extends ConsumerWidget {
   final bool scrollable;
   final bool readOnly;
   final bool showToolbar;
+  final String label;
+  final String? subtitle;
 
   const BoxyArtRichEditor({
     super.key,
@@ -18,6 +20,8 @@ class BoxyArtRichEditor extends ConsumerWidget {
     this.scrollable = true,
     this.readOnly = false,
     this.showToolbar = true,
+    this.label = '',
+    this.subtitle,
   });
 
   @override
@@ -29,7 +33,28 @@ class BoxyArtRichEditor extends ConsumerWidget {
     final radius = config.inputRadius;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (label.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
+            child: Text(
+              label,
+              style: AppTypography.label.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              ),
+            ),
+          ),
+        if (subtitle != null)
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
+            child: Text(
+              subtitle!,
+              style: AppTypography.helper.copyWith(
+                color: isDark ? AppColors.dark300 : AppColors.dark400,
+              ),
+            ),
+          ),
         // Compact Toolbar
         if (showToolbar && !readOnly) ...[
           Container(

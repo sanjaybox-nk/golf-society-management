@@ -112,7 +112,6 @@ class LeaderboardCard extends StatelessWidget {
     final spacing = theme.extension<AppSpacingTokens>();
     final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
     final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
-    final double cardHeight = vPadding * 4.0; // Same as GroupingPlayerTile
 
     final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
     final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
@@ -124,96 +123,94 @@ class LeaderboardCard extends StatelessWidget {
         borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
         child: BoxyArtCard(
           padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // 1. Avatar Section
-              SizedBox(
-                width: 72,
-                height: cardHeight,
-                child: Stack(
-                  alignment: Alignment.center,
-                  clipBehavior: Clip.none,
-                  children: [
-                    BoxyArtAvatar(
-                      url: entry.avatarUrl,
-                      initials: entry.playerName.isNotEmpty ? entry.playerName[0] : '?',
-                      radius: 36,
-                      isCircle: true,
-                      borderColor: rankColor,
-                      borderWidth: 3.5,
-                    ),
-                    // Host Badge (Bottom Left)
-                    if (entry.hasGuest)
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 1. Avatar Section
+                SizedBox(
+                  width: 72,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      BoxyArtAvatar(
+                        url: entry.avatarUrl,
+                        initials: entry.playerName.isNotEmpty ? entry.playerName[0] : '?',
+                        radius: 36,
+                        isCircle: true,
+                        borderColor: rankColor,
+                        borderWidth: 3.5,
+                      ),
+                      // Host Badge (Bottom Left)
+                      if (entry.hasGuest)
+                        Positioned(
+                          bottom: -2,
+                          left: -2,
+                          child: BoxyArtIconBadge(
+                            icon: Icons.person_add_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 24,
+                            iconSize: 14,
+                            useCircle: true,
+                          ),
+                        ),
+                      // Rank Badge (Top Left)
                       Positioned(
-                        bottom: -2,
-                        left: -2,
-                        child: BoxyArtIconBadge(
-                          icon: Icons.person_add_rounded,
-                          color: Theme.of(context).colorScheme.primary,
+                        top: -4,
+                        left: -4,
+                        child: BoxyArtNumberBadge(
+                          number: entry.position,
                           size: 24,
-                          iconSize: 14,
-                          useCircle: true,
+                          isRanking: true,
                         ),
                       ),
-                    // Rank Badge (Top Left)
-                    Positioned(
-                      top: -4,
-                      left: -4,
-                      child: BoxyArtNumberBadge(
-                        number: entry.position,
-                        size: 24,
-                        isRanking: true,
-                      ),
-                    ),
-                    if (entry.isGuest)
-                      Positioned(
-                        bottom: -2,
-                        left: -2,
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: AppColors.amber500,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                      if (entry.isGuest)
+                        Positioned(
+                          bottom: -2,
+                          left: -2,
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: AppColors.amber500,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'G',
+                              style: TextStyle(
+                                color: AppColors.dark900,
+                                fontSize: 12,
+                                fontWeight: AppTypography.weightExtraBold,
                               ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'G',
-                            style: TextStyle(
-                              color: AppColors.dark900,
-                              fontSize: 12,
-                              fontWeight: AppTypography.weightExtraBold,
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              // 2. Vertical Divider
-              Container(
-                width: 1,
-                height: cardHeight,
-                margin: EdgeInsets.symmetric(horizontal: hPadding),
-                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
-              ),
+                // 2. Vertical Divider
+                Container(
+                  width: 1,
+                  margin: EdgeInsets.symmetric(horizontal: hPadding),
+                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                ),
 
-              // 3. Right Content
               Expanded(
-                child: SizedBox(
-                  height: cardHeight,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: vPadding / 4), // Added slight inner padding
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // [FIX] Use min size to avoid overflow
                     children: [
                       Text(
                         toTitleCase(entry.playerName),
@@ -233,7 +230,7 @@ class LeaderboardCard extends StatelessWidget {
                             'Guest of ${entry.hostName}',
                             style: AppTypography.label.copyWith(
                               color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                              fontStyle: FontStyle.italic,
+                              fontWeight: AppTypography.weightRegular,
                               fontSize: 10,
                             ),
                             maxLines: 1,
@@ -264,7 +261,7 @@ class LeaderboardCard extends StatelessWidget {
                             ),
                         ],
                       ),
-                      const Spacer(),
+                      const SizedBox(height: AppSpacing.md),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -328,8 +325,9 @@ class LeaderboardCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class LeaderboardEntry {

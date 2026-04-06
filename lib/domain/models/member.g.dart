@@ -28,6 +28,7 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
       MemberStatus.member,
   hasPaid: json['hasPaid'] as bool? ?? false,
   isArchived: json['isArchived'] as bool? ?? false,
+  accountCredit: (json['accountCredit'] as num?)?.toDouble() ?? 0.0,
   gender: json['gender'] as String?,
   joinedDate: const OptionalTimestampConverter().fromJson(json['joinedDate']),
   membershipEndDate: const OptionalTimestampConverter().fromJson(
@@ -39,6 +40,10 @@ _Member _$MemberFromJson(Map<String, dynamic> json) => _Member(
         json['renewalStatus'],
       ) ??
       MemberRenewalStatus.none,
+  allowSocialEventsOnly: json['allowSocialEventsOnly'] as bool? ?? false,
+  lastNudgedAt: const OptionalTimestampConverter().fromJson(
+    json['lastNudgedAt'],
+  ),
 );
 
 Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
@@ -59,12 +64,17 @@ Map<String, dynamic> _$MemberToJson(_Member instance) => <String, dynamic>{
   'status': _$MemberStatusEnumMap[instance.status]!,
   'hasPaid': instance.hasPaid,
   'isArchived': instance.isArchived,
+  'accountCredit': instance.accountCredit,
   'gender': instance.gender,
   'joinedDate': const OptionalTimestampConverter().toJson(instance.joinedDate),
   'membershipEndDate': const OptionalTimestampConverter().toJson(
     instance.membershipEndDate,
   ),
   'renewalStatus': _$MemberRenewalStatusEnumMap[instance.renewalStatus]!,
+  'allowSocialEventsOnly': instance.allowSocialEventsOnly,
+  'lastNudgedAt': const OptionalTimestampConverter().toJson(
+    instance.lastNudgedAt,
+  ),
 };
 
 const _$MemberRoleEnumMap = {

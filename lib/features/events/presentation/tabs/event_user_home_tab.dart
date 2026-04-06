@@ -49,15 +49,8 @@ class EventHomeContent extends ConsumerWidget {
       subtitle: 'Event Dashboard',
       showAdminShortcut: false, // Explicitly removed as requested
       showBack: true,
-      actions: isStaff
-          ? [
-              BoxyArtGlassIconButton(
-                icon: Icons.edit_rounded,
-                tooltip: 'Edit Layout',
-                onPressed: () => context.push('/admin/events/manage/${event.id}/broadcast'),
-              ),
-            ]
-          : null,
+      actions: null,
+
       onBack: () {
         if (isStaff && isAdminMode) {
           context.go('/admin/events');
@@ -74,58 +67,40 @@ class EventHomeContent extends ConsumerWidget {
               const SizedBox(height: AppSpacing.xs),
               _buildActiveShortcuts(context, ref),
               ...() {
-                final publishedItems = event.effectiveFeedItems.where((i) => i.isPublished).toList();
-                publishedItems.sort((a, b) {
-                  if (a.isPinned && !b.isPinned) return -1;
-                  if (!a.isPinned && b.isPinned) return 1;
-                  return a.sortOrder.compareTo(b.sortOrder);
-                });
+                final allPublished = event.effectiveFeedItems.where((i) => i.isPublished).toList();
+                
+                // Group items by category to ensure requested order
+                final newsItems = allPublished.where((i) => i.type == FeedItemType.newsletter || i.type == FeedItemType.flash).toList();
+                final headline = allPublished.where((i) => i.type == FeedItemType.headline).firstOrNull;
 
-                if (publishedItems.isEmpty) return <Widget>[];
+                // Sort news chronological (newest first)
+                newsItems.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
                 return [
-                  ListView.separated(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: publishedItems.length,
-                    separatorBuilder: (context, index) {
-                      final nextItem = publishedItems[index + 1];
-                      // Logic: title handles top padding. 
-                      // If next item includes its own SectionTitle, separator is 0.
-                      if (nextItem.type == FeedItemType.gallerySnippet || 
-                          nextItem.type == FeedItemType.podium || 
-                          nextItem.type == FeedItemType.registration) {
-                        return const SizedBox.shrink();
-                      }
-                      return SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard);
-                    },
-                    itemBuilder: (context, index) {
-                      final item = publishedItems[index];
-                      // Absolute first item in whole scroll view needs peeking if it has a title
-                      final isScoringActive = event.displayStatus != EventStatus.completed && 
-                                            ((event.displayStatus == EventStatus.inPlay) || 
-                                             (DateTime.now().isAfter(event.date) && !(event.isScoringLocked == true)));
-                      final isAbsoluteFirst = index == 0 && (event.eventType != EventType.golf || !isScoringActive);
+                  // 1. REGISTRATION (FORCE TOP as requested)
+                  EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: true),
+                  SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
-                      switch (item.type) {
-                        case FeedItemType.headline:
-                          return EventHeadlineCard(event: event);
-                        case FeedItemType.podium:
-                          return EventPodiumCard(event: event, isPeeking: isAbsoluteFirst);
-                        case FeedItemType.registration:
-                          return EventRegistrationCard(event: event, isManagement: isStaff, isPeeking: isAbsoluteFirst);
-                        case FeedItemType.gallerySnippet:
-                          return EventGalleryCard(event: event, isPeeking: isAbsoluteFirst);
-                        case FeedItemType.flash:
-                          return _buildFlashItem(context, item);
-                        case FeedItemType.newsletter:
-                          return _buildNewsletterItem(context, item, ref);
-                        default:
-                          return const SizedBox.shrink();
-                      }
-                    },
-                  ),
+                  // 2. NEWSLETTERS & FLASH (Order of posting)
+                  ...newsItems.map((item) => Padding(
+                    padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.standard),
+                    child: item.type == FeedItemType.newsletter 
+                        ? _buildNewsletterItem(context, item, ref) 
+                        : _buildFlashItem(context, item),
+                  )),
+
+                  // 3. RECAP & RESULTS
+                  EventPodiumCard(event: event, isPeeking: false),
+                  SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+
+                  // 4. GALLERY
+                  EventGalleryCard(event: event, isPeeking: false),
+                  
+                  // 5. HEADLINE (If any)
+                  if (headline != null) ...[
+                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                    EventHeadlineCard(event: event),
+                  ],
                 ];
               }(),
             ]),

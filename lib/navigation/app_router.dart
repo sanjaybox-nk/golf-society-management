@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/season.dart';
+import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import '../features/archive/presentation/archive_screen.dart';
 import '../features/events/presentation/events_screen.dart';
 import '../features/home/presentation/member_home_screen.dart';
@@ -14,23 +17,29 @@ import '../features/admin/presentation/events/event_admin_controls_screen.dart';
 import '../features/admin/presentation/events/event_form_screen.dart';
 import '../features/admin/presentation/members/admin_members_screen.dart';
 import '../features/admin/presentation/members/admin_member_renewal_screen.dart';
-import '../features/admin/presentation/settings/admin_settings_screen.dart';
 import '../features/admin/presentation/settings/branding_settings_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
 import '../features/admin/presentation/settings/grouping_strategy_selection_screen.dart';
 import '../features/admin/presentation/settings/handicap_system_selection_screen.dart';
 import '../features/admin/presentation/settings/society_cuts_settings_screen.dart';
+import '../features/admin/presentation/settings/treasury_settings_screen.dart';
+import '../features/admin/presentation/settings/admin_sponsorship_hub_screen.dart';
 import '../features/admin/presentation/settings/roles_screen.dart';
+import '../features/admin/presentation/treasury/admin_debt_ledger_screen.dart';
+import '../features/admin/presentation/seasons/admin_seasons_screen.dart';
+import '../features/admin/presentation/seasons/season_form_screen.dart';
+import '../features/admin/presentation/settings/admin_settings_hub_screen.dart';
 import '../features/admin/presentation/settings/system_role_members_screen.dart';
 import '../features/admin/presentation/roles/committee_roles_screen.dart';
 import '../features/admin/presentation/roles/committee_role_members_screen.dart';
+import '../features/admin/presentation/surveys/admin_surveys_screen.dart';
+import '../features/admin/presentation/surveys/survey_editor_screen.dart';
+import '../features/admin/presentation/surveys/survey_results_screen.dart';
+import '../features/admin/presentation/notifications/compose_notification_screen.dart';
 import '../features/events/presentation/event_registration_screen.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'global_app_shell.dart';
 
-import '../features/admin/presentation/surveys/admin_surveys_screen.dart';
-import '../features/admin/presentation/surveys/survey_editor_screen.dart';
-import '../features/admin/presentation/surveys/survey_results_screen.dart';
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
 import '../features/events/presentation/event_user_shell.dart';
@@ -38,16 +47,13 @@ import '../features/events/presentation/tabs/event_user_details_tab.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/competitions/presentation/season_standings_screen.dart';
 import '../features/admin/presentation/events/event_admin_financials_screen.dart';
-import '../features/admin/presentation/events/event_admin_grouping_screen.dart';
-import '../features/admin/presentation/events/event_admin_scorecards_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
-import '../features/admin/presentation/events/event_airdrop_control_screen.dart';
 import '../features/admin/presentation/events/event_broadcast_screen.dart';
 import '../features/admin/presentation/events/event_cost_control_screen.dart';
 import '../features/admin/presentation/events/event_field_admin_screen.dart';
 import '../features/admin/presentation/events/event_manual_cuts_screen.dart';
 import '../features/admin/presentation/events/event_registrations_admin_screen.dart';
-import '../features/admin/presentation/events/feed_item_editor_screen.dart';
+import '../features/admin/presentation/events/event_fines_workbench_screen.dart';
 import '../features/admin/presentation/events/event_admin_shell.dart';
 import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
 import '../features/home/presentation/notification_inbox_screen.dart';
@@ -59,6 +65,7 @@ import '../features/admin/presentation/competitions/competition_builder_screen.d
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/members/presentation/member_details_screen.dart';
+import '../features/admin/presentation/leaderboards/leaderboard_template_gallery_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // Shell Branch Keys
@@ -71,12 +78,7 @@ final _branchAdminKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdmin');
 final _branchAdminEventsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminEvents');
 final _branchAdminMembersKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminMembers');
 final _branchAdminCommsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminComms');
-final _branchAdminSurveysKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminSurveys');
 final _branchAdminReportsKey = GlobalKey<NavigatorState>(debugLabel: 'branchAdminReports');
-
-// Hub Shell Navigator Keys
-final _userHubNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'userHubNavigator');
-final _adminHubNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'adminHubNavigator');
 
 CustomTransitionPage boxyPage({
   required GoRouterState state,
@@ -148,7 +150,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
-        redirect: (context, state) => '/home',
+        redirect: (context, state) {
+          final user = ref.read(effectiveUserProvider);
+          final bool isDeparted = user.status == MemberStatus.left || user.status == MemberStatus.archived;
+          
+          if (isDeparted) {
+             final location = state.matchedLocation;
+             if (location == '/' || location == '/home' || location == '/events' || location == '/members') {
+               return '/locker';
+             }
+          }
+          return '/home';
+        },
       ),
       // --- GLOBAL SURVEYS (Root level) ---
       GoRoute(
@@ -210,6 +223,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                   GoRoute(
+                    path: ':id/register-form',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: EventRegistrationScreen(eventId: state.pathParameters['id']!),
+                    ),
+                  ),
+                  GoRoute(
                     path: ':id/field',
                     name: 'user-event-field',
                     pageBuilder: (context, state) => hubPage(
@@ -243,13 +263,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       state: state,
                       id: state.pathParameters['id']!,
                       child: EventStatsUserTab(eventId: state.pathParameters['id']!),
-                    ),
-                  ),
-                  GoRoute(
-                    path: ':id/register-form',
-                    pageBuilder: (context, state) => boxyPage(
-                      state: state,
-                      child: EventRegistrationScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
                   GoRoute(
@@ -329,9 +342,196 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 name: 'admin-dashboard',
                 pageBuilder: (context, state) => boxyPage(
                   state: state,
-                  child: const AdminDashboardScreen(),
+                  child: AdminDashboardScreen(),
                 ),
                 routes: [
+                  GoRoute(
+                    path: 'settings',
+                    name: 'admin-settings-hub',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const AdminSettingsHubScreen(),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'branding',
+                        name: 'admin-settings-branding',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const BrandingSettingsScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'sponsors',
+                        name: 'admin-sponsorship-hub',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const AdminSponsorshipHubScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'currency',
+                        name: 'admin-settings-currency',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const CurrencySelectionScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'grouping-strategy',
+                        name: 'admin-settings-grouping',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const GroupingStrategySelectionScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'handicap-system',
+                        name: 'admin-settings-handicap',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const HandicapSystemSelectionScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'society-cuts', 
+                        name: 'admin-settings-cuts',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const SocietyCutsSettingsScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'committee-roles',
+                        name: 'admin-settings-committee-roles',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const CommitteeRolesScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'treasury',
+                        name: 'admin-settings-treasury',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const TreasurySettingsScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'seasons',
+                        name: 'admin-settings-seasons',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const AdminSeasonsScreen(),
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: const SeasonFormScreen(),
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'edit/:id',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: SeasonFormScreen(
+                                seasonId: state.pathParameters['id'],
+                                season: state.extra as Season?,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'templates',
+                        name: 'admin-settings-templates',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const CompetitionTypeSelectionScreen(isPicker: false),
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'gallery/:type',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: CompetitionTemplateGalleryScreen(
+                                typeStr: state.pathParameters['type']!,
+                                isPicker: false,
+                              ),
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'create/:type',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: CompetitionBuilderScreen(
+                                format: CompetitionFormat.values.firstWhereOrNull(
+                                  (f) => f.name == state.pathParameters['type'],
+                                ),
+                              ),
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'edit/:id',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: CompetitionBuilderScreen(
+                                competitionId: state.pathParameters['id'],
+                                isTemplate: true,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'leaderboards',
+                        name: 'admin-settings-leaderboards',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const LeaderboardTypeSelectionScreen(isPicker: false),
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'gallery/:type',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: LeaderboardTemplateGalleryScreen(
+                                type: LeaderboardType.values.byName(state.pathParameters['type']!),
+                                isTemplate: true,
+                              ),
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'create/:type',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: LeaderboardBuilderScreen(
+                                type: LeaderboardType.values.byName(state.pathParameters['type']!),
+                                isTemplate: true,
+                              ),
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'edit/:id',
+                            pageBuilder: (context, state) => boxyPage(state: state,
+                              child: LeaderboardBuilderScreen(
+                                configId: state.pathParameters['id'],
+                                existingConfig: state.extra as LeaderboardConfig?,
+                                isTemplate: true,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'roles',
+                        name: 'admin-settings-roles',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: const RolesScreen(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'debt-ledger',
+                    name: 'admin-debt-ledger',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const AdminDebtLedgerScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'member-renewal',
+                    name: 'admin-member-renewal',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const AdminMemberRenewalScreen(),
+                    ),
+                  ),
                   GoRoute(
                     path: 'system-roles/:role',
                     name: 'admin-system-role-members',
@@ -357,11 +557,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) => boxyPage(state: state,
                       child: const LeaderboardTypeSelectionScreen(isPicker: true),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'gallery/:type',
+                        pageBuilder: (context, state) => boxyPage(state: state,
+                          child: LeaderboardTemplateGalleryScreen(
+                            type: LeaderboardType.values.byName(state.pathParameters['type']!),
+                            isPicker: true,
+                          ),
+                        ),
+                      ),
+                    ],
                    ),
                   GoRoute(
                     path: 'leaderboards/create/:type',
                     pageBuilder: (context, state) => boxyPage(state: state,
-                      child: Builder(builder: (context) {
+                      child: Consumer(builder: (context, ref, _) {
                         final typeStr = state.pathParameters['type']!;
                         final type = LeaderboardType.values.firstWhere((e) => e.name == typeStr);
                         return LeaderboardBuilderScreen(type: type, isTemplate: false);
@@ -369,55 +580,43 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                   GoRoute(
-                    path: 'settings',
-                    name: 'admin-settings',
-                    pageBuilder: (context, state) => boxyPage(state: state,
-                      child: const AdminSettingsScreen(),
+                    path: 'surveys',
+                    name: 'admin-surveys',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const AdminSurveysScreen(),
                     ),
                     routes: [
                       GoRoute(
-                        path: 'branding',
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const BrandingSettingsScreen(),
+                        path: 'new',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: const SurveyEditorScreen(),
                         ),
                       ),
                       GoRoute(
-                        path: 'currency',
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const CurrencySelectionScreen(),
+                        path: 'edit/:id',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: SurveyEditorScreen(surveyId: state.pathParameters['id']),
                         ),
                       ),
                       GoRoute(
-                        path: 'grouping-strategy',
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const GroupingStrategySelectionScreen(),
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'handicap-system',
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const HandicapSystemSelectionScreen(),
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'society-cuts', 
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const SocietyCutsSettingsScreen(),
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'committee-roles',
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const CommitteeRolesScreen(),
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'roles',
-                        pageBuilder: (context, state) => boxyPage(state: state,
-                          child: const RolesScreen(),
+                        path: 'results/:id',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: SurveyResultsScreen(surveyId: state.pathParameters['id']!),
                         ),
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'notifications/compose',
+                    name: 'admin-notifications-compose',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const ComposeNotificationScreen(),
+                    ),
                   ),
                 ],
               ),
@@ -597,6 +796,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       child: EventManualCutsScreen(eventId: state.pathParameters['id']!),
                     ),
                   ),
+                  GoRoute(
+                    path: 'manage/:id/fines',
+                    name: 'admin-event-fines',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: EventFinesWorkbenchScreen(eventId: state.pathParameters['id']!),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -612,12 +819,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   child: const AdminMembersScreen(),
                 ),
                 routes: [
+                  // Renewal Hub moved to Branch 5 for shell persistence
                   GoRoute(
-                    path: 'renewal',
-                    name: 'admin-member-renewal',
+                    path: 'new',
+                    name: 'admin-member-new',
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      child: const AdminMemberRenewalScreen(),
+                      child: const MemberDetailsScreen(id: 'new', isAdminContext: true),
                     ),
                   ),
                 ],

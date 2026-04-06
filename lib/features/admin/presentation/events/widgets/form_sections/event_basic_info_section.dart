@@ -17,9 +17,9 @@ class EventBasicInfoSection extends ConsumerWidget {
       data: (state) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BoxyArtSectionTitle(title: 'Basic Info'),
+          const BoxyArtSectionTitle(title: 'Basic info'),
           BoxyArtCard(
-            child: Column(
+            child: BoxyArtFormColumn(
               children: [
                 GestureDetector(
                   onTap: () => ref.read(eventFormNotifierProvider.notifier).pickImage(),
@@ -70,19 +70,17 @@ class EventBasicInfoSection extends ConsumerWidget {
                             children: [
                               Icon(Icons.add_a_photo_rounded, size: AppShapes.iconXl, color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHalf)),
                               const SizedBox(height: AppSpacing.sm),
-                              const Text('Add Event Photo', style: TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightBold)),
+                              const Text('Add event photo', style: TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightBold)),
                             ],
                           ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.cardToLabel),
-                BoxyArtFormField(
-                  label: 'Event Title',
-                  initialValue: state.title,
+                BoxyArtInputField(
+                  label: 'Event title',
+                  controller: TextEditingController(text: state.title)..selection = TextSelection.collapsed(offset: state.title.length),
                   onChanged: (v) => ref.read(eventFormNotifierProvider.notifier).updateTitle(v),
                   validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                 ),
-                const SizedBox(height: AppSpacing.x2l),
                 BoxyArtRichFormField(
                   label: 'Description',
                   initialValue: state.description,

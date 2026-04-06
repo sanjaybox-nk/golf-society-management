@@ -11,6 +11,13 @@ enum SocietyCutMode {
   manual,
 }
 
+enum SponsorTier {
+  gold,
+  silver,
+  bronze,
+  standard,
+}
+
 @freezed
 abstract class SocietyConfig with _$SocietyConfig {
   const factory SocietyConfig({
@@ -48,7 +55,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(1.0) double iconBadgeOpacity, // [NEW] Icon Badge background opacity
     @Default(1.0) double iconOpacity, // [NEW] Icon Glyph opacity
     @Default('system') String themeMode, // 'system', 'light', 'dark'
-    @Default([]) List<int> customColors, // User-created custom colors (up to 5)
+    @Default(<int>[]) List<int> customColors, // User-created custom colors (up to 5)
     @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)
     @Default(true) bool useCardGradient,
     @Default('£') String currencySymbol, // Default currency symbol
@@ -70,8 +77,50 @@ abstract class SocietyConfig with _$SocietyConfig {
     @OptionalTimestampConverter() DateTime? globalMembershipEndDate, // [NEW] Society-wide expiry date
     @Default(30) int renewalWindowDays, // [NEW] Days before expiry to show home screen alert
     @Default(false) bool isRenewalActive, // [NEW] Admin switch to enable the "Renew Now" button
+    @OptionalTimestampConverter() DateTime? renewalLaunchDate, // [NEW] When the "Invoke" happened
+    @OptionalTimestampConverter() DateTime? renewalDeadline, // [NEW] Hard cutoff for membership
+    @OptionalTimestampConverter() DateTime? renewalPaymentDeadline, // [NEW] Adjustable payment limit
+    @Default(0.0) double startingBalance, // [NEW] Opening bank balance for the season
+    @Default(<FinancialEntry>[]) List<FinancialEntry> ledgerEntries, // [NEW] Society-level sponsorships & donations
+    @Default(<Sponsor>[]) List<Sponsor> sponsors, // [NEW] Central sponsorship hub
   }) = _SocietyConfig;
 
   factory SocietyConfig.fromJson(Map<String, dynamic> json) =>
       _$SocietyConfigFromJson(json);
+}
+
+@freezed
+abstract class FinancialEntry with _$FinancialEntry {
+  const factory FinancialEntry({
+    required String id,
+    @Default('Sponsorship') String type, // 'Sponsorship', 'Donation', 'Other'
+    required String source,
+    String? description, // [NEW] Optional detail for display
+    String? logoUrl, // [NEW] Optional logo image URL
+    String? scope, // [NEW] 'season' or 'event'
+    String? eventId, // [NEW] Targeted event if scope is 'event'
+    String? sponsorId, // [NEW] Link to a central Sponsor if applicable
+    @Default(0.0) double amount,
+    @TimestampConverter() required DateTime date,
+    @Default(true) bool isPaid,
+  }) = _FinancialEntry;
+
+  factory FinancialEntry.fromJson(Map<String, dynamic> json) =>
+      _$FinancialEntryFromJson(json);
+}
+
+@freezed
+abstract class Sponsor with _$Sponsor {
+  const factory Sponsor({
+    required String id,
+    required String name,
+    String? logoUrl,
+    String? websiteUrl,
+    String? description,
+    @Default(SponsorTier.silver) SponsorTier tier,
+    @Default(true) bool isActive,
+  }) = _Sponsor;
+
+  factory Sponsor.fromJson(Map<String, dynamic> json) =>
+      _$SponsorFromJson(json);
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/admin/presentation/events/event_form_notifier.dart';
+import 'package:golf_society/features/admin/presentation/events/event_form_state.dart';
 
 import 'widgets/form_sections/event_type_section.dart';
 import 'widgets/form_sections/event_basic_info_section.dart';
@@ -10,6 +11,8 @@ import 'widgets/form_sections/event_logistics_section.dart';
 import 'widgets/form_sections/event_course_section.dart';
 import 'widgets/form_sections/event_competition_section.dart';
 import 'widgets/form_sections/event_content_section.dart';
+import 'widgets/form_sections/event_pricing_section.dart';
+import 'widgets/form_sections/event_awards_section.dart';
 
 class EventFormScreen extends ConsumerStatefulWidget {
   final GolfEvent? event;
@@ -75,18 +78,9 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const EventTypeSection(isPeeking: true),
-                  const EventLogisticsSection(), 
-                  const EventBasicInfoSection(),
-                  const EventCourseSection(),
-                  const EventCompetitionSection(),
-                  const EventContentSection(),
-                  const SizedBox(height: AppSpacing.pageBottom),
-                ],
-              ),
+              child: state.eventType == EventType.golf 
+                ? _GolfFormBody(state: state)
+                : _SocialFormBody(state: state),
             ),
           ),
         ],
@@ -101,6 +95,52 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
           onAction: () => context.pop(),
         ),
       ),
+    );
+  }
+}
+
+class _GolfFormBody extends StatelessWidget {
+  final EventFormState state;
+
+  const _GolfFormBody({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EventTypeSection(isPeeking: true),
+        EventLogisticsSection(),
+        EventBasicInfoSection(),
+        EventCourseSection(),
+        EventCompetitionSection(),
+        EventPricingSection(),
+        EventAwardsSection(),
+        EventContentSection(),
+        SizedBox(height: AppSpacing.pageBottom),
+      ],
+    );
+  }
+}
+
+class _SocialFormBody extends StatelessWidget {
+  final EventFormState state;
+
+  const _SocialFormBody({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EventTypeSection(isPeeking: true),
+        // Social events often prioritize the concept/info and costs
+        EventBasicInfoSection(),
+        EventPricingSection(),
+        EventLogisticsSection(),
+        EventContentSection(),
+        SizedBox(height: AppSpacing.pageBottom),
+      ],
     );
   }
 }

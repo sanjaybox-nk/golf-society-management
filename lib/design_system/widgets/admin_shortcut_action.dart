@@ -47,27 +47,12 @@ class AdminShortcutAction extends ConsumerWidget {
 
     if (!canSeeAdmin) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      child: Container(
-        width: AppSpacing.x4l,
-        height: AppSpacing.x4l,
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
-        ),
-        child: IconButton(
-          icon: Icon(
-            Icons.admin_panel_settings_rounded,
-            color: Theme.of(context).iconTheme.color,
-            size: AppShapes.iconMd,
-          ),
-          tooltip: 'Admin Console',
-          onPressed: () => context.go('/admin'),
-          padding: EdgeInsets.zero,
-        ),
-      ),
+    return BoxyArtGlassIconButton(
+      icon: Icons.bolt_rounded,
+      onPressed: () => context.go('/admin'),
+      tooltip: 'Admin Console',
+      iconColor: AppColors.dark900,
+      iconSize: 24,
     );
   }
 }

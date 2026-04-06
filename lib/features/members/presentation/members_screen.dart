@@ -70,7 +70,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 selectedValue: currentFilter.type,
                 onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                isExpanded: true,
                 tabs: [
                   ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
                   ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),

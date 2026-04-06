@@ -260,7 +260,6 @@ class ProfileInfoRow extends StatelessWidget {
 /// A standard section title with BoxyArt styling (uppercase, bold, grey).
 class BoxyArtSectionTitle extends StatelessWidget {
   final String title;
-  final EdgeInsetsGeometry? padding;
   final bool isLevel2;
   final bool isPeeking;
   final IconData? icon;
@@ -270,7 +269,6 @@ class BoxyArtSectionTitle extends StatelessWidget {
   const BoxyArtSectionTitle({
     super.key,
     required this.title,
-    @Deprecated('Overrides are ignored to enforce global harmony. Remove this.') this.padding,
     this.isLevel2 = false,
     this.isPeeking = false,
     this.icon,
@@ -283,7 +281,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final String formattedTitle = isLevel2 ? title : toTitleCase(title);
+    final String formattedTitle = toTitleCase(title); // [Standard] Enforce Title Case for 4.x
     final displayTitle = count != null ? '$formattedTitle ($count)' : formattedTitle;
 
     final double topPadding = isPeeking ? 0 : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
@@ -305,13 +303,13 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 size: isLevel2 ? AppShapes.iconXs : AppShapes.iconSm,
                 color: isDark ? AppColors.dark300 : AppColors.dark400,
               ),
-              const SizedBox(width: AppSpacing.atomic),
+              const SizedBox(width: AppSpacing.sm),
             ],
             Flexible(
               child: Text(
                 displayTitle,
                 style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
-                  fontWeight: AppTypography.weightHeavy,
+                  fontWeight: AppTypography.weightHeavy, // [Standard] 800 weight for 4.x
                   color: color ?? (isDark ? AppColors.dark60 : AppColors.dark900),
                   letterSpacing: AppTypography.lsLabel,
                 ),
@@ -342,6 +340,30 @@ class BoxyArtDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         thickness: 1,
+        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
+      ),
+    );
+  }
+}
+
+/// A standardized subtle vertical divider for the Boxy Art design system.
+class BoxyArtVerticalDivider extends StatelessWidget {
+  final double horizontalPadding;
+  final double? height;
+
+  const BoxyArtVerticalDivider({
+    super.key,
+    this.horizontalPadding = AppSpacing.xs,
+    this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: Container(
+        width: 1,
+        height: height,
         color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
       ),
     );

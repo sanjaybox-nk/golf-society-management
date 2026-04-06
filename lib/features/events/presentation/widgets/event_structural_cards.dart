@@ -24,11 +24,17 @@ class EventHeadlineCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (hasImage)
-              Image.network(
-                event.imageUrl!,
+              BoxyArtImage(
+                url: event.imageUrl!,
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
+                errorWidget: Container(
+                  width: double.infinity,
+                  height: 200,
+                  color: AppColors.dark200,
+                  child: const Icon(Icons.image_not_supported_rounded, color: AppColors.dark400, size: AppShapes.iconLg),
+                ),
               ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -149,23 +155,30 @@ class EventRegistrationCard extends ConsumerWidget {
         if (!isRegistered) ...[
           SizedBox(height: isPeeking ? 0 : (Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel)),
           BoxyArtCard(
+            gradient: AppGradients.brandPrimary(context),
+            isHero: true,
             child: Column(
               children: [
                 Text(
-                  !event.isRegistrationOpen ? 'Registration Closed' : (isFull ? 'Event Full' : 'Secure your spot'),
+                  event.displayStatus == EventStatus.completed 
+                      ? 'Event Completed' 
+                      : (!event.isRegistrationOpen ? 'Registration Closed' : (isFull ? 'Event Full' : 'Secure your spot')),
                   style: AppTypography.headline.copyWith(
                     fontWeight: AppTypography.weightHeavy,
+                    color: AppColors.pureWhite,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 if (event.registrationDeadline != null || !event.isRegistrationOpen) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    !event.isRegistrationOpen 
-                        ? 'This event is no longer accepting new entries.'
-                        : (isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}'),
+                    event.displayStatus == EventStatus.completed
+                        ? 'This event has finished and closed'
+                        : (!event.isRegistrationOpen 
+                            ? 'This event is no longer accepting new entries.'
+                            : (isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}')),
                     style: AppTypography.micro.copyWith(
-                      color: AppColors.dark600,
+                      color: AppColors.pureWhite.withValues(alpha: 0.8),
                       fontWeight: AppTypography.weightHeavy,
                       letterSpacing: 1.2,
                     ),
@@ -176,7 +189,7 @@ class EventRegistrationCard extends ConsumerWidget {
                   Text(
                     isFull ? 'Join the waitlist below' : 'Register below to join the event',
                     style: AppTypography.label.copyWith(
-                      color: AppColors.dark600,
+                      color: AppColors.pureWhite.withValues(alpha: 0.8),
                       fontWeight: AppTypography.weightHeavy,
                     ),
                     textAlign: TextAlign.center,
@@ -184,12 +197,18 @@ class EventRegistrationCard extends ConsumerWidget {
                 ],
                 const SizedBox(height: AppSpacing.x2l),
                 BoxyArtButton(
-                  title: !event.isRegistrationOpen 
-                      ? 'Registration Closed' 
-                      : (isFull ? 'Register (Waitlist)' : 'Register Now'),
+                  title: event.displayStatus == EventStatus.completed
+                      ? 'Event Completed'
+                      : (!event.isRegistrationOpen 
+                          ? 'Registration Closed' 
+                          : (isFull ? 'Register (Waitlist)' : 'Register Now')),
                   fullWidth: true,
-                  backgroundColor: !event.isRegistrationOpen ? AppColors.dark300 : Color(config.primaryColor),
-                  textColor: ContrastHelper.getContrastingText(!event.isRegistrationOpen ? AppColors.dark300 : Color(config.primaryColor)),
+                  backgroundColor: !event.isRegistrationOpen 
+                      ? AppColors.pureWhite.withValues(alpha: 0.2) 
+                      : AppColors.pureWhite,
+                  textColor: !event.isRegistrationOpen 
+                      ? AppColors.pureWhite 
+                      : Color(config.primaryColor),
                   onTap: !event.isRegistrationOpen ? null : () {
                     try {
                       GoRouter.of(context).push('/events/${event.id}/register-form');
@@ -287,31 +306,28 @@ class EventRegistrationCard extends ConsumerWidget {
     required bool attendingDinner,
     required bool needsBuggy,
   }) {
-    final theme = Theme.of(context);
     final boxes = [
       if (statusOverride == 'playing' || (statusOverride == null && isConfirmed))
-        _buildStatusBox(context, ref, Icons.check_circle_rounded, 'Playing', 'Status')
+        const ModernMetricStat(icon: Icons.check_circle_rounded, value: 'Playing', label: 'Status')
       else if (statusOverride == 'reserve')
-        _buildStatusBox(context, ref, Icons.hourglass_empty_rounded, 'Reserve', 'Status')
+        const ModernMetricStat(icon: Icons.hourglass_empty_rounded, value: 'Reserve', label: 'Status')
       else if (statusOverride == 'waitlist')
-        _buildStatusBox(context, ref, Icons.list_alt_rounded, 'Waitlist', 'Status')
+        const ModernMetricStat(icon: Icons.list_alt_rounded, value: 'Waitlist', label: 'Status')
       else if (statusOverride == null && !isConfirmed)
-        _buildStatusBox(context, ref, Icons.history_edu_rounded, 'Pending', 'Status', color: AppColors.amber500),
+        const ModernMetricStat(icon: Icons.history_edu_rounded, value: 'Pending', label: 'Status', color: AppColors.amber500),
       if (attendingBreakfast)
-        _buildStatusBox(context, ref, Icons.breakfast_dining_rounded, 'Yes', 'Breakfast'),
+        const ModernMetricStat(icon: Icons.breakfast_dining_rounded, value: 'Yes', label: 'Breakfast'),
       if (attendingLunch)
-        _buildStatusBox(context, ref, Icons.lunch_dining_rounded, 'Yes', 'Lunch'),
+        const ModernMetricStat(icon: Icons.lunch_dining_rounded, value: 'Yes', label: 'Lunch'),
       if (attendingDinner)
-        _buildStatusBox(context, ref, Icons.restaurant_rounded, 'Yes', 'Dinner'),
+        const ModernMetricStat(icon: Icons.restaurant_rounded, value: 'Yes', label: 'Dinner'),
       if (needsBuggy)
-        _buildStatusBox(context, ref, Icons.electric_rickshaw_rounded, 'Yes', 'Buggy'),
-      _buildStatusBox(
-        context, 
-        ref,
-        hasPaid ? Icons.payments_rounded : Icons.info_outline_rounded, 
-        hasPaid ? 'Paid' : 'Due', 
-        'Payment',
-        color: hasPaid ? theme.colorScheme.primary : AppColors.amber500,
+        const ModernMetricStat(icon: Icons.electric_rickshaw_rounded, value: 'Yes', label: 'Buggy'),
+      ModernMetricStat(
+        icon: hasPaid ? Icons.payments_rounded : Icons.info_outline_rounded, 
+        value: hasPaid ? 'Paid' : 'Due', 
+        label: 'Payment',
+        color: hasPaid ? null : AppColors.amber500,
       ),
     ];
 
@@ -329,7 +345,7 @@ class EventRegistrationCard extends ConsumerWidget {
           child: Row(
             children: [
               ...row.map((box) => Expanded(child: Padding(
-                padding: EdgeInsets.only(right: box == row.last && row.length == 4 ? 0 : AppSpacing.sm),
+                padding: EdgeInsets.only(right: box == row.last && row.length == 4 ? 0 : AppSpacing.md),
                 child: box,
               ))),
               if (row.length < 4) 
@@ -338,60 +354,6 @@ class EventRegistrationCard extends ConsumerWidget {
           ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildStatusBox(BuildContext context, WidgetRef ref, IconData icon, String value, String label, {Color? color}) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final config = ref.watch(themeControllerProvider);
-    final themeColor = color ?? theme.colorScheme.primary;
-    final neutralColor = isDark ? AppColors.pureWhite : theme.colorScheme.primary;
-    
-    // Applying the independent Icon Opacity token to the glyph and text
-    final effectiveNeutralColor = neutralColor.withValues(alpha: config.iconOpacity);
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: themeColor.withValues(alpha: config.iconBadgeOpacity), // Society Branding Fill Opacity
-        borderRadius: BorderRadius.circular(config.accentRadius), // Dynamic Branding Radius
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon, 
-            size: AppShapes.iconMedium, // Standardized 24px icon 
-            color: effectiveNeutralColor,
-          ),
-          const SizedBox(height: AppSpacing.xs), // Standardized 8px gap
-          Text(
-            value,
-            style: AppTypography.displayHeading.copyWith(
-              fontSize: AppTypography.sizeBody, // 16px Heavy (Design 4.x Section Style)
-              color: effectiveNeutralColor,
-              letterSpacing: AppTypography.lsStandard, // Design 4.x standard
-              fontWeight: AppTypography.weightStrong, // w600 Semibold Emphasis
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: AppTypography.micro.copyWith(
-              color: effectiveNeutralColor.withValues(alpha: AppColors.opacityHigh),
-              fontWeight: AppTypography.weightStrong, // w600 Semibold Helper
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
     );
   }
 
@@ -442,12 +404,12 @@ class EventGalleryCard extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       return ClipRRect(
                         borderRadius: AppShapes.md,
-                        child: Image.network(
-                          event.galleryUrls[index],
+                        child: BoxyArtImage(
+                          url: event.galleryUrls[index],
                           width: 160,
                           height: 120,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                          errorWidget: Container(
                             width: 160,
                             height: 120,
                             color: AppColors.dark200,
@@ -486,7 +448,8 @@ class EventPodiumCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!isManagement) {
-      if (event.displayStatus != EventStatus.completed || event.results.isEmpty) {
+      final status = event.displayStatus;
+      if ((status != EventStatus.completed && status != EventStatus.inPlay) || event.results.isEmpty) {
         return const SizedBox.shrink();
       }
     }
@@ -525,7 +488,10 @@ class EventPodiumCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BoxyArtSectionTitle(title: 'Event Recap & Results', isPeeking: isPeeking),
+        BoxyArtSectionTitle(
+          title: event.displayStatus == EventStatus.inPlay ? 'Live Leaderboard' : 'Event Recap & Results', 
+          isPeeking: isPeeking,
+        ),
           BoxyArtCard(
             child: Column(
               children: [
@@ -564,7 +530,7 @@ class EventPodiumCard extends ConsumerWidget {
                         ),
                       ),
                       title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightHeavy)),
-                      trailing: Text('$score pts', style: AppTypography.headline.copyWith(fontWeight: AppTypography.weightHeavy, color: Theme.of(context).primaryColor)),
+                      trailing: Text('$score pts', style: AppTypography.headline.copyWith(fontSize: 18.0, fontWeight: AppTypography.weightHeavy, color: null)),
                     );
                 }),
               ],
@@ -638,72 +604,30 @@ class YourGroupCard extends ConsumerWidget {
           isPeeking: isPeeking,
         ),
         BoxyArtCard(
+          gradient: AppGradients.brandPrimary(context),
+          isHero: true,
+          customShadows: Theme.of(context).extension<AppShadows>()?.softScale,
+          padding: const EdgeInsets.all(AppSpacing.x2l),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoRow(
-                context, 
-                ref,
-                Icons.access_time_rounded, 
-                'Tee Time', 
-                DateFormat.Hm().format(myGroup.teeTime),
+              ModernInfoRow(
+                icon: Icons.access_time_rounded,
+                label: 'Tee Time',
+                value: DateFormat.Hm().format(myGroup.teeTime),
+                labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                valueColor: AppColors.pureWhite,
+                iconColor: AppColors.pureWhite,
+                fontSize: AppTypography.sizeHeadline,
               ),
-              const SizedBox(height: AppSpacing.lg), // Design 4.x standard list gap
-              _buildInfoRow(
-                context, 
-                ref,
-                Icons.people_alt_rounded, 
-                'Partners', 
-                partners.isEmpty ? "Alone" : partners,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(BuildContext context, WidgetRef ref, IconData icon, String label, String value) {
-    final theme = Theme.of(context);
-    final config = ref.watch(themeControllerProvider);
-    
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        BoxyArtIconBadge(
-          icon: icon,
-          color: Color(config.iconBadgeFillColor), 
-          iconColor: Color(config.iconBadgeIconColor), 
-          size: 42,
-          iconSize: 20,
-          fillOpacity: config.iconBadgeOpacity, 
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label.toUpperCase(),
-                style: AppTypography.micro.copyWith(
-                  fontWeight: AppTypography.weightStrong,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  letterSpacing: AppTypography.lsLabel,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                value,
-                style: label == 'Tee Time' 
-                  ? AppTypography.headline.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontSize: AppTypography.sizeHeadline,
-                    )
-                  : AppTypography.body.copyWith( // Increased to body size (Next size up from labelStrong)
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: AppTypography.weightStrong,
-                    ),
+              const SizedBox(height: AppSpacing.xl),
+              ModernInfoRow(
+                icon: Icons.people_alt_rounded,
+                label: 'Partners',
+                value: partners.isEmpty ? "Alone" : partners,
+                labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                valueColor: AppColors.pureWhite,
+                iconColor: AppColors.pureWhite,
               ),
             ],
           ),

@@ -79,7 +79,7 @@ class EventAdminScoresScreen extends ConsumerWidget {
       case 0: // Leaderboard
         return Column(
           children: [
-            const BoxyArtSectionTitle(title: 'LIVE STANDINGS'),
+            const BoxyArtSectionTitle(title: 'Live standings'),
             scorecardsAsync.when(
               data: (scorecards) => EventLeaderboard(
                 event: event,

@@ -26,7 +26,7 @@ class EventAirdropControlScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.xl),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const BoxyArtSectionTitle(title: 'AWARDS CONFIGURATION'),
+                const BoxyArtSectionTitle(title: 'Awards configuration'),
                 BoxyArtCard(
                   child: Column(
                     children: [
@@ -58,7 +58,7 @@ class EventAirdropControlScreen extends ConsumerWidget {
                         }),
                         const SizedBox(height: AppSpacing.cardToLabel),
                         BoxyArtButton(
-                          title: 'ADD AWARD',
+                          title: 'Add award',
                           onTap: () {
                             final updatedAwards = List<EventAward>.from(event.awards)
                               ..add(EventAward(id: const Uuid().v4(), label: 'New Award', value: 0));
@@ -185,7 +185,7 @@ class _AwardRowState extends State<_AwardRow> {
                 child: SizedBox(
                   height: AppSpacing.x3l,
                   child: BoxyArtButton(
-                    title: type.toUpperCase(),
+                    title: type,
                     onTap: () => widget.onUpdate(widget.award.copyWith(type: type)),
                     isGhost: !isSelected,
                   ),

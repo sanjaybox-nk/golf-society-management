@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 import 'package:golf_society/domain/models/golf_event.dart';
@@ -11,7 +14,9 @@ import '../../members/presentation/profile_provider.dart';
 import '../../surveys/presentation/surveys_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
 import 'package:golf_society/domain/models/survey.dart';
+import 'package:golf_society/domain/models/society_config.dart';
 import '../../events/presentation/events_provider.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 /// Track dismissed survey IDs for the current session to keep the home screen clean.
 class DismissedSurveysNotifier extends Notifier<Set<String>> {
@@ -44,36 +49,22 @@ class MemberHomeScreen extends ConsumerWidget {
     final societyConfig = ref.watch(themeControllerProvider);
     final surveysAsync = ref.watch(activeSurveysProvider);
     final eventsAsync = ref.watch(eventsProvider);
+    final spacing = theme.extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       title: effectiveUser.firstName,
-      subtitleWidget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                _getGreeting(),
-                style: AppTypography.labelStrong.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Icon(Icons.waving_hand_rounded, size: 14, color: AppColors.lime500),
-            ],
-          ),
-          if (societyConfig.logoUrl != null)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.md),
-              child: Image.network(
-                societyConfig.logoUrl!,
-                height: 32,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
-              ),
-            ),
-        ],
+      titleSuffix: societyConfig.logoUrl != null ? BoxyArtImage(
+        url: societyConfig.logoUrl!,
+        height: 40,
+        fit: BoxFit.contain,
+        errorWidget: const SizedBox.shrink(),
+      ) : null,
+      subtitleWidget: Text(
+        _getGreeting(),
+        style: AppTypography.labelStrong.copyWith(
+          color: theme.textTheme.bodySmall?.color,
+        ),
       ),
       showMenu: true,
       showAdminShortcut: true,
@@ -94,7 +85,7 @@ class MemberHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'VIEWING AS MEMBER',
+                            'Viewing as Member',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: AppTypography.weightExtraBold,
@@ -121,92 +112,11 @@ class MemberHomeScreen extends ConsumerWidget {
             ),
           ),
 
-        // Membership Status Banner (Society-wide Renewal Model)
-        if (societyConfig.globalMembershipEndDate != null) ...[
-          (() {
-            final now = DateTime.now();
-            final expiry = societyConfig.globalMembershipEndDate!;
-            final window = societyConfig.renewalWindowDays;
-            final difference = expiry.difference(now).inDays;
-            
-            final isExcludedStatus = effectiveUser.status == MemberStatus.archived || 
-                                   effectiveUser.status == MemberStatus.left;
-            
-            if (isExcludedStatus) return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-            final isExpired = difference < 0;
-            final isWithinWindow = difference <= window && difference >= 0;
-
-            if (isExpired || isWithinWindow) {
-              final color = isExpired ? AppColors.coral500 : AppColors.amber500;
-              final hasSubmittedPreference = effectiveUser.renewalStatus != MemberRenewalStatus.none;
-
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
-                sliver: SliverToBoxAdapter(
-                  child: BoxyArtCard(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    backgroundColor: color.withValues(alpha: 0.08),
-                    child: Row(
-                      children: [
-                        BoxyArtIconBadge(
-                          icon: isExpired ? Icons.error_rounded : Icons.calendar_today_rounded,
-                          color: color,
-                          size: 42,
-                          iconSize: 22,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isExpired ? 'MEMBERSHIP EXPIRED' : 'RENEWAL PERIOD',
-                                style: AppTypography.micro.copyWith(
-                                  color: color,
-                                  fontWeight: AppTypography.weightHeavy,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                hasSubmittedPreference 
-                                  ? 'Your selection: ${effectiveUser.renewalStatus.name.toUpperCase()}'
-                                  : (isExpired 
-                                      ? 'The season ended on ${DateFormat('MMM d').format(expiry)}'
-                                      : 'Season ends in $difference days (${DateFormat('MMM d').format(expiry)})'),
-                                style: AppTypography.labelStrong.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (societyConfig.isRenewalActive && !hasSubmittedPreference) ...[
-                          const SizedBox(width: AppSpacing.md),
-                          BoxyArtButton(
-                            title: 'RENEW NOW',
-                            isPrimary: true,
-                            isSmall: true,
-                            onTap: () => _showRenewalSelection(context, ref),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-            return const SliverToBoxAdapter(child: SizedBox.shrink());
-          })(),
-        ],
         // Notifications & Content
         notificationsAsync.when(
           loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
           error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
           data: (allNotifications) {
-            final spacing = Theme.of(context).extension<AppSpacingTokens>();
             final unreadNotifications = allNotifications
                 .where((n) => !n.isRead)
                 .toList()
@@ -215,45 +125,49 @@ class MemberHomeScreen extends ConsumerWidget {
             final homeNotifications = unreadNotifications.take(2).toList();
             
             return SliverPadding(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.xl, 
-                vertical: spacing?.labelToCard ?? AppSpacing.labelToCard
               ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // Notifications Section (Dynamic)
-                  if (homeNotifications.isNotEmpty) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const BoxyArtSectionTitle(
-                          title: 'Notifications',
-                          isPeeking: true, // Tight to top
-                        ),
-                          TextButton(
-                            onPressed: () => context.push('/home/notifications'),
-                            child: Text(
-                              'View All', 
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: isDark ? AppColors.lime400 : AppColors.lime700,
-                                fontWeight: AppTypography.weightBold,
-                                inherit: true, // Fix for TextStyle interpolation crash
-                              ),
-                            ),
+                  // Notifications Section (Always Visible for Discoverability)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const BoxyArtSectionTitle(
+                        title: 'Notifications',
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/home/notifications'),
+                        child: Text(
+                          'View All', 
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: isDark ? AppColors.lime400 : AppColors.lime700,
+                            fontWeight: AppTypography.weightBold,
+                            inherit: true,
                           ),
-                      ],
-                    ),
-                    ...homeNotifications.asMap().entries.map((entry) {
-                      final isLast = entry.key == homeNotifications.length - 1;
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.standard)),
-                        child: StaggeredEntrance(
-                          index: entry.key,
-                          child: HomeNotificationCard(notification: entry.value),
                         ),
+                      ),
+                    ],
+                  ),
+                  if (homeNotifications.isNotEmpty)
+                    ...homeNotifications.asMap().entries.map((entry) {
+                      return StaggeredEntrance(
+                        index: entry.key,
+                        child: HomeNotificationCard(notification: entry.value),
                       );
-                    }),
-                  ],
+                    })
+                  else
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: Text(
+                        'No recent notifications',
+                        style: TextStyle(
+                          color: AppColors.dark400,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                 ]),
               ),
             );
@@ -267,16 +181,15 @@ class MemberHomeScreen extends ConsumerWidget {
             final isLive = event.status == EventStatus.inPlay;
                 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     BoxyArtSectionTitle(
-                      title: isLive ? 'LIVE NOW' : 'NEXT FIXTURE', 
-                      isPeeking: true,
+                      title: isLive ? 'Live Now' : 'Next Fixture', 
                     ),
-                    const SizedBox(height: AppSpacing.labelToCard),
+                    // Removed redundant SizedBox - handled by BoxyArtSectionTitle
                     _NextMatchCard(event: event),
                   ],
                 ),
@@ -294,19 +207,18 @@ class MemberHomeScreen extends ConsumerWidget {
             if (activePolls.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
             
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final item = activePolls[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    return StaggeredEntrance(
+                      index: index,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (index == 0) ...[
-                            const BoxyArtSectionTitle(title: 'SOCIETY POLLS'),
-                            const SizedBox(height: AppSpacing.labelToCard),
+                            const BoxyArtSectionTitle(title: 'Society Polls'),
                           ],
                           _GlobalPollCard(event: item.$1, item: item.$2),
                         ],
@@ -338,8 +250,8 @@ class MemberHomeScreen extends ConsumerWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final survey = active[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    return StaggeredEntrance(
+                      index: index,
                       child: BoxyArtCard(
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Row(
@@ -381,9 +293,11 @@ class MemberHomeScreen extends ConsumerWidget {
 
         // Leaderboard Snippet
         const SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverToBoxAdapter(
-            child: BoxyArtSectionTitle(title: 'ORDER OF MERIT'),
+            child: BoxyArtSectionTitle(
+              title: 'Order of Merit',
+            ),
           ),
         ),
 
@@ -404,163 +318,204 @@ class MemberHomeScreen extends ConsumerWidget {
           error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
         
+        // Season Sponsors (Consolidated Tiered View)
+        (() {
+          // 1. Managed Sponsors: Show all registry sponsors (removing strict scope filter to find the missing 8)
+          final managedSponsors = societyConfig.sponsors.toList();
+          
+          // 2. Unmanaged Sponsors: Sponsors in ledger but NOT in registry
+          final unmanagedSponsors = societyConfig.ledgerEntries
+              .where((e) => e.type == 'Sponsorship' && 
+                e.scope?.toLowerCase() != 'event' && 
+                !societyConfig.sponsors.any((s) => s.id == e.sponsorId)
+              )
+              .map((e) => Sponsor(
+                id: e.id,
+                name: e.source,
+                tier: SponsorTier.standard,
+                description: e.description,
+                logoUrl: e.logoUrl,
+              ))
+              .toList();
+          
+          // 3. Combine and merge by ID to be super safe
+          final Map<String, Sponsor> uniqueSponsors = {};
+          for (var s in managedSponsors) { uniqueSponsors[s.id] = s; }
+          for (var s in unmanagedSponsors) {
+            if (!uniqueSponsors.containsKey(s.id)) uniqueSponsors[s.id] = s;
+          }
+          
+          final sponsors = uniqueSponsors.values.toList()
+            ..sort((a, b) => a.tier.index.compareTo(b.tier.index));
+          
+          if (sponsors.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl, 
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const BoxyArtSectionTitle(
+                    title: 'Official Season Sponsors',
+                  ),
+                  BoxyArtCard(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl, horizontal: AppSpacing.xl),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: (() {
+                        final List<Widget> children = [];
+                        
+                        // Group by tier
+                        final Map<SponsorTier, List<Sponsor>> grouped = {};
+                        for (final s in sponsors) {
+                          grouped.putIfAbsent(s.tier, () => []).add(s);
+                        }
+
+                        final sortedTiers = grouped.keys.toList()
+                          ..sort((a, b) => a.index.compareTo(b.index));
+
+                        for (int i = 0; i < sortedTiers.length; i++) {
+                          final tier = sortedTiers[i];
+                          final group = grouped[tier]!;
+                          
+                          // Subheader
+                          children.add(
+                            Padding(
+                              padding: EdgeInsets.only(
+                                top: i == 0 ? 0 : AppSpacing.xl,
+                                bottom: AppSpacing.md,
+                              ),
+                              child: Text(
+                                '${toTitleCase(tier.name)} Partners',
+                                style: AppTypography.micro.copyWith(
+                                  color: AppColors.dark300,
+                                  fontWeight: AppTypography.weightHeavy,
+                                  letterSpacing: 0.5,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          );
+
+                          // Partner Rows
+                          for (int j = 0; j < group.length; j++) {
+                            final s = group[j];
+                            final isLastInGroup = j == group.length - 1;
+                            
+                            children.add(
+                              Padding(
+                                padding: EdgeInsets.only(bottom: isLastInGroup ? 0 : AppSpacing.lg),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (s.logoUrl != null && s.logoUrl!.isNotEmpty)
+                                      BoxyArtImage(
+                                        url: s.logoUrl!,
+                                        width: 56,
+                                        height: 56,
+                                        fit: BoxFit.contain,
+                                        borderRadius: BorderRadius.circular(8),
+                                        errorWidget: const BoxyArtIconBadge(
+                                          icon: Icons.handshake_rounded,
+                                          color: AppColors.lime500,
+                                          isTinted: true,
+                                          size: 56,
+                                        ),
+                                      )
+                                    else
+                                      const BoxyArtIconBadge(
+                                        icon: Icons.handshake_rounded,
+                                        color: AppColors.lime500,
+                                        isTinted: true,
+                                        size: 56,
+                                      ),
+                                    const SizedBox(width: AppSpacing.lg),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          (() {
+                                            // Find best entry for label (prioritizing season)
+                                            String labelStr = toTitleCase(s.name);
+                                            
+                                            return Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  labelStr,
+                                                  style: AppTypography.body.copyWith(
+                                                    fontWeight: AppTypography.weightBold,
+                                                    fontSize: 16,
+                                                    letterSpacing: -0.4,
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          })(),
+                                          if (s.description != null && s.description!.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 4.0),
+                                              child: Text(
+                                                _extractPlainText(s.description),
+                                                style: AppTypography.label.copyWith(
+                                                  color: AppColors.dark300,
+                                                  height: 1.4,
+                                                ),
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                        return children;
+                      })(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        })(),
+
         // Final spacing
-        const SliverToBoxAdapter(child: SizedBox(height: 140)),
+        const SliverPadding(
+          padding: EdgeInsets.only(bottom: 140),
+          sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+        ),
       ],
     );
   }
 
-  void _showRenewalSelection(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    BoxyArtBottomSheet.show(
-      context: context,
-      title: 'MEMBERSHIP RENEWAL',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-            child: Text(
-              'Please select your status for the upcoming season. Your choice will be sent to the admin for final processing.',
-              style: AppTypography.bodySmall.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                height: 1.4,
-                fontWeight: AppTypography.weightStrong,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          StaggeredEntrance(
-            index: 0,
-            child: _RenewalOptionTile(
-              title: 'Renew Membership',
-              subtitle: 'I want to continue playing for the next season.',
-              icon: Icons.check_circle_outline_rounded,
-              color: Theme.of(context).colorScheme.primary,
-              onTap: () {
-                final user = ref.read(effectiveUserProvider);
-                _updateRenewal(context, ref, user.id, MemberRenewalStatus.renew);
-              },
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          StaggeredEntrance(
-            index: 1,
-            child: _RenewalOptionTile(
-              title: 'Suspend Membership',
-              subtitle: 'I want to take a break but keep my account.',
-              icon: Icons.pause_circle_outline_rounded,
-              color: AppColors.amber500,
-              onTap: () {
-                final user = ref.read(effectiveUserProvider);
-                _updateRenewal(context, ref, user.id, MemberRenewalStatus.suspend);
-              },
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          StaggeredEntrance(
-            index: 2,
-            child: _RenewalOptionTile(
-              title: 'Leave Society',
-              subtitle: 'I want to withdraw from the society.',
-              icon: Icons.exit_to_app_rounded,
-              color: AppColors.coral500,
-              onTap: () {
-                final user = ref.read(effectiveUserProvider);
-                _updateRenewal(context, ref, user.id, MemberRenewalStatus.leave);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Future<void> _updateRenewal(BuildContext context, WidgetRef ref, String memberId, MemberRenewalStatus status) async {
-    await ref.read(memberRenewalProvider.notifier).updateStatus(memberId, status);
-    if (context.mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Your selection has been submitted.'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
+
+  String _extractPlainText(String? content) {
+    if (content == null) return '';
+    if (content.startsWith('[{"insert"')) {
+      try {
+        final List<dynamic> delta = jsonDecode(content);
+        return delta
+            .where((op) => op['insert'] is String)
+            .map((op) => op['insert'] as String)
+            .join('')
+            .trim();
+      } catch (_) {
+        return content.trim();
+      }
     }
+    return content.trim();
   }
 }
 
-class _RenewalOptionTile extends ConsumerWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _RenewalOptionTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return BoxyArtCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      backgroundColor: color.withValues(alpha: isDark ? 0.12 : 0.08),
-      border: Border.all(
-        color: color.withValues(alpha: 0.24),
-        width: 1.5,
-      ),
-      child: Row(
-        children: [
-          BoxyArtIconBadge(
-            icon: icon,
-            color: color,
-            size: 44,
-            iconSize: 22,
-          ),
-          const SizedBox(width: AppSpacing.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title.toUpperCase(),
-                  style: AppTypography.displaySection.copyWith(
-                    fontSize: 15,
-                    letterSpacing: 0.5,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.4),
-                    height: 1.2,
-                    fontWeight: AppTypography.weightStrong,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: color.withValues(alpha: AppColors.opacityHigh),
-            size: 20,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _NextMatchCard extends ConsumerWidget {
   final GolfEvent event;
@@ -572,11 +527,14 @@ class _NextMatchCard extends ConsumerWidget {
     final effectiveUser = ref.watch(effectiveUserProvider);
     final isLive = event.status == EventStatus.inPlay;
     final isPlaying = event.registrations.any((r) => r.memberId == effectiveUser.id);
-
     
+    // Apply Brand Gradient to the card background
+    final backgroundGradient = AppGradients.brandPrimary(context);
+
     return BoxyArtCard(
       padding: EdgeInsets.zero,
-      onTap: () => context.push('/events/${event.id}'),
+      onTap: () => context.go('/events/${event.id}'),
+      gradient: backgroundGradient,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -635,20 +593,20 @@ class _NextMatchCard extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         event.title,
-                        style: AppTypography.displayLocker,
+                        style: AppTypography.displayLocker.copyWith(color: AppColors.pureWhite),
                       ),
                     ),
                     if (isLive && isPlaying)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+                          color: AppColors.pureWhite.withValues(alpha: 0.2),
                           borderRadius: AppShapes.md,
                         ),
                         child: Text(
                           'Playing',
                           style: AppTypography.micro.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: AppColors.pureWhite,
                           ),
                         ),
                       ),
@@ -659,12 +617,18 @@ class _NextMatchCard extends ConsumerWidget {
                   label: 'Course',
                   value: event.courseName ?? 'TBA',
                   icon: Icons.location_on_rounded,
+                  iconColor: AppColors.pureWhite,
+                  labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
+                  valueColor: AppColors.pureWhite,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 ModernInfoRow(
                   label: 'Tee Off',
                   value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
                   icon: Icons.schedule_rounded,
+                  iconColor: AppColors.pureWhite,
+                  labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
+                  valueColor: AppColors.pureWhite,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 if (isLive && isPlaying) ...[
@@ -672,21 +636,21 @@ class _NextMatchCard extends ConsumerWidget {
                     title: 'ENTER SCORE',
                     isPrimary: true,
                     isSmall: true,
-                    onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}/live'),
+                    onTap: () => context.go('/events/${Uri.encodeComponent(event.id)}/live'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   BoxyArtButton(
                     title: 'View Event Hub',
                     isSecondary: true,
                     isSmall: true,
-                    onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
+                    onTap: () => context.go('/events/${Uri.encodeComponent(event.id)}'),
                   ),
                 ] else
                   BoxyArtButton(
                     title: 'View Details',
                     isPrimary: true,
                     isSmall: true,
-                    onTap: () => context.push('/events/${Uri.encodeComponent(event.id)}'),
+                    onTap: () => context.go('/events/${Uri.encodeComponent(event.id)}'),
                   ),
               ],
             ),
@@ -696,6 +660,8 @@ class _NextMatchCard extends ConsumerWidget {
     );
   }
 }
+
+
 
 class _LeaderboardSnippet extends StatelessWidget {
   final List<Map<String, dynamic>> topPlayers;

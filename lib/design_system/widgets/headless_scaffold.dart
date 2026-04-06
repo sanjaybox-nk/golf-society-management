@@ -60,6 +60,8 @@ class HeadlessScaffold extends StatelessWidget {
     // We use viewPaddingOf to detect the physical notch even if we are inside a SafeArea-consuming parent.
     final double physicalTop = MediaQuery.viewPaddingOf(context).top;
     final double topPadding = MediaQuery.paddingOf(context).top;
+    // Bottom inset: consume the bottom nav bar height so content is never occluded.
+    final double bottomInset = MediaQuery.paddingOf(context).bottom;
     
     // Fallback logic: 
     // 1. Use actual top padding if it's currently inset (Standard Page)
@@ -93,9 +95,20 @@ class HeadlessScaffold extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title.replaceFirst(RegExp(r'LIVE:\s*', caseSensitive: false), ''),
-                        style: AppTypography.displayPage,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title.replaceFirst(RegExp(r'LIVE:\s*', caseSensitive: false), ''),
+                              style: AppTypography.displayPage,
+                            ),
+                          ),
+                          if (titleSuffix != null) ...[
+                            const SizedBox(width: AppSpacing.md),
+                            titleSuffix!,
+                          ],
+                        ],
                       ),
                       if (subtitleWidget != null || (subtitle != null && subtitle!.isNotEmpty)) ...[
                         const SizedBox(height: AppSpacing.xs),
@@ -115,8 +128,8 @@ class HeadlessScaffold extends StatelessWidget {
               // Body Content
               ...slivers,
               
-              // Bottom Padding
-              SliverPadding(padding: EdgeInsets.only(bottom: pinnedBottom != null ? 140 : 100)),
+              // Bottom Padding: adds bottomInset to clear the global bottom nav bar
+              SliverPadding(padding: EdgeInsets.only(bottom: (pinnedBottom != null ? 280 : 100) + bottomInset)),
             ],
           ),
         ),
@@ -174,32 +187,39 @@ class HeadlessScaffold extends StatelessWidget {
 
                       // Actions slot
                       if (actions != null || showAdminShortcut)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (showAdminShortcut)
-                              Builder(
-                                builder: (context) {
-                                  final path = GoRouterState.of(context).uri.path;
-                                  // Hide on admin console by default, but allow explicit removal elsewhere
-                                  if (path.contains('/admin')) return const SizedBox.shrink();
-                                  return const AdminShortcutAction();
-                                },
-                              ),
-                            if (actions != null)
-                              ...actions!.asMap().entries.map((entry) {
-                                final idx = entry.key;
-                                final widget = entry.value;
-                                final isLast = idx == actions!.length - 1;
-                                
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    right: isLast ? AppSpacing.xl : AppSpacing.sm,
-                                  ),
-                                  child: widget,
-                                );
-                              }),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.xl),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (showAdminShortcut)
+                                Builder(
+                                  builder: (context) {
+                                    final path = GoRouterState.of(context).uri.path;
+                                    if (path.contains('/admin')) return const SizedBox.shrink();
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        right: (actions != null && actions!.isNotEmpty) ? AppSpacing.sm : 0,
+                                      ),
+                                      child: const AdminShortcutAction(),
+                                    );
+                                  },
+                                ),
+                              if (actions != null)
+                                ...actions!.asMap().entries.map((entry) {
+                                  final idx = entry.key;
+                                  final widget = entry.value;
+                                  final isLast = idx == actions!.length - 1;
+                                  
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      right: isLast ? 0 : AppSpacing.sm,
+                                    ),
+                                    child: widget,
+                                  );
+                                }),
+                            ],
+                          ),
                         ),
                     ],
                   ),
@@ -211,7 +231,7 @@ class HeadlessScaffold extends StatelessWidget {
         // Layer 3: Overlays
         if (pinnedBottom != null)
           Positioned(
-            bottom: pinnedBottomPadding ?? AppSpacing.lg,
+            bottom: (pinnedBottomPadding ?? AppSpacing.lg) + bottomInset,
             left: AppSpacing.xl,
             right: AppSpacing.xl,
             child: pinnedBottom!,
@@ -239,7 +259,7 @@ class HeadlessScaffold extends StatelessWidget {
         if (floatingActionButton != null)
           Positioned(
             right: AppSpacing.xl,
-            bottom: (pinnedBottom != null ? 100 : 0) + AppSpacing.xl + MediaQuery.paddingOf(context).bottom,
+            bottom: (pinnedBottom != null ? 100 : 0) + AppSpacing.xl + bottomInset,
             child: floatingActionButton!,
           ),
       ],

@@ -69,7 +69,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── MATCH FORMAT ──────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'MATCH FORMAT'),
+        const BoxyArtSectionTitle(title: 'Match format'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<CompetitionSubtype>(
@@ -100,7 +100,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
         const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const BoxyArtSectionTitle(title: 'Handicap'),
         const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
@@ -118,7 +118,7 @@ class _MatchPlayControlState extends BaseCompetitionControlState<MatchPlayContro
         const SizedBox(height: AppSpacing.x2l),
 
         // ── TIE BREAK ─────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        const BoxyArtSectionTitle(title: 'Tie break'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<TieBreakMethod>(

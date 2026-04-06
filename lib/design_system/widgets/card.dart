@@ -14,7 +14,7 @@ class BoxyArtCard extends ConsumerWidget {
   final double? borderRadius;
   final BoxBorder? border;
   final Color? backgroundColor;
-  final LinearGradient? gradient;
+  final Gradient? gradient;
   final bool showShadow;
   final bool isHero;
   final List<BoxShadow>? customShadows;
@@ -187,7 +187,17 @@ class ModernNoteCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             ClipRRect(
               borderRadius: AppShapes.md,
-              child: Image.network(imageUrl!, width: double.infinity, fit: BoxFit.cover),
+              child: Image.network(
+                imageUrl!, 
+                width: double.infinity, 
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: double.infinity,
+                  height: 120, // Match default feel
+                  color: AppColors.dark200,
+                  child: const Icon(Icons.image_not_supported_rounded, color: AppColors.dark400),
+                ),
+              ),
             ),
           ],
         ],

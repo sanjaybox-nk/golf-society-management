@@ -21,7 +21,7 @@ mixin _$EventRegistration {
  String? get guestName; String? get guestHandicap; bool get guestAttendingBreakfast; bool get guestAttendingLunch; bool get guestAttendingDinner; bool get guestNeedsBuggy; bool get isCaptain;@OptionalTimestampConverter() DateTime? get registeredAt; bool get isConfirmed; bool get guestIsConfirmed; String? get statusOverride;// 'confirmed', 'reserved', 'waitlist'
  String? get buggyStatusOverride;// 'confirmed', 'reserved', 'waitlist'
  String? get guestBuggyStatusOverride;// 'confirmed', 'reserved', 'waitlist'
- List<RegistrationHistoryItem>? get history;
+ List<RegistrationHistoryItem>? get history; List<EventFine> get fines; double get fineAmount; bool get finePaid;
 /// Create a copy of EventRegistration
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,16 +34,16 @@ $EventRegistrationCopyWith<EventRegistration> get copyWith => _$EventRegistratio
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventRegistration&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.memberName, memberName) || other.memberName == memberName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.attendingGolf, attendingGolf) || other.attendingGolf == attendingGolf)&&(identical(other.attendingBreakfast, attendingBreakfast) || other.attendingBreakfast == attendingBreakfast)&&(identical(other.attendingLunch, attendingLunch) || other.attendingLunch == attendingLunch)&&(identical(other.attendingDinner, attendingDinner) || other.attendingDinner == attendingDinner)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.cost, cost) || other.cost == cost)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.needsBuggy, needsBuggy) || other.needsBuggy == needsBuggy)&&(identical(other.dietaryRequirements, dietaryRequirements) || other.dietaryRequirements == dietaryRequirements)&&(identical(other.specialNeeds, specialNeeds) || other.specialNeeds == specialNeeds)&&(identical(other.guestName, guestName) || other.guestName == guestName)&&(identical(other.guestHandicap, guestHandicap) || other.guestHandicap == guestHandicap)&&(identical(other.guestAttendingBreakfast, guestAttendingBreakfast) || other.guestAttendingBreakfast == guestAttendingBreakfast)&&(identical(other.guestAttendingLunch, guestAttendingLunch) || other.guestAttendingLunch == guestAttendingLunch)&&(identical(other.guestAttendingDinner, guestAttendingDinner) || other.guestAttendingDinner == guestAttendingDinner)&&(identical(other.guestNeedsBuggy, guestNeedsBuggy) || other.guestNeedsBuggy == guestNeedsBuggy)&&(identical(other.isCaptain, isCaptain) || other.isCaptain == isCaptain)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt)&&(identical(other.isConfirmed, isConfirmed) || other.isConfirmed == isConfirmed)&&(identical(other.guestIsConfirmed, guestIsConfirmed) || other.guestIsConfirmed == guestIsConfirmed)&&(identical(other.statusOverride, statusOverride) || other.statusOverride == statusOverride)&&(identical(other.buggyStatusOverride, buggyStatusOverride) || other.buggyStatusOverride == buggyStatusOverride)&&(identical(other.guestBuggyStatusOverride, guestBuggyStatusOverride) || other.guestBuggyStatusOverride == guestBuggyStatusOverride)&&const DeepCollectionEquality().equals(other.history, history));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventRegistration&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.memberName, memberName) || other.memberName == memberName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.attendingGolf, attendingGolf) || other.attendingGolf == attendingGolf)&&(identical(other.attendingBreakfast, attendingBreakfast) || other.attendingBreakfast == attendingBreakfast)&&(identical(other.attendingLunch, attendingLunch) || other.attendingLunch == attendingLunch)&&(identical(other.attendingDinner, attendingDinner) || other.attendingDinner == attendingDinner)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.cost, cost) || other.cost == cost)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.needsBuggy, needsBuggy) || other.needsBuggy == needsBuggy)&&(identical(other.dietaryRequirements, dietaryRequirements) || other.dietaryRequirements == dietaryRequirements)&&(identical(other.specialNeeds, specialNeeds) || other.specialNeeds == specialNeeds)&&(identical(other.guestName, guestName) || other.guestName == guestName)&&(identical(other.guestHandicap, guestHandicap) || other.guestHandicap == guestHandicap)&&(identical(other.guestAttendingBreakfast, guestAttendingBreakfast) || other.guestAttendingBreakfast == guestAttendingBreakfast)&&(identical(other.guestAttendingLunch, guestAttendingLunch) || other.guestAttendingLunch == guestAttendingLunch)&&(identical(other.guestAttendingDinner, guestAttendingDinner) || other.guestAttendingDinner == guestAttendingDinner)&&(identical(other.guestNeedsBuggy, guestNeedsBuggy) || other.guestNeedsBuggy == guestNeedsBuggy)&&(identical(other.isCaptain, isCaptain) || other.isCaptain == isCaptain)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt)&&(identical(other.isConfirmed, isConfirmed) || other.isConfirmed == isConfirmed)&&(identical(other.guestIsConfirmed, guestIsConfirmed) || other.guestIsConfirmed == guestIsConfirmed)&&(identical(other.statusOverride, statusOverride) || other.statusOverride == statusOverride)&&(identical(other.buggyStatusOverride, buggyStatusOverride) || other.buggyStatusOverride == buggyStatusOverride)&&(identical(other.guestBuggyStatusOverride, guestBuggyStatusOverride) || other.guestBuggyStatusOverride == guestBuggyStatusOverride)&&const DeepCollectionEquality().equals(other.history, history)&&const DeepCollectionEquality().equals(other.fines, fines)&&(identical(other.fineAmount, fineAmount) || other.fineAmount == fineAmount)&&(identical(other.finePaid, finePaid) || other.finePaid == finePaid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,memberId,memberName,isGuest,attendingGolf,attendingBreakfast,attendingLunch,attendingDinner,hasPaid,cost,handicap,playingHandicap,needsBuggy,dietaryRequirements,specialNeeds,guestName,guestHandicap,guestAttendingBreakfast,guestAttendingLunch,guestAttendingDinner,guestNeedsBuggy,isCaptain,registeredAt,isConfirmed,guestIsConfirmed,statusOverride,buggyStatusOverride,guestBuggyStatusOverride,const DeepCollectionEquality().hash(history)]);
+int get hashCode => Object.hashAll([runtimeType,memberId,memberName,isGuest,attendingGolf,attendingBreakfast,attendingLunch,attendingDinner,hasPaid,cost,handicap,playingHandicap,needsBuggy,dietaryRequirements,specialNeeds,guestName,guestHandicap,guestAttendingBreakfast,guestAttendingLunch,guestAttendingDinner,guestNeedsBuggy,isCaptain,registeredAt,isConfirmed,guestIsConfirmed,statusOverride,buggyStatusOverride,guestBuggyStatusOverride,const DeepCollectionEquality().hash(history),const DeepCollectionEquality().hash(fines),fineAmount,finePaid]);
 
 @override
 String toString() {
-  return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, history: $history)';
+  return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $EventRegistrationCopyWith<$Res>  {
   factory $EventRegistrationCopyWith(EventRegistration value, $Res Function(EventRegistration) _then) = _$EventRegistrationCopyWithImpl;
 @useResult
 $Res call({
- String memberId, String memberName, bool isGuest, bool attendingGolf, bool attendingBreakfast, bool attendingLunch, bool attendingDinner, bool hasPaid, double cost, double? handicap, int? playingHandicap, bool needsBuggy, String? dietaryRequirements, String? specialNeeds, String? guestName, String? guestHandicap, bool guestAttendingBreakfast, bool guestAttendingLunch, bool guestAttendingDinner, bool guestNeedsBuggy, bool isCaptain,@OptionalTimestampConverter() DateTime? registeredAt, bool isConfirmed, bool guestIsConfirmed, String? statusOverride, String? buggyStatusOverride, String? guestBuggyStatusOverride, List<RegistrationHistoryItem>? history
+ String memberId, String memberName, bool isGuest, bool attendingGolf, bool attendingBreakfast, bool attendingLunch, bool attendingDinner, bool hasPaid, double cost, double? handicap, int? playingHandicap, bool needsBuggy, String? dietaryRequirements, String? specialNeeds, String? guestName, String? guestHandicap, bool guestAttendingBreakfast, bool guestAttendingLunch, bool guestAttendingDinner, bool guestNeedsBuggy, bool isCaptain,@OptionalTimestampConverter() DateTime? registeredAt, bool isConfirmed, bool guestIsConfirmed, String? statusOverride, String? buggyStatusOverride, String? guestBuggyStatusOverride, List<RegistrationHistoryItem>? history, List<EventFine> fines, double fineAmount, bool finePaid
 });
 
 
@@ -71,7 +71,7 @@ class _$EventRegistrationCopyWithImpl<$Res>
 
 /// Create a copy of EventRegistration
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? memberId = null,Object? memberName = null,Object? isGuest = null,Object? attendingGolf = null,Object? attendingBreakfast = null,Object? attendingLunch = null,Object? attendingDinner = null,Object? hasPaid = null,Object? cost = null,Object? handicap = freezed,Object? playingHandicap = freezed,Object? needsBuggy = null,Object? dietaryRequirements = freezed,Object? specialNeeds = freezed,Object? guestName = freezed,Object? guestHandicap = freezed,Object? guestAttendingBreakfast = null,Object? guestAttendingLunch = null,Object? guestAttendingDinner = null,Object? guestNeedsBuggy = null,Object? isCaptain = null,Object? registeredAt = freezed,Object? isConfirmed = null,Object? guestIsConfirmed = null,Object? statusOverride = freezed,Object? buggyStatusOverride = freezed,Object? guestBuggyStatusOverride = freezed,Object? history = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? memberId = null,Object? memberName = null,Object? isGuest = null,Object? attendingGolf = null,Object? attendingBreakfast = null,Object? attendingLunch = null,Object? attendingDinner = null,Object? hasPaid = null,Object? cost = null,Object? handicap = freezed,Object? playingHandicap = freezed,Object? needsBuggy = null,Object? dietaryRequirements = freezed,Object? specialNeeds = freezed,Object? guestName = freezed,Object? guestHandicap = freezed,Object? guestAttendingBreakfast = null,Object? guestAttendingLunch = null,Object? guestAttendingDinner = null,Object? guestNeedsBuggy = null,Object? isCaptain = null,Object? registeredAt = freezed,Object? isConfirmed = null,Object? guestIsConfirmed = null,Object? statusOverride = freezed,Object? buggyStatusOverride = freezed,Object? guestBuggyStatusOverride = freezed,Object? history = freezed,Object? fines = null,Object? fineAmount = null,Object? finePaid = null,}) {
   return _then(_self.copyWith(
 memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
 as String,memberName: null == memberName ? _self.memberName : memberName // ignore: cast_nullable_to_non_nullable
@@ -101,7 +101,10 @@ as bool,statusOverride: freezed == statusOverride ? _self.statusOverride : statu
 as String?,buggyStatusOverride: freezed == buggyStatusOverride ? _self.buggyStatusOverride : buggyStatusOverride // ignore: cast_nullable_to_non_nullable
 as String?,guestBuggyStatusOverride: freezed == guestBuggyStatusOverride ? _self.guestBuggyStatusOverride : guestBuggyStatusOverride // ignore: cast_nullable_to_non_nullable
 as String?,history: freezed == history ? _self.history : history // ignore: cast_nullable_to_non_nullable
-as List<RegistrationHistoryItem>?,
+as List<RegistrationHistoryItem>?,fines: null == fines ? _self.fines : fines // ignore: cast_nullable_to_non_nullable
+as List<EventFine>,fineAmount: null == fineAmount ? _self.fineAmount : fineAmount // ignore: cast_nullable_to_non_nullable
+as double,finePaid: null == finePaid ? _self.finePaid : finePaid // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -186,10 +189,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String memberId,  String memberName,  bool isGuest,  bool attendingGolf,  bool attendingBreakfast,  bool attendingLunch,  bool attendingDinner,  bool hasPaid,  double cost,  double? handicap,  int? playingHandicap,  bool needsBuggy,  String? dietaryRequirements,  String? specialNeeds,  String? guestName,  String? guestHandicap,  bool guestAttendingBreakfast,  bool guestAttendingLunch,  bool guestAttendingDinner,  bool guestNeedsBuggy,  bool isCaptain, @OptionalTimestampConverter()  DateTime? registeredAt,  bool isConfirmed,  bool guestIsConfirmed,  String? statusOverride,  String? buggyStatusOverride,  String? guestBuggyStatusOverride,  List<RegistrationHistoryItem>? history)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String memberId,  String memberName,  bool isGuest,  bool attendingGolf,  bool attendingBreakfast,  bool attendingLunch,  bool attendingDinner,  bool hasPaid,  double cost,  double? handicap,  int? playingHandicap,  bool needsBuggy,  String? dietaryRequirements,  String? specialNeeds,  String? guestName,  String? guestHandicap,  bool guestAttendingBreakfast,  bool guestAttendingLunch,  bool guestAttendingDinner,  bool guestNeedsBuggy,  bool isCaptain, @OptionalTimestampConverter()  DateTime? registeredAt,  bool isConfirmed,  bool guestIsConfirmed,  String? statusOverride,  String? buggyStatusOverride,  String? guestBuggyStatusOverride,  List<RegistrationHistoryItem>? history,  List<EventFine> fines,  double fineAmount,  bool finePaid)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EventRegistration() when $default != null:
-return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGolf,_that.attendingBreakfast,_that.attendingLunch,_that.attendingDinner,_that.hasPaid,_that.cost,_that.handicap,_that.playingHandicap,_that.needsBuggy,_that.dietaryRequirements,_that.specialNeeds,_that.guestName,_that.guestHandicap,_that.guestAttendingBreakfast,_that.guestAttendingLunch,_that.guestAttendingDinner,_that.guestNeedsBuggy,_that.isCaptain,_that.registeredAt,_that.isConfirmed,_that.guestIsConfirmed,_that.statusOverride,_that.buggyStatusOverride,_that.guestBuggyStatusOverride,_that.history);case _:
+return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGolf,_that.attendingBreakfast,_that.attendingLunch,_that.attendingDinner,_that.hasPaid,_that.cost,_that.handicap,_that.playingHandicap,_that.needsBuggy,_that.dietaryRequirements,_that.specialNeeds,_that.guestName,_that.guestHandicap,_that.guestAttendingBreakfast,_that.guestAttendingLunch,_that.guestAttendingDinner,_that.guestNeedsBuggy,_that.isCaptain,_that.registeredAt,_that.isConfirmed,_that.guestIsConfirmed,_that.statusOverride,_that.buggyStatusOverride,_that.guestBuggyStatusOverride,_that.history,_that.fines,_that.fineAmount,_that.finePaid);case _:
   return orElse();
 
 }
@@ -207,10 +210,10 @@ return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGol
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String memberId,  String memberName,  bool isGuest,  bool attendingGolf,  bool attendingBreakfast,  bool attendingLunch,  bool attendingDinner,  bool hasPaid,  double cost,  double? handicap,  int? playingHandicap,  bool needsBuggy,  String? dietaryRequirements,  String? specialNeeds,  String? guestName,  String? guestHandicap,  bool guestAttendingBreakfast,  bool guestAttendingLunch,  bool guestAttendingDinner,  bool guestNeedsBuggy,  bool isCaptain, @OptionalTimestampConverter()  DateTime? registeredAt,  bool isConfirmed,  bool guestIsConfirmed,  String? statusOverride,  String? buggyStatusOverride,  String? guestBuggyStatusOverride,  List<RegistrationHistoryItem>? history)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String memberId,  String memberName,  bool isGuest,  bool attendingGolf,  bool attendingBreakfast,  bool attendingLunch,  bool attendingDinner,  bool hasPaid,  double cost,  double? handicap,  int? playingHandicap,  bool needsBuggy,  String? dietaryRequirements,  String? specialNeeds,  String? guestName,  String? guestHandicap,  bool guestAttendingBreakfast,  bool guestAttendingLunch,  bool guestAttendingDinner,  bool guestNeedsBuggy,  bool isCaptain, @OptionalTimestampConverter()  DateTime? registeredAt,  bool isConfirmed,  bool guestIsConfirmed,  String? statusOverride,  String? buggyStatusOverride,  String? guestBuggyStatusOverride,  List<RegistrationHistoryItem>? history,  List<EventFine> fines,  double fineAmount,  bool finePaid)  $default,) {final _that = this;
 switch (_that) {
 case _EventRegistration():
-return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGolf,_that.attendingBreakfast,_that.attendingLunch,_that.attendingDinner,_that.hasPaid,_that.cost,_that.handicap,_that.playingHandicap,_that.needsBuggy,_that.dietaryRequirements,_that.specialNeeds,_that.guestName,_that.guestHandicap,_that.guestAttendingBreakfast,_that.guestAttendingLunch,_that.guestAttendingDinner,_that.guestNeedsBuggy,_that.isCaptain,_that.registeredAt,_that.isConfirmed,_that.guestIsConfirmed,_that.statusOverride,_that.buggyStatusOverride,_that.guestBuggyStatusOverride,_that.history);case _:
+return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGolf,_that.attendingBreakfast,_that.attendingLunch,_that.attendingDinner,_that.hasPaid,_that.cost,_that.handicap,_that.playingHandicap,_that.needsBuggy,_that.dietaryRequirements,_that.specialNeeds,_that.guestName,_that.guestHandicap,_that.guestAttendingBreakfast,_that.guestAttendingLunch,_that.guestAttendingDinner,_that.guestNeedsBuggy,_that.isCaptain,_that.registeredAt,_that.isConfirmed,_that.guestIsConfirmed,_that.statusOverride,_that.buggyStatusOverride,_that.guestBuggyStatusOverride,_that.history,_that.fines,_that.fineAmount,_that.finePaid);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -227,10 +230,10 @@ return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGol
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String memberId,  String memberName,  bool isGuest,  bool attendingGolf,  bool attendingBreakfast,  bool attendingLunch,  bool attendingDinner,  bool hasPaid,  double cost,  double? handicap,  int? playingHandicap,  bool needsBuggy,  String? dietaryRequirements,  String? specialNeeds,  String? guestName,  String? guestHandicap,  bool guestAttendingBreakfast,  bool guestAttendingLunch,  bool guestAttendingDinner,  bool guestNeedsBuggy,  bool isCaptain, @OptionalTimestampConverter()  DateTime? registeredAt,  bool isConfirmed,  bool guestIsConfirmed,  String? statusOverride,  String? buggyStatusOverride,  String? guestBuggyStatusOverride,  List<RegistrationHistoryItem>? history)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String memberId,  String memberName,  bool isGuest,  bool attendingGolf,  bool attendingBreakfast,  bool attendingLunch,  bool attendingDinner,  bool hasPaid,  double cost,  double? handicap,  int? playingHandicap,  bool needsBuggy,  String? dietaryRequirements,  String? specialNeeds,  String? guestName,  String? guestHandicap,  bool guestAttendingBreakfast,  bool guestAttendingLunch,  bool guestAttendingDinner,  bool guestNeedsBuggy,  bool isCaptain, @OptionalTimestampConverter()  DateTime? registeredAt,  bool isConfirmed,  bool guestIsConfirmed,  String? statusOverride,  String? buggyStatusOverride,  String? guestBuggyStatusOverride,  List<RegistrationHistoryItem>? history,  List<EventFine> fines,  double fineAmount,  bool finePaid)?  $default,) {final _that = this;
 switch (_that) {
 case _EventRegistration() when $default != null:
-return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGolf,_that.attendingBreakfast,_that.attendingLunch,_that.attendingDinner,_that.hasPaid,_that.cost,_that.handicap,_that.playingHandicap,_that.needsBuggy,_that.dietaryRequirements,_that.specialNeeds,_that.guestName,_that.guestHandicap,_that.guestAttendingBreakfast,_that.guestAttendingLunch,_that.guestAttendingDinner,_that.guestNeedsBuggy,_that.isCaptain,_that.registeredAt,_that.isConfirmed,_that.guestIsConfirmed,_that.statusOverride,_that.buggyStatusOverride,_that.guestBuggyStatusOverride,_that.history);case _:
+return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGolf,_that.attendingBreakfast,_that.attendingLunch,_that.attendingDinner,_that.hasPaid,_that.cost,_that.handicap,_that.playingHandicap,_that.needsBuggy,_that.dietaryRequirements,_that.specialNeeds,_that.guestName,_that.guestHandicap,_that.guestAttendingBreakfast,_that.guestAttendingLunch,_that.guestAttendingDinner,_that.guestNeedsBuggy,_that.isCaptain,_that.registeredAt,_that.isConfirmed,_that.guestIsConfirmed,_that.statusOverride,_that.buggyStatusOverride,_that.guestBuggyStatusOverride,_that.history,_that.fines,_that.fineAmount,_that.finePaid);case _:
   return null;
 
 }
@@ -242,7 +245,7 @@ return $default(_that.memberId,_that.memberName,_that.isGuest,_that.attendingGol
 @JsonSerializable()
 
 class _EventRegistration extends EventRegistration {
-  const _EventRegistration({required this.memberId, required this.memberName, this.isGuest = false, this.attendingGolf = true, this.attendingBreakfast = false, this.attendingLunch = false, this.attendingDinner = false, this.hasPaid = false, this.cost = 0.0, this.handicap, this.playingHandicap, this.needsBuggy = false, this.dietaryRequirements, this.specialNeeds, this.guestName, this.guestHandicap, this.guestAttendingBreakfast = false, this.guestAttendingLunch = false, this.guestAttendingDinner = false, this.guestNeedsBuggy = false, this.isCaptain = false, @OptionalTimestampConverter() this.registeredAt, this.isConfirmed = false, this.guestIsConfirmed = false, this.statusOverride, this.buggyStatusOverride, this.guestBuggyStatusOverride, final  List<RegistrationHistoryItem>? history = const []}): _history = history,super._();
+  const _EventRegistration({required this.memberId, required this.memberName, this.isGuest = false, this.attendingGolf = true, this.attendingBreakfast = false, this.attendingLunch = false, this.attendingDinner = false, this.hasPaid = false, this.cost = 0.0, this.handicap, this.playingHandicap, this.needsBuggy = false, this.dietaryRequirements, this.specialNeeds, this.guestName, this.guestHandicap, this.guestAttendingBreakfast = false, this.guestAttendingLunch = false, this.guestAttendingDinner = false, this.guestNeedsBuggy = false, this.isCaptain = false, @OptionalTimestampConverter() this.registeredAt, this.isConfirmed = false, this.guestIsConfirmed = false, this.statusOverride, this.buggyStatusOverride, this.guestBuggyStatusOverride, final  List<RegistrationHistoryItem>? history = const [], final  List<EventFine> fines = const [], this.fineAmount = 0.0, this.finePaid = false}): _history = history,_fines = fines,super._();
   factory _EventRegistration.fromJson(Map<String, dynamic> json) => _$EventRegistrationFromJson(json);
 
 @override final  String memberId;
@@ -288,6 +291,15 @@ class _EventRegistration extends EventRegistration {
   return EqualUnmodifiableListView(value);
 }
 
+ final  List<EventFine> _fines;
+@override@JsonKey() List<EventFine> get fines {
+  if (_fines is EqualUnmodifiableListView) return _fines;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_fines);
+}
+
+@override@JsonKey() final  double fineAmount;
+@override@JsonKey() final  bool finePaid;
 
 /// Create a copy of EventRegistration
 /// with the given fields replaced by the non-null parameter values.
@@ -302,16 +314,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventRegistration&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.memberName, memberName) || other.memberName == memberName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.attendingGolf, attendingGolf) || other.attendingGolf == attendingGolf)&&(identical(other.attendingBreakfast, attendingBreakfast) || other.attendingBreakfast == attendingBreakfast)&&(identical(other.attendingLunch, attendingLunch) || other.attendingLunch == attendingLunch)&&(identical(other.attendingDinner, attendingDinner) || other.attendingDinner == attendingDinner)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.cost, cost) || other.cost == cost)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.needsBuggy, needsBuggy) || other.needsBuggy == needsBuggy)&&(identical(other.dietaryRequirements, dietaryRequirements) || other.dietaryRequirements == dietaryRequirements)&&(identical(other.specialNeeds, specialNeeds) || other.specialNeeds == specialNeeds)&&(identical(other.guestName, guestName) || other.guestName == guestName)&&(identical(other.guestHandicap, guestHandicap) || other.guestHandicap == guestHandicap)&&(identical(other.guestAttendingBreakfast, guestAttendingBreakfast) || other.guestAttendingBreakfast == guestAttendingBreakfast)&&(identical(other.guestAttendingLunch, guestAttendingLunch) || other.guestAttendingLunch == guestAttendingLunch)&&(identical(other.guestAttendingDinner, guestAttendingDinner) || other.guestAttendingDinner == guestAttendingDinner)&&(identical(other.guestNeedsBuggy, guestNeedsBuggy) || other.guestNeedsBuggy == guestNeedsBuggy)&&(identical(other.isCaptain, isCaptain) || other.isCaptain == isCaptain)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt)&&(identical(other.isConfirmed, isConfirmed) || other.isConfirmed == isConfirmed)&&(identical(other.guestIsConfirmed, guestIsConfirmed) || other.guestIsConfirmed == guestIsConfirmed)&&(identical(other.statusOverride, statusOverride) || other.statusOverride == statusOverride)&&(identical(other.buggyStatusOverride, buggyStatusOverride) || other.buggyStatusOverride == buggyStatusOverride)&&(identical(other.guestBuggyStatusOverride, guestBuggyStatusOverride) || other.guestBuggyStatusOverride == guestBuggyStatusOverride)&&const DeepCollectionEquality().equals(other._history, _history));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventRegistration&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.memberName, memberName) || other.memberName == memberName)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&(identical(other.attendingGolf, attendingGolf) || other.attendingGolf == attendingGolf)&&(identical(other.attendingBreakfast, attendingBreakfast) || other.attendingBreakfast == attendingBreakfast)&&(identical(other.attendingLunch, attendingLunch) || other.attendingLunch == attendingLunch)&&(identical(other.attendingDinner, attendingDinner) || other.attendingDinner == attendingDinner)&&(identical(other.hasPaid, hasPaid) || other.hasPaid == hasPaid)&&(identical(other.cost, cost) || other.cost == cost)&&(identical(other.handicap, handicap) || other.handicap == handicap)&&(identical(other.playingHandicap, playingHandicap) || other.playingHandicap == playingHandicap)&&(identical(other.needsBuggy, needsBuggy) || other.needsBuggy == needsBuggy)&&(identical(other.dietaryRequirements, dietaryRequirements) || other.dietaryRequirements == dietaryRequirements)&&(identical(other.specialNeeds, specialNeeds) || other.specialNeeds == specialNeeds)&&(identical(other.guestName, guestName) || other.guestName == guestName)&&(identical(other.guestHandicap, guestHandicap) || other.guestHandicap == guestHandicap)&&(identical(other.guestAttendingBreakfast, guestAttendingBreakfast) || other.guestAttendingBreakfast == guestAttendingBreakfast)&&(identical(other.guestAttendingLunch, guestAttendingLunch) || other.guestAttendingLunch == guestAttendingLunch)&&(identical(other.guestAttendingDinner, guestAttendingDinner) || other.guestAttendingDinner == guestAttendingDinner)&&(identical(other.guestNeedsBuggy, guestNeedsBuggy) || other.guestNeedsBuggy == guestNeedsBuggy)&&(identical(other.isCaptain, isCaptain) || other.isCaptain == isCaptain)&&(identical(other.registeredAt, registeredAt) || other.registeredAt == registeredAt)&&(identical(other.isConfirmed, isConfirmed) || other.isConfirmed == isConfirmed)&&(identical(other.guestIsConfirmed, guestIsConfirmed) || other.guestIsConfirmed == guestIsConfirmed)&&(identical(other.statusOverride, statusOverride) || other.statusOverride == statusOverride)&&(identical(other.buggyStatusOverride, buggyStatusOverride) || other.buggyStatusOverride == buggyStatusOverride)&&(identical(other.guestBuggyStatusOverride, guestBuggyStatusOverride) || other.guestBuggyStatusOverride == guestBuggyStatusOverride)&&const DeepCollectionEquality().equals(other._history, _history)&&const DeepCollectionEquality().equals(other._fines, _fines)&&(identical(other.fineAmount, fineAmount) || other.fineAmount == fineAmount)&&(identical(other.finePaid, finePaid) || other.finePaid == finePaid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,memberId,memberName,isGuest,attendingGolf,attendingBreakfast,attendingLunch,attendingDinner,hasPaid,cost,handicap,playingHandicap,needsBuggy,dietaryRequirements,specialNeeds,guestName,guestHandicap,guestAttendingBreakfast,guestAttendingLunch,guestAttendingDinner,guestNeedsBuggy,isCaptain,registeredAt,isConfirmed,guestIsConfirmed,statusOverride,buggyStatusOverride,guestBuggyStatusOverride,const DeepCollectionEquality().hash(_history)]);
+int get hashCode => Object.hashAll([runtimeType,memberId,memberName,isGuest,attendingGolf,attendingBreakfast,attendingLunch,attendingDinner,hasPaid,cost,handicap,playingHandicap,needsBuggy,dietaryRequirements,specialNeeds,guestName,guestHandicap,guestAttendingBreakfast,guestAttendingLunch,guestAttendingDinner,guestNeedsBuggy,isCaptain,registeredAt,isConfirmed,guestIsConfirmed,statusOverride,buggyStatusOverride,guestBuggyStatusOverride,const DeepCollectionEquality().hash(_history),const DeepCollectionEquality().hash(_fines),fineAmount,finePaid]);
 
 @override
 String toString() {
-  return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, history: $history)';
+  return 'EventRegistration(memberId: $memberId, memberName: $memberName, isGuest: $isGuest, attendingGolf: $attendingGolf, attendingBreakfast: $attendingBreakfast, attendingLunch: $attendingLunch, attendingDinner: $attendingDinner, hasPaid: $hasPaid, cost: $cost, handicap: $handicap, playingHandicap: $playingHandicap, needsBuggy: $needsBuggy, dietaryRequirements: $dietaryRequirements, specialNeeds: $specialNeeds, guestName: $guestName, guestHandicap: $guestHandicap, guestAttendingBreakfast: $guestAttendingBreakfast, guestAttendingLunch: $guestAttendingLunch, guestAttendingDinner: $guestAttendingDinner, guestNeedsBuggy: $guestNeedsBuggy, isCaptain: $isCaptain, registeredAt: $registeredAt, isConfirmed: $isConfirmed, guestIsConfirmed: $guestIsConfirmed, statusOverride: $statusOverride, buggyStatusOverride: $buggyStatusOverride, guestBuggyStatusOverride: $guestBuggyStatusOverride, history: $history, fines: $fines, fineAmount: $fineAmount, finePaid: $finePaid)';
 }
 
 
@@ -322,7 +334,7 @@ abstract mixin class _$EventRegistrationCopyWith<$Res> implements $EventRegistra
   factory _$EventRegistrationCopyWith(_EventRegistration value, $Res Function(_EventRegistration) _then) = __$EventRegistrationCopyWithImpl;
 @override @useResult
 $Res call({
- String memberId, String memberName, bool isGuest, bool attendingGolf, bool attendingBreakfast, bool attendingLunch, bool attendingDinner, bool hasPaid, double cost, double? handicap, int? playingHandicap, bool needsBuggy, String? dietaryRequirements, String? specialNeeds, String? guestName, String? guestHandicap, bool guestAttendingBreakfast, bool guestAttendingLunch, bool guestAttendingDinner, bool guestNeedsBuggy, bool isCaptain,@OptionalTimestampConverter() DateTime? registeredAt, bool isConfirmed, bool guestIsConfirmed, String? statusOverride, String? buggyStatusOverride, String? guestBuggyStatusOverride, List<RegistrationHistoryItem>? history
+ String memberId, String memberName, bool isGuest, bool attendingGolf, bool attendingBreakfast, bool attendingLunch, bool attendingDinner, bool hasPaid, double cost, double? handicap, int? playingHandicap, bool needsBuggy, String? dietaryRequirements, String? specialNeeds, String? guestName, String? guestHandicap, bool guestAttendingBreakfast, bool guestAttendingLunch, bool guestAttendingDinner, bool guestNeedsBuggy, bool isCaptain,@OptionalTimestampConverter() DateTime? registeredAt, bool isConfirmed, bool guestIsConfirmed, String? statusOverride, String? buggyStatusOverride, String? guestBuggyStatusOverride, List<RegistrationHistoryItem>? history, List<EventFine> fines, double fineAmount, bool finePaid
 });
 
 
@@ -339,7 +351,7 @@ class __$EventRegistrationCopyWithImpl<$Res>
 
 /// Create a copy of EventRegistration
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? memberId = null,Object? memberName = null,Object? isGuest = null,Object? attendingGolf = null,Object? attendingBreakfast = null,Object? attendingLunch = null,Object? attendingDinner = null,Object? hasPaid = null,Object? cost = null,Object? handicap = freezed,Object? playingHandicap = freezed,Object? needsBuggy = null,Object? dietaryRequirements = freezed,Object? specialNeeds = freezed,Object? guestName = freezed,Object? guestHandicap = freezed,Object? guestAttendingBreakfast = null,Object? guestAttendingLunch = null,Object? guestAttendingDinner = null,Object? guestNeedsBuggy = null,Object? isCaptain = null,Object? registeredAt = freezed,Object? isConfirmed = null,Object? guestIsConfirmed = null,Object? statusOverride = freezed,Object? buggyStatusOverride = freezed,Object? guestBuggyStatusOverride = freezed,Object? history = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? memberId = null,Object? memberName = null,Object? isGuest = null,Object? attendingGolf = null,Object? attendingBreakfast = null,Object? attendingLunch = null,Object? attendingDinner = null,Object? hasPaid = null,Object? cost = null,Object? handicap = freezed,Object? playingHandicap = freezed,Object? needsBuggy = null,Object? dietaryRequirements = freezed,Object? specialNeeds = freezed,Object? guestName = freezed,Object? guestHandicap = freezed,Object? guestAttendingBreakfast = null,Object? guestAttendingLunch = null,Object? guestAttendingDinner = null,Object? guestNeedsBuggy = null,Object? isCaptain = null,Object? registeredAt = freezed,Object? isConfirmed = null,Object? guestIsConfirmed = null,Object? statusOverride = freezed,Object? buggyStatusOverride = freezed,Object? guestBuggyStatusOverride = freezed,Object? history = freezed,Object? fines = null,Object? fineAmount = null,Object? finePaid = null,}) {
   return _then(_EventRegistration(
 memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
 as String,memberName: null == memberName ? _self.memberName : memberName // ignore: cast_nullable_to_non_nullable
@@ -369,7 +381,10 @@ as bool,statusOverride: freezed == statusOverride ? _self.statusOverride : statu
 as String?,buggyStatusOverride: freezed == buggyStatusOverride ? _self.buggyStatusOverride : buggyStatusOverride // ignore: cast_nullable_to_non_nullable
 as String?,guestBuggyStatusOverride: freezed == guestBuggyStatusOverride ? _self.guestBuggyStatusOverride : guestBuggyStatusOverride // ignore: cast_nullable_to_non_nullable
 as String?,history: freezed == history ? _self._history : history // ignore: cast_nullable_to_non_nullable
-as List<RegistrationHistoryItem>?,
+as List<RegistrationHistoryItem>?,fines: null == fines ? _self._fines : fines // ignore: cast_nullable_to_non_nullable
+as List<EventFine>,fineAmount: null == fineAmount ? _self.fineAmount : fineAmount // ignore: cast_nullable_to_non_nullable
+as double,finePaid: null == finePaid ? _self.finePaid : finePaid // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -646,6 +661,278 @@ as DateTime,action: null == action ? _self.action : action // ignore: cast_nulla
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,actor: freezed == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable
 as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$EventFine {
+
+ String get id; double get amount; String get reason;@OptionalTimestampConverter() DateTime get timestamp;
+/// Create a copy of EventFine
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EventFineCopyWith<EventFine> get copyWith => _$EventFineCopyWithImpl<EventFine>(this as EventFine, _$identity);
+
+  /// Serializes this EventFine to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventFine&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,amount,reason,timestamp);
+
+@override
+String toString() {
+  return 'EventFine(id: $id, amount: $amount, reason: $reason, timestamp: $timestamp)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EventFineCopyWith<$Res>  {
+  factory $EventFineCopyWith(EventFine value, $Res Function(EventFine) _then) = _$EventFineCopyWithImpl;
+@useResult
+$Res call({
+ String id, double amount, String reason,@OptionalTimestampConverter() DateTime timestamp
+});
+
+
+
+
+}
+/// @nodoc
+class _$EventFineCopyWithImpl<$Res>
+    implements $EventFineCopyWith<$Res> {
+  _$EventFineCopyWithImpl(this._self, this._then);
+
+  final EventFine _self;
+  final $Res Function(EventFine) _then;
+
+/// Create a copy of EventFine
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? amount = null,Object? reason = null,Object? timestamp = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
+as DateTime,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [EventFine].
+extension EventFinePatterns on EventFine {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _EventFine value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _EventFine() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _EventFine value)  $default,){
+final _that = this;
+switch (_that) {
+case _EventFine():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _EventFine value)?  $default,){
+final _that = this;
+switch (_that) {
+case _EventFine() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  double amount,  String reason, @OptionalTimestampConverter()  DateTime timestamp)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _EventFine() when $default != null:
+return $default(_that.id,_that.amount,_that.reason,_that.timestamp);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  double amount,  String reason, @OptionalTimestampConverter()  DateTime timestamp)  $default,) {final _that = this;
+switch (_that) {
+case _EventFine():
+return $default(_that.id,_that.amount,_that.reason,_that.timestamp);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  double amount,  String reason, @OptionalTimestampConverter()  DateTime timestamp)?  $default,) {final _that = this;
+switch (_that) {
+case _EventFine() when $default != null:
+return $default(_that.id,_that.amount,_that.reason,_that.timestamp);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _EventFine implements EventFine {
+  const _EventFine({required this.id, required this.amount, required this.reason, @OptionalTimestampConverter() required this.timestamp});
+  factory _EventFine.fromJson(Map<String, dynamic> json) => _$EventFineFromJson(json);
+
+@override final  String id;
+@override final  double amount;
+@override final  String reason;
+@override@OptionalTimestampConverter() final  DateTime timestamp;
+
+/// Create a copy of EventFine
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$EventFineCopyWith<_EventFine> get copyWith => __$EventFineCopyWithImpl<_EventFine>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$EventFineToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventFine&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,amount,reason,timestamp);
+
+@override
+String toString() {
+  return 'EventFine(id: $id, amount: $amount, reason: $reason, timestamp: $timestamp)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$EventFineCopyWith<$Res> implements $EventFineCopyWith<$Res> {
+  factory _$EventFineCopyWith(_EventFine value, $Res Function(_EventFine) _then) = __$EventFineCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, double amount, String reason,@OptionalTimestampConverter() DateTime timestamp
+});
+
+
+
+
+}
+/// @nodoc
+class __$EventFineCopyWithImpl<$Res>
+    implements _$EventFineCopyWith<$Res> {
+  __$EventFineCopyWithImpl(this._self, this._then);
+
+  final _EventFine _self;
+  final $Res Function(_EventFine) _then;
+
+/// Create a copy of EventFine
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? amount = null,Object? reason = null,Object? timestamp = null,}) {
+  return _then(_EventFine(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
+as DateTime,
   ));
 }
 

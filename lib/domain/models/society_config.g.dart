@@ -56,7 +56,7 @@ _SocietyConfig _$SocietyConfigFromJson(
       (json['customColors'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList() ??
-      const [],
+      const <int>[],
   cardTintIntensity: (json['cardTintIntensity'] as num?)?.toDouble() ?? 0.1,
   useCardGradient: json['useCardGradient'] as bool? ?? true,
   currencySymbol: json['currencySymbol'] as String? ?? '£',
@@ -85,6 +85,26 @@ _SocietyConfig _$SocietyConfigFromJson(
   ),
   renewalWindowDays: (json['renewalWindowDays'] as num?)?.toInt() ?? 30,
   isRenewalActive: json['isRenewalActive'] as bool? ?? false,
+  renewalLaunchDate: const OptionalTimestampConverter().fromJson(
+    json['renewalLaunchDate'],
+  ),
+  renewalDeadline: const OptionalTimestampConverter().fromJson(
+    json['renewalDeadline'],
+  ),
+  renewalPaymentDeadline: const OptionalTimestampConverter().fromJson(
+    json['renewalPaymentDeadline'],
+  ),
+  startingBalance: (json['startingBalance'] as num?)?.toDouble() ?? 0.0,
+  ledgerEntries:
+      (json['ledgerEntries'] as List<dynamic>?)
+          ?.map((e) => FinancialEntry.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <FinancialEntry>[],
+  sponsors:
+      (json['sponsors'] as List<dynamic>?)
+          ?.map((e) => Sponsor.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <Sponsor>[],
 );
 
 Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
@@ -143,6 +163,18 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       ),
       'renewalWindowDays': instance.renewalWindowDays,
       'isRenewalActive': instance.isRenewalActive,
+      'renewalLaunchDate': const OptionalTimestampConverter().toJson(
+        instance.renewalLaunchDate,
+      ),
+      'renewalDeadline': const OptionalTimestampConverter().toJson(
+        instance.renewalDeadline,
+      ),
+      'renewalPaymentDeadline': const OptionalTimestampConverter().toJson(
+        instance.renewalPaymentDeadline,
+      ),
+      'startingBalance': instance.startingBalance,
+      'ledgerEntries': instance.ledgerEntries.map((e) => e.toJson()).toList(),
+      'sponsors': instance.sponsors.map((e) => e.toJson()).toList(),
     };
 
 const _$HandicapSystemEnumMap = {
@@ -157,4 +189,63 @@ const _$SocietyCutModeEnumMap = {
   SocietyCutMode.off: 'off',
   SocietyCutMode.global: 'global',
   SocietyCutMode.manual: 'manual',
+};
+
+_FinancialEntry _$FinancialEntryFromJson(Map<String, dynamic> json) =>
+    _FinancialEntry(
+      id: json['id'] as String,
+      type: json['type'] as String? ?? 'Sponsorship',
+      source: json['source'] as String,
+      description: json['description'] as String?,
+      logoUrl: json['logoUrl'] as String?,
+      scope: json['scope'] as String?,
+      eventId: json['eventId'] as String?,
+      sponsorId: json['sponsorId'] as String?,
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      date: const TimestampConverter().fromJson(json['date']),
+      isPaid: json['isPaid'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$FinancialEntryToJson(_FinancialEntry instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'source': instance.source,
+      'description': instance.description,
+      'logoUrl': instance.logoUrl,
+      'scope': instance.scope,
+      'eventId': instance.eventId,
+      'sponsorId': instance.sponsorId,
+      'amount': instance.amount,
+      'date': const TimestampConverter().toJson(instance.date),
+      'isPaid': instance.isPaid,
+    };
+
+_Sponsor _$SponsorFromJson(Map<String, dynamic> json) => _Sponsor(
+  id: json['id'] as String,
+  name: json['name'] as String,
+  logoUrl: json['logoUrl'] as String?,
+  websiteUrl: json['websiteUrl'] as String?,
+  description: json['description'] as String?,
+  tier:
+      $enumDecodeNullable(_$SponsorTierEnumMap, json['tier']) ??
+      SponsorTier.silver,
+  isActive: json['isActive'] as bool? ?? true,
+);
+
+Map<String, dynamic> _$SponsorToJson(_Sponsor instance) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'logoUrl': instance.logoUrl,
+  'websiteUrl': instance.websiteUrl,
+  'description': instance.description,
+  'tier': _$SponsorTierEnumMap[instance.tier]!,
+  'isActive': instance.isActive,
+};
+
+const _$SponsorTierEnumMap = {
+  SponsorTier.gold: 'gold',
+  SponsorTier.silver: 'silver',
+  SponsorTier.bronze: 'bronze',
+  SponsorTier.standard: 'standard',
 };

@@ -34,6 +34,17 @@ abstract class EventExpense with _$EventExpense {
 }
 
 @freezed
+abstract class EventExtraCost with _$EventExtraCost {
+  const factory EventExtraCost({
+    required String id,
+    required String label,
+    required double amount,
+  }) = _EventExtraCost;
+
+  factory EventExtraCost.fromJson(Map<String, dynamic> json) => _$EventExtraCostFromJson(json);
+}
+
+@freezed
 abstract class EventAward with _$EventAward {
   const factory EventAward({
     required String id,
@@ -147,6 +158,8 @@ abstract class GolfEvent with _$GolfEvent {
     @Default(EventType.golf) EventType eventType,
     @Default({}) Map<String, double> manualCuts, // [NEW] Per-event player handicap adjustments
     double? eventCost,
+    @Default([]) List<EventExtraCost> extraCosts,
+    @Default(0.0) double charityPot,
   }) = _GolfEvent;
 
   bool get isClosed => status == EventStatus.completed || status == EventStatus.cancelled;

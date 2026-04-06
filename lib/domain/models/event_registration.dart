@@ -40,6 +40,9 @@ abstract class EventRegistration with _$EventRegistration {
     String? buggyStatusOverride, // 'confirmed', 'reserved', 'waitlist'
     String? guestBuggyStatusOverride, // 'confirmed', 'reserved', 'waitlist'
     @Default([]) List<RegistrationHistoryItem>? history,
+    @Default([]) List<EventFine> fines,
+    @Default(0.0) double fineAmount,
+    @Default(false) bool finePaid,
   }) = _EventRegistration;
 
   factory EventRegistration.fromJson(Map<String, dynamic> json) => _$EventRegistrationFromJson(json);
@@ -60,4 +63,16 @@ abstract class RegistrationHistoryItem with _$RegistrationHistoryItem {
   }) = _RegistrationHistoryItem;
 
   factory RegistrationHistoryItem.fromJson(Map<String, dynamic> json) => _$RegistrationHistoryItemFromJson(json);
+}
+
+@freezed
+abstract class EventFine with _$EventFine {
+  const factory EventFine({
+    required String id,
+    required double amount,
+    required String reason,
+    @OptionalTimestampConverter() required DateTime timestamp,
+  }) = _EventFine;
+
+  factory EventFine.fromJson(Map<String, dynamic> json) => _$EventFineFromJson(json);
 }

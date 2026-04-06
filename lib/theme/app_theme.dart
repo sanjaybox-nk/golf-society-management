@@ -127,7 +127,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.dark600,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: inputRadius,
           borderSide: BorderSide.none,
@@ -295,7 +295,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightHeader,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: inputRadius,
           borderSide: const BorderSide(color: AppColors.lightBorder),

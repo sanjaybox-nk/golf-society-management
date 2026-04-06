@@ -57,8 +57,8 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
   @override
   Widget buildSpecificFields(BuildContext context) {
     final title = widget.subtype == CompetitionSubtype.fourball
-        ? 'MATCH FORMAT'
-        : 'TEAM FORMAT';
+        ? 'Match format'
+        : 'Team format';
 
     final effectiveTieBreak = (_scoringFormat == CompetitionFormat.matchPlay && _tieBreak != TieBreakMethod.playoff)
         ? TieBreakMethod.playoff
@@ -100,13 +100,13 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
         const SizedBox(height: AppSpacing.x2l),
 
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const BoxyArtSectionTitle(title: 'Handicap'),
         const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
           _allowance,
           (val) => setState(() => _allowance = val),
-          label: widget.subtype == CompetitionSubtype.foursomes ? 'TEAM HCP ALLOWANCE' : 'HANDICAP ALLOWANCE',
+          label: widget.subtype == CompetitionSubtype.foursomes ? 'Team HCP allowance' : 'Handicap allowance',
           hint: widget.subtype == CompetitionSubtype.foursomes
               ? 'WHS recommends 50% of combined team handicap for Foursomes.'
               : 'Fraction of each player\'s course handicap applied. 100% is standard for Fourball.',
@@ -122,7 +122,7 @@ class _PairsControlState extends BaseCompetitionControlState<PairsControl> {
           const SizedBox(height: AppSpacing.x2l),
 
           // ── TIE BREAK ───────────────────────────────────────
-          const BoxyArtSectionTitle(title: 'TIE BREAK'),
+          const BoxyArtSectionTitle(title: 'Tie break'),
           const SizedBox(height: AppSpacing.lg),
 
           BoxyArtDropdownField<TieBreakMethod>(

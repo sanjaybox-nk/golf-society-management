@@ -54,14 +54,6 @@ class GroupingSelectedForSwapNotifier extends Notifier<TeeGroupParticipant?> {
 }
 final groupingSelectedForSwapProvider = NotifierProvider<GroupingSelectedForSwapNotifier, TeeGroupParticipant?>(GroupingSelectedForSwapNotifier.new);
 
-/// Tracks if match play mode is active.
-class GroupingMatchPlayModeNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void set(bool value) => state = value;
-}
-final groupingMatchPlayModeProvider = NotifierProvider<GroupingMatchPlayModeNotifier, bool>(GroupingMatchPlayModeNotifier.new);
-
 /// Tracks the selected strategy for generation.
 class GroupingStrategyNotifier extends Notifier<String> {
   @override
@@ -70,18 +62,3 @@ class GroupingStrategyNotifier extends Notifier<String> {
 }
 final groupingStrategyProvider = NotifierProvider<GroupingStrategyNotifier, String>(GroupingStrategyNotifier.new);
 
-/// Tracks the temporary tee-off time (seed) for generation.
-class GroupingTeeTimeNotifier extends Notifier<DateTime?> {
-  @override
-  DateTime? build() => null;
-  void set(DateTime? value) => state = value;
-}
-final groupingTeeTimeProvider = NotifierProvider<GroupingTeeTimeNotifier, DateTime?>(GroupingTeeTimeNotifier.new);
-
-/// Tracks the temporary tee interval for generation.
-class GroupingIntervalNotifier extends Notifier<int?> {
-  @override
-  int? build() => null;
-  void set(int? value) => state = value;
-}
-final groupingIntervalProvider = NotifierProvider<GroupingIntervalNotifier, int?>(GroupingIntervalNotifier.new);

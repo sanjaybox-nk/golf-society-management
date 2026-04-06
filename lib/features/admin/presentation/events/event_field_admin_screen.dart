@@ -9,11 +9,8 @@ import './event_registrations_admin_screen.dart';
 // Reuse the same tab provider for parity
 import '../../../events/presentation/tabs/event_user_placeholders.dart';
 
-import 'package:golf_society/features/admin/providers/admin_ui_providers.dart';
 import './widgets/admin_grouping_hub_content.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/utils/string_utils.dart';
-import '../../../events/domain/registration_logic.dart';
+
 
 class EventFieldAdminScreen extends ConsumerWidget {
   final String eventId;

@@ -15,119 +15,91 @@ class NotificationInboxScreen extends ConsumerWidget {
     final notificationsAsync = ref.watch(homeNotificationsProvider);
     final beigeBackground = Theme.of(context).scaffoldBackgroundColor;
 
-    return Scaffold(
+    return HeadlessScaffold(
       backgroundColor: beigeBackground,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 80, left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const Text(
-                      'Notifications',
-                      style: TextStyle(
-                        fontSize: AppTypography.sizeDisplayMedium,
-                        fontWeight: AppTypography.weightBold,
-                        letterSpacing: -1,
+      title: 'Notifications',
+      showMenu: false,
+      showBack: true,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 100),
+          sliver: notificationsAsync.when(
+            loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+            error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+            data: (notifications) {
+              if (notifications.isEmpty) {
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const BoxyArtIconBadge(
+                        icon: Icons.notifications_none_rounded, 
+                        color: AppColors.dark500, 
+                        isTinted: true, 
+                        size: 64,
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.x2l),
-                    notificationsAsync.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Center(child: Text('Error: $err')),
-                      data: (notifications) {
-                        return notifications.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const SizedBox(height: 60),
-                                    Icon(Icons.notifications_none_rounded, size: AppShapes.iconMassive, color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium)),
-                                    const SizedBox(height: AppSpacing.lg),
-                                    Text('No notifications found', style: TextStyle(color: AppColors.dark500)),
-                                  ],
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'No notifications found', 
+                        style: TextStyle(
+                          color: AppColors.dark400,
+                          fontSize: 16,
+                          fontWeight: AppTypography.weightMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final notification = notifications[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: Dismissible(
+                        key: Key('inbox_notif_${notification.id}'),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (direction) {
+                          ref.read(notificationsRepositoryProvider).deleteNotification(notification.id);
+                        },
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: AppSpacing.x2l),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE74C3C),
+                            borderRadius: AppShapes.xl,
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.delete_sweep_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
+                              SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'DELETE',
+                                style: TextStyle(
+                                  color: AppColors.pureWhite,
+                                  fontSize: AppTypography.sizeCaption,
+                                  fontWeight: AppTypography.weightBold,
+                                  letterSpacing: 1.2,
                                 ),
-                              )
-                            : Column(
-                                children: notifications.map((notification) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                                    child: Dismissible(
-                                      key: Key('inbox_notif_${notification.id}'),
-                                      direction: DismissDirection.endToStart,
-                                      onDismissed: (direction) {
-                                        ref.read(notificationsRepositoryProvider).deleteNotification(notification.id);
-                                      },
-                                      background: Container(
-                                        alignment: Alignment.centerRight,
-                                        padding: const EdgeInsets.only(right: AppSpacing.x2l),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE74C3C),
-                                          borderRadius: AppShapes.xl,
-                                        ),
-                                        child: const Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.delete_sweep_rounded, color: AppColors.pureWhite, size: AppShapes.iconLg),
-                                            SizedBox(height: AppSpacing.xs),
-                                            Text(
-                                              'DELETE',
-                                              style: TextStyle(
-                                                color: AppColors.pureWhite,
-                                                fontSize: AppTypography.sizeCaption,
-                                                fontWeight: AppTypography.weightBold,
-                                                letterSpacing: 1.2,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      child: _InboxNotificationCard(notification: notification),
-                                    ),
-                                  );
-                                }).toList(),
-                              );
-                      },
-                    ),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-          
-          // Header Bar with Back Button
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    Container(
-                      width: AppSpacing.x4l,
-                      height: AppSpacing.x4l,
-                      decoration: BoxDecoration(
-                        color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
-                        shape: BoxShape.circle,
-                        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
+                              ),
+                            ],
+                          ),
+                        ),
+                        child: _InboxNotificationCard(notification: notification),
                       ),
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withValues(alpha: 0.87)),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
+                  childCount: notifications.length,
                 ),
-              ),
-            ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

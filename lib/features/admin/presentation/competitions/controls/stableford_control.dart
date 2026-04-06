@@ -49,7 +49,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── HANDICAP ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'HANDICAP'),
+        const BoxyArtSectionTitle(title: 'Handicap'),
         const SizedBox(height: AppSpacing.lg),
 
         buildAllowanceSlider(
@@ -95,7 +95,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         const SizedBox(height: AppSpacing.x2l),
 
         // ── TIEBREAK ──────────────────────────────────────────
-        const BoxyArtSectionTitle(title: 'TIE BREAK'),
+        const BoxyArtSectionTitle(title: 'Tie break'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<TieBreakMethod>(
@@ -114,7 +114,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         const SizedBox(height: AppSpacing.x2l),
 
         // ── SERIES / MULTI-ROUND ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'SERIES / MULTI-ROUND'),
+        const BoxyArtSectionTitle(title: 'Series / multi-round'),
         const SizedBox(height: AppSpacing.lg),
 
         buildSliderField(
@@ -144,7 +144,7 @@ class _StablefordControlState extends BaseCompetitionControlState<StablefordCont
         const SizedBox(height: AppSpacing.x2l),
 
         // ── TEAM / GROUP SCORING ──────────────────────────────
-        const BoxyArtSectionTitle(title: 'TEAM / GROUP SCORING'),
+        const BoxyArtSectionTitle(title: 'Team / group scoring'),
         const SizedBox(height: AppSpacing.lg),
 
         BoxyArtDropdownField<int>(
