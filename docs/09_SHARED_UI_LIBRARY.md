@@ -22,6 +22,13 @@ The unified design-first input.
 - **Typography**: Uses `AppTypography.body` for input text and `AppTypography.sizeMicro` (10px) with `weightHeavy` (w800) for labels.
 - **Label Case**: Labels are strictly **UPPERCASE** for high-density elegance.
 
+### `BoxyArtRichEditor` [NEW]
+The premium WYSIWYG editor for complex text content (e.g. Question Prompts, Broadcasts).
+- **Engine**: Powered by `flutter_quill`.
+- **Styling**: Unified with `BoxyArtInputField` regarding radius and label styling.
+- **Features**: Supports bold, italic, lists, and links.
+- **Persistence**: Emits and consumes Quill Delta JSON strings.
+
 ## 3. Buttons (`buttons.dart`)
 
 ### `BoxyArtButton`
@@ -74,3 +81,36 @@ All navigation uses the `boxyPage` transition helper:
 - **Fade + Subtle Slide Up**
 - **Duration**: 400ms (`AppAnimations.medium`)
 - **Stability**: Implements **Salted PageKeys** (`state.pageKey` + `state.matchedLocation`) to prevent duplicate navigation key crashes in nested shell routes.
+
+## 8. Bottom Sheets & Navigation Bar Visibility
+
+### `BoxyArtBottomSheet`
+The canonical bottom sheet wrapper. Provides a branded drag handle, title, close button, and `DraggableScrollableSheet`.
+
+```dart
+BoxyArtBottomSheet.show(
+  context: context,
+  title: 'Sheet Title',
+  child: MyContent(),
+  // useRootNavigator defaults to FALSE — keeps global nav bar visible
+);
+```
+
+### ⚠️ Critical Rule: `useRootNavigator: false`
+
+**All `showModalBottomSheet` calls in this project MUST use `useRootNavigator: false`.**
+
+**Why:** Using `useRootNavigator: true` (the Flutter default) pushes the sheet to the root navigator sittin *above* the `GlobalAppShell`. This visually occludes and hides the bottom navigation bar for the sheet's full lifetime.
+
+With `useRootNavigator: false`, the sheet is scoped to the current branch navigator, so the global nav bar remains visible and interactive behind the sheet.
+
+**Enforced on:**
+- `BoxyArtBottomSheet.show()` — `useRootNavigator: false` is the **default**
+- `MemberDetailsModal.show()` — explicit `false`
+- `ScorecardModal.show()` — explicit `false`, `maxChildSize: 0.92`
+- `GroupingModals.showGroupingRules()` — explicit `false`
+- `EventFinesWorkbenchScreen._showIssueFineModal()` — explicit `false`
+- `SeasonStandingsScreen._showDetails()` — explicit `false`
+- `AudienceManagerScreen._showCreateListDialog()` — explicit `false`
+
+**`maxChildSize` cap:** Draggable sheets cap at **0.92** (not 1.0) to ensure the nav bar is never fully covered even at max drag position.

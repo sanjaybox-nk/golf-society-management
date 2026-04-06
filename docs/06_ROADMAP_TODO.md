@@ -73,7 +73,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.
     - [x] **Audience Manager**: Custom distribution list creation and management.
     - [x] **Notification History (Admin)**: Searchable archive of sent society alerts.
-- [x] **Society Surveys**: Multi-question survey system with dedicated admin manager.
+- [x] **Society Surveys**: Advanced multi-question system with WYSIWYG prompts, drag-and-drop reordering, and Design 4.x "Admin Hub" aesthetic.
 - [x] **Interactive Polls**: Live event-room polls with real-time member voting results.
 - [x] **Society Branding & Theme System**
     - [x] **Dynamic Theme Engine**: Configurable seed color with automatic contrast calculation.
@@ -83,6 +83,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [x] **Society Reporting Hub (Premium Suite)**
     - [x] **Executive Dashboard**: Season progress, society pulse, and treasury overview.
     - [x] **Financial Tracking**: Treasury ledger with automated Club Bill logic (Green Fees/Catering) and centralized Miscellaneous Expense management.
+    - [x] **Fines & Charity System**: High-fidelity member penalty tracking with 'Paid' status toggles and ad-hoc charity pot collections.
+    - [x] **Season Synchronization (2025-26)**: Professional 12-month calendar with balanced Season (8x Stableford) and Invitational (4x Mixed) formats.
     - [x] **Engagement Analytics**: Retention rates, churn alerts, and attendance rankings.
     - [x] **Professional Exports**: Native Export to PDF and CSV support.
 - [x] **Admin Design 3.1 Hardening**

@@ -29,12 +29,15 @@ Admins can broadcast instant polls directly to the event feed.
 - **BoxyArt Aesthetics**: High-contrast branded visualization for all poll choices.
 
 ## Society Surveys (Communications)
-A comprehensive survey system is available in the Communications Admin section.
+A comprehensive survey system is available in the Communications Admin section, modernized for the Design 4.x "Admin Hub" aesthetic.
 - **Survey Manager**: Centralized hub to list, edit, and publish society-wide questionnaires.
-- **Multi-Question Form**: Supports single-choice, multiple-choice, and open-ended text questions.
+- **WYSIWYG Editor**: Question prompts now support full rich text (bold, italics, links, lists) powered by `BoxyArtRichEditor`.
+- **Drag-and-Drop Reordering**: Admins can reorder both questions and options using tactile drag handles (⋮⋮).
+- **Multi-Question Form**: Supports single-choice, multiple-choice, and open-ended text questions with premium segmented type selectors.
 - **Visibility Controls**: Detailed "Draft" vs. "Live" states for managing survey lifecycles.
+- **Dynamic Labeling**: Option numbering automatically updates during reordering to maintain a clean structure.
 
 ## Technical Details
-- **Models**: `Survey`, `SurveyQuestion`, and expanded `EventFeedItem` with `pollData`.
+- **Models**: `Survey`, `SurveyQuestion` (now stores question prompts as Quill Delta JSON), and expanded `EventFeedItem` with `pollData`.
 - **State Management**: `SurveysNotifier` (Riverpod) for predictable lifecycle handling.
-- **Design Standard**: BoxyArt 3.1.
+- **Design Standard**: BoxyArt 4.0 "Admin Hub".

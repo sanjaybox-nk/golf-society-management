@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'dart:convert';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/survey.dart';
 import 'package:golf_society/features/surveys/presentation/surveys_provider.dart';
@@ -19,20 +21,22 @@ class SurveyResultsScreen extends ConsumerWidget {
         if (survey == null) {
           return const Scaffold(body: Center(child: Text('Survey not found')));
         }
+        final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
         return HeadlessScaffold(
           title: 'Survey Results',
           subtitle: survey.title,
+          showBack: true, // [NEW] Enable back navigation
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildParticipationCard(context, survey, membersAsync),
-                  const SizedBox(height: AppSpacing.x3l),
+                  SizedBox(height: spacing?.cardToCard ?? AppSpacing.x2l), // [4.x Rhythm]
                   ...survey.questions.map((q) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
-                    child: _buildQuestionResult(context, q, survey.responses, membersAsync),
+                    padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.x2l),
+                    child: _buildQuestionResult(context, q, survey.responses, membersAsync, spacing),
                   )),
                   const SizedBox(height: 100),
                 ]),
@@ -51,48 +55,70 @@ class SurveyResultsScreen extends ConsumerWidget {
     final totalMembers = membersAsync.asData?.value.length ?? 0;
     final rate = totalMembers == 0 ? 0 : (totalResponses / totalMembers * 100).toInt();
 
-    return BoxyArtCard(
+    return Container(
       padding: const EdgeInsets.all(AppSpacing.x2l),
+      decoration: BoxDecoration(
+        gradient: AppGradients.brandPrimary(context),
+        borderRadius: AppShapes.hero,
+        boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
+      ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildMetric('RESPONSES', totalResponses.toString(), Icons.people_rounded, AppColors.lime500),
-          const Spacer(),
-          const VerticalDivider(),
-          const Spacer(),
-          _buildMetric('PARTICIPATION', '$rate%', Icons.analytics_rounded, AppColors.teamA),
+          _buildHeroMetric(context, 'RESPONSES', totalResponses.toString(), Icons.people_rounded),
+          Container(height: 40, width: 1, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityLow)),
+          _buildHeroMetric(context, 'PARTICIPATION', '$rate%', Icons.analytics_rounded),
         ],
       ),
     );
   }
 
-  Widget _buildMetric(String label, String value, IconData icon, Color color) {
+  Widget _buildHeroMetric(BuildContext context, String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: color, size: AppShapes.iconLg),
-        const SizedBox(height: AppSpacing.sm),
-        Text(value, style: const TextStyle(fontSize: AppTypography.sizeDisplayLocker, fontWeight: AppTypography.weightBlack)),
-        Text(label, style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary)),
+        Icon(icon, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh), size: AppShapes.iconLg),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value, 
+          style: AppTypography.displaySection.copyWith(
+            color: AppColors.pureWhite,
+            fontWeight: AppTypography.weightBlack,
+            letterSpacing: AppTypography.lsTight,
+          ),
+        ),
+        Text(
+          label.toUpperCase(), 
+          style: AppTypography.micro.copyWith(
+            fontWeight: AppTypography.weightHeavy,
+            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
+            letterSpacing: AppTypography.lsMicro,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildQuestionResult(BuildContext context, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<dynamic>> membersAsync) {
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            q.question.toUpperCase(),
-            style: const TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.2, color: AppColors.lime500),
+  Widget _buildQuestionResult(BuildContext context, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<dynamic>> membersAsync, AppSpacingTokens? spacing) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoxyArtSectionTitle(
+          title: _getQuestionPlainText(q.question), // Extracts plain text from potential JSON
+          isPeeking: true,
+        ),
+        BoxyArtCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (q.type == SurveyQuestionType.text)
+                _buildTextResults(context, q, responses, membersAsync)
+              else
+                _buildChoiceResults(context, q, responses),
+            ],
           ),
-          const SizedBox(height: AppSpacing.xl),
-          if (q.type == SurveyQuestionType.text)
-            _buildTextResults(context, q, responses, membersAsync)
-          else
-            _buildChoiceResults(context, q, responses),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -120,10 +146,14 @@ class SurveyResultsScreen extends ConsumerWidget {
       }
     }
 
+    final maxVotes = counts.values.isEmpty ? 0 : counts.values.reduce((a, b) => a > b ? a : b);
+
     return Column(
       children: q.options.map((opt) {
         final count = counts[opt] ?? 0;
-        final percent = total == 0 ? 0.0 : count / responses.length; // Per respondent, not per total selection
+        final percent = total == 0 ? 0.0 : count / responses.length;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final isWinner = maxVotes > 0 && count == maxVotes;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -133,19 +163,56 @@ class SurveyResultsScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text(opt, style: const TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeBodySmall))),
-                  Text('$count (${(percent * 100).toInt()}%)', style: const TextStyle(fontSize: AppTypography.sizeLabel, color: AppColors.textSecondary)),
+                  Expanded(
+                    child: Text(
+                      opt, 
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: isWinner ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
+                        color: isWinner ? (isDark ? AppColors.pureWhite : AppColors.dark950) : (isDark ? AppColors.dark100 : AppColors.dark800),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '$count (${(percent * 100).toInt()}%)'.toUpperCase(), 
+                    style: AppTypography.micro.copyWith(
+                      fontWeight: AppTypography.weightHeavy,
+                      color: isWinner ? Theme.of(context).colorScheme.primary : (isDark ? AppColors.dark300 : AppColors.dark400),
+                      letterSpacing: AppTypography.lsMicro,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              ClipRRect(
-                borderRadius: AppShapes.xs,
-                child: LinearProgressIndicator(
-                  value: percent,
-                  minHeight: 8,
-                  backgroundColor: AppColors.dark400,
-                  color: AppColors.lime500,
-                ),
+              // [NEW] Analytical Chart Rail & Bar
+              Stack(
+                children: [
+                  Container(
+                    height: 8,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.dark500 : AppColors.dark100,
+                      borderRadius: AppShapes.pill,
+                    ),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: percent,
+                    child: Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        gradient: isWinner ? AppGradients.brandPrimary(context) : null,
+                        color: isWinner ? null : (isDark ? AppColors.dark300 : AppColors.dark400),
+                        borderRadius: AppShapes.pill,
+                        boxShadow: isWinner ? [
+                          BoxShadow(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          )
+                        ] : null,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -160,7 +227,17 @@ class SurveyResultsScreen extends ConsumerWidget {
         .toList();
 
     if (textResponses.isEmpty) {
-      return const Text('No responses yet.', style: TextStyle(color: AppColors.textSecondary, fontSize: AppTypography.sizeLabelStrong));
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        child: Text(
+          'No responses yet.'.toUpperCase(), 
+          style: AppTypography.micro.copyWith(
+            fontWeight: AppTypography.weightHeavy,
+            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark400 : AppColors.dark300,
+            letterSpacing: AppTypography.lsMicro,
+          ),
+        ),
+      );
     }
 
     return Column(
@@ -182,8 +259,15 @@ class SurveyResultsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: const TextStyle(fontWeight: AppTypography.weightBlack, color: AppColors.lime500, fontSize: AppTypography.sizeCaptionStrong)),
-              const SizedBox(height: AppSpacing.sm),
+              Text(
+                name.toUpperCase(), 
+                style: AppTypography.micro.copyWith(
+                  fontWeight: AppTypography.weightHeavy,
+                  color: Theme.of(context).colorScheme.primary,
+                  letterSpacing: AppTypography.lsMicro,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
               Text(answer, style: const TextStyle(fontSize: AppTypography.sizeBodySmall, height: 1.4)),
             ],
           ),
@@ -195,5 +279,15 @@ class SurveyResultsScreen extends ConsumerWidget {
   List<dynamic> listify(dynamic val) {
     if (val is List) return val;
     return val == null ? [] : [val];
+  }
+
+  String _getQuestionPlainText(String content) {
+    if (content.isEmpty) return '';
+    try {
+      final doc = quill.Document.fromJson(jsonDecode(content));
+      return doc.toPlainText().trim();
+    } catch (e) {
+      return content;
+    }
   }
 }
