@@ -230,7 +230,7 @@ Widget _buildDismissibleMember(
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: BoxDecoration(
-          color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh),
+          color: AppColors.coral500.withOpacity(AppColors.opacityHigh),
           borderRadius: BorderRadius.circular(AppSpacing.lg),
         ),
         alignment: Alignment.centerRight,

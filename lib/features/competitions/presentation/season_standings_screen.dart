@@ -99,12 +99,12 @@ class _SeasonStandingsScreenState extends ConsumerState<SeasonStandingsScreen> {
                             width: AppSpacing.x4l,
                             height: AppSpacing.x4l,
                             decoration: BoxDecoration(
-                              color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                              color: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
                               shape: BoxShape.circle,
                               boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
                             ),
                             child: IconButton(
-                              icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withValues(alpha: 0.87)),
+                              icon: Icon(Icons.arrow_back_rounded, size: AppShapes.iconMd, color: Colors.black.withOpacity(0.87)),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
@@ -199,8 +199,8 @@ class _LeaderboardTab extends ConsumerWidget {
                         Icons.leaderboard_outlined, 
                         size: AppShapes.iconMassive, 
                         color: Theme.of(context).brightness == Brightness.dark 
-                           ? AppColors.dark150.withValues(alpha: AppColors.opacityMedium) 
-                           : AppColors.dark400.withValues(alpha: AppColors.opacityMedium)
+                           ? AppColors.dark150.withOpacity(AppColors.opacityMedium) 
+                           : AppColors.dark400.withOpacity(AppColors.opacityMedium)
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       Text(
@@ -461,7 +461,7 @@ class _StandingRow extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           CircleAvatar(
             radius: 14,
-            backgroundColor: isMe ? AppColors.amber500.withValues(alpha: AppColors.opacityMedium) : AppColors.textSecondary.withValues(alpha: AppColors.opacityLow),
+            backgroundColor: isMe ? AppColors.amber500.withOpacity(AppColors.opacityMedium) : AppColors.textSecondary.withOpacity(AppColors.opacityLow),
             child: Text(
               standing.memberName.isNotEmpty ? standing.memberName[0].toUpperCase() : '?',
               style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: isMe ? AppColors.amber500 : AppColors.textSecondary),
@@ -519,7 +519,7 @@ class _StandingDetailSheet extends StatelessWidget {
               width: AppSpacing.x4l,
               height: AppSpacing.xs,
               decoration: BoxDecoration(
-                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMedium),
+                color: AppColors.textSecondary.withOpacity(AppColors.opacityMedium),
                 borderRadius: AppShapes.grabber,
               ),
             ),
@@ -629,9 +629,9 @@ class PointsBreakdownWidget extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityLow) : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
+                  color: isCounting ? AppColors.amber500.withOpacity(AppColors.opacityLow) : AppColors.textSecondary.withOpacity(AppColors.opacitySubtle),
                   borderRadius: AppShapes.sm,
-                  border: Border.all(color: isCounting ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : Colors.transparent),
+                  border: Border.all(color: isCounting ? AppColors.amber500.withOpacity(AppColors.opacityMuted) : Colors.transparent),
                 ),
                 child: Text(
                   p.toStringAsFixed(0),
@@ -673,9 +673,9 @@ class MasterScorecardWidget extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                  color: AppColors.lime500.withOpacity(AppColors.opacityLow),
                   borderRadius: AppShapes.sm,
-                  border: Border.all(color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium)),
+                  border: Border.all(color: AppColors.lime500.withOpacity(AppColors.opacityMedium)),
                 ),
                 child: Center(
                   child: Column(

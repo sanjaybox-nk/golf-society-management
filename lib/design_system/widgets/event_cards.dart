@@ -38,10 +38,10 @@ class BoxyArtEventCard extends ConsumerWidget {
         ? AppColors.pureWhite 
         : (isDark ? AppColors.pureWhite : AppColors.dark900);
     final subtextColor = isHighContrast 
-        ? AppColors.pureWhite.withValues(alpha: 0.8) 
+        ? AppColors.pureWhite.withOpacity(0.8) 
         : (isDark ? AppColors.dark150 : AppColors.dark700);
     final iconColor = isHighContrast 
-        ? AppColors.pureWhite.withValues(alpha: 0.6) 
+        ? AppColors.pureWhite.withOpacity(0.6) 
         : AppColors.dark300;
 
     final content = Row(
@@ -252,7 +252,7 @@ class BoxyArtEventCard extends ConsumerWidget {
         Text(
           label.toUpperCase(),
           style: AppTypography.caption.copyWith(
-            color: color.withValues(alpha: 0.8),
+            color: color.withOpacity(0.8),
             fontWeight: AppTypography.weightBlack,
             fontSize: 10,
             letterSpacing: 1.2,

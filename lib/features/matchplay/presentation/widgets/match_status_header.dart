@@ -48,8 +48,8 @@ class MatchStatusHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.xl), // [FIX] Align with HoleByHoleScoringWidget padding
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: AppColors.opacityLow),
-        border: Border(bottom: BorderSide(color: statusColor.withValues(alpha: AppColors.opacityMuted))),
+        color: statusColor.withOpacity(AppColors.opacityLow),
+        border: Border(bottom: BorderSide(color: statusColor.withOpacity(AppColors.opacityMuted))),
       ),
       child: Row(
         children: [

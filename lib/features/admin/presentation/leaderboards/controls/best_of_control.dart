@@ -133,7 +133,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Divider(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                  Divider(color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow)),
                   const SizedBox(height: AppSpacing.lg),
                   ...(_positionPoints.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => _buildPointRow(e.key, e.value)),
                   const SizedBox(height: AppSpacing.lg),
@@ -286,7 +286,7 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
       margin: const EdgeInsets.only(top: AppSpacing.x2l),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withOpacity(AppColors.opacitySubtle),
         borderRadius: AppShapes.md,
       ),
       child: Column(

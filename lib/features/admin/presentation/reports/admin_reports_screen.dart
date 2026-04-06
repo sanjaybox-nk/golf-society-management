@@ -284,8 +284,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           const BoxyArtSectionTitle(title: 'Churn alerts'),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.standard),
-            backgroundColor: AppColors.coral500.withValues(alpha: 0.1),
-            border: Border.all(color: AppColors.coral500.withValues(alpha: 0.4)),
+            backgroundColor: AppColors.coral500.withOpacity(0.1),
+            border: Border.all(color: AppColors.coral500.withOpacity(0.4)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -363,7 +363,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             borderRadius: AppShapes.xs,
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppColors.lime500.withValues(alpha: 0.15),
+              backgroundColor: AppColors.lime500.withOpacity(0.15),
               color: AppColors.lime500,
               minHeight: 12,
             ),
@@ -834,7 +834,7 @@ class _HubMetricSmall extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.standard),
         decoration: BoxDecoration(
-          color: isDark ? cyanBorder.withValues(alpha: 0.15) : cyanBg,
+          color: isDark ? cyanBorder.withOpacity(0.15) : cyanBg,
           borderRadius: AppShapes.md,
           border: Border.all(
             color: cyanBorder,
@@ -890,7 +890,7 @@ class _PrizeBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.standard),
         decoration: BoxDecoration(
-          color: isDark ? cyanBorder.withValues(alpha: 0.15) : cyanBg,
+          color: isDark ? cyanBorder.withOpacity(0.15) : cyanBg,
           borderRadius: AppShapes.md,
           border: Border.all(
             color: cyanBorder,

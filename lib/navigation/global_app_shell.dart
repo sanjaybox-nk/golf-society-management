@@ -64,11 +64,11 @@ class GlobalAppShell extends ConsumerWidget {
     // This is more robust than checking for shell indices.
     final bool isUserEventHub = location.startsWith('/events/') && location != '/events';
     final bool isAdminEventHub = location.startsWith('/admin/events/manage/');
-    final bool isSurveyView = location.contains('/surveys/');
+    final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node'); // Only hide if it's a specific internal node type if needed, but for now let's just make it consistent.
     final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
 
-    final bool isWhiteListed = location.contains('renewal') || location.contains('ledger') || location.contains('/admin/surveys');
-    final bool shouldHideMainNav = (isUserEventHub || isAdminEventHub || isSurveyView || isSpecialForm) && !isWhiteListed;
+    final bool isWhiteListed = location.contains('renewal') || location.contains('ledger') || location.contains('/admin/surveys') || isSurveyView;
+    final bool shouldHideMainNav = (isUserEventHub || isAdminEventHub || isSpecialForm) && !isWhiteListed;
 
     // 4. Status Bar Styling
     final statusBarIconBrightness = ContrastHelper.getContrastingText(theme.primaryColor) == AppColors.pureWhite
@@ -117,7 +117,7 @@ class GlobalAppShell extends ConsumerWidget {
                     labelType: NavigationRailLabelType.all,
                     backgroundColor: isDark ? AppColors.dark900 : AppColors.dark50,
                     selectedIconTheme: IconThemeData(color: theme.primaryColor),
-                    unselectedIconTheme: IconThemeData(color: theme.primaryColor.withValues(alpha: 0.4)),
+                    unselectedIconTheme: IconThemeData(color: theme.primaryColor.withOpacity(0.4)),
                     selectedLabelTextStyle: TextStyle(
                       color: theme.primaryColor, 
                       fontSize: AppTypography.sizeLabel, 

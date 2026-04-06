@@ -62,6 +62,9 @@ import '../features/admin/presentation/leaderboards/leaderboard_builder_screen.d
 import '../features/admin/presentation/competitions/competition_type_selection_screen.dart';
 import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart';
 import '../features/admin/presentation/competitions/competition_builder_screen.dart';
+import '../features/admin/presentation/notifications/compose_notification_screen.dart';
+import '../features/surveys/presentation/survey_detail_screen.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/members/presentation/member_details_screen.dart';
@@ -163,13 +166,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return '/home';
         },
       ),
-      // --- GLOBAL SURVEYS (Root level) ---
+      // --- GLOBAL SURVEYS (Redirect to Shell) ---
       GoRoute(
         path: '/surveys/:id',
-        pageBuilder: (context, state) => boxyPage(
-          state: state,
-          child: const Center(child: Text('Survey Detail Placeholder')),
-        ),
+        redirect: (context, state) => '/home/surveys/${state.pathParameters['id']}',
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -192,6 +192,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       child: const NotificationInboxScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'surveys/:id',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: SurveyDetailScreen(surveyId: state.pathParameters['id']!),
                     ),
                   ),
                 ],

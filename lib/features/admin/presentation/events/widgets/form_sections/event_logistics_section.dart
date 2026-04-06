@@ -115,7 +115,7 @@ class EventLogisticsSection extends ConsumerWidget {
                               Text(
                                 'Tee time',
                                 style: AppTypography.label.copyWith(
-                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.xs),
@@ -168,7 +168,7 @@ class EventLogisticsSection extends ConsumerWidget {
                               Text(
                                 'Tee interval',
                                 style: AppTypography.label.copyWith(
-                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.xs),

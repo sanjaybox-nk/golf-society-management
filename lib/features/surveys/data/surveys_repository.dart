@@ -9,4 +9,5 @@ abstract class SurveysRepository {
   Future<void> updateSurvey(Survey survey);
   Future<void> deleteSurvey(String id);
   Future<void> submitResponse(String surveyId, String userId, Map<String, dynamic> answers);
+  Future<void> dismissSurvey(String surveyId, String userId);
 }

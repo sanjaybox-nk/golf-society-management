@@ -127,7 +127,7 @@ class AdminScorecardKeypad extends StatelessWidget {
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: theme.primaryColor.withValues(alpha: AppColors.opacityMuted),
+              color: theme.primaryColor.withOpacity(AppColors.opacityMuted),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )

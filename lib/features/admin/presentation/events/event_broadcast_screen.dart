@@ -96,7 +96,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.x2l),
                 decoration: BoxDecoration(
-                  color: AppColors.coral400.withValues(alpha: AppColors.opacityLow),
+                  color: AppColors.coral400.withOpacity(AppColors.opacityLow),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.campaign_rounded, size: AppShapes.iconHero, color: AppColors.coral400),
@@ -130,7 +130,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
           return Material(
             color: Colors.transparent,
             elevation: 8,
-            shadowColor: Colors.black.withValues(alpha: 0.45),
+            shadowColor: Colors.black.withOpacity(0.45),
             child: child,
           );
         },
@@ -164,7 +164,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: AppSpacing.xs),
                           decoration: BoxDecoration(
-                            color: AppColors.amber500.withValues(alpha: AppColors.opacityMedium),
+                            color: AppColors.amber500.withOpacity(AppColors.opacityMedium),
                             borderRadius: AppShapes.xs,
                           ),
                           child: const Text('DRAFT', style: TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.amber500)),
@@ -175,7 +175,7 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
+                            color: AppColors.teamA.withOpacity(AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.push_pin_rounded, size: AppShapes.iconSm, color: AppColors.teamA),
@@ -211,9 +211,9 @@ class _EventBroadcastScreenState extends ConsumerState<EventBroadcastScreen> {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+          color: AppColors.amber500.withOpacity(AppColors.opacityLow),
           borderRadius: AppShapes.lg,
-          border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMuted)),
+          border: Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityMuted)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

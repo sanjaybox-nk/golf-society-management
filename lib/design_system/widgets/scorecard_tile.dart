@@ -111,7 +111,7 @@ class BoxyArtScorecardTile extends StatelessWidget {
               const SizedBox(width: AppSpacing.md),
               Icon(
                 Icons.chevron_right_rounded, 
-                color: AppColors.dark400.withValues(alpha: AppColors.opacityMuted), 
+                color: AppColors.dark400.withOpacity(AppColors.opacityMuted), 
                 size: AppShapes.iconSm
               ),
             ],

@@ -75,7 +75,7 @@ class MemberTile extends ConsumerWidget {
                       Text(
                         'Since ${member.joinedDate!.year}',
                         style: AppTypography.micro.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
                         ),
                       ),
                     ],
@@ -86,7 +86,7 @@ class MemberTile extends ConsumerWidget {
                 Container(
                   width: 1,
                   margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySubtle),
                 ),
 
                 // 3. Right Section: Information Stack
@@ -150,7 +150,7 @@ class MemberTile extends ConsumerWidget {
                                         size: 18,
                                         color: (member.status == MemberStatus.active 
                                             ? theme.colorScheme.primary 
-                                            : AppColors.amber500).withValues(alpha: 0.7),
+                                            : AppColors.amber500).withOpacity(0.7),
                                       ),
                                     ],
                                   ],
@@ -248,7 +248,7 @@ class MemberTile extends ConsumerWidget {
                             Container(
                               width: 1,
                               height: 10,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySubtle),
                             ),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
@@ -259,7 +259,7 @@ class MemberTile extends ConsumerWidget {
                                     child: Text(
                                       '${secondaryMetricLabel ?? 'Events'} ',
                                       style: AppTypography.label.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -292,7 +292,7 @@ class MemberTile extends ConsumerWidget {
               right: -AppSpacing.sm,
               child: Icon(
                 Icons.more_horiz_rounded,
-                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
               ),
             ),
 

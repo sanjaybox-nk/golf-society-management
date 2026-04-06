@@ -318,7 +318,7 @@ class _QuestionEditorState extends State<_QuestionEditor> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
+            color: isSelected ? AppColors.lime500.withOpacity(AppColors.opacityLow) : Colors.transparent,
             border: Border.all(color: isSelected ? AppColors.lime500 : AppColors.dark400),
             borderRadius: AppShapes.sm,
           ),

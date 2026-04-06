@@ -54,7 +54,7 @@ class EventSliverAppBar extends ConsumerWidget {
             Text(
               subtitle!,
               style: TextStyle(
-                color: AppColors.pureWhite.withValues(alpha: 0.70),
+                color: AppColors.pureWhite.withOpacity(0.70),
                 fontSize: AppTypography.sizeLabelStrong,
                 fontWeight: AppTypography.weightMedium,
               ),

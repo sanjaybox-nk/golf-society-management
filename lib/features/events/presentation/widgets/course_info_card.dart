@@ -221,7 +221,7 @@ class CourseInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+        color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityLow),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -246,7 +246,7 @@ class CourseInfoCard extends StatelessWidget {
       height: 28,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+        color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityLow),
       ),
       child: Center(
         child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: 10, color: AppColors.dark900, fontWeight: AppTypography.weightExtraBold, letterSpacing: 1.5)),
@@ -271,7 +271,7 @@ class CourseInfoCard extends StatelessWidget {
   Widget _buildTotalCell(BuildContext context, String text, {bool isHeader = false, bool isDimmed = false, bool isBold = false, Color? color, double? fontSize, FontWeight? fontWeight, Color? bgColor}) {
     return Container(
       width: 45, height: 28, alignment: Alignment.center,
-      color: bgColor ?? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: AppColors.opacityLow),
+      color: bgColor ?? Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(AppColors.opacityLow),
       child: Text(text, style: AppTypography.labelStrong.copyWith(fontSize: fontSize ?? 13, fontWeight: fontWeight ?? (isBold ? FontWeight.w900 : FontWeight.normal), color: color ?? (isHeader ? AppColors.dark200 : (isDimmed ? AppColors.dark300 : AppColors.dark900)))),
     );
   }

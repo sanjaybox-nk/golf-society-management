@@ -55,7 +55,7 @@ class BoxyArtInputField extends ConsumerWidget {
             child: Text(
               label,
               style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
               ),
             ),
           ),
@@ -286,7 +286,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
           child: Text(
             label,
             style: AppTypography.label.copyWith(
-              color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
             ),
           ),
         ),
@@ -364,7 +364,7 @@ class BoxyArtSwitchField extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.label.copyWith(
-                  color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                  color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
                 ),
               ),
               if (subtitle != null) ...[
@@ -383,9 +383,9 @@ class BoxyArtSwitchField extends StatelessWidget {
           value: value,
           onChanged: onChanged,
           activeThumbColor: theme.primaryColor,
-          activeTrackColor: theme.primaryColor.withValues(alpha: 0.30),
+          activeTrackColor: theme.primaryColor.withOpacity(0.30),
           inactiveThumbColor: isDark ? AppColors.dark300 : AppColors.pureWhite,
-          inactiveTrackColor: isDark ? AppColors.dark500.withValues(alpha: AppColors.opacityHalf) : AppColors.dark150,
+          inactiveTrackColor: isDark ? AppColors.dark500.withOpacity(AppColors.opacityHalf) : AppColors.dark150,
           trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.selected)) {
@@ -425,9 +425,9 @@ class BoxyArtSlider extends StatelessWidget {
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         activeTrackColor: primary,
-        inactiveTrackColor: primary.withValues(alpha: AppColors.opacityLow),
+        inactiveTrackColor: primary.withOpacity(AppColors.opacityLow),
         thumbColor: primary,
-        overlayColor: primary.withValues(alpha: 0.12),
+        overlayColor: primary.withOpacity(0.12),
         trackHeight: 4,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
@@ -518,9 +518,9 @@ class BoxyArtSwitchTile extends ConsumerWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: theme.primaryColor,
-            activeTrackColor: theme.primaryColor.withValues(alpha: 0.25),
+            activeTrackColor: theme.primaryColor.withOpacity(0.25),
             inactiveThumbColor: isDark ? AppColors.dark300 : AppColors.pureWhite,
-            inactiveTrackColor: isDark ? AppColors.dark500.withValues(alpha: AppColors.opacityHalf) : AppColors.dark150,
+            inactiveTrackColor: isDark ? AppColors.dark500.withOpacity(AppColors.opacityHalf) : AppColors.dark150,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
             thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
               if (states.contains(WidgetState.selected)) {
@@ -692,7 +692,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
             child: Text(
               label,
               style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
               ),
             ),
           ),

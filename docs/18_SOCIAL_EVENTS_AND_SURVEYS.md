@@ -7,8 +7,8 @@ The Golf Society Management system supports both golf and non-golf events, along
 As of the March 2026 Architectural Update, Polls and Surveys have been elevated from event-specific items to **Global Society Features**.
 
 ### Global Aggregation
-- **Member Home Screen**: Active polls from all upcoming events are now aggregated in a dedicated "Society Polls" section immediately upon app launch.
-- **Admin Dashboard**: Administrators can now monitor and manage all active surveys across all events from the main Admin Console dashboard.
+- **Member Home Screen**: Active polls and surveys are aggregated in a dedicated "Member Surveys" section. These cards have been refactored to the **Design 4.x "Branded" layout** (Identity | Content | Action), utilizing `BoxyArtCard`, `BoxyArtSquareBadge` (for identifying icons), and premium `BoxyArtPill` status indicators.
+- **Admin Dashboard**: Administrators can monitor and manage all active surveys from the main Admin Console dashboard, sharing consistent 4.x card aesthetics.
 
 ### Implementation Patterns
 Polls are defined within `EventFeedItem` models with `FeedItemType.poll`. While created in the context of an event (for scoping), they are surfaced globally to maximize engagement and visibility.
@@ -36,8 +36,17 @@ A comprehensive survey system is available in the Communications Admin section, 
 - **Multi-Question Form**: Supports single-choice, multiple-choice, and open-ended text questions with premium segmented type selectors.
 - **Visibility Controls**: Detailed "Draft" vs. "Live" states for managing survey lifecycles.
 - **Dynamic Labeling**: Option numbering automatically updates during reordering to maintain a clean structure.
+- **Survey Seeding (Demo)**: The system includes a comprehensive seeding engine that generates multi-question surveys with realistic member response distributions (50-60% participation) to verify reporting and visualization logic.
+
+### Member Experience (Survey Details)
+- **Design 4.x Detail Screen**: The `SurveyDetailScreen` has been fully refactored to follow the Design 4.x token system and "Branded" layout standards.
+- **Branded Header**: Uses the 3-column "Branded" layout (Identity | Content | Action) with a 72px identity zone and `BoxyArtSquareBadge`.
+- **Token-Driven Selection**: Interactive question cards utilize `primaryColor` tokens for selection states (8% background tint, 1.5px borders).
+- **Responsive Typography**: Standardized using `AppTypography.displayHeading` and `AppTypography.bodySmall` for maximum legibility across devices.
+- **Syntax & Spacing**: All padding, margin, and color token references have been audited and corrected to ensure strict adherence to the 4.x design system.
 
 ## Technical Details
 - **Models**: `Survey`, `SurveyQuestion` (now stores question prompts as Quill Delta JSON), and expanded `EventFeedItem` with `pollData`.
 - **State Management**: `SurveysNotifier` (Riverpod) for predictable lifecycle handling.
 - **Design Standard**: BoxyArt 4.0 "Admin Hub".
+- **Tactile Option Management**: `SurveyEditorScreen` implements a stable secondary state map (`_optionIds`) to manage unique identifiers for each option. This prevents widget reconciliation issues when deleting or reordering items in nested `ReorderableListView` components.

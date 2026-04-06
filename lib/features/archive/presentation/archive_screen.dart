@@ -84,7 +84,7 @@ class _SeasonCard extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: primary.withValues(alpha: AppColors.opacityLow),
+              color: primary.withOpacity(AppColors.opacityLow),
               borderRadius: AppShapes.md,
             ),
             child: Icon(
@@ -113,7 +113,7 @@ class _SeasonCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
-                  Icon(Icons.star_rounded, size: AppShapes.iconXs, color: primary.withValues(alpha: AppColors.opacityHalf)),
+                  Icon(Icons.star_rounded, size: AppShapes.iconXs, color: primary.withOpacity(AppColors.opacityHalf)),
                   const SizedBox(width: AppSpacing.md),
                   Text(winner, style: const TextStyle(fontWeight: AppTypography.weightMedium, fontSize: AppTypography.sizeBodySmall)),
                 ],

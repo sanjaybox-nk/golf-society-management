@@ -58,7 +58,7 @@ _SocietyConfig _$SocietyConfigFromJson(
           .toList() ??
       const <int>[],
   cardTintIntensity: (json['cardTintIntensity'] as num?)?.toDouble() ?? 0.1,
-  useCardGradient: json['useCardGradient'] as bool? ?? true,
+  useCardGradient: json['useCardGradient'] as bool? ?? false,
   currencySymbol: json['currencySymbol'] as String? ?? '£',
   currencyCode: json['currencyCode'] as String? ?? 'GBP',
   groupingStrategy: json['groupingStrategy'] as String? ?? 'balanced',

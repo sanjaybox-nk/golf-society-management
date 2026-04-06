@@ -97,7 +97,7 @@ class _ModernUnderlinedFilterBarState<T> extends State<ModernUnderlinedFilterBar
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacityLow),
+              color: isDark ? AppColors.pureWhite.withOpacity(AppColors.opacityLow) : Colors.black.withOpacity(AppColors.opacityLow),
               width: AppShapes.borderThin,
             ),
           ),
@@ -185,8 +185,8 @@ class _ModernUnderlinedTabBarState extends State<ModernUnderlinedTabBar> {
         border: Border(
           bottom: BorderSide(
             color: isDark 
-                ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) 
-                : Colors.black.withValues(alpha: AppColors.opacityLow),
+                ? AppColors.pureWhite.withOpacity(AppColors.opacityLow) 
+                : Colors.black.withOpacity(AppColors.opacityLow),
             width: AppShapes.borderThin,
           ),
         ),

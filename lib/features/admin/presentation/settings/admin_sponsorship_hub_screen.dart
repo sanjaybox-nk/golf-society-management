@@ -297,7 +297,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.hub_rounded, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.1)),
+                          Icon(Icons.hub_rounded, size: 64, color: AppColors.textSecondary.withOpacity(0.1)),
                           const SizedBox(width: AppSpacing.md),
                           Text('Start by adding a partner', style: AppTypography.micro.copyWith(color: AppColors.textTertiary)),
                         ],
@@ -608,7 +608,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
             child: Text(
               label,
               style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
               ),
             ),
           ),
@@ -863,7 +863,7 @@ class _SponsorLogo extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: AppColors.dark300.withValues(alpha: 0.1),
+          color: AppColors.dark300.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(Icons.business_rounded, color: AppColors.textTertiary),
@@ -876,7 +876,7 @@ class _SponsorLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.dark300.withValues(alpha: 0.1),
+        color: AppColors.dark300.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -936,7 +936,7 @@ class _DonationTile extends ConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.dark300.withValues(alpha: 0.1),
+                color: AppColors.dark300.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.volunteer_activism_rounded, color: AppColors.textTertiary),

@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/survey.dart';
+import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/surveys/presentation/surveys_provider.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
 
@@ -33,12 +35,16 @@ class SurveyResultsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildParticipationCard(context, survey, membersAsync),
-                  SizedBox(height: spacing?.cardToCard ?? AppSpacing.x2l), // [4.x Rhythm]
-                  ...survey.questions.map((q) => Padding(
-                    padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.x2l),
-                    child: _buildQuestionResult(context, q, survey.responses, membersAsync, spacing),
-                  )),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: AppSpacing.x2l), // Standard card separation
+                  ...survey.questions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final q = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                      child: _buildQuestionResult(context, index, q, survey.responses, membersAsync),
+                    );
+                  }),
+                  const SizedBox(height: AppSpacing.pageBottom),
                 ]),
               ),
             ),
@@ -50,7 +56,7 @@ class SurveyResultsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildParticipationCard(BuildContext context, Survey survey, AsyncValue<List<dynamic>> membersAsync) {
+  Widget _buildParticipationCard(BuildContext context, Survey survey, AsyncValue<List<Member>> membersAsync) {
     final totalResponses = survey.responses.length;
     final totalMembers = membersAsync.asData?.value.length ?? 0;
     final rate = totalMembers == 0 ? 0 : (totalResponses / totalMembers * 100).toInt();
@@ -66,7 +72,7 @@ class SurveyResultsScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildHeroMetric(context, 'RESPONSES', totalResponses.toString(), Icons.people_rounded),
-          Container(height: 40, width: 1, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityLow)),
+          Container(height: 40, width: 1, color: AppColors.pureWhite.withOpacity(AppColors.opacityLow)),
           _buildHeroMetric(context, 'PARTICIPATION', '$rate%', Icons.analytics_rounded),
         ],
       ),
@@ -76,41 +82,61 @@ class SurveyResultsScreen extends ConsumerWidget {
   Widget _buildHeroMetric(BuildContext context, String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh), size: AppShapes.iconLg),
+        Icon(icon, color: AppColors.pureWhite.withOpacity(AppColors.opacityHigh), size: 28),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value, 
-          style: AppTypography.displaySection.copyWith(
+          style: AppTypography.displayHeading.copyWith(
+            fontSize: 24,
             color: AppColors.pureWhite,
-            fontWeight: AppTypography.weightBlack,
+            fontWeight: AppTypography.weightHeavy,
             letterSpacing: AppTypography.lsTight,
           ),
         ),
+        const SizedBox(height: AppSpacing.xs),
         Text(
-          label.toUpperCase(), 
+          label, 
           style: AppTypography.micro.copyWith(
             fontWeight: AppTypography.weightHeavy,
-            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
-            letterSpacing: AppTypography.lsMicro,
+            color: AppColors.pureWhite.withOpacity(AppColors.opacityStrong),
+            letterSpacing: 1.2,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildQuestionResult(BuildContext context, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<dynamic>> membersAsync, AppSpacingTokens? spacing) {
+  Widget _buildQuestionResult(BuildContext context, int index, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<Member>> membersAsync) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BoxyArtSectionTitle(
-          title: _getQuestionPlainText(q.question), // Extracts plain text from potential JSON
-          isPeeking: true,
+        Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
+          child: Text(
+            'QUESTION ${index + 1}', 
+            style: AppTypography.micro.copyWith(
+              fontWeight: AppTypography.weightBold,
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                _getQuestionPlainText(q.question),
+                style: AppTypography.body.copyWith(
+                  fontWeight: AppTypography.weightStrong,
+                  height: 1.3,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
               if (q.type == SurveyQuestionType.text)
                 _buildTextResults(context, q, responses, membersAsync)
               else
@@ -204,7 +230,7 @@ class SurveyResultsScreen extends ConsumerWidget {
                         borderRadius: AppShapes.pill,
                         boxShadow: isWinner ? [
                           BoxShadow(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                             blurRadius: 4,
                             spreadRadius: 1,
                           )
@@ -221,40 +247,41 @@ class SurveyResultsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTextResults(BuildContext context, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<dynamic>> membersAsync) {
+  Widget _buildTextResults(BuildContext context, SurveyQuestion q, Map<String, dynamic> responses, AsyncValue<List<Member>> membersAsync) {
     final textResponses = responses.entries
-        .where((e) => e.value[q.id] != null && e.value[q.id].toString().trim().isNotEmpty)
+        .where((e) => e.value is Map && e.value[q.id] != null && e.value[q.id].toString().trim().isNotEmpty)
         .toList();
 
     if (textResponses.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         child: Text(
-          'No responses yet.'.toUpperCase(), 
+          'NO RESPONSES YET', 
           style: AppTypography.micro.copyWith(
-            fontWeight: AppTypography.weightHeavy,
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark400 : AppColors.dark300,
-            letterSpacing: AppTypography.lsMicro,
+            fontWeight: AppTypography.weightBold,
+            color: AppColors.dark400,
           ),
         ),
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: textResponses.map((e) {
         final userId = e.key;
         final answer = e.value[q.id].toString();
-        final member = membersAsync.asData?.value.firstWhere((m) => m.id == userId, orElse: () => null);
-        final name = member != null ? '${member.firstName} ${member.lastName}' : 'Unknown Member';
+        final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == userId);
+        final name = member != null ? member.displayName : 'Unknown Member';
 
         return Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.dark600,
-            borderRadius: AppShapes.md,
-            border: Border.all(color: AppColors.dark500),
+            color: isDark ? AppColors.dark600 : AppColors.dark50,
+            borderRadius: BorderRadius.circular(AppSpacing.md),
+            border: Border.all(color: isDark ? AppColors.dark500 : AppColors.dark100),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,11 +291,17 @@ class SurveyResultsScreen extends ConsumerWidget {
                 style: AppTypography.micro.copyWith(
                   fontWeight: AppTypography.weightHeavy,
                   color: Theme.of(context).colorScheme.primary,
-                  letterSpacing: AppTypography.lsMicro,
+                  letterSpacing: 1.1,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              Text(answer, style: const TextStyle(fontSize: AppTypography.sizeBodySmall, height: 1.4)),
+              Text(
+                answer, 
+                style: AppTypography.label.copyWith(
+                  fontWeight: AppTypography.weightRegular,
+                  height: 1.4,
+                )
+              ),
             ],
           ),
         );

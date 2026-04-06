@@ -47,7 +47,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
   void _showRenewalSettings(BuildContext context) {
     BoxyArtBottomSheet.show(
       context: context,
-      title: 'Cycle Settings',
+      title: 'Renewal Settings',
       // Compact content — open at 50% so there's no excess whitespace below the card
       initialChildSize: 0.50,
       maxChildSize: 0.60,
@@ -97,7 +97,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                       children: [
                         Expanded(
                           child: _DatePickerTile(
-                            label: 'Expiry',
+                            label: 'Membership Expiry',
                             date: themeConfig.renewalDeadline,
                             onChanged: (date) => notifier.setRenewalDeadline(date),
                           ),
@@ -105,7 +105,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: _DatePickerTile(
-                            label: 'Deadline',
+                            label: 'Renewal Deadline',
                             date: themeConfig.renewalPaymentDeadline,
                             onChanged: (date) => notifier.setRenewalPaymentDeadline(date),
                           ),
@@ -120,14 +120,14 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                       children: [
                         Expanded(
                           child: BoxyArtButton(
-                            title: themeConfig.isRenewalActive ? 'Cycle Active' : 'Launch Cycle',
+                            title: themeConfig.isRenewalActive ? 'Active' : 'Activate',
                             isSmall: false,
                             backgroundColor: AppColors.actionMidnight,
                             textColor: AppColors.pureWhite,
                             onTap: themeConfig.isRenewalActive ? null : () async {
                               final confirmed = await showBoxyArtDialog<bool>(
                                 context: context,
-                                title: 'Launch Cycle?',
+                                title: 'Activate Renewal Cycle?',
                                 message: 'This enables the "Renew Now" button for all members and begins tracking payments.',
                                 actions: [
                                   BoxyArtButton(
@@ -138,7 +138,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                                     onTap: () => Navigator.of(context, rootNavigator: true).pop(false),
                                   ),
                                   BoxyArtButton(
-                                    title: 'Launch',
+                                    title: 'Activate',
                                     isPrimary: true,
                                     isSmall: true,
                                     onTap: () => Navigator.of(context, rootNavigator: true).pop(true),
@@ -156,7 +156,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                           const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: BoxyArtButton(
-                              title: 'End Cycle',
+                              title: 'End',
                               isSmall: false,
                               isGhost: true,
                               backgroundColor: isDark ? Colors.transparent : AppColors.dark50,
@@ -164,7 +164,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                               onTap: () async {
                                  final confirmed = await showBoxyArtDialog<bool>(
                                     context: context,
-                                    title: 'End Cycle?',
+                                    title: 'End Renewal Cycle?',
                                     message: 'This will stop active renewal requests. Member statuses will remain as they are.',
                                     actions: [
                                       BoxyArtButton(
@@ -175,7 +175,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                                         onTap: () => Navigator.of(context, rootNavigator: true).pop(false),
                                       ),
                                       BoxyArtButton(
-                                        title: 'End Cycle',
+                                        title: 'End',
                                         isPrimary: true,
                                         isSmall: true,
                                         backgroundColor: AppColors.coral500, // Explicit end action
@@ -225,7 +225,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
         actions: [
           BoxyArtGlassIconButton(
             icon: Icons.timer_outlined,
-            tooltip: 'Cycle Settings',
+            tooltip: 'Renewal Settings',
             onPressed: () => _showRenewalSettings(context),
           ),
         ],
@@ -298,7 +298,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.people_outline_rounded, size: 48, color: AppColors.dark400.withValues(alpha: 0.5)),
+                            Icon(Icons.people_outline_rounded, size: 48, color: AppColors.dark400.withOpacity(0.5)),
                             const SizedBox(height: 16),
                             Text(
                               'No members in this category',
@@ -447,8 +447,8 @@ class _MemberRenewalTile extends ConsumerWidget {
             CircleAvatar(
               radius: 24,
               backgroundColor: isSelected 
-                  ? AppColors.teamA.withValues(alpha: 0.1) 
-                  : AppColors.dark500.withValues(alpha: 0.1),
+                  ? AppColors.teamA.withOpacity(0.1) 
+                  : AppColors.dark500.withOpacity(0.1),
               backgroundImage: member.avatarUrl != null && member.avatarUrl!.isNotEmpty 
                   ? NetworkImage(member.avatarUrl!) 
                   : null,

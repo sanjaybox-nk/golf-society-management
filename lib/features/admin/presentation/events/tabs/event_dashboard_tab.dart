@@ -154,7 +154,7 @@ class EventDashboardTab extends ConsumerWidget {
                     title: 'Approve 2 Guest Requests',
                     subtitle: 'From Monthly Medal registration',
                     icon: Icons.person_add_sharp,
-                    color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                    color: AppColors.amber500.withOpacity(AppColors.opacityLow),
                     iconColor: AppColors.amber500,
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -162,7 +162,7 @@ class EventDashboardTab extends ConsumerWidget {
                     title: 'Publish Draw for Saturday',
                     subtitle: 'Deadline approaching (6h remaining)',
                     icon: Icons.notification_important_outlined,
-                    color: Theme.of(context).colorScheme.error.withValues(alpha: AppColors.opacityLow),
+                    color: Theme.of(context).colorScheme.error.withOpacity(AppColors.opacityLow),
                     iconColor: Theme.of(context).colorScheme.error,
                   ),
                   
@@ -184,7 +184,7 @@ class EventDashboardTab extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
+              color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityLow),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
@@ -234,7 +234,7 @@ class EventDashboardTab extends ConsumerWidget {
           ),
           
           // Manage Button
-          Icon(Icons.chevron_right, color: Colors.black.withValues(alpha: 0.26)),
+          Icon(Icons.chevron_right, color: Colors.black.withOpacity(0.26)),
         ],
       ),
     );
@@ -301,7 +301,7 @@ class _VitalSignCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: AppColors.opacityLow),
+              color: iconColor.withOpacity(AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 22),

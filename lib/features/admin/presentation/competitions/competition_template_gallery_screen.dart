@@ -190,9 +190,9 @@ class _BlankTemplateCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow),
+              color: theme.colorScheme.primary.withOpacity(AppColors.opacityLow),
               borderRadius: AppShapes.md,
-              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium)),
+              border: Border.all(color: theme.colorScheme.primary.withOpacity(AppColors.opacityMedium)),
             ),
             child: Icon(icon, color: theme.colorScheme.primary, size: AppShapes.iconLg),
           ),

@@ -258,7 +258,7 @@ class _AdminEventRow extends ConsumerWidget {
         Icon(
           Icons.keyboard_arrow_down_rounded,
           size: 16,
-          color: statusColor.withValues(alpha: 0.7),
+          color: statusColor.withOpacity(0.7),
         ),
       ],
     );

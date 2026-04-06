@@ -49,6 +49,11 @@ _Survey _$SurveyFromJson(Map<String, dynamic> json) => _Survey(
           .toList() ??
       const [],
   responses: json['responses'] as Map<String, dynamic>? ?? const {},
+  dismissedBy:
+      (json['dismissedBy'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$SurveyToJson(_Survey instance) => <String, dynamic>{
@@ -60,4 +65,5 @@ Map<String, dynamic> _$SurveyToJson(_Survey instance) => <String, dynamic>{
   'isPublished': instance.isPublished,
   'questions': instance.questions.map((e) => e.toJson()).toList(),
   'responses': instance.responses,
+  'dismissedBy': instance.dismissedBy,
 };

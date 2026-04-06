@@ -63,10 +63,10 @@ class MemberStatusPicker extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         border: isSelected 
-            ? Border.all(color: theme.primaryColor.withValues(alpha: 0.2), width: 1.5) 
-            : Border.all(color: AppColors.dark300.withValues(alpha: 0.1), width: 1.0),
+            ? Border.all(color: theme.primaryColor.withOpacity(0.2), width: 1.5) 
+            : Border.all(color: AppColors.dark300.withOpacity(0.1), width: 1.0),
         backgroundColor: isSelected 
-            ? theme.primaryColor.withValues(alpha: 0.05) 
+            ? theme.primaryColor.withOpacity(0.05) 
             : (theme.brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite),
         child: Row(
           children: [

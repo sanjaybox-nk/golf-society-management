@@ -79,7 +79,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
       backgroundColor: Colors.black,
       shape: RoundedRectangleBorder(
         borderRadius: AppShapes.xl,
-        side: BorderSide(color: AppColors.pureWhite.withValues(alpha: 0.10)),
+        side: BorderSide(color: AppColors.pureWhite.withOpacity(0.10)),
       ),
       child: Container( // Constraint wrapper
         constraints: BoxConstraints(
@@ -111,7 +111,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
                   ),
                   
                   const SizedBox(height: AppSpacing.x2l),
-                  Divider(color: AppColors.pureWhite.withValues(alpha: 0.10)),
+                  Divider(color: AppColors.pureWhite.withOpacity(0.10)),
                   const SizedBox(height: AppSpacing.lg),
                   
                   // Dynamic Fields
@@ -158,7 +158,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite.withValues(alpha: 0.10),
+            color: AppColors.pureWhite.withOpacity(0.10),
             borderRadius: AppShapes.md,
           ),
           child: DropdownButtonHideUnderline(
@@ -249,7 +249,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
                   }
                 });
               },
-              backgroundColor: AppColors.pureWhite.withValues(alpha: 0.10),
+              backgroundColor: AppColors.pureWhite.withOpacity(0.10),
               selectedColor: Theme.of(context).primaryColor,
               labelStyle: TextStyle(color: isSelected ? Colors.black : AppColors.pureWhite),
             );
@@ -270,7 +270,7 @@ class _LeaderboardConfigDialogState extends State<LeaderboardConfigDialog> {
          Container(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite.withValues(alpha: 0.10),
+            color: AppColors.pureWhite.withOpacity(0.10),
             borderRadius: AppShapes.md,
           ),
           child: DropdownButtonHideUnderline(

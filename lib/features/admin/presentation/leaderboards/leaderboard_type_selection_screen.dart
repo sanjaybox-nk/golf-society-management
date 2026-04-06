@@ -107,7 +107,7 @@ class _TypeTile extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: AppColors.opacityLow),
+              color: color.withOpacity(AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: AppShapes.iconLg),

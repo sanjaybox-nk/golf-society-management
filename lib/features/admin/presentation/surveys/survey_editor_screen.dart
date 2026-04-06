@@ -26,6 +26,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
   List<SurveyQuestion> _questions = [];
   final Map<String, quill.QuillController> _questionQuillControllers = {};
   final Map<String, List<TextEditingController>> _optionControllers = {};
+  final Map<String, List<String>> _optionIds = {};
   bool _isInitialized = false;
 
   @override
@@ -69,10 +70,11 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
       ];
     }
 
-    // Initialize controllers for existing questions
+    // Initialize controllers and IDs for existing questions
     for (final q in _questions) {
       _questionQuillControllers[q.id] = _createQuillController(q.question);
       _optionControllers[q.id] = q.options.map((opt) => TextEditingController(text: opt)).toList();
+      _optionIds[q.id] = q.options.map((_) => const Uuid().v4()).toList();
     }
 
     _isInitialized = true;
@@ -218,11 +220,11 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        'QUESTION ${index + 1}', 
+                        'Question ${index + 1}', 
                         style: AppTypography.micro.copyWith(
                           fontWeight: AppTypography.weightHeavy,
                           color: isDark ? AppColors.dark300 : AppColors.dark400,
-                          letterSpacing: AppTypography.lsMicro,
+                          letterSpacing: AppTypography.lsLabel,
                         ),
                       ),
                     ],
@@ -242,12 +244,26 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                 minHeight: 120,
               ),
               const SizedBox(height: AppSpacing.xl),
-              const Text('Question type', style: TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeLabel)),
+              Text(
+                'Question type'.toUpperCase(), 
+                style: AppTypography.label.copyWith(
+                  fontWeight: AppTypography.weightHeavy, 
+                  letterSpacing: AppTypography.lsLabel,
+                  color: isDark ? AppColors.dark200 : AppColors.dark400,
+                ),
+              ),
               const SizedBox(height: AppSpacing.sm),
               _buildTypeSelector(index, q.type),
               if (q.type != SurveyQuestionType.text) ...[
                 const SizedBox(height: AppSpacing.x2l),
-                const Text('Options', style: TextStyle(fontWeight: AppTypography.weightSemibold, fontSize: AppTypography.sizeLabel)),
+                Text(
+                  'Options'.toUpperCase(), 
+                  style: AppTypography.label.copyWith(
+                    fontWeight: AppTypography.weightHeavy, 
+                    letterSpacing: AppTypography.lsLabel,
+                    color: isDark ? AppColors.dark200 : AppColors.dark400,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 _buildOptionsList(index, q),
                 const SizedBox(height: AppSpacing.md),
@@ -307,7 +323,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                       style: AppTypography.micro.copyWith(
                         fontWeight: AppTypography.weightHeavy,
                         color: isSelected ? theme.colorScheme.onPrimary : (isDark ? AppColors.dark200 : AppColors.dark800),
-                        letterSpacing: AppTypography.lsMicro,
+                        letterSpacing: AppTypography.lsLabel,
                       ),
                     ),
                   ],
@@ -331,6 +347,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
   Widget _buildOptionsList(int qIndex, SurveyQuestion q) {
     final options = q.options;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final optionIds = _optionIds[q.id]!;
 
     return ReorderableListView(
       shrinkWrap: true,
@@ -348,13 +365,18 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
           final controllers = _optionControllers[q.id]!;
           final ctrl = controllers.removeAt(oldIndex);
           controllers.insert(newIndex, ctrl);
+
+          final ids = _optionIds[q.id]!;
+          final id = ids.removeAt(oldIndex);
+          ids.insert(newIndex, id);
         });
       },
       children: options.asMap().entries.map((entry) {
         final optIndex = entry.key;
+        final optionId = optionIds[optIndex];
 
         return Padding(
-          key: ValueKey('${q.id}_opt_field_$optIndex'),
+          key: ValueKey('${q.id}_opt_$optionId'),
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: Row(
             children: [
@@ -414,6 +436,10 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
         TextEditingController(text: 'Option 1'),
         TextEditingController(text: 'Option 2'),
       ];
+      _optionIds[newId] = [
+        const Uuid().v4(),
+        const Uuid().v4(),
+      ];
     });
   }
 
@@ -423,6 +449,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
       _questions.removeAt(index);
       _questionQuillControllers.remove(qId)?.dispose();
       _optionControllers.remove(qId)?.map((c) => c.dispose()).toList();
+      _optionIds.remove(qId);
     });
   }
 
@@ -453,6 +480,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
     final q = _questions[qIndex];
     final newOptions = List<String>.from(q.options)..add('New option');
     _optionControllers[q.id]!.add(TextEditingController(text: 'New option'));
+    _optionIds[q.id]!.add(const Uuid().v4());
     _updateQuestion(qIndex, q.copyWith(options: newOptions));
   }
 
@@ -460,6 +488,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
     final q = _questions[qIndex];
     final newOptions = List<String>.from(q.options)..removeAt(optIndex);
     _optionControllers[q.id]!.removeAt(optIndex).dispose();
+    _optionIds[q.id]!.removeAt(optIndex);
     _updateQuestion(qIndex, q.copyWith(options: newOptions));
   }
 

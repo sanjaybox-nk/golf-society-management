@@ -18,18 +18,6 @@ import 'package:golf_society/domain/models/society_config.dart';
 import '../../events/presentation/events_provider.dart';
 import 'package:golf_society/utils/string_utils.dart';
 
-/// Track dismissed survey IDs for the current session to keep the home screen clean.
-class DismissedSurveysNotifier extends Notifier<Set<String>> {
-  @override
-  Set<String> build() => {};
-
-  void dismiss(String surveyId) {
-    state = {...state, surveyId};
-  }
-}
-
-final dismissedSurveyIdsProvider = NotifierProvider<DismissedSurveysNotifier, Set<String>>(DismissedSurveysNotifier.new);
-
 class MemberHomeScreen extends ConsumerWidget {
   const MemberHomeScreen({super.key});
 
@@ -75,7 +63,7 @@ class MemberHomeScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                backgroundColor: AppColors.actionMidnight.withValues(alpha: 0.1),
+                backgroundColor: AppColors.actionMidnight.withOpacity(0.1),
                 child: Row(
                   children: [
                     const Icon(Icons.visibility_rounded, color: AppColors.actionMidnight, size: 20),
@@ -236,12 +224,7 @@ class MemberHomeScreen extends ConsumerWidget {
 
         // Active Surveys
         surveysAsync.when(
-          data: (surveys) {
-            final dismissed = ref.watch(dismissedSurveyIdsProvider);
-            final active = surveys
-                .where((s) => !dismissed.contains(s.id))
-                .toList();
-
+          data: (active) {
             if (active.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
 
             return SliverPadding(
@@ -252,33 +235,109 @@ class MemberHomeScreen extends ConsumerWidget {
                     final survey = active[index];
                     return StaggeredEntrance(
                       index: index,
-                      child: BoxyArtCard(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.poll_rounded, color: AppColors.lime500),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    survey.title,
-                                    style: AppTypography.displaySection.copyWith(fontSize: 16),
-                                  ),
-                                  Text(
-                                    'Your feedback is requested',
-                                    style: AppTypography.bodySmall.copyWith(color: theme.textTheme.bodySmall?.color),
-                                  ),
-                                ],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index == 0) ...[
+                            const BoxyArtSectionTitle(title: 'Member Surveys'),
+                          ],
+                          Dismissible(
+                            key: ValueKey('survey_dismiss_${survey.id}'),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (_) {
+                              ref.read(surveysRepositoryProvider).dismissSurvey(survey.id, effectiveUser.id);
+                            },
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: AppSpacing.xl),
+                              decoration: BoxDecoration(
+                                color: StatusColors.negative,
+                                borderRadius: BorderRadius.circular(AppShapes.rXl),
+                              ),
+                              child: const Icon(Icons.delete_sweep_rounded, color: Colors.white),
+                            ),
+                            child: BoxyArtCard(
+                              onTap: () => context.push('/surveys/${survey.id}'),
+                              padding: EdgeInsets.zero,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.md,
+                                  vertical: spacing?.cardVerticalPadding ?? AppSpacing.md,
+                                ),
+                                child: Row(
+                                  children: [
+                                    // 1. Identity Column (Icon Badge aligned to 72px zone)
+                                    SizedBox(
+                                      width: 72,
+                                      child: Center(
+                                        child: const BoxyArtSquareBadge(
+                                          size: 44,
+                                          isTinted: true,
+                                          child: Icon(
+                                            Icons.quiz_rounded,
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8), // Padding to match Event Card rhythm
+
+                                    // 2. Main Content Area
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            toTitleCase(survey.title),
+                                            style: AppTypography.cardTitle.copyWith(
+                                              color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            survey.deadline != null 
+                                              ? 'Ends: ${DateFormat('d MMM').format(survey.deadline!)}' 
+                                              : 'Your feedback is requested',
+                                            style: AppTypography.subtext.copyWith(
+                                              color: isDark ? AppColors.dark150 : AppColors.dark700,
+                                              fontSize: 13,
+                                              fontWeight: AppTypography.weightSemibold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // 3. Action / Status Column
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        BoxyArtPill.status(
+                                          label: 'POLL',
+                                          color: Color(societyConfig.primaryColor),
+                                          isAction: true,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: AppColors.dark400.withOpacity(AppColors.opacityMuted),
+                                      size: 18,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            BoxyArtGlassIconButton(
-                              icon: Icons.chevron_right_rounded,
-                              onPressed: () => context.push('/surveys/${survey.id}'),
-                            ),
-                          ],
-                        ),
+                          ),
+                          // Spacing between cards
+                          if (index < active.length - 1)
+                            SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                        ],
                       ),
                     );
                   },
@@ -288,7 +347,7 @@ class MemberHomeScreen extends ConsumerWidget {
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Leaderboard Snippet
@@ -563,9 +622,9 @@ class _NextMatchCard extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: AppColors.opacityHalf),
+                      color: Colors.black.withOpacity(AppColors.opacityHalf),
                       borderRadius: AppShapes.sm,
-                      border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.24)),
+                      border: Border.all(color: AppColors.pureWhite.withOpacity(0.24)),
                     ),
                     child: Row(
                       children: [
@@ -600,7 +659,7 @@ class _NextMatchCard extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: AppColors.pureWhite.withValues(alpha: 0.2),
+                          color: AppColors.pureWhite.withOpacity(0.2),
                           borderRadius: AppShapes.md,
                         ),
                         child: Text(
@@ -618,7 +677,7 @@ class _NextMatchCard extends ConsumerWidget {
                   value: event.courseName ?? 'TBA',
                   icon: Icons.location_on_rounded,
                   iconColor: AppColors.pureWhite,
-                  labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
+                  labelColor: AppColors.pureWhite.withOpacity(0.7),
                   valueColor: AppColors.pureWhite,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -627,7 +686,7 @@ class _NextMatchCard extends ConsumerWidget {
                   value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
                   icon: Icons.schedule_rounded,
                   iconColor: AppColors.pureWhite,
-                  labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
+                  labelColor: AppColors.pureWhite.withOpacity(0.7),
                   valueColor: AppColors.pureWhite,
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -761,7 +820,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                   number: personalRank ?? 0,
                   size: AppShapes.iconLg,
                   textColor: AppColors.teamA,
-                  color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
+                  color: AppColors.teamA.withOpacity(AppColors.opacityLow),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Container(
@@ -838,299 +897,7 @@ String _getGreeting() {
   return 'Fore! Welcome back,';
 }
 
-class _SurveyInteractiveCard extends ConsumerStatefulWidget {
-  final Survey survey;
 
-  const _SurveyInteractiveCard({required this.survey});
-
-  @override
-  ConsumerState<_SurveyInteractiveCard> createState() => _SurveyInteractiveCardState();
-}
-
-class _SurveyInteractiveCardState extends ConsumerState<_SurveyInteractiveCard> {
-  final Map<String, dynamic> _localAnswers = {};
-  final Map<String, TextEditingController> _textControllers = {};
-  bool _isSubmitting = false;
-  bool _isExpanded = false; // Collapsed by default to reduce clutter
-
-  @override
-  void dispose() {
-    for (final c in _textControllers.values) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = ref.watch(effectiveUserProvider);
-    final userResponse = widget.survey.responses[user.id] as Map<String, dynamic>?;
-    final hasVoted = userResponse != null;
-
-    return BoxyArtCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header / Toggle
-          GestureDetector(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
-            behavior: HitTestBehavior.opaque,
-            child: Row(
-              children: [
-                const Icon(Icons.poll_rounded, color: AppColors.lime500, size: AppShapes.iconMd),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'SOCIETY SURVEY',
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.lime500,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        widget.survey.title,
-                        style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
-                      ),
-                    ],
-                  ),
-                ),
-                if (hasVoted) ...[
-                  BoxyArtButton(
-                    title: 'Dismiss',
-                    isSecondary: true,
-                    isSmall: true,
-                    onTap: () {
-                      ref.read(dismissedSurveyIdsProvider.notifier).dismiss(widget.survey.id);
-                    },
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                ],
-                Icon(
-                  _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                  color: AppColors.textSecondary,
-                  size: AppShapes.iconMd,
-                ),
-              ],
-            ),
-          ),
-
-          ClipRect(
-            child: AnimatedSize(
-              duration: AppAnimations.medium,
-              curve: Curves.easeInOut,
-              child: SizedBox(
-                height: _isExpanded ? null : 0,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (widget.survey.description != null && widget.survey.description!.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        widget.survey.description!,
-                        style: AppTypography.bodySmall,
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.xl),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                      child: Column(
-                        children: widget.survey.questions.map((q) => _buildQuestion(q, userResponse?[q.id], hasVoted)).toList(),
-                      ),
-                    ),
-                    
-                    if (!hasVoted) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      BoxyArtButton(
-                        title: _isSubmitting ? 'Submitting...' : 'Submit Response',
-                        isPrimary: true,
-                        isSmall: true,
-                        onTap: _isSubmitting ? null : _submitAll,
-                      ),
-                    ] else
-                      Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm, left: AppSpacing.xs),
-                        child: Text(
-                          'Thank you for your feedback!',
-                          style: AppTypography.label.copyWith(color: AppColors.lime500),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuestion(SurveyQuestion q, dynamic answer, bool hasVoted) {
-    var currentAnswer = hasVoted ? answer : _localAnswers[q.id];
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            q.question.toUpperCase(),
-            style: AppTypography.labelStrong.copyWith(
-              color: AppColors.pureWhite,
-              fontWeight: AppTypography.weightExtraBold,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (q.type == SurveyQuestionType.text)
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.dark600,
-                borderRadius: AppShapes.md,
-                border: Border.all(
-                  color: hasVoted && currentAnswer != null ? AppColors.lime500 : AppColors.dark500,
-                  width: hasVoted && currentAnswer != null ? 1.5 : 1.0,
-                ),
-              ),
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  inputDecorationTheme: const InputDecorationTheme(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-                  ),
-                ),
-                child: TextField(
-                  controller: _getTextController(q.id, currentAnswer?.toString()),
-                  readOnly: hasVoted,
-                  onChanged: hasVoted ? null : (v) => setState(() => _localAnswers[q.id] = v),
-                  style: TextStyle(
-                    color: hasVoted && currentAnswer != null ? AppColors.lime500 : AppColors.pureWhite,
-                    fontSize: AppTypography.sizeBodySmall,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Type your response...',
-                    hintStyle: TextStyle(color: AppColors.dark300, fontSize: AppTypography.sizeBodySmall),
-                    suffixIcon: (hasVoted && currentAnswer != null) 
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.lime500, size: AppShapes.iconMd)
-                        : null,
-                  ),
-                ),
-              ),
-            ),
-          if (q.type != SurveyQuestionType.text)
-            ...q.options.map((option) {
-              bool isSelected;
-              if (q.type == SurveyQuestionType.multipleChoice) {
-                final list = (currentAnswer as List<dynamic>?)?.cast<String>() ?? [];
-                isSelected = list.contains(option);
-              } else {
-                isSelected = currentAnswer == option;
-              }
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: hasVoted ? null : () {
-                    setState(() {
-                      if (q.type == SurveyQuestionType.multipleChoice) {
-                        final list = List<String>.from((_localAnswers[q.id] as List<dynamic>?)?.cast<String>() ?? []);
-                        if (list.contains(option)) {
-                          list.remove(option);
-                        } else {
-                          list.add(option);
-                        }
-                        _localAnswers[q.id] = list;
-                      } else {
-                        _localAnswers[q.id] = option;
-                      }
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : AppColors.dark600,
-                      borderRadius: AppShapes.md,
-                      border: Border.all(
-                        color: isSelected ? AppColors.lime500 : AppColors.dark500,
-                        width: isSelected ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            option,
-                            style: TextStyle(
-                              color: isSelected ? AppColors.lime500 : AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
-                              fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightRegular,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          isSelected 
-                            ? (q.type == SurveyQuestionType.multipleChoice 
-                                ? Icons.check_box_rounded 
-                                : Icons.check_circle_rounded)
-                            : (q.type == SurveyQuestionType.multipleChoice 
-                                ? Icons.check_box_outline_blank_rounded 
-                                : Icons.radio_button_off_rounded), 
-                          color: isSelected ? AppColors.lime500 : AppColors.dark400, 
-                          size: AppShapes.iconMd
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-      ),
-    );
-  }
-
-  TextEditingController _getTextController(String questionId, String? initialValue) {
-    if (!_textControllers.containsKey(questionId)) {
-      _textControllers[questionId] = TextEditingController(text: initialValue);
-    }
-    return _textControllers[questionId]!;
-  }
-
-  Future<void> _submitAll() async {
-    if (_localAnswers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please answer at least one question.')),
-      );
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-    try {
-      final user = ref.read(effectiveUserProvider);
-      await ref.read(surveysRepositoryProvider).submitResponse(widget.survey.id, user.id, _localAnswers);
-      if (mounted) {
-        setState(() {
-          _isExpanded = false;
-          _isSubmitting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Response submitted. Thank you!')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-}
 class _GlobalPollCard extends ConsumerWidget {
   final GolfEvent event;
   final EventFeedItem item;
@@ -1159,23 +926,40 @@ class _GlobalPollCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.poll_rounded, color: AppColors.lime500, size: AppShapes.iconMd),
-              const SizedBox(width: AppSpacing.sm),
+              const BoxyArtIconBadge(
+                icon: Icons.poll_rounded,
+                color: AppColors.lime500,
+                isTinted: true,
+                size: AppShapes.iconLg,
+              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'ACTIVE POLL',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.lime500,
-                        letterSpacing: 1.2,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.dark600,
+                        borderRadius: AppShapes.sm,
+                        border: Border.all(color: AppColors.dark500),
+                      ),
+                      child: Text(
+                        'POLL QUESTION',
+                        style: AppTypography.micro.copyWith(
+                          color: AppColors.lime500,
+                          fontWeight: AppTypography.weightHeavy,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 8),
                     Text(
                       item.title ?? 'Quick Question',
-                      style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
+                      style: AppTypography.displayHeading.copyWith(
+                        fontSize: 18,
+                        fontWeight: AppTypography.weightExtraBold,
+                      ),
                     ),
                   ],
                 ),
@@ -1197,44 +981,71 @@ class _GlobalPollCard extends ConsumerWidget {
                 onTap: hasVoted ? null : () => _vote(ref, option),
                 child: Stack(
                   children: [
-                    Container(
-                      height: 48,
+                    // Design 4.x Standardized Option Container
+                    AnimatedContainer(
+                      duration: AppAnimations.fast,
+                      height: 56,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
-                            : Colors.black.withValues(alpha: 0.03),
+                        color: AppColors.dark600,
                         borderRadius: AppShapes.md,
                         border: Border.all(
-                          color: isSelected ? AppColors.lime500 : Colors.transparent,
+                          color: isSelected ? AppColors.lime500 : AppColors.dark500,
+                          width: isSelected ? 1.5 : 1.0,
                         ),
                       ),
                     ),
+                    // Glassmorphic Percentage Fill (v4.0)
                     if (hasVoted)
-                      AnimatedContainer(
-                        duration: AppAnimations.slow,
-                        height: 48,
-                        width: MediaQuery.of(context).size.width * percent,
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityMedium) : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
-                          borderRadius: AppShapes.md,
-                        ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          return AnimatedContainer(
+                            duration: AppAnimations.medium,
+                            curve: Curves.easeOutQuart,
+                            height: 56,
+                            width: constraints.maxWidth * percent,
+                            decoration: BoxDecoration(
+                              color: isSelected 
+                                  ? AppColors.lime500.withOpacity(0.12) 
+                                  : AppColors.pureWhite.withOpacity(0.06),
+                              borderRadius: AppShapes.md,
+                            ),
+                          );
+                        },
                       ),
+                    // Label Content with Standardized Toggles
                     Positioned.fill(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              option,
-                              style: TextStyle(
-                                fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightMedium,
-                                fontSize: AppTypography.sizeButton,
+                            Icon(
+                              isSelected 
+                                  ? Icons.radio_button_checked_rounded 
+                                  : (hasVoted ? Icons.radio_button_off_rounded : Icons.radio_button_off_rounded),
+                              color: isSelected ? AppColors.lime500 : AppColors.dark400,
+                              size: 22,
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Text(
+                                option,
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: isSelected ? AppColors.lime500 : AppColors.pureWhite,
+                                  fontWeight: isSelected ? AppTypography.weightBold : AppTypography.weightRegular,
+                                ),
                               ),
                             ),
-                            if (hasVoted)
-                              Text('${(percent * 100).round()}%'),
+                            if (hasVoted) ...[
+                              const SizedBox(width: AppSpacing.md),
+                              Text(
+                                '${(percent * 100).round()}%',
+                                style: AppTypography.labelStrong.copyWith(
+                                  color: isSelected ? AppColors.lime500 : AppColors.dark300,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -1244,16 +1055,41 @@ class _GlobalPollCard extends ConsumerWidget {
               ),
             );
           }),
-          if (hasVoted)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
-              child: Text(
-                '$totalVotes vote${totalVotes == 1 ? '' : 's'} • From ${event.title}',
-                style: AppTypography.bodySmall.copyWith(
-                  color: Theme.of(context).disabledColor,
-                ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$totalVotes vote${totalVotes == 1 ? '' : 's'}',
+                style: AppTypography.micro.copyWith(color: AppColors.dark300, letterSpacing: 0.5),
               ),
-            ),
+              if (hasVoted)
+                Text(
+                  'VOTE CAST',
+                  style: AppTypography.micro.copyWith(
+                    color: AppColors.lime500,
+                    fontWeight: AppTypography.weightHeavy,
+                    letterSpacing: 1.0,
+                  ),
+                )
+              else
+                Text(
+                  'NOT VOTED',
+                  style: AppTypography.micro.copyWith(
+                    color: AppColors.dark400,
+                    fontWeight: AppTypography.weightHeavy,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+            ],
+          ),
+          const BoxyArtDivider(verticalPadding: AppSpacing.lg),
+          Text(
+            'From ${event.title}',
+            style: AppTypography.micro.copyWith(color: AppColors.dark300),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

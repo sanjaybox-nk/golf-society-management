@@ -153,7 +153,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
           Container(
             height: 32,
             decoration: BoxDecoration(
-              color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
+              color: theme.primaryColor.withOpacity(AppColors.opacityLow),
               borderRadius: BorderRadius.zero, 
             ),
             child: Row(
@@ -166,7 +166,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: Icon(
                       Icons.chevron_left_rounded, 
-                      color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: _currentPage == 1 ? 0.6 : 0.1), 
+                      color: (isDark ? AppColors.pureWhite : Colors.black).withOpacity(_currentPage == 1 ? 0.6 : 0.1), 
                       size: 20,
                     ),
                   ),
@@ -187,7 +187,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: Icon(
                       Icons.chevron_right_rounded, 
-                      color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: _currentPage == 0 ? 0.6 : 0.1), 
+                      color: (isDark ? AppColors.pureWhite : Colors.black).withOpacity(_currentPage == 0 ? 0.6 : 0.1), 
                       size: 20,
                     ),
                   ),
@@ -229,7 +229,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
+              color: theme.primaryColor.withOpacity(AppColors.opacityLow),
               borderRadius: BorderRadius.zero,
             ),
             child: Row(
@@ -512,7 +512,7 @@ class _SlidingCourseInfoCardState extends State<SlidingCourseInfoCard> {
       width: 45,
       height: 32,
       alignment: Alignment.center,
-      color: bgColor ?? theme.colorScheme.surfaceContainerHighest.withValues(alpha: AppColors.opacityLow),
+      color: bgColor ?? theme.colorScheme.surfaceContainerHighest.withOpacity(AppColors.opacityLow),
       child: Text(
         text,
         style: AppTypography.labelStrong.copyWith(

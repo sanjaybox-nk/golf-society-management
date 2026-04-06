@@ -83,7 +83,7 @@ class BoxyArtButton extends ConsumerWidget {
               : BorderSide.none,
         ),
         elevation: config.useShadows ? (isSmall ? 1 : 2) : 0,
-        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.15),
+        shadowColor: isDark ? Colors.black : Colors.black.withOpacity(0.15),
         // Ensure no default opacity on disabled state - Solid Action
         disabledBackgroundColor: actionColor,
         disabledForegroundColor: textColor ?? ContrastHelper.getContrastingText(actionColor),

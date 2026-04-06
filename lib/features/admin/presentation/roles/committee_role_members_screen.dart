@@ -147,7 +147,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
           child: member.avatarUrl == null
               ? Text(
                   member.firstName.isNotEmpty ? member.firstName[0] : '',
-                  style: TextStyle(color: Colors.black.withValues(alpha: 0.54)),
+                  style: TextStyle(color: Colors.black.withOpacity(0.54)),
                 )
               : null,
         ),
@@ -180,7 +180,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
             child: member.avatarUrl == null
                 ? Text(
                     member.firstName.isNotEmpty ? member.firstName[0] : '',
-                    style: TextStyle(fontWeight: AppTypography.weightBold, color: Colors.black.withValues(alpha: 0.54)),
+                    style: TextStyle(fontWeight: AppTypography.weightBold, color: Colors.black.withOpacity(0.54)),
                   )
                 : null,
           ),
@@ -202,7 +202,7 @@ class _CommitteeRoleMembersScreenState extends ConsumerState<CommitteeRoleMember
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _roleColor.withValues(alpha: 0.12),
+                    color: _roleColor.withOpacity(0.12),
                     borderRadius: AppShapes.xs,
                   ),
                   child: Text(

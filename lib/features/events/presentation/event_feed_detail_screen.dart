@@ -67,9 +67,9 @@ class EventFeedDetailScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.x2l),
       decoration: BoxDecoration(
-        color: AppColors.amber500.withValues(alpha: AppColors.opacitySubtle),
+        color: AppColors.amber500.withOpacity(AppColors.opacitySubtle),
         borderRadius: AppShapes.x2l,
-        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityLow)),
+        border: Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityLow)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +83,7 @@ class EventFeedDetailScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontWeight: AppTypography.weightBlack,
                   letterSpacing: 1.5,
-                  color: AppColors.amber500.withValues(alpha: AppColors.opacityHigh),
+                  color: AppColors.amber500.withOpacity(AppColors.opacityHigh),
                   fontSize: AppTypography.sizeLabel,
                 ),
               ),

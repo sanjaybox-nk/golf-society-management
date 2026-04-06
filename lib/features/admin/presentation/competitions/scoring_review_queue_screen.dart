@@ -40,7 +40,7 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 decoration: BoxDecoration(
-                                  color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                                  color: AppColors.amber500.withOpacity(AppColors.opacityLow),
                                   borderRadius: AppShapes.md,
                                 ),
                                 child: const Icon(Icons.rate_review_outlined, color: AppColors.amber500),
@@ -89,7 +89,7 @@ class ScoringReviewQueueScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle_outline, size: AppShapes.iconMassive, color: AppColors.lime500.withValues(alpha: AppColors.opacityMuted)),
+          Icon(Icons.check_circle_outline, size: AppShapes.iconMassive, color: AppColors.lime500.withOpacity(AppColors.opacityMuted)),
           const SizedBox(height: AppSpacing.lg),
           const Text('All caught up!', style: TextStyle(color: AppColors.pureWhite, fontWeight: AppTypography.weightBold)),
           const Text('No scorecards pending review.', style: TextStyle(color: AppColors.textSecondary)),

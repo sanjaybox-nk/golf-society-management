@@ -18,6 +18,7 @@ abstract class EventRegistration with _$EventRegistration {
     @Default(false) bool attendingDinner,
     @Default(false) bool hasPaid,
     @Default(0.0) double cost,
+    @Default(0.0) double creditApplied,
     // Handicaps
     double? handicap,
     int? playingHandicap,

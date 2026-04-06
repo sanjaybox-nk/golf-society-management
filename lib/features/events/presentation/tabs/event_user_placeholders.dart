@@ -929,7 +929,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                         Icon(
                           Icons.keyboard_arrow_down_rounded, 
                           size: 16, 
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ],
                     ),
@@ -959,9 +959,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
              child: Container(
                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
+                  color: AppColors.teamA.withOpacity(AppColors.opacityLow),
                   borderRadius: AppShapes.md,
-                  border: Border.all(color: AppColors.teamA.withValues(alpha: AppColors.opacityMuted)),
+                  border: Border.all(color: AppColors.teamA.withOpacity(AppColors.opacityMuted)),
                 ),
                child: Row(
                  children: [
@@ -1006,9 +1006,9 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
+                  color: AppColors.amber500.withOpacity(AppColors.opacityLow),
                   borderRadius: AppShapes.md,
-                  border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityHalf)),
+                  border: Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityHalf)),
                 ),
                 child: Row(
                   children: [
@@ -1046,7 +1046,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
             isStableford: isStableford,
             playerHandicap: displayPlayingHcp,
             scores: gridScores,
-            headerColor: isMeView ? AppColors.amber500.withValues(alpha: AppColors.opacityMuted) : null,
+            headerColor: isMeView ? AppColors.amber500.withOpacity(AppColors.opacityMuted) : null,
             format: comp?.rules.format ?? CompetitionFormat.stableford, 
             maxScoreConfig: comp?.rules.maxScoreConfig,
             holeLimit: limit,
@@ -1079,7 +1079,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               'Scoring will open on ${DateFormat('EEEE, d MMMM').format(event.date)}.',
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHigh),
                 fontWeight: AppTypography.weightMedium,
               ),
             ),
@@ -1255,14 +1255,14 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                   decoration: BoxDecoration(
                     color: Colors.transparent, // True Minimal style
                     borderRadius: AppShapes.md,
-                    border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow)),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.lightbulb_outline_rounded, 
                         size: 18, 
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
@@ -1270,7 +1270,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                           'Tee overrides update the scorecard immediately for that player.',
                           style: AppTypography.micro.copyWith(
                             fontSize: AppTypography.sizeMicro,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHigh),
                             height: 1.4,
                           ),
                         ),
@@ -1508,7 +1508,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                               fontWeight: isSelected ? AppTypography.weightHeavy : AppTypography.weightSemibold,
                               color: isSelected 
                                   ? Theme.of(context).colorScheme.onSurface 
-                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh),
+                                  : Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHigh),
                             ),
                           ),
                         ),
@@ -1527,7 +1527,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
               ),
             ],
           ),
-          Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+          Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow)),
         ],
       ),
     );
@@ -1550,7 +1550,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
        decoration: BoxDecoration(
          color: Colors.transparent, // True Minimal Dropdown
          borderRadius: AppShapes.sm,
-         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+         border: Border.all(color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow)),
        ),
        child: DropdownButtonHideUnderline(
          child: DropdownButton<String?>(
@@ -1578,7 +1578,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                         color: _parseTeeColor(defaultTeeName),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withOpacity(0.1),
                           width: 1,
                         ),
                       ),
@@ -1615,7 +1615,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                           color: _parseTeeColor(name),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.black.withValues(alpha: 0.1),
+                            color: Colors.black.withOpacity(0.1),
                             width: 1,
                           ),
                         ),

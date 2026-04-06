@@ -239,9 +239,9 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
           Container(
             padding: const EdgeInsets.all(AppSpacing.xs),
             decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor.withValues(alpha: AppColors.opacityHalf),
+              color: theme.scaffoldBackgroundColor.withOpacity(AppColors.opacityHalf),
               borderRadius: BorderRadius.circular(AppSpacing.lg),
-              border: Border.all(color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle)),
+              border: Border.all(color: theme.dividerColor.withOpacity(AppColors.opacitySubtle)),
             ),
             child: Row(
               children: _targetOptions.map((opt) {
@@ -256,7 +256,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                         borderRadius: BorderRadius.circular(AppSpacing.md),
                         boxShadow: isSelected ? [
                           BoxShadow(
-                            color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
+                            color: AppColors.lime500.withOpacity(AppColors.opacityMedium),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           )
@@ -268,7 +268,7 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                         style: AppTypography.label.copyWith(
                           fontSize: AppTypography.sizeLabel,
                           fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightSemibold,
-                          color: isSelected ? AppColors.actionText : theme.textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHalf),
+                          color: isSelected ? AppColors.actionText : theme.textTheme.bodyMedium?.color?.withOpacity(AppColors.opacityHalf),
                         ),
                       ),
                     ),
@@ -283,16 +283,16 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
             Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+                color: AppColors.lime500.withOpacity(AppColors.opacitySubtle),
                 borderRadius: AppShapes.md,
-                border: Border.all(color: AppColors.lime500.withValues(alpha: AppColors.opacityLow)),
+                border: Border.all(color: AppColors.lime500.withOpacity(AppColors.opacityLow)),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                      color: AppColors.lime500.withOpacity(AppColors.opacityLow),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.people_rounded, size: AppShapes.iconSm, color: AppColors.lime500),
@@ -315,13 +315,13 @@ class _ComposeNotificationScreenState extends ConsumerState<ComposeNotificationS
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
+                    color: theme.dividerColor.withOpacity(AppColors.opacitySubtle),
                     borderRadius: AppShapes.lg,
-                    border: Border.all(color: theme.dividerColor.withValues(alpha: AppColors.opacityLow)),
+                    border: Border.all(color: theme.dividerColor.withOpacity(AppColors.opacityLow)),
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.group_off_rounded, size: AppShapes.iconXl, color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
+                      Icon(Icons.group_off_rounded, size: AppShapes.iconXl, color: theme.dividerColor.withOpacity(AppColors.opacityMuted)),
                       const SizedBox(height: AppSpacing.md),
                       Text(
                         'No audience groups found',

@@ -256,8 +256,8 @@ class EventCostControlScreen extends ConsumerWidget {
               height: 44,
               decoration: BoxDecoration(
                 color: isDark 
-                    ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                    : AppColors.dark150.withValues(alpha: AppColors.opacityLow),
+                    ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
+                    : AppColors.dark150.withOpacity(AppColors.opacityLow),
                 borderRadius: AppShapes.lg,
               ),
               child: Icon(

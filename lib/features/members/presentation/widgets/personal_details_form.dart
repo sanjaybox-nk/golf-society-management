@@ -209,7 +209,7 @@ class PersonalDetailsForm extends StatelessWidget {
             child: Text(
               'Code',
               style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
               ),
             ),
           ),

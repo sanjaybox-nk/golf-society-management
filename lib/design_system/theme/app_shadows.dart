@@ -22,13 +22,13 @@ class AppShadows extends ThemeExtension<AppShadows> {
     if (!useShadows) return [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: opacity * intensity),
+        color: Colors.black.withOpacity(opacity * intensity),
         offset: const Offset(0, 4),
         blurRadius: 15,
         spreadRadius: spread,
       ),
       BoxShadow(
-        color: Colors.black.withValues(alpha: (opacity * 0.5) * intensity),
+        color: Colors.black.withOpacity((opacity * 0.5) * intensity),
         offset: const Offset(0, 10),
         blurRadius: 30,
         spreadRadius: spread,
@@ -41,7 +41,7 @@ class AppShadows extends ThemeExtension<AppShadows> {
     if (!useShadows) return [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: (opacity * 0.5) * intensity),
+        color: Colors.black.withOpacity((opacity * 0.5) * intensity),
         offset: const Offset(0, 4),
         blurRadius: 10,
         spreadRadius: spread * 0.5,
@@ -55,7 +55,7 @@ class AppShadows extends ThemeExtension<AppShadows> {
     if (!useShadows) return [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: (opacity * 1.5) * intensity),
+        color: Colors.black.withOpacity((opacity * 1.5) * intensity),
         offset: const Offset(0, 10),
         blurRadius: 20,
         spreadRadius: spread,
@@ -68,7 +68,7 @@ class AppShadows extends ThemeExtension<AppShadows> {
     if (!useShadows) return [];
     return [
       Shadow(
-        color: Colors.black.withValues(alpha: (opacity * 0.8) * intensity),
+        color: Colors.black.withOpacity((opacity * 0.8) * intensity),
         offset: const Offset(0, 2),
         blurRadius: 4,
       ),
@@ -80,7 +80,7 @@ class AppShadows extends ThemeExtension<AppShadows> {
     if (!useShadows) return [];
     return [
       BoxShadow(
-        color: const Color(0xFFB89E00).withValues(alpha: (opacity * 1.5) * intensity),
+        color: const Color(0xFFB89E00).withOpacity((opacity * 1.5) * intensity),
         offset: const Offset(0, 8),
         blurRadius: 16,
         spreadRadius: spread,

@@ -32,7 +32,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
             width: AppSpacing.x4l,
             height: AppSpacing.xs,
             decoration: BoxDecoration(
-              color: AppColors.dark400.withValues(alpha: AppColors.opacityMedium),
+              color: AppColors.dark400.withOpacity(AppColors.opacityMedium),
               borderRadius: AppShapes.grabber,
             ),
           ),
@@ -61,7 +61,6 @@ class BoxyArtBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          const Divider(height: 1),
           // Content
           Flexible(
             child: SingleChildScrollView(
@@ -93,8 +92,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
     // Set to true only if the sheet must appear above everything (e.g. root-level alerts).
     bool useRootNavigator = false,
     double initialChildSize = 0.68,
-    // Capped at 0.80 by default — compact sheets shouldn't cover most of the screen.
-    // For content-heavy sheets (scorecard, member detail) pass a higher value explicitly.
+    double minChildSize = 0.5,
     double maxChildSize = 0.80,
   }) {
     return showModalBottomSheet<T>(
@@ -104,7 +102,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: initialChildSize,
-        minChildSize: 0.5,
+        minChildSize: minChildSize,
         maxChildSize: maxChildSize,
         expand: false,
         builder: (context, scrollController) => BoxyArtBottomSheet(

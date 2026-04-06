@@ -57,7 +57,7 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default('system') String themeMode, // 'system', 'light', 'dark'
     @Default(<int>[]) List<int> customColors, // User-created custom colors (up to 5)
     @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)
-    @Default(true) bool useCardGradient,
+    @Default(false) bool useCardGradient,
     @Default('£') String currencySymbol, // Default currency symbol
     @Default('GBP') String currencyCode, // Default currency code
     @Default('balanced') String groupingStrategy, // 'balanced', 'progressive', 'similar', 'random'

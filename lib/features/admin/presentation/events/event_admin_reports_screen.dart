@@ -1,8 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/features/members/presentation/members_provider.dart';
+import 'package:golf_society/features/members/data/members_repository.dart';
+import 'package:intl/intl.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/domain/registration_logic.dart';
@@ -318,7 +322,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
+                  color: statusColor.withOpacity(0.12),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -361,8 +365,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: isDark 
-                      ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                      : AppColors.dark150.withValues(alpha: AppColors.opacityLow),
+                      ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
+                      : AppColors.dark150.withOpacity(AppColors.opacityLow),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -435,8 +439,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: isDark 
-                      ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                      : theme.colorScheme.primary.withValues(alpha: 0.12),
+                      ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
+                      : theme.colorScheme.primary.withOpacity(0.12),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -627,6 +631,40 @@ class EventAdminReportsScreen extends ConsumerWidget {
               }
 
               await ref.read(eventsRepositoryProvider).updateEvent(event.copyWith(awards: updatedAwards));
+
+              // Financial Airdrop: Link Voucher prizes to Member Account Credit
+              if (type == 'Voucher') {
+                final allMembers = ref.read(allMembersProvider).value ?? [];
+
+                // Handle Old Winner (if winner changed)
+                if (award != null && award.type == 'Voucher' && award.winnerId != null && award.winnerId != selectedWinnerId) {
+                  final oldMember = allMembers.firstWhereOrNull((m) => m.id == award.winnerId);
+                  if (oldMember != null) {
+                    await ref.read(membersRepositoryProvider).updateMember(
+                      oldMember.copyWith(accountCredit: (oldMember.accountCredit - award.value).clamp(0, double.infinity)),
+                    );
+                  }
+                }
+
+                // Handle New/Current Winner
+                if (selectedWinnerId != null) {
+                  final member = allMembers.firstWhereOrNull((m) => m.id == selectedWinnerId);
+                  if (member != null) {
+                    double amountToAdd = newAward.value;
+                    // If same winner, only add the difference
+                    if (award != null && award.type == 'Voucher' && award.winnerId == selectedWinnerId) {
+                      amountToAdd = newAward.value - award.value;
+                    }
+
+                    if (amountToAdd != 0) {
+                      await ref.read(membersRepositoryProvider).updateMember(
+                        member.copyWith(accountCredit: member.accountCredit + amountToAdd),
+                      );
+                    }
+                  }
+                }
+              }
+
               if (context.mounted) Navigator.pop(context);
             }
           },
@@ -725,8 +763,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
             height: 44,
             decoration: BoxDecoration(
                color: isDark 
-                  ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
-                  : theme.colorScheme.primary.withValues(alpha: 0.12),
+                  ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
+                  : theme.colorScheme.primary.withOpacity(0.12),
               borderRadius: AppShapes.lg,
             ),
             child: Icon(

@@ -56,9 +56,9 @@ class _EventDetailsContent extends ConsumerWidget {
                   margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
+                    color: AppColors.coral500.withOpacity(AppColors.opacityLow),
                     borderRadius: AppShapes.lg,
-                    border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMedium)),
+                    border: Border.all(color: AppColors.coral500.withOpacity(AppColors.opacityMedium)),
                   ),
                   child: Row(
                     children: [
@@ -74,7 +74,7 @@ class _EventDetailsContent extends ConsumerWidget {
                             ),
                             Text(
                               'This event has been cancelled by the administrative team.',
-                              style: TextStyle(color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh), fontSize: AppTypography.sizeLabelStrong),
+                              style: TextStyle(color: AppColors.coral500.withOpacity(AppColors.opacityHigh), fontSize: AppTypography.sizeLabelStrong),
                             ),
                           ],
                         ),
@@ -103,7 +103,7 @@ class _EventDetailsContent extends ConsumerWidget {
                 BoxyArtCard(
                   padding: const EdgeInsets.symmetric(vertical: 60),
                   child: Center(
-                    child: Icon(Icons.golf_course, size: AppShapes.iconMassive, color: primary.withValues(alpha: AppColors.opacityMedium)),
+                    child: Icon(Icons.golf_course, size: AppShapes.iconMassive, color: primary.withOpacity(AppColors.opacityMedium)),
                   ),
                 ),
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
@@ -294,7 +294,7 @@ class _EventDetailsContent extends ConsumerWidget {
                 width: AppSpacing.x4l,
                 height: AppSpacing.x4l,
                 decoration: BoxDecoration(
-                  color: primary.withValues(alpha: AppColors.opacityLow),
+                  color: primary.withOpacity(AppColors.opacityLow),
                   borderRadius: AppShapes.md,
                 ),
                 child: Icon(Icons.groups_rounded, color: primary, size: 22),

@@ -83,4 +83,11 @@ class FirestoreSurveysRepository implements SurveysRepository {
       transaction.update(surveyDoc, {'responses': responses});
     });
   }
+
+  @override
+  Future<void> dismissSurvey(String surveyId, String userId) async {
+    await _firestore.collection('surveys').doc(surveyId).update({
+      'dismissedBy': FieldValue.arrayUnion([userId]),
+    });
+  }
 }

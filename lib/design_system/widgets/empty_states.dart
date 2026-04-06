@@ -74,7 +74,7 @@ class _EmptyStateContent extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(isCompact ? AppSpacing.sm : AppSpacing.md),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: accentOpacity),
+              color: theme.colorScheme.primary.withOpacity(accentOpacity),
               borderRadius: accentRadius,
             ),
             child: Icon(
@@ -99,7 +99,7 @@ class _EmptyStateContent extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
+              color: theme.colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
               height: 1.5,
               fontWeight: AppTypography.weightMedium,
             ),

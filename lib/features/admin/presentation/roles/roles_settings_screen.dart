@@ -47,7 +47,7 @@ class RolesSettingsScreen extends ConsumerWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: identityColor.withValues(alpha: AppColors.opacityLow),
+                            color: identityColor.withOpacity(AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

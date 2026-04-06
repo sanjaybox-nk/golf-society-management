@@ -31,6 +31,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
   bool _attendingLunch = false;
   bool _attendingDinner = false;
   bool _hasPaid = false;
+  bool _useVoucher = false;
+  double _availableCredit = 0.0;
   
   bool _registerGuest = false;
   final _guestNameController = TextEditingController();
@@ -60,8 +62,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
 
     try {
       final repo = ref.read(eventsRepositoryProvider);
+      final memberRepo = ref.read(membersRepositoryProvider);
       
-      // For now, we'll assume the user is a mock member or we'd get their ID from auth
       const memberId = 'current-user-id';
       const memberName = 'Current Member';
 
@@ -109,6 +111,7 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         attendingDinner: _attendingDinner,
         hasPaid: _hasPaid,
         cost: totalCost,
+        creditApplied: 0.0, // Default, will update below
         dietaryRequirements: _dietaryController.text.trim(),
         specialNeeds: _specialNeedsController.text.trim(),
         guestName: _registerGuest ? _guestNameController.text.trim() : null,
@@ -125,11 +128,28 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
         guestBuggyStatusOverride: existingReg?.guestBuggyStatusOverride,
         history: [...(existingReg?.history ?? []), historyItem],
       );
+
+      // Handle Voucher Credit Application
+      EventRegistration finalRegistration = registration;
+      if (_useVoucher && _availableCredit > 0) {
+        final applied = totalCost > _availableCredit ? _availableCredit : totalCost;
+        finalRegistration = registration.copyWith(
+          creditApplied: applied,
+          hasPaid: applied >= totalCost,
+        );
+        
+        // Update Member Balance
+        final allMembers = ref.read(allMembersProvider).value ?? [];
+        final member = allMembers.firstWhereOrNull((m) => m.id == memberId);
+        if (member != null) {
+          await memberRepo.updateMember(member.copyWith(accountCredit: member.accountCredit - applied));
+        }
+      }
       
       if (existingIndex >= 0) {
-        newList[existingIndex] = registration;
+        newList[existingIndex] = finalRegistration;
       } else {
-        newList.add(registration);
+        newList.add(finalRegistration);
       }
 
       final result = GroupingService.handleWithdrawal(
@@ -145,9 +165,9 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
           // If they ARE still attending golf (just updating details), use standard update
           final newList = List<EventRegistration>.from(event.registrations);
           if (existingIndex >= 0) {
-            newList[existingIndex] = registration;
+            newList[existingIndex] = finalRegistration;
           } else {
-            newList.add(registration);
+            newList.add(finalRegistration);
           }
           await repo.updateEvent(event.copyWith(registrations: newList));
       } else {
@@ -313,6 +333,14 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
             _dietaryController.text = myReg.dietaryRequirements ?? '';
             _specialNeedsController.text = myReg.specialNeeds ?? '';
           }
+
+          // Initialize available credit from member data
+          final allMembers = ref.read(allMembersProvider).value ?? [];
+          final member = allMembers.firstWhereOrNull((m) => m.id == currentMemberId);
+          if (member != null) {
+            _availableCredit = member.accountCredit;
+          }
+
           _isInitialized = true;
         }
 
@@ -466,11 +494,49 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                       ),
   
                       const SizedBox(height: AppSpacing.cardToLabel),
-                      const BoxyArtSectionTitle(title: 'Estimated Fees'),
+                      BoxyArtSectionTitle(
+                        title: 'Estimated Fees',
+                        trailing: _availableCredit > 0 
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Use Voucher (£${_availableCredit.toStringAsFixed(0)})',
+                                    style: AppTypography.micro.copyWith(color: AppColors.lime500),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Switch.adaptive(
+                                    value: _useVoucher,
+                                    activeColor: AppColors.lime500,
+                                    onChanged: (val) => setState(() => _useVoucher = val),
+                                  ),
+                                ],
+                              )
+                            : null,
+                      ),
                       BoxyArtCard(
                         child: Column(
                           children: [
                             _buildPriceBreakdownRow(context, event),
+                            if (_useVoucher) ...[
+                               const SizedBox(height: AppSpacing.xs),
+                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Voucher Credit Applied',
+                                    style: AppTypography.bodySmall.copyWith(color: AppColors.lime500),
+                                  ),
+                                  Text(
+                                    '-${_formatPrice(_calculateTotal(event) > _availableCredit ? _availableCredit : _calculateTotal(event), ref)}',
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.lime500,
+                                      fontWeight: AppTypography.weightBold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                             const Divider(height: AppSpacing.x3l),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -482,7 +548,12 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                     ),
                                   ),
                                 Text(
-                                  _formatPrice(_calculateTotal(event), ref),
+                                  _formatPrice(
+                                    _useVoucher 
+                                      ? (_calculateTotal(event) - _availableCredit).clamp(0, double.infinity)
+                                      : _calculateTotal(event), 
+                                    ref
+                                  ),
                                   style: AppTypography.displaySection.copyWith(
                                     color: isDark ? AppColors.lime500 : AppColors.dark900,
                                   ),

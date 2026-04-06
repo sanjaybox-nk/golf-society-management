@@ -74,7 +74,7 @@ class _BoxyArtSearchInputState extends State<BoxyArtSearchInput> {
               child: Text(
                 widget.label!.toUpperCase(),
                 style: AppTypography.label.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
                   fontSize: AppTypography.sizeMicro,
                   fontWeight: AppTypography.weightBold,
                   letterSpacing: 1.2,

@@ -187,7 +187,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
       margin: const EdgeInsets.only(top: AppSpacing.x2l),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withOpacity(AppColors.opacitySubtle),
         borderRadius: AppShapes.md,
       ),
       child: Column(

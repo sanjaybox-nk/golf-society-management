@@ -1,10 +1,14 @@
-import "package:golf_society/design_system/design_system.dart";
-import "package:golf_society/utils/string_utils.dart";
-
-
-
-
-
+import 'package:flutter/material.dart';
+import 'package:golf_society/theme/app_colors.dart';
+import 'package:golf_society/theme/app_typography.dart';
+import 'package:golf_society/theme/app_shapes.dart';
+import 'package:golf_society/theme/app_spacing.dart';
+import 'package:golf_society/design_system/theme/app_spacing_tokens.dart';
+import 'package:golf_society/design_system/theme/app_shadows.dart';
+import 'package:golf_society/design_system/theme/contrast_helper.dart';
+import 'package:golf_society/design_system/theme/animation_constants.dart';
+import 'package:golf_society/utils/string_utils.dart';
+import '../atoms/buttons/boxy_art_icon_buttons.dart';
 
 /// A floating bottom bar with Search and Filter segments.
 class FloatingBottomSearch extends StatelessWidget {
@@ -37,7 +41,7 @@ class FloatingBottomSearch extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    BoxyArtThemedCircleIcon(Icons.search),
-                   SizedBox(width: AppSpacing.sm),
+                   const SizedBox(width: AppSpacing.sm),
                    Text(
                      "Search", 
                      style: AppTypography.displayMedium.copyWith(
@@ -64,7 +68,7 @@ class FloatingBottomSearch extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    BoxyArtThemedCircleIcon(Icons.tune), // Filter icon
-                   SizedBox(width: AppSpacing.sm),
+                   const SizedBox(width: AppSpacing.sm),
                    Text(
                      "Filter", 
                      style: AppTypography.displayMedium.copyWith(
@@ -96,13 +100,8 @@ class FloatingFilterBar<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Find index of selected value for animation alignment
     final selectedIndex = options.indexWhere((o) => o.value == selectedValue);
     final count = options.length;
-    
-    // Calculate alignment for AnimatedAlign (-1.0 to 1.0)
-    // For 2 items: 0 -> -1.0, 1 -> 1.0
-    // formula: (index / (count - 1)) * 2 - 1
     final alignmentX = count > 1 ? (selectedIndex / (count - 1)) * 2 - 1 : 0.0;
 
     return Center(
@@ -115,7 +114,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
           shape: const StadiumBorder(),
           shadows: [
             BoxShadow(
-              color: AppColors.dark950.withValues(alpha: AppColors.opacityMedium),
+              color: AppColors.dark950.withOpacity(AppColors.opacityMedium),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -123,18 +122,15 @@ class FloatingFilterBar<T> extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Layer 0: Border Ring
             Positioned.fill(
               child: Container(
-                decoration: ShapeDecoration(
-                  shape: const StadiumBorder(
-                    side: BorderSide(color: Color(0x339E9E9E)), // Grey with opacity 0.2 approx
+                decoration: const ShapeDecoration(
+                  shape: StadiumBorder(
+                    side: BorderSide(color: Color(0x339E9E9E)),
                   ),
                 ),
               ),
             ),
-
-            // Layer 1: Active Indicator
             AnimatedAlign(
               duration: AppAnimations.medium,
               curve: Curves.easeInOut,
@@ -145,21 +141,17 @@ class FloatingFilterBar<T> extends StatelessWidget {
                   width: (220 / count) - 8,
                   height: 42,
                   decoration: ShapeDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
+                    color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityMedium),
                     shape: const StadiumBorder(),
                   ),
                 ),
               ),
             ),
-            
-            // Layer 2: Text Buttons
             Row(
               children: options.map((option) {
                 final isSelected = option.value == selectedValue;
-                
-                // Calculate text color based on background
                 final backgroundColor = isSelected 
-                    ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh)
+                    ? Theme.of(context).primaryColor.withOpacity(AppColors.opacityHigh)
                     : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite);
                 final textColor = ContrastHelper.getContrastingText(backgroundColor);
                 final inactiveTextColor = Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400;
@@ -265,6 +257,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
   final IconData? icon;
   final int? count;
   final Color? color;
+  final Widget? trailing; // Added for flexible headers like registration voucher switch
 
   const BoxyArtSectionTitle({
     super.key,
@@ -274,14 +267,14 @@ class BoxyArtSectionTitle extends StatelessWidget {
     this.icon,
     this.count,
     this.color,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
-    final String formattedTitle = toTitleCase(title); // [Standard] Enforce Title Case for 4.x
+    final String formattedTitle = toTitleCase(title); 
     final displayTitle = count != null ? '$formattedTitle ($count)' : formattedTitle;
 
     final double topPadding = isPeeking ? 0 : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
@@ -292,33 +285,36 @@ class BoxyArtSectionTitle extends StatelessWidget {
         top: topPadding,
         bottom: bottomPadding,
       ),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: isLevel2 ? AppShapes.iconXs : AppShapes.iconSm,
-                color: isDark ? AppColors.dark300 : AppColors.dark400,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-            ],
-            Flexible(
-              child: Text(
-                displayTitle,
-                style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
-                  fontWeight: AppTypography.weightHeavy, // [Standard] 800 weight for 4.x
-                  color: color ?? (isDark ? AppColors.dark60 : AppColors.dark900),
-                  letterSpacing: AppTypography.lsLabel,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: isLevel2 ? AppShapes.iconXs : AppShapes.iconSm,
+                  color: color ?? (isDark ? AppColors.dark300 : AppColors.dark400),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                const SizedBox(width: AppSpacing.sm),
+              ],
+              Flexible(
+                child: Text(
+                  displayTitle,
+                  style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
+                    fontWeight: AppTypography.weightHeavy,
+                    color: color ?? (isDark ? AppColors.dark60 : AppColors.dark900),
+                    letterSpacing: AppTypography.lsLabel,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          if (trailing != null) trailing!,
+        ],
       ),
     );
   }
@@ -340,7 +336,7 @@ class BoxyArtDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         thickness: 1,
-        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
+        color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
       ),
     );
   }
@@ -364,7 +360,7 @@ class BoxyArtVerticalDivider extends StatelessWidget {
       child: Container(
         width: 1,
         height: height,
-        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
+        color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
       ),
     );
   }

@@ -198,7 +198,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: primary.withValues(alpha: AppColors.opacityLow),
+                color: primary.withOpacity(AppColors.opacityLow),
                 borderRadius: AppShapes.xl,
               ),
               child: Text(
@@ -274,7 +274,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: AppColors.opacityLow),
+                color: primaryColor.withOpacity(AppColors.opacityLow),
                 borderRadius: AppShapes.xl,
               ),
               child: Text(
@@ -316,7 +316,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+        color: Theme.of(context).colorScheme.primary.withOpacity(AppColors.opacitySubtle),
         borderRadius: AppShapes.md,
       ),
       child: Column(

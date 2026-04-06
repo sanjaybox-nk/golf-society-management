@@ -99,7 +99,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                         padding: const EdgeInsets.all(AppSpacing.x5l),
                         child: Column(
                           children: [
-                            Icon(Icons.history_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
+                            Icon(Icons.history_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityMedium)),
                             const SizedBox(height: AppSpacing.lg),
                             Text(
                               'No notifications found',
@@ -232,7 +232,7 @@ class _HistoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
+                    color: AppColors.lime500.withOpacity(AppColors.opacityLow),
                     borderRadius: AppShapes.sm,
                   ),
                   child: Text(

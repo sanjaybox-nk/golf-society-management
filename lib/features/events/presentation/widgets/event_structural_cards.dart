@@ -178,7 +178,7 @@ class EventRegistrationCard extends ConsumerWidget {
                             ? 'This event is no longer accepting new entries.'
                             : (isFull ? 'Register to join the waitlist' : 'CLOSES: ${DateFormat.yMMMd().format(event.registrationDeadline!).toUpperCase()} @ ${DateFormat('h:mm a').format(event.registrationDeadline!).toUpperCase()}')),
                     style: AppTypography.micro.copyWith(
-                      color: AppColors.pureWhite.withValues(alpha: 0.8),
+                      color: AppColors.pureWhite.withOpacity(0.8),
                       fontWeight: AppTypography.weightHeavy,
                       letterSpacing: 1.2,
                     ),
@@ -189,7 +189,7 @@ class EventRegistrationCard extends ConsumerWidget {
                   Text(
                     isFull ? 'Join the waitlist below' : 'Register below to join the event',
                     style: AppTypography.label.copyWith(
-                      color: AppColors.pureWhite.withValues(alpha: 0.8),
+                      color: AppColors.pureWhite.withOpacity(0.8),
                       fontWeight: AppTypography.weightHeavy,
                     ),
                     textAlign: TextAlign.center,
@@ -204,7 +204,7 @@ class EventRegistrationCard extends ConsumerWidget {
                           : (isFull ? 'Register (Waitlist)' : 'Register Now')),
                   fullWidth: true,
                   backgroundColor: !event.isRegistrationOpen 
-                      ? AppColors.pureWhite.withValues(alpha: 0.2) 
+                      ? AppColors.pureWhite.withOpacity(0.2) 
                       : AppColors.pureWhite,
                   textColor: !event.isRegistrationOpen 
                       ? AppColors.pureWhite 
@@ -244,10 +244,10 @@ class EventRegistrationCard extends ConsumerWidget {
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark 
-                          ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
-                          : Colors.black.withValues(alpha: 0.03),
+                          ? AppColors.pureWhite.withOpacity(AppColors.opacitySubtle) 
+                          : Colors.black.withOpacity(0.03),
                       borderRadius: AppShapes.md,
-                      border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
+                      border: Border.all(color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow)),
                     ),
                     child: _buildDetailSnippet(
                       context, 
@@ -615,7 +615,7 @@ class YourGroupCard extends ConsumerWidget {
                 icon: Icons.access_time_rounded,
                 label: 'Tee Time',
                 value: DateFormat.Hm().format(myGroup.teeTime),
-                labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
                 valueColor: AppColors.pureWhite,
                 iconColor: AppColors.pureWhite,
                 fontSize: AppTypography.sizeHeadline,
@@ -625,7 +625,7 @@ class YourGroupCard extends ConsumerWidget {
                 icon: Icons.people_alt_rounded,
                 label: 'Partners',
                 value: partners.isEmpty ? "Alone" : partners,
-                labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
+                labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
                 valueColor: AppColors.pureWhite,
                 iconColor: AppColors.pureWhite,
               ),

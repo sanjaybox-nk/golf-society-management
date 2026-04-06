@@ -33,6 +33,7 @@ abstract class Survey with _$Survey {
     @Default(true) bool isPublished,
     @Default([]) List<SurveyQuestion> questions,
     @Default({}) Map<String, dynamic> responses, // userId -> Map<questionId, answer>
+    @Default([]) List<String> dismissedBy,
   }) = _Survey;
 
   factory Survey.fromJson(Map<String, dynamic> json) => _$SurveyFromJson(json);

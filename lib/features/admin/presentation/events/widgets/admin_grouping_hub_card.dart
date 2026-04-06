@@ -126,7 +126,7 @@ class _HubRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+                color: Theme.of(context).colorScheme.primary.withOpacity(AppColors.opacitySubtle),
                 borderRadius: AppShapes.md,
               ),
               child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),

@@ -53,7 +53,7 @@ class BoxyArtCard extends ConsumerWidget {
     final tintedColor = backgroundColor != null 
         ? backgroundColor! 
         : Color.alphaBlend(
-            primary.withValues(alpha: config.cardTintIntensity * (isDark ? 0.15 : 0.05)),
+            primary.withOpacity(config.cardTintIntensity * (isDark ? 0.15 : 0.05)),
             baseColor,
           );
 
@@ -65,23 +65,14 @@ class BoxyArtCard extends ConsumerWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: tintedColor,
-        gradient: gradient ?? ((config.useCardGradient && backgroundColor == null)
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  tintedColor,
-                  isDark ? tintedColor.withValues(alpha: AppColors.opacityHigh) : tintedColor.withValues(alpha: 0.95),
-                ],
-              ) 
-            : null),
+        gradient: gradient,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: effectivelyShowShadow 
             ? (customShadows ?? Theme.of(context).extension<AppShadows>()?.softScale ?? [])
             : null,
         border: config.useBorders 
             ? (border ?? Border.all(
-                color: isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: 0.12),
+                color: isDark ? AppColors.pureWhite.withOpacity(AppColors.opacityLow) : Colors.black.withOpacity(0.12),
                 width: config.borderWidth,
               ))
             : null,

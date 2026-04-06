@@ -62,7 +62,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
     const identityColor = Colors.cyan; // Consistent with Committee Roles overview
-    final bgColor = identityColor.withValues(alpha: AppColors.opacityLow);
+    final bgColor = identityColor.withOpacity(AppColors.opacityLow);
 
     return BoxyArtCard(
       onTap: () {

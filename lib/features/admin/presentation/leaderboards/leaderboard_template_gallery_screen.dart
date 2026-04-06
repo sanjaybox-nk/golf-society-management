@@ -202,7 +202,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final effectiveColor = iconColor ?? (isPrimary ? AppColors.lime500 : (isDark ? AppColors.dark300 : AppColors.dark400));
-    final effectiveBg = iconColor?.withValues(alpha: AppColors.opacityLow) ?? (isPrimary ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
+    final effectiveBg = iconColor?.withOpacity(AppColors.opacityLow) ?? (isPrimary ? AppColors.lime500.withOpacity(AppColors.opacityLow) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
     
     return BoxyArtCard(
       onTap: onTap,

@@ -404,7 +404,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
         duration: AppAnimations.fast,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
+          color: isSelected ? color.withOpacity(AppColors.opacityLow) : Colors.transparent,
           border: Border.all(
             color: isSelected ? color : (isDark ? AppColors.dark400 : AppColors.lightBorder),
           ),

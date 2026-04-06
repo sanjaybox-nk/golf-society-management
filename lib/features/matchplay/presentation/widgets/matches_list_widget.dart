@@ -108,9 +108,9 @@ class _MatchTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: _getStatusColor(result.status).withValues(alpha: AppColors.opacityLow),
+                color: _getStatusColor(result.status).withOpacity(AppColors.opacityLow),
                 borderRadius: AppShapes.xl,
-                border: Border.all(color: _getStatusColor(result.status).withValues(alpha: AppColors.opacityMuted)),
+                border: Border.all(color: _getStatusColor(result.status).withOpacity(AppColors.opacityMuted)),
               ),
               child: Text(
                 result.status,

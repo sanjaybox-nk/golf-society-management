@@ -57,9 +57,9 @@ class _StandingsTable extends StatelessWidget {
       margin: const EdgeInsets.all(AppSpacing.lg),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: AppColors.opacityMuted),
+        color: Colors.black.withOpacity(AppColors.opacityMuted),
         borderRadius: AppShapes.md,
-        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
+        border: Border.all(color: AppColors.pureWhite.withOpacity(0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -16,6 +16,7 @@ class AdminSurveysScreen extends ConsumerWidget {
     return HeadlessScaffold(
       title: 'Society Surveys',
       subtitle: 'Gather feedback & insights',
+      showBack: true, // [NEW] Enable back navigation
       actions: [
         BoxyArtGlassIconButton(
           icon: Icons.add_rounded,
@@ -69,6 +70,7 @@ class _SurveyListCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final responseCount = survey.responses.length;
+    final isExpired = survey.deadline != null && survey.deadline!.isBefore(DateTime.now());
 
     return BoxyArtCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -83,7 +85,19 @@ class _SurveyListCard extends ConsumerWidget {
                   style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
                 ),
               ),
-              _buildStatusBadge(),
+              BoxyArtStatusPill(
+                isPaid: survey.isPublished && !isExpired,
+                paidLabel: isExpired ? 'Expired' : 'Live',
+                dueLabel: 'Draft',
+                color: isExpired 
+                  ? StatusColors.negative 
+                  : (survey.isPublished ? AppColors.teamA : AppColors.amber500),
+                onToggle: isExpired ? null : () {
+                  ref.read(surveysRepositoryProvider).updateSurvey(
+                    survey.copyWith(isPublished: !survey.isPublished),
+                  );
+                },
+              ),
             ],
           ),
           if (survey.description != null && survey.description!.isNotEmpty) ...[
@@ -114,19 +128,25 @@ class _SurveyListCard extends ConsumerWidget {
             ],
           ),
           SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
-          const BoxyArtDivider(),
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Created ${DateFormat('MMM d, yyyy').format(survey.createdAt)}',
-                style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
-              ),
-              BoxyArtGlassIconButton(
-                icon: Icons.edit_rounded,
-                onPressed: () => context.push('/admin/surveys/edit/${survey.id}'),
-                tooltip: 'Edit Survey',
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Created ${DateFormat('MMM d, yyyy').format(survey.createdAt)}',
+                    style: AppTypography.caption.copyWith(color: AppColors.dark300),
+                  ),
+                  if (survey.deadline != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Expires ${DateFormat('MMM d, yyyy').format(survey.deadline!)}',
+                      style: AppTypography.caption.copyWith(
+                        color: isExpired ? StatusColors.negative : AppColors.dark300,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -139,20 +159,10 @@ class _SurveyListCard extends ConsumerWidget {
                 icon: Icons.bar_chart_rounded,
                 onTap: () => context.push('/admin/surveys/results/${survey.id}'),
               ),
-              Row(
-                children: [
-                  const Text('Published', style: TextStyle(fontSize: AppTypography.sizeCaptionStrong, color: AppColors.textSecondary, fontWeight: AppTypography.weightBold)),
-                  const SizedBox(width: AppSpacing.xs),
-                  Switch.adaptive(
-                    value: survey.isPublished,
-                    activeThumbColor: AppColors.lime500,
-                    onChanged: (val) {
-                      ref.read(surveysRepositoryProvider).updateSurvey(
-                        survey.copyWith(isPublished: val),
-                      );
-                    },
-                  ),
-                ],
+              BoxyArtGlassIconButton(
+                icon: Icons.edit_rounded,
+                onPressed: () => context.push('/admin/surveys/edit/${survey.id}'),
+                tooltip: 'Edit Survey',
               ),
             ],
           ),
@@ -161,18 +171,6 @@ class _SurveyListCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBadge() {
-    final now = DateTime.now();
-    final isExpired = survey.deadline != null && survey.deadline!.isBefore(now);
-
-    if (isExpired) {
-      return BoxyArtPill.status(label: 'EXPIRED', color: AppColors.textSecondary);
-    }
-    if (!survey.isPublished) {
-      return BoxyArtPill.status(label: 'DRAFT', color: AppColors.amber500);
-    }
-    return BoxyArtPill.status(label: 'ACTIVE', color: AppColors.teamA);
-  }
 
   Widget _buildInfoItem(BuildContext context, IconData icon, String label) {
     return Row(

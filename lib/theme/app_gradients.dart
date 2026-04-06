@@ -21,7 +21,7 @@ class AppGradients {
       end: Alignment.bottomCenter,
       colors: [
         color,
-        color.withValues(alpha: AppColors.opacityMuted),
+        color.withOpacity(AppColors.opacityMuted),
       ],
     );
   }
@@ -33,7 +33,7 @@ class AppGradients {
       end: Alignment.bottomCenter,
       colors: [
         Colors.transparent,
-        Colors.black.withValues(alpha: AppColors.opacityHalf),
+        Colors.black.withOpacity(AppColors.opacityHalf),
       ],
     );
   }

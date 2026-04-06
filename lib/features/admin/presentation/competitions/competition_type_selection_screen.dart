@@ -163,7 +163,7 @@ class _TypeTile extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: AppColors.opacityLow),
+              color: color.withOpacity(AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: AppShapes.iconLg),
@@ -192,7 +192,7 @@ class _TypeTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: AppTypography.sizeLabel,
                           fontWeight: AppTypography.weightBold,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                         ),
                       ),
                     ],
@@ -204,7 +204,7 @@ class _TypeTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: AppTypography.sizeBodySmall,
                     fontWeight: AppTypography.weightMedium,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHalf),
                     height: 1.2,
                   ),
                 ),
@@ -213,7 +213,7 @@ class _TypeTile extends StatelessWidget {
           ),
           Icon(
             Icons.chevron_right_rounded, 
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
           ),
         ],
       ),
