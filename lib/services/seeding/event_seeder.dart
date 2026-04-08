@@ -1,0 +1,605 @@
+import 'dart:math';
+import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
+import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/domain/models/competition.dart';
+import 'package:golf_society/domain/models/member.dart';
+import 'package:golf_society/domain/models/course.dart';
+import 'package:golf_society/domain/models/scorecard.dart';
+import 'package:golf_society/domain/models/event_registration.dart';
+import 'package:golf_society/domain/models/course_config.dart' as cfg;
+import 'package:golf_society/features/competitions/presentation/competitions_provider.dart';
+import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:golf_society/features/events/domain/registration_logic.dart';
+import 'package:golf_society/domain/scoring/handicap_calculator.dart';
+import 'package:golf_society/domain/grouping/grouping_service.dart';
+import 'data_constants.dart';
+import 'newsletter_templates.dart';
+
+class EventSeeder {
+  final Ref ref;
+  final Random random;
+
+  EventSeeder(this.ref, this.random);
+
+  Future<List<Map<String, dynamic>>> createFullEvent({
+    required String seasonId,
+    Course? course,
+    required String title,
+    required DateTime date,
+    required CompetitionFormat format,
+    required bool isInvitational,
+    bool isSeasonEvent = true,
+    CompetitionSubtype subtype = CompetitionSubtype.none,
+    required List<Member> members,
+    required Map<String, double> appliedCuts,
+    required EventStatus status,
+    required List<Competition> templates,
+    bool isMultiDay = false,
+    DateTime? endDate,
+    int eventIndex = 0,
+    EventType eventType = EventType.golf,
+    double charityPot = 0.0,
+  }) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final compRepo = ref.read(competitionsRepositoryProvider);
+
+    final bool isSocial = eventType == EventType.social;
+    final yellowTee = course?.tees.firstWhereOrNull((t) => t.name == 'Yellow') ?? course?.tees.firstOrNull;
+
+    final isPrestige = title.contains('PRESTIGE');
+    final double societyGreenFee = isPrestige ? (150.0 + random.nextInt(150)) : (45.0 + random.nextInt(40));
+    
+    final cateringCombo = isSocial ? -1 : random.nextInt(3);
+    final hasBreakfast = cateringCombo == 0 || cateringCombo == 1;
+    final hasLunch = cateringCombo == 2;
+    final hasDinner = cateringCombo == 1 || cateringCombo == 2;
+
+    final double breakfastCost = hasBreakfast ? 10.0 : 0.0;
+    final double lunchCost = hasLunch ? 15.0 : 0.0;
+    final double venueDinnerCost = hasDinner ? 30.0 : 0.0;
+    
+    final double eventBaseCost = societyGreenFee + breakfastCost + lunchCost;
+    final double memberTotal = (eventBaseCost * 1.15).roundToDouble();
+    final double guestTotal = (memberTotal + 15.0).roundToDouble();
+    final double memberDinnerCost = (venueDinnerCost * 1.15).roundToDouble();
+
+    final int regHour = 8;
+    final int regMinutes = 30 + random.nextInt(75);
+    final DateTime golfRegTime = date.copyWith(hour: regHour, minute: regMinutes);
+    final DateTime golfTeeOff = golfRegTime.add(const Duration(minutes: 90));
+
+    var event = GolfEvent(
+      id: 'demo_e_${random.nextInt(100000)}',
+      seasonId: seasonId,
+      courseId: course?.id ?? 'demo_c_0',
+      courseName: course?.name ?? 'TBD Course',
+      title: title,
+      date: date,
+      status: status,
+      isInvitational: isInvitational,
+      isSeasonEvent: isSeasonEvent,
+      isMultiDay: isMultiDay,
+      endDate: endDate,
+      eventType: eventType,
+      regTime: isSocial ? date.copyWith(hour: 18) : golfRegTime,
+      teeOffTime: isSocial ? null : golfTeeOff,
+      courseDetails: course?.address,
+      selectedTeeName: isSocial ? null : 'Yellow',
+      selectedFemaleTeeName: isSocial ? null : 'Red',
+      courseConfig: (isSocial || course == null) ? const cfg.CourseConfig() : cfg.CourseConfig(
+        tees: course.tees.map((t) => cfg.TeeConfig(
+          name: t.name,
+          rating: t.rating,
+          slope: t.slope,
+          holePars: t.holePars,
+          holeSIs: t.holeSIs,
+          yardages: t.yardages,
+        )).toList(),
+        selectedTeeName: 'Yellow',
+        holes: yellowTee!.holePars.asMap().entries.map((e) => cfg.CourseHole(
+          hole: e.key + 1,
+          par: e.value,
+          si: yellowTee.holeSIs[e.key],
+          yardage: yellowTee.yardages[e.key],
+        )).toList(),
+        par: yellowTee.holePars.fold<int>(0, (a, b) => a + b),
+        slope: yellowTee.slope,
+        rating: yellowTee.rating,
+      ),
+      hasBreakfast: hasBreakfast,
+      hasLunch: hasLunch,
+      hasDinner: hasDinner,
+      description: isSocial 
+          ? 'Join us for the $title! A great opportunity for members to socialize and catch up away from the fairways.'
+          : 'A fantastic day of competitive golf at ${course?.name}.',
+      registrationDeadline: date.subtract(const Duration(days: 4)),
+      societyGreenFee: societyGreenFee,
+      societyBreakfastCost: breakfastCost,
+      societyLunchCost: lunchCost,
+      societyDinnerCost: venueDinnerCost,
+      
+      memberCost: isSocial ? 0.0 : memberTotal,
+      guestCost: isSocial ? 0.0 : guestTotal,
+      breakfastCost: 0, 
+      lunchCost: 0,
+      dinnerCost: memberDinnerCost,
+
+      extraCosts: isSocial ? [
+        const EventExtraCost(id: 'seed_ticket', label: 'Ticket Price', amount: 30.0),
+        const EventExtraCost(id: 'seed_raffle', label: 'Raffle Entry (Opt)', amount: 5.0),
+      ] : [],
+
+      expenses: isSocial ? [] : [
+        EventExpense(id: 'starter_pack', label: 'Starter Pack (Water/Fruit)', amount: 1.5 * (isSocial ? 20 : 32)),
+      ],
+
+      buggyCost: isSocial ? 0.0 : 15.0,
+      availableBuggies: isSocial ? 0 : (10 + random.nextInt(20)),
+      dinnerLocation: isSocial ? 'Local Bistro' : 'The Clubhouse Restaurant',
+      dressCode: isSocial ? 'Casual' : 'Smart Casual / No Jeans',
+      facilities: isSocial ? ['Parking', 'Bar', 'Restaurant'] : ['Pro Shop', 'Driving Range', 'Changing Rooms', 'Halfway House'],
+      maxParticipants: isSocial ? 60 : 40,
+
+      showRegistrationButton: !isSocial && status != EventStatus.cancelled,
+      isGroupingPublished: !isSocial && (status == EventStatus.completed || status == EventStatus.inPlay),
+      isStatsReleased: !isSocial && (status == EventStatus.completed || status == EventStatus.inPlay),
+      isScoringLocked: !isSocial && status == EventStatus.completed,
+
+      notes: [
+        EventNote(
+          title: 'Welcome Message',
+          content: jsonEncode([
+            {'insert': 'Welcome to the '},
+            {'insert': title, 'attributes': {'bold': true}},
+            {'insert': '!\n\n${isSocial ? "We are excited to host this social gathering. Please arrive on time as dinner will be served promptly." : "Please arrive at least 45 minutes before your tee time for registration and breakfast."}\n'}
+          ]),
+        ),
+      ],
+      galleryUrls: isSocial ? [] : _getGalleryPhotos(course?.name ?? ''),
+      charityPot: charityPot,
+    );
+
+    if (isMultiDay && !isSocial) {
+      event = event.copyWith(
+        notes: [
+          ...event.notes,
+          ..._getTourNotes(title),
+        ],
+      );
+    }
+
+    // Registration Matrix
+    final List<EventRegistration> regs = [];
+    final targetRegCount = (isSocial ? 45 : 30) + random.nextInt(15);
+    
+    for (int i = 0; i < targetRegCount; i++) {
+        final memberIdx = (eventIndex * 5 + i) % members.length;
+        final m = members[memberIdx];
+        if (m.id == 'demo_hero_sanjay') continue;
+        if (m.id == 'demo_m_32' && eventIndex == 16) continue;
+        
+        bool isWithdrawn = random.nextDouble() < 0.05;
+        bool isConfirmed = !isWithdrawn && regs.length < (isSocial ? 60 : 40);
+        
+        final attendsBreakfast = hasBreakfast && random.nextDouble() < 0.85;
+        final attendsLunch = hasLunch && random.nextDouble() < 0.95; 
+        final attendsDinner = hasDinner && random.nextDouble() < 0.90;
+        final needsBuggy = !isSocial && random.nextDouble() < 0.15;
+
+        bool hasGuest = !isWithdrawn && random.nextDouble() < (isSocial ? 0.3 : 0.15);
+        String? guestName;
+        if (hasGuest) {
+          final guestFirstName = SeedingData.maleFirstNames[random.nextInt(SeedingData.maleFirstNames.length)];
+          final guestLastName = SeedingData.lastNames[random.nextInt(SeedingData.lastNames.length)];
+          guestName = '$guestFirstName $guestLastName (G)';
+        }
+
+        double totalCost = 0;
+        if (isConfirmed) {
+          if (isSocial) {
+            final baseCost = event.extraCosts.fold<double>(0, (total, item) => total + item.amount);
+            totalCost = hasGuest ? baseCost * 2 : baseCost;
+          } else {
+            totalCost += memberTotal;
+            if (hasGuest) totalCost += guestTotal;
+          }
+        }
+
+        final isHistorical = status == EventStatus.completed || status == EventStatus.inPlay;
+        final highPaidRate = isHistorical ? 0.95 : 0.40;
+        final hasFine = (isHistorical) && i % 4 == 0;
+        final finePaid = hasFine && (random.nextDouble() < 0.85);
+
+        regs.add(EventRegistration(
+          memberId: m.id,
+          memberName: m.displayName,
+          attendingGolf: !isSocial && isConfirmed,
+          attendingBreakfast: attendsBreakfast,
+          attendingLunch: attendsLunch,
+          attendingDinner: attendsDinner,
+          needsBuggy: needsBuggy,
+          guestName: guestName,
+          guestHandicap: hasGuest ? (15 + random.nextInt(15)).toString() : null,
+          guestAttendingBreakfast: hasGuest && attendsBreakfast,
+          guestAttendingLunch: hasGuest && attendsLunch,
+          guestAttendingDinner: hasGuest && attendsDinner,
+          guestIsConfirmed: isConfirmed && hasGuest,
+          guestNeedsBuggy: hasGuest && needsBuggy,
+          hasPaid: isConfirmed && random.nextDouble() < highPaidRate,
+          isConfirmed: isConfirmed,
+          handicap: m.handicap,
+          registeredAt: date.subtract(Duration(days: 30 - (i % 20))),
+          statusOverride: isWithdrawn ? 'withdrawn' : (isConfirmed ? 'confirmed' : 'waitlist'),
+          cost: totalCost,
+          fineAmount: hasFine ? 2.0 : 0.0,
+          finePaid: finePaid,
+        ));
+    }
+
+    final updatedEvent = event.copyWith(registrations: regs);
+    await eventRepo.addEvent(updatedEvent);
+
+    if (isSocial) {
+      await eventRepo.updateEvent(updatedEvent.copyWith(
+        feedItems: _generateFeedItems(updatedEvent, []),
+      ));
+      return [];
+    }
+
+    final matchingTemplate = templates.where((t) => t.rules.format == format && t.rules.subtype == subtype).firstOrNull;
+    final rules = matchingTemplate?.rules ?? CompetitionRules(
+      format: format, subtype: subtype, 
+      handicapAllowance: subtype == CompetitionSubtype.fourball ? 0.85 : (subtype == CompetitionSubtype.foursomes ? 0.50 : 0.95),
+      mode: (subtype == CompetitionSubtype.fourball || subtype == CompetitionSubtype.foursomes) ? CompetitionMode.pairs : (format == CompetitionFormat.scramble ? CompetitionMode.teams : CompetitionMode.singles),
+    );
+
+    await compRepo.addCompetition(Competition(
+      id: updatedEvent.id, name: title, type: CompetitionType.event,
+      status: status == EventStatus.completed 
+          ? CompetitionStatus.closed 
+          : (status == EventStatus.inPlay ? CompetitionStatus.published : CompetitionStatus.open),
+      rules: rules, startDate: date, endDate: date,
+    ));
+
+    final isLiveOrPast = status == EventStatus.completed || status == EventStatus.inPlay;
+    final List<Map<String, dynamic>> results = [];
+    final List<EventAward> awards = [];
+
+    if (isLiveOrPast) {
+      final items = RegistrationLogic.getSortedItems(updatedEvent, includeWithdrawn: true);
+      final Map<String, double> memberHandicaps = {for (var m in members) m.id: m.handicap};
+      final groups = GroupingService.generateInitialGrouping(
+        event: updatedEvent, participants: items, previousEventsInSeason: [],
+        memberHandicaps: memberHandicaps, prioritizeBuggyPairing: true,
+        strategy: isInvitational ? 'balanced' : 'progressive',
+        useWhs: true, rules: rules,
+      );
+
+      final scoreRepo = ref.read(scorecardRepositoryProvider);
+      await scoreRepo.deleteAllScorecards(updatedEvent.id);
+      final isStableford = rules.format == CompetitionFormat.stableford;
+      final cardStatus = status == EventStatus.completed ? ScorecardStatus.finalScore : ScorecardStatus.submitted;
+
+      for (var group in groups) {
+        for (var p in group.players) {
+            final memberId = p.registrationMemberId;
+            final entryId = p.isGuest ? '${memberId}_guest' : memberId;
+            final member = members.firstWhereOrNull((m) => m.id == memberId);
+            final index = member?.handicap ?? 18.0;
+            final teeName = (member?.gender == 'Female') ? 'Red' : 'Yellow';
+            final tee = course!.tees.firstWhere((t) => t.name == teeName, orElse: () => course.tees.first);
+            final phc = HandicapCalculator.calculatePlayingHandicap(
+                handicapIndex: index, rules: rules, 
+                courseConfig: cfg.CourseConfig(
+                  rating: tee.rating, slope: tee.slope, 
+                  par: tee.holePars.fold<int>(0, (a, b) => a + b), 
+                  holes: tee.holePars.asMap().entries.map((e) => cfg.CourseHole(hole: e.key + 1, par: e.value, si: tee.holeSIs[e.key])).toList(),
+                ),
+            );
+
+            final holeScores = <int?>[];
+            int grossTotal = 0;
+            int pointsTotal = 0;
+
+            int holesPassed = 18;
+            if (status == EventStatus.inPlay) {
+              final now = DateTime.now();
+              final groupTime = group.teeTime;
+              if (now.isAfter(groupTime)) {
+                final minsSince = now.difference(groupTime).inMinutes;
+                holesPassed = (minsSince / 12).floor().clamp(0, 18);
+              } else {
+                holesPassed = 0;
+              }
+            }
+
+            for (int h = 0; h < 18; h++) {
+              if (h >= holesPassed) { holeScores.add(null); continue; }
+              final par = tee.holePars[h];
+              final si = tee.holeSIs[h];
+              int shots = (phc / 18).floor();
+              if (phc % 18 >= si) shots++;
+              final rand = random.nextDouble();
+              int netScore = (rand < 0.25) ? par - 1 : ((rand < 0.80) ? par : ((rand < 0.95) ? par + 1 : par + 2));
+              final gross = netScore + shots;
+              holeScores.add(gross);
+              grossTotal += gross;
+              pointsTotal += (par - netScore + 2).clamp(0, 10).toInt();
+            }
+
+            await scoreRepo.addScorecard(Scorecard(
+              id: 'seed_${updatedEvent.id}_$entryId', competitionId: updatedEvent.id,
+              roundId: '1', entryId: entryId, submittedByUserId: 'system_seed',
+              status: status == EventStatus.inPlay ? ScorecardStatus.draft : cardStatus, 
+              holeScores: holeScores, points: isStableford ? pointsTotal : null,
+              handicapIndex: index, playingHandicap: phc,
+              netTotal: grossTotal - (phc * (holesPassed / 18)).round(),
+              submittedAt: (cardStatus == ScorecardStatus.submitted || cardStatus == ScorecardStatus.finalScore) && status != EventStatus.inPlay
+                  ? date.copyWith(hour: 14, minute: random.nextInt(60)) 
+                  : null,
+              createdAt: DateTime.now(), updatedAt: DateTime.now(),
+            ));
+
+            results.add({
+              'playerId': entryId, 'playerName': p.name, 'memberId': entryId,
+              'points': isStableford ? pointsTotal : (grossTotal - (phc * (holesPassed / 18)).round()), 
+              'holeScores': holeScores, 'phc': phc, 'holesPlayed': holesPassed,
+            });
+        }
+      }
+
+      final isHigherBetter = rules.format == CompetitionFormat.stableford || rules.format == CompetitionFormat.scramble;
+      results.sort((a, b) {
+        if (isHigherBetter) {
+          return (b['points'] as num).compareTo(a['points'] as num);
+        } else {
+          return (a['points'] as num).compareTo(b['points'] as num);
+        }
+      });
+
+      for (int i = 0; i < results.length; i++) {
+         int pos = i + 1;
+         if (i > 0 && results[i]['points'] == results[i-1]['points']) pos = results[i-1]['position'];
+         results[i]['position'] = pos;
+      }
+
+      final memberCount = regs.where((r) => r.isConfirmed && r.attendingGolf && r.guestName == null).length;
+      final totalPrizePool = memberCount * 10.0;
+
+      if (isInvitational) {
+        if (results.isNotEmpty) {
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_c1', label: '1st Place', type: 'Cup', value: 0, winnerId: results[0]['playerId'], winnerName: results[0]['playerName']));
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_v1', label: '1st Place', type: 'Voucher', value: 40, winnerId: results[0]['playerId'], winnerName: results[0]['playerName']));
+        }
+        if (results.length >= 2) {
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_v2', label: '2nd Place', type: 'Voucher', value: 25, winnerId: results[1]['playerId'], winnerName: results[1]['playerName']));
+        }
+        if (results.length >= 3) {
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_v3', label: '3rd Place', type: 'Voucher', value: 15, winnerId: results[2]['playerId'], winnerName: results[2]['playerName']));
+        }
+      } else {
+        if (results.isNotEmpty) {
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_w1', label: '1st Place', type: 'Cash', value: (totalPrizePool * 0.50).roundToDouble(), winnerId: results[0]['playerId'], winnerName: results[0]['playerName']));
+        }
+        if (results.length >= 2) {
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_w2', label: '2nd Place', type: 'Cash', value: (totalPrizePool * 0.30).roundToDouble(), winnerId: results[1]['playerId'], winnerName: results[1]['playerName']));
+        }
+        if (results.length >= 3) {
+          awards.add(EventAward(id: 'award_${updatedEvent.id}_w3', label: '3rd Place', type: 'Cash', value: (totalPrizePool * 0.20).roundToDouble(), winnerId: results[2]['playerId'], winnerName: results[2]['playerName']));
+        }
+      }
+
+      await eventRepo.updateEvent(updatedEvent.copyWith(
+        grouping: {'groups': groups.map((g) => g.toJson()).toList(), 'isPublished': true}, 
+        results: results, awards: awards,
+        feedItems: _generateFeedItems(updatedEvent, results),
+      ));
+    } else {
+      await eventRepo.updateEvent(updatedEvent.copyWith(
+        grouping: {'groups': [], 'isPublished': false}, 
+        results: [], awards: [],
+        feedItems: _generateFeedItems(updatedEvent, []),
+      ));
+    }
+    
+    return results;
+  }
+
+  List<String> _getGalleryPhotos(String courseName) {
+    if (courseName.contains('St Andrews') || courseName.contains('Royal County Down') || courseName.contains('Muirfield')) {
+      return [
+        'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1591492102875-9c59508d508e?auto=format&fit=crop&w=800&q=80',
+      ];
+    }
+    if (courseName.contains('Pebble Beach') || courseName.contains('Cypress Point') || courseName.contains('Royal Melbourne')) {
+      return [
+        'https://images.unsplash.com/photo-1500673397354-9448fefb5acc?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=800&q=80',
+      ];
+    }
+    if (courseName.contains('Dom Pedro') || courseName.contains('Victoria')) {
+      return [
+        'https://images.unsplash.com/photo-1584061556814-7e8c3fc6e4ed?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=800&q=80',
+      ];
+    }
+    return [
+      'https://images.unsplash.com/photo-1591492102875-9c59508d508e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1592919016327-5130ed82270a?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1623912150935-64903328e19e?auto=format&fit=crop&w=800&q=80',
+    ];
+  }
+
+  List<EventNote> _getTourNotes(String tourName) {
+    if (tourName.contains('Algarve')) {
+      return [
+        EventNote(
+          title: '🏨 Accommodation: Hilton Vilamoura',
+          content: jsonEncode([{'insert': 'Welcome to the Algarve! We are staying at the Hilton Vilamoura As Cascatas Golf Resort & Spa.\n\nCheck-in: From 3pm on Day 1.\nDinner: 8pm in the Cilantro restaurant.\nDress Code: Smart Casual.\n'}]),
+        ),
+        EventNote(
+          title: '📅 Tour Itinerary',
+          content: jsonEncode([{'insert': 'DAY 1: Arrival & Welcome Round (Dom Pedro Old Course)\nDAY 2: Championship Day (Victoria Golf Course) + Gala Dinner\nDAY 3: Final Round (Victoria Golf Course) + Prize Presentation at 2pm.\n'}]),
+        ),
+        EventNote(
+          title: '🏆 Tour Scoring & Rules',
+          content: jsonEncode([{'insert': 'The "Algarve Tour 2026" uses a cumulative Stableford format over 3 days. \n\nHandicaps: Fixed for the duration of the tour. \nGPS: Devices allowed. \nNo Caddies permitted.\n'}]),
+        ),
+      ];
+    }
+    return [
+      EventNote(
+        title: 'Multi-Day Itinerary',
+        content: jsonEncode([{'insert': 'Check event notices for daily tee times and arrangements.\n'}]),
+      ),
+    ];
+  }
+
+  List<EventFeedItem> _generateFeedItems(GolfEvent event, List<Map<String, dynamic>> results) {
+    final List<EventFeedItem> items = [];
+    final now = DateTime.now();
+
+    // 1. Post-match report for completed events
+    if (event.status == EventStatus.completed && results.isNotEmpty) {
+      final winner = results[0]['playerName'];
+      final points = results[0]['points'];
+      
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_report',
+        type: FeedItemType.newsletter,
+        title: 'Match Report: ${event.title}',
+        content: NewsletterTemplates.matchReport(event.title, event.courseName ?? 'TBD', winner, points),
+        imageUrl: event.galleryUrls.isNotEmpty ? event.galleryUrls[0] : null,
+        isPublished: true,
+        createdAt: event.date.add(const Duration(hours: 6)),
+        sortOrder: 10,
+      ));
+
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_recap',
+        type: FeedItemType.newsletter,
+        title: 'Reflections on the Day',
+        content: NewsletterTemplates.seasonRecap(event.title),
+        isPublished: true,
+        createdAt: event.date.add(const Duration(days: 1)),
+        sortOrder: 20,
+      ));
+    }
+
+    // 2. Pre-event communications for Published/InPlay/Completed (Historical Context)
+    items.add(EventFeedItem(
+      id: 'news_${event.id}_launch',
+      type: FeedItemType.newsletter,
+      title: 'Event Launch: ${event.title}',
+      content: NewsletterTemplates.eventLaunch(event.title, event.courseName ?? 'TBD'),
+      isPublished: true,
+      createdAt: event.date.subtract(const Duration(days: 7)),
+      sortOrder: -100,
+    ));
+
+    if (event.status != EventStatus.draft) {
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_teetimes',
+        type: FeedItemType.newsletter,
+        title: 'Tee Times Released',
+        content: NewsletterTemplates.teeTimesReleased(event.title),
+        isPublished: true,
+        createdAt: event.date.subtract(const Duration(days: 2)),
+        sortOrder: -50,
+      ));
+    }
+
+    // 3. Membership Renewal (Active for March 2026 Context)
+    if (now.year == 2026 && now.month == 3) {
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_renewal',
+        type: FeedItemType.newsletter,
+        title: '2026 Membership Renewal',
+        content: jsonEncode([{'insert': 'Membership renewals are now open! Issued March 12th, the renewal window closes in 45 days (April 26th). Please ensure your fees are settled to maintain your society handicap and eligibility for the upcoming season.\n'}]),
+        isPublished: true,
+        createdAt: DateTime(2026, 3, 12, 9, 0),
+        sortOrder: -200, 
+      ));
+    }
+
+    if (event.title.contains('Season Opener')) {
+      items.add(EventFeedItem(
+        id: 'news_${event.id}_president',
+        type: FeedItemType.newsletter,
+        title: 'Word from the President',
+        content: jsonEncode([{'insert': 'Welcome to another fantastic year of golf. I am delighted to see so many returning faces and a few new guests joining our ranks. Let’s play hard, play fair, and enjoy the 19th hole!\n'}]),
+        isPublished: true,
+        isPinned: true,
+        createdAt: event.date.subtract(const Duration(days: 2)),
+        sortOrder: -150,
+      ));
+    }
+
+    return items;
+  }
+
+  Future<void> generateTestMatches(String eventId) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final event = await eventRepo.getEvent(eventId);
+    if (event == null) return;
+    final grouping = Map<String, dynamic>.from(event.grouping);
+    final groups = (grouping['groups'] as List?) ?? [];
+    if (groups.isEmpty) return;
+    final List<Map<String, dynamic>> matches = [];
+    for (var g in groups) {
+      final players = (g['players'] as List);
+      for (int i = 0; i < players.length - 1; i += 2) {
+        final p1 = players[i];
+        final p2 = players[i+1];
+        matches.add({
+          'id': 'match_${eventId}_${g['index']}_$i',
+          'type': 'singles',
+          'team1Ids': [p1['registrationMemberId'] as String? ?? ''],
+          'team2Ids': [p2['registrationMemberId'] as String? ?? ''],
+          'team1Name': p1['name'],
+          'team2Name': p2['name'],
+          'groupId': g['index'].toString(),
+        });
+      }
+    }
+    grouping['matches'] = matches;
+    await eventRepo.updateEvent(event.copyWith(grouping: grouping));
+  }
+
+  Future<void> generateGroupStageMatches(String eventId) async {
+    final eventRepo = ref.read(eventsRepositoryProvider);
+    final event = await eventRepo.getEvent(eventId);
+    if (event == null) return;
+    final grouping = Map<String, dynamic>.from(event.grouping);
+    final List<Map<String, dynamic>> matches = [];
+    final groups = (grouping['groups'] as List?) ?? [];
+    for (var g in groups) {
+      final players = (g['players'] as List);
+      final gid = g['index'].toString();
+      for (int i = 0; i < players.length; i++) {
+        for (int j = i + 1; j < players.length; j++) {
+          final p1 = players[i];
+          final p2 = players[j];
+          matches.add({
+            'id': 'grp_${gid}_${i}_${j}_$eventId',
+            'type': 'singles',
+            'team1Ids': [p1['registrationMemberId'] as String? ?? ''],
+            'team2Ids': [p2['registrationMemberId'] as String? ?? ''],
+            'team1Name': p1['name'],
+            'team2Name': p2['name'],
+            'round': 'group',
+            'groupId': gid,
+          });
+        }
+      }
+    }
+    grouping['matches'] = matches;
+    await eventRepo.updateEvent(event.copyWith(grouping: grouping));
+  }
+}

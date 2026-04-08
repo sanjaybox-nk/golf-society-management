@@ -28,8 +28,12 @@ Admins can broadcast instant polls directly to the event feed.
 - **Real-time Results**: Members can vote directly on their feed and see live percentage breakdowns with progress bars.
 - **BoxyArt Aesthetics**: High-contrast branded visualization for all poll choices.
 
-## Society Surveys (Communications)
-A comprehensive survey system is available in the Communications Admin section, modernized for the Design 4.x "Admin Hub" aesthetic.
+## Society Surveys (**Communications Hub**)
+The administrative center for society messaging. It allows admins to compose notifications (broadcasts), manage audience distribution lists, and target specific events using the **Event Picker**.
+
+**Event Comms**
+The rebranded term for the event-specific feed management. It allows admins to reorder and pin posts (notes, reports, etc.) within an event's dedicated feed.
+
 - **Survey Manager**: Centralized hub to list, edit, and publish society-wide questionnaires.
 - **WYSIWYG Editor**: Question prompts now support full rich text (bold, italics, links, lists) powered by `BoxyArtRichEditor`.
 - **Drag-and-Drop Reordering**: Admins can reorder both questions and options using tactile drag handles (⋮⋮).
@@ -45,8 +49,28 @@ A comprehensive survey system is available in the Communications Admin section, 
 - **Responsive Typography**: Standardized using `AppTypography.displayHeading` and `AppTypography.bodySmall` for maximum legibility across devices.
 - **Syntax & Spacing**: All padding, margin, and color token references have been audited and corrected to ensure strict adherence to the 4.x design system.
 
+## Event Comms & News Reports
+
+The Event Dashboard includes a dynamic news feed for broadcasting updates, notes, and reports. 
+
+### Hub-Based Creation
+As of April 2026, creating news items and flash updates has been consolidated into the global **Communications Hub**.
+1. **Navigate**: Go to the Communications Hub (Admin Home or Event Control Tower -> Event Comms -> Create).
+2. **Context**: Use the **Event Picker** to associate the post with a specific event.
+3. **Drafting**: Compose the message using rich text or simple text.
+4. **Publishing**: Once sent, the item is automatically appended to the Event's Feed and sent as a push notification to members.
+
+### Deep-Linking & Routing
+The feed supports robust deep-linking to ensure that shared links to specific news items always resolve correctly across all platforms (iOS/Android).
+
+- **Member Route**: `/events/:id/feed/:itemId`
+- **Admin Route**: `/admin/events/manage/:id/comms/:itemId`
+
+### EventCommsScreen (Management)
+The `EventCommsScreen` (formerly Broadcast/CMS) provides an interface for administrators to reorder, pin, or delete existing feed items for a specific event.
+
 ## Technical Details
 - **Models**: `Survey`, `SurveyQuestion` (now stores question prompts as Quill Delta JSON), and expanded `EventFeedItem` with `pollData`.
 - **State Management**: `SurveysNotifier` (Riverpod) for predictable lifecycle handling.
-- **Design Standard**: BoxyArt 4.0 "Admin Hub".
+- **Design Standard**: BoxyArt v4.1 "True Minimal" (April 2026).
 - **Tactile Option Management**: `SurveyEditorScreen` implements a stable secondary state map (`_optionIds`) to manage unique identifiers for each option. This prevents widget reconciliation issues when deleting or reordering items in nested `ReorderableListView` components.

@@ -79,7 +79,7 @@ class _SeasonCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     const identityColor = AppColors.lime500;
     final iconColor = isActive ? identityColor : (isDark ? AppColors.dark400 : AppColors.dark300);
-    final bgColor = isActive ? identityColor.withOpacity(AppColors.opacityLow) : (isDark ? AppColors.dark800 : AppColors.dark50);
+    final bgColor = isActive ? identityColor.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark800 : AppColors.dark50);
 
     return Dismissible(
       key: Key(season.id),

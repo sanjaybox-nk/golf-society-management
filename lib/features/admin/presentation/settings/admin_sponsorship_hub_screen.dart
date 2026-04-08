@@ -239,8 +239,9 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
         .toList();
 
     return HeadlessScaffold(
-      title: 'Sponsorships & Donations',
-      subtitle: 'Manage partners & supporters',
+      title: 'Sponsorship Hub',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      subtitle: 'Manage partners & branding',
       showBack: true,
       actions: [],
       onBack: () {
@@ -291,13 +292,13 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                   ),
                   
                   if (sponsors.isEmpty) ...[
-                    const BoxyArtSectionTitle(title: 'No partners added'),
+                    const BoxyArtSectionTitle(title: 'No partners added', isPeeking: true),
                     Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.hub_rounded, size: 64, color: AppColors.textSecondary.withOpacity(0.1)),
+                          Icon(Icons.hub_rounded, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.1)),
                           const SizedBox(width: AppSpacing.md),
                           Text('Start by adding a partner', style: AppTypography.micro.copyWith(color: AppColors.textTertiary)),
                         ],
@@ -305,28 +306,38 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                     ),
                   ],
 
+                  // 1. Core Sponsorship Settings
+                  const BoxyArtSectionTitle(
+                    title: 'Global Sponsorship',
+                    isPeeking: true,
+                  ),
+
                   if (goldSponsors.isNotEmpty) ...[
-                    const BoxyArtSectionTitle(title: 'Gold Partners'),
+                    const BoxyArtSectionTitle(title: 'Gold Partners', isPeeking: true),
                     ..._buildSponsorList(goldSponsors, config.ledgerEntries, spacing),
                   ],
 
                   if (silverSponsors.isNotEmpty) ...[
-                    const BoxyArtSectionTitle(title: 'Silver Partners'),
+                    const BoxyArtSectionTitle(title: 'Silver Partners', isPeeking: true),
                     ..._buildSponsorList(silverSponsors, config.ledgerEntries, spacing),
                   ],
 
                   if (bronzeSponsors.isNotEmpty) ...[
-                    const BoxyArtSectionTitle(title: 'Bronze Partners'),
+                    const BoxyArtSectionTitle(title: 'Bronze Partners', isPeeking: true),
                     ..._buildSponsorList(bronzeSponsors, config.ledgerEntries, spacing),
                   ],
 
 
                   if (standardSponsors.isNotEmpty || orphanedEntries.isNotEmpty) ...[
-                    const BoxyArtSectionTitle(title: 'Standard Partners'),
+                    const BoxyArtSectionTitle(title: 'Standard Partners', isPeeking: true),
                     ..._buildSponsorList(standardSponsors, config.ledgerEntries, spacing),
                     // Gap between managed profiles and unmanaged ledger entries if both exist
                     if (standardSponsors.isNotEmpty && orphanedEntries.isNotEmpty)
-                      SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+                    const BoxyArtSectionTitle(
+                      title: 'Active Partners',
+                      isPeeking: true,
+                    ),
                     ..._buildLedgerList(
                       orphanedEntries, 
                       config.sponsors, 
@@ -517,9 +528,9 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                               await ref.read(themeControllerProvider.notifier).addLedgerEntry(entry);
                             }
 
-                            _resetForm();
-                            setState(() => _showForm = false);
                             if (mounted) {
+                              _resetForm();
+                              setState(() => _showForm = false);
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Donation recorded')));
                             }
                           },
@@ -608,7 +619,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
             child: Text(
               label,
               style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
               ),
             ),
           ),
@@ -863,7 +874,7 @@ class _SponsorLogo extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: AppColors.dark300.withOpacity(0.1),
+          color: AppColors.dark300.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(Icons.business_rounded, color: AppColors.textTertiary),
@@ -876,7 +887,7 @@ class _SponsorLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.dark300.withOpacity(0.1),
+        color: AppColors.dark300.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -936,7 +947,7 @@ class _DonationTile extends ConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.dark300.withOpacity(0.1),
+                color: AppColors.dark300.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.volunteer_activism_rounded, color: AppColors.textTertiary),

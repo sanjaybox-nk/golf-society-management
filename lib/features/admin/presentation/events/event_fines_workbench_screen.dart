@@ -141,6 +141,7 @@ class _EventFinesWorkbenchScreenState extends ConsumerState<EventFinesWorkbenchS
 
         return HeadlessScaffold(
           title: 'Fine Workbench',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
           showBack: true,
           onBack: () => context.pop(),
@@ -190,7 +191,7 @@ class _EventFinesWorkbenchScreenState extends ConsumerState<EventFinesWorkbenchS
                                   children: [
                                     CircleAvatar(
                                       radius: 24,
-                                      backgroundColor: AppColors.dark500.withOpacity(0.1),
+                                      backgroundColor: AppColors.dark500.withValues(alpha: 0.1),
                                       backgroundImage: member?.avatarUrl != null && member!.avatarUrl!.isNotEmpty 
                                           ? NetworkImage(member.avatarUrl!) 
                                           : null,

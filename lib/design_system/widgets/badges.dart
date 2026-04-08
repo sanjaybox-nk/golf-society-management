@@ -56,7 +56,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
     //    (This allows lists to have specific colored icons on a consistent background)
     
     final Color effectiveFill = showFill 
-      ? color.withOpacity(effectiveOpacity)
+      ? color.withValues(alpha: effectiveOpacity)
       : Colors.transparent;
       
     final Color effectiveIconColor = iconColor ?? Color(config.iconBadgeIconColor);
@@ -70,7 +70,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
         borderRadius: useCircle ? null : BorderRadius.circular(config.accentRadius),
         border: showBorder 
           ? Border.all(
-              color: borderColor ?? Color(config.iconBadgeFillColor).withOpacity(0.25),
+              color: borderColor ?? Color(config.iconBadgeFillColor).withValues(alpha: 0.25),
               width: AppShapes.borderLight,
             )
           : null,
@@ -79,7 +79,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
         child: Icon(
           icon,
           size: iconSize,
-          color: effectiveIconColor.withOpacity(config.iconOpacity),
+          color: effectiveIconColor.withValues(alpha: config.iconOpacity),
         ),
       ),
     );
@@ -137,7 +137,7 @@ class BoxyArtNumberBadge extends StatelessWidget {
         fg = isDark ? AppColors.dark100 : AppColors.dark800;
       }
     } else {
-      bg = Theme.of(context).primaryColor.withOpacity(0.20);
+      bg = Theme.of(context).primaryColor.withValues(alpha: 0.20);
       fg = AppColors.dark900;
     }
 
@@ -296,8 +296,8 @@ class BoxyArtPill extends ConsumerWidget {
     return BoxyArtPill(
       label: label.toUpperCase(),
       color: AppColors.amber500,
-      backgroundColor: AppColors.amber500.withOpacity(0.1),
-      borderColor: AppColors.amber500.withOpacity(0.3),
+      backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
+      borderColor: AppColors.amber500.withValues(alpha: 0.3),
       textColor: AppColors.amber500,
       fontSize: 10,
       fontWeight: AppTypography.weightBold,
@@ -314,8 +314,8 @@ class BoxyArtPill extends ConsumerWidget {
     return BoxyArtPill(
       label: label,
       color: teeColor,
-      backgroundColor: teeColor.withOpacity(AppColors.opacityLow),
-      borderColor: teeColor.withOpacity(AppColors.opacityMuted),
+      backgroundColor: teeColor.withValues(alpha: AppColors.opacityLow),
+      borderColor: teeColor.withValues(alpha: AppColors.opacityMuted),
       iconWidget: Container(
         width: 12,
         height: 12,
@@ -323,7 +323,7 @@ class BoxyArtPill extends ConsumerWidget {
           color: teeColor,
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -345,7 +345,7 @@ class BoxyArtPill extends ConsumerWidget {
       baseColor = Color(config.secondaryColor);
     }
     
-    final Color? baseBorderColor = borderColor ?? (baseColor?.withOpacity(0.18));
+    final Color? baseBorderColor = borderColor ?? (baseColor?.withValues(alpha: 0.18));
     
     bool showFill = !isLegend || isAction;
     bool showBorder = !isLegend && !isAction && baseBorderColor != null;
@@ -353,7 +353,7 @@ class BoxyArtPill extends ConsumerWidget {
     final Color effectiveBgColor = backgroundColor ?? (
       isAction 
         ? (baseColor ?? AppColors.lime500)
-        : (showFill ? (baseColor?.withOpacity(0.08) ?? Colors.transparent) : Colors.transparent)
+        : (showFill ? (baseColor?.withValues(alpha: 0.08) ?? Colors.transparent) : Colors.transparent)
     );
     final Color? effectiveBorderColorActual = showBorder ? baseBorderColor : null;
     final Color effectiveTextColor = textColor ?? (
@@ -440,7 +440,7 @@ class BoxyArtDateBadge extends ConsumerWidget {
     final config = ref.watch(themeControllerProvider);
 
     // Design 4.x: Use branding tokens for the date badge background
-    final Color effectiveBg = Color(config.iconBadgeFillColor).withOpacity(config.iconBadgeOpacity);
+    final Color effectiveBg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
     final Color effectiveLabelColor = Color(config.iconBadgeIconColor);
 
     return Container(
@@ -607,7 +607,7 @@ class BoxyArtSquareBadge extends StatelessWidget {
 
         Color bg = backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50);
         if (isTinted) {
-          bg = Color(config.iconBadgeFillColor).withOpacity(config.iconBadgeOpacity);
+          bg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
         }
 
         return Container(
@@ -620,10 +620,10 @@ class BoxyArtSquareBadge extends StatelessWidget {
           ),
           child: Center(
             child: DefaultTextStyle.merge(
-              style: TextStyle(color: Color(config.iconBadgeIconColor).withOpacity(config.iconOpacity)),
+              style: TextStyle(color: Color(config.iconBadgeIconColor).withValues(alpha: config.iconOpacity)),
               child: IconTheme.merge(
                 data: IconThemeData(
-                  color: Color(config.iconBadgeIconColor).withOpacity(config.iconOpacity),
+                  color: Color(config.iconBadgeIconColor).withValues(alpha: config.iconOpacity),
                 ),
                 child: this.child,
                 ),

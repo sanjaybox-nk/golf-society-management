@@ -14,7 +14,11 @@ I have successfully performed a comprehensive UI audit and refactor to enforce t
 
 ### 2. Feature & UI Refactoring
 - **`Events`**: Standardized stats cards, bar charts, and registration indicators across `event_structural_cards.dart` and `rich_stats_widgets.dart`.
-- **`Scoring`**: Refactored tab indicators and keypad backgrounds in `hole_by_hole_scoring_widget.dart` and `grouping_widgets.dart`.
+- **`Scoring`**: 
+    - [x] Refactor `_buildStudioCreationCard` in `event_broadcast_screen.dart` to Design 4.x
+    - [x] Refactor `_buildFlashDetail` in `event_feed_detail_screen.dart` to Title Case
+    - [x] Update `walkthrough.md` with visual improvements
+    - [x] Perform final audit of "Note Studio" related screens for case consistency
 - **`Registration`**: Standardized active icon states in `registration_card.dart` and regional registration widgets.
 - **`Home Screen`**: Standardized the primary actions and badges on the `member_home_screen.dart`.
 
@@ -53,3 +57,50 @@ The separation of concerns ensures that administrators spend 90% of their time i
 - **Issue**: A 16px bottom overflow was identified in player cards containing guest data combined with scores/pills.
 - **Fix**: Refactored `GroupingPlayerTile` from a fixed-height layout to an `IntrinsicHeight` model with `minHeight` constraints.
 - **Result**: Cards now expand naturally to accommodate all player metadata while maintaining a baseline height for standard entries, eliminating all vertical overflows.
+
+## Notification Composer Modernization (v6.1)
+
+Refactored the Notification Composer to support dynamic, multi-section content, mirroring the behavior of the Event Newsletter Studio.
+
+### Phase 3: Administrative Identity & Final Spacing Audit
+
+The final project phase solidified the administrative visual identity and perfected the vertical rhythm across all primary and secondary management hubs.
+
+### 1. Administrative Identity (ADMIN Pill)
+Systematically applied the `BoxyArtPill.committee(label: 'ADMIN')` as a `titleSuffix` to all primary administrative scaffolds. This ensures a persistent, professional signifier of administrative status across:
+- **Branding Settings**: `branding_settings_screen.dart`
+- **System Roles**: `roles_screen.dart`
+- **Communication Hub**: `notification_admin_scaffold.dart`
+- **Survey Creator**: `survey_form_screen.dart`
+- **Event Management Tower**: `event_admin_controls_screen.dart`
+
+### 2. Standardized Spacing Refinements
+Completed the 16px migration by addressing missing spacers in tabbed and sectioned interfaces:
+- **Season Standings**: Replaced legacy `AppSpacing.md` with `spacing?.cardToLabel` (16px) for the filter-to-content gap.
+- **Event Creation**: Injected 16px spacers into the `EventTypeSection` for consistent form rhythm.
+- **Admin Dashboard**: Refined the top gap of the Overview and Operations slivers to use the `cardToLabel` token, ensuring architectural parity with depth-level hubs.
+
+### 3. Visual Verification
+Verified the standardized vertical rhythm and pill placement across core dashboards. All hardcoded 8px or 12px offsets following a `ModernUnderlinedFilterBar` have been migrated to the responsive 16px design token.
+
+---
+
+> [!TIP]
+> **Refactoring Legacy Spacers**: When creating new administrative screens, always use the `cardToLabel` token for the gap immediately following a tab bar or a major section title to maintain the Design 4.x authorized rhythm.
+
+### 🍙 Key Accomplishments
+*   **Note Studio Rebranding**: Systematically modernized the communications suite by rebranding "Newsletter" to **"Note"** across the entire application UI and documentation.
+*   **Navigation Restoration**: Resolved navigation occlusion on administrative screens, ensuring the bottom navigation bar remains persistent.
+*   **Design 4.x Card Modernization**: Refactored the "Create Note" management card to the **Branded Layout** (Identity | Content | Action), utilizing standardized badges and high-fidelity typography.
+*   **Title Case Enforcement**: Systematically audited and converted all-caps strings ("BLANK DRAFT", "FLASH UPDATE", "SUBJECT") to premium **Title Case** across the administrative and member interfaces.
+*   **Vertical Rhythm**: Standardized spacing across administrative cards to adhere to Design 4.x standards.
+
+### Core Enhancements
+- **Dynamic State Engine**: Replaced the flat controller with a `List<NotificationSectionController>` pattern, enabling real-time section additions, removals, and independent resets.
+- **Photo Attribution Studio**: Fully implemented one-tap image selection and Firebase Storage uploading for every section. Includes section-level previews with management controls.
+- **Premium Design 4.x Rhythm**:
+    - **Standardized Inputs**: Replaced legacy fields with `BoxyArtInputField` for the Subject.
+    - **Vertical Spacing**: Added `labelToCard` padding to resolve "crushing" between subject and rich-text editors.
+    - **Label Consistency**: All labels are verified strictly **UPPERCASE** with `labelStrong` typography.
+- **Structured Data Aggregation**: Multi-part notifications are now correctly encoded as a JSON array of `EventNote` objects, ensuring rich-media compatibility on mobile clients.
+- **Vertical Rhythm**: Enforced strict `AppSpacing.cardToCard` gap tokens between dynamic blocks to maintain a premium administrative aesthetic.

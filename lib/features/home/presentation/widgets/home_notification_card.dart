@@ -74,13 +74,13 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
                   width: 52,
                   height: 52,
                   decoration: ShapeDecoration(
-                    color: primary.withOpacity(AppColors.opacityLow),
+                    color: primary.withValues(alpha: AppColors.opacityLow),
                     shape: ContinuousRectangleBorder(
                       borderRadius: AppShapes.x2l,
                     ),
                     shadows: [
                       BoxShadow(
-                        color: primary.withOpacity(AppColors.opacityLow),
+                        color: primary.withValues(alpha: AppColors.opacityLow),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -183,7 +183,7 @@ class _HomeNotificationCardState extends ConsumerState<HomeNotificationCard> {
         overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: AppTypography.sizeLabelStrong,
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(AppColors.opacityHigh),
+          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
           height: 1.4,
         ),
       );

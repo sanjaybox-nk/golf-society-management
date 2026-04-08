@@ -28,11 +28,11 @@ class EventBasicInfoSection extends ConsumerWidget {
                     height: 160,
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark 
-                          ? AppColors.pureWhite.withOpacity(AppColors.opacitySubtle) 
-                          : Colors.black.withOpacity(0.03),
+                          ? AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle) 
+                          : Colors.black.withValues(alpha: 0.03),
                       borderRadius: AppShapes.lg,
                       border: Border.all(
-                        color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
+                        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
                       ),
                     ),
                     child: state.imageUrl != null 
@@ -68,7 +68,7 @@ class EventBasicInfoSection extends ConsumerWidget {
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo_rounded, size: AppShapes.iconXl, color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityHalf)),
+                              Icon(Icons.add_a_photo_rounded, size: AppShapes.iconXl, color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHalf)),
                               const SizedBox(height: AppSpacing.sm),
                               const Text('Add event photo', style: TextStyle(fontSize: AppTypography.sizeLabelStrong, fontWeight: AppTypography.weightBold)),
                             ],

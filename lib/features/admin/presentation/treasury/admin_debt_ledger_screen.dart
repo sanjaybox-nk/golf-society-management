@@ -257,6 +257,7 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final eventsAsync = ref.watch(eventsProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return membersAsync.when(
       data: (members) {
@@ -313,27 +314,30 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
 
             return HeadlessScaffold(
               title: 'Central Debt Ledger',
+              titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
               subtitle: 'Track and Settle Society Finances',
               showBack: true,
               onBack: () => context.pop(),
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                        child: BoxyArtInputField(
-                          label: '',
-                          hint: 'Search members...',
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          onChanged: (val) {
-                            setState(() {
-                              _searchQuery = val;
-                            });
-                          },
-                        ),
+                      const BoxyArtSectionTitle(
+                        title: 'Global ledger',
+                        isPeeking: true,
                       ),
+                      BoxyArtInputField(
+                        label: '',
+                        hint: 'Search members...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
+                      ),
+                      SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                       if (filteredSummaries.isEmpty)
                         const Padding(
                           padding: EdgeInsets.all(AppSpacing.xl),
@@ -341,7 +345,7 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
                         ),
                       ...filteredSummaries.map((s) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
                           child: BoxyArtCard(
                             padding: const EdgeInsets.all(AppSpacing.xl),
                             child: Column(
@@ -409,12 +413,28 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
               ],
             );
           },
-          loading: () => const HeadlessScaffold(title: 'Loading Ledger...', slivers: []),
-          error: (err, st) => HeadlessScaffold(title: 'Error', slivers: [SliverFillRemaining(child: Center(child: Text(err.toString())))]),
+          loading: () => HeadlessScaffold(
+            title: 'Loading Ledger...', 
+            titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+            slivers: const [],
+          ),
+          error: (err, st) => HeadlessScaffold(
+            title: 'Error', 
+            titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+            slivers: [SliverFillRemaining(child: Center(child: Text(err.toString())))],
+          ),
         );
       },
-      loading: () => const HeadlessScaffold(title: 'Loading Members...', slivers: []),
-      error: (err, st) => HeadlessScaffold(title: 'Error', slivers: [SliverFillRemaining(child: Center(child: Text(err.toString())))]),
+      loading: () => HeadlessScaffold(
+        title: 'Loading Members...', 
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        slivers: const [],
+      ),
+      error: (err, st) => HeadlessScaffold(
+        title: 'Error', 
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+        slivers: [SliverFillRemaining(child: Center(child: Text(err.toString())))],
+      ),
     );
   }
 }

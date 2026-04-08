@@ -16,18 +16,22 @@ class BrandingSettingsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Branding',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Customize colors and identity',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xl,
-            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard,
+            vertical: AppSpacing.lg,
           ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const BoxyArtSectionTitle(title: 'Live Preview'),
+              const BoxyArtSectionTitle(
+                title: 'Live Preview',
+                isPeeking: true,
+              ),
               _buildPreviewCard(
                 config.primaryColor,
                 config.secondaryColor,
@@ -240,7 +244,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                           activeThumbColor: Color(config.secondaryColor),
                           activeTrackColor: Color(
                             config.secondaryColor,
-                          ).withOpacity(AppColors.opacityMedium),
+                          ).withValues(alpha: AppColors.opacityMedium),
                         ),
                       ],
                     ),
@@ -964,14 +968,14 @@ class BrandingSettingsScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(cardRadius),
               border: useBorders
                   ? Border.all(
-                      color: textColor.withOpacity(AppColors.opacityLow),
+                      color: textColor.withValues(alpha: AppColors.opacityLow),
                       width: borderWidth,
                     )
                   : null,
               boxShadow: useShadows
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(shadowOpacity * shadowIntensity.clamp(0.0, 1.0),
+                        color: Colors.black.withValues(alpha: shadowOpacity * shadowIntensity.clamp(0.0, 1.0),
                         ),
                         blurRadius: 20 * shadowIntensity,
                         offset: Offset(0, 4 * shadowIntensity),
@@ -985,7 +989,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: secondary.withOpacity(AppColors.opacityMedium),
+                      backgroundColor: secondary.withValues(alpha: AppColors.opacityMedium),
                       radius: 24,
                       child: Icon(Icons.person, color: secondary),
                     ),
@@ -1005,7 +1009,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                         Text(
                           'Handicap: 14.2',
                           style: TextStyle(
-                            color: textColor.withOpacity(AppColors.opacityHalf),
+                            color: textColor.withValues(alpha: AppColors.opacityHalf),
                             fontSize: AppTypography.sizeLabelStrong,
                             fontWeight: AppTypography.weightSemibold,
                           ),
@@ -1016,12 +1020,12 @@ class BrandingSettingsScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: iconBadgeFill.withOpacity(iconBadgeOpacity),
+                        color: iconBadgeFill.withValues(alpha: iconBadgeOpacity),
                         borderRadius: BorderRadius.circular(accentRadius),
                       ),
                       child: Icon(
                         Icons.star_rounded,
-                        color: iconBadgeIcon.withOpacity(iconOpacity),
+                        color: iconBadgeIcon.withValues(alpha: iconOpacity),
                         size: 20,
                       ),
                     ),
@@ -1112,12 +1116,12 @@ class _StatusColorRow extends StatelessWidget {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: Theme.of(context).dividerColor.withOpacity(0.03),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
           borderRadius: AppShapes.md,
           border: Border.all(
             color: Theme.of(
               context,
-            ).dividerColor.withOpacity(AppColors.opacitySubtle),
+            ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
           ),
         ),
         child: Row(
@@ -1131,12 +1135,12 @@ class _StatusColorRow extends StatelessWidget {
                 color: color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.3),
+                    color: color.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -1155,7 +1159,7 @@ class _StatusColorRow extends StatelessWidget {
             Icon(
               Icons.chevron_right_rounded,
               size: 20,
-              color: AppColors.textSecondary.withOpacity(0.5),
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
           ],
         ),
@@ -1182,12 +1186,12 @@ class _CompactColorPicker extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Theme.of(context).dividerColor.withOpacity(0.03),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.03),
           borderRadius: AppShapes.md,
           border: Border.all(
             color: Theme.of(
               context,
-            ).dividerColor.withOpacity(AppColors.opacitySubtle),
+            ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
           ),
         ),
         child: Column(
@@ -1211,7 +1215,7 @@ class _CompactColorPicker extends StatelessWidget {
                     color: color,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.black.withOpacity(0.12),
+                      color: Colors.black.withValues(alpha: 0.12),
                     ),
                   ),
                 ),
@@ -1267,10 +1271,10 @@ class _ThemeModeTile extends StatelessWidget {
                 color: isSelected
                     ? Theme.of(
                         context,
-                      ).primaryColor.withOpacity(AppColors.opacityLow)
+                      ).primaryColor.withValues(alpha: AppColors.opacityLow)
                     : Theme.of(
                         context,
-                      ).dividerColor.withOpacity(AppColors.opacitySubtle),
+                      ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
                 borderRadius: AppShapes.md,
               ),
               child: Icon(
@@ -1414,7 +1418,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: color.withOpacity(0.4),
+                color: color.withValues(alpha: 0.4),
                 blurRadius: 8,
                 spreadRadius: 2,
               ),
@@ -1439,7 +1443,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
                   child: Container(
                     padding: const EdgeInsets.all(AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.87),
+                      color: Colors.black.withValues(alpha: 0.87),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -1619,12 +1623,12 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
               decoration: BoxDecoration(
                 color: Theme.of(
                   context,
-                ).dividerColor.withOpacity(AppColors.opacitySubtle),
+                ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
                 borderRadius: AppShapes.xl,
                 border: Border.all(
                   color: Theme.of(
                     context,
-                  ).dividerColor.withOpacity(AppColors.opacityLow),
+                  ).dividerColor.withValues(alpha: AppColors.opacityLow),
                 ),
                 image: widget.currentUrl != null
                     ? DecorationImage(
@@ -1639,7 +1643,7 @@ class _LogoPickerState extends ConsumerState<_LogoPicker> {
                       size: 36,
                       color: Theme.of(
                         context,
-                      ).dividerColor.withOpacity(AppColors.opacityMedium),
+                      ).dividerColor.withValues(alpha: AppColors.opacityMedium),
                     )
                   : null,
             ),
@@ -1722,7 +1726,7 @@ class _DarkSwatch extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             borderRadius: AppShapes.md,
-            border: Border.all(color: Colors.black.withOpacity(0.1)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
           ),
         ),
         const SizedBox(height: 4),

@@ -50,6 +50,7 @@ class EventAdminScorecardEditorScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: 'Scorecard Editor',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: _getDisplayName(event, playerId),
         showBack: true,
  // Nested in EventAdminShell

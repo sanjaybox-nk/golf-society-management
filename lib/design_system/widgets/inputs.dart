@@ -53,9 +53,9 @@ class BoxyArtInputField extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              label,
-              style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+              label.toUpperCase(),
+              style: AppTypography.labelStrong.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
               ),
             ),
           ),
@@ -286,7 +286,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
           child: Text(
             label,
             style: AppTypography.label.copyWith(
-              color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+              color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
             ),
           ),
         ),
@@ -364,7 +364,7 @@ class BoxyArtSwitchField extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.label.copyWith(
-                  color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+                  color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                 ),
               ),
               if (subtitle != null) ...[
@@ -383,9 +383,9 @@ class BoxyArtSwitchField extends StatelessWidget {
           value: value,
           onChanged: onChanged,
           activeThumbColor: theme.primaryColor,
-          activeTrackColor: theme.primaryColor.withOpacity(0.30),
+          activeTrackColor: theme.primaryColor.withValues(alpha: 0.30),
           inactiveThumbColor: isDark ? AppColors.dark300 : AppColors.pureWhite,
-          inactiveTrackColor: isDark ? AppColors.dark500.withOpacity(AppColors.opacityHalf) : AppColors.dark150,
+          inactiveTrackColor: isDark ? AppColors.dark500.withValues(alpha: AppColors.opacityHalf) : AppColors.dark150,
           trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.selected)) {
@@ -425,9 +425,9 @@ class BoxyArtSlider extends StatelessWidget {
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         activeTrackColor: primary,
-        inactiveTrackColor: primary.withOpacity(AppColors.opacityLow),
+        inactiveTrackColor: primary.withValues(alpha: AppColors.opacityLow),
         thumbColor: primary,
-        overlayColor: primary.withOpacity(0.12),
+        overlayColor: primary.withValues(alpha: 0.12),
         trackHeight: 4,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
@@ -518,9 +518,9 @@ class BoxyArtSwitchTile extends ConsumerWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: theme.primaryColor,
-            activeTrackColor: theme.primaryColor.withOpacity(0.25),
+            activeTrackColor: theme.primaryColor.withValues(alpha: 0.25),
             inactiveThumbColor: isDark ? AppColors.dark300 : AppColors.pureWhite,
-            inactiveTrackColor: isDark ? AppColors.dark500.withOpacity(AppColors.opacityHalf) : AppColors.dark150,
+            inactiveTrackColor: isDark ? AppColors.dark500.withValues(alpha: AppColors.opacityHalf) : AppColors.dark150,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
             thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
               if (states.contains(WidgetState.selected)) {
@@ -665,6 +665,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
   final ValueChanged<T?> onChanged;
   final String? hint;
   final double? menuMaxHeight;
+  final double? width;
 
   const BoxyArtDropdownField({
     super.key,
@@ -674,6 +675,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
     required this.onChanged,
     this.hint,
     this.menuMaxHeight = 400,
+    this.width,
   });
 
   @override
@@ -690,60 +692,65 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              label,
-              style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+              label.toUpperCase(),
+              style: AppTypography.labelStrong.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
               ),
             ),
           ),
         ],
-        DropdownButtonFormField<T>(
-          value: value,
-          onChanged: onChanged,
-          items: items,
-          dropdownColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
-          menuMaxHeight: menuMaxHeight,
-          style: AppTypography.body.copyWith(
-            color: isDark ? AppColors.dark60 : AppColors.dark900,
-            fontSize: AppTypography.sizeBody,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: AppTypography.body.copyWith(
-              color: isDark ? AppColors.dark400 : AppColors.dark300,
+        SizedBox(
+          width: width,
+          child: DropdownButtonFormField<T>(
+            value: value,
+            onChanged: onChanged,
+            items: items,
+            dropdownColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(radius),
+            isExpanded: true,
+            menuMaxHeight: menuMaxHeight,
+            style: AppTypography.body.copyWith(
+              color: isDark ? AppColors.dark60 : AppColors.dark900,
               fontSize: AppTypography.sizeBody,
             ),
-            filled: true,
-            fillColor: isDark ? AppColors.dark600 : AppColors.pureWhite,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(radius),
-              borderSide: BorderSide(
-                color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                width: AppShapes.borderThin,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: AppTypography.body.copyWith(
+                color: isDark ? AppColors.dark400 : AppColors.dark300,
+                fontSize: AppTypography.sizeBody,
+              ),
+              filled: true,
+              fillColor: isDark ? AppColors.dark600 : AppColors.pureWhite,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                  width: AppShapes.borderThin,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                  width: AppShapes.borderThin,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius),
+                borderSide: BorderSide(
+                  color: theme.primaryColor,
+                  width: AppShapes.borderLight,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, 
+                vertical: 12,
               ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(radius),
-              borderSide: BorderSide(
-                color: isDark ? AppColors.dark500 : AppColors.lightBorder,
-                width: AppShapes.borderThin,
-              ),
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: isDark ? AppColors.dark300 : AppColors.dark400,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(radius),
-              borderSide: BorderSide(
-                color: theme.primaryColor,
-                width: AppShapes.borderLight,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg, 
-              vertical: 12,
-            ),
-          ),
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: isDark ? AppColors.dark300 : AppColors.dark400,
           ),
         ),
       ],

@@ -20,7 +20,9 @@ Members can select one of three intents during the renewal window:
 Renewal alerts are restricted to the **Home Screen** only. This prevents UI clutter in profiles or member lists while ensuring high visibility for the annual action.
 
 ### 4. Admin Renewal Hub
-The central command center for processing submissions.
+The central command center for processing submissions, accessed via the **RENEWALS** tile in the Admin Dashboard.
+- **Architecture**: Implemented using a **Branch Navigator** to ensure the global bottom navigation remains persistent and interactive during the renewal process.
+- **Design Standard**: Follows **v4.1 True Minimal** (Title Case headers, card-to-label vertical rhythm).
 - **Grouped Views**: Members are categorized by their chosen status.
 - **Batch Processing**: Admins can confirm renewals in bulk, which updates the `membershipEndDate` to the next cycle and resets the renewal intent.
 - **Archival**: Suspended or leaving members can be archived with one click.

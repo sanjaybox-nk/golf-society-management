@@ -257,8 +257,11 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return HeadlessScaffold(
       title: widget.existingItem == null ? 'Create Post' : 'Edit Post',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: _selectedType.name.toUpperCase(),
       showBack: true,
       onBack: () => context.pop(),
@@ -299,16 +302,16 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Post Type Selector
-              const BoxyArtSectionTitle(title: 'Post Type'),
-              const SizedBox(height: AppTheme.sectionSpacing),
+              const BoxyArtSectionTitle(title: 'Post type'),
+              SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
               BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: Row(
                   children: [
                     Expanded(
                       child: _buildTypeToggle(
-                        title: 'Flash Update',
-                        icon: Icons.warning_amber_rounded,
+                        title: 'Flash',
+                        icon: Icons.bolt_rounded,
                         type: FeedItemType.flash,
                         color: AppColors.amber500,
                       ),
@@ -334,25 +337,23 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.standard),
+              SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
               // Visibility Controls
               const BoxyArtSectionTitle(title: 'Placement'),
-              const SizedBox(height: AppTheme.sectionSpacing),
+              SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
               BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: BoxyArtSwitchField(
-                  label: 'Pin to Top',
+                  label: 'Pin to top',
                   value: _isPinned,
                   onChanged: (val) => setState(() => _isPinned = val),
-                  // The subtitle corresponds to "This post will always remain at the top of the feed." 
-                  // but BoxyArtSwitchField doesn't have a subtitle parameter like SwitchListTile.
                 ),
               ),
-              const SizedBox(height: AppSpacing.standard),
+              SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
               const BoxyArtSectionTitle(title: 'Content'),
-              const SizedBox(height: AppTheme.sectionSpacing),
+              SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
               if (_selectedType == FeedItemType.flash)
                 _buildFlashEditor()
               else if (_selectedType == FeedItemType.poll)
@@ -382,6 +383,7 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
                   title: 'ADD SECTION',
                   onTap: () => setState(() => _richNoteControllers.add(RichNoteController(content: ''))),
                   isGhost: true,
+                  icon: Icons.add_rounded,
                 ),
               ],
 
@@ -402,29 +404,38 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
       onTap: () => setState(() => _selectedType = type),
       child: AnimatedContainer(
         duration: AppAnimations.fast,
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(AppColors.opacityLow) : Colors.transparent,
+          color: isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppShapes.rMd),
           border: Border.all(
             color: isSelected ? color : (isDark ? AppColors.dark400 : AppColors.lightBorder),
+            width: isSelected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(AppShapes.rLg),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ] : [],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon, 
               color: isSelected ? color : (isDark ? AppColors.dark150 : AppColors.dark400),
               size: AppShapes.iconMd,
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               title,
               style: TextStyle(
-                fontSize: AppTypography.sizeLabelStrong,
-                fontWeight: AppTypography.weightBold,
+                fontSize: 10,
+                fontWeight: AppTypography.weightExtraBold,
                 color: isSelected ? color : (isDark ? AppColors.dark150 : AppColors.dark400),
+                letterSpacing: 0.5,
               ),
             ),
           ],
@@ -437,16 +448,16 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
     return Column(
       children: [
         BoxyArtCard(
-          child: BoxyArtInputField(
-            label: 'Question',
+          child: BoxyArtTextField(
+            label: 'QUESTION',
             controller: _pollQuestionController,
-            hint: 'What would you like to ask?',
+            hintText: 'What would you like to ask?',
             maxLines: null,
           ),
         ),
         const SizedBox(height: AppSpacing.standard),
         const BoxyArtSectionTitle(title: 'Options'),
-        const SizedBox(height: AppTheme.sectionSpacing),
+        const SizedBox(height: AppSpacing.md),
         ..._pollOptionsControllers.asMap().entries.map((entry) {
           final index = entry.key;
           final ctrl = entry.value;
@@ -456,16 +467,20 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: BoxyArtInputField(
-                      label: 'Option ${index + 1}',
+                    child: BoxyArtTextField(
+                      label: 'OPTION ${index + 1}',
                       controller: ctrl,
-                      hint: 'Enter option text...',
+                      hintText: 'Enter option text...',
                     ),
                   ),
                   if (_pollOptionsControllers.length > 2)
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.redAccent),
-                      onPressed: () => setState(() => _pollOptionsControllers.removeAt(index)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24, left: AppSpacing.sm),
+                      child: BoxyArtGlassIconButton(
+                        icon: Icons.remove_circle_outline_rounded,
+                        iconSize: 20,
+                        onPressed: () => setState(() => _pollOptionsControllers.removeAt(index)),
+                      ),
                     ),
                 ],
               ),
@@ -485,10 +500,10 @@ class _FeedItemEditorScreenState extends ConsumerState<FeedItemEditorScreen> {
 
   Widget _buildFlashEditor() {
     return BoxyArtCard(
-      child: BoxyArtInputField(
-        label: 'Flash Message',
+      child: BoxyArtTextField(
+        label: 'FLASH MESSAGE',
         controller: _flashContentController,
-        hint: 'Enter urgent update...',
+        hintText: 'Enter urgent update...',
         maxLines: null,
       ),
     );

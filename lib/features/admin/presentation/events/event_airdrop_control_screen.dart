@@ -18,6 +18,7 @@ class EventAirdropControlScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: 'Prize Pool & Airdrops',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: event.title,
         showBack: true,
         onBack: () => context.pop(),

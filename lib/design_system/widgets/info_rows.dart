@@ -56,7 +56,7 @@ class ModernInfoRow extends ConsumerWidget {
                 label.toUpperCase(),
                 style: AppTypography.caption.copyWith(
                   fontWeight: AppTypography.weightBold,
-                  color: labelColor ?? textSecondary?.withOpacity(AppColors.opacityHigh),
+                  color: labelColor ?? textSecondary?.withValues(alpha: AppColors.opacityHigh),
                   letterSpacing: 1.2,
                 ),
               ),

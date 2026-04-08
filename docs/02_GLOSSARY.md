@@ -28,10 +28,11 @@ The scheduled start time for a match or specific flight.
 The custom visual language of the app. Characterized by:
 -   **Dynamic Branding**: Configurable primary color (default: Mustard Yellow) with automatic contrast calculation.
 -   **Soft Shadows**: Custom shadows (`softScale`) that create a floating effect on cards.
--   **Rounded Shapes**: Cards use `BorderRadius.circular(16)` (`AppShapes.rLg`), inputs and buttons use `AppShapes.pill`.
+-   **Rounded Shapes**: Cards use `BorderRadius.circular(18)` (`AppShapes.rXl`), inputs and buttons use `AppShapes.pill`.
 -   **True Minimal Legends**: Minimalist dot + text indicators that eliminate background "pills" for a cleaner, high-density look.
--   **Universal Title Case**: Absolute prohibition of all-caps. All UI labels and headers use clean Title Case.
+-   **True Minimal (v4.1)**: Absolute prohibition of all-caps. All UI labels and headers use clean Title Case.
 -   **Accessibility**: Automatic text color calculation ensures readability on any background.
+-   **Admin Identity**: The mandatory `ADMIN` pill suffix on all administrative scaffolds.
 
 **Locker Room**
 The creative name for the **User Profile** section. Here, users can:
@@ -73,10 +74,16 @@ The system responsible for securely handling file uploads, such as profile photo
 The user's profile photo, displayed in the Header Card and Member lists. Managed via the **Locker Room** or Admin Form.
 
 **Communications Hub**
-The administrative center for society messaging. It allows admins to compose notifications and manage audience distribution lists.
+The administrative center for society messaging. It allows admins to compose notifications (broadcasts), manage audience distribution lists, and target specific events using the **Event Picker**.
+
+**Event Comms**
+The rebranded term for the event-specific feed management. It allows admins to reorder and pin posts (notes, reports, etc.) within an event's dedicated feed.
 
 **Distribution List**
 A custom group of members (e.g., "Spain Trip 2026", "New Joiners") saved by an admin for targeted messaging within the Communications Hub.
+
+**Note Studio**
+The rebranded communications suite (formerly Newsletter) for composing dynamic, multi-section notifications with rich text and photo attributions.
 
 **Deep Link**
 An action associated with a notification that redirects the user to a specific part of the app (e.g., a specific event details page or their profile) when tapped.
@@ -178,7 +185,7 @@ Manual expense entries (e.g., "Engraving", "Taxis") added by an admin via the **
 Costs that are tracked for member information but do not impact the society treasury. For example, **Buggy Cost** is an indicative cost usually paid directly by the member to the Pro Shop.
 
 **Control Tower**
-The central administrative hub for an event. It consolidates all management functions—including grouping, registrations, costs, and awards—into a single, card-based interface.
+The central administrative hub for an event. It consolidates all management functions—including grouping, registrations, costs, awards, and **Event Comms**—into a single, card-based interface.
 
 ## 12. Financial Concepts
 

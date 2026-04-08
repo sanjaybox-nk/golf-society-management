@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
@@ -16,15 +15,19 @@ class AdminSettingsHubScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Settings Hub',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'System Configuration',
       showBack: true,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // 1. Society Configuration
-              const BoxyArtSectionTitle(title: 'Society Config'),
+              const BoxyArtSectionTitle(
+                title: 'Society Config',
+                isPeeking: true,
+              ),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -75,7 +78,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
 
               // 2. Global Management (Seasons & Templates)
-              const BoxyArtSectionTitle(title: 'Global Management'),
+              const BoxyArtSectionTitle(
+                title: 'Global Management',
+                isPeeking: true,
+              ),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -110,7 +116,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
 
               // 3. Access & Permissions
-              const BoxyArtSectionTitle(title: 'Access & Permissions'),
+              const BoxyArtSectionTitle(
+                title: 'Access & Permissions',
+                isPeeking: true,
+              ),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -137,7 +146,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
 
               // 4. Infrastructure (Wipe & Seed)
-              const BoxyArtSectionTitle(title: 'Infrastructure'),
+              const BoxyArtSectionTitle(
+                title: 'Infrastructure',
+                isPeeking: true,
+              ),
               BoxyArtCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -164,7 +176,10 @@ class AdminSettingsHubScreen extends ConsumerWidget {
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
 
               // 5. System Information
-              const BoxyArtSectionTitle(title: 'System Information'),
+              const BoxyArtSectionTitle(
+                title: 'System Information',
+                isPeeking: true,
+              ),
               Row(
                 children: [
                   Expanded(

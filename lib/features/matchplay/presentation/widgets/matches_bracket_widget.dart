@@ -181,19 +181,19 @@ class _BracketMatchTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: AppShapes.sm,
-        border: Border.all(color: AppColors.pureWhite.withOpacity(0.12)),
+        border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.12)),
         boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
       ),
       child: Column(
         children: [
           _buildPlayerRow(match.team1Name ?? (match.team1Ids.isEmpty ? 'BYE' : 'Side A'), result.winningTeamIndex == 0),
-          Divider(height: 1, color: AppColors.pureWhite.withOpacity(0.12)),
+          Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.12)),
           _buildPlayerRow(match.team2Name ?? (match.team2Ids.isEmpty ? 'BYE' : 'Side B'), result.winningTeamIndex == 1),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             decoration: BoxDecoration(
-              color: _getStatusColor(result.status).withOpacity(AppColors.opacityLow),
+              color: _getStatusColor(result.status).withValues(alpha: AppColors.opacityLow),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppShapes.rSm)),
             ),
             child: Center(
@@ -222,7 +222,7 @@ class _BracketMatchTile extends StatelessWidget {
             child: Text(
               name,
               style: TextStyle(
-                color: isWinner ? AppColors.pureWhite : AppColors.pureWhite.withOpacity(0.70),
+                color: isWinner ? AppColors.pureWhite : AppColors.pureWhite.withValues(alpha: 0.70),
                 fontWeight: isWinner ? AppTypography.weightBold : AppTypography.weightRegular,
                 fontSize: AppTypography.sizeLabel,
               ),

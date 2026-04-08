@@ -31,12 +31,13 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Create $gameName Game',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Choose a saved template or start blank',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.only(top: AppSpacing.x2l, left: AppSpacing.xl, right: AppSpacing.xl, bottom: AppSpacing.x2l),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Start Blank Card
@@ -79,13 +80,19 @@ class CompetitionTemplateGalleryScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.x3l),
-                      const BoxyArtSectionTitle(title: 'Saved Templates', ),
-                      const SizedBox(height: AppSpacing.md),
-                      ...filtered.map((t) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                        child: _buildTemplateCard(context, t, ref),
-                      )),
+                      const BoxyArtSectionTitle(
+                        title: 'Saved Templates',
+                        isPeeking: true,
+                      ),
+                      ...filtered.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final t = entry.value;
+                        final isLast = idx == filtered.length - 1;
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
+                          child: _buildTemplateCard(context, t, ref),
+                        );
+                      }),
                     ],
                   );
                 },
@@ -190,9 +197,9 @@ class _BlankTemplateCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(AppColors.opacityLow),
+              color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow),
               borderRadius: AppShapes.md,
-              border: Border.all(color: theme.colorScheme.primary.withOpacity(AppColors.opacityMedium)),
+              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium)),
             ),
             child: Icon(icon, color: theme.colorScheme.primary, size: AppShapes.iconLg),
           ),
@@ -202,11 +209,10 @@ class _BlankTemplateCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: AppTypography.sizeBody,
-                    fontWeight: AppTypography.weightBlack,
-                    letterSpacing: 0.5,
+                  title,
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: AppTypography.weightExtraBold,
+                    letterSpacing: AppTypography.lsTight,
                   ),
                 ),
                 const SizedBox(height: 2),

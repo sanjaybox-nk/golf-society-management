@@ -206,7 +206,7 @@ class BoxyArtMemberRow extends StatelessWidget {
       padding: EdgeInsets.zero, // Padding handled by internal container
       showShadow: false,
       backgroundColor: isSelected 
-          ? primary.withOpacity(AppColors.opacityLow) 
+          ? primary.withValues(alpha: AppColors.opacityLow) 
           : (isDark ? AppColors.dark700 : AppColors.pureWhite),
       border: cardBorder,
       child: cardContent,
@@ -346,7 +346,7 @@ class BoxyArtMemberRow extends StatelessWidget {
         if (isCaptain && !isGuest)
           _buildTraitBadge(
             context: context,
-            backgroundColor: AppColors.amber500.withOpacity(0.15),
+            backgroundColor: AppColors.amber500.withValues(alpha: 0.15),
             child: const Icon(Icons.shield, size: 14, color: AppColors.amber500),
           ),
         if (hasMemberGuest)
@@ -398,7 +398,7 @@ class BoxyArtMemberRow extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Icon(
             Icons.chevron_right_rounded, 
-            color: AppColors.dark400.withOpacity(AppColors.opacityMuted), 
+            color: AppColors.dark400.withValues(alpha: AppColors.opacityMuted), 
             size: 16,
           ),
         ],
@@ -413,7 +413,7 @@ class BoxyArtMemberRow extends StatelessWidget {
       child: BoxyArtSquareBadge(
         size: 24,
         isTinted: true,
-        backgroundColor: backgroundColor ?? primaryColor.withOpacity(0.1),
+        backgroundColor: backgroundColor ?? primaryColor.withValues(alpha: 0.1),
         child: child,
       ),
     );

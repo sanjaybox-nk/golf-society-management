@@ -206,9 +206,11 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(allMembersProvider);
     final selectedIds = ref.watch(selectedMemberIdsProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
         title: 'Renewal Hub',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: 'Manage season renewals',
         showBack: true,
         onBack: () => context.pop(),
@@ -259,10 +261,10 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
 
               return SliverMainAxisGroup(
                 slivers: [
-                  // 1. Tab Bar
+                  // 1. Tab Bar Standardized
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.lg),
+                      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                       child: ModernUnderlinedFilterBar<RenewalFilter>(
                         selectedValue: _currentFilter,
                         onTabSelected: (filter) => setState(() => _currentFilter = filter),
@@ -298,7 +300,7 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.people_outline_rounded, size: 48, color: AppColors.dark400.withOpacity(0.5)),
+                            Icon(Icons.people_outline_rounded, size: 48, color: AppColors.dark400.withValues(alpha: 0.5)),
                             const SizedBox(height: 16),
                             Text(
                               'No members in this category',
@@ -447,8 +449,8 @@ class _MemberRenewalTile extends ConsumerWidget {
             CircleAvatar(
               radius: 24,
               backgroundColor: isSelected 
-                  ? AppColors.teamA.withOpacity(0.1) 
-                  : AppColors.dark500.withOpacity(0.1),
+                  ? AppColors.teamA.withValues(alpha: 0.1) 
+                  : AppColors.dark500.withValues(alpha: 0.1),
               backgroundImage: member.avatarUrl != null && member.avatarUrl!.isNotEmpty 
                   ? NetworkImage(member.avatarUrl!) 
                   : null,

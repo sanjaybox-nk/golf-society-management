@@ -103,6 +103,7 @@ class _EventManualCutsScreenState extends ConsumerState<EventManualCutsScreen> {
 
         return HeadlessScaffold(
           title: 'Manual Cuts',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
           showBack: true,
           onBack: () {

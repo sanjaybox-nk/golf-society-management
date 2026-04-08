@@ -105,7 +105,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       Text(
                         'SINCE',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: textColor.withOpacity(0.5),
+                          color: textColor.withValues(alpha: 0.5),
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
                         ),
@@ -178,10 +178,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(status, theme.colorScheme.primary).withOpacity(0.1),
+                                color: _getStatusColor(status, theme.colorScheme.primary).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(config.cardRadius / 2),
                                 border: Border.all(
-                                  color: _getStatusColor(status, theme.colorScheme.primary).withOpacity(0.3),
+                                  color: _getStatusColor(status, theme.colorScheme.primary).withValues(alpha: 0.3),
                                   width: 1,
                                 ),
                               ),
@@ -210,7 +210,7 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                     Icon(
                                       Icons.keyboard_arrow_down_rounded,
                                       size: 18,
-                                      color: _getStatusColor(status, theme.colorScheme.primary).withOpacity(0.7),
+                                      color: _getStatusColor(status, theme.colorScheme.primary).withValues(alpha: 0.7),
                                     ),
                                   ],
                                 ],
@@ -228,10 +228,10 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withOpacity(0.1),
+                                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(config.cardRadius / 2),
                                   border: Border.all(
-                                    color: theme.colorScheme.primary.withOpacity(0.3),
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
                                     width: 1,
                                   ),
                                 ),

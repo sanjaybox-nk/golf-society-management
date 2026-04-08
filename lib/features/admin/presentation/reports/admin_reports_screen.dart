@@ -27,9 +27,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
     final statsAsync = ref.watch(reportingHubStatsProvider);
     final eventsAsync = ref.watch(adminEventsProvider);
     final membersAsync = ref.watch(allMembersProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return HeadlessScaffold(
       title: 'Society Hub',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Operations & Insights',
       showBack: false,
       leading: Center(
@@ -72,6 +74,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             onTabSelected: (tab) => setState(() => _activeTab = tab),
           ),
         ),
+        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel)),
 
         statsAsync.when(
           data: (stats) => SliverPadding(
@@ -105,12 +108,20 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildFinancialsTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Balance summary'),
+        const BoxyArtSectionTitle(
+          title: 'Balance summary',
+          isPeeking: true,
+        ),
         _buildTreasuryOverview(context, stats),
-        const BoxyArtSectionTitle(title: 'Season budget'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Season budget',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
@@ -121,7 +132,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        const BoxyArtSectionTitle(title: 'Financial health'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Financial health',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
@@ -140,7 +155,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        const BoxyArtSectionTitle(title: 'Revenue breakdown'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Revenue breakdown',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
@@ -162,10 +181,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
 
   Widget _buildCompetitionTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<Member>> membersAsync, AsyncValue<List<GolfEvent>> eventsAsync) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Prize distribution'),
+        const BoxyArtSectionTitle(
+          title: 'Prize distribution',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
@@ -181,7 +204,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        const BoxyArtSectionTitle(title: 'Attendance leaderboard'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Attendance leaderboard',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           onTap: () => _showFullAttendanceModal(context, stats, membersAsync, isDark),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard, vertical: AppSpacing.xs),
@@ -192,7 +219,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             }).toList(),
           ),
         ),
-        const BoxyArtSectionTitle(title: 'Competitive analytics'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Competitive analytics',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
@@ -205,7 +236,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        const BoxyArtSectionTitle(title: 'Podium consistency'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Podium consistency',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: stats.podiumConsistency.isEmpty 
@@ -222,7 +257,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                 }).toList(),
               ),
         ),
-        const BoxyArtSectionTitle(title: 'Award log'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Award log',
+          isPeeking: true,
+        ),
         eventsAsync.when(
           data: (events) {
             final eventsWithPrizes = events
@@ -254,11 +293,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildPulseTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync, AsyncValue<List<Member>> membersAsync) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSeasonProgress(context, stats),
-        const BoxyArtSectionTitle(title: 'Next milestone'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Next milestone',
+          isPeeking: true,
+        ),
         eventsAsync.when(
           data: (events) {
             final now = DateTime.now();
@@ -269,7 +313,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           loading: () => const CircularProgressIndicator(),
           error: (e, s) => Text('Error: $e'),
         ),
-        const BoxyArtSectionTitle(title: 'Retention & growth'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Retention & growth',
+          isPeeking: true,
+        ),
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: Column(
@@ -281,11 +329,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           ),
         ),
         if (stats.churnAlertMemberIds.isNotEmpty) ...[ 
-          const BoxyArtSectionTitle(title: 'Churn alerts'),
+          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+          const BoxyArtSectionTitle(
+            title: 'Churn alerts',
+            isPeeking: true,
+          ),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.standard),
-            backgroundColor: AppColors.coral500.withOpacity(0.1),
-            border: Border.all(color: AppColors.coral500.withOpacity(0.4)),
+            backgroundColor: AppColors.coral500.withValues(alpha: 0.1),
+            border: Border.all(color: AppColors.coral500.withValues(alpha: 0.4)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -324,9 +376,17 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ),
           ),
         ],
-        const BoxyArtSectionTitle(title: 'Society engagement'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Society engagement',
+          isPeeking: true,
+        ),
         _buildQuickStats(context, stats),
-        const BoxyArtSectionTitle(title: 'Event archive'),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        const BoxyArtSectionTitle(
+          title: 'Event archive',
+          isPeeking: true,
+        ),
         _buildEventArchive(context, eventsAsync),
       ],
     );
@@ -363,7 +423,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             borderRadius: AppShapes.xs,
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppColors.lime500.withOpacity(0.15),
+              backgroundColor: AppColors.lime500.withValues(alpha: 0.15),
               color: AppColors.lime500,
               minHeight: 12,
             ),
@@ -834,7 +894,7 @@ class _HubMetricSmall extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.standard),
         decoration: BoxDecoration(
-          color: isDark ? cyanBorder.withOpacity(0.15) : cyanBg,
+          color: isDark ? cyanBorder.withValues(alpha: 0.15) : cyanBg,
           borderRadius: AppShapes.md,
           border: Border.all(
             color: cyanBorder,
@@ -890,7 +950,7 @@ class _PrizeBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.standard),
         decoration: BoxDecoration(
-          color: isDark ? cyanBorder.withOpacity(0.15) : cyanBg,
+          color: isDark ? cyanBorder.withValues(alpha: 0.15) : cyanBg,
           borderRadius: AppShapes.md,
           border: Border.all(
             color: cyanBorder,

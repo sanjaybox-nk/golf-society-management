@@ -39,9 +39,9 @@ class BoxyArtRichEditor extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
-              label,
-              style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+              label.toUpperCase(),
+              style: AppTypography.labelStrong.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
               ),
             ),
           ),
@@ -60,8 +60,8 @@ class BoxyArtRichEditor extends ConsumerWidget {
           Container(
             decoration: BoxDecoration(
               color: isDark 
-                  ? AppColors.dark500.withOpacity(0.5) 
-                  : AppColors.dark150.withOpacity(0.2),
+                  ? AppColors.dark500.withValues(alpha: 0.5) 
+                  : AppColors.dark150.withValues(alpha: 0.2),
               borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
             ),
             child: SizedBox(
@@ -115,7 +115,7 @@ class BoxyArtRichEditor extends ConsumerWidget {
               ),
             ),
           ),
-          Divider(height: 1, color: AppColors.pureWhite.withOpacity(0.10)),
+          Divider(height: 1, color: AppColors.pureWhite.withValues(alpha: 0.10)),
         ],
         
         // Editor

@@ -27,6 +27,7 @@ class SurveyResultsScreen extends ConsumerWidget {
 
         return HeadlessScaffold(
           title: 'Survey Results',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: survey.title,
           showBack: true, // [NEW] Enable back navigation
           slivers: [
@@ -35,12 +36,12 @@ class SurveyResultsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildParticipationCard(context, survey, membersAsync),
-                  const SizedBox(height: AppSpacing.x2l), // Standard card separation
+                  SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                   ...survey.questions.asMap().entries.map((entry) {
                     final index = entry.key;
                     final q = entry.value;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
+                      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
                       child: _buildQuestionResult(context, index, q, survey.responses, membersAsync),
                     );
                   }),
@@ -72,7 +73,7 @@ class SurveyResultsScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildHeroMetric(context, 'RESPONSES', totalResponses.toString(), Icons.people_rounded),
-          Container(height: 40, width: 1, color: AppColors.pureWhite.withOpacity(AppColors.opacityLow)),
+          Container(height: 40, width: 1, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityLow)),
           _buildHeroMetric(context, 'PARTICIPATION', '$rate%', Icons.analytics_rounded),
         ],
       ),
@@ -82,7 +83,7 @@ class SurveyResultsScreen extends ConsumerWidget {
   Widget _buildHeroMetric(BuildContext context, String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.pureWhite.withOpacity(AppColors.opacityHigh), size: 28),
+        Icon(icon, color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh), size: 28),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value, 
@@ -98,7 +99,7 @@ class SurveyResultsScreen extends ConsumerWidget {
           label, 
           style: AppTypography.micro.copyWith(
             fontWeight: AppTypography.weightHeavy,
-            color: AppColors.pureWhite.withOpacity(AppColors.opacityStrong),
+            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityStrong),
             letterSpacing: 1.2,
           ),
         ),
@@ -230,7 +231,7 @@ class SurveyResultsScreen extends ConsumerWidget {
                         borderRadius: AppShapes.pill,
                         boxShadow: isWinner ? [
                           BoxShadow(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                             blurRadius: 4,
                             spreadRadius: 1,
                           )

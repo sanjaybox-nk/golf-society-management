@@ -155,7 +155,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
       title,
       style: AppTypography.label.copyWith(
         fontSize: AppTypography.sizeCaption,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
         letterSpacing: 1.2,
       ),
     );
@@ -223,9 +223,9 @@ class VerticalCourseInfoCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(AppColors.opacityLow),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.md,
-        border: wasAdjusted ? Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityMedium)) : null,
+        border: wasAdjusted ? Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMedium)) : null,
       ),
       child: Row(
         children: [
@@ -243,7 +243,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
             child: Text(
               'P$par SI$si',
               style: AppTypography.caption.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                 fontSize: 13,
                 fontWeight: AppTypography.weightBold,
               ),
@@ -259,7 +259,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
                 shape: scoreDiff != null && scoreDiff < 0 ? BoxShape.circle : BoxShape.rectangle,
                 borderRadius: scoreDiff != null && scoreDiff >= 0 ? BorderRadius.circular(4) : null,
                 boxShadow: scoreDiff != null && scoreDiff < 0 
-                  ? [BoxShadow(color: bubbleBg!.withOpacity(0.3), blurRadius: 4, spreadRadius: 1)] 
+                  ? [BoxShadow(color: bubbleBg!.withValues(alpha: 0.3), blurRadius: 4, spreadRadius: 1)] 
                   : null,
               ),
               alignment: Alignment.center,
@@ -297,7 +297,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
             ),
             Text(
               'pts',
-              style: AppTypography.nano.copyWith(color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityLow)),
+              style: AppTypography.nano.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityLow)),
             ),
           ],
           
@@ -334,7 +334,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: theme.primaryColor.withOpacity(AppColors.opacityLow),
+        color: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.md,
       ),
       child: Row(
@@ -356,7 +356,7 @@ class VerticalCourseInfoCard extends StatelessWidget {
         Text(
           label,
           style: AppTypography.nano.copyWith(
-            color: color?.withOpacity(AppColors.opacityHigh) ?? AppColors.dark300,
+            color: color?.withValues(alpha: AppColors.opacityHigh) ?? AppColors.dark300,
             letterSpacing: 1.0,
           ),
         ),

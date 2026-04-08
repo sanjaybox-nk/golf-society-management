@@ -60,7 +60,7 @@ class BoxyArtImage extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.dark300.withOpacity(0.1),
+      color: AppColors.dark300.withValues(alpha: 0.1),
       child: const Icon(Icons.image_outlined, color: AppColors.textTertiary),
     );
   }

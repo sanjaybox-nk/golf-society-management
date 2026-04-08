@@ -3,14 +3,10 @@ import 'package:golf_society/features/admin/presentation/audit_provider.dart';
 import 'package:golf_society/domain/models/audit_activity.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/events/presentation/events_provider.dart';
-import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/services/seeding_service.dart';
 import 'widgets/dashboard_hero_card.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
@@ -117,7 +113,7 @@ class _OverviewSlivers extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
           // 1. Next Event Hero
           eventsAsync.when(
             data: (events) {
@@ -161,8 +157,11 @@ class _OperationsSlivers extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
-          const SizedBox(height: AppSpacing.sm),
-          const BoxyArtSectionTitle(title: 'Daily Operations'),
+          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
+          const BoxyArtSectionTitle(
+            title: 'Daily Operations',
+            isPeeking: true,
+          ),
           BoxyArtCard(
             padding: EdgeInsets.zero,
             child: Column(
@@ -210,17 +209,19 @@ class _OperationsSlivers extends ConsumerWidget {
             ),
           ),
           
-          const SizedBox(height: AppSpacing.xl),
-          
-          const BoxyArtSectionTitle(title: 'COMMUNICATIONS'),
+          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
+          const BoxyArtSectionTitle(
+            title: 'COMMUNICATIONS',
+            isPeeking: true,
+          ),
           BoxyArtCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
                 BoxyArtNavTile(
                   icon: Icons.send_rounded,
-                  title: 'Broadcast Center',
-                  subtitle: 'Send alerts to all members',
+                  title: 'Communications Hub',
+                  subtitle: 'Manage society & event notifications',
                   iconColor: theme.primaryColor,
                   onTap: () => context.push('/admin/notifications/compose'),
                 ),

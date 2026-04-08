@@ -53,7 +53,7 @@ class LockerScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                       decoration: BoxDecoration(
-                        color: AppColors.lime500.withOpacity(AppColors.opacityLow),
+                        color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                         borderRadius: BorderRadius.circular(AppShapes.rPill),
                       ),
                       child: Consumer(
@@ -102,7 +102,7 @@ class LockerScreen extends ConsumerWidget {
                 )
               else
                 BoxyArtCard(
-                  backgroundColor: AppColors.lime500.withOpacity(0.05),
+                  backgroundColor: AppColors.lime500.withValues(alpha: 0.05),
                   child: Column(
                     children: [
                       Icon(Icons.sports_golf_rounded, color: AppColors.lime500, size: 40),
@@ -189,14 +189,14 @@ class LockerScreen extends ConsumerWidget {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.x2l),
                         child: BoxyArtCard(
-                          backgroundColor: primary.withOpacity(AppColors.opacitySubtle),
-                          border: Border.all(color: primary.withOpacity(AppColors.opacityLow)),
+                          backgroundColor: primary.withValues(alpha: AppColors.opacitySubtle),
+                          border: Border.all(color: primary.withValues(alpha: AppColors.opacityLow)),
                           child: Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: primary.withOpacity(AppColors.opacityLow),
+                                  color: primary.withValues(alpha: AppColors.opacityLow),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(Icons.auto_awesome_rounded, color: primary, size: AppShapes.iconMd),
@@ -370,7 +370,7 @@ class LockerScreen extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
-            color: color.withOpacity(AppColors.opacityLow),
+            color: color.withValues(alpha: AppColors.opacityLow),
             borderRadius: AppShapes.sm,
           ),
           child: Icon(icon, size: AppShapes.iconSm, color: color),

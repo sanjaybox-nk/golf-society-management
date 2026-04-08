@@ -25,6 +25,7 @@ class EventTypeSection extends ConsumerWidget {
               ModernFilterTab(label: 'Social', value: EventType.social),
             ],
           ),
+          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
         ],
       ),
       loading: () => const SizedBox.shrink(),

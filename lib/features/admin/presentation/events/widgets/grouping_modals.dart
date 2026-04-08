@@ -60,7 +60,7 @@ class GroupingModals {
                   width: 48,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: AppColors.dark400.withOpacity(0.15),
+                    color: AppColors.dark400.withValues(alpha: 0.15),
                     borderRadius: AppShapes.xs,
                   ),
                 ),
@@ -131,7 +131,7 @@ class _StrategyOption extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: isSelected 
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.08) 
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08) 
               : (isDark ? AppColors.dark800 : AppColors.dark50),
           borderRadius: AppShapes.lg,
           border: Border.all(

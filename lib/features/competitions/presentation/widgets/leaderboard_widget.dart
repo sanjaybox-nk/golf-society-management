@@ -177,7 +177,7 @@ class LeaderboardCard extends StatelessWidget {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
+                                  color: Colors.black.withValues(alpha: 0.15),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -202,7 +202,7 @@ class LeaderboardCard extends StatelessWidget {
                 Container(
                   width: 1,
                   margin: EdgeInsets.symmetric(horizontal: hPadding),
-                  color: theme.colorScheme.onSurface.withOpacity(AppColors.opacitySubtle),
+                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
                 ),
 
               Expanded(
@@ -229,7 +229,7 @@ class LeaderboardCard extends StatelessWidget {
                           child: Text(
                             'Guest of ${entry.hostName}',
                             style: AppTypography.label.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                              color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                               fontWeight: AppTypography.weightRegular,
                               fontSize: 10,
                             ),
@@ -273,7 +273,7 @@ class LeaderboardCard extends StatelessWidget {
                               child: Text(
                                 entry.thruLabel!,
                                 style: AppTypography.helper.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                                   fontStyle: FontStyle.italic,
                                   fontSize: 11,
                                 ),
@@ -289,7 +289,7 @@ class LeaderboardCard extends StatelessWidget {
                                     style: AppTypography.label.copyWith(
                                       fontSize: 10,
                                       fontWeight: AppTypography.weightBold,
-                                      color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                                       letterSpacing: 0.2,
                                     ),
                                   ),
@@ -309,7 +309,7 @@ class LeaderboardCard extends StatelessWidget {
                                     style: AppTypography.label.copyWith(
                                       fontSize: 12,
                                       fontWeight: AppTypography.weightMedium,
-                                      color: theme.colorScheme.primary.withOpacity(AppColors.opacityMedium),
+                                      color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
                                     ),
                                   ),
                               ],

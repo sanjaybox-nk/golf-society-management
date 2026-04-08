@@ -57,13 +57,17 @@ class _EclecticControlState extends State<EclecticControl> {
                 BoxyArtDropdownField<EclecticMetric>(
                   label: 'Metric',
                   value: _metric,
-                  items: EclecticMetric.values.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: EclecticMetric.values
+                      .map(
+                        (v) => DropdownMenuItem(
+                          value: v,
+                          child: Text(_formatEnum(v.name)),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => _metric = v!),
                 ),
-                
+
                 if (_metric == EclecticMetric.strokes) ...[
                   const SizedBox(height: AppSpacing.x2l),
                   Row(
@@ -72,7 +76,9 @@ class _EclecticControlState extends State<EclecticControl> {
                       Text(
                         'Handicap allowance',
                         style: AppTypography.label.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.dark150
+                              : AppColors.dark300,
                         ),
                       ),
                       Text(
@@ -94,9 +100,9 @@ class _EclecticControlState extends State<EclecticControl> {
                     onChanged: (v) => setState(() => _handicapPercentage = v),
                   ),
                   Text(
-                    _handicapPercentage == 0 
-                      ? 'Gross Score (No Handicap applied)' 
-                      : 'Net Score (Gross - ${_handicapPercentage.toInt()}% of Final Handicap)',
+                    _handicapPercentage == 0
+                        ? 'Gross Score (No Handicap applied)'
+                        : 'Net Score (Gross - ${_handicapPercentage.toInt()}% of Final Handicap)',
                     style: AppTypography.label.copyWith(
                       color: AppColors.dark400,
                       fontSize: AppTypography.sizeCaption,
@@ -111,16 +117,12 @@ class _EclecticControlState extends State<EclecticControl> {
           ),
           const SizedBox(height: AppSpacing.x2l),
           Center(
-            child: BoxyArtButton(
-              title: 'Save changes',
-              onTap: _save,
-            ),
+            child: BoxyArtButton(title: 'Save changes', onTap: _save),
           ),
         ],
       ),
     );
   }
-
 
   String _formatEnum(String val) {
     final RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
@@ -135,11 +137,12 @@ class _EclecticControlState extends State<EclecticControl> {
 
     if (_metric == EclecticMetric.strokes) {
       if (_handicapPercentage > 0) {
-         goal = 'Lowest Net Composite Score.';
-         scoring = 'Best Gross holes - ${_handicapPercentage.toInt()}% Handicap.';
+        goal = 'Lowest Net Composite Score.';
+        scoring =
+            'Best Gross holes - ${_handicapPercentage.toInt()}% Handicap.';
       } else {
-         goal = 'Lowest Gross Composite Score.';
-         scoring = 'Best Gross score on each hole.';
+        goal = 'Lowest Gross Composite Score.';
+        scoring = 'Best Gross score on each hole.';
       }
       result = 'Lowest total wins.';
     } else {
@@ -152,16 +155,18 @@ class _EclecticControlState extends State<EclecticControl> {
       margin: const EdgeInsets.only(top: AppSpacing.x2l),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withOpacity(AppColors.opacitySubtle),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.dark600
+            : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
         borderRadius: AppShapes.md,
       ),
       child: Column(
         children: [
-           _buildInfoRow('Goal', goal),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Result', result),
+          _buildInfoRow('Goal', goal),
+          const SizedBox(height: AppSpacing.sm),
+          _buildInfoRow('Scoring', scoring),
+          const SizedBox(height: AppSpacing.sm),
+          _buildInfoRow('Result', result),
         ],
       ),
     );
@@ -172,24 +177,26 @@ class _EclecticControlState extends State<EclecticControl> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 80, 
+          width: 80,
           child: Text(
-            '$label:', 
+            '$label:',
             style: AppTypography.label.copyWith(
-              fontWeight: AppTypography.weightBlack, 
+              fontWeight: AppTypography.weightBlack,
               color: AppColors.lime500,
               fontSize: AppTypography.sizeCaptionStrong,
-            )
-          )
+            ),
+          ),
         ),
         Expanded(
           child: Text(
-            value, 
+            value,
             style: AppTypography.label.copyWith(
               fontSize: AppTypography.sizeCaptionStrong,
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
-            )
-          )
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.dark150
+                  : AppColors.dark700,
+            ),
+          ),
         ),
       ],
     );
@@ -197,14 +204,14 @@ class _EclecticControlState extends State<EclecticControl> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final config = LeaderboardConfig.eclectic(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text,
       metric: _metric,
       handicapPercentage: _handicapPercentage.toInt(),
     );
-    
+
     widget.onSave(config);
   }
 }

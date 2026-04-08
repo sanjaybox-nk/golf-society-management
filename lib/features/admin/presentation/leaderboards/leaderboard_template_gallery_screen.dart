@@ -24,12 +24,13 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: typeName,
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: isPicker ? 'Choose a template to add to your season' : 'Choose a template or start blank',
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Start Blank Card (Only available when editing templates in settings)
@@ -64,9 +65,10 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.x3l),
-                      const BoxyArtSectionTitle(title: 'Saved Templates', ),
-                      const SizedBox(height: AppSpacing.md),
+                      const BoxyArtSectionTitle(
+                        title: 'Saved Templates',
+                        isPeeking: true,
+                      ),
                       ...filtered.map((t) => Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: _buildTemplateCard(context, t, ref),
@@ -123,8 +125,8 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
       },
       child: _buildGalleryCard(
         context,
-        title: template.name.toUpperCase(),
-        subtitle: 'Custom Template', // Could add more details here based on config type
+        title: template.name,
+        subtitle: 'Custom Template', 
         icon: _getFormatIcon(type),
         iconColor: _getFormatColor(type),
         onTap: () {
@@ -202,7 +204,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final effectiveColor = iconColor ?? (isPrimary ? AppColors.lime500 : (isDark ? AppColors.dark300 : AppColors.dark400));
-    final effectiveBg = iconColor?.withOpacity(AppColors.opacityLow) ?? (isPrimary ? AppColors.lime500.withOpacity(AppColors.opacityLow) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
+    final effectiveBg = iconColor?.withValues(alpha: AppColors.opacityLow) ?? (isPrimary ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : (isDark ? AppColors.dark600 : AppColors.lightHeader));
     
     return BoxyArtCard(
       onTap: onTap,
@@ -231,7 +233,7 @@ class LeaderboardTemplateGalleryScreen extends ConsumerWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTypography.body.copyWith(
+                      style: AppTypography.headline.copyWith(
                         fontWeight: AppTypography.weightExtraBold,
                         color: isDark ? AppColors.pureWhite : AppColors.dark900,
                       ),

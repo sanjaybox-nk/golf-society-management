@@ -55,13 +55,13 @@ class _StatItem extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final config = ref.watch(themeControllerProvider);
     
-    final badgeBg = Color(config.iconBadgeFillColor).withOpacity(config.iconBadgeOpacity);
+    final badgeBg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
     const badgeFg = AppColors.dark900; // Overridden to black for these badges
     
     return BoxyArtCard(
       showShadow: false,
       backgroundColor: isDark 
-          ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.5)
+          ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
           : badgeBg,
       borderRadius: config.cardRadius * 0.75,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
@@ -78,7 +78,7 @@ class _StatItem extends ConsumerWidget {
           Text(
             label.toUpperCase(),
             style: AppTypography.label.copyWith(
-              color: badgeFg.withOpacity(0.8),
+              color: badgeFg.withValues(alpha: 0.8),
               fontWeight: AppTypography.weightHeavy,
               fontSize: AppTypography.sizeMicro,
               letterSpacing: AppTypography.lsMicro,

@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
-import 'package:golf_society/features/members/data/members_repository.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../profile_provider.dart';
 import '../members_provider.dart';
@@ -75,7 +73,7 @@ class MemberTile extends ConsumerWidget {
                       Text(
                         'Since ${member.joinedDate!.year}',
                         style: AppTypography.micro.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                         ),
                       ),
                     ],
@@ -86,7 +84,7 @@ class MemberTile extends ConsumerWidget {
                 Container(
                   width: 1,
                   margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySubtle),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
                 ),
 
                 // 3. Right Section: Information Stack
@@ -150,7 +148,7 @@ class MemberTile extends ConsumerWidget {
                                         size: 18,
                                         color: (member.status == MemberStatus.active 
                                             ? theme.colorScheme.primary 
-                                            : AppColors.amber500).withOpacity(0.7),
+                                            : AppColors.amber500).withValues(alpha: 0.7),
                                       ),
                                     ],
                                   ],
@@ -248,7 +246,7 @@ class MemberTile extends ConsumerWidget {
                             Container(
                               width: 1,
                               height: 10,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySubtle),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
                             ),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
@@ -259,7 +257,7 @@ class MemberTile extends ConsumerWidget {
                                     child: Text(
                                       '${secondaryMetricLabel ?? 'Events'} ',
                                       style: AppTypography.label.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -292,7 +290,7 @@ class MemberTile extends ConsumerWidget {
               right: -AppSpacing.sm,
               child: Icon(
                 Icons.more_horiz_rounded,
-                color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
               ),
             ),
 

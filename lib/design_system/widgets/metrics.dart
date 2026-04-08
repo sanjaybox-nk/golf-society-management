@@ -63,7 +63,7 @@ class ModernMetricStat extends ConsumerWidget {
     final double effectiveAlpha = isSolid ? 1.0 : config.accentOpacity;
     
     // Applying alpha to the solid version of the base color
-    final Color effectiveBgColor = baseBgColor.withOpacity(effectiveAlpha);
+    final Color effectiveBgColor = baseBgColor.withValues(alpha: effectiveAlpha);
     final borderOpacity = isSolid ? 0.0 : (config.accentOpacity * 2).clamp(0.0, 1.0);
 
     // 3. Icon/Glyph Color logic: Default to iconBadgeIconColor
@@ -77,10 +77,10 @@ class ModernMetricStat extends ConsumerWidget {
         horizontal: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: effectiveBgColor.withOpacity(effectiveAlpha),
+        color: effectiveBgColor.withValues(alpha: effectiveAlpha),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: effectiveBgColor.withOpacity(borderOpacity),
+          color: effectiveBgColor.withValues(alpha: borderOpacity),
           width: 1,
         ),
       ),
@@ -115,7 +115,7 @@ class ModernMetricStat extends ConsumerWidget {
             style: TextStyle(
               fontSize: 8, // Aggressively reduced to prevent truncation
               color: isSolid 
-                  ? AppColors.pureWhite.withOpacity(0.8) 
+                  ? AppColors.pureWhite.withValues(alpha: 0.8) 
                   : (color ?? AppColors.dark800),
               fontWeight: FontWeight.w800, 
               letterSpacing: 0.2, // Tighter for long words like WITHDRAWN
@@ -159,7 +159,7 @@ class ModernSummaryIcon extends StatelessWidget {
           style: TextStyle(
             fontSize: AppTypography.sizeMicroSmall,
             fontWeight: active ? AppTypography.weightBold : AppTypography.weightRegular,
-            color: active ? Colors.black.withOpacity(0.87) : AppColors.dark400,
+            color: active ? Colors.black.withValues(alpha: 0.87) : AppColors.dark400,
             letterSpacing: 0.2,
           ),
         ),

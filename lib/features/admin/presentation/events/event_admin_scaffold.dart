@@ -31,6 +31,7 @@ class _EventAdminScaffoldState extends State<EventAdminScaffold> {
   Widget build(BuildContext context) {
     return HeadlessScaffold(
       title: _titles[_currentIndex],
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       pinnedBottom: BoxyArtBottomNavBar(
         selectedIndex: _currentIndex,

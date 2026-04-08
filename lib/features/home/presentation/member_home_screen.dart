@@ -1,19 +1,15 @@
 import 'dart:convert';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 
 import 'package:golf_society/domain/models/golf_event.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'home_providers.dart';
 import 'widgets/home_notification_card.dart';
 import '../../members/presentation/profile_provider.dart';
 import '../../surveys/presentation/surveys_provider.dart';
 import 'package:golf_society/domain/models/leaderboard_standing.dart';
-import 'package:golf_society/domain/models/survey.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import '../../events/presentation/events_provider.dart';
 import 'package:golf_society/utils/string_utils.dart';
@@ -63,7 +59,7 @@ class MemberHomeScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtCard(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                backgroundColor: AppColors.actionMidnight.withOpacity(0.1),
+                backgroundColor: AppColors.actionMidnight.withValues(alpha: 0.1),
                 child: Row(
                   children: [
                     const Icon(Icons.visibility_rounded, color: AppColors.actionMidnight, size: 20),
@@ -185,7 +181,7 @@ class MemberHomeScreen extends ConsumerWidget {
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                    error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Society Polls
@@ -219,7 +215,7 @@ class MemberHomeScreen extends ConsumerWidget {
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                    error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Active Surveys
@@ -258,79 +254,68 @@ class MemberHomeScreen extends ConsumerWidget {
                             ),
                             child: BoxyArtCard(
                               onTap: () => context.push('/surveys/${survey.id}'),
-                              padding: EdgeInsets.zero,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: spacing?.cardHorizontalPadding ?? AppSpacing.md,
-                                  vertical: spacing?.cardVerticalPadding ?? AppSpacing.md,
-                                ),
-                                child: Row(
-                                  children: [
-                                    // 1. Identity Column (Icon Badge aligned to 72px zone)
-                                    SizedBox(
-                                      width: 72,
-                                      child: Center(
-                                        child: const BoxyArtSquareBadge(
-                                          size: 44,
-                                          isTinted: true,
-                                          child: Icon(
-                                            Icons.quiz_rounded,
-                                            size: 22,
-                                          ),
-                                        ),
-                                      ),
+                              padding: const EdgeInsets.all(AppSpacing.xl),
+                              child: Row(
+                                children: [
+                                  // 1. Identity Icon
+                                  const BoxyArtSquareBadge(
+                                    size: 44,
+                                    isTinted: true,
+                                    child: Icon(
+                                      Icons.quiz_rounded,
+                                      size: 22,
                                     ),
-                                    const SizedBox(width: 8), // Padding to match Event Card rhythm
+                                  ),
+                                  const SizedBox(width: AppSpacing.lg),
 
-                                    // 2. Main Content Area
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            toTitleCase(survey.title),
-                                            style: AppTypography.cardTitle.copyWith(
-                                              color: isDark ? AppColors.pureWhite : AppColors.dark900,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            survey.deadline != null 
-                                              ? 'Ends: ${DateFormat('d MMM').format(survey.deadline!)}' 
-                                              : 'Your feedback is requested',
-                                            style: AppTypography.subtext.copyWith(
-                                              color: isDark ? AppColors.dark150 : AppColors.dark700,
-                                              fontSize: 13,
-                                              fontWeight: AppTypography.weightSemibold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // 3. Action / Status Column
-                                    const SizedBox(width: AppSpacing.sm),
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                  // 2. Main Content Area
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        BoxyArtPill.status(
-                                          label: 'POLL',
-                                          color: Color(societyConfig.primaryColor),
-                                          isAction: true,
+                                        Text(
+                                          toTitleCase(survey.title),
+                                          style: AppTypography.cardTitle.copyWith(
+                                            color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          survey.deadline != null 
+                                            ? 'Ends: ${DateFormat('d MMM').format(survey.deadline!)}' 
+                                            : 'Your feedback is requested',
+                                          style: AppTypography.subtext.copyWith(
+                                            color: isDark ? AppColors.dark150 : AppColors.dark700,
+                                            fontSize: 13,
+                                            fontWeight: AppTypography.weightSemibold,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(width: AppSpacing.xs),
-                                    Icon(
-                                      Icons.chevron_right_rounded,
-                                      color: AppColors.dark400.withOpacity(AppColors.opacityMuted),
-                                      size: 18,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+
+                                  // 3. Action / Status Column
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      BoxyArtPill.status(
+                                        label: 'POLL',
+                                        color: Color(societyConfig.primaryColor),
+                                        isAction: true,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: AppColors.dark400.withValues(alpha: AppColors.opacityMuted),
+                                    size: 18,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -347,7 +332,7 @@ class MemberHomeScreen extends ConsumerWidget {
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Leaderboard Snippet
@@ -374,7 +359,7 @@ class MemberHomeScreen extends ConsumerWidget {
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                    error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
         
         // Season Sponsors (Consolidated Tiered View)
@@ -622,9 +607,9 @@ class _NextMatchCard extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(AppColors.opacityHalf),
+                      color: Colors.black.withValues(alpha: AppColors.opacityHalf),
                       borderRadius: AppShapes.sm,
-                      border: Border.all(color: AppColors.pureWhite.withOpacity(0.24)),
+                      border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.24)),
                     ),
                     child: Row(
                       children: [
@@ -659,7 +644,7 @@ class _NextMatchCard extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: AppColors.pureWhite.withOpacity(0.2),
+                          color: AppColors.pureWhite.withValues(alpha: 0.2),
                           borderRadius: AppShapes.md,
                         ),
                         child: Text(
@@ -677,7 +662,7 @@ class _NextMatchCard extends ConsumerWidget {
                   value: event.courseName ?? 'TBA',
                   icon: Icons.location_on_rounded,
                   iconColor: AppColors.pureWhite,
-                  labelColor: AppColors.pureWhite.withOpacity(0.7),
+                  labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
                   valueColor: AppColors.pureWhite,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -686,7 +671,7 @@ class _NextMatchCard extends ConsumerWidget {
                   value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
                   icon: Icons.schedule_rounded,
                   iconColor: AppColors.pureWhite,
-                  labelColor: AppColors.pureWhite.withOpacity(0.7),
+                  labelColor: AppColors.pureWhite.withValues(alpha: 0.7),
                   valueColor: AppColors.pureWhite,
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -820,7 +805,7 @@ class _LeaderboardSnippet extends StatelessWidget {
                   number: personalRank ?? 0,
                   size: AppShapes.iconLg,
                   textColor: AppColors.teamA,
-                  color: AppColors.teamA.withOpacity(AppColors.opacityLow),
+                  color: AppColors.teamA.withValues(alpha: AppColors.opacityLow),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Container(
@@ -1006,8 +991,8 @@ class _GlobalPollCard extends ConsumerWidget {
                             width: constraints.maxWidth * percent,
                             decoration: BoxDecoration(
                               color: isSelected 
-                                  ? AppColors.lime500.withOpacity(0.12) 
-                                  : AppColors.pureWhite.withOpacity(0.06),
+                                  ? AppColors.lime500.withValues(alpha: 0.12) 
+                                  : AppColors.pureWhite.withValues(alpha: 0.06),
                               borderRadius: AppShapes.md,
                             ),
                           );

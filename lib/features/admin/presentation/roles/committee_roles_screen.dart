@@ -30,8 +30,9 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final membersAsync = ref.watch(allMembersProvider);
 
     return HeadlessScaffold(
-      title: 'Committee Roles', // Retained original title as widget.role is not defined here
-      subtitle: 'Society specific titles', // Retained original subtitle as widget.role is not defined here
+      title: 'Committee Roles',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+      subtitle: 'Society specific titles',
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       showBack: true,
       onBack: () => context.pop(),
@@ -62,10 +63,10 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const BoxyArtSectionTitle(title: 'SOCIETY TITLES'),
+                  const BoxyArtSectionTitle(title: 'SOCIETY TITLES', isPeeking: true),
                   ...allRoles.map((role) {
                     final count = roleCounts[role] ?? 0;
                     return Padding(
@@ -93,7 +94,7 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
     const identityColor = Colors.cyan; 
-    final bgColor = identityColor.withOpacity(AppColors.opacityLow);
+    final bgColor = identityColor.withValues(alpha: AppColors.opacityLow);
 
     return BoxyArtCard(
       onTap: () {

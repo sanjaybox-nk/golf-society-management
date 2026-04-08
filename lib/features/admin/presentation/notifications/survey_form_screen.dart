@@ -70,6 +70,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
       await repo.addSurvey(survey);
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(widget.existingSurvey != null ? 'Survey updated' : 'Survey created'),
@@ -79,6 +80,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
       ),
     );
 
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 
@@ -86,6 +88,7 @@ class _SurveyFormScreenState extends ConsumerState<SurveyFormScreen> {
   Widget build(BuildContext context) {
     return HeadlessScaffold(
       title: widget.existingSurvey == null ? 'Create Survey' : 'Edit Survey',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
 
       showBack: true,
       actions: [
@@ -318,7 +321,7 @@ class _QuestionEditorState extends State<_QuestionEditor> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.lime500.withOpacity(AppColors.opacityLow) : Colors.transparent,
+            color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
             border: Border.all(color: isSelected ? AppColors.lime500 : AppColors.dark400),
             borderRadius: AppShapes.sm,
           ),

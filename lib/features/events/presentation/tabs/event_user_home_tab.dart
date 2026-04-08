@@ -114,9 +114,9 @@ class EventHomeContent extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.amber500.withOpacity(AppColors.opacityLow),
+        color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.lg,
-        border: Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityMuted)),
+        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMuted)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +201,7 @@ class EventHomeContent extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: AppTypography.sizeBodySmall,
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(AppColors.opacityHigh),
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
                           height: 1.5,
                         ),
                       ),
@@ -268,14 +268,14 @@ class EventHomeContent extends ConsumerWidget {
       onTap: () => context.go('/events/${event.id}/live'),
       child: BoxyArtCard(
           // Using default tokenized padding
-          backgroundColor: Theme.of(context).primaryColor.withOpacity(AppColors.opacityLow),
+          backgroundColor: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
           child: Row(
             children: [
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityMedium),
+                  color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -310,7 +310,7 @@ class EventHomeContent extends ConsumerWidget {
               Icon(
                 Icons.arrow_forward_ios_rounded, 
                 size: 16, 
-                color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityHigh),
+                color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh),
               ),
             ],
           ),

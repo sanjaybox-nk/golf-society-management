@@ -41,11 +41,17 @@ class BoxyArtButton extends ConsumerWidget {
     ButtonStyle style;
     
     if (isGhost) {
-      style = TextButton.styleFrom(
+      style = OutlinedButton.styleFrom(
         foregroundColor: isDark ? AppColors.dark200 : AppColors.dark300,
+        side: config.useBorders 
+            ? BorderSide(
+                color: isDark ? AppColors.dark500 : AppColors.lightBorder,
+                width: 1.0,
+              )
+            : BorderSide.none,
         textStyle: isSmall ? AppTypography.micro : AppTypography.label,
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : null,
-        minimumSize: isSmall ? const Size(0, 32) : null,
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else if (isSecondary) {
@@ -58,8 +64,8 @@ class BoxyArtButton extends ConsumerWidget {
               )
             : BorderSide.none,
         textStyle: isSmall ? AppTypography.micro : AppTypography.label,
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : null,
-        minimumSize: isSmall ? const Size(0, 32) : null,
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius)),
       );
     } else {
@@ -71,8 +77,8 @@ class BoxyArtButton extends ConsumerWidget {
         backgroundColor: actionColor,
         foregroundColor: foregroundColor,
         textStyle: AppTypography.label.copyWith(fontWeight: AppTypography.weightHeavy),
-        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 48),
+        padding: isSmall ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        minimumSize: isSmall ? const Size(0, 32) : const Size(0, 42),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(isSmall ? config.accentRadius : config.buttonRadius),
           side: config.useBorders 
@@ -83,7 +89,7 @@ class BoxyArtButton extends ConsumerWidget {
               : BorderSide.none,
         ),
         elevation: config.useShadows ? (isSmall ? 1 : 2) : 0,
-        shadowColor: isDark ? Colors.black : Colors.black.withOpacity(0.15),
+        shadowColor: isDark ? Colors.black : Colors.black.withValues(alpha: 0.15),
         // Ensure no default opacity on disabled state - Solid Action
         disabledBackgroundColor: actionColor,
         disabledForegroundColor: textColor ?? ContrastHelper.getContrastingText(actionColor),
@@ -100,17 +106,11 @@ class BoxyArtButton extends ConsumerWidget {
 
     return SizedBox(
       width: fullWidth ? double.infinity : null,
-      child: isGhost 
-        ? TextButton(
-            onPressed: isLoading ? null : onTap,
-            style: style,
-            child: _buildContent(style.foregroundColor?.resolve({}) ?? AppColors.textSecondary),
-          )
-        : isSecondary
+      child: (isGhost || isSecondary)
             ? OutlinedButton(
                 onPressed: isLoading ? null : onTap,
                 style: style,
-                child: _buildContent(style.foregroundColor?.resolve({}) ?? Colors.black),
+                child: _buildContent(style.foregroundColor?.resolve({}) ?? (isGhost ? AppColors.textSecondary : Colors.black)),
               )
             : ElevatedButton(
                 onPressed: isLoading ? null : onTap,

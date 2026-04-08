@@ -57,7 +57,7 @@ class HoleScoreCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left_rounded, size: AppShapes.iconLg, color: onPrevHole != null ? primaryColor : onSurface.withOpacity(AppColors.opacitySubtle)),
+                    icon: Icon(Icons.chevron_left_rounded, size: AppShapes.iconLg, color: onPrevHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
                     onPressed: onPrevHole,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -74,7 +74,7 @@ class HoleScoreCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   IconButton(
-                    icon: Icon(Icons.chevron_right_rounded, size: AppShapes.iconLg, color: onNextHole != null ? primaryColor : onSurface.withOpacity(AppColors.opacitySubtle)),
+                    icon: Icon(Icons.chevron_right_rounded, size: AppShapes.iconLg, color: onNextHole != null ? primaryColor : onSurface.withValues(alpha: AppColors.opacitySubtle)),
                     onPressed: onNextHole,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -151,10 +151,10 @@ class HoleScoreCard extends StatelessWidget {
       width: width,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: baseColor.withOpacity(isDark ? 0.15 : 0.1),
+        color: baseColor.withValues(alpha: isDark ? 0.15 : 0.1),
         borderRadius: AppShapes.xl,
         border: Border.all(
-          color: baseColor.withOpacity(isDark ? 0.4 : 0.3),
+          color: baseColor.withValues(alpha: isDark ? 0.4 : 0.3),
           width: AppShapes.borderLight,
         ),
       ),
@@ -162,7 +162,7 @@ class HoleScoreCard extends StatelessWidget {
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: baseColor == Colors.blueGrey ? (isDark ? AppColors.pureWhite.withOpacity(0.70) : Colors.blueGrey) : baseColor,
+          color: baseColor == Colors.blueGrey ? (isDark ? AppColors.pureWhite.withValues(alpha: 0.70) : Colors.blueGrey) : baseColor,
           fontSize: AppTypography.sizeMicroSmall,
           fontWeight: AppTypography.weightBlack,
           letterSpacing: 0.5,
@@ -194,7 +194,7 @@ class HoleScoreCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(AppColors.opacityLow),
+        color: color.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.xs,
       ),
       child: Text(
@@ -279,7 +279,7 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
           color: AppColors.pureWhite,
           borderRadius: AppShapes.lg,
           border: Border.all(
-            color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withOpacity(AppColors.opacitySubtle),
+            color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
             width: AppShapes.borderMedium,
           ),
           boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
@@ -305,18 +305,18 @@ class _ScoreDisplayState extends State<_ScoreDisplay> {
         color: AppColors.pureWhite,
         borderRadius: AppShapes.lg,
         border: Border.all(
-          color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withOpacity(AppColors.opacitySubtle),
+          color: widget.hasConflict ? AppColors.coral500 : AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle),
           width: AppShapes.borderMedium,
         ),
         boxShadow: widget.hasConflict ? [
           BoxShadow(
-            color: AppColors.coral500.withOpacity(AppColors.opacityLow),
+            color: AppColors.coral500.withValues(alpha: AppColors.opacityLow),
             blurRadius: 10,
             spreadRadius: 2,
           )
         ] : [
           BoxShadow(
-            color: Colors.black.withOpacity(AppColors.opacitySubtle),
+            color: Colors.black.withValues(alpha: AppColors.opacitySubtle),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),

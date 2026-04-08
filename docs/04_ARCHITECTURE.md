@@ -1,91 +1,120 @@
 # Architecture & Project Structure
 
-The project follows a **Feature-First** architecture combined with Riverpod for state management.
+The project follows a **Feature-First** architecture combined with **Riverpod** for state management and **GoRouter** for navigation.
 
 ## Folder Structure (`lib/`)
 
+```
 lib/
 ├── design_system/          # Clean UI system (Atoms, Widgets, Theme)
-│   ├── atoms/              # Base components (Buttons, Inputs)
-│   ├── widgets/            # Complex layouts (AppBars, True Minimal Indicators)
-│   ├── theme/              # AppTheme, Shadows, Palettes (True Minimal v3.7)
-│   └── design_system.dart  # Central export layer
-├── features/               # Domain-specific features
-│   ├── home/               # Dashboard
-│   ├── events/             # Scoring & Event Management
-│   ├── members/            # Directory
-│   ├── admin/              # Admin Console
-│   └── matchplay/          # Specialized Match Play Logic
+│   ├── atoms/              # Base components (Buttons, Inputs, Badges)
+│   ├── widgets/            # Complex layouts (Cards, Scaffolds, Section Titles)
+│   ├── theme/              # AppTheme, Shadows, Palettes (True Minimal v4.1)
+│   └── design_system.dart  # Central export layer (single import for all UI)
+├── features/               # Domain-specific feature modules
+│   ├── home/               # Member Dashboard
+│   ├── events/             # Events Hub, Scoring & Registration
+│   ├── members/            # Members Directory & Profiles
+│   ├── surveys/            # Member-facing Survey screens
+│   ├── admin/              # Administrative Console
+│   │   ├── competitions/   # Competition setup, templates, scoring review
+│   │   ├── events/         # Event management, grouping, registrations
+│   │   ├── members/        # Member admin (debt, renewals)
+│   │   ├── notifications/  # Communications Hub
+│   │   ├── reports/        # Reporting Hub (finances, engagement)
+│   │   ├── settings/       # Branding, sponsorship, roles
+│   │   ├── surveys/        # Survey admin (editor, results)
+│   │   └── treasury/       # Debt ledger, fines, charity
+│   └── matchplay/          # Specialized Match Play Engine
 ├── domain/                 # Core Business Logic & Entities
-│   ├── models/             # Shared Data Models (Freezed)
-│   ├── scoring/            # Scoring engines
-│   └── handicap/           # Calculation logic
-├── services/               # Infrastructure (Auth, Firebase, Persistence)
-├── utils/                  # Helper functions (Dates, Strings)
-├── constants/              # Static keys & Config
-├── navigation/             # App Router (GoRouter)
+│   ├── models/             # Shared Data Models (Freezed + JsonSerializable)
+│   ├── scoring/            # Scoring calculators (Stableford, Medal, Matchplay)
+│   └── handicap/           # WHS / PHC calculation logic
+├── services/               # Infrastructure (Auth, Firebase, Storage, Seeding)
+├── utils/                  # Helper functions (Dates, Strings, Currency)
+├── constants/              # Static keys, route names, config
+├── navigation/             # App Router (GoRouter shell + branch definitions)
 └── main.dart               # Entry point
+```
 
 ## State Management (Riverpod)
-We use `riverpod_generator` (`@riverpod` annotation) which auto-generates providers.
-- **Repositories**: Standardized Firestore repositories using `withConverter` for type safety and automatic JSON mapping.
-    - `FirestoreEventsRepository`
-    - `FirestoreMembersRepository`
-    - `FirestoreCompetitionsRepository`
-    - `FirestoreSeasonsRepository`
-    - `FirestoreAuditRepository` (Real-time activity tracking)
-- **Services**: 
-    - `AuthService` (Firebase Auth)
-    - `StorageService` (Firebase Storage - Image Uploads)
-    - `SeedingService` (Historical data initialization)
-    - `LeaderboardInvokerService` (Season Standings Calculator)
-- **Providers**: Defined in `feature/presentation/provider_name.dart`.
-- **Consumption**: Widgets extend `ConsumerWidget` and use `ref.watch(provider)`.
-- **Cache Management**: 
-    - For mutable Firestore data that is deep-linked (e.g., editing a Competition from within an Event Form), we use explicit cache invalidation.
-    - `ref.invalidate(provider(id))` is called after a successful save to ensure subsequent loads retrieve the latest document from the repository.
+
+Using `riverpod_generator` (`@riverpod` annotation) with auto-generated providers.
+
+### Repositories (Firestore)
+All repositories use `.withConverter` for type-safe JSON mapping:
+- `FirestoreEventsRepository`
+- `FirestoreMembersRepository`
+- `FirestoreCompetitionsRepository`
+- `FirestoreSeasonsRepository`
+- `FirestoreAuditRepository` (real-time activity tracking)
+- `FirestoreSurveysRepository`
+- `FirestoreCampaignsRepository`
+
+### Services
+- `AuthService` (Firebase Auth)
+- `StorageService` (Firebase Storage — image uploads, 5MB limit)
+- `SeedingService` (Historical data initialization for development)
+- `LeaderboardInvokerService` (Season Standings Calculator)
+
+### Provider Patterns
+- **Defined in**: `feature/presentation/provider_name.dart`
+- **Consumed via**: `ref.watch(provider)` on `ConsumerWidget` / `ConsumerStatefulWidget`
+- **Cache invalidation**: `ref.invalidate(provider(id))` after successful saves to prevent stale data in deep-linked routes.
 
 ## Domain Logic
-Complex business rules are encapsulated in standalone logic classes within the `domain/` folder of each feature or in `core/utils`.
-- **Centralized Scoring Engine**: The system uses authoritative calculators to ensure consistency across Scorecard, Grouping, and Leaderboard views.
-    - `MatchPlayCalculator`: Authoritative engine for Match Play (Net Match Play, Relative PHC, Fourball/Foursomes status).
-    - `ScoringCalculator`: Authoritative engine for Stroke, Stableford, and Max Score capping logic.
-    - **SSOT Pattern**: *Calculate Once, Display Everywhere*. The `LeaderboardEntry` serves as the primary data vehicle, carrying pre-calculated raw strokes, net scores, and Stableford points for both the main entry and all team members. Views (like `ScorecardModal`) are purely presentational and must NOT re-calculate these values.
-- **RegistrationLogic**: Centralized helper for calculating FCFS positions, status legends, and buggy allocations.
-- **Automated Financials**: The system automates core society costs to prevent manual ledger errors.
-    - **Club Bill**: Automatically calculated from confirmed registrations and meal preferences.
-    - **Indicative Costs**: Items like "Buggy Cost" are treated as member-direct payments and explicitly excluded from society treasury calculations.
+
+Complex business rules are encapsulated in standalone classes in `domain/`:
+
+- **`MatchPlayCalculator`**: Authoritative engine for Net Match Play, Relative PHC, Fourball/Foursomes status.
+- **`ScoringCalculator`**: Authoritative engine for Stroke, Stableford, and Max Score capping.
+- **SSOT Pattern**: *Calculate Once, Display Everywhere.* `LeaderboardEntry` carries all pre-calculated values. Views (e.g. `ScorecardModal`) are **purely presentational** — they must NOT re-calculate scores.
+- **`RegistrationLogic`**: Centralised helper for FCFS positions, status legend, and buggy allocations.
+- **Automated Financials**:
+  - **Club Bill**: Auto-calculated from confirmed registrations and meal preferences.
+  - **Indicative Costs** (e.g. Buggy): Treated as member-direct and excluded from society treasury.
 
 ## Complex Form Architecture
-For large, multi-domain forms (e.g., `EventFormScreen`), the project uses a modular decomposition strategy:
-- **State Management**: A centralized `AsyncNotifier` (e.g., `EventFormNotifier`) manages a composite `Freezed` state.
-- **Sub-Widgets**: The monolithic form is broken into functional sections (e.g., `EventLogisticsSection`, `EventCourseSection`) that consume the central notifier.
-- **Persistence Orchestration**: The notifier's `save()` method handles complex multi-repository synchronization (e.g., updating both an Event and its associated Competitions) within a single logical unit.
+
+For large multi-domain forms (e.g. `EventFormScreen`, `SurveyEditorScreen`):
+- **State**: Centralised `AsyncNotifier` (e.g. `EventFormNotifier`) manages a composite `Freezed` state.
+- **Sub-Widgets**: Monolithic forms decomposed into functional sections (e.g. `EventLogisticsSection`, `EventCourseSection`).
+- **Persistence**: Notifier's `save()` handles multi-repository synchronisation in a single logical unit.
 
 ## Navigation (GoRouter)
-The app uses a hierarchical shell architecture to manage global and contextual navigation.
-- **Global Shell**: `GlobalAppShell` wraps the primary navigation branches (Home, Events, Members, Admin).
-- **Nested Event Shells**: Specialized shells manage the 5-tab Event Hub experience:
-    - `EventAdminShell`: Context-aware management for administrators.
-    - `EventUserShell`: Context-aware hub for members.
-- **Stability Strategy**: 
-    - **Stable Keys**: Nested shells use stable `ValueKey` assignments (via a custom `boxyPage` key override) to prevent widget destruction during sub-route transitions.
-    - **Navigator Isolation**: Both shells use dedicated `GlobalKey<NavigatorState>` instances to isolate the event hub stack from the global app shell.
-- **Transitions**: All routes are wrapped in the `boxyPage` helper, which implements a **Salted PageKey Strategy**.
-- **Push**: Use `context.push('/path')` or `context.go('/path')`.
+
+Hierarchical shell architecture:
+
+- **`GlobalAppShell`**: Wraps the 4 primary branches (Home, Events, Members, Admin). Bottom navigation bar is always visible unless the current route is a "Special Form" (creation/edit flow that should fill the screen).
+- **`EventAdminShell`**: Context-aware 5-tab hub for event administrators.
+- **`EventUserShell`**: Context-aware 5-tab hub for event members.
+- **Branch Navigators**: Administrative sub-hubs (Renewal Hub, Debt Ledger, Grouping Hub) use branch navigators to maintain `GlobalAppShell` visibility. Pushing to the root navigator for these screens is a known anti-pattern to avoid.
+- **Stable Keys**: Nested shells use stable `ValueKey` assignments via `boxyPage` to prevent widget destruction during tab switches.
+- **`boxyPage` Helper**: All routes use this helper for the unified **Fade + Subtle Slide Up** transition (400ms).
 
 ## Data Models
-Models are immutable and generated using `freezed`.
--   **Location**: `lib/domain/models/`
--   **Extension**: `.freezed.dart` and `.g.dart` (JsonSerializable).
--   **Key Models**:
-    -   `Member`: Core user profile.
-    -   `GolfEvent`: Stores metadata for a specific competition date. Support for multi-day events via `isMultiDay` (defaults to false) and `endDate`. Includes `selectedFemaleTeeName` for explicit gender-based tee mapping.
-    -   `Competition`: Scoring rules, formats, and configurations.
+
+All models are immutable, generated with `freezed` and `JsonSerializable`:
+
+- **Location**: `lib/domain/models/`
+- **Key Models**:
+  | Model | Purpose |
+  |---|---|
+  | `Member` | Core user profile, membership status, handicap |
+  | `GolfEvent` | Event metadata, registrations, feed items, multi-day support |
+  | `Competition` | Scoring rules, formats, handicap config |
+  | `Campaign` | Society broadcast with multi-section `notes[]`, draft/sent lifecycle |
+  | `Survey` / `SurveyQuestion` | Multi-question survey with Quill Delta JSON prompts |
+  | `FinancialEntry` | Treasury ledger items (sponsorship, donation, expense) |
+  | `LeaderboardEntry` | Pre-calculated scoring vehicle — SSOT for all display |
+  | `SocietyConfig` | Branding tokens, sponsors, theming, spacing overrides |
+
 ## Code Quality & Hardening
-The project maintains a strict standard for code quality and reliability:
-- **Zero-Warning Static Analysis**: Powered by `analysis_options.yaml`. The project maintains a "Zero Error" policy where `flutter analyze` must return no issues.
-- **Global Resilience**: The app is wrapped in `BoxyArtErrorHandler` which uses `PlatformDispatcher.instance.onError` to catch both build-time "red screens" and asynchronous runtime exceptions globally.
-- **Async Safety**: Use of `mounted` guards and localized navigator state ensures `BuildContext` is never used invalidly across async gaps (standardized in Feb 2026).
-- **Type Safety**: Heavy reliance on `freezed` for immutable models and `riverpod_generator` for type-safe state management.
-- **Import Hygiene**: Strict policing of redundant imports. The project uses a centralized `package:golf_society/design_system/design_system.dart` export for all UI components, drastically reducing import noise.
+
+- **Zero-Warning Static Analysis**: `flutter analyze` must exit with **code 0**. Last verified: **April 2026**.
+- **Deprecated API Policy**: No deprecated Flutter APIs permitted. `activeColor` → `activeTrackColor`/`activeThumbColor`; `value` → `initialValue` on form fields.
+- **Async Safety**: All `BuildContext` usages after `await` must be guarded by `if (!mounted) return;`.
+- **Global Error Handler**: `BoxyArtErrorHandler` via `PlatformDispatcher.instance.onError` catches both build-time "red screens" and asynchronous runtime exceptions globally.
+- **Type Safety**: `freezed` for immutable models, `riverpod_generator` for type-safe state.
+- **Import Hygiene**: Single `design_system.dart` barrel import eliminates UI import noise.
+- **Const Correctness**: `HeadlessScaffold` with non-const `titleSuffix` (e.g. `BoxyArtPill.committee`) must NOT use `const` on the scaffold itself.

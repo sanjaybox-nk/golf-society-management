@@ -80,7 +80,7 @@ class BoxyArtTextField extends StatelessWidget {
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: TextStyle(
-                color: AppColors.textSecondary.withOpacity(AppColors.opacityHalf),
+                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityHalf),
                 fontSize: AppTypography.sizeButton,
               ),
               prefixIcon: prefixIcon != null 

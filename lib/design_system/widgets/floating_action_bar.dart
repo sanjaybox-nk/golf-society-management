@@ -82,7 +82,7 @@ class BoxyArtFloatingActionBar extends StatelessWidget {
                       foregroundColor: textColor,
                       elevation: 0,
                       shadowColor: Colors.transparent,
-                      disabledBackgroundColor: backgroundColor.withOpacity(AppColors.opacityHalf),
+                      disabledBackgroundColor: backgroundColor.withValues(alpha: AppColors.opacityHalf),
                       shape: const StadiumBorder(),
                       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                       minimumSize: const Size(double.infinity, 56),

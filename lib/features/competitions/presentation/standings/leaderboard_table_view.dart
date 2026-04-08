@@ -19,7 +19,7 @@ class LeaderboardTableView extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.x3l),
           child: Text(
             'No standings available yet.',
-            style: TextStyle(color: AppColors.pureWhite.withOpacity(0.54)),
+            style: TextStyle(color: AppColors.pureWhite.withValues(alpha: 0.54)),
           ),
         ),
       );

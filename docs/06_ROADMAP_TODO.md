@@ -65,12 +65,14 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Photo Upload**: Profile picture management (5MB limit).
     - [x] **Stats Engine**: Rich Stats Dashboard with Society & Personal comparative views (WHS Net Differential calculation).
 - [x] **Communications & Notifications**
-    - [x] **Event Broadcast CMS**: Unified `EventFeedItem` model replacing legacy notes/flash updates.
-    - [x] **CMS Configurator**: Admin interface for creating/managing event broadcasts (Drafts, Pinned).
+    - [x] **Event Comms CMS**: Unified `EventFeedItem` model replacing legacy notes/flash updates.
+    - [x] **Event Comms Manager**: Admin interface for reordering/pinning event feed items.
     - [x] **Dynamic Member Feed**: Event Home tab rebuilt to dynamically render broadcast cards.
     - [x] **Dynamic Home Notifications**: Real-time alerts on Member Home.
     - [x] **Notification Inbox**: History view for all society alerts.
-    - [x] **Communications Hub (Admin)**: Tabbed interface for composing alerts and managing audiences.
+    - [x] **Communications Hub (Admin)**: Unified interface for composing alerts, managing event context, and targeting audiences.
+        - [x] **Multi-Section Composer (Design 4.x)**: Dynamic, newsletter-style editor supporting multiple content blocks with independent subjects and rich-text.
+        - [x] **Save as Draft**: Multi-session persistence for complex newsletter-style notifications using the unified `Campaign` domain model. Includes dual-syncing to the `EventFeed` for immediate "Newsletter Studio" visibility.
     - [x] **Audience Manager**: Custom distribution list creation and management.
     - [x] **Notification History (Admin)**: Searchable archive of sent society alerts.
 - [x] **Society Surveys**: Advanced multi-question system with WYSIWYG prompts, drag-and-drop reordering, and Design 4.x "Admin Hub" aesthetic.
@@ -90,6 +92,8 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [x] **Admin Design 3.1 Hardening**
     - [x] **Full UI Refactor**: Dashboard, Settings, Members, Notifications, and Seasons aligned to Boxy Art 3.1.
     - [x] **Typography & Rhythm Audit**: Standardized all spacing and font tokens using Design 3.1 primitives.
+- [x] **Global Administrative Identity & Vertical Rhythm Standard (v4.x)**: Systematic application of the `ADMIN` pill across all secondary consoles and standardization of tabbed interface spacing using the `cardToLabel` token (16px) for optimized optical rhythm.
+- [x] **Administrative Console Phase 2 Standardization (v4.x)**: Refactored Event, Competition, and Settings hubs to eliminate all-caps and implement high-precision vertical rhythm via the `isPeeking: true` token.
 - [x] **True Minimal v3.7 Redesign**
     - [x] **Universal Title Case**: Elimination of all-caps across entire app interface.
     - [x] **Pill-to-Legend Shift**: Converted badge components to minimalist dot + text indicators.
@@ -130,6 +134,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Phase 4 (Hardening)**: Stress-test for ties and countbacks.
     - [x] **Match Play Simulation**: Automated match outcomes and standings verification.
     - [x] **Code Quality Hardening**: Achievement of "Zero Error" state across the entire codebase (Feb 2026).
+    - [x] **Admin Console Zero-Errors Initiative (Apr 2026)**: Full v4.0/4.1 standardisation across all admin hubs. Resolved all syntax corruption, undefined identifiers, deprecated API usages (`activeColor`, `value`), unused elements, and async-gap context violations. Project exits `flutter analyze` with **exit code 0**.
     - [x] **Scaling Verification**: Simulation of 60+ member seasons with realistic data distribution.
 
 ## 5. Deployment

@@ -15,9 +15,11 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Campaign {
 
- String get id; String get title; String get message; String get category;// Urgent, Event, News
+ String get id; String get title; String? get message;// Keep for legacy but optional now
+ List<EventNote> get notes;// Multi-section support
+ String get category;// Urgent, Event, News
  String get targetType;// All Members, Groups, Individual
- int get recipientCount; DateTime get timestamp; String? get sentByUserId;// Admin ID who sent it
+ int get recipientCount; CampaignStatus get status; DateTime get timestamp; String? get sentByUserId;// Admin ID who sent it
  String? get actionUrl; String? get targetDescription;
 /// Create a copy of Campaign
 /// with the given fields replaced by the non-null parameter values.
@@ -31,16 +33,16 @@ $CampaignCopyWith<Campaign> get copyWith => _$CampaignCopyWithImpl<Campaign>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Campaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.message, message) || other.message == message)&&(identical(other.category, category) || other.category == category)&&(identical(other.targetType, targetType) || other.targetType == targetType)&&(identical(other.recipientCount, recipientCount) || other.recipientCount == recipientCount)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.sentByUserId, sentByUserId) || other.sentByUserId == sentByUserId)&&(identical(other.actionUrl, actionUrl) || other.actionUrl == actionUrl)&&(identical(other.targetDescription, targetDescription) || other.targetDescription == targetDescription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Campaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.notes, notes)&&(identical(other.category, category) || other.category == category)&&(identical(other.targetType, targetType) || other.targetType == targetType)&&(identical(other.recipientCount, recipientCount) || other.recipientCount == recipientCount)&&(identical(other.status, status) || other.status == status)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.sentByUserId, sentByUserId) || other.sentByUserId == sentByUserId)&&(identical(other.actionUrl, actionUrl) || other.actionUrl == actionUrl)&&(identical(other.targetDescription, targetDescription) || other.targetDescription == targetDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,message,category,targetType,recipientCount,timestamp,sentByUserId,actionUrl,targetDescription);
+int get hashCode => Object.hash(runtimeType,id,title,message,const DeepCollectionEquality().hash(notes),category,targetType,recipientCount,status,timestamp,sentByUserId,actionUrl,targetDescription);
 
 @override
 String toString() {
-  return 'Campaign(id: $id, title: $title, message: $message, category: $category, targetType: $targetType, recipientCount: $recipientCount, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
+  return 'Campaign(id: $id, title: $title, message: $message, notes: $notes, category: $category, targetType: $targetType, recipientCount: $recipientCount, status: $status, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
 }
 
 
@@ -51,7 +53,7 @@ abstract mixin class $CampaignCopyWith<$Res>  {
   factory $CampaignCopyWith(Campaign value, $Res Function(Campaign) _then) = _$CampaignCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String message, String category, String targetType, int recipientCount, DateTime timestamp, String? sentByUserId, String? actionUrl, String? targetDescription
+ String id, String title, String? message, List<EventNote> notes, String category, String targetType, int recipientCount, CampaignStatus status, DateTime timestamp, String? sentByUserId, String? actionUrl, String? targetDescription
 });
 
 
@@ -68,15 +70,17 @@ class _$CampaignCopyWithImpl<$Res>
 
 /// Create a copy of Campaign
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? message = null,Object? category = null,Object? targetType = null,Object? recipientCount = null,Object? timestamp = null,Object? sentByUserId = freezed,Object? actionUrl = freezed,Object? targetDescription = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? message = freezed,Object? notes = null,Object? category = null,Object? targetType = null,Object? recipientCount = null,Object? status = null,Object? timestamp = null,Object? sentByUserId = freezed,Object? actionUrl = freezed,Object? targetDescription = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as List<EventNote>,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,targetType: null == targetType ? _self.targetType : targetType // ignore: cast_nullable_to_non_nullable
 as String,recipientCount: null == recipientCount ? _self.recipientCount : recipientCount // ignore: cast_nullable_to_non_nullable
-as int,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as CampaignStatus,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,sentByUserId: freezed == sentByUserId ? _self.sentByUserId : sentByUserId // ignore: cast_nullable_to_non_nullable
 as String?,actionUrl: freezed == actionUrl ? _self.actionUrl : actionUrl // ignore: cast_nullable_to_non_nullable
 as String?,targetDescription: freezed == targetDescription ? _self.targetDescription : targetDescription // ignore: cast_nullable_to_non_nullable
@@ -165,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String message,  String category,  String targetType,  int recipientCount,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? message,  List<EventNote> notes,  String category,  String targetType,  int recipientCount,  CampaignStatus status,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Campaign() when $default != null:
-return $default(_that.id,_that.title,_that.message,_that.category,_that.targetType,_that.recipientCount,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
+return $default(_that.id,_that.title,_that.message,_that.notes,_that.category,_that.targetType,_that.recipientCount,_that.status,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
   return orElse();
 
 }
@@ -186,10 +190,10 @@ return $default(_that.id,_that.title,_that.message,_that.category,_that.targetTy
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String message,  String category,  String targetType,  int recipientCount,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? message,  List<EventNote> notes,  String category,  String targetType,  int recipientCount,  CampaignStatus status,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)  $default,) {final _that = this;
 switch (_that) {
 case _Campaign():
-return $default(_that.id,_that.title,_that.message,_that.category,_that.targetType,_that.recipientCount,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
+return $default(_that.id,_that.title,_that.message,_that.notes,_that.category,_that.targetType,_that.recipientCount,_that.status,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +210,10 @@ return $default(_that.id,_that.title,_that.message,_that.category,_that.targetTy
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String message,  String category,  String targetType,  int recipientCount,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? message,  List<EventNote> notes,  String category,  String targetType,  int recipientCount,  CampaignStatus status,  DateTime timestamp,  String? sentByUserId,  String? actionUrl,  String? targetDescription)?  $default,) {final _that = this;
 switch (_that) {
 case _Campaign() when $default != null:
-return $default(_that.id,_that.title,_that.message,_that.category,_that.targetType,_that.recipientCount,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
+return $default(_that.id,_that.title,_that.message,_that.notes,_that.category,_that.targetType,_that.recipientCount,_that.status,_that.timestamp,_that.sentByUserId,_that.actionUrl,_that.targetDescription);case _:
   return null;
 
 }
@@ -221,17 +225,28 @@ return $default(_that.id,_that.title,_that.message,_that.category,_that.targetTy
 @JsonSerializable()
 
 class _Campaign extends Campaign {
-  const _Campaign({required this.id, required this.title, required this.message, required this.category, required this.targetType, required this.recipientCount, required this.timestamp, this.sentByUserId, this.actionUrl, this.targetDescription}): super._();
+  const _Campaign({required this.id, required this.title, this.message, final  List<EventNote> notes = const [], required this.category, required this.targetType, required this.recipientCount, this.status = CampaignStatus.sent, required this.timestamp, this.sentByUserId, this.actionUrl, this.targetDescription}): _notes = notes,super._();
   factory _Campaign.fromJson(Map<String, dynamic> json) => _$CampaignFromJson(json);
 
 @override final  String id;
 @override final  String title;
-@override final  String message;
+@override final  String? message;
+// Keep for legacy but optional now
+ final  List<EventNote> _notes;
+// Keep for legacy but optional now
+@override@JsonKey() List<EventNote> get notes {
+  if (_notes is EqualUnmodifiableListView) return _notes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_notes);
+}
+
+// Multi-section support
 @override final  String category;
 // Urgent, Event, News
 @override final  String targetType;
 // All Members, Groups, Individual
 @override final  int recipientCount;
+@override@JsonKey() final  CampaignStatus status;
 @override final  DateTime timestamp;
 @override final  String? sentByUserId;
 // Admin ID who sent it
@@ -251,16 +266,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Campaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.message, message) || other.message == message)&&(identical(other.category, category) || other.category == category)&&(identical(other.targetType, targetType) || other.targetType == targetType)&&(identical(other.recipientCount, recipientCount) || other.recipientCount == recipientCount)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.sentByUserId, sentByUserId) || other.sentByUserId == sentByUserId)&&(identical(other.actionUrl, actionUrl) || other.actionUrl == actionUrl)&&(identical(other.targetDescription, targetDescription) || other.targetDescription == targetDescription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Campaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other._notes, _notes)&&(identical(other.category, category) || other.category == category)&&(identical(other.targetType, targetType) || other.targetType == targetType)&&(identical(other.recipientCount, recipientCount) || other.recipientCount == recipientCount)&&(identical(other.status, status) || other.status == status)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.sentByUserId, sentByUserId) || other.sentByUserId == sentByUserId)&&(identical(other.actionUrl, actionUrl) || other.actionUrl == actionUrl)&&(identical(other.targetDescription, targetDescription) || other.targetDescription == targetDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,message,category,targetType,recipientCount,timestamp,sentByUserId,actionUrl,targetDescription);
+int get hashCode => Object.hash(runtimeType,id,title,message,const DeepCollectionEquality().hash(_notes),category,targetType,recipientCount,status,timestamp,sentByUserId,actionUrl,targetDescription);
 
 @override
 String toString() {
-  return 'Campaign(id: $id, title: $title, message: $message, category: $category, targetType: $targetType, recipientCount: $recipientCount, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
+  return 'Campaign(id: $id, title: $title, message: $message, notes: $notes, category: $category, targetType: $targetType, recipientCount: $recipientCount, status: $status, timestamp: $timestamp, sentByUserId: $sentByUserId, actionUrl: $actionUrl, targetDescription: $targetDescription)';
 }
 
 
@@ -271,7 +286,7 @@ abstract mixin class _$CampaignCopyWith<$Res> implements $CampaignCopyWith<$Res>
   factory _$CampaignCopyWith(_Campaign value, $Res Function(_Campaign) _then) = __$CampaignCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String message, String category, String targetType, int recipientCount, DateTime timestamp, String? sentByUserId, String? actionUrl, String? targetDescription
+ String id, String title, String? message, List<EventNote> notes, String category, String targetType, int recipientCount, CampaignStatus status, DateTime timestamp, String? sentByUserId, String? actionUrl, String? targetDescription
 });
 
 
@@ -288,15 +303,17 @@ class __$CampaignCopyWithImpl<$Res>
 
 /// Create a copy of Campaign
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? message = null,Object? category = null,Object? targetType = null,Object? recipientCount = null,Object? timestamp = null,Object? sentByUserId = freezed,Object? actionUrl = freezed,Object? targetDescription = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? message = freezed,Object? notes = null,Object? category = null,Object? targetType = null,Object? recipientCount = null,Object? status = null,Object? timestamp = null,Object? sentByUserId = freezed,Object? actionUrl = freezed,Object? targetDescription = freezed,}) {
   return _then(_Campaign(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,notes: null == notes ? _self._notes : notes // ignore: cast_nullable_to_non_nullable
+as List<EventNote>,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,targetType: null == targetType ? _self.targetType : targetType // ignore: cast_nullable_to_non_nullable
 as String,recipientCount: null == recipientCount ? _self.recipientCount : recipientCount // ignore: cast_nullable_to_non_nullable
-as int,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as CampaignStatus,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,sentByUserId: freezed == sentByUserId ? _self.sentByUserId : sentByUserId // ignore: cast_nullable_to_non_nullable
 as String?,actionUrl: freezed == actionUrl ? _self.actionUrl : actionUrl // ignore: cast_nullable_to_non_nullable
 as String?,targetDescription: freezed == targetDescription ? _self.targetDescription : targetDescription // ignore: cast_nullable_to_non_nullable

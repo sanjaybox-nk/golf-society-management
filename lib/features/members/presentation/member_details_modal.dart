@@ -456,7 +456,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                               Text(
                                                 'Permits attendance at social events while suspended.',
                                                 style: AppTypography.caption.copyWith(
-                                                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+                                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                                                   fontSize: 11,
                                                 ),
                                               ),
@@ -465,7 +465,8 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                         ),
                                         Switch(
                                           value: _allowSocialEventsOnly,
-                                          activeColor: Theme.of(context).primaryColor,
+                                          activeTrackColor: Theme.of(context).primaryColor,
+                                          activeThumbColor: AppColors.pureWhite,
                                           onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
                                         ),
                                       ],
@@ -582,7 +583,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
         Text(
           label.toUpperCase(),
           style: AppTypography.label.copyWith(
-            color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
             fontWeight: AppTypography.weightBold,
             letterSpacing: 1.2,
             fontSize: AppTypography.sizeMicro, // Standardized 4.x Meta size (10px)

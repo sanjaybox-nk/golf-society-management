@@ -198,12 +198,15 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: primary.withOpacity(AppColors.opacityLow),
+                color: primary.withValues(alpha: AppColors.opacityLow),
                 borderRadius: AppShapes.xl,
               ),
               child: Text(
                 pct == 0 ? 'None' : '$pct%',
-                style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBlack, color: primary),
+                style: AppTypography.label.copyWith(
+                  fontWeight: AppTypography.weightExtraBold, 
+                  color: primary,
+                ),
               ),
             ),
           ],
@@ -274,12 +277,15 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(AppColors.opacityLow),
+                color: primaryColor.withValues(alpha: AppColors.opacityLow),
                 borderRadius: AppShapes.xl,
               ),
               child: Text(
                 valueLabel,
-                style: TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightBlack, color: primaryColor),
+                style: AppTypography.label.copyWith(
+                  fontWeight: AppTypography.weightExtraBold, 
+                  color: primaryColor,
+                ),
               ),
             ),
           ],
@@ -301,9 +307,8 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     padding: const EdgeInsets.only(top: 6, left: AppSpacing.xs, bottom: 2),
     child: Text(
       text,
-      style: TextStyle(
+      style: AppTypography.micro.copyWith(
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400,
-        fontSize: AppTypography.sizeCaptionStrong,
         fontStyle: FontStyle.italic,
         height: 1.4,
       ),
@@ -316,7 +321,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(AppColors.opacitySubtle),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
         borderRadius: AppShapes.md,
       ),
       child: Column(
@@ -362,11 +367,10 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
     required bool? separateGuests,
     required ValueChanged<bool?> onSeparateChanged,
   }) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BoxyArtSectionTitle(title: 'Guest visibility'),
+        const BoxyArtSectionTitle(title: 'Guest visibility', isPeeking: true),
         const SizedBox(height: AppSpacing.lg),
         BoxyArtDropdownField<bool?>(
           label: 'Leaderboard Strategy',
@@ -376,7 +380,7 @@ abstract class BaseCompetitionControlState<T extends BaseCompetitionControl> ext
               value: null, 
               child: Text(
                 'Auto (follow society)', 
-                style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0, color: theme.colorScheme.primary),
+                style: TextStyle(fontWeight: AppTypography.weightBlack, fontSize: AppTypography.sizeLabelStrong, letterSpacing: 1.0, color: AppColors.lime500),
               ),
             ),
             DropdownMenuItem(

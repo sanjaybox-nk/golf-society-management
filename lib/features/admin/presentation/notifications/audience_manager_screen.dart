@@ -71,7 +71,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                         padding: const EdgeInsets.all(AppSpacing.x5l),
                         child: Column(
                           children: [
-                            Icon(Icons.group_work_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityMedium)),
+                            Icon(Icons.group_work_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
                             const SizedBox(height: AppSpacing.lg),
                             Text(
                               'No custom groups found',
@@ -91,7 +91,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                         direction: DismissDirection.endToStart,
                         background: Container(
                           decoration: BoxDecoration(
-                              color: AppColors.coral500.withOpacity(AppColors.opacityHigh),
+                              color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh),
                             borderRadius: AppShapes.lg,
                           ),
                           alignment: Alignment.centerRight,
@@ -121,7 +121,7 @@ class _AudienceManagerScreenState extends ConsumerState<AudienceManagerScreen> {
                               Container(
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityLow),
+                                  color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(Icons.group_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconLg),
@@ -276,10 +276,10 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                   icon: Container(
                     padding: const EdgeInsets.all(AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: theme.dividerColor.withOpacity(AppColors.opacitySubtle),
+                      color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.close_rounded, color: Colors.black.withOpacity(0.54), size: AppShapes.iconMd),
+                    child: Icon(Icons.close_rounded, color: Colors.black.withValues(alpha: 0.54), size: AppShapes.iconMd),
                   ),
                 ),
               ],
@@ -315,7 +315,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                           children: selectedMembers.map((m) {
                             return Chip(
                               label: Text('${m.firstName} ${m.lastName}', style: const TextStyle(fontSize: AppTypography.sizeLabel, fontWeight: AppTypography.weightSemibold)),
-                              backgroundColor: theme.primaryColor.withOpacity(AppColors.opacityLow),
+                              backgroundColor: theme.primaryColor.withValues(alpha: AppColors.opacityLow),
                               deleteIcon: Icon(Icons.close_rounded, size: AppShapes.iconSm, color: theme.primaryColor),
                               onDeleted: () => _toggleMember(m.id),
                               side: BorderSide.none,
@@ -333,9 +333,9 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: theme.dividerColor.withOpacity(AppColors.opacitySubtle),
+                        color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                         borderRadius: AppShapes.lg,
-                        border: Border.all(color: theme.dividerColor.withOpacity(AppColors.opacityLow)),
+                        border: Border.all(color: theme.dividerColor.withValues(alpha: AppColors.opacityLow)),
                       ),
                       child: Text(
                         'No members selected yet',
@@ -389,7 +389,7 @@ class _CreateListModalState extends ConsumerState<CreateListModal> {
                                 Container(
                                   padding: const EdgeInsets.all(AppSpacing.sm),
                                   decoration: BoxDecoration(
-                                    color: theme.dividerColor.withOpacity(AppColors.opacitySubtle),
+                                    color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(Icons.person_add_rounded, size: AppShapes.iconSm, color: AppColors.textSecondary),

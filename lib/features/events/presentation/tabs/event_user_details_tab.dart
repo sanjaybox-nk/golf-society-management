@@ -104,6 +104,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final user = ref.watch(effectiveUserProvider);
     final isStaff = user.role != MemberRole.member;
     
@@ -169,28 +170,24 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
           ],
         ],
         slivers: [
-          // Baseline Nudge for Tab Bar
           SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -16.0),
-              child: ModernUnderlinedFilterBar<EventInfoSubTab>(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                isExpanded: true,
-                tabs: const [
-                  ModernFilterTab(label: 'News updates', value: EventInfoSubTab.notifications),
-                  ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
-                ],
-                selectedValue: _selectedTab,
-                onTabSelected: (tab) => setState(() => _selectedTab = tab),
-              ),
+            child: ModernUnderlinedFilterBar<EventInfoSubTab>(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              isExpanded: true,
+              tabs: const [
+                ModernFilterTab(label: 'News updates', value: EventInfoSubTab.notifications),
+                ModernFilterTab(label: 'Event Info', value: EventInfoSubTab.info),
+              ],
+              selectedValue: _selectedTab,
+              onTabSelected: (tab) => setState(() => _selectedTab = tab),
             ),
           ),
         SliverPadding(
           padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, bottom: 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Content Spacing (Standardized 24px overall visual: 16px container space + 8px spacer)
-              const SizedBox(height: AppSpacing.xs),
+              // Content Spacing (Standardized 16px cardToLabel)
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
               
               if (_selectedTab == EventInfoSubTab.info) ...[
                 _buildDateTimeSection(context),
@@ -338,9 +335,9 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.amber500.withOpacity(AppColors.opacityLow),
+        color: AppColors.amber500.withValues(alpha: AppColors.opacityLow),
         borderRadius: AppShapes.lg,
-        border: Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityMuted)),
+        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityMuted)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,7 +414,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: AppTypography.sizeBodySmall,
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(AppColors.opacityHigh),
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
                           height: 1.5,
                         ),
                       ),
@@ -544,7 +541,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               label: 'LOCATION',
               value: event.courseName!,
               icon: Icons.location_on_outlined,
-              labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
               valueColor: AppColors.pureWhite,
               iconColor: AppColors.pureWhite,
               trailing: BoxyArtGlassIconButton(
@@ -559,7 +556,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
             label: event.isMultiDay ? 'START DATE' : 'EVENT DATE',
             value: DateFormat('EEEE, d MMM yyyy').format(event.date),
             icon: Icons.calendar_today_rounded,
-            labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
+            labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
             valueColor: AppColors.pureWhite,
             iconColor: AppColors.pureWhite,
           ),
@@ -569,7 +566,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               label: 'END DATE',
               value: DateFormat('EEEE, d MMM yyyy').format(event.endDate!),
               icon: Icons.calendar_today_rounded,
-              labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
               valueColor: AppColors.pureWhite,
               iconColor: AppColors.pureWhite,
             ),
@@ -581,7 +578,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 ? DateFormat('h:mm a').format(event.regTime!)
                 : 'TBA',
             icon: Icons.app_registration_rounded,
-            labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
+            labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
             valueColor: AppColors.pureWhite,
             iconColor: AppColors.pureWhite,
           ),
@@ -591,7 +588,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               label: 'TEE-OFF',
               value: DateFormat('h:mm a').format(event.teeOffTime ?? event.date),
               icon: Icons.schedule_rounded,
-              labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
               valueColor: AppColors.pureWhite,
               iconColor: AppColors.pureWhite,
             ),
@@ -603,7 +600,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               value: '${DateFormat('d MMM').format(event.registrationDeadline!)} @ ${DateFormat('h:mm a').format(event.registrationDeadline!)}',
               icon: Icons.timer_outlined,
               iconColor: AppColors.pureWhite,
-              labelColor: AppColors.pureWhite.withOpacity(AppColors.opacityHigh),
+              labelColor: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
               valueColor: AppColors.pureWhite,
             ),
           ],
@@ -795,9 +792,9 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  color: AppColors.coral500.withOpacity(AppColors.opacitySubtle),
+                  color: AppColors.coral500.withValues(alpha: AppColors.opacitySubtle),
                   borderRadius: AppShapes.xl,
-                  border: Border.all(color: AppColors.coral500.withOpacity(AppColors.opacityMedium)),
+                  border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMedium)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -816,7 +813,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                ),
                                Text(
                                  'Handicaps cannot be accurately calculated.',
-                                 style: TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.coral500.withOpacity(AppColors.opacityHigh)),
+                                 style: TextStyle(fontSize: AppTypography.sizeLabelStrong, color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh)),
                                ),
                              ],
                            ),
@@ -1095,7 +1092,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                   style: TextStyle(
                                     fontSize: AppTypography.sizeLabel,
                                     fontWeight: AppTypography.weightBold,
-                                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHalf),
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                                     letterSpacing: 0.5,
                                   ),
                                 )
@@ -1106,7 +1103,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                                     fontSize: AppTypography.sizeLabel,
                                     fontWeight: AppTypography.weightBold,
                                     letterSpacing: 0.5,
-                                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHalf),
+                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
                                   ),
                                 ),
                             ],

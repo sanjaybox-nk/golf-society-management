@@ -83,6 +83,7 @@ class CompetitionBuilderScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Create $gameName game',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: isTemplate 
           ? 'Edit saved game template' 
           : (compToUse != null ? 'Event customisation' : 'New competition setup'),
@@ -90,7 +91,7 @@ class CompetitionBuilderScreen extends ConsumerWidget {
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
           sliver: SliverToBoxAdapter(
             child: _buildControl(activeFormat, context, competition: competition, template: template),
           ),

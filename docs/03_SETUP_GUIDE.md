@@ -42,6 +42,13 @@ Select your device and run:
 flutter run
 ```
 
+## Quality Assurance
+To ensure the codebase remains healthy, every commit must pass static analysis:
+```bash
+flutter analyze
+```
+*Note: This project follows a strict **Zero Error/Zero Warning** policy. The command above must exit with code 0.*
+
 ## Troubleshooting
 -   **"Firebase init failed"**: This is normal if you haven't added the config files yet. The app will fallback to mock data or error gracefully in UI.
 -   **Shadow Clipping**: If you see shadows cut off on cards, ensure `clipBehavior` is NOT set on the Container. Clipping should be applied via an inner `ClipRRect`.

@@ -507,7 +507,8 @@ class _EventRegistrationScreenState extends ConsumerState<EventRegistrationScree
                                   const SizedBox(width: AppSpacing.sm),
                                   Switch.adaptive(
                                     value: _useVoucher,
-                                    activeColor: AppColors.lime500,
+                                    activeTrackColor: AppColors.lime500,
+                                    activeThumbColor: AppColors.pureWhite,
                                     onChanged: (val) => setState(() => _useVoucher = val),
                                   ),
                                 ],

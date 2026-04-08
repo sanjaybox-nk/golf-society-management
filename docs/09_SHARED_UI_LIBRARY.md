@@ -1,112 +1,185 @@
-# Shared UI Library (v4.0 - Radical Simplification)
+# Shared UI Library (v4.1 — BoxyArt True Minimal)
 
-The BoxyArt UI Library is the source of truth for all visual components in the Golf Society Management ecosystem. It is optimized for a premium, high-density "Pro" aesthetic and is fully tokenized in v4.0.
+The BoxyArt UI Library is the canonical source of all visual components in Golf Society Management. It is fully tokenised, premium-first, and enforces Design 4.x standards throughout.
 
-## Location
-`lib/design_system/widgets/`
+**Central Export**: `package:golf_society/design_system/design_system.dart`
+**Location**: `lib/design_system/widgets/`
 
-## 1. Cards & Containers (`card.dart`)
+> [!IMPORTANT]
+> All feature code must import ONLY via the central barrel. Never import individual design system files directly.
+
+---
+
+## 1. Scaffolds
+
+### `HeadlessScaffold`
+The standard shell for all top-level screens. Manages the `CustomScrollView` sliver pattern, header bar, back navigation, and action slots.
+
+```dart
+HeadlessScaffold(
+  title: 'Screen Title',
+  titleSuffix: BoxyArtPill.committee(label: 'ADMIN'), // All admin screens
+  subtitle: 'Context line',
+  showBack: true,
+  isPeeking: true, // First section title uses this
+  slivers: [ ... ],
+)
+```
+
+> [!IMPORTANT]
+> Do NOT use `const` on `HeadlessScaffold` when `titleSuffix` is a non-const widget (e.g. `BoxyArtPill.committee`).
+
+---
+
+## 2. Cards & Containers (`card.dart`)
 
 ### `BoxyArtCard`
 The foundational container for all UI blocks.
-- **Dynamic Radius**: Uses `config.cardRadius` from `SocietyConfig`. Defaults to 18px.
-- **Dynamic Padding**: Uses `config.cardVerticalPadding` and `config.cardHorizontalPadding` from `SocietyConfig`. Defaults to 16px.
-- **Dynamic Shadows**: Automatic scaling based on `config.shadowIntensity`.
-- **Hardening**: Features mandatory **internal clipping** (`ClipRRect`) to ensure all children (like header/footer bands) respect the card's dynamic curve.
-- **Vertical Rhythm (Subtext)**: Card subtext items (e.g. metadata lines, debt items) must follow a consistent **8px** (`AppSpacing.sm`) vertical gap logic to prevent typography "crushing" when multiple items are displayed.
+- **Dynamic Radius**: `config.cardRadius` from `SocietyConfig` (default: 18px).
+- **Dynamic Padding**: `config.cardVerticalPadding` / `config.cardHorizontalPadding` (default: 16px).
+- **Dynamic Shadows**: Auto-scales with `config.shadowIntensity`.
+- **Clipping**: Internal `ClipRRect` forces all children to respect the dynamic curve.
+- **Key Parameters**: `onTap`, `padding`, `backgroundColor`, `gradient`, `border`, `showShadow`.
 
-## 2. Forms & Inputs (`inputs.dart`)
+### `BoxyArtSquareBadge`
+Fixed-size identity icon container with optional tint.
+```dart
+BoxyArtSquareBadge(size: 48, isTinted: true, child: Icon(Icons.quiz_rounded))
+```
 
-### `BoxyArtInputField`
-The unified design-first input.
-- **Dynamic Radius**: Uses `config.inputRadius` from `SocietyConfig`. Defaults to 12px.
-- **Typography**: Uses `AppTypography.body` for input text and `AppTypography.sizeMicro` (10px) with `weightHeavy` (w800) for labels.
-- **Label Case**: Labels are strictly **UPPERCASE** for high-density elegance.
+---
 
-### `BoxyArtRichEditor` [NEW]
-The premium WYSIWYG editor for complex text content (e.g. Question Prompts, Broadcasts).
-- **Engine**: Powered by `flutter_quill`.
-- **Styling**: Unified with `BoxyArtInputField` regarding radius and label styling.
-- **Features**: Supports bold, italic, lists, and links.
-- **Persistence**: Emits and consumes Quill Delta JSON strings.
+## 3. Forms & Inputs (`inputs.dart`)
 
-## 3. Buttons (`buttons.dart`)
+### `BoxyArtInputField` / `BoxyArtFormField`
+Unified design-first input field.
+- **Dynamic Radius**: `config.inputRadius` (default: 12px).
+- **Typography**: `AppTypography.body` for text; `sizeMicro` (10px) + `weightHeavy` for labels.
+- **Label Case**: UPPERCASE labels for high-density admin aesthetics.
+
+### `BoxyArtRichEditor`
+Premium WYSIWYG editor powered by `flutter_quill`.
+- Emits and consumes **Quill Delta JSON** strings.
+- Supports: bold, italic, lists, links.
+- Visually unified with `BoxyArtInputField` (same radius/label treatment).
+
+### `BoxyArtDropdownField<T>`
+Typed dropdown wrapper with label, hint, and `DropdownMenuItem<T>` support.
+
+### `BoxyArtDatePickerField`
+Read-only field that triggers a date/time picker on tap.
+
+### `BoxyArtSwitchField`
+Label + `Switch` in a single row layout. Active state uses `activeTrackColor` (not deprecated `activeColor`).
+
+### `BoxyArtFormColumn`
+Vertical column wrapper with standardised gap between form fields.
+
+### `BoxyArtFormActionRow`
+Standard "Save / Cancel" row for form footers.
+
+---
+
+## 4. Buttons (`buttons.dart`)
 
 ### `BoxyArtButton`
-Multipurpose action button targeting v4.0 aesthetics.
-- **Dynamic Radius**: Uses `config.inputRadius` (shared with inputs) or a specialized button radius if configured.
-- **Typography**: Strictly uses `AppTypography.label` with `AppTypography.weightHeavy`.
-- **Primary**: Brand Lime (`lime500` or `lime700`) with dark contrast text (`actionText`).
+Multipurpose action button.
+- **Dynamic Radius**: shares `inputRadius` token.
+- **Variants**: `isPrimary`, `isSecondary`, `isGhost`, `isSmall`, `fullWidth`, `isLoading`.
+- **Typography**: `AppTypography.label` + `weightHeavy`.
 
-### Section Headers (BoxyArtSectionTitle)
-Enforces the **32/8 vertical rhythm**. Use for all logical groupings.
-- **Typography**: `Label` (13px) + `Heavy` (800) for standard titles.
-- **Lowercase/Title Case**: Auto-formatted to Title Case for elegance.
-- **Level 2**: `Micro` (10px) style for sub-sections.
-- **Metadata Labels**: Use 10px (`sizeMicro`) + `Heavy` (800) + UPPERCASE for data keys (e.g. in `ModernInfoRow`).
+### `BoxyArtGlassIconButton`
+Compact glass-style icon button. Used for header actions, inline card actions.
+- Parameters: `icon`, `iconColor`, `iconSize`, `onPressed`, `tooltip`.
 
-## 4. Badges & Indicators (`badges.dart`)
+---
+
+## 5. Section Headers
+
+### `BoxyArtSectionTitle`
+Enforces the **32/8 vertical rhythm** (32px above, 8px below).
+
+```dart
+const BoxyArtSectionTitle(title: 'Section Name')        // Standard
+const BoxyArtSectionTitle(title: 'Section Name', isPeeking: true)  // First in sliver — removes top margin
+BoxyArtSectionTitle(title: 'Count', trailing: someWidget) // With right-aligned action
+```
+
+- **Typography**: 13px (`label`) + 800 weight + Title Case.
+- **`isPeeking: true`**: Mandatory for the first title in any `HeadlessScaffold` sliver list.
+
+---
+
+## 6. Badges & Indicators (`badges.dart`)
 
 ### `BoxyArtPill`
-The standard for highlighting status, format, or type classification.
-- **v4.0 Taxonomy**: Minimalist **Dot + Text** format (Legend).
-- **Dot + Text**: Automatically renders a colored 8px dot instead of a background fill for `status`, `format`, and `type` factories.
-- **Iconless**: Icons are suppressed in Legend mode to maintain a cleaner, data-first aesthetic.
-- **Semantic Entities**: Supports `BoxyArtPill.hc()`, `BoxyArtPill.phc()`, `BoxyArtPill.guest()`, `BoxyArtPill.meal()` etc.
-- **Handicap Formatting**: `hc` and `phc` pills use consistent uppercase labels ("HC:", "PHC:") and have no icons per design v4.1. Index values are strictly formatted to 1 decimal place.
+The standard for status, format, and type classification.
 
-## 5. Typography Standards
-As of v4.0, all components are hard-linked to the following tokens:
-- **Headers/Titles**: `AppTypography.headline` + `weightHeavy`.
-- **Body Content**: `AppTypography.body` + `weightRegular`.
-- **Primary Data/Values**: 16px + `weightBold` (w700).
-- **Labels/Metadata**: `AppTypography.sizeMicro` (10px) + `weightHeavy` (w800) + UPPERCASE.
+| Factory | Usage |
+|---|---|
+| `BoxyArtPill.committee(label: 'ADMIN')` | Administrative identity tag |
+| `BoxyArtPill.status(label: ..., color: ...)` | Dot + text legend |
+| `BoxyArtPill.hc(index: 18.4)` | Handicap (1 decimal, no icon) |
+| `BoxyArtPill.phc(index: 15.2)` | Playing handicap |
+| `BoxyArtPill.guest()` | Guest indicator |
+| `BoxyArtPill.meal(type: ...)` | Meal preference |
 
-- **`Section` (32.0)**: Vertical rhythm between blocks.
+> [!CAUTION]
+> `BoxyArtPill.committee()` is NOT a `const` constructor. Do not mark its parent `HeadlessScaffold` as `const`.
 
-## 7. Dividers & Separators
-### `BoxyArtDivider`
-A standardized, subtle divider for logical separation within cards or between list items.
-- **Styling**: Uses 1px thickness with high-transparency `dividerColor`.
-- **Spacing**: Configurable `verticalPadding` (defaults to `AppSpacing.xs`).
+### `BoxyArtPill` Dot Legend mode
+For all `status`, `format`, and `type` pills: renders an 8px coloured dot + text (no background fill, no icon).
 
-## 8. Dynamic Vertical Rhythm
-For the Admin Console, use `AppSpacingTokens` extensions to provide user-controllable density:
-- `spacing?.labelToCard`: Standardized gap above cards.
-- `spacing?.cardToLabel`: Standardized gap below cards.
-- `spacing?.cardVerticalPadding`: Dynamic vertical padding for all cards.
-- `spacing?.cardHorizontalPadding`: Dynamic horizontal padding for all cards.
+### `BoxyArtStatusPill`
+Toggleable "Paid / Unpaid" or "Visible / Hidden" double-state pill with tap-to-toggle support.
 
-## 7. Motion & Transitions
-All navigation uses the `boxyPage` transition helper:
-- **Fade + Subtle Slide Up**
-- **Duration**: 400ms (`AppAnimations.medium`)
-- **Stability**: Implements **Salted PageKeys** (`state.pageKey` + `state.matchedLocation`) to prevent duplicate navigation key crashes in nested shell routes.
+### `BoxyArtNumberBadge`
+Circular numbered position badge (used in leaderboards).
 
-## 8. Bottom Sheets & Navigation Bar Visibility
+### `BoxyArtIconBadge`
+Square icon badge with optional tint fill.
+
+---
+
+## 7. Info Rows
+
+### `ModernInfoRow`
+Standard label + value row with optional icon:
+```dart
+ModernInfoRow(label: 'Course', value: 'St Andrews', icon: Icons.location_on_rounded)
+```
+
+---
+
+## 8. Images
+
+### `BoxyArtImage`
+Network image with loading/error state handling, configurable `fit`, `borderRadius`, and `errorWidget`.
+
+> [!NOTE]
+> All images must use `BoxyArtImage` — never `Image.network()` in production UI.
+
+---
+
+## 9. Navigation Bar Visibility Rules
 
 ### `BoxyArtBottomSheet`
-The canonical bottom sheet wrapper. Provides a branded drag handle, title, close button, and `DraggableScrollableSheet`.
+Canonical bottom sheet wrapper with branded drag handle, title, and `DraggableScrollableSheet`.
 
 ```dart
 BoxyArtBottomSheet.show(
   context: context,
   title: 'Sheet Title',
   child: MyContent(),
-  // useRootNavigator defaults to FALSE — keeps global nav bar visible
+  // useRootNavigator defaults to FALSE
 );
 ```
 
-### ⚠️ Critical Rule: `useRootNavigator: false`
+> [!CAUTION]
+> **ALL `showModalBottomSheet` calls MUST use `useRootNavigator: false`.**
+> Using `true` (Flutter default) pushes the sheet above `GlobalAppShell`, hiding the bottom navigation bar.
 
-**All `showModalBottomSheet` calls in this project MUST use `useRootNavigator: false`.**
-
-**Why:** Using `useRootNavigator: true` (the Flutter default) pushes the sheet to the root navigator sittin *above* the `GlobalAppShell`. This visually occludes and hides the bottom navigation bar for the sheet's full lifetime.
-
-With `useRootNavigator: false`, the sheet is scoped to the current branch navigator, so the global nav bar remains visible and interactive behind the sheet.
-
-**Enforced on:**
-- `BoxyArtBottomSheet.show()` — `useRootNavigator: false` is the **default**
+Enforced screens:
 - `MemberDetailsModal.show()` — explicit `false`
 - `ScorecardModal.show()` — explicit `false`, `maxChildSize: 0.92`
 - `GroupingModals.showGroupingRules()` — explicit `false`
@@ -114,4 +187,45 @@ With `useRootNavigator: false`, the sheet is scoped to the current branch naviga
 - `SeasonStandingsScreen._showDetails()` — explicit `false`
 - `AudienceManagerScreen._showCreateListDialog()` — explicit `false`
 
-**`maxChildSize` cap:** Draggable sheets cap at **0.92** (not 1.0) to ensure the nav bar is never fully covered even at max drag position.
+**`maxChildSize` cap:** All draggable sheets cap at **0.92** to keep the nav bar visible at max drag.
+
+---
+
+## 10. Dialogs
+
+### `showBoxyArtDialog`
+Standard confirmation dialog.
+```dart
+final result = await showBoxyArtDialog<bool>(
+  context: context,
+  title: 'Confirm?',
+  message: 'This action is irreversible.',
+  confirmText: 'Confirm',
+  onCancel: () => Navigator.of(context, rootNavigator: true).pop(),
+  onConfirm: () async { /* ... */ },
+);
+```
+
+---
+
+## 11. Motion & Transitions
+
+| Transition | Description | Duration |
+|---|---|---|
+| `boxyPage` | Fade + Subtle Slide Up | 400ms |
+| `AppAnimations.fast` | Micro-interactions | 200ms |
+| `AppAnimations.medium` | Standard | 400ms |
+
+`boxyPage` implements the **Salted PageKey Strategy** (`state.pageKey` + `state.matchedLocation`) to prevent duplicate navigation key crashes in nested shell routes.
+
+---
+
+## 12. Deprecated Patterns (Do Not Use)
+
+| Deprecated | Replacement |
+|---|---|
+| `Switch(activeColor: ...)` | `Switch(activeTrackColor: ..., activeThumbColor: ...)` |
+| `TextFormField(initialValue: ...)` with `value:` | Use `initialValue:` parameter |
+| `const HeadlessScaffold(titleSuffix: BoxyArtPill.committee(...))` | Remove `const` from scaffold |
+| `proxyDecorator: (child, _, __) =>` | `proxyDecorator: (child, index, animation) =>` |
+| Inline `TextStyle(fontSize: X, color: Colors.X)` | `AppTypography.X.copyWith(color: AppColors.X)` |

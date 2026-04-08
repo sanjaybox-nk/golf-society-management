@@ -57,12 +57,13 @@ class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
       ),
       body: HeadlessScaffold(
         title: 'Communications',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         actions: [
           if (_currentIndex == 0)
             BoxyArtGlassIconButton(
               icon: Icons.add_rounded,
               onPressed: () => setState(() => _currentIndex = 1),
-              tooltip: 'New Notification',
+              tooltip: 'New Note',
             ),
         ],
         leading: Center(

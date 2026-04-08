@@ -25,6 +25,7 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
       data: (event) {
         return HeadlessScaffold(
           title: 'Registrations',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
 
           showBack: true,
@@ -140,237 +141,278 @@ class EventRegistrationsAdminScreen extends ConsumerWidget {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
 
     return SliverPadding(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xl, 
-          vertical: spacing?.labelToCard ?? AppSpacing.standard
         ),
         sliver: SliverList(
           delegate: SliverChildListDelegate([
             // METRICS CARD
-            // METRICS CARD
-            const BoxyArtSectionTitle(title: 'Registration Stats'),
+            const BoxyArtSectionTitle(
+              title: 'Registration Stats',
+              isPeeking: true,
+            ),
             RegistrationStatsCard(event: event, isCompact: true, showAdminMetrics: true),
 
 
           // MEMBERS - PLAYING
           if (playingMembers.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Playing (${playingMembers.length})'),
-            ...playingMembers.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name,
-                label: 'Member',
-                position: vm.position,
-                status: vm.status,
-                buggyStatus: vm.buggyStatus,
-                attendingBreakfast: vm.item.registration.attendingBreakfast,
-                attendingLunch: vm.item.registration.attendingLunch,
-                attendingDinner: vm.item.registration.attendingDinner,
-                hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Playing (${playingMembers.length})', isPeeking: true),
+            ...playingMembers.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == playingMembers.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name,
+                  label: 'Member',
+                  position: vm.position,
+                  status: vm.status,
+                  buggyStatus: vm.buggyStatus,
+                  attendingBreakfast: vm.item.registration.attendingBreakfast,
+                  attendingLunch: vm.item.registration.attendingLunch,
+                  attendingDinner: vm.item.registration.attendingDinner,
+                  hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: vm.memberProfile,
+                  onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                  onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                  onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                  onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                  onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
+                ),
+              );
+            }),
           ],
 
           // MEMBERS - WAITLIST
           if (waitlistMembers.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Waitlist (${waitlistMembers.length})'),
-            ...waitlistMembers.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name,
-                label: 'Member',
-                position: vm.position,
-                status: vm.status,
-                buggyStatus: vm.buggyStatus,
-                attendingBreakfast: vm.item.registration.attendingBreakfast,
-                attendingLunch: vm.item.registration.attendingLunch,
-                attendingDinner: vm.item.registration.attendingDinner,
-                hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Waitlist', count: waitlistMembers.length, isPeeking: true),
+            ...waitlistMembers.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == waitlistMembers.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name,
+                  label: 'Member',
+                  position: vm.position,
+                  status: vm.status,
+                  buggyStatus: vm.buggyStatus,
+                  attendingBreakfast: vm.item.registration.attendingBreakfast,
+                  attendingLunch: vm.item.registration.attendingLunch,
+                  attendingDinner: vm.item.registration.attendingDinner,
+                  hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: vm.memberProfile,
+                  onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                  onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                  onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                  onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                  onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
+                ),
+              );
+            }),
           ],
 
           // MEMBERS - RESERVED
           if (reservedMembers.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Reserved (${reservedMembers.length})'),
-            ...reservedMembers.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name,
-                label: 'Member',
-                position: vm.position,
-                status: vm.status,
-                buggyStatus: vm.buggyStatus,
-                attendingBreakfast: vm.item.registration.attendingBreakfast,
-                attendingLunch: vm.item.registration.attendingLunch,
-                attendingDinner: vm.item.registration.attendingDinner,
-                hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
-                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Reserved', count: reservedMembers.length, isPeeking: true),
+            ...reservedMembers.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == reservedMembers.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name,
+                  label: 'Member',
+                  position: vm.position,
+                  status: vm.status,
+                  buggyStatus: vm.buggyStatus,
+                  attendingBreakfast: vm.item.registration.attendingBreakfast,
+                  attendingLunch: vm.item.registration.attendingLunch,
+                  attendingDinner: vm.item.registration.attendingDinner,
+                  hasGuest: vm.item.registration.guestName != null && vm.item.registration.guestName!.isNotEmpty,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: vm.memberProfile,
+                  onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, false),
+                  onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, false),
+                  onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, false),
+                  onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, false),
+                  onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, false),
+                ),
+              );
+            }),
           ],
 
           // GUESTS - PLAYING
           if (playingGuests.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Playing Guests (${playingGuests.length})'),
-            ...playingGuests.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name, 
-                label: 'Guest of ${vm.item.registration.memberName}',
-                position: vm.position,
-                status: vm.status,
-                buggyStatus: vm.buggyStatus,
-                attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-                attendingLunch: vm.item.registration.guestAttendingLunch,
-                attendingDinner: vm.item.registration.guestAttendingDinner,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: null, 
-                isGuest: true,
-                onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
-                onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
-                onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
-                onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
-                onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, true),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Playing Guests', count: playingGuests.length, isPeeking: true),
+            ...playingGuests.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == playingGuests.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name, 
+                  label: 'Guest of ${vm.item.registration.memberName}',
+                  position: vm.position,
+                  status: vm.status,
+                  buggyStatus: vm.buggyStatus,
+                  attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+                  attendingLunch: vm.item.registration.guestAttendingLunch,
+                  attendingDinner: vm.item.registration.guestAttendingDinner,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: null, 
+                  isGuest: true,
+                  onStatusChanged: (newStatus) => _updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => _toggleBuggyStatus(ref, event, vm.item.registration, true),
+                  onBreakfastToggle: () => _toggleBreakfast(ref, event, vm.item.registration, true),
+                  onLunchToggle: () => _toggleLunch(ref, event, vm.item.registration, true),
+                  onDinnerToggle: () => _toggleDinner(ref, event, vm.item.registration, true),
+                  onPaidToggle: () => _togglePaid(ref, event, vm.item.registration, true),
+                ),
+              );
+            }),
           ],
 
           // WAITLIST GUESTS
           if (waitlistGuests.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Waitlist Guests (${waitlistGuests.length})'),
-            ...waitlistGuests.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name, 
-                label: 'Guest of ${vm.item.registration.memberName}',
-                position: vm.position,
-                status: vm.status,
-                buggyStatus: vm.buggyStatus,
-                attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-                attendingLunch: vm.item.registration.guestAttendingLunch,
-                attendingDinner: vm.item.registration.guestAttendingDinner,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: null, 
-                isGuest: true,
-                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, true),
-                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
-                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
-                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
-                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, true),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Waitlist Guests', count: waitlistGuests.length, isPeeking: true),
+            ...waitlistGuests.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == waitlistGuests.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name, 
+                  label: 'Guest of ${vm.item.registration.memberName}',
+                  position: vm.position,
+                  status: vm.status,
+                  buggyStatus: vm.buggyStatus,
+                  attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+                  attendingLunch: vm.item.registration.guestAttendingLunch,
+                  attendingDinner: vm.item.registration.guestAttendingDinner,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: null, 
+                  isGuest: true,
+                  onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, true),
+                  onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
+                  onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
+                  onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
+                  onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, true),
+                ),
+              );
+            }),
           ],
 
           // RESERVED GUESTS
           if (reservedGuests.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Reserved Guests (${reservedGuests.length})'),
-            ...reservedGuests.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name, 
-                label: 'Guest of ${vm.item.registration.memberName}',
-                position: vm.position,
-                status: vm.status,
-                buggyStatus: vm.buggyStatus,
-                attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
-                attendingLunch: vm.item.registration.guestAttendingLunch,
-                attendingDinner: vm.item.registration.guestAttendingDinner,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: null, 
-                isGuest: true,
-                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, true),
-                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
-                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
-                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
-                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, true),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Reserved Guests', count: reservedGuests.length, isPeeking: true),
+            ...reservedGuests.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == reservedGuests.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name, 
+                  label: 'Guest of ${vm.item.registration.memberName}',
+                  position: vm.position,
+                  status: vm.status,
+                  buggyStatus: vm.buggyStatus,
+                  attendingBreakfast: vm.item.registration.guestAttendingBreakfast,
+                  attendingLunch: vm.item.registration.guestAttendingLunch,
+                  attendingDinner: vm.item.registration.guestAttendingDinner,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: null, 
+                  isGuest: true,
+                  onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, true),
+                  onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, true),
+                  onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, true),
+                  onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, true),
+                  onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, true),
+                ),
+              );
+            }),
           ],
 
           // DINNER ONLY
           if (dinnerModels.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Dinner Only (${dinnerModels.length})'),
-            ...dinnerModels.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name,
-                label: 'Dinner Only',
-                status: vm.status,
-                buggyStatus: RegistrationStatus.none,
-                attendingBreakfast: vm.item.registration.attendingBreakfast,
-                attendingLunch: vm.item.registration.attendingLunch,
-                attendingDinner: true,
-                hasPaid: vm.item.registration.hasPaid,
-                isDinnerOnly: true,
-                isAdmin: true,
-                memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: null,
-                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
-                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, false),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Dinner Only', count: dinnerModels.length, isPeeking: true),
+            ...dinnerModels.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == dinnerModels.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name,
+                  label: 'Dinner Only',
+                  status: vm.status,
+                  buggyStatus: RegistrationStatus.none,
+                  attendingBreakfast: vm.item.registration.attendingBreakfast,
+                  attendingLunch: vm.item.registration.attendingLunch,
+                  attendingDinner: true,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isDinnerOnly: true,
+                  isAdmin: true,
+                  memberProfile: vm.memberProfile,
+                  onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: null,
+                  onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
+                  onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
+                  onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
+                  onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, false),
+                ),
+              );
+            }),
           ],
 
           // NOT PARTICIPATING
           if (withdrawnModels.isNotEmpty) ...[
-            BoxyArtSectionTitle(title: 'Not Participating (${withdrawnModels.length})'),
-            ...withdrawnModels.map((vm) => Padding(
-              padding: EdgeInsets.only(bottom: spacing?.labelToCard ?? AppSpacing.md),
-              child: RegistrationCard(
-                name: vm.item.name,
-                label: 'Withdrawn',
-                status: vm.status,
-                buggyStatus: RegistrationStatus.none,
-                attendingBreakfast: vm.item.registration.attendingBreakfast,
-                attendingLunch: vm.item.registration.attendingLunch,
-                attendingDinner: false,
-                hasPaid: vm.item.registration.hasPaid,
-                isAdmin: true,
-                memberProfile: vm.memberProfile,
-                onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
-                onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, false),
-                onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
-                onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
-                onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
-                onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, false),
-              ),
-            )),
+            BoxyArtSectionTitle(title: 'Not Participating', count: withdrawnModels.length, isPeeking: true),
+            ...withdrawnModels.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final vm = entry.value;
+              final isLast = idx == withdrawnModels.length - 1;
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : (spacing?.cardToCard ?? AppSpacing.md)),
+                child: RegistrationCard(
+                  name: vm.item.name,
+                  label: 'Withdrawn',
+                  status: vm.status,
+                  buggyStatus: RegistrationStatus.none,
+                  attendingBreakfast: vm.item.registration.attendingBreakfast,
+                  attendingLunch: vm.item.registration.attendingLunch,
+                  attendingDinner: false,
+                  hasPaid: vm.item.registration.hasPaid,
+                  isAdmin: true,
+                  memberProfile: vm.memberProfile,
+                  onStatusChanged: (newStatus) => EventRegistrationsAdminScreen._updateStatus(ref, event, vm.item.registration, newStatus),
+                  onBuggyToggle: () => EventRegistrationsAdminScreen._toggleBuggyStatus(ref, event, vm.item.registration, false),
+                  onBreakfastToggle: () => EventRegistrationsAdminScreen._toggleBreakfast(ref, event, vm.item.registration, false),
+                  onLunchToggle: () => EventRegistrationsAdminScreen._toggleLunch(ref, event, vm.item.registration, false),
+                  onDinnerToggle: () => EventRegistrationsAdminScreen._toggleDinner(ref, event, vm.item.registration, false),
+                  onPaidToggle: () => EventRegistrationsAdminScreen._togglePaid(ref, event, vm.item.registration, false),
+                ),
+              );
+            }),
           ],
             SizedBox(height: AppSpacing.hero),
           ]),

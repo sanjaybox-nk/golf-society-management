@@ -33,7 +33,7 @@ class EventScoringProcessor {
       ...event.registrations.where((r) => r.guestName != null).map((r) => '${r.memberId}_guest'),
       ...event.results.map((r) => (r['memberId'] ?? r['userId'] ?? r['playerId'] ?? '').toString()),
       ...liveScorecards.map((s) => s.entryId),
-      if (currentUserId != null) currentUserId,
+      ?currentUserId,
     }..remove('');
 
     for (var effectivePid in allPlayerIds) {

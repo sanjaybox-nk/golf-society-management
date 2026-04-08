@@ -86,7 +86,7 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
   @override
   Widget build(BuildContext context) {
     final config = ref.watch(themeControllerProvider);
-
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final radius = config.cardRadius;
 
     return BoxyArtCard(
@@ -95,32 +95,41 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: BoxyArtFormField(
+                child: BoxyArtTextField(
                   label: toTitleCase(widget.titleHint!),
                   controller: _titleController,
+                  hintText: 'Enter title here...',
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              BoxyArtGlassIconButton(
-                icon: Icons.add_a_photo_rounded,
-                iconSize: 20,
-                onPressed: _pickImage,
-                tooltip: 'Add Photo',
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              BoxyArtGlassIconButton(
-                icon: Icons.delete_outline,
-                iconSize: 20,
-                onPressed: widget.onRemove,
-                tooltip: 'Remove Note',
+              const SizedBox(width: AppSpacing.md),
+              Padding(
+                padding: const EdgeInsets.only(top: 26), // Align with input field when label is present
+                child: Row(
+                  children: [
+                    BoxyArtGlassIconButton(
+                      icon: Icons.add_a_photo_rounded,
+                      iconSize: 20,
+                      onPressed: _pickImage,
+                      tooltip: 'Add Photo',
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    BoxyArtGlassIconButton(
+                      icon: Icons.delete_outline,
+                      iconSize: 20,
+                      onPressed: widget.onRemove,
+                      tooltip: 'Remove Note',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           
           if (_imageUrl != null) ...[
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
             Stack(
               children: [
                 ClipRRect(
@@ -145,17 +154,14 @@ class _BoxyArtRichNoteEditorState extends ConsumerState<BoxyArtRichNoteEditor> {
             ),
           ],
           
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
           Text(
-            'Note Content',
-            style: AppTypography.label.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark60 : AppColors.dark900,
-              fontSize: AppTypography.sizeLabel,
-              fontWeight: AppTypography.weightBold,
-              letterSpacing: 1.2,
+            'NOTE CONTENT',
+            style: AppTypography.labelStrong.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark500,
             ),
           ),
-          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.labelToCard),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
           BoxyArtRichEditor(
             controller: _quillController,
             placeholder: 'Start writing...',

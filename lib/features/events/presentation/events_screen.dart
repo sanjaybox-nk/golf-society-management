@@ -19,6 +19,7 @@ class EventsScreen extends ConsumerWidget {
     final socialAsync = ref.watch(socialEventsProvider);
     final activeSeasonAsync = ref.watch(activeSeasonProvider);
     final filter = ref.watch(eventFilterProvider);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final seasonName = activeSeasonAsync.when(
       data: (s) => s?.name ?? '',
       loading: () => '',
@@ -37,20 +38,18 @@ class EventsScreen extends ConsumerWidget {
       slivers: [
         // Filter Bar (Simplified to 2 Tabs - Harmonized with MembersScreen style)
         SliverToBoxAdapter(
-          child: Transform.translate(
-            offset: const Offset(0, -16.0),
-            child: ModernUnderlinedFilterBar<EventFilter>(
-              tabs: const [
-                ModernFilterTab(label: 'Events', value: EventFilter.season),
-                ModernFilterTab(label: 'Social', value: EventFilter.social),
-              ],
-              selectedValue: filter,
-              onTabSelected: (val) => ref.read(eventFilterProvider.notifier).update(val),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              isExpanded: true,
-            ),
+          child: ModernUnderlinedFilterBar<EventFilter>(
+            tabs: const [
+              ModernFilterTab(label: 'Events', value: EventFilter.season),
+              ModernFilterTab(label: 'Social', value: EventFilter.social),
+            ],
+            selectedValue: filter,
+            onTabSelected: (val) => ref.read(eventFilterProvider.notifier).update(val),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            isExpanded: true,
           ),
         ),
+        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel)),
 
         // 1. Season Events Tab
         if (filter == EventFilter.season) ...[

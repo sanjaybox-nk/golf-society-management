@@ -156,7 +156,7 @@ class ModernScoringView extends StatelessWidget {
               Text(
                 'HOLE $currentHole',
                 style: AppTypography.label.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHalf),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
                   letterSpacing: 2.0,
                 ),
               ),
@@ -175,7 +175,7 @@ class ModernScoringView extends StatelessWidget {
                   color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark700 : AppColors.pureWhite,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.lime500.withOpacity(AppColors.opacityMedium),
+                    color: AppColors.lime500.withValues(alpha: AppColors.opacityMedium),
                     width: AppShapes.borderMedium,
                   ),
                   boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
@@ -224,7 +224,7 @@ class ModernScoringView extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: AppShapes.x2l,
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
+          color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
           width: AppShapes.borderThin,
         ),
         boxShadow: Theme.of(context).extension<AppShadows>()?.softScale ?? [],
@@ -321,7 +321,7 @@ class ModernScoringView extends StatelessWidget {
             style: (isSelected ? AppTypography.displayLocker : AppTypography.displayLargeBody).copyWith(
               color: isSelected 
                   ? (isDark ? AppColors.pureWhite : AppColors.dark900) 
-                  : theme.colorScheme.onSurface.withOpacity(AppColors.opacityHalf),
+                  : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
             ),
             child: Text(label),
           ),
@@ -337,7 +337,7 @@ class ModernScoringView extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
+            color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
             width: AppShapes.borderThin,
           ),
         ),
@@ -411,10 +411,10 @@ class ModernScoringView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: teeColor.withOpacity(AppColors.opacityMedium),
+        color: teeColor.withValues(alpha: AppColors.opacityMedium),
         borderRadius: AppShapes.md,
         border: Border.all(
-          color: teeColor.withOpacity(AppColors.opacityMuted),
+          color: teeColor.withValues(alpha: AppColors.opacityMuted),
           width: AppShapes.borderThin,
         ),
       ),
@@ -428,7 +428,7 @@ class ModernScoringView extends StatelessWidget {
               color: teeColor,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),

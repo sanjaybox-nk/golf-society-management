@@ -62,20 +62,16 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         subtitle: 'Members Roster',
         backgroundColor: beigeBackground,
         slivers: [
-          // Baseline Nudge for Tab Bar
           SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -16.0),
-              child: ModernUnderlinedFilterBar<AdminMemberFilter>(
-                selectedValue: currentFilter.type,
-                onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                tabs: [
-                  ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                  ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                  ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
-                ],
-              ),
+            child: ModernUnderlinedFilterBar<AdminMemberFilter>(
+              selectedValue: currentFilter.type,
+              onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              tabs: [
+                ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+              ],
             ),
           ),
           SliverPadding(

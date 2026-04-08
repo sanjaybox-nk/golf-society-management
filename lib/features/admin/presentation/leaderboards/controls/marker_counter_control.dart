@@ -6,7 +6,11 @@ class MarkerCounterControl extends StatefulWidget {
   final LeaderboardConfig? existingConfig;
   final Function(LeaderboardConfig) onSave;
 
-  const MarkerCounterControl({super.key, this.existingConfig, required this.onSave});
+  const MarkerCounterControl({
+    super.key,
+    this.existingConfig,
+    required this.onSave,
+  });
 
   @override
   State<MarkerCounterControl> createState() => _MarkerCounterControlState();
@@ -24,11 +28,17 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
   void initState() {
     super.initState();
     final config = widget.existingConfig as MarkerCounterConfig?;
-    _nameController = TextEditingController(text: config?.name ?? 'Birdie Tree');
-    _targetTypes = config?.targetTypes ?? {MarkerType.birdie, MarkerType.eagle, MarkerType.holeInOne};
+    _nameController = TextEditingController(
+      text: config?.name ?? 'Birdie Tree',
+    );
+    _targetTypes =
+        config?.targetTypes ??
+        {MarkerType.birdie, MarkerType.eagle, MarkerType.holeInOne};
     _holeFilter = config?.holeFilter ?? HoleFilter.all;
     _rankingMethod = config?.rankingMethod ?? MarkerRankingMethod.count;
-    _bestNController = TextEditingController(text: (config?.bestN ?? 0).toString());
+    _bestNController = TextEditingController(
+      text: (config?.bestN ?? 0).toString(),
+    );
   }
 
   @override
@@ -68,7 +78,9 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                 Text(
                   'Target markers',
                   style: AppTypography.label.copyWith(
-                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark300,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.dark150
+                        : AppColors.dark300,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -92,11 +104,20 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                         });
                       },
                       selectedColor: AppColors.lime500,
-                      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lightHeader,
+                      backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.dark600
+                          : AppColors.lightHeader,
                       labelStyle: AppTypography.label.copyWith(
-                        color: isSelected ? AppColors.actionText : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark200 : AppColors.dark400),
+                        color: isSelected
+                            ? AppColors.actionText
+                            : (Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.dark200
+                                  : AppColors.dark400),
                         fontSize: AppTypography.sizeCaption,
-                        fontWeight: isSelected ? AppTypography.weightBlack : AppTypography.weightBold,
+                        fontWeight: isSelected
+                            ? AppTypography.weightBlack
+                            : AppTypography.weightBold,
                       ),
                       side: BorderSide.none,
                       shape: RoundedRectangleBorder(borderRadius: AppShapes.sm),
@@ -108,20 +129,28 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                 BoxyArtDropdownField<HoleFilter>(
                   label: 'Hole Filter',
                   value: _holeFilter,
-                  items: HoleFilter.values.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: HoleFilter.values
+                      .map(
+                        (v) => DropdownMenuItem(
+                          value: v,
+                          child: Text(_formatEnum(v.name)),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => _holeFilter = v!),
                 ),
                 const SizedBox(height: AppSpacing.x2l),
                 BoxyArtDropdownField<MarkerRankingMethod>(
                   label: 'Ranking Basis',
                   value: _rankingMethod,
-                  items: MarkerRankingMethod.values.map((v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(_formatEnum(v.name)),
-                  )).toList(),
+                  items: MarkerRankingMethod.values
+                      .map(
+                        (v) => DropdownMenuItem(
+                          value: v,
+                          child: Text(_formatEnum(v.name)),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => _rankingMethod = v!),
                 ),
                 const SizedBox(height: AppSpacing.x2l),
@@ -140,23 +169,19 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
                     fontStyle: FontStyle.italic,
                   ),
                 ),
-                
+
                 _buildRuleDescription(),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.x2l),
           Center(
-            child: BoxyArtButton(
-              title: 'Save changes',
-              onTap: _save,
-            ),
+            child: BoxyArtButton(title: 'Save changes', onTap: _save),
           ),
         ],
       ),
     );
   }
-
 
   String _formatEnum(String val) {
     if (val == 'holeInOne') return 'Hole In One';
@@ -171,32 +196,37 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
     String result = '';
 
     final typeNames = _targetTypes.map((e) => _formatEnum(e.name)).join(', ');
-    final holeDesc = _holeFilter == HoleFilter.all ? 'all holes' : 'only ${_formatEnum(_holeFilter.name)}s';
-    
+    final holeDesc = _holeFilter == HoleFilter.all
+        ? 'all holes'
+        : 'only ${_formatEnum(_holeFilter.name)}s';
+
     goal = 'Collect the most $typeNames.';
     scoring = 'Count markers on $holeDesc.';
-    if (int.tryParse(_bestNController.text) != null && int.parse(_bestNController.text) > 0) {
+    if (int.tryParse(_bestNController.text) != null &&
+        int.parse(_bestNController.text) > 0) {
       scoring += ' (Best ${_bestNController.text} rounds only)';
     }
-    
-    result = _rankingMethod == MarkerRankingMethod.count 
-       ? 'Player with highest total count wins.'
-       : 'Player with highest Stableford points from these markers wins.';
+
+    result = _rankingMethod == MarkerRankingMethod.count
+        ? 'Player with highest total count wins.'
+        : 'Player with highest Stableford points from these markers wins.';
 
     return Container(
       margin: const EdgeInsets.only(top: AppSpacing.x2l),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.lime500.withOpacity(AppColors.opacitySubtle),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.dark600
+            : AppColors.lime500.withValues(alpha: AppColors.opacitySubtle),
         borderRadius: AppShapes.md,
       ),
       child: Column(
         children: [
-           _buildInfoRow('Goal', goal),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Scoring', scoring),
-           const SizedBox(height: AppSpacing.sm),
-           _buildInfoRow('Result', result),
+          _buildInfoRow('Goal', goal),
+          const SizedBox(height: AppSpacing.sm),
+          _buildInfoRow('Scoring', scoring),
+          const SizedBox(height: AppSpacing.sm),
+          _buildInfoRow('Result', result),
         ],
       ),
     );
@@ -207,24 +237,26 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 80, 
+          width: 80,
           child: Text(
-            '$label:', 
+            '$label:',
             style: AppTypography.label.copyWith(
-              fontWeight: AppTypography.weightBlack, 
+              fontWeight: AppTypography.weightBlack,
               color: AppColors.lime500,
               fontSize: AppTypography.sizeCaptionStrong,
-            )
-          )
+            ),
+          ),
         ),
         Expanded(
           child: Text(
-            value, 
+            value,
             style: AppTypography.label.copyWith(
               fontSize: AppTypography.sizeCaptionStrong,
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
-            )
-          )
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.dark150
+                  : AppColors.dark700,
+            ),
+          ),
         ),
       ],
     );
@@ -232,7 +264,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final config = LeaderboardConfig.markerCounter(
       id: widget.existingConfig?.id ?? const Uuid().v4(),
       name: _nameController.text,
@@ -241,7 +273,7 @@ class _MarkerCounterControlState extends State<MarkerCounterControl> {
       rankingMethod: _rankingMethod,
       bestN: int.tryParse(_bestNController.text) ?? 0,
     );
-    
+
     widget.onSave(config);
   }
 }

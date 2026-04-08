@@ -110,7 +110,7 @@ All player entries on the leaderboard and admin scoring lists share a unified "U
     - **Distance Row**: Thin weight (YDS/MTR).
     - **MATCH Status**: Integrated W/L/H indicators for matchplay overlays.
     - **REL column**: Relative to Par (+/-) display in `CourseInfoCard`.
-    - Player names are consistently rendered in **Pure White** (w900) for maximum legibility.
+    - Player names are consistently rendered in Title Case with `AppTypography.headline` (20pt) and `weightExtraBold` (800) for maximum legibility.
 - **Manual Society Cuts (Ad-Hoc Adjustments)**: Administrators can apply individual shot adjustments for a specific event via the **Manual Handicap Cuts** interface.
     - **Persistence**: These cuts are stored in the `manualCuts` registry within the `GolfEvent`.
     - **Scoring Impact**: Cuts are subtracted from the player's calculated Playing Handicap (PHC) across all supported formats (Stableford, Medal, etc.).
@@ -140,7 +140,7 @@ Admins can select a template and immediately click **CUSTOMIZE RULES**. If the e
 ### Persistence & Syncing
 - **ID Preservation**: When customizing a game for an event, the Competition ID is synced to the Event ID.
 - **Cache Invalidation**: After saving changes in the Competition Builder, the system explicitly invalidates the `competitionDetailProvider` cache to ensure the Event Form reflects the new rules immediately upon return.
-- **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI.
+- **Compute Versioning**: Any customized game (not a template) has its `computeVersion` incremented to flag it as "Customized" in the UI. All rules are verified to adhere to **v4.1 True Minimal** standards.
 
 ## 5. Rule Visualization (Hardened Competition Card)
 

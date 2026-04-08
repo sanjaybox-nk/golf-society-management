@@ -15,6 +15,7 @@ class AdminSurveysScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Society Surveys',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Gather feedback & insights',
       showBack: true, // [NEW] Enable back navigation
       actions: [

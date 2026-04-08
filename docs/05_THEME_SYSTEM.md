@@ -1,120 +1,214 @@
-# Theme System (v4.0 - Radical Simplification)
+# Theme System (v4.1 — True Minimal)
 
-- **Location**: `lib/theme/`
+The BoxyArt theme system is the single source of truth for all visual tokens in the application. It is fully configurable via the Branding Console.
 
-## Key Files
--   **`app_colors.dart`**: Unified opacity-based color strategy using `onSurface` base.
--   **`app_typography.dart`**: 5 Standard Heights / 3 Standard Weights.
--   **`app_shapes.dart`**: Standardized Icon Scales (Small, Medium, Large).
--   **`app_spacing.dart`**: 4-Tier Scale (Atomic, Standard, Section, Hero).
+- **Core Location**: `lib/design_system/theme/`
+- **Key Files**: `app_colors.dart`, `app_typography.dart`, `app_shapes.dart`, `app_spacing.dart`
 
-## Radical Simplification (v4.0)
+---
 
-The system has been radically consolidated to ensure 100% UI consistency and predictability.
+## 1. Colors (`AppColors`)
 
-### 1. Colors (`AppColors`)
-
-#### Opacity-Based Text Strategy
+### Opacity-Based Text Strategy
 All text colors are derived from the `onSurface` base color using semantic opacity levels:
--   **`textPrimary`**: `onSurface` @ 0.9 (`opacityStrong`)
--   **`textSecondary`**: `onSurface` @ 0.6 (`opacitySecondary`)
--   **`textTertiary`**: `onSurface` @ 0.3 (`opacitySubtle`)
 
-#### Semantic Entity Colors
-Hardcoded entity colors have been replaced with semantic branding tokens:
--   **Guest Purple**: `AppColors.guestPurple` (`#8E44AD`)
--   **Meal Breakfast**: `AppColors.mealBreakfast` (`#8D6E63`)
--   **Meal Dinner**: `AppColors.mealDinner` (`#673AB7`)
--   **Meal Lunch**: `AppColors.mealLunch` (`#2ECC71`)
+| Token | Opacity | Usage |
+|---|---|---|
+| `textPrimary` | 0.9 (`opacityStrong`) | Main content |
+| `textSecondary` | 0.6 (`opacitySecondary`) | Supporting text |
+| `textTertiary` | 0.3 (`opacitySubtle`) | Placeholders, quiet metadata |
 
-### 2. Typography (`AppTypography`)
+### Semantic Entity Colors
+Hardcoded entity colors replaced with semantic branding tokens:
+- `AppColors.guestPurple` — `#8E44AD`
+- `AppColors.mealBreakfast` — `#8D6E63`
+- `AppColors.mealDinner` — `#673AB7`
+- `AppColors.mealLunch` — `#2ECC71`
+- `AppColors.teamA` / `AppColors.teamB` — Team identity
 
-#### Standard Heights (5 Levels)
--   **`Display`**: 32.0 (Hero headers)
--   **`Headline`**: 20.0 (Section titles, Player names)
--   **`Body`**: 16.0 (Default reading)
--   **`Label`**: 13.0 (Buttons, Metadata)
--   **`Micro`**: 10.0 (Captions, Tags, Debt/Financial Subtext)
+### Status Colors (`StatusColors`)
+Semantic palette for consistent status indicators:
+- `StatusColors.positive` — Success / Confirmed
+- `StatusColors.negative` — Error / Declined
+- `StatusColors.warning` — Caution / Pending
 
-#### Standard Weights (3 Levels)
--   **`Heavy`**: 800 (ExtraBold) - For headers and emphasized titles.
--   **`Strong`**: 600 (Semibold) - For labels and secondary emphasis.
--   **`Regular`**: 400 (Regular) - For body text.
+### Opacity Constants
+Use these instead of `withOpacity(0.X)`:
+- `AppColors.opacityStrong` (0.9)
+- `AppColors.opacityHigh` (0.7)
+- `AppColors.opacitySecondary` (0.6)
+- `AppColors.opacityMuted` (0.4)
+- `AppColors.opacityLow` (0.2)
+- `AppColors.opacitySubtle` (0.1)
+- `AppColors.opacityHalf` (0.5)
 
-### 3. Spacing (`AppSpacing`)
-Standardized on a 4-tier scale for a predictable, high-density rhythm.
+---
 
-| Tier | Value | Usage |
-| :--- | :--- | :--- |
-| **Atomic** | 8.0 | Internal gaps, Label-to-Card |
-| **Standard** | 16.0 | Page padding, Card padding, Card-to-Card |
-| **Section** | 32.0 | Section breaks, Section Title Top |
-| **Hero** | 64.0 | Large structural void |
+## 2. Typography (`AppTypography`)
+
+### Standard Scale (5 Levels)
+
+| Token | Size | Usage |
+|---|---|---|
+| `displayHeading` | 32px | Hero headers, modals |
+| `headline` | 20px | Section titles, card headers |
+| `body` | 16px | Default reading, card content |
+| `label` / `labelStrong` | 13px | Buttons, metadata, tags |
+| `micro` | 10px | Captions, pill labels, financial subtext |
+
+### Standard Weights (3 Levels)
+
+| Token | Weight | Usage |
+|---|---|---|
+| `weightHeavy` / `weightExtraBold` | 800 | Headers, emphasized titles |
+| `weightBold` / `weightSemibold` | 600–700 | Labels, secondary emphasis |
+| `weightRegular` | 400 | Body text |
+
+### Letter Spacing
+- `AppTypography.lsLabel` — Standard label letter-spacing (used with UPPERCASE micro labels).
+
+---
+
+## 3. Spacing (`AppSpacing`)
+
+Standardized on a 4-tier scale.
+
+| Tier | Token | Value | Usage |
+|---|---|---|---|
+| Atomic | `xs` / `sm` | 4–8px | Internal gaps, icon buffers |
+| Standard | `md` / `lg` / `xl` | 12–24px | Card gaps, card padding |
+| Section | `x2l` / `x3l` / `cardToLabel` | 32px | Section rhythm |
+| Hero | `x4l` / `sectionGap` | 48–64px | Major structural voids |
 
 > [!TIP]
-> Use `BoxyArtSectionTitle` to automatically enforce this rhythm.
+> Always use `BoxyArtSectionTitle` to automatically enforce vertical rhythm — it handles top/bottom padding internally.
 
-### 5. Dynamic Spacing Tokens (`AppSpacingTokens`)
-For the **Admin Console** and other density-sensitive areas, the system uses dynamic tokens that respond to branding configuration:
-- **`labelToCard`**: Dynamic vertical gap from a Label to its content Card.
-- **`cardToLabel`**: Dynamic vertical gap from a Card to the next Section Label.
-- **`cardVerticalPadding`**: Internal vertical padding for `BoxyArtCard` (defaults to 16.0).
-- **`cardHorizontalPadding`**: Internal horizontal padding for `BoxyArtCard` (defaults to 16.0).
+---
+
+## 4. Dynamic Spacing Tokens (`AppSpacingTokens`)
+
+For density-sensitive areas (Admin Console, settings screens), use the live extension tokens:
+
+```dart
+final spacing = Theme.of(context).extension<AppSpacingTokens>();
+SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard)
+```
+
+| Token | Purpose |
+|---|---|
+| `labelToCard` | Vertical gap from a Section Label to its Card |
+| `cardToLabel` | Vertical gap from a Card to the next Section Label |
+| `cardToCard` | Vertical gap between adjacent cards in a list |
+| `cardVerticalPadding` | Internal vertical padding for `BoxyArtCard` |
+| `cardHorizontalPadding` | Internal horizontal padding for `BoxyArtCard` |
 
 > [!IMPORTANT]
-> Always access these via `Theme.of(context).extension<AppSpacingTokens>()` to support "Zero Spacing" and other user-controlled density modes.
+> Always access these via `Theme.of(context).extension<AppSpacingTokens>()`. Never hardcode these values or they will break in "Zero Spacing" and other density modes.
 
-### 4. Icons (`AppShapes`)
+---
 
-#### 3 standard Scales
--   **`Small`**: 16px
--   **`Medium`**: 24px (Standard)
--   **`Large`**: 32px
+## 5. Shapes (`AppShapes`)
 
-## Branding Console & Granular Control
+### Border Radius Constants
+| Token | Value | Usage |
+|---|---|---|
+| `rXs` | 4px | Tiny elements |
+| `rSm` / `sm` | 8px | Small badges |
+| `rMd` / `md` | 12px | Input fields |
+| `rLg` / `lg` | 16px | Standard cards |
+| `rXl` / `xl` | 18px | Main cards |
+| `pill` | 999px | Pills, fully-rounded |
 
-The legacy `brandingStyle` presets (`classic`, `boxy`, `modern`) are **deprecated**. The system now uses purely dynamic granular controls:
+### Border Thickness
+- `borderThin` — 1px (default)
+- `borderMedium` — 1.5px (selected states)
 
--   **Card Radius**: 0.0 to 40.0
--   **Input Radius**: 0.0 to 30.0
--   **Button Radius**: 0.0 to 30.0
--   **Shadow Intensity/Spread/Opacity**: Fully adjustable.
+### Icon Scales
+- `iconXs` — 14px
+- `iconSm` / `iconSmall` — 16px
+- `iconMd` / `iconMedium` — 24px (standard)
+- `iconLg` / `iconLarge` — 32px
+- `iconXl` — 40px
 
-This allows for a single "Theme Console" to control the entire application's aesthetic without maintaining hardcoded presets.
+---
 
-## Design 4.x Standard (v4.1 - True Minimal)
-As of v4.1, the application enforces a "True Minimal" aesthetic characterized by the elimination of all-caps and refined, high-precision indicators.
+## 6. Branding Console & Granular Control
 
-### 1. Universal Title Case
--   **Policy**: All UI labels, headers, and buttons must use **Title Case**.
--   **Exception**: Acronyms (e.g., GPS, OS, ARM) may remain in caps if appropriate.
--   **Enforcement**: Explicitly prohibited: `ALL-CAPS` section titles, `UPPERCASE` tab labels, and `SHOUTING` status badges.
+All visual properties are user-configurable via `SocietyConfig` (stored in Firestore):
 
-### 2. Tab Indicator Standard
--   **Style**: Bold, full-width (with 12px horizontal inset) indicator with rounded top corners.
--   **Dimensions**: 4px height, spanning the tab area with premium insets.
--   **Typography**: Labels must use `AppTypography.displayLocker` for a premium, fixed-width feel (optimized for density).
--   **Implementation**: Use `ModernUnderlinedFilterBar` or `indicatorSize: TabBarIndicatorSize.tab` for standard `TabBar` integrations.
+| Control | Range |
+|---|---|
+| Card Radius | 0.0 – 40.0 |
+| Input Radius | 0.0 – 30.0 |
+| Button Radius | 0.0 – 30.0 |
+| Shadow Intensity | 0.0 – 1.0 |
+| Shadow Spread | values |
+| Shadow Opacity | values |
+| Primary Color | Any HSL/Hex |
 
-## Motion Standard (v3.9 - BoxyArt Page)
+Legacy `brandingStyle` presets (`classic`, `boxy`, `modern`) are **deprecated**. The granular console is the only mechanism.
 
-As of v3.9, the application uses a unified transition function to ensure movement feels consistent and premium.
+---
 
-  - **Standard Page (`boxyPage`)**: A synchronized **Fade + Subtle Slide Up** (0.05 offset).
-  - **Duration**: `AppAnimations.medium` (400ms).
-  - **Global Policy**: This transition is applied to all route movements, including bottom navigation switches and back-button pops, creating a "silky" and stable user experience.
+## 7. Design 4.x Standard ("True Minimal")
 
-## v4.0 UI Audit & Consolidation (March 2026)
+### Universal Title Case
+- **Policy**: All UI labels, headers, and buttons MUST use Title Case.
+- **Prohibited**: `ALL-CAPS` section titles, `UPPERCASE` tab labels, shouting pill labels.
+- **Exception**: Acronyms (GPS, OoM, HC, PHC) may retain caps.
 
-A comprehensive audit was performed to identify and eliminate hardcoded UI values. The following policy is now in effect:
+### Admin Identity Standard
+All primary administrative `HeadlessScaffold` screens must include:
+```dart
+titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
+```
+This is a non-negotiable visual signifier of administrative context.
 
-### Hardening Policy
-1.  **Zero Hardcoding**: No `Color(0x...)`, `Colors.X`, or `fontSize: X` are permitted in feature widgets.
-2.  **Token Usage**: All styles must reference `AppColors`, `AppTypography`, `AppSpacing`, or `AppShapes`.
-3.  **Semantic Colors**: Use semantic tokens (e.g., `AppColors.textPrimary`) over primitive tokens (`AppColors.dark60`) where available.
-4.  **Consolidated Opacity**: Use the standardized `AppColors.opacityX` tokens instead of `withOpacity(0.X)`.
+### isPeeking Pattern
+The first `BoxyArtSectionTitle` in any `HeadlessScaffold` sliver list must use `isPeeking: true` to eliminate the redundant top margin:
+```dart
+const BoxyArtSectionTitle(title: 'Section Name', isPeeking: true),
+```
 
-### Common Deviations (To be avoided)
-- Using `SizedBox(height: 10)` instead of `AppSpacing.md` (12) or `AppSpacing.sm` (8).
-- Using `BorderRadius.circular(10)` instead of `AppShapes.md` (12).
-- Defining local `TextStyle` objects instead of extending `AppTypography`.
+### Section Header Rhythm (32/8)
+- **Before** section title: `32px` (Section tier)
+- **After** section title to card: `8px` (Atomic tier, handled internally by `BoxyArtSectionTitle`)
+
+### Dynamic Card Rhythm
+All vertical gaps between cards in list views must use dynamic tokens:
+```dart
+SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard)
+```
+
+### Universal Card Title (Admin Gallery Screens)
+All main titles in administrative gallery cards (Templates, Roles, Types) must use:
+```dart
+style: AppTypography.headline.copyWith(fontWeight: AppTypography.weightExtraBold)
+```
+
+---
+
+## 8. Motion Standard (v3.9+)
+
+| Transition | Description | Duration |
+|---|---|---|
+| `boxyPage` | Fade + Subtle Slide Up (0.05 offset) | 400ms (`AppAnimations.medium`) |
+| `AppAnimations.fast` | For micro-interactions (e.g. `AnimatedContainer`) | 200ms |
+
+All route movements including bottom nav switches and back-button pops use `boxyPage`.
+
+---
+
+## 9. Hardening Policy (v4.0 Audit)
+
+1. **Zero Hardcoding**: No `Color(0x...)`, `Colors.X`, or `fontSize: X` in feature widgets.
+2. **Token Usage**: All styles must reference `AppColors`, `AppTypography`, `AppSpacing`, or `AppShapes`.
+3. **Semantic Colors**: Prefer `AppColors.textPrimary` over `AppColors.dark90`.
+4. **Consolidated Opacity**: Use `AppColors.opacityX` tokens — never `withOpacity(0.X)`.
+5. **Const Correctness**: `HeadlessScaffold` with a non-const `titleSuffix` must NOT be wrapped in `const`.
+
+### Common Deviations (Prohibited)
+- `SizedBox(height: 10)` → use `AppSpacing.md` (12) or `AppSpacing.sm` (8)
+- `BorderRadius.circular(10)` → use `AppShapes.md` (12) or `AppShapes.rMd`
+- Local `TextStyle(...)` → extend `AppTypography.body.copyWith(...)`
+- `Switch(activeColor: ...)` → use `activeTrackColor` + `activeThumbColor`

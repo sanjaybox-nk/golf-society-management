@@ -89,8 +89,19 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                 data: (notifications) {
                   final filtered = notifications.where((n) {
                     final term = _searchQuery.toLowerCase();
-                    return n.title.toLowerCase().contains(term) || 
-                           n.message.toLowerCase().contains(term);
+                    final titleMatch = n.title.toLowerCase().contains(term);
+                    
+                    bool messageMatch = false;
+                    if (n.message != null) {
+                      messageMatch = n.message!.toLowerCase().contains(term);
+                    } else if (n.notes.isNotEmpty) {
+                      messageMatch = n.notes.any((note) => 
+                        (note.title?.toLowerCase().contains(term) ?? false) || 
+                        note.content.toLowerCase().contains(term)
+                      );
+                    }
+
+                    return titleMatch || messageMatch;
                   }).toList();
 
                   if (filtered.isEmpty) {
@@ -99,10 +110,10 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                         padding: const EdgeInsets.all(AppSpacing.x5l),
                         child: Column(
                           children: [
-                            Icon(Icons.history_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityMedium)),
+                            Icon(Icons.history_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
                             const SizedBox(height: AppSpacing.lg),
                             Text(
-                              'No notifications found',
+                              'No notes found',
                               style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
                             ),
                           ],
@@ -232,7 +243,7 @@ class _HistoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.lime500.withOpacity(AppColors.opacityLow),
+                    color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                     borderRadius: AppShapes.sm,
                   ),
                   child: Text(
@@ -272,7 +283,7 @@ class _HistoryCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              _getPlainTextMessage(campaign.message), 
+              _getPlainTextMessage(campaign), 
               style: AppTypography.bodySmall.copyWith(
                 color: isDark ? AppColors.dark150 : AppColors.dark400,
                 fontSize: AppTypography.sizeLabelStrong,
@@ -287,30 +298,154 @@ class _HistoryCard extends StatelessWidget {
     );
   }
 
-  String _getPlainTextMessage(String message) {
-    try {
-      final List<dynamic> deltaJson = jsonDecode(message);
-      final document = quill.Document.fromJson(deltaJson);
-      return document.toPlainText().trim();
-    } catch (_) {
-      return message;
+  String _getPlainTextMessage(Campaign campaign) {
+    if (campaign.message != null) {
+      try {
+        final List<dynamic> deltaJson = jsonDecode(campaign.message!);
+        final document = quill.Document.fromJson(deltaJson);
+        return document.toPlainText().trim();
+      } catch (_) {
+        return campaign.message!;
+      }
+    } else if (campaign.notes.isNotEmpty) {
+      // Concatenate content from all sections for a summary
+      return campaign.notes.map((note) {
+        try {
+          final List<dynamic> deltaJson = jsonDecode(note.content);
+          final document = quill.Document.fromJson(deltaJson);
+          return document.toPlainText().trim();
+        } catch (_) {
+          return note.content;
+        }
+      }).join(' • ');
     }
+    return '';
   }
   
   void _showCampaignDetails(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Prepare Quill Controller for the dialog
-    quill.QuillController? quillController;
-    try {
-      final List<dynamic> deltaJson = jsonDecode(campaign.message);
-      quillController = quill.QuillController(
-        document: quill.Document.fromJson(deltaJson),
-        selection: const TextSelection.collapsed(offset: 0),
-        readOnly: true,
+    // Build the content dynamically based on whether it's legacy or multi-section
+    Widget content;
+    if (campaign.message != null) {
+      quill.QuillController? quillController;
+      try {
+        final List<dynamic> deltaJson = jsonDecode(campaign.message!);
+        quillController = quill.QuillController(
+          document: quill.Document.fromJson(deltaJson),
+          selection: const TextSelection.collapsed(offset: 0),
+          readOnly: true,
+        );
+      } catch (_) {}
+
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            campaign.title, 
+            style: AppTypography.body.copyWith(
+              fontWeight: AppTypography.weightBlack,
+              fontSize: AppTypography.sizeLargeBody,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (quillController != null)
+            quill.QuillEditor.basic(
+              controller: quillController,
+              config: quill.QuillEditorConfig(
+                autoFocus: false,
+                expands: false,
+                padding: EdgeInsets.zero,
+                showCursor: false,
+                enableInteractiveSelection: true,
+                scrollable: false,
+              ),
+            )
+          else
+            Text(
+              campaign.message!,
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.dark150 : AppColors.dark500,
+                height: 1.6,
+              ),
+            ),
+        ],
       );
-    } catch (_) {
-      // Not JSON, handle as plain text
+    } else {
+      // Multi-section display
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            campaign.title, 
+            style: AppTypography.body.copyWith(
+              fontWeight: AppTypography.weightBlack,
+              fontSize: AppTypography.sizeLargeBody,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          ...campaign.notes.map((note) {
+            quill.QuillController? noteController;
+            try {
+              final List<dynamic> deltaJson = jsonDecode(note.content);
+              noteController = quill.QuillController(
+                document: quill.Document.fromJson(deltaJson),
+                selection: const TextSelection.collapsed(offset: 0),
+                readOnly: true,
+              );
+            } catch (_) {}
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   if (note.imageUrl != null) ...[
+                      ClipRRect(
+                        borderRadius: AppShapes.lg,
+                        child: Image.network(
+                          note.imageUrl!,
+                          width: double.infinity,
+                          height: 160,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                   ],
+                  if (note.title != null && note.title!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: Text(
+                        note.title!,
+                        style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightExtraBold),
+                      ),
+                    ),
+                  if (noteController != null)
+                    quill.QuillEditor.basic(
+                      controller: noteController,
+                      config: quill.QuillEditorConfig(
+                        autoFocus: false,
+                        expands: false,
+                        padding: EdgeInsets.zero,
+                        showCursor: false,
+                        enableInteractiveSelection: true,
+                        scrollable: false,
+                      ),
+                    )
+                  else
+                    Text(
+                      note.content,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: isDark ? AppColors.dark150 : AppColors.dark500,
+                        height: 1.6,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
+        ],
+      );
     }
 
     BoxyArtBottomSheet.show(
@@ -343,39 +478,7 @@ class _HistoryCard extends StatelessWidget {
                borderRadius: AppShapes.xl,
                border: Border.all(color: isDark ? AppColors.dark500 : AppColors.dark200),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  campaign.title, 
-                  style: AppTypography.body.copyWith(
-                    fontWeight: AppTypography.weightBlack,
-                    fontSize: AppTypography.sizeLargeBody,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                if (quillController != null)
-                  quill.QuillEditor.basic(
-                    controller: quillController,
-                    config: quill.QuillEditorConfig(
-                      autoFocus: false,
-                      expands: false,
-                      padding: EdgeInsets.zero,
-                      showCursor: false,
-                      enableInteractiveSelection: true,
-                      scrollable: false,
-                    ),
-                  )
-                else
-                  Text(
-                    campaign.message,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: isDark ? AppColors.dark150 : AppColors.dark500,
-                      height: 1.6,
-                    ),
-                  ),
-              ],
-            ),
+            child: content,
           ),
           if (campaign.actionUrl != null) ...[
              const SizedBox(height: AppSpacing.xl),

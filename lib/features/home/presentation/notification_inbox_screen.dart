@@ -127,7 +127,7 @@ class _InboxNotificationCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: accent.withOpacity(AppColors.opacityLow),
+              color: accent.withValues(alpha: AppColors.opacityLow),
               borderRadius: AppShapes.md,
             ),
             child: Icon(

@@ -21,13 +21,13 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
 
     return HeadlessScaffold(
       title: title,
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xl,
-            vertical: spacing?.labelToCard ?? AppSpacing.labelToCard,
           ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
@@ -39,7 +39,7 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.amber500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.stableford),
                 ),
-                SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
               ],
               
               if (formatFilter == null || formatFilter == 'stroke') ...[
@@ -61,25 +61,23 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   color: AppColors.lime500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.maxScore),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                const SizedBox.shrink(), // Section title handles its own top padding
               ],
  
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(
-                  title: 'HEAD-TO-HEAD',),
+                const BoxyArtSectionTitle(title: 'Head-to-head', isPeeking: true),
                 _TypeTile(
                   title: 'Match Play',
                   subtitle: 'Hole-by-hole knockout battles.',
                   icon: Icons.compare_arrows_rounded,
-                  color: Colors.redAccent,
+                  color: AppColors.coral500,
                   onTap: () => _navigateToBuilder(context, CompetitionFormat.matchPlay),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                const SizedBox.shrink(),
               ],
  
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(
-                  title: 'PAIRS FORMATS',),
+                const BoxyArtSectionTitle(title: 'Pairs formats', isPeeking: true),
                 _TypeTile(
                   title: 'Fourball (Better Ball)',
                   subtitle: 'Pairs play own ball. Best score counts.',
@@ -92,15 +90,14 @@ class CompetitionTypeSelectionScreen extends StatelessWidget {
                   title: 'Foursomes (Alternate Shot)',
                   subtitle: 'Partners alternate hitting one ball.',
                   icon: Icons.sync_alt_rounded,
-                  color: Colors.indigoAccent,
+                  color: AppColors.guestPurple,
                   onTap: () => _navigateToBuilder(context, CompetitionSubtype.foursomes),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
+                const SizedBox.shrink(),
               ],
  
               if (formatFilter == null) ...[
-                const BoxyArtSectionTitle(
-                  title: 'TEAM FORMATS',),
+                const BoxyArtSectionTitle(title: 'Team formats', isPeeking: true),
                 _TypeTile(
                   title: 'Scramble',
                   subtitle: 'Texas/Florida Scramble. Team aggregate play.',
@@ -163,7 +160,7 @@ class _TypeTile extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(AppColors.opacityLow),
+              color: color.withValues(alpha: AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: AppShapes.iconLg),
@@ -179,10 +176,9 @@ class _TypeTile extends StatelessWidget {
                   children: [
                     Text(
                       mainTitle,
-                      style: const TextStyle(
-                        fontSize: AppTypography.sizeDisplaySection,
-                        fontWeight: AppTypography.weightBlack,
-                        letterSpacing: -0.5,
+                      style: AppTypography.headline.copyWith(
+                        fontWeight: AppTypography.weightExtraBold,
+                        letterSpacing: AppTypography.lsTight,
                       ),
                     ),
                     if (bracketText != null) ...[
@@ -192,7 +188,7 @@ class _TypeTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: AppTypography.sizeLabel,
                           fontWeight: AppTypography.weightBold,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                         ),
                       ),
                     ],
@@ -204,7 +200,7 @@ class _TypeTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: AppTypography.sizeBodySmall,
                     fontWeight: AppTypography.weightMedium,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHalf),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
                     height: 1.2,
                   ),
                 ),
@@ -213,7 +209,7 @@ class _TypeTile extends StatelessWidget {
           ),
           Icon(
             Icons.chevron_right_rounded, 
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
           ),
         ],
       ),

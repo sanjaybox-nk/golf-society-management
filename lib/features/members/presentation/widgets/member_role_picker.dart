@@ -49,13 +49,13 @@ class MemberRolePicker extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: AppSpacing.md),
         padding: const EdgeInsets.all(AppSpacing.md),
         border: isSelected ? Border.all(color: theme.primaryColor, width: AppShapes.borderMedium) : null,
-        backgroundColor: isSelected ? theme.primaryColor.withOpacity(0.05) : null,
+        backgroundColor: isSelected ? theme.primaryColor.withValues(alpha: 0.05) : null,
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: isSelected ? theme.primaryColor.withOpacity(0.1) : (theme.brightness == Brightness.dark ? AppColors.dark600 : AppColors.dark50),
+                color: isSelected ? theme.primaryColor.withValues(alpha: 0.1) : (theme.brightness == Brightness.dark ? AppColors.dark600 : AppColors.dark50),
                 borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.accentRadius ?? AppShapes.rMd),
               ),
               child: Icon(
@@ -81,7 +81,7 @@ class MemberRolePicker extends StatelessWidget {
                   Text(
                     _getRoleDescription(role),
                     style: AppTypography.label.copyWith(
-                      color: isSelected ? theme.primaryColor.withOpacity(AppColors.opacityHigh) : (theme.brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark500),
+                      color: isSelected ? theme.primaryColor.withValues(alpha: AppColors.opacityHigh) : (theme.brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark500),
                       fontSize: 12,
                     ),
                   ),

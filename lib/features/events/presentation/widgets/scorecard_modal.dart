@@ -191,7 +191,7 @@ class ScorecardModal {
                 width: AppSpacing.x4l,
                 height: AppSpacing.xs,
                 decoration: BoxDecoration(
-                  color: AppColors.dark400.withOpacity(AppColors.opacityMedium),
+                  color: AppColors.dark400.withValues(alpha: AppColors.opacityMedium),
                   borderRadius: AppShapes.grabber,
                 ),
               ),
@@ -539,7 +539,7 @@ class ScorecardModal {
             isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE"),
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
-              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
               letterSpacing: 1.2,
             ),
           ),
@@ -560,9 +560,9 @@ class ScorecardModal {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
-                    color: AppColors.lime500.withOpacity(AppColors.opacityLow),
+                    color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                     borderRadius: AppShapes.xs,
-                    border: Border.all(color: AppColors.lime500.withOpacity(AppColors.opacityMuted)),
+                    border: Border.all(color: AppColors.lime500.withValues(alpha: AppColors.opacityMuted)),
                   ),
                   child: Text(
                     "H$holeNum: $name",
@@ -735,7 +735,7 @@ class ScorecardModal {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.lime500.withOpacity(AppColors.opacityLow) : Colors.transparent,
+          color: isSelected ? AppColors.lime500.withValues(alpha: AppColors.opacityLow) : Colors.transparent,
           borderRadius: AppShapes.pill,
           border: Border.all(
             color: isSelected ? AppColors.lime500 : AppColors.dark500,

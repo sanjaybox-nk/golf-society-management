@@ -88,23 +88,23 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: theme.dividerColor.withOpacity(AppColors.opacitySubtle),
+                            color: theme.dividerColor.withValues(alpha: AppColors.opacitySubtle),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.shield_outlined, size: AppShapes.iconXl, color: theme.dividerColor.withOpacity(AppColors.opacityMuted)),
+                          child: Icon(Icons.shield_outlined, size: AppShapes.iconXl, color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
                         ),
                         const SizedBox(height: AppSpacing.x2l),
                         Text(
                           'SOCIETY CUTS DISABLED',
                           style: AppTypography.label.copyWith(
-                            color: theme.dividerColor.withOpacity(AppColors.opacityHalf),
+                            color: theme.dividerColor.withValues(alpha: AppColors.opacityHalf),
                             letterSpacing: 2,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Select a mode above to begin',
-                          style: AppTypography.caption.copyWith(color: theme.dividerColor.withOpacity(AppColors.opacityMuted)),
+                          style: AppTypography.caption.copyWith(color: theme.dividerColor.withValues(alpha: AppColors.opacityMuted)),
                         ),
                       ],
                     ),
@@ -218,11 +218,11 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           decoration: BoxDecoration(
             color: isSelected 
-                ? theme.colorScheme.primary.withOpacity(AppColors.opacitySubtle) 
+                ? theme.colorScheme.primary.withValues(alpha: AppColors.opacitySubtle) 
                 : Colors.transparent,
             borderRadius: AppShapes.lg,
             border: Border.all(
-              color: isSelected ? theme.colorScheme.primary.withOpacity(AppColors.opacityMedium) : Colors.transparent,
+              color: isSelected ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium) : Colors.transparent,
               width: AppShapes.borderThin,
             ),
           ),
@@ -234,7 +234,7 @@ class _SocietyCutsSettingsScreenState extends ConsumerState<SocietyCutsSettingsS
                 height: 44,
                 decoration: BoxDecoration(
                   color: isSelected 
-                      ? theme.colorScheme.primary.withOpacity(AppColors.opacityLow)
+                      ? theme.colorScheme.primary.withValues(alpha: AppColors.opacityLow)
                       : (isDark ? AppColors.dark800 : AppColors.dark50),
                   borderRadius: AppShapes.md,
                 ),

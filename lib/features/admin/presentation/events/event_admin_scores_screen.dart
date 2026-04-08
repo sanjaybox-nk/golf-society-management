@@ -39,6 +39,7 @@ class EventAdminScoresScreen extends ConsumerWidget {
 
         return HeadlessScaffold(
           title: 'Scores',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
 
           showBack: true,

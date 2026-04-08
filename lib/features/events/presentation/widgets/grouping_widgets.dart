@@ -224,7 +224,7 @@ class GroupingPlayerTile extends ConsumerWidget {
             width: 1,
             height: double.infinity,
             margin: EdgeInsets.symmetric(horizontal: hPadding),
-            color: theme.colorScheme.onSurface.withOpacity(AppColors.opacitySubtle),
+            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
           ),
 
           // 3. Right Section: Content
@@ -251,7 +251,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                       child: Text(
                         'Guest of ${member!.displayName}',
                         style: AppTypography.label.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                          color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                           fontStyle: FontStyle.italic,
                           fontSize: 10,
                         ),
@@ -305,7 +305,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                               child: Text(
                                 thruLabel!,
                                 style: AppTypography.helper.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                                   fontStyle: FontStyle.italic,
                                   fontSize: 11,
                                 ),
@@ -319,7 +319,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                               style: AppTypography.label.copyWith(
                                 fontSize: 10,
                                 fontWeight: AppTypography.weightBold,
-                                color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityMedium),
+                                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
                                 letterSpacing: 0.2,
                               ),
                             ),
@@ -347,7 +347,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                                   style: AppTypography.label.copyWith(
                                     fontSize: 12,
                                     fontWeight: AppTypography.weightMedium,
-                                    color: theme.colorScheme.primary.withOpacity(AppColors.opacityMedium),
+                                    color: theme.colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
                                   ),
                                 ),
                             ],
@@ -426,7 +426,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
+                    color: Colors.black.withValues(alpha: 0.15),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -1001,7 +1001,7 @@ class GroupingCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: AppTypography.sizeCaption,
                                 fontWeight: AppTypography.weightBold,
-                                color: Colors.black.withOpacity(0.54),
+                                color: Colors.black.withValues(alpha: 0.54),
                               ),
                             ),
                           ),
@@ -1141,7 +1141,7 @@ class GroupingCard extends StatelessWidget {
                 width: AppShapes.borderMedium,
               ),
               color: isOver
-                  ? Theme.of(context).primaryColor.withOpacity(AppColors.opacitySubtle)
+                  ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle)
                   : Colors.transparent,
             ),
             child: child,
@@ -1224,7 +1224,7 @@ class GroupingPodiumHeader extends ConsumerWidget {
         showShadow: false,
         border: Border.all(
           color: isFirst 
-              ? AppColors.amber500.withOpacity(0.3) 
+              ? AppColors.amber500.withValues(alpha: 0.3) 
               : (isDark ? AppColors.dark500 : AppColors.lightBorder), 
           width: AppShapes.borderThin,
         ),

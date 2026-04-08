@@ -10,18 +10,13 @@ final adminNotificationsProvider = StreamProvider<List<Campaign>>((ref) {
       .map((snapshot) {
     return snapshot.docs.map((doc) {
       final data = doc.data();
-      return Campaign(
-        id: doc.id,
-        title: data['title'] as String? ?? 'No Title',
-        message: data['message'] as String? ?? '',
-        category: data['category'] as String? ?? 'General',
-        targetType: data['targetType'] as String? ?? 'Unknown',
-        recipientCount: data['recipientCount'] as int? ?? 0,
-        timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        sentByUserId: data['sentByUserId'] as String?,
-        actionUrl: data['actionUrl'] as String?,
-        targetDescription: data['targetDescription'] as String?,
-      );
+      // Handle timestamp specifically since fromJson expects ISO string or DateTime usually,
+      // but Firestore gives Timestamp
+      final Map<String, dynamic> mappedData = Map.from(data);
+      if (mappedData['timestamp'] is Timestamp) {
+        mappedData['timestamp'] = (mappedData['timestamp'] as Timestamp).toDate().toIso8601String();
+      }
+      return Campaign.fromJson(mappedData..['id'] = doc.id);
     }).toList();
   });
 });

@@ -3,14 +3,44 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
+import 'package:golf_society/features/events/presentation/events_provider.dart';
+import 'package:collection/collection.dart';
 
 class EventFeedDetailScreen extends ConsumerWidget {
-  final EventFeedItem item;
+  final String eventId;
+  final String itemId;
+  final EventFeedItem? item;
 
-  const EventFeedDetailScreen({super.key, required this.item});
+  const EventFeedDetailScreen({
+    super.key, 
+    required this.eventId,
+    required this.itemId,
+    this.item,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (item != null) {
+      return _buildContent(context, item!);
+    }
+
+    // Fallback: Fetch event and find item
+    final eventAsync = ref.watch(eventProvider(eventId));
+
+    return eventAsync.when(
+      data: (event) {
+        final feedItem = event.feedItems.firstWhereOrNull((i) => i.id == itemId);
+        if (feedItem == null) {
+          return const Scaffold(body: Center(child: Text('Feed item not found')));
+        }
+        return _buildContent(context, feedItem);
+      },
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, _) => Scaffold(body: Center(child: Text('Error loading feed: $err'))),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, EventFeedItem item) {
     final List<EventNote> sections = [];
     
     if (item.type == FeedItemType.newsletter) {
@@ -67,9 +97,9 @@ class EventFeedDetailScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.x2l),
       decoration: BoxDecoration(
-        color: AppColors.amber500.withOpacity(AppColors.opacitySubtle),
+        color: AppColors.amber500.withValues(alpha: AppColors.opacitySubtle),
         borderRadius: AppShapes.x2l,
-        border: Border.all(color: AppColors.amber500.withOpacity(AppColors.opacityLow)),
+        border: Border.all(color: AppColors.amber500.withValues(alpha: AppColors.opacityLow)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,11 +109,11 @@ class EventFeedDetailScreen extends ConsumerWidget {
               const Icon(Icons.campaign_rounded, color: AppColors.amber500, size: AppShapes.iconLg),
               const SizedBox(width: AppSpacing.md),
               Text(
-                'FLASH UPDATE',
+                'Flash Update',
                 style: TextStyle(
                   fontWeight: AppTypography.weightBlack,
                   letterSpacing: 1.5,
-                  color: AppColors.amber500.withOpacity(AppColors.opacityHigh),
+                  color: AppColors.amber500.withValues(alpha: AppColors.opacityHigh),
                   fontSize: AppTypography.sizeLabel,
                 ),
               ),

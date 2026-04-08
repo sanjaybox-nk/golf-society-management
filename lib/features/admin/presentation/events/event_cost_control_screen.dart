@@ -18,15 +18,19 @@ class EventCostControlScreen extends ConsumerWidget {
     return eventAsync.when(
       data: (event) => HeadlessScaffold(
         title: 'Costs & Charges',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: event.title,
         showBack: true,
         onBack: () => context.pop(),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const BoxyArtSectionTitle(title: 'Event pricing'),
+                const BoxyArtSectionTitle(
+                  title: 'Event pricing',
+                  isPeeking: true,
+                ),
                 BoxyArtCard(
                   child: Column(
                     children: [
@@ -94,7 +98,11 @@ class EventCostControlScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const BoxyArtSectionTitle(title: 'Meal options'),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+                const BoxyArtSectionTitle(
+                  title: 'Meal options',
+                  isPeeking: true,
+                ),
                 BoxyArtCard(
                   child: Column(
                     children: [
@@ -134,7 +142,11 @@ class EventCostControlScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const BoxyArtSectionTitle(title: 'Miscellaneous expenses'),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+                const BoxyArtSectionTitle(
+                  title: 'Miscellaneous expenses',
+                  isPeeking: true,
+                ),
                 if (event.expenses.isEmpty)
                   BoxyArtCard(
                     padding: const EdgeInsets.all(AppSpacing.xl),
@@ -256,8 +268,8 @@ class EventCostControlScreen extends ConsumerWidget {
               height: 44,
               decoration: BoxDecoration(
                 color: isDark 
-                    ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
-                    : AppColors.dark150.withOpacity(AppColors.opacityLow),
+                    ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
+                    : AppColors.dark150.withValues(alpha: AppColors.opacityLow),
                 borderRadius: AppShapes.lg,
               ),
               child: Icon(

@@ -37,19 +37,19 @@ import '../features/admin/presentation/surveys/survey_editor_screen.dart';
 import '../features/admin/presentation/surveys/survey_results_screen.dart';
 import '../features/admin/presentation/notifications/compose_notification_screen.dart';
 import '../features/events/presentation/event_registration_screen.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'global_app_shell.dart';
-
 import '../features/admin/presentation/events/event_admin_reports_screen.dart';
 import '../features/admin/presentation/reports/admin_reports_screen.dart';
 import '../features/events/presentation/event_user_shell.dart';
 import '../features/events/presentation/tabs/event_user_details_tab.dart';
+import '../features/events/presentation/event_feed_detail_screen.dart';
 import '../features/events/presentation/tabs/event_user_placeholders.dart';
 import '../features/competitions/presentation/season_standings_screen.dart';
 import '../features/admin/presentation/events/event_admin_financials_screen.dart';
 import '../features/admin/presentation/events/event_admin_scores_screen.dart';
-import '../features/admin/presentation/events/event_broadcast_screen.dart';
-import '../features/admin/presentation/events/event_cost_control_screen.dart';
+import 'package:golf_society/features/admin/presentation/events/event_broadcast_screen.dart';
+import 'package:golf_society/features/admin/presentation/events/feed_item_editor_screen.dart';
+import 'package:golf_society/features/admin/presentation/events/event_cost_control_screen.dart';
 import '../features/admin/presentation/events/event_field_admin_screen.dart';
 import '../features/admin/presentation/events/event_manual_cuts_screen.dart';
 import '../features/admin/presentation/events/event_registrations_admin_screen.dart';
@@ -62,9 +62,7 @@ import '../features/admin/presentation/leaderboards/leaderboard_builder_screen.d
 import '../features/admin/presentation/competitions/competition_type_selection_screen.dart';
 import '../features/admin/presentation/competitions/competition_template_gallery_screen.dart';
 import '../features/admin/presentation/competitions/competition_builder_screen.dart';
-import '../features/admin/presentation/notifications/compose_notification_screen.dart';
 import '../features/surveys/presentation/survey_detail_screen.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/domain/models/leaderboard_config.dart';
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/features/members/presentation/member_details_screen.dart';
@@ -277,6 +275,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       child: const Center(child: Text('Event Photos Placeholder')),
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':id/feed/:itemId',
+                    name: 'user-event-feed-item',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: EventFeedDetailScreen(
+                        eventId: state.pathParameters['id']!,
+                        itemId: state.pathParameters['itemId']!,
+                        item: state.extra as EventFeedItem?,
+                      ),
                     ),
                   ),
                 ],
@@ -618,11 +628,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ],
                   ),
                   GoRoute(
-                    path: 'notifications/compose',
+                    path: 'compose',
                     name: 'admin-notifications-compose',
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
-                      child: const ComposeNotificationScreen(),
+                      child: ComposeNotificationScreen(
+                        isTabbed: false,
+                        eventId: state.uri.queryParameters['eventId'],
+                        type: state.uri.queryParameters['type'],
+                      ),
                     ),
                   ),
                 ],
@@ -786,6 +800,34 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       state: state,
                       child: EventBroadcastScreen(eventId: state.pathParameters['id']!),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit/:itemId',
+                        name: 'admin-event-broadcast-edit',
+                        pageBuilder: (context, state) {
+                          final eventId = state.pathParameters['id']!;
+                          final existingItem = state.extra as EventFeedItem?;
+                          
+                          if (existingItem?.type == FeedItemType.newsletter) {
+                            return boxyPage(
+                              state: state,
+                              child: ComposeNotificationScreen(
+                                eventId: eventId,
+                                feedItemId: existingItem?.id,
+                              ),
+                            );
+                          }
+                          
+                          return boxyPage(
+                            state: state,
+                            child: FeedItemEditorScreen(
+                              eventId: eventId,
+                              existingItem: existingItem,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'manage/:id/financials',
@@ -793,6 +835,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) => boxyPage(
                       state: state,
                       child: EventAdminFinancialsScreen(eventId: state.pathParameters['id']!),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'manage/:id/feed/:itemId',
+                    name: 'admin-event-feed-item',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: EventFeedDetailScreen(
+                        eventId: state.pathParameters['id']!,
+                        itemId: state.pathParameters['itemId']!,
+                        item: state.extra as EventFeedItem?,
+                      ),
                     ),
                   ),
                   GoRoute(

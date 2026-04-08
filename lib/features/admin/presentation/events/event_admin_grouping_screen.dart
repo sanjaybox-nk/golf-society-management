@@ -184,6 +184,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
           children: [
             HeadlessScaffold(
               title: 'Grouping',
+              titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
               subtitleWidget: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -191,7 +192,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     event.title,
                     style: TextStyle(
                       fontSize: AppTypography.sizeBodySmall,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityHigh),
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                       fontWeight: AppTypography.weightSemibold,
                       letterSpacing: -0.2,
                     ),
@@ -271,7 +272,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   Widget _buildSquadPool(List<TeeGroupParticipant> squad, Map<String, Member> memberMap, List<GolfEvent> history) {
     return Container(
       width: double.infinity,
-      color: Theme.of(context).primaryColor.withOpacity(AppColors.opacitySubtle),
+      color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -394,12 +395,12 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                 decoration: BoxDecoration(
                   borderRadius: AppShapes.md,
                   border: Border.all(
-                    color: isOver ? primary : (isDark ? AppColors.pureWhite.withOpacity(AppColors.opacityLow) : Colors.black.withOpacity(AppColors.opacitySubtle)),
+                    color: isOver ? primary : (isDark ? AppColors.pureWhite.withValues(alpha: AppColors.opacityLow) : Colors.black.withValues(alpha: AppColors.opacitySubtle)),
                     style: BorderStyle.solid,
                     width: isOver ? 2 : 1,
                   ),
                   color: isOver 
-                      ? primary.withOpacity(AppColors.opacityLow) 
+                      ? primary.withValues(alpha: AppColors.opacityLow) 
                       : Theme.of(context).cardColor,
                 ),
                 child: Row(
@@ -408,13 +409,13 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                     Icon(
                       Icons.add_circle_outline_rounded, 
                       size: AppShapes.iconSm, 
-                      color: isOver ? primary : primary.withOpacity(0.4),
+                      color: isOver ? primary : primary.withValues(alpha: 0.4),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'EMPTY SLOT', 
                       style: AppTypography.displayMedium.copyWith(
-                        color: isOver ? primary : primary.withOpacity(0.4),
+                        color: isOver ? primary : primary.withValues(alpha: 0.4),
                         fontSize: AppTypography.sizeCaptionStrong,
                         fontWeight: AppTypography.weightExtraBold,
                         letterSpacing: 1.2,
@@ -684,7 +685,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         GestureDetector(
           onTap: () => setState(() => _showGenerationOptions = false),
           child: Container(
-            color: Colors.black.withOpacity(AppColors.opacityHalf),
+            color: Colors.black.withValues(alpha: AppColors.opacityHalf),
             width: double.infinity,
             height: double.infinity,
           ),
@@ -714,7 +715,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
                               height: AppSpacing.xs,
                               margin: const EdgeInsets.only(bottom: AppSpacing.x2l),
                               decoration: BoxDecoration(
-                                color: AppColors.textSecondary.withOpacity(AppColors.opacityMuted),
+                                color: AppColors.textSecondary.withValues(alpha: AppColors.opacityMuted),
                                 borderRadius: AppShapes.grabber,
                               ),
                             ),
@@ -815,7 +816,7 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
       padding: const EdgeInsets.all(AppSpacing.lg),
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       border: isSelected ? Border.fromBorderSide(BorderSide(color: Theme.of(context).primaryColor, width: AppShapes.borderMedium)) : null,
-      backgroundColor: isSelected ? Theme.of(context).primaryColor.withOpacity(AppColors.opacitySubtle) : null,
+      backgroundColor: isSelected ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacitySubtle) : null,
       child: Row(
         children: [
           Expanded(

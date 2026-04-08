@@ -19,7 +19,7 @@ The Demo Seeding system is a powerful administrative tool used to populate the s
     -   Assigns **£50.0 credit** to **Eric Adams** to verify "Use Voucher" flows.
     -   Assigns varied debts (up to -£100.0) to ~25% of members to populate the **Central Debt Ledger**.
 -   **Registration Registry Exclusions [NEW]**: Explicitly excludes **Eric Adams** from the final event's registration registry. This ensures he is a clean candidate for testing the "Use Voucher" toggle in the registration flow.
--   **Survey & Poll Seeding**: Automatically generates two modernized member surveys ("Season 2026 Feedback" and "Apparel Design Poll") with a realistic **50-60% participation rate** to demonstrate the survey reporting and engagement features.
+-   **Survey, Poll & Note Seeding [APRIL 2026]**: Automatically generates two modernized member surveys ("Season 2026 Feedback" and "Apparel Design Poll") and multiple **Note Studio** broadcasts with realistic **50-60% participation rate** to demonstrate the survey reporting and high-fidelity communications features.
 
 ### 2. Historical Data Generation
 The seeding engine populates the society history with various scenarios:

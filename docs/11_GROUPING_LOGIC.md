@@ -119,7 +119,7 @@ The grouping screen features a unified **Grouping Hub Card** for managing the fi
 - **Save**: Persists any manual swaps, changes to the seed time, or interval to the backend.
 
 ### UI Consistency & Stability
-The grouping interface follows the **Boxy Art Design 3.1** standards for a premium, editorial feel:
-- **Vertical Rhythm**: Uses standardized `AppSpacing` tokens (e.g., `AppSpacing.standard` for tab-to-list gaps, `AppSpacing.lg` for list padding).
-- **Card Styling**: Grouping cards use a clean **White background** (`AppColors.pureWhite`) with high corner radii and soft shadows.
+The grouping interface follows the **BoxyArt Design 4.1 (True Minimal)** standards for a premium, editorial feel:
+- **Vertical Rhythm**: Uses standardized `AppSpacingTokens` (e.g., `spacing?.cardToLabel` for tab-to-list gaps, `spacing?.cardToCard` for list item spacing).
+- **Card Styling**: Grouping cards use a clean **Surface background** (`AppColors.surface`) with high corner radii and soft shadows.
 - **Full-Width Actions**: Buttons like **Generate** and **Reset** are standardized to full-width for better touch targets and visual balance within the Hub.

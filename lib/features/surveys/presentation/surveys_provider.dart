@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:golf_society/domain/models/survey.dart';
-import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/features/members/presentation/profile_provider.dart';
 import '../data/surveys_repository.dart';
 import '../data/firestore_surveys_repository.dart';

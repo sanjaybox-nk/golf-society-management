@@ -18,6 +18,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
 
     return HeadlessScaffold(
       title: 'System Roles',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Manage administrative permissions and site-wide access tiers.',
       showBack: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -31,18 +32,17 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.x2l),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const BoxyArtSectionTitle(title: 'ACCESS TIERS'),
+                  const BoxyArtSectionTitle(title: 'Access tiers', isPeeking: true),
                   ...MemberRole.values.where((r) => r != MemberRole.member).map((role) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                       child: _buildRoleCard(context, role, roleCounts[role] ?? 0),
                     );
                   }),
-                  const SizedBox(height: AppSpacing.x2l),
-                  const BoxyArtSectionTitle(title: 'STANDARD ACCESS'),
+                  const BoxyArtSectionTitle(title: 'Standard access', isPeeking: true),
                   _buildRoleCard(context, MemberRole.member, roleCounts[MemberRole.member] ?? 0),
                   const SizedBox(height: 100),
                 ]),
@@ -62,7 +62,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
     final description = _getRoleDescription(role);
     final icon = _getRoleIcon(role);
     const identityColor = Colors.cyan; // Consistent with Committee Roles overview
-    final bgColor = identityColor.withOpacity(AppColors.opacityLow);
+    final bgColor = identityColor.withValues(alpha: AppColors.opacityLow);
 
     return BoxyArtCard(
       onTap: () {
@@ -97,12 +97,10 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                 Row(
                   children: [
                     Text(
-                      _getRoleDisplayName(role).toUpperCase(),
-                      style: TextStyle(
-                        fontSize: AppTypography.sizeButton,
-                        fontWeight: AppTypography.weightExtraBold,
-                        letterSpacing: 0.5,
+                      _getRoleDisplayName(role),
+                      style: AppTypography.headline.copyWith(
                         color: isDark ? AppColors.pureWhite : AppColors.dark900,
+                        letterSpacing: AppTypography.lsTight,
                       ),
                     ),
                     if (count > 0) ...[

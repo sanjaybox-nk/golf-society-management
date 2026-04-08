@@ -38,6 +38,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
     final searchQuery = ref.watch(adminMemberSearchQueryProvider).toLowerCase();
     final currentFilter = ref.watch(adminMemberFilterProvider);
     final memberStatsAsync = ref.watch(memberStatsProvider); // Watch stats
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
     // Calculate filter counts
     int activeCount = 0;
@@ -56,6 +57,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
       behavior: HitTestBehavior.opaque,
       child: HeadlessScaffold(
         title: 'Members',
+        titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
         subtitle: currentFilter.type == AdminMemberFilter.role && currentFilter.role != null
             ? 'Assign ${currentFilter.role!.displayName}'
             : 'Society Roster',
@@ -74,42 +76,36 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
           ),
         ],
         slivers: [
-          // Baseline Nudge for Tab Bar
+          // Tab Bar Standardized
           SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Hide Tabs if Role Filter is active
-                  if (currentFilter.type != AdminMemberFilter.role) ...[
-                    ModernUnderlinedFilterBar<AdminMemberFilter>(
-                      selectedValue: currentFilter.type,
-                      onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                      isExpanded: true,
-                      tabs: [
-                        ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                        ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                        ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Hide Tabs if Role Filter is active
+                if (currentFilter.type != AdminMemberFilter.role) ...[
+                  ModernUnderlinedFilterBar<AdminMemberFilter>(
+                    selectedValue: currentFilter.type,
+                    onTabSelected: (filter) => ref.read(adminMemberFilterProvider.notifier).update(filter),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                    isExpanded: true,
+                    tabs: [
+                      ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
+                      ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
+                      ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                    ],
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.xl, 
-              right: AppSpacing.xl,
-              top: 0, 
-              bottom: AppSpacing.labelToCard,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const SizedBox(height: AppSpacing.lg),
+                const BoxyArtSectionTitle(
+                  title: 'Society roster',
+                  isPeeking: true,
+                ),
 
                 // Standardized Search Input
                 // Design 4.1 Search Bar (Image 2)
@@ -162,7 +158,7 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                         final isAlreadyInRole = member.role == currentFilter.role;
 
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          padding: EdgeInsets.only(bottom: spacing?.cardToCard ?? AppSpacing.md),
                           child: _buildDismissibleMember(
                             context, 
                             ref, 
@@ -223,14 +219,12 @@ Widget _buildDismissibleMember(
   String? secondaryMetricValue,
   Widget? trailing,
 }) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-    child: Dismissible(
+  return Dismissible(
       key: Key(member.id),
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: BoxDecoration(
-          color: AppColors.coral500.withOpacity(AppColors.opacityHigh),
+          color: AppColors.coral500.withValues(alpha: AppColors.opacityHigh),
           borderRadius: BorderRadius.circular(AppSpacing.lg),
         ),
         alignment: Alignment.centerRight,
@@ -262,7 +256,6 @@ Widget _buildDismissibleMember(
         secondaryMetricLabel: secondaryMetricLabel,
         secondaryMetricValue: secondaryMetricValue,
         trailing: trailing,
-      ),
     ),
   );
 }

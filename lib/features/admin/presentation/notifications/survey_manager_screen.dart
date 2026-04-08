@@ -42,7 +42,7 @@ class SurveyManagerScreen extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppColors.lime500.withOpacity(AppColors.opacityLow),
+                          color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                           borderRadius: AppShapes.md,
                         ),
                         child: const Icon(Icons.assignment_rounded, color: AppColors.lime500),

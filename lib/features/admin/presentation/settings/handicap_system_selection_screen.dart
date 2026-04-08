@@ -46,7 +46,7 @@ class HandicapSystemSelectionScreen extends ConsumerWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: identityColor.withOpacity(AppColors.opacityLow),
+                            color: identityColor.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Center(

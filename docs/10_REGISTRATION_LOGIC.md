@@ -15,11 +15,11 @@ The registration system in Golf Society Management follows a **Fair Play, Confir
 
 | Status | Color | Description |
 | :--- | :--- | :--- |
-| **Confirmed** | Green | The player is confirmed and has a guaranteed spot in the event. |
-| **Reserved** | Amber | The default status for new registrants. They are in the "active" queue but not yet confirmed. |
-| **Waitlist** | Red | Triggered when the confirmed player count meets the event's max capacity. |
-| **Dinner Only**| Blue | The member is attending the dinner portion only, not playing golf. |
-| **Withdrawn** | Grey | The participant has cancelled their registration. |
+| **Confirmed** | `StatusColors.positive` | The player is confirmed and has a guaranteed spot in the event. |
+| **Reserved** | `StatusColors.warning` | The default status for new registrants. They are in the "active" queue but not yet confirmed. |
+| **Waitlist** | `StatusColors.negative` | Triggered when the confirmed player count meets the event's max capacity. |
+| **Dinner Only**| `AppColors.mealDinner` | The member is attending the dinner portion only, not playing golf. |
+| **Withdrawn** | `AppColors.opacitySecondary` | The participant has cancelled their registration. |
 | **Social Event** | N/A | For non-golf events, statuses focus on attendance and payment rather than tee-off eligibility. |
 
 ---

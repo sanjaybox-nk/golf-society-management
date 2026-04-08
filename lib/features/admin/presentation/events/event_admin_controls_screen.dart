@@ -41,20 +41,28 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
 
         return HeadlessScaffold(
           title: 'Control Tower',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
 
           showBack: true,
           onBack: () => context.goNamed('admin-events'),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.only(left: AppSpacing.xl, right: AppSpacing.xl, top: AppSpacing.xl),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // 1. Status Overview Header
+                  const BoxyArtSectionTitle(
+                    title: 'Event status',
+                    isPeeking: true,
+                  ),
                   _buildStatusHeader(event, scorecardsAsync, spacing),
 
                   // 2. Player Visibility Section
-                  const BoxyArtSectionTitle(title: 'Player visibility'),
+                  const BoxyArtSectionTitle(
+                    title: 'Player visibility',
+                    isPeeking: true,
+                  ),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -102,7 +110,10 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                   ),
 
                   // 3. Workbench Safety Section
-                  const BoxyArtSectionTitle(title: 'Workbench safety'),
+                  const BoxyArtSectionTitle(
+                    title: 'Workbench safety',
+                    isPeeking: true,
+                  ),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -125,7 +136,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                                 isPrimary: true,
                                 onTap: () => _recalculateStats(event, scorecardsAsync),
                               ),
-                              const SizedBox(height: AppSpacing.md),
+                              SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -152,16 +163,11 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                     ),
                   ),
 
-                ]),
-              ),
-            ),
-
-            // 3. Administrative Hub
-            SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const BoxyArtSectionTitle(title: 'Event configuration'),
+                  // 4. Administrative Hub
+                  const BoxyArtSectionTitle(
+                    title: 'Event configuration',
+                    isPeeking: true,
+                  ),
 
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
@@ -222,8 +228,8 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                         ),
                         const BoxyArtDivider(),
                         BoxyArtNavTile(
-                          title: 'Broadcasts & Updates',
-                          subtitle: 'Post live updates to the feed',
+                          title: 'Event Comms',
+                          subtitle: 'Manage notifications & feed items',
                           icon: Icons.campaign_rounded,
                           onTap: () => context.goNamed(
                             'admin-event-broadcast',
@@ -235,7 +241,10 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                   ),
                   
                   // 5. Termination / Finalization
-                  const BoxyArtSectionTitle(title: 'Event termination'),
+                  const BoxyArtSectionTitle(
+                    title: 'Event termination',
+                    isPeeking: true,
+                  ),
                   BoxyArtCard(
                     padding: EdgeInsets.zero,
                     child: BoxyArtSwitchTile(
@@ -252,7 +261,7 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
                       },
                     ),
                   ),
-                  SizedBox(height: AppSpacing.hero), // Bottom padding for shell
+                  const SizedBox(height: AppSpacing.hero), // Bottom padding for shell
                 ]),
               ),
             ),
@@ -505,20 +514,18 @@ class _EventAdminControlsScreenState extends ConsumerState<EventAdminControlsScr
         children: [
           Text(
             label, 
-            style: const TextStyle(
-              fontSize: 11, 
-              fontWeight: AppTypography.weightBlack, 
+            style: AppTypography.micro.copyWith(
+              fontWeight: AppTypography.weightExtraBold, 
               color: AppColors.textSecondary, 
-              letterSpacing: 1.2,
+              letterSpacing: AppTypography.lsMicro,
             ),
           ),
           SizedBox(height: spacing?.labelToCard ?? AppSpacing.labelToCard),
           Text(
             value, 
-            style: AppTypography.displaySection.copyWith(
+            style: AppTypography.display.copyWith(
               color: color,
-              fontSize: 24,
-              letterSpacing: -0.5,
+              fontSize: AppTypography.sizeHeadline, // Adjusted from 24 to 20 for density
             ),
           ),
         ],

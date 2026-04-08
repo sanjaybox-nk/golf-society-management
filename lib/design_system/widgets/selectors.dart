@@ -77,7 +77,7 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityHalf), size: AppShapes.iconLg),
+            icon: Icon(Icons.chevron_left, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconLg),
             onPressed: widget.currentHole > 1 ? () => widget.onHoleChanged(widget.currentHole - 1) : null,
           ),
           Expanded(
@@ -95,7 +95,7 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withOpacity(AppColors.opacityHalf), size: AppShapes.iconLg),
+            icon: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf), size: AppShapes.iconLg),
             onPressed: widget.currentHole < 18 ? () => widget.onHoleChanged(widget.currentHole + 1) : null,
           ),
         ],
@@ -130,7 +130,7 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
               style: AppTypography.displayHeading.copyWith(
                 color: isSelected
                     ? (isDark ? AppColors.pureWhite : AppColors.dark900)
-                    : theme.colorScheme.onSurface.withOpacity(AppColors.opacityHalf),
+                    : theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityHalf),
                 fontSize: isSelected ? 24 : 18,
               ),
               child: Text('$holeNum'),
@@ -142,7 +142,7 @@ class _BoxyHoleSelectorState extends State<BoxyHoleSelector> {
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withOpacity(AppColors.opacityMuted),
+                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: AppColors.opacityMuted),
                     shape: BoxShape.circle,
                   ),
                 ),

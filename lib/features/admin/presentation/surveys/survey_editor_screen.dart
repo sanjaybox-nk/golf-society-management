@@ -93,6 +93,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
 
         return HeadlessScaffold(
           title: widget.surveyId == null ? 'New survey' : 'Edit survey',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: 'Configure society feedback',
           showBack: true, // [NEW] Enable back navigation
           actions: const [
@@ -120,7 +121,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
                         ReorderableListView(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          proxyDecorator: (child, _, __) => Opacity(opacity: 0.8, child: child),
+                          proxyDecorator: (child, index, animation) => Opacity(opacity: 0.8, child: child),
                           onReorder: (oldIndex, newIndex) {
                             setState(() {
                               if (newIndex > oldIndex) newIndex -= 1;
@@ -352,7 +353,7 @@ class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
     return ReorderableListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      proxyDecorator: (child, _, __) => Opacity(opacity: 0.8, child: child),
+      proxyDecorator: (child, index, animation) => Opacity(opacity: 0.8, child: child),
       onReorder: (oldIndex, newIndex) {
         setState(() {
           if (newIndex > oldIndex) newIndex -= 1;

@@ -16,6 +16,7 @@ class LeaderboardTypeSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return HeadlessScaffold(
       title: 'Leaderboard Formats',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: (isTemplate || isPicker) ? 'Select a type to continue' : 'Standard Season Formats',
       showBack: true,
       onBack: () => context.pop(),
@@ -107,7 +108,7 @@ class _TypeTile extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(AppColors.opacityLow),
+              color: color.withValues(alpha: AppColors.opacityLow),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: AppShapes.iconLg),

@@ -38,7 +38,7 @@ class SocietyRolePicker extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityLow),
+                      color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityLow),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.add_rounded, color: Theme.of(context).primaryColor, size: AppShapes.iconMd),

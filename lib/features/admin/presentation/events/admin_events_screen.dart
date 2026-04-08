@@ -21,13 +21,8 @@ class AdminEventsScreen extends ConsumerWidget {
 
     return HeadlessScaffold(
       title: 'Events',
+      titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
       subtitle: 'Society events and calendar',
-      subtitleTrailing: Text(
-        'Admin',
-        style: AppTypography.label.copyWith(
-          color: Theme.of(context).primaryColor,
-        ),
-      ),
       showBack: false,
       leading: Center(
         child: BoxyArtGlassIconButton(
@@ -46,20 +41,18 @@ class AdminEventsScreen extends ConsumerWidget {
       slivers: [
         // Filter Bar (Harmonized with main EventsScreen)
         SliverToBoxAdapter(
-          child: Transform.translate(
-            offset: const Offset(0, -16.0),
-            child: ModernUnderlinedFilterBar<EventFilter>(
-              tabs: const [
-                ModernFilterTab(label: 'Events', value: EventFilter.season),
-                ModernFilterTab(label: 'Social', value: EventFilter.social),
-              ],
-              selectedValue: filter,
-              onTabSelected: (val) => ref.read(adminEventFilterProvider.notifier).update(val),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              isExpanded: true,
-            ),
+          child: ModernUnderlinedFilterBar<EventFilter>(
+            tabs: const [
+              ModernFilterTab(label: 'Events', value: EventFilter.season),
+              ModernFilterTab(label: 'Social', value: EventFilter.social),
+            ],
+            selectedValue: filter,
+            onTabSelected: (val) => ref.read(adminEventFilterProvider.notifier).update(val),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            isExpanded: true,
           ),
         ),
+        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel)),
 
         if (filter == EventFilter.season) ...[
           // Upcoming Section
@@ -80,6 +73,7 @@ class AdminEventsScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtSectionTitle(
                 title: 'Past Events',
+                isPeeking: true,
               ),
             ),
           ),
@@ -258,7 +252,7 @@ class _AdminEventRow extends ConsumerWidget {
         Icon(
           Icons.keyboard_arrow_down_rounded,
           size: 16,
-          color: statusColor.withOpacity(0.7),
+          color: statusColor.withValues(alpha: 0.7),
         ),
       ],
     );

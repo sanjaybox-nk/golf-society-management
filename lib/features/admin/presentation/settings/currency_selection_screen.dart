@@ -100,7 +100,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.lime500.withOpacity(AppColors.opacityLow),
+                            color: AppColors.lime500.withValues(alpha: AppColors.opacityLow),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -172,7 +172,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                     padding: const EdgeInsets.all(AppSpacing.x5l),
                     child: Column(
                       children: [
-                        Icon(Icons.search_off_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityMedium)),
+                        Icon(Icons.search_off_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
                         const SizedBox(height: AppSpacing.lg),
                         Text(
                           'No currencies found',
@@ -219,7 +219,7 @@ class _CurrencySelectionScreenState extends ConsumerState<CurrencySelectionScree
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: (isSelected ? AppColors.lime500 : AppColors.lime500).withOpacity(AppColors.opacityLow),
+                  color: (isSelected ? AppColors.lime500 : AppColors.lime500).withValues(alpha: AppColors.opacityLow),
                   shape: BoxShape.circle,
                 ),
                 child: Center(

@@ -32,7 +32,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
             width: AppSpacing.x4l,
             height: AppSpacing.xs,
             decoration: BoxDecoration(
-              color: AppColors.dark400.withOpacity(AppColors.opacityMedium),
+              color: AppColors.dark400.withValues(alpha: AppColors.opacityMedium),
               borderRadius: AppShapes.grabber,
             ),
           ),

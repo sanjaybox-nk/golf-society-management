@@ -96,7 +96,7 @@ class CompetitionRuleDescription extends StatelessWidget {
       textAlign: TextAlign.start,
       style: style ?? TextStyle(
         fontSize: AppTypography.sizeBodySmall,
-        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(AppColors.opacityHigh),
+        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
         height: 1.5,
       ),
     );
@@ -175,7 +175,7 @@ class CompetitionRulesCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF111111),
         borderRadius: AppShapes.x2l,
-        border: Border.all(color: AppColors.coral500.withOpacity(AppColors.opacityMuted)),
+        border: Border.all(color: AppColors.coral500.withValues(alpha: AppColors.opacityMuted)),
       ),
       child: Text("Problem loading rules: $e", style: const TextStyle(color: AppColors.coral500)),
     );
@@ -269,7 +269,7 @@ class CompetitionRulesCard extends ConsumerWidget {
                               ),
                             ),
                             if (showChevron)
-                              Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(AppColors.opacityMedium), size: AppShapes.iconSm),
+                              Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityMedium), size: AppShapes.iconSm),
                           ],
                         ),
                         
@@ -284,7 +284,7 @@ class CompetitionRulesCard extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: AppTypography.sizeButton,
                               height: 1.6,
-                              color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.85),
+                              color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.85),
                             ),
                             textAlign: TextAlign.left,
                           ),

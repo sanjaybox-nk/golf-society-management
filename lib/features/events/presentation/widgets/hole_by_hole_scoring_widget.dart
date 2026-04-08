@@ -323,7 +323,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
               Divider(
                 height: 1,
                 thickness: 1,
-                color: (isDark ? AppColors.pureWhite : Colors.black).withOpacity(0.05),
+                color: (isDark ? AppColors.pureWhite : Colors.black).withValues(alpha: 0.05),
               ),
 
               // Match Status Header (if active)
@@ -366,7 +366,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                                     child: Text(
                                       'Par $par${si != null ? ' • SI $si' : ''}',
                                       style: AppTypography.label.copyWith(
-                                        color: theme.colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
+                                        color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                                         fontWeight: AppTypography.weightStrong,
                                         letterSpacing: AppTypography.lsLabel,
                                       ),
@@ -516,7 +516,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
             ),
             boxShadow: isActive ? [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
@@ -533,7 +533,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                       ? AppColors.coral500 
                       : (isActive 
                           ? activeTextColor 
-                          : (isDisabled ? AppColors.dark200 : Theme.of(context).colorScheme.onSurface.withOpacity(AppColors.opacityHigh))),
+                          : (isDisabled ? AppColors.dark200 : Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityHigh))),
                 ),
               ),
               if (hasConflict) ...[
@@ -562,7 +562,7 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
           color: Colors.transparent, // [FIX] Remove fill
           border: Border.all(
             color: isDisabled 
-                ? AppColors.textSecondary.withOpacity(AppColors.opacitySubtle)
+                ? AppColors.textSecondary.withValues(alpha: AppColors.opacitySubtle)
                 : (isDark ? AppColors.dark400 : AppColors.dark150), // [FIX] Dark border
             width: 1.5,
           ),

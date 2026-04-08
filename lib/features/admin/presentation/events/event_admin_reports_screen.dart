@@ -1,18 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/features/members/presentation/members_provider.dart';
-import 'package:golf_society/features/members/data/members_repository.dart';
-import 'package:intl/intl.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../../../events/presentation/events_provider.dart';
 import '../../../events/domain/registration_logic.dart';
 import '../../../events/presentation/widgets/registration_stats_card.dart';
 import '../../../events/presentation/tabs/event_stats_tab.dart';
-import '../../../competitions/presentation/competitions_provider.dart';
 
 class AdminReportsTabNotifier extends Notifier<int> {
   @override
@@ -28,18 +24,18 @@ class EventAdminReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedTab = ref.watch(adminReportsTabProvider);
-    final eventAsync = ref.watch(eventProvider(eventId));
-    final scorecardsAsync = ref.watch(scorecardsListProvider(eventId));
     final config = ref.watch(themeControllerProvider);
     final currency = config.currencySymbol;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final eventAsync = ref.watch(eventProvider(eventId));
+    final selectedTab = ref.watch(adminReportsTabProvider);
 
     return eventAsync.when(
       data: (event) {
         return HeadlessScaffold(
           title: 'Event Analysis',
+          titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
           subtitle: event.title,
-
           showBack: true,
           onBack: () => context.go('/admin/events'),
           slivers: [
@@ -55,13 +51,11 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel)),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(top: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
-                child: selectedTab == 0
-                    ? _buildReport(context, ref, event, currency)
-                    : _buildStatsTab(ref, event, scorecardsAsync),
-              ),
+              child: selectedTab == 0
+                  ? _buildReport(context, ref, event, currency)
+                  : _buildStatsTab(ref, event),
             ),
           ],
         );
@@ -71,7 +65,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsTab(WidgetRef ref, GolfEvent event, AsyncValue<List<dynamic>> scorecardsAsync) {
+  Widget _buildStatsTab(WidgetRef ref, GolfEvent event) {
     return Column(
       children: [
         EventStatsTab(
@@ -193,7 +187,10 @@ class EventAdminReportsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.cardToLabel),
 
           // FINANCIALS
-          const BoxyArtSectionTitle(title: 'Financial summary'),
+          const BoxyArtSectionTitle(
+            title: 'Financial summary',
+            isPeeking: true,
+          ),
           BoxyArtCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
@@ -223,10 +220,16 @@ class EventAdminReportsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.cardToLabel),
 
           // LEDGER SECTION (Merged from Financials)
-          const BoxyArtSectionTitle(title: 'Event ledger'),
+          const BoxyArtSectionTitle(
+            title: 'Event ledger',
+            isPeeking: true,
+          ),
           _buildBalanceOverview(context, event, confirmedPaid, totalClubBill),
           const SizedBox(height: AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(title: 'Misc expenses'),
+          const BoxyArtSectionTitle(
+            title: 'Misc expenses',
+            isPeeking: true,
+          ),
           const SizedBox(height: AppSpacing.md),
           ...event.expenses.where((e) {
             // Filter out manual entries that are now automated
@@ -235,7 +238,10 @@ class EventAdminReportsScreen extends ConsumerWidget {
           }).map((e) => _buildExpenseRow(context, ref, event, e)),
           _buildAddExpenseButton(context, ref, event),
           const SizedBox(height: AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(title: 'Prizes & awards'),
+          const BoxyArtSectionTitle(
+            title: 'Prizes & awards',
+            isPeeking: true,
+          ),
           const SizedBox(height: AppSpacing.md),
           ...event.awards.map((a) => _buildAwardRow(context, ref, event, a)),
           _buildAddAwardButton(context, ref, event),
@@ -322,7 +328,7 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -365,8 +371,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: isDark 
-                      ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
-                      : AppColors.dark150.withOpacity(AppColors.opacityLow),
+                      ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
+                      : AppColors.dark150.withValues(alpha: AppColors.opacityLow),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -439,8 +445,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: isDark 
-                      ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
-                      : theme.colorScheme.primary.withOpacity(0.12),
+                      ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
+                      : theme.colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: AppShapes.lg,
                 ),
                 child: Icon(
@@ -763,8 +769,8 @@ class EventAdminReportsScreen extends ConsumerWidget {
             height: 44,
             decoration: BoxDecoration(
                color: isDark 
-                  ? AppColors.dark700.withOpacity(AppColors.opacityHigh) 
-                  : theme.colorScheme.primary.withOpacity(0.12),
+                  ? AppColors.dark700.withValues(alpha: AppColors.opacityHigh) 
+                  : theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: AppShapes.lg,
             ),
             child: Icon(

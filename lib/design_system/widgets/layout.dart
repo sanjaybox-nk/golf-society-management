@@ -114,7 +114,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
           shape: const StadiumBorder(),
           shadows: [
             BoxShadow(
-              color: AppColors.dark950.withOpacity(AppColors.opacityMedium),
+              color: AppColors.dark950.withValues(alpha: AppColors.opacityMedium),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -141,7 +141,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
                   width: (220 / count) - 8,
                   height: 42,
                   decoration: ShapeDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(AppColors.opacityMedium),
+                    color: Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityMedium),
                     shape: const StadiumBorder(),
                   ),
                 ),
@@ -151,7 +151,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
               children: options.map((option) {
                 final isSelected = option.value == selectedValue;
                 final backgroundColor = isSelected 
-                    ? Theme.of(context).primaryColor.withOpacity(AppColors.opacityHigh)
+                    ? Theme.of(context).primaryColor.withValues(alpha: AppColors.opacityHigh)
                     : (Theme.of(context).brightness == Brightness.dark ? AppColors.dark600 : AppColors.pureWhite);
                 final textColor = ContrastHelper.getContrastingText(backgroundColor);
                 final inactiveTextColor = Theme.of(context).brightness == Brightness.dark ? AppColors.dark300 : AppColors.dark400;
@@ -313,7 +313,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
               ),
             ],
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );
@@ -336,7 +336,7 @@ class BoxyArtDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         thickness: 1,
-        color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
+        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
       ),
     );
   }
@@ -360,7 +360,7 @@ class BoxyArtVerticalDivider extends StatelessWidget {
       child: Container(
         width: 1,
         height: height,
-        color: Theme.of(context).dividerColor.withOpacity(AppColors.opacityLow),
+        color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow),
       ),
     );
   }

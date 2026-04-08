@@ -115,7 +115,7 @@ class HeadlessScaffold extends StatelessWidget {
                         subtitleWidget ?? Text(
                           subtitle!,
                           style: AppTypography.subtext.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(AppColors.opacitySecondary),
+                            color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                             fontWeight: AppTypography.weightSemibold, // Semibold token as requested
                           ),
                         ),
@@ -148,7 +148,7 @@ class HeadlessScaffold extends StatelessWidget {
                    child: Container(
                      // We fill the exact hardware padding to ensure the blur always covers the status bar
                      height: notchHeight, 
-                     color: bg.withOpacity(0.8),
+                     color: bg.withValues(alpha: 0.8),
                    ),
                  ),
                ),
@@ -248,7 +248,7 @@ class HeadlessScaffold extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withOpacity(0.2),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: AppShapes.grabber,
                 ),
               ),

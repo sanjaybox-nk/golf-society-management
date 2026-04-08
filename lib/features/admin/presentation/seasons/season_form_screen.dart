@@ -6,10 +6,7 @@ import 'package:golf_society/utils/string_utils.dart';
 
 
 import 'package:golf_society/domain/models/season.dart';
-import 'package:golf_society/domain/models/leaderboard_config.dart';
 import '../../../events/presentation/events_provider.dart';
-import 'leaderboard_config_dialog.dart';
-import '../../../competitions/services/leaderboard_invoker_service.dart';
 
 class SeasonFormScreen extends ConsumerStatefulWidget {
   final Season? season;
