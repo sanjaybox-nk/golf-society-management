@@ -163,6 +163,8 @@ Circular numbered position badge (used in leaderboards).
 
 ### `BoxyArtIconBadge`
 Square icon badge with optional tint fill.
+- **Synchronized**: Size and inner icon scale are controlled via the `AppShapeTokens` extension.
+- **Usage**: Standardized for empty states (`BoxyArtEmptyCard`) and feature identity headers.
 
 ---
 

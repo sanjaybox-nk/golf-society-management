@@ -110,6 +110,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
 - [x] **Codebase Hardening & Audit**
     - [x] **Duplicate Elimination**: Deleted legacy `ModernMemberCard` and feature-specific pills.
     - [x] **Library Standardized**: Cleaned up `metrics.dart` and standardized `BoxyArtPill` as single source of truth.
+    - [x] **SDK & Theme Restoration (Apr 2026)**: Successful modernization to Flutter 3.41 / Dart 3.11 and synchronization of Design 4.x badge tokens across all hubs.
 
 ## 3. Policy & Compliance
 - [ ] **Legal Documents**

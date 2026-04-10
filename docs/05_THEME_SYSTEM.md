@@ -132,6 +132,20 @@ SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard)
 
 ---
 
+## 5.1 Design System Extensions (`AppShapeTokens`)
+
+The shapes system is extended with tokenized badge metrics injected from the `SocietyConfig`:
+
+| Token | Purpose |
+|---|---|
+| `iconBadgeSize` | The base square side-length for brand-tinted badges. |
+| `iconBadgeIconSize` | The inner icon size for brand-tinted badges. |
+
+> [!NOTE]
+> These tokens ensure that specialized badges like `BoxyArtIconBadge` remain perfectly synchronized across all hubs.
+
+---
+
 ## 6. Branding Architecture (v4.2 Separation)
 
 The branding system is now split into two distinct tiers to ensure an admin-friendly experience while maintaining deep technical control.
@@ -208,7 +222,7 @@ All route movements including bottom nav switches and back-button pops use `boxy
 1. **Zero Hardcoding**: No `Color(0x...)`, `Colors.X`, or `fontSize: X` in feature widgets.
 2. **Token Usage**: All styles must reference `AppColors`, `AppTypography`, `AppSpacing`, or `AppShapes`.
 3. **Semantic Colors**: Prefer `AppColors.textPrimary` over `AppColors.dark90`.
-4. **Consolidated Opacity**: Use `AppColors.opacityX` tokens — never `withOpacity(0.X)`.
+4. **Consolidated Opacity**: Use `AppColors.opacityX` tokens — prefer `withValues(alpha: ...)` in modern Flutter 3.41+.
 5. **Const Correctness**: `HeadlessScaffold` with a non-const `titleSuffix` must NOT be wrapped in `const`.
 
 ### Common Deviations (Prohibited)
