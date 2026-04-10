@@ -7,10 +7,10 @@ part of 'golf_event.dart';
 // **************************************************************************
 
 _EventNote _$EventNoteFromJson(Map<String, dynamic> json) => _EventNote(
-  title: json['title'] as String?,
-  content: json['content'] as String,
-  imageUrl: json['imageUrl'] as String?,
-);
+      title: json['title'] as String?,
+      content: json['content'] as String,
+      imageUrl: json['imageUrl'] as String?,
+    );
 
 Map<String, dynamic> _$EventNoteToJson(_EventNote instance) =>
     <String, dynamic>{
@@ -52,13 +52,13 @@ Map<String, dynamic> _$EventExtraCostToJson(_EventExtraCost instance) =>
     };
 
 _EventAward _$EventAwardFromJson(Map<String, dynamic> json) => _EventAward(
-  id: json['id'] as String,
-  label: json['label'] as String,
-  type: json['type'] as String? ?? 'Cash',
-  value: (json['value'] as num?)?.toDouble() ?? 0.0,
-  winnerId: json['winnerId'] as String?,
-  winnerName: json['winnerName'] as String?,
-);
+      id: json['id'] as String,
+      label: json['label'] as String,
+      type: json['type'] as String? ?? 'Cash',
+      value: (json['value'] as num?)?.toDouble() ?? 0.0,
+      winnerId: json['winnerId'] as String?,
+      winnerName: json['winnerName'] as String?,
+    );
 
 Map<String, dynamic> _$EventAwardToJson(_EventAward instance) =>
     <String, dynamic>{
@@ -110,188 +110,176 @@ const _$FeedItemTypeEnumMap = {
 };
 
 _GolfEvent _$GolfEventFromJson(Map<String, dynamic> json) => _GolfEvent(
-  id: json['id'] as String,
-  title: json['title'] as String,
-  seasonId: json['seasonId'] as String,
-  date: const TimestampConverter().fromJson(json['date']),
-  description: json['description'] as String?,
-  imageUrl: json['imageUrl'] as String?,
-  regTime: const OptionalTimestampConverter().fromJson(json['regTime']),
-  teeOffTime: const OptionalTimestampConverter().fromJson(json['teeOffTime']),
-  registrationDeadline: const OptionalTimestampConverter().fromJson(
-    json['registrationDeadline'],
-  ),
-  registrations:
-      (json['registrations'] as List<dynamic>?)
-          ?.map((e) => EventRegistration.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  courseName: json['courseName'] as String?,
-  courseDetails: json['courseDetails'] as String?,
-  dressCode: json['dressCode'] as String?,
-  availableBuggies: (json['availableBuggies'] as num?)?.toInt(),
-  maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
-  facilities:
-      (json['facilities'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  memberCost: (json['memberCost'] as num?)?.toDouble(),
-  guestCost: (json['guestCost'] as num?)?.toDouble(),
-  breakfastCost: (json['breakfastCost'] as num?)?.toDouble(),
-  lunchCost: (json['lunchCost'] as num?)?.toDouble(),
-  dinnerCost: (json['dinnerCost'] as num?)?.toDouble(),
-  buggyCost: (json['buggyCost'] as num?)?.toDouble(),
-  hasBreakfast: json['hasBreakfast'] as bool? ?? false,
-  hasLunch: json['hasLunch'] as bool? ?? false,
-  hasDinner: json['hasDinner'] as bool? ?? true,
-  dinnerLocation: json['dinnerLocation'] as String?,
-  dinnerAddress: json['dinnerAddress'] as String?,
-  societyGreenFee: (json['societyGreenFee'] as num?)?.toDouble(),
-  societyBreakfastCost: (json['societyBreakfastCost'] as num?)?.toDouble(),
-  societyLunchCost: (json['societyLunchCost'] as num?)?.toDouble(),
-  societyDinnerCost: (json['societyDinnerCost'] as num?)?.toDouble(),
-  notes:
-      (json['notes'] as List<dynamic>?)
-          ?.map((e) => EventNote.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  galleryUrls:
-      (json['galleryUrls'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  showRegistrationButton: json['showRegistrationButton'] as bool? ?? true,
-  teeOffInterval: (json['teeOffInterval'] as num?)?.toInt() ?? 10,
-  isGroupingPublished: json['isGroupingPublished'] as bool? ?? false,
-  isMultiDay: json['isMultiDay'] as bool? ?? false,
-  endDate: const OptionalTimestampConverter().fromJson(json['endDate']),
-  grouping: json['grouping'] as Map<String, dynamic>? ?? const {},
-  results:
-      (json['results'] as List<dynamic>?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList() ??
-      const [],
-  courseId: json['courseId'] as String?,
-  courseConfig: json['courseConfig'] == null
-      ? const CourseConfig()
-      : CourseConfig.fromJson(json['courseConfig'] as Map<String, dynamic>),
-  selectedTeeName: json['selectedTeeName'] as String?,
-  selectedFemaleTeeName: json['selectedFemaleTeeName'] as String?,
-  flashUpdates:
-      (json['flashUpdates'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  feedItems:
-      (json['feedItems'] as List<dynamic>?)
-          ?.map((e) => EventFeedItem.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  isScoringLocked: json['isScoringLocked'] as bool? ?? false,
-  isStatsReleased: json['isStatsReleased'] as bool? ?? false,
-  finalizedStats: json['finalizedStats'] as Map<String, dynamic>? ?? const {},
-  secondaryTemplateId: json['secondaryTemplateId'] as String?,
-  isSeasonEvent: json['isSeasonEvent'] as bool? ?? false,
-  isInvitational: json['isInvitational'] as bool? ?? false,
-  status:
-      $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
-      EventStatus.draft,
-  expenses:
-      (json['expenses'] as List<dynamic>?)
-          ?.map((e) => EventExpense.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  showAwards: json['showAwards'] as bool? ?? true,
-  awards:
-      (json['awards'] as List<dynamic>?)
-          ?.map((e) => EventAward.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  eventType:
-      $enumDecodeNullable(_$EventTypeEnumMap, json['eventType']) ??
-      EventType.golf,
-  manualCuts:
-      (json['manualCuts'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, (e as num).toDouble()),
-      ) ??
-      const {},
-  eventCost: (json['eventCost'] as num?)?.toDouble(),
-  extraCosts:
-      (json['extraCosts'] as List<dynamic>?)
-          ?.map((e) => EventExtraCost.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  charityPot: (json['charityPot'] as num?)?.toDouble() ?? 0.0,
-);
+      id: json['id'] as String,
+      title: json['title'] as String,
+      seasonId: json['seasonId'] as String,
+      date: const TimestampConverter().fromJson(json['date']),
+      description: json['description'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      regTime: const OptionalTimestampConverter().fromJson(json['regTime']),
+      teeOffTime:
+          const OptionalTimestampConverter().fromJson(json['teeOffTime']),
+      registrationDeadline: const OptionalTimestampConverter()
+          .fromJson(json['registrationDeadline']),
+      registrations: (json['registrations'] as List<dynamic>?)
+              ?.map(
+                  (e) => EventRegistration.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      courseName: json['courseName'] as String?,
+      courseDetails: json['courseDetails'] as String?,
+      dressCode: json['dressCode'] as String?,
+      availableBuggies: (json['availableBuggies'] as num?)?.toInt(),
+      maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
+      facilities: (json['facilities'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      memberCost: (json['memberCost'] as num?)?.toDouble(),
+      guestCost: (json['guestCost'] as num?)?.toDouble(),
+      breakfastCost: (json['breakfastCost'] as num?)?.toDouble(),
+      lunchCost: (json['lunchCost'] as num?)?.toDouble(),
+      dinnerCost: (json['dinnerCost'] as num?)?.toDouble(),
+      buggyCost: (json['buggyCost'] as num?)?.toDouble(),
+      hasBreakfast: json['hasBreakfast'] as bool? ?? false,
+      hasLunch: json['hasLunch'] as bool? ?? false,
+      hasDinner: json['hasDinner'] as bool? ?? true,
+      dinnerLocation: json['dinnerLocation'] as String?,
+      dinnerAddress: json['dinnerAddress'] as String?,
+      societyGreenFee: (json['societyGreenFee'] as num?)?.toDouble(),
+      societyBreakfastCost: (json['societyBreakfastCost'] as num?)?.toDouble(),
+      societyLunchCost: (json['societyLunchCost'] as num?)?.toDouble(),
+      societyDinnerCost: (json['societyDinnerCost'] as num?)?.toDouble(),
+      notes: (json['notes'] as List<dynamic>?)
+              ?.map((e) => EventNote.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      galleryUrls: (json['galleryUrls'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      showRegistrationButton: json['showRegistrationButton'] as bool? ?? true,
+      teeOffInterval: (json['teeOffInterval'] as num?)?.toInt() ?? 10,
+      isGroupingPublished: json['isGroupingPublished'] as bool? ?? false,
+      isMultiDay: json['isMultiDay'] as bool? ?? false,
+      endDate: const OptionalTimestampConverter().fromJson(json['endDate']),
+      grouping: json['grouping'] as Map<String, dynamic>? ?? const {},
+      results: (json['results'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          const [],
+      courseId: json['courseId'] as String?,
+      courseConfig: json['courseConfig'] == null
+          ? const CourseConfig()
+          : CourseConfig.fromJson(json['courseConfig'] as Map<String, dynamic>),
+      selectedTeeName: json['selectedTeeName'] as String?,
+      selectedFemaleTeeName: json['selectedFemaleTeeName'] as String?,
+      flashUpdates: (json['flashUpdates'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      feedItems: (json['feedItems'] as List<dynamic>?)
+              ?.map((e) => EventFeedItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      isScoringLocked: json['isScoringLocked'] as bool? ?? false,
+      isStatsReleased: json['isStatsReleased'] as bool? ?? false,
+      finalizedStats:
+          json['finalizedStats'] as Map<String, dynamic>? ?? const {},
+      secondaryTemplateId: json['secondaryTemplateId'] as String?,
+      isSeasonEvent: json['isSeasonEvent'] as bool? ?? false,
+      isInvitational: json['isInvitational'] as bool? ?? false,
+      status: $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
+          EventStatus.draft,
+      expenses: (json['expenses'] as List<dynamic>?)
+              ?.map((e) => EventExpense.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      showAwards: json['showAwards'] as bool? ?? true,
+      awards: (json['awards'] as List<dynamic>?)
+              ?.map((e) => EventAward.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      eventType: $enumDecodeNullable(_$EventTypeEnumMap, json['eventType']) ??
+          EventType.golf,
+      manualCuts: (json['manualCuts'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toDouble()),
+          ) ??
+          const {},
+      eventCost: (json['eventCost'] as num?)?.toDouble(),
+      extraCosts: (json['extraCosts'] as List<dynamic>?)
+              ?.map((e) => EventExtraCost.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      charityPot: (json['charityPot'] as num?)?.toDouble() ?? 0.0,
+    );
 
-Map<String, dynamic> _$GolfEventToJson(
-  _GolfEvent instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'seasonId': instance.seasonId,
-  'date': const TimestampConverter().toJson(instance.date),
-  'description': instance.description,
-  'imageUrl': instance.imageUrl,
-  'regTime': const OptionalTimestampConverter().toJson(instance.regTime),
-  'teeOffTime': const OptionalTimestampConverter().toJson(instance.teeOffTime),
-  'registrationDeadline': const OptionalTimestampConverter().toJson(
-    instance.registrationDeadline,
-  ),
-  'registrations': instance.registrations.map((e) => e.toJson()).toList(),
-  'courseName': instance.courseName,
-  'courseDetails': instance.courseDetails,
-  'dressCode': instance.dressCode,
-  'availableBuggies': instance.availableBuggies,
-  'maxParticipants': instance.maxParticipants,
-  'facilities': instance.facilities,
-  'memberCost': instance.memberCost,
-  'guestCost': instance.guestCost,
-  'breakfastCost': instance.breakfastCost,
-  'lunchCost': instance.lunchCost,
-  'dinnerCost': instance.dinnerCost,
-  'buggyCost': instance.buggyCost,
-  'hasBreakfast': instance.hasBreakfast,
-  'hasLunch': instance.hasLunch,
-  'hasDinner': instance.hasDinner,
-  'dinnerLocation': instance.dinnerLocation,
-  'dinnerAddress': instance.dinnerAddress,
-  'societyGreenFee': instance.societyGreenFee,
-  'societyBreakfastCost': instance.societyBreakfastCost,
-  'societyLunchCost': instance.societyLunchCost,
-  'societyDinnerCost': instance.societyDinnerCost,
-  'notes': instance.notes.map((e) => e.toJson()).toList(),
-  'galleryUrls': instance.galleryUrls,
-  'showRegistrationButton': instance.showRegistrationButton,
-  'teeOffInterval': instance.teeOffInterval,
-  'isGroupingPublished': instance.isGroupingPublished,
-  'isMultiDay': instance.isMultiDay,
-  'endDate': const OptionalTimestampConverter().toJson(instance.endDate),
-  'grouping': instance.grouping,
-  'results': instance.results,
-  'courseId': instance.courseId,
-  'courseConfig': instance.courseConfig.toJson(),
-  'selectedTeeName': instance.selectedTeeName,
-  'selectedFemaleTeeName': instance.selectedFemaleTeeName,
-  'flashUpdates': instance.flashUpdates,
-  'feedItems': instance.feedItems.map((e) => e.toJson()).toList(),
-  'isScoringLocked': instance.isScoringLocked,
-  'isStatsReleased': instance.isStatsReleased,
-  'finalizedStats': instance.finalizedStats,
-  'secondaryTemplateId': instance.secondaryTemplateId,
-  'isSeasonEvent': instance.isSeasonEvent,
-  'isInvitational': instance.isInvitational,
-  'status': _$EventStatusEnumMap[instance.status]!,
-  'expenses': instance.expenses.map((e) => e.toJson()).toList(),
-  'showAwards': instance.showAwards,
-  'awards': instance.awards.map((e) => e.toJson()).toList(),
-  'eventType': _$EventTypeEnumMap[instance.eventType]!,
-  'manualCuts': instance.manualCuts,
-  'eventCost': instance.eventCost,
-  'extraCosts': instance.extraCosts.map((e) => e.toJson()).toList(),
-  'charityPot': instance.charityPot,
-};
+Map<String, dynamic> _$GolfEventToJson(_GolfEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'seasonId': instance.seasonId,
+      'date': const TimestampConverter().toJson(instance.date),
+      'description': instance.description,
+      'imageUrl': instance.imageUrl,
+      'regTime': const OptionalTimestampConverter().toJson(instance.regTime),
+      'teeOffTime':
+          const OptionalTimestampConverter().toJson(instance.teeOffTime),
+      'registrationDeadline': const OptionalTimestampConverter()
+          .toJson(instance.registrationDeadline),
+      'registrations': instance.registrations.map((e) => e.toJson()).toList(),
+      'courseName': instance.courseName,
+      'courseDetails': instance.courseDetails,
+      'dressCode': instance.dressCode,
+      'availableBuggies': instance.availableBuggies,
+      'maxParticipants': instance.maxParticipants,
+      'facilities': instance.facilities,
+      'memberCost': instance.memberCost,
+      'guestCost': instance.guestCost,
+      'breakfastCost': instance.breakfastCost,
+      'lunchCost': instance.lunchCost,
+      'dinnerCost': instance.dinnerCost,
+      'buggyCost': instance.buggyCost,
+      'hasBreakfast': instance.hasBreakfast,
+      'hasLunch': instance.hasLunch,
+      'hasDinner': instance.hasDinner,
+      'dinnerLocation': instance.dinnerLocation,
+      'dinnerAddress': instance.dinnerAddress,
+      'societyGreenFee': instance.societyGreenFee,
+      'societyBreakfastCost': instance.societyBreakfastCost,
+      'societyLunchCost': instance.societyLunchCost,
+      'societyDinnerCost': instance.societyDinnerCost,
+      'notes': instance.notes.map((e) => e.toJson()).toList(),
+      'galleryUrls': instance.galleryUrls,
+      'showRegistrationButton': instance.showRegistrationButton,
+      'teeOffInterval': instance.teeOffInterval,
+      'isGroupingPublished': instance.isGroupingPublished,
+      'isMultiDay': instance.isMultiDay,
+      'endDate': const OptionalTimestampConverter().toJson(instance.endDate),
+      'grouping': instance.grouping,
+      'results': instance.results,
+      'courseId': instance.courseId,
+      'courseConfig': instance.courseConfig.toJson(),
+      'selectedTeeName': instance.selectedTeeName,
+      'selectedFemaleTeeName': instance.selectedFemaleTeeName,
+      'flashUpdates': instance.flashUpdates,
+      'feedItems': instance.feedItems.map((e) => e.toJson()).toList(),
+      'isScoringLocked': instance.isScoringLocked,
+      'isStatsReleased': instance.isStatsReleased,
+      'finalizedStats': instance.finalizedStats,
+      'secondaryTemplateId': instance.secondaryTemplateId,
+      'isSeasonEvent': instance.isSeasonEvent,
+      'isInvitational': instance.isInvitational,
+      'status': _$EventStatusEnumMap[instance.status]!,
+      'expenses': instance.expenses.map((e) => e.toJson()).toList(),
+      'showAwards': instance.showAwards,
+      'awards': instance.awards.map((e) => e.toJson()).toList(),
+      'eventType': _$EventTypeEnumMap[instance.eventType]!,
+      'manualCuts': instance.manualCuts,
+      'eventCost': instance.eventCost,
+      'extraCosts': instance.extraCosts.map((e) => e.toJson()).toList(),
+      'charityPot': instance.charityPot,
+    };
 
 const _$EventStatusEnumMap = {
   EventStatus.draft: 'draft',
@@ -302,4 +290,7 @@ const _$EventStatusEnumMap = {
   EventStatus.suspended: 'suspended',
 };
 
-const _$EventTypeEnumMap = {EventType.golf: 'golf', EventType.social: 'social'};
+const _$EventTypeEnumMap = {
+  EventType.golf: 'golf',
+  EventType.social: 'social',
+};

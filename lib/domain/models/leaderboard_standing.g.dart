@@ -16,35 +16,32 @@ _LeaderboardStanding _$LeaderboardStandingFromJson(Map<String, dynamic> json) =>
       points: (json['points'] as num).toDouble(),
       roundsPlayed: (json['roundsPlayed'] as num).toInt(),
       roundsCounted: (json['roundsCounted'] as num).toInt(),
-      history:
-          (json['history'] as List<dynamic>?)
+      history: (json['history'] as List<dynamic>?)
               ?.map((e) => (e as num).toDouble())
               .toList() ??
           const [],
-      holeScores:
-          (json['holeScores'] as Map<String, dynamic>?)?.map(
+      holeScores: (json['holeScores'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, (e as num).toInt()),
           ) ??
           const {},
-      stats:
-          (json['stats'] as Map<String, dynamic>?)?.map(
+      stats: (json['stats'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, (e as num).toInt()),
           ) ??
           const {},
     );
 
 Map<String, dynamic> _$LeaderboardStandingToJson(
-  _LeaderboardStanding instance,
-) => <String, dynamic>{
-  'leaderboardId': instance.leaderboardId,
-  'memberId': instance.memberId,
-  'memberName': instance.memberName,
-  'avatarUrl': instance.avatarUrl,
-  'currentHandicap': instance.currentHandicap,
-  'points': instance.points,
-  'roundsPlayed': instance.roundsPlayed,
-  'roundsCounted': instance.roundsCounted,
-  'history': instance.history,
-  'holeScores': instance.holeScores,
-  'stats': instance.stats,
-};
+        _LeaderboardStanding instance) =>
+    <String, dynamic>{
+      'leaderboardId': instance.leaderboardId,
+      'memberId': instance.memberId,
+      'memberName': instance.memberName,
+      'avatarUrl': instance.avatarUrl,
+      'currentHandicap': instance.currentHandicap,
+      'points': instance.points,
+      'roundsPlayed': instance.roundsPlayed,
+      'roundsCounted': instance.roundsCounted,
+      'history': instance.history,
+      'holeScores': instance.holeScores,
+      'stats': instance.stats,
+    };

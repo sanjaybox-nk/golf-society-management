@@ -253,6 +253,8 @@ class AppTheme {
           iconBadgeFill: Color(config.iconBadgeFillColor),
           iconBadgeIcon: Color(config.iconBadgeIconColor),
           iconBadgeOpacity: config.iconBadgeOpacity,
+          iconBadgeSize: config.iconBadgeSize,
+          iconBadgeIconSize: config.iconBadgeIconSize,
         ),
         AppSpacingTokens(
           labelToCard: config.labelToCardSpacing,

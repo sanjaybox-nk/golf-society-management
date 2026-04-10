@@ -250,9 +250,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           child: Column(
             children: [
               if (stats.courseDifficultyIndex.entries.isNotEmpty) ...[ 
-                _buildHubRow('Toughest course', '${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).first.key} (${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).first.value.toStringAsFixed(1)} pts)', Icons.terrain_rounded),
+                _buildHubRow('Toughest course', '${stats.courseDifficultyIndex.entries.sortedBy<num>((e) => e.value).first.key} (${stats.courseDifficultyIndex.entries.sortedBy<num>((e) => e.value).first.value.toStringAsFixed(1)} pts)', Icons.terrain_rounded),
                 const SizedBox(height: AppSpacing.atomic),
-                _buildHubRow('Easiest course', '${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).last.key} (${stats.courseDifficultyIndex.entries.sortedBy((e) => e.value).last.value.toStringAsFixed(1)} pts)', Icons.wb_sunny_rounded),
+                _buildHubRow('Easiest course', '${stats.courseDifficultyIndex.entries.sortedBy<num>((e) => e.value).last.key} (${stats.courseDifficultyIndex.entries.sortedBy<num>((e) => e.value).last.value.toStringAsFixed(1)} pts)', Icons.wb_sunny_rounded),
               ],
             ],
           ),

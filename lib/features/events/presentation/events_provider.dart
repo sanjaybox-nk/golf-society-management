@@ -72,13 +72,13 @@ final activeSeasonProvider = Provider<AsyncValue<Season?>>((ref) {
 });
 
 // 2. Main Events Stream (Published + Completed for members)
-final eventsProvider = StreamProvider<List<GolfEvent>>((ref) {
+final eventsProvider = StreamProvider<List<GolfEvent>>((ref) async* {
   final repository = ref.watch(eventsRepositoryProvider);
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
   
-  return activeSeasonAsync.when(
+  yield* activeSeasonAsync.when(
     data: (activeSeason) {
-      if (activeSeason == null) return Stream.value([]);
+      if (activeSeason == null) return Stream.value(<GolfEvent>[]);
       // Show published, live and completed events (exclude drafts and cancelled)
       return repository.watchEvents(seasonId: activeSeason.id).map((events) {
         return events.where((e) => 
@@ -87,23 +87,23 @@ final eventsProvider = StreamProvider<List<GolfEvent>>((ref) {
         ).toList();
       });
     },
-    loading: () => Stream.value([]),
-    error: (err, stack) => Stream.value([]),
+    loading: () => const Stream.empty(),
+    error: (err, stack) => Stream.value(<GolfEvent>[]),
   );
 });
 
 // Admin Events Stream (All statuses)
-final adminEventsProvider = StreamProvider<List<GolfEvent>>((ref) {
+final adminEventsProvider = StreamProvider<List<GolfEvent>>((ref) async* {
   final repository = ref.watch(eventsRepositoryProvider);
   final activeSeasonAsync = ref.watch(activeSeasonProvider);
   
-  return activeSeasonAsync.when(
+  yield* activeSeasonAsync.when(
     data: (activeSeason) {
       // Admins see events for the active season, or ALL events if no season is active
       return repository.watchEvents(seasonId: activeSeason?.id);
     },
-    loading: () => Stream.value([]),
-    error: (err, stack) => Stream.value([]),
+    loading: () => const Stream.empty(),
+    error: (err, stack) => Stream.value(<GolfEvent>[]),
   );
 });
 

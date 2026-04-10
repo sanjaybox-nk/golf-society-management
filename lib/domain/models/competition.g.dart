@@ -8,8 +8,7 @@ part of 'competition.dart';
 
 _MaxScoreConfig _$MaxScoreConfigFromJson(Map<String, dynamic> json) =>
     _MaxScoreConfig(
-      type:
-          $enumDecodeNullable(_$MaxScoreTypeEnumMap, json['type']) ??
+      type: $enumDecodeNullable(_$MaxScoreTypeEnumMap, json['type']) ??
           MaxScoreType.parPlusX,
       value: (json['value'] as num?)?.toInt() ?? 5,
     );
@@ -26,92 +25,83 @@ const _$MaxScoreTypeEnumMap = {
   MaxScoreType.netDoubleBogey: 'netDoubleBogey',
 };
 
-_CompetitionRules _$CompetitionRulesFromJson(
-  Map<String, dynamic> json,
-) => _CompetitionRules(
-  format:
-      $enumDecodeNullable(_$CompetitionFormatEnumMap, json['format']) ??
-      CompetitionFormat.stableford,
-  subtype:
-      $enumDecodeNullable(_$CompetitionSubtypeEnumMap, json['subtype']) ??
-      CompetitionSubtype.none,
-  mode:
-      $enumDecodeNullable(_$CompetitionModeEnumMap, json['mode']) ??
-      CompetitionMode.singles,
-  handicapMode:
-      $enumDecodeNullable(_$HandicapModeEnumMap, json['handicapMode']) ??
-      HandicapMode.whs,
-  handicapCap: (json['handicapCap'] as num?)?.toInt() ?? 28,
-  handicapAllowance: (json['handicapAllowance'] as num?)?.toDouble() ?? 1.0,
-  teamHandicapCap: (json['teamHandicapCap'] as num?)?.toInt(),
-  underlyingFormat:
-      $enumDecodeNullable(
-        _$CompetitionFormatEnumMap,
-        json['underlyingFormat'],
-      ) ??
-      CompetitionFormat.stroke,
-  useCourseAllowance: json['useCourseAllowance'] as bool? ?? true,
-  maxScoreConfig: json['maxScoreConfig'] == null
-      ? null
-      : MaxScoreConfig.fromJson(json['maxScoreConfig'] as Map<String, dynamic>),
-  roundsCount: (json['roundsCount'] as num?)?.toInt() ?? 1,
-  aggregation:
-      $enumDecodeNullable(_$AggregationMethodEnumMap, json['aggregation']) ??
-      AggregationMethod.totalSum,
-  tieBreak:
-      $enumDecodeNullable(_$TieBreakMethodEnumMap, json['tieBreak']) ??
-      TieBreakMethod.back9,
-  holeByHoleRequired: json['holeByHoleRequired'] as bool? ?? true,
-  minDrivesPerPlayer: (json['minDrivesPerPlayer'] as num?)?.toInt() ?? 0,
-  useWHSScrambleAllowance: json['useWHSScrambleAllowance'] as bool? ?? true,
-  trackShotAttributions: json['trackShotAttributions'] as bool? ?? true,
-  applyCapToIndex: json['applyCapToIndex'] as bool? ?? true,
-  teamBestXCount: (json['teamBestXCount'] as num?)?.toInt() ?? 2,
-  teamSize: (json['teamSize'] as num?)?.toInt() ?? 4,
-  useMixedTeeAdjustment: json['useMixedTeeAdjustment'] as bool? ?? false,
-  teamHandicapMethod:
-      $enumDecodeNullable(
-        _$TeamHandicapMethodEnumMap,
-        json['teamHandicapMethod'],
-      ) ??
-      TeamHandicapMethod.whs,
-  separateGuests: json['separateGuests'] as bool?,
-  oomExcludedRoundIds:
-      (json['oomExcludedRoundIds'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-);
+_CompetitionRules _$CompetitionRulesFromJson(Map<String, dynamic> json) =>
+    _CompetitionRules(
+      format: $enumDecodeNullable(_$CompetitionFormatEnumMap, json['format']) ??
+          CompetitionFormat.stableford,
+      subtype:
+          $enumDecodeNullable(_$CompetitionSubtypeEnumMap, json['subtype']) ??
+              CompetitionSubtype.none,
+      mode: $enumDecodeNullable(_$CompetitionModeEnumMap, json['mode']) ??
+          CompetitionMode.singles,
+      handicapMode:
+          $enumDecodeNullable(_$HandicapModeEnumMap, json['handicapMode']) ??
+              HandicapMode.whs,
+      handicapCap: (json['handicapCap'] as num?)?.toInt() ?? 28,
+      handicapAllowance: (json['handicapAllowance'] as num?)?.toDouble() ?? 1.0,
+      teamHandicapCap: (json['teamHandicapCap'] as num?)?.toInt(),
+      underlyingFormat: $enumDecodeNullable(
+              _$CompetitionFormatEnumMap, json['underlyingFormat']) ??
+          CompetitionFormat.stroke,
+      useCourseAllowance: json['useCourseAllowance'] as bool? ?? true,
+      maxScoreConfig: json['maxScoreConfig'] == null
+          ? null
+          : MaxScoreConfig.fromJson(
+              json['maxScoreConfig'] as Map<String, dynamic>),
+      roundsCount: (json['roundsCount'] as num?)?.toInt() ?? 1,
+      aggregation: $enumDecodeNullable(
+              _$AggregationMethodEnumMap, json['aggregation']) ??
+          AggregationMethod.totalSum,
+      tieBreak:
+          $enumDecodeNullable(_$TieBreakMethodEnumMap, json['tieBreak']) ??
+              TieBreakMethod.back9,
+      holeByHoleRequired: json['holeByHoleRequired'] as bool? ?? true,
+      minDrivesPerPlayer: (json['minDrivesPerPlayer'] as num?)?.toInt() ?? 0,
+      useWHSScrambleAllowance: json['useWHSScrambleAllowance'] as bool? ?? true,
+      trackShotAttributions: json['trackShotAttributions'] as bool? ?? true,
+      applyCapToIndex: json['applyCapToIndex'] as bool? ?? true,
+      teamBestXCount: (json['teamBestXCount'] as num?)?.toInt() ?? 2,
+      teamSize: (json['teamSize'] as num?)?.toInt() ?? 4,
+      useMixedTeeAdjustment: json['useMixedTeeAdjustment'] as bool? ?? false,
+      teamHandicapMethod: $enumDecodeNullable(
+              _$TeamHandicapMethodEnumMap, json['teamHandicapMethod']) ??
+          TeamHandicapMethod.whs,
+      separateGuests: json['separateGuests'] as bool?,
+      oomExcludedRoundIds: (json['oomExcludedRoundIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
 
-Map<String, dynamic> _$CompetitionRulesToJson(
-  _CompetitionRules instance,
-) => <String, dynamic>{
-  'format': _$CompetitionFormatEnumMap[instance.format]!,
-  'subtype': _$CompetitionSubtypeEnumMap[instance.subtype]!,
-  'mode': _$CompetitionModeEnumMap[instance.mode]!,
-  'handicapMode': _$HandicapModeEnumMap[instance.handicapMode]!,
-  'handicapCap': instance.handicapCap,
-  'handicapAllowance': instance.handicapAllowance,
-  'teamHandicapCap': instance.teamHandicapCap,
-  'underlyingFormat': _$CompetitionFormatEnumMap[instance.underlyingFormat]!,
-  'useCourseAllowance': instance.useCourseAllowance,
-  'maxScoreConfig': instance.maxScoreConfig?.toJson(),
-  'roundsCount': instance.roundsCount,
-  'aggregation': _$AggregationMethodEnumMap[instance.aggregation]!,
-  'tieBreak': _$TieBreakMethodEnumMap[instance.tieBreak]!,
-  'holeByHoleRequired': instance.holeByHoleRequired,
-  'minDrivesPerPlayer': instance.minDrivesPerPlayer,
-  'useWHSScrambleAllowance': instance.useWHSScrambleAllowance,
-  'trackShotAttributions': instance.trackShotAttributions,
-  'applyCapToIndex': instance.applyCapToIndex,
-  'teamBestXCount': instance.teamBestXCount,
-  'teamSize': instance.teamSize,
-  'useMixedTeeAdjustment': instance.useMixedTeeAdjustment,
-  'teamHandicapMethod':
-      _$TeamHandicapMethodEnumMap[instance.teamHandicapMethod]!,
-  'separateGuests': instance.separateGuests,
-  'oomExcludedRoundIds': instance.oomExcludedRoundIds,
-};
+Map<String, dynamic> _$CompetitionRulesToJson(_CompetitionRules instance) =>
+    <String, dynamic>{
+      'format': _$CompetitionFormatEnumMap[instance.format]!,
+      'subtype': _$CompetitionSubtypeEnumMap[instance.subtype]!,
+      'mode': _$CompetitionModeEnumMap[instance.mode]!,
+      'handicapMode': _$HandicapModeEnumMap[instance.handicapMode]!,
+      'handicapCap': instance.handicapCap,
+      'handicapAllowance': instance.handicapAllowance,
+      'teamHandicapCap': instance.teamHandicapCap,
+      'underlyingFormat':
+          _$CompetitionFormatEnumMap[instance.underlyingFormat]!,
+      'useCourseAllowance': instance.useCourseAllowance,
+      'maxScoreConfig': instance.maxScoreConfig?.toJson(),
+      'roundsCount': instance.roundsCount,
+      'aggregation': _$AggregationMethodEnumMap[instance.aggregation]!,
+      'tieBreak': _$TieBreakMethodEnumMap[instance.tieBreak]!,
+      'holeByHoleRequired': instance.holeByHoleRequired,
+      'minDrivesPerPlayer': instance.minDrivesPerPlayer,
+      'useWHSScrambleAllowance': instance.useWHSScrambleAllowance,
+      'trackShotAttributions': instance.trackShotAttributions,
+      'applyCapToIndex': instance.applyCapToIndex,
+      'teamBestXCount': instance.teamBestXCount,
+      'teamSize': instance.teamSize,
+      'useMixedTeeAdjustment': instance.useMixedTeeAdjustment,
+      'teamHandicapMethod':
+          _$TeamHandicapMethodEnumMap[instance.teamHandicapMethod]!,
+      'separateGuests': instance.separateGuests,
+      'oomExcludedRoundIds': instance.oomExcludedRoundIds,
+    };
 
 const _$CompetitionFormatEnumMap = {
   CompetitionFormat.stroke: 'stroke',
@@ -165,24 +155,23 @@ const _$TeamHandicapMethodEnumMap = {
 };
 
 _Competition _$CompetitionFromJson(Map<String, dynamic> json) => _Competition(
-  id: json['id'] as String,
-  name: json['name'] as String?,
-  templateId: json['templateId'] as String?,
-  type: $enumDecode(_$CompetitionTypeEnumMap, json['type']),
-  status:
-      $enumDecodeNullable(_$CompetitionStatusEnumMap, json['status']) ??
-      CompetitionStatus.draft,
-  rules: CompetitionRules.fromJson(json['rules'] as Map<String, dynamic>),
-  startDate: const TimestampConverter().fromJson(json['startDate']),
-  endDate: const TimestampConverter().fromJson(json['endDate']),
-  publishSettings: json['publishSettings'] as Map<String, dynamic>? ?? const {},
-  isDirty: json['isDirty'] as bool? ?? false,
-  computeVersion: (json['computeVersion'] as num?)?.toInt(),
-  lastComputedAt: const OptionalTimestampConverter().fromJson(
-    json['lastComputedAt'],
-  ),
-  lastComputedBy: json['lastComputedBy'] as String?,
-);
+      id: json['id'] as String,
+      name: json['name'] as String?,
+      templateId: json['templateId'] as String?,
+      type: $enumDecode(_$CompetitionTypeEnumMap, json['type']),
+      status: $enumDecodeNullable(_$CompetitionStatusEnumMap, json['status']) ??
+          CompetitionStatus.draft,
+      rules: CompetitionRules.fromJson(json['rules'] as Map<String, dynamic>),
+      startDate: const TimestampConverter().fromJson(json['startDate']),
+      endDate: const TimestampConverter().fromJson(json['endDate']),
+      publishSettings:
+          json['publishSettings'] as Map<String, dynamic>? ?? const {},
+      isDirty: json['isDirty'] as bool? ?? false,
+      computeVersion: (json['computeVersion'] as num?)?.toInt(),
+      lastComputedAt:
+          const OptionalTimestampConverter().fromJson(json['lastComputedAt']),
+      lastComputedBy: json['lastComputedBy'] as String?,
+    );
 
 Map<String, dynamic> _$CompetitionToJson(_Competition instance) =>
     <String, dynamic>{
@@ -197,9 +186,8 @@ Map<String, dynamic> _$CompetitionToJson(_Competition instance) =>
       'publishSettings': instance.publishSettings,
       'isDirty': instance.isDirty,
       'computeVersion': instance.computeVersion,
-      'lastComputedAt': const OptionalTimestampConverter().toJson(
-        instance.lastComputedAt,
-      ),
+      'lastComputedAt':
+          const OptionalTimestampConverter().toJson(instance.lastComputedAt),
       'lastComputedBy': instance.lastComputedBy,
     };
 

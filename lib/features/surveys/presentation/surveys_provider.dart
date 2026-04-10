@@ -13,9 +13,11 @@ final surveysProvider = StreamProvider<List<Survey>>((ref) {
   return ref.watch(surveysRepositoryProvider).watchSurveys();
 });
 
-final activeSurveysProvider = StreamProvider<List<Survey>>((ref) {
+final activeSurveysProvider = StreamProvider<List<Survey>>((ref) async* {
   final currentUser = ref.watch(effectiveUserProvider);
-  return ref.watch(surveysProvider).when(
+  final surveysAsync = ref.watch(surveysProvider);
+
+  yield* surveysAsync.when(
     data: (surveys) {
       final now = DateTime.now();
       return Stream.value(surveys.where((s) {
@@ -27,8 +29,8 @@ final activeSurveysProvider = StreamProvider<List<Survey>>((ref) {
         return true;
       }).toList());
     },
-    loading: () => Stream.value([]),
-    error: (_, _) => Stream.value([]),
+    loading: () => const Stream.empty(),
+    error: (_, __) => Stream.value(<Survey>[]),
   );
 });
 

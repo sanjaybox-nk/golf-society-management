@@ -11,8 +11,7 @@ _SurveyQuestion _$SurveyQuestionFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       question: json['question'] as String,
       type: $enumDecode(_$SurveyQuestionTypeEnumMap, json['type']),
-      options:
-          (json['options'] as List<dynamic>?)
+      options: (json['options'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -35,35 +34,33 @@ const _$SurveyQuestionTypeEnumMap = {
 };
 
 _Survey _$SurveyFromJson(Map<String, dynamic> json) => _Survey(
-  id: json['id'] as String,
-  title: json['title'] as String,
-  description: json['description'] as String?,
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  deadline: json['deadline'] == null
-      ? null
-      : DateTime.parse(json['deadline'] as String),
-  isPublished: json['isPublished'] as bool? ?? true,
-  questions:
-      (json['questions'] as List<dynamic>?)
-          ?.map((e) => SurveyQuestion.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  responses: json['responses'] as Map<String, dynamic>? ?? const {},
-  dismissedBy:
-      (json['dismissedBy'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-);
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      deadline: json['deadline'] == null
+          ? null
+          : DateTime.parse(json['deadline'] as String),
+      isPublished: json['isPublished'] as bool? ?? true,
+      questions: (json['questions'] as List<dynamic>?)
+              ?.map((e) => SurveyQuestion.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      responses: json['responses'] as Map<String, dynamic>? ?? const {},
+      dismissedBy: (json['dismissedBy'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$SurveyToJson(_Survey instance) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'description': instance.description,
-  'createdAt': instance.createdAt.toIso8601String(),
-  'deadline': instance.deadline?.toIso8601String(),
-  'isPublished': instance.isPublished,
-  'questions': instance.questions.map((e) => e.toJson()).toList(),
-  'responses': instance.responses,
-  'dismissedBy': instance.dismissedBy,
-};
+      'id': instance.id,
+      'title': instance.title,
+      'description': instance.description,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'deadline': instance.deadline?.toIso8601String(),
+      'isPublished': instance.isPublished,
+      'questions': instance.questions.map((e) => e.toJson()).toList(),
+      'responses': instance.responses,
+      'dismissedBy': instance.dismissedBy,
+    };

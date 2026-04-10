@@ -14,16 +14,16 @@ final eventScoringControllerProvider = EventScoringControllerFamily._();
 
 final class EventScoringControllerProvider
     extends $NotifierProvider<EventScoringController, ProcessedEventData> {
-  EventScoringControllerProvider._({
-    required EventScoringControllerFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'eventScoringControllerProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  EventScoringControllerProvider._(
+      {required EventScoringControllerFamily super.from,
+      required String super.argument})
+      : super(
+          retry: null,
+          name: r'eventScoringControllerProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$eventScoringControllerHash();
@@ -64,23 +64,20 @@ String _$eventScoringControllerHash() =>
 
 final class EventScoringControllerFamily extends $Family
     with
-        $ClassFamilyOverride<
-          EventScoringController,
-          ProcessedEventData,
-          ProcessedEventData,
-          ProcessedEventData,
-          String
-        > {
+        $ClassFamilyOverride<EventScoringController, ProcessedEventData,
+            ProcessedEventData, ProcessedEventData, String> {
   EventScoringControllerFamily._()
-    : super(
-        retry: null,
-        name: r'eventScoringControllerProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
+      : super(
+          retry: null,
+          name: r'eventScoringControllerProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-  EventScoringControllerProvider call(String eventId) =>
+  EventScoringControllerProvider call(
+    String eventId,
+  ) =>
       EventScoringControllerProvider._(argument: eventId, from: this);
 
   @override
@@ -91,19 +88,22 @@ abstract class _$EventScoringController extends $Notifier<ProcessedEventData> {
   late final _$args = ref.$arg as String;
   String get eventId => _$args;
 
-  ProcessedEventData build(String eventId);
+  ProcessedEventData build(
+    String eventId,
+  );
   @$mustCallSuper
   @override
   void runBuild() {
     final ref = this.ref as $Ref<ProcessedEventData, ProcessedEventData>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<ProcessedEventData, ProcessedEventData>,
-              ProcessedEventData,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, () => build(_$args));
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<ProcessedEventData, ProcessedEventData>,
+        ProcessedEventData,
+        Object?,
+        Object?>;
+    element.handleCreate(
+        ref,
+        () => build(
+              _$args,
+            ));
   }
 }

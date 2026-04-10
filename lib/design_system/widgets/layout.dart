@@ -114,7 +114,7 @@ class FloatingFilterBar<T> extends StatelessWidget {
           shape: const StadiumBorder(),
           shadows: [
             BoxShadow(
-              color: AppColors.dark950.withValues(alpha: AppColors.opacityMedium),
+              color: AppColors.dark950.withAlpha((AppColors.opacityMedium * 255).toInt()),
               offset: const Offset(0, 4),
               blurRadius: 16,
             ),
@@ -315,7 +315,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
               ),
             ],
           ),
-          ?trailing,
+          if (trailing != null) trailing!,
         ],
       ),
     );

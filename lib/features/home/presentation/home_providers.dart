@@ -131,9 +131,15 @@ final homeSeasonStakesProvider = Provider<AsyncValue<String?>>((ref) {
   );
 });
 
-final leaderboardStandingsProvider = StreamProvider.family<List<LeaderboardStanding>, String>((ref, leaderboardId) {
-  final activeSeason = ref.watch(activeSeasonProvider).asData?.value;
-  if (activeSeason == null) return Stream.value(<LeaderboardStanding>[]);
+final leaderboardStandingsProvider = StreamProvider.family<List<LeaderboardStanding>, String>((ref, leaderboardId) async* {
+  final activeSeasonAsync = ref.watch(activeSeasonProvider);
   
-  return ref.watch(seasonsRepositoryProvider).watchLeaderboardStandings(activeSeason.id, leaderboardId);
+  yield* activeSeasonAsync.when(
+    data: (activeSeason) {
+      if (activeSeason == null) return Stream.value(<LeaderboardStanding>[]);
+      return ref.watch(seasonsRepositoryProvider).watchLeaderboardStandings(activeSeason.id, leaderboardId);
+    },
+    loading: () => const Stream.empty(),
+    error: (_, __) => Stream.value(<LeaderboardStanding>[]),
+  );
 });

@@ -55,7 +55,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
     final double effectiveOpacity = fillOpacity ?? shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity;
     
     final Color effectiveFill = showFill 
-      ? (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withOpacity(effectiveOpacity)
+      ? (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withValues(alpha: effectiveOpacity)
       : Colors.transparent;
       
     final Color effectiveIconColor = iconColor ?? (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor)));
@@ -69,7 +69,7 @@ class BoxyArtIconBadge extends ConsumerWidget {
         borderRadius: useCircle ? null : BorderRadius.circular(config.accentRadius),
         border: showBorder 
           ? Border.all(
-              color: Color(config.iconBadgeFillColor).withOpacity(0.2),
+              color: Color(config.iconBadgeFillColor).withValues(alpha: 0.2),
               width: 1.0,
             )
           : null,
@@ -611,7 +611,7 @@ class BoxyArtSquareBadge extends StatelessWidget {
         Color bg = backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50);
         if (isTinted) {
           bg = (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor))
-              .withOpacity(shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity);
+              .withValues(alpha: shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity);
         }
 
         final Color effectiveIconColor = shapeTokens?.iconBadgeIcon ?? Color(config.iconBadgeIconColor);
@@ -626,10 +626,10 @@ class BoxyArtSquareBadge extends StatelessWidget {
           ),
           child: Center(
             child: DefaultTextStyle.merge(
-              style: TextStyle(color: effectiveIconColor.withOpacity(config.iconOpacity)),
+              style: TextStyle(color: effectiveIconColor.withValues(alpha: config.iconOpacity)),
               child: IconTheme.merge(
                 data: IconThemeData(
-                  color: effectiveIconColor.withOpacity(config.iconOpacity),
+                  color: effectiveIconColor.withValues(alpha: config.iconOpacity),
                 ),
                 child: this.child,
                 ),

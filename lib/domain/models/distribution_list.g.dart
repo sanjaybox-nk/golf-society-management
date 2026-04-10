@@ -10,9 +10,8 @@ _DistributionList _$DistributionListFromJson(Map<String, dynamic> json) =>
     _DistributionList(
       id: json['id'] as String,
       name: json['name'] as String,
-      memberIds: (json['memberIds'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+      memberIds:
+          (json['memberIds'] as List<dynamic>).map((e) => e as String).toList(),
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 

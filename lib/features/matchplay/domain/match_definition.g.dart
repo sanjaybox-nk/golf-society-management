@@ -10,20 +10,16 @@ _MatchDefinition _$MatchDefinitionFromJson(Map<String, dynamic> json) =>
     _MatchDefinition(
       id: json['id'] as String,
       type: $enumDecode(_$MatchTypeEnumMap, json['type']),
-      team1Ids: (json['team1Ids'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-      team2Ids: (json['team2Ids'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-      strokesReceived:
-          (json['strokesReceived'] as Map<String, dynamic>?)?.map(
+      team1Ids:
+          (json['team1Ids'] as List<dynamic>).map((e) => e as String).toList(),
+      team2Ids:
+          (json['team2Ids'] as List<dynamic>).map((e) => e as String).toList(),
+      strokesReceived: (json['strokesReceived'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, (e as num).toInt()),
           ) ??
           const {},
       groupId: json['groupId'] as String?,
-      round:
-          $enumDecodeNullable(_$MatchRoundTypeEnumMap, json['round']) ??
+      round: $enumDecodeNullable(_$MatchRoundTypeEnumMap, json['round']) ??
           MatchRoundType.group,
       bracketId: json['bracketId'] as String?,
       nextMatchId: json['nextMatchId'] as String?,
@@ -65,16 +61,16 @@ const _$MatchRoundTypeEnumMap = {
 };
 
 _MatchResult _$MatchResultFromJson(Map<String, dynamic> json) => _MatchResult(
-  matchId: json['matchId'] as String,
-  winningTeamIndex: (json['winningTeamIndex'] as num).toInt(),
-  status: json['status'] as String,
-  score: (json['score'] as num).toInt(),
-  holeResults: (json['holeResults'] as List<dynamic>)
-      .map((e) => (e as num).toInt())
-      .toList(),
-  holesPlayed: (json['holesPlayed'] as num).toInt(),
-  isFinal: json['isFinal'] as bool? ?? false,
-);
+      matchId: json['matchId'] as String,
+      winningTeamIndex: (json['winningTeamIndex'] as num).toInt(),
+      status: json['status'] as String,
+      score: (json['score'] as num).toInt(),
+      holeResults: (json['holeResults'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+      holesPlayed: (json['holesPlayed'] as num).toInt(),
+      isFinal: json['isFinal'] as bool? ?? false,
+    );
 
 Map<String, dynamic> _$MatchResultToJson(_MatchResult instance) =>
     <String, dynamic>{
