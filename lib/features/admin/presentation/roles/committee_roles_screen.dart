@@ -37,6 +37,9 @@ class _CommitteeRolesScreenState extends ConsumerState<CommitteeRolesScreen> {
       showBack: true,
       onBack: () => context.pop(),
       slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
+        ),
         membersAsync.when(
           data: (members) {
             final activeCustomRoles = members

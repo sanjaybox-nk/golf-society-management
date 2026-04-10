@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:golf_society/services/storage_service.dart';
 
 class BrandingSettingsScreen extends ConsumerWidget {
   const BrandingSettingsScreen({super.key});
@@ -64,54 +62,7 @@ class BrandingSettingsScreen extends ConsumerWidget {
                 config.iconBadgeOpacity,
               ),
 
-              const BoxyArtSectionTitle(title: 'App Appearance'),
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    _ThemeModeTile(
-                      title: 'System Default',
-                      value: 'system',
-                      groupValue: config.themeMode,
-                      icon: Icons.brightness_auto_rounded,
-                      onChanged: (v) => controller.setThemeMode(v!),
-                    ),
-                    const Divider(height: 1),
-                    _ThemeModeTile(
-                      title: 'Always Light',
-                      value: 'light',
-                      groupValue: config.themeMode,
-                      icon: Icons.light_mode_rounded,
-                      onChanged: (v) => controller.setThemeMode(v!),
-                    ),
-                    const Divider(height: 1),
-                    _ThemeModeTile(
-                      title: 'Always Dark',
-                      value: 'dark',
-                      groupValue: config.themeMode,
-                      icon: Icons.dark_mode_rounded,
-                      onChanged: (v) => controller.setThemeMode(v!),
-                    ),
-                  ],
-                ),
-              ),
-
-              const BoxyArtSectionTitle(title: 'Society Identity'),
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    ModernTextField(
-                      label: 'Society Name',
-                      initialValue: config.societyName,
-                      onChanged: (v) => controller.setSocietyName(v),
-                      icon: Icons.business_rounded,
-                    ),
-                    _LogoPicker(
-                      currentUrl: config.logoUrl,
-                      onUrlChanged: (v) => controller.setLogoUrl(v),
-                    ),
-                  ],
-                ),
-              ),
+// Redundant Identity and Appearance cards removed - managed via SocietyIdentityScreen
 
               const BoxyArtSectionTitle(title: 'Style Preference'),
               BoxyArtCard(
@@ -1237,82 +1188,7 @@ class _CompactColorPicker extends StatelessWidget {
   }
 }
 
-class _ThemeModeTile extends StatelessWidget {
-  final String title;
-  final String value;
-  final String groupValue;
-  final IconData icon;
-  final ValueChanged<String?> onChanged;
-
-  const _ThemeModeTile({
-    required this.title,
-    required this.value,
-    required this.groupValue,
-    required this.icon,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = value == groupValue;
-    return InkWell(
-      onTap: () => onChanged(value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Theme.of(
-                        context,
-                      ).primaryColor.withValues(alpha: AppColors.opacityLow)
-                    : Theme.of(
-                        context,
-                      ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                borderRadius: AppShapes.md,
-              ),
-              child: Icon(
-                icon,
-                size: AppShapes.iconMd,
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: AppTypography.sizeBody,
-                  fontWeight: isSelected
-                      ? AppTypography.weightBlack
-                      : AppTypography.weightMedium,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            ),
-            // ignore: deprecated_member_use
-            Radio<String>(
-              value: value,
-              // ignore: deprecated_member_use
-              groupValue: groupValue,
-              // ignore: deprecated_member_use
-              onChanged: onChanged,
-              activeColor: Theme.of(context).primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _ThemeModeTile removed - using shared BoxyArtThemeModeTile instead
 
 class _ColorPalette extends StatefulWidget {
   final Color selectedColor;
@@ -1560,154 +1436,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
   }
 }
 
-class _LogoPicker extends ConsumerStatefulWidget {
-  final String? currentUrl;
-  final ValueChanged<String?> onUrlChanged;
-
-  const _LogoPicker({required this.currentUrl, required this.onUrlChanged});
-
-  @override
-  ConsumerState<_LogoPicker> createState() => _LogoPickerState();
-}
-
-class _LogoPickerState extends ConsumerState<_LogoPicker> {
-  bool _isUploading = false;
-
-  Future<void> _pickAndUpload() async {
-    final storage = ref.read(storageServiceProvider);
-
-    setState(() => _isUploading = true);
-
-    try {
-      final file = await storage.pickImage(source: ImageSource.gallery);
-      if (file == null) {
-        setState(() => _isUploading = false);
-        return;
-      }
-
-      final url = await storage.uploadImage(path: 'branding', file: file);
-
-      widget.onUrlChanged(url);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Society Logo',
-          style: TextStyle(
-            fontSize: AppTypography.sizeLabelStrong,
-            fontWeight: AppTypography.weightBold,
-            color: Theme.of(context).textTheme.bodySmall?.color,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).dividerColor.withValues(alpha: AppColors.opacitySubtle),
-                borderRadius: AppShapes.xl,
-                border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).dividerColor.withValues(alpha: AppColors.opacityLow),
-                ),
-                image: widget.currentUrl != null
-                    ? DecorationImage(
-                        image: boxyArtNetworkImage(widget.currentUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: widget.currentUrl == null
-                  ? Icon(
-                      Icons.golf_course_rounded,
-                      size: 36,
-                      color: Theme.of(
-                        context,
-                      ).dividerColor.withValues(alpha: AppColors.opacityMedium),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: AppSpacing.xl),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: _pickAndUpload,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: ContrastHelper.getContrastingText(
-                          Theme.of(context).primaryColor,
-                        ),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppShapes.md,
-                        ),
-                      ),
-                      child: _isUploading
-                          ? const SizedBox(
-                              width: AppSpacing.xl,
-                              height: AppSpacing.xl,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.pureWhite,
-                              ),
-                            )
-                          : const Text(
-                              'Update Logo',
-                              style: TextStyle(
-                                fontWeight: AppTypography.weightBold,
-                              ),
-                            ),
-                    ),
-                  ),
-                  if (widget.currentUrl != null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    TextButton.icon(
-                      onPressed: () => widget.onUrlChanged(null),
-                      icon: const Icon(
-                        Icons.delete_outline_rounded,
-                        size: AppShapes.iconSm,
-                      ),
-                      label: const Text('Remove Logo'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.coral500,
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
+// _LogoPicker removed - using shared BoxyArtLogoPicker instead
 
 class _DarkSwatch extends StatelessWidget {
   final String label;

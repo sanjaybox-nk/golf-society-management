@@ -141,10 +141,11 @@ class BoxyArtButton extends ConsumerWidget {
         ],
         Text(
           title,
-          style: AppTypography.body.copyWith(
+          style: (isSmall ? AppTypography.label : AppTypography.body).copyWith(
             color: color,
             fontWeight: AppTypography.weightHeavy,
-            fontSize: 16,
+            fontSize: isSmall ? 13 : 16,
+            height: 1.1, // Tighten height for button labels to prevent overflow
           ),
         ),
       ],

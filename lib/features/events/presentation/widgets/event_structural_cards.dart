@@ -221,7 +221,7 @@ class EventRegistrationCard extends ConsumerWidget {
         ] else ...[
           // MEMBER STATUS SECTION
           BoxyArtSectionTitle(
-            title: myRegistration.guestName != null ? 'My Status' : 'Registration Status',
+            title: myRegistration.guestName != null ? 'My Status' : 'Your Registration Status',
             isPeeking: isPeeking,
           ),
           BoxyArtCard(
@@ -316,17 +316,17 @@ class EventRegistrationCard extends ConsumerWidget {
       else if (statusOverride == null && !isConfirmed)
         const ModernMetricStat(icon: Icons.history_edu_rounded, value: 'Pending', label: 'Status', color: AppColors.amber500),
       if (attendingBreakfast)
-        const ModernMetricStat(icon: Icons.breakfast_dining_rounded, value: 'Yes', label: 'Breakfast'),
+        const ModernMetricStat(icon: Icons.breakfast_dining_rounded, value: '', label: 'Breakfast'),
       if (attendingLunch)
-        const ModernMetricStat(icon: Icons.lunch_dining_rounded, value: 'Yes', label: 'Lunch'),
+        const ModernMetricStat(icon: Icons.lunch_dining_rounded, value: '', label: 'Lunch'),
       if (attendingDinner)
-        const ModernMetricStat(icon: Icons.restaurant_rounded, value: 'Yes', label: 'Dinner'),
+        const ModernMetricStat(icon: Icons.restaurant_rounded, value: '', label: 'Dinner'),
       if (needsBuggy)
-        const ModernMetricStat(icon: Icons.electric_rickshaw_rounded, value: 'Yes', label: 'Buggy'),
+        const ModernMetricStat(icon: Icons.electric_rickshaw_rounded, value: '', label: 'Buggy'),
       ModernMetricStat(
         icon: hasPaid ? Icons.payments_rounded : Icons.info_outline_rounded, 
-        value: hasPaid ? 'Paid' : 'Due', 
-        label: 'Payment',
+        value: '', 
+        label: hasPaid ? 'Paid' : 'Payment Due', 
         color: hasPaid ? null : AppColors.amber500,
       ),
     ];
@@ -529,8 +529,8 @@ class EventPodiumCard extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      title: Text(memberName, style: AppTypography.body.copyWith(fontWeight: AppTypography.weightHeavy)),
-                      trailing: Text('$score pts', style: AppTypography.headline.copyWith(fontSize: 18.0, fontWeight: AppTypography.weightHeavy, color: null)),
+                      title: Text(memberName, style: AppTypography.body),
+                      trailing: Text('$score pts', style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold)),
                     );
                 }),
               ],

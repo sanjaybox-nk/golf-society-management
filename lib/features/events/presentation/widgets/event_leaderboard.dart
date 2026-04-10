@@ -36,6 +36,8 @@ class EventLeaderboard extends ConsumerStatefulWidget {
 class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     // 1. Subscribe to the Central Scoring Brain
     final data = ref.watch(eventScoringControllerProvider(widget.event.id));
 
@@ -118,6 +120,7 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
             BoxyArtSectionTitle(
               title: hasGuests ? 'Society Members' : 'Live Standings',
               count: hasGuests ? memberEntries.length : null,
+              isPeeking: true,
             ),
           ],
           LeaderboardWidget(
@@ -127,11 +130,11 @@ class _EventLeaderboardState extends ConsumerState<EventLeaderboard> {
           ),
         ],
         if (guestEntries.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.x3l),
           if (widget.showTitles) ...[
             BoxyArtSectionTitle(
               title: 'Guests',
               count: guestEntries.length,
+              isPeeking: false,
             ),
           ],
           LeaderboardWidget(

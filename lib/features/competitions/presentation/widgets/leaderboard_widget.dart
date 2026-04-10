@@ -84,6 +84,7 @@ class LeaderboardWidget extends StatelessWidget {
           rankColor: rankColor,
           tieBreakLabel: differentiatorChain,
           onTap: () => onPlayerTap?.call(entry),
+          showBottomSpacing: idx < entries.length - 1,
         );
       }).toList(),
     );
@@ -104,20 +105,24 @@ class LeaderboardCard extends StatelessWidget {
     required this.rankColor,
     this.tieBreakLabel,
     this.onTap,
+    this.showBottomSpacing = true,
   });
+
+  final bool showBottomSpacing;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final spacing = theme.extension<AppSpacingTokens>();
-    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
-    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
+    final double vPadding = (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 0.8;
+    final double hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
+    final double cardHeight = vPadding * 4.2; // Fixed height floor to match Group cards
 
     final bool hasScore = entry.scoringStatus == ScoringStatus.ok;
     final String rawScore = hasScore ? (entry.scoreLabel ?? '${entry.score}') : entry.scoringStatus.name.toUpperCase();
 
     return Padding(
-      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.lg),
+      padding: EdgeInsets.only(bottom: showBottomSpacing ? (spacing?.cardToCard ?? AppSpacing.lg) : 0),
       child: InkWell(
         onTap: onTap,
         borderRadius: theme.extension<AppShapeTokens>()?.card ?? AppShapes.lg,
@@ -127,9 +132,10 @@ class LeaderboardCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 1. Avatar Section
-                SizedBox(
-                  width: 72,
+                // 1. Avatar Section (Compact 60x60)
+                Container(
+                  width: 60,
+                  constraints: BoxConstraints(minHeight: cardHeight),
                   child: Stack(
                     alignment: Alignment.center,
                     clipBehavior: Clip.none,
@@ -137,16 +143,16 @@ class LeaderboardCard extends StatelessWidget {
                       BoxyArtAvatar(
                         url: entry.avatarUrl,
                         initials: entry.playerName.isNotEmpty ? entry.playerName[0] : '?',
-                        radius: 36,
+                        radius: 30, // 20% reduction
                         isCircle: true,
                         borderColor: rankColor,
-                        borderWidth: 3.5,
+                        borderWidth: 1.5,
                       ),
                       // Host Badge (Bottom Left)
                       if (entry.hasGuest)
                         Positioned(
-                          bottom: -2,
-                          left: -2,
+                          bottom: 0,
+                          left: 0,
                           child: BoxyArtIconBadge(
                             icon: Icons.person_add_rounded,
                             color: Theme.of(context).colorScheme.primary,
@@ -157,8 +163,8 @@ class LeaderboardCard extends StatelessWidget {
                         ),
                       // Rank Badge (Top Left)
                       Positioned(
-                        top: -4,
-                        left: -4,
+                        top: -2,
+                        left: -2,
                         child: BoxyArtNumberBadge(
                           number: entry.position,
                           size: 24,
@@ -167,8 +173,8 @@ class LeaderboardCard extends StatelessWidget {
                       ),
                       if (entry.isGuest)
                         Positioned(
-                          bottom: -2,
-                          left: -2,
+                          bottom: 0,
+                          left: 0,
                           child: Container(
                             width: 24,
                             height: 24,
@@ -206,17 +212,17 @@ class LeaderboardCard extends StatelessWidget {
                 ),
 
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: vPadding / 4), // Added slight inner padding
-                  child: Column(
+                child: Container(
+                  constraints: BoxConstraints(minHeight: cardHeight),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: vPadding / 4),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min, // [FIX] Use min size to avoid overflow
                     children: [
                       Text(
                         toTitleCase(entry.playerName),
-                        style: AppTypography.displayHeading.copyWith(
-                          fontSize: AppTypography.sizeLargeBody,
-                          fontWeight: AppTypography.weightExtraBold,
+                        style: AppTypography.memberName.copyWith(
                           color: theme.colorScheme.onSurface,
                         ),
                         maxLines: 1,
@@ -263,40 +269,49 @@ class LeaderboardCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
-                          if (entry.thruLabel != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Text(
-                                entry.thruLabel!,
-                                style: AppTypography.helper.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                  fontStyle: FontStyle.italic,
-                                  fontSize: 11,
+                          // Left Side: Thru & Tie-break info
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (entry.thruLabel != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: Text(
+                                    entry.thruLabel!,
+                                    style: AppTypography.helper.copyWith(
+                                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                      fontStyle: FontStyle.italic,
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          const SizedBox(width: AppSpacing.sm),
+                              if (entry.thruLabel != null && hasScore && tieBreakLabel != null)
+                                const SizedBox(width: AppSpacing.sm),
+                              if (hasScore && tieBreakLabel != null)
+                                Text(
+                                  tieBreakLabel!,
+                                  style: AppTypography.label.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: AppTypography.weightBold,
+                                    color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          // Right Side: Score
                           RichText(
                             text: TextSpan(
                               children: [
-                                if (hasScore && tieBreakLabel != null)
-                                  TextSpan(
-                                    text: '$tieBreakLabel  ',
-                                    style: AppTypography.label.copyWith(
-                                      fontSize: 10,
-                                      fontWeight: AppTypography.weightBold,
-                                      color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
                                 TextSpan(
                                   text: rawScore,
                                   style: AppTypography.displayHeading.copyWith(
-                                    fontSize: 26,
+                                    fontSize: 24,
                                     fontWeight: AppTypography.weightBlack,
                                     color: hasScore ? theme.colorScheme.primary : AppColors.coral500,
                                     height: 1,
@@ -321,6 +336,7 @@ class LeaderboardCard extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
             ],
           ),
         ),

@@ -86,9 +86,9 @@ class EventGroupingUserTab extends ConsumerWidget {
             showBack: true,
             slivers: [
               SliverFillRemaining(
-                child: BoxyArtEmptyState(
+                child: BoxyArtEmptyCard(
                   title: 'Event Not Found',
-                  message: 'The requested event could not be located.',
+                  message: 'The requested event could not be located on the fairway.',
                   icon: Icons.error_outline_rounded,
                 ),
               ),
@@ -134,7 +134,6 @@ class EventGroupingUserTab extends ConsumerWidget {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xs)),
             if (ref.watch(eventFieldTabProvider) == 0)
               // Registrations View (Entries)
               SliverPadding(
@@ -157,18 +156,18 @@ class EventGroupingUserTab extends ConsumerWidget {
               if (isSocial)
                 const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: BoxyArtEmptyState(
+                  child: BoxyArtEmptyCard(
                     title: 'No Pairings',
-                    message: 'Social events do not typically have formal tee time pairings.',
+                    message: 'Social events typically favor a relaxed atmosphere without formal tee times.',
                     icon: Icons.favorite_border_rounded,
                   ),
                 )
               else if (!isPublished || groups.isEmpty)
                 const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: BoxyArtEmptyState(
+                  child: BoxyArtEmptyCard(
                     title: 'Tee Time Not Published',
-                    message: 'Official pairings haven\'t been released yet. The Admin will publish them soon.',
+                    message: 'Official pairings are currently being finalized. Keep an eye on the clubhouse!',
                     icon: Icons.schedule_rounded,
                   ),
                 )
@@ -912,10 +911,10 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                         Flexible(
                           child: Text(
                             isSelfMarking 
-                                ? 'Marking: SELF' 
+                                ? 'Marking: Self' 
                                 : (targetEntryId != null 
-                                    ? 'Marking: ${_getDisplayName(event, targetEntryId).split(' ').first.toUpperCase()}' 
-                                    : 'Marking: SELECT'),
+                                    ? 'Marking: ${toTitleCase(_getDisplayName(event, targetEntryId).split(' ').first)}' 
+                                    : 'Marking: Select'),
                             style: AppTypography.label.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: AppTypography.weightStrong,
@@ -1169,7 +1168,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
        // Do nothing - user sees only "Myself"
     }
 
-    BoxyArtBottomSheet.show(
+    BoxyArtBottomSheet.showPersistent(
       context: context,
       title: 'Marker & Tee Selection',
       child: Consumer(
@@ -1186,10 +1185,8 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
                 child: Row(
                   children: [
-                    Icon(Icons.person_search_outlined, size: AppShapes.iconSm, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(width: AppSpacing.sm),
                     Text(
-                      'SELECT PLAYER TO MARK',
+                      'Select Player To Mark',
                       style: AppTypography.label.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: AppTypography.weightHeavy,
@@ -1253,16 +1250,15 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.transparent, // True Minimal style
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04), // Design 4.x Soft Tint
                     borderRadius: AppShapes.md,
-                    border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityLow)),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.lightbulb_outline_rounded, 
-                        size: 18, 
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                        size: 16, 
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityMedium),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
@@ -1455,7 +1451,7 @@ class _EventScoresUserTabState extends ConsumerState<EventScoresUserTab> {
     required String defaultTeeName,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2174,4 +2170,19 @@ class GroupScoresViewState extends ConsumerState<GroupScoresView> {
       ],
     );
   }
+}
+
+// Helper functions moved from string_utils for stability
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
+}
+
+String toSentenceCase(String text) {
+  if (text.isEmpty) return text;
+  final lower = text.toLowerCase();
+  return lower[0].toUpperCase() + lower.substring(1);
 }

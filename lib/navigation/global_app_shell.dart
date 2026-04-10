@@ -67,8 +67,16 @@ class GlobalAppShell extends ConsumerWidget {
     final bool isSurveyView = location.contains('/surveys/') && !location.contains('/admin/node'); // Only hide if it's a specific internal node type if needed, but for now let's just make it consistent.
     final bool isSpecialForm = location.split('/').any((s) => s == 'new' || s == 'edit' || s == 'create');
 
-    final bool isWhiteListed = location.contains('renewal') || location.contains('ledger') || location.contains('/admin/surveys') || location.contains('compose') || location.contains('broadcast') || isSurveyView;
-    final bool shouldHideMainNav = (isUserEventHub || isAdminEventHub || isSpecialForm) && !isWhiteListed;
+    final bool isWhiteListed = location.contains('renewal') || 
+                               location.contains('ledger') || 
+                               location.contains('/admin/surveys') || 
+                               location.contains('/admin/communications') || 
+                               location.contains('/admin/audience') || 
+                               location.contains('compose') || 
+                               location.contains('broadcast') || 
+                               isSurveyView;
+    final bool isCommsHub = false; // [REMOVED] Hubs no longer hide nav
+    final bool shouldHideMainNav = (isUserEventHub || isAdminEventHub || isSpecialForm || isCommsHub) && !isWhiteListed;
 
 
     // 4. Status Bar Styling
@@ -86,23 +94,20 @@ class GlobalAppShell extends ConsumerWidget {
           final isMobile = constraints.maxWidth < 600;
           
           if (isMobile) {
-            // Bypass global scaffold entirely when sub-hub is active to prevent gesture blocking
-            if (shouldHideMainNav) {
-              return navigationShell;
-            }
-
             return Scaffold(
               key: ValueKey('mobile_scaffold_$location'),
               extendBody: false,
               extendBodyBehindAppBar: true,
               primary: false,
               body: navigationShell,
-              bottomNavigationBar: BoxyArtBottomNavBar(
-                selectedIndex: displayIndex,
-                onItemSelected: (index) => _onTap(context, index, isAdmin, branchMap),
-                items: items,
-                isAdmin: isAdmin,
-              ),
+              bottomNavigationBar: shouldHideMainNav 
+                ? null 
+                : BoxyArtBottomNavBar(
+                    selectedIndex: displayIndex,
+                    onItemSelected: (index) => _onTap(context, index, isAdmin, branchMap),
+                    items: items,
+                    isAdmin: isAdmin,
+                  ),
             );
           }
 

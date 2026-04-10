@@ -18,6 +18,7 @@ export 'widgets/avatars.dart';
 export 'widgets/badges.dart';
 export 'widgets/bottom_sheets.dart';
 export 'widgets/empty_states.dart';
+export 'widgets/boxy_art_empty_card.dart';
 export 'widgets/dialogs.dart';
 export 'widgets/error_handler.dart';
 export 'widgets/floating_action_bar.dart';

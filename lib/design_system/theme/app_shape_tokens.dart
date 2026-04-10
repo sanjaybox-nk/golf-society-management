@@ -12,6 +12,8 @@ class AppShapeTokens extends ThemeExtension<AppShapeTokens> {
   final Color? iconBadgeFill;
   final Color? iconBadgeIcon;
   final double iconBadgeOpacity;
+  final double iconBadgeSize;
+  final double iconBadgeIconSize;
 
   const AppShapeTokens({
     required this.heroRadius,
@@ -24,6 +26,8 @@ class AppShapeTokens extends ThemeExtension<AppShapeTokens> {
     this.iconBadgeFill,
     this.iconBadgeIcon,
     this.iconBadgeOpacity = 1.0,
+    required this.iconBadgeSize,
+    required this.iconBadgeIconSize,
   });
 
   BorderRadius get hero => BorderRadius.circular(heroRadius);
@@ -45,6 +49,8 @@ class AppShapeTokens extends ThemeExtension<AppShapeTokens> {
     Color? iconBadgeFill,
     Color? iconBadgeIcon,
     double? iconBadgeOpacity,
+    double? iconBadgeSize,
+    double? iconBadgeIconSize,
   }) {
     return AppShapeTokens(
       heroRadius: heroRadius ?? this.heroRadius,
@@ -57,6 +63,8 @@ class AppShapeTokens extends ThemeExtension<AppShapeTokens> {
       iconBadgeFill: iconBadgeFill ?? this.iconBadgeFill,
       iconBadgeIcon: iconBadgeIcon ?? this.iconBadgeIcon,
       iconBadgeOpacity: iconBadgeOpacity ?? this.iconBadgeOpacity,
+      iconBadgeSize: iconBadgeSize ?? this.iconBadgeSize,
+      iconBadgeIconSize: iconBadgeIconSize ?? this.iconBadgeIconSize,
     );
   }
 
@@ -75,6 +83,8 @@ class AppShapeTokens extends ThemeExtension<AppShapeTokens> {
       iconBadgeFill: Color.lerp(iconBadgeFill, other.iconBadgeFill, t) ?? iconBadgeFill,
       iconBadgeIcon: Color.lerp(iconBadgeIcon, other.iconBadgeIcon, t) ?? iconBadgeIcon,
       iconBadgeOpacity: lerpDouble(iconBadgeOpacity, other.iconBadgeOpacity, t) ?? iconBadgeOpacity,
+      iconBadgeSize: lerpDouble(iconBadgeSize, other.iconBadgeSize, t) ?? iconBadgeSize,
+      iconBadgeIconSize: lerpDouble(iconBadgeIconSize, other.iconBadgeIconSize, t) ?? iconBadgeIconSize,
     );
   }
 }

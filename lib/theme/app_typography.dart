@@ -7,8 +7,9 @@ class AppTypography {
   static const double sizeDisplay = 30.0;   // Hero headers (Previously 64-32)
   static const double sizeHeadline = 20.0;  // Section headers (Previously 28-20)
   static const double sizeBody = 16.0;      // Primary reading (Previously 18-16)
-  static const double sizeLabel = 12.0;     // Secondary metadata (Standardized to 12pt)
+  static const double sizeLabel = 13.0;     // Secondary metadata (Standardized to 13pt)
   static const double sizeMicro = 10.0;     // Captions & Micro-UI (Previously 11-8)
+  static const double sizeMetric = 18.0;    // [NEW] Dashboard metrics
 
   // Legacy Size Aliases
   static const double sizeLargeDisplay = sizeDisplay;
@@ -16,7 +17,7 @@ class AppTypography {
   static const double sizeLabelStrong = sizeLabel;
   static const double sizeButton = sizeLabel;
   static const double sizeCaption = sizeMicro;
-  static const double sizeCaptionStrong = sizeLabel;
+  static const double sizeCaptionStrong = 13.0;
   static const double sizeMicroSmall = sizeMicro;
   static const double sizeLargeBody = sizeHeadline;
   static const double sizeDisplayMedium = sizeDisplay;
@@ -63,16 +64,16 @@ class AppTypography {
 
   static const TextStyle memberName = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 18.0,
-    fontWeight: weightBold,
+    fontSize: sizeBody,
+    fontWeight: weightStrong,
     letterSpacing: lsTight,
-    height: 1.1,
+    height: 1.4,
   );
 
   static const TextStyle body = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeBody,
-    fontWeight: weightRegular,
+    fontWeight: weightMedium,
     letterSpacing: lsStandard,
     height: 1.5,
   );
@@ -80,7 +81,7 @@ class AppTypography {
   static const TextStyle label = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeLabel,
-    fontWeight: weightStrong,
+    fontWeight: weightBold,
     letterSpacing: lsLabel,
     height: 1.2,
   );
@@ -88,7 +89,39 @@ class AppTypography {
   static const TextStyle micro = TextStyle(
     fontFamily: 'Plus Jakarta Sans',
     fontSize: sizeMicro,
-    fontWeight: weightStrong,
+    fontWeight: weightBold,
+    letterSpacing: lsMicro,
+    height: 1.0,
+  );
+
+  static const TextStyle bodySmall = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: sizeLabel,
+    fontWeight: weightMedium,
+    letterSpacing: lsStandard,
+    height: 1.4,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: sizeMicro,
+    fontWeight: weightMedium,
+    letterSpacing: lsStandard,
+    height: 1.0,
+  );
+
+  static const TextStyle metricValue = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: sizeMetric,
+    fontWeight: weightHeavy,
+    letterSpacing: lsTight,
+    height: 1.1,
+  );
+
+  static const TextStyle metricLabel = TextStyle(
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: sizeMicro,
+    fontWeight: weightBold,
     letterSpacing: lsMicro,
     height: 1.0,
   );
@@ -112,12 +145,10 @@ class AppTypography {
   static const TextStyle displaySection = headline;
   static const TextStyle displayLargeBody = body;
   static const TextStyle displaySmall = label;
-  static const TextStyle bodySmall = label;
   static const TextStyle labelStrong = label;
-  static const TextStyle caption = micro;
   static const TextStyle captionStrong = label;
-  static const TextStyle help = micro;
-  static const TextStyle helper = micro;
+  static const TextStyle help = caption;
+  static const TextStyle helper = caption;
   static const TextStyle microSmall = micro;
   static const TextStyle nano = micro;
   static const TextStyle displayUI = headline;
@@ -128,7 +159,7 @@ class AppTypography {
   static const FontWeight weightBlack = weightHeavy;
   static const FontWeight weightExtraBold = weightHeavy;
   static const FontWeight weightSemibold = weightStrong;
-  static const FontWeight weightMedium = weightRegular;
+  static const FontWeight weightMedium = FontWeight.w500;
 
   static String get uiFont => 'Plus Jakarta Sans';
   static TextStyle get displayMedium => display;

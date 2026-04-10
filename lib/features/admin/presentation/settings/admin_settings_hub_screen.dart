@@ -19,6 +19,9 @@ class AdminSettingsHubScreen extends ConsumerWidget {
       subtitle: 'System Configuration',
       showBack: true,
       slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+        ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
           sliver: SliverList(
@@ -33,18 +36,23 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     BoxyArtNavTile(
+                      icon: Icons.business_rounded,
+                      title: 'Society Identity',
+                      subtitle: 'Update society name and logo',
+                      onTap: () => context.pushNamed('admin-settings-identity'),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       icon: Icons.palette_outlined,
-                      title: 'Branding & Theme',
-                      subtitle: 'Colors, labels, and radius controls',
-                      iconColor: theme.primaryColor,
-                      onTap: () => context.pushNamed('admin-settings-branding'),
+                      title: 'App Appearance',
+                      subtitle: 'Light, dark, and system themes',
+                      onTap: () => context.pushNamed('admin-settings-appearance'),
                     ),
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
                       icon: Icons.payments_outlined,
                       title: 'Currency & Treasury',
                       subtitle: 'Society currency and financial rules',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-treasury'),
                     ),
                     const BoxyArtDivider(),
@@ -52,7 +60,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.groups_outlined,
                       title: 'Grouping Strategy',
                       subtitle: 'Default event grouping logic',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-grouping'),
                     ),
                     const BoxyArtDivider(),
@@ -60,7 +67,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.calculate_outlined,
                       title: 'Handicap System',
                       subtitle: 'WHS, CONGU, or Custom rules',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-handicap'),
                     ),
                     const BoxyArtDivider(),
@@ -68,7 +74,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.content_cut_rounded,
                       title: 'Society Cuts',
                       subtitle: 'Automated winner and podium cuts',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-cuts'),
                     ),
                   ],
@@ -90,7 +95,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.calendar_today_rounded,
                       title: 'Season Management',
                       subtitle: 'Active seasons and rollover tools',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-seasons'),
                     ),
                     const BoxyArtDivider(),
@@ -98,7 +102,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.dashboard_customize_rounded,
                       title: 'Competition Templates',
                       subtitle: 'Pre-configured event game rules',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-templates'),
                     ),
                     const BoxyArtDivider(),
@@ -106,7 +109,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.leaderboard_outlined,
                       title: 'Season Leaderboards',
                       subtitle: 'Track Order of Merit & stat cycles',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-leaderboards'),
                     ),
                   ],
@@ -128,7 +130,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.admin_panel_settings_outlined,
                       title: 'System Roles',
                       subtitle: 'Manage administrative access levels',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-roles'),
                     ),
                     const BoxyArtDivider(),
@@ -136,7 +137,6 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                       icon: Icons.badge_outlined,
                       title: 'Committee Roles',
                       subtitle: 'Custom society titles and duties',
-                      iconColor: theme.primaryColor,
                       onTap: () => context.pushNamed('admin-settings-committee-roles'),
                     ),
                   ],
@@ -155,6 +155,13 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     BoxyArtNavTile(
+                      icon: Icons.cleaning_services_rounded,
+                      title: 'Clear Activity Data',
+                      subtitle: 'Wipe events & members (Keeps branding/templates)',
+                      onTap: () => _showClearActivityDialog(context, ref),
+                    ),
+                    const BoxyArtDivider(),
+                    BoxyArtNavTile(
                       icon: Icons.auto_fix_high_rounded,
                       title: 'Initialize Demo Season',
                       subtitle: 'Wipe all and seed full 2025-26 data',
@@ -164,8 +171,8 @@ class AdminSettingsHubScreen extends ConsumerWidget {
                     const BoxyArtDivider(),
                     BoxyArtNavTile(
                       icon: Icons.delete_forever_rounded,
-                      title: 'System Reset',
-                      subtitle: 'Factory reset (Wipe all society data)',
+                      title: 'System Factory Reset',
+                      subtitle: 'Deep wipe (Everything including branding)',
                       iconColor: Color(config.statusWaitlistColor), 
                       onTap: () => _showSystemResetDialog(context, ref),
                     ),
@@ -175,7 +182,28 @@ class AdminSettingsHubScreen extends ConsumerWidget {
 
               SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
 
-              // 5. System Information
+              // 5. Advanced Management (Dev Lab)
+              const BoxyArtSectionTitle(
+                title: 'Advanced Management',
+                isPeeking: true,
+              ),
+              BoxyArtCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    BoxyArtNavTile(
+                      icon: Icons.terminal_rounded,
+                      title: 'Design Token Lab',
+                      subtitle: 'Granular radii, shadows, and spacing',
+                      onTap: () => context.pushNamed('admin-settings-branding'),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+
+              // 6. System Information
               const BoxyArtSectionTitle(
                 title: 'System Information',
                 isPeeking: true,
@@ -220,6 +248,29 @@ class AdminSettingsHubScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  void _showClearActivityDialog(BuildContext context, WidgetRef ref) async {
+    final confirm = await showBoxyArtDialog<bool>(
+      context: context,
+      title: 'Clear Events & Members?',
+      message: 'This will wipe all events, results, and member data, but PRESERVE your branding, competition templates, and courses. Continue?',
+      confirmText: 'CLEAR ACTIVITY',
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      onCancel: () => Navigator.of(context, rootNavigator: true).pop(false),
+    );
+
+    if (confirm == true && context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Purging activity data...')));
+      
+      try {
+        await ref.read(seedingServiceProvider).clearActivityData();
+        messenger.showSnackBar(const SnackBar(content: Text('✅ Activity cleared (Scaffolding Preserved)')));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   void _showSeedConfirmation(BuildContext context, WidgetRef ref) async {

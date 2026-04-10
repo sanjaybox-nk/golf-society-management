@@ -184,11 +184,16 @@ class EventRegistrationUserTab extends ConsumerWidget {
 
 
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Content Spacing (Standardized cardToLabel gap for Tab-to-Label transition)
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+
         // METRICS CARD
-        const BoxyArtSectionTitle(title: 'Registration Stats'),
+        const BoxyArtSectionTitle(title: 'Registration Stats', isPeeking: true),
         RegistrationStatsCard(event: event, isCompact: false, showAdminMetrics: isAdminMode),
 
         // PLAYING MEMBERS

@@ -170,7 +170,6 @@ class _OperationsSlivers extends ConsumerWidget {
                   icon: Icons.handshake_outlined,
                   title: 'Sponsorships & Donations',
                   subtitle: 'Manage partners, supporters & revenue',
-                  iconColor: theme.primaryColor,
                   onTap: () => context.pushNamed('admin-sponsorship-hub'),
                 ),
                 const BoxyArtDivider(),
@@ -178,7 +177,6 @@ class _OperationsSlivers extends ConsumerWidget {
                   icon: Icons.autorenew_rounded,
                   title: 'Member Renewals',
                   subtitle: 'Track season rollover & payments',
-                  iconColor: theme.primaryColor,
                   onTap: () => context.pushNamed('admin-member-renewal'),
                 ),
                 const BoxyArtDivider(),
@@ -186,7 +184,6 @@ class _OperationsSlivers extends ConsumerWidget {
                   icon: Icons.quiz_outlined,
                   title: 'Society Surveys',
                   subtitle: 'Draft and publish polls',
-                  iconColor: theme.primaryColor,
                   onTap: () => context.pushNamed('admin-surveys'),
                 ),
                 const BoxyArtDivider(),
@@ -194,7 +191,6 @@ class _OperationsSlivers extends ConsumerWidget {
                   icon: Icons.account_balance_wallet_outlined,
                   title: 'Debt Ledger',
                   subtitle: 'Financial oversight & balances',
-                  iconColor: theme.primaryColor,
                   onTap: () => context.pushNamed('admin-debt-ledger'),
                 ),
                 const BoxyArtDivider(),
@@ -202,28 +198,14 @@ class _OperationsSlivers extends ConsumerWidget {
                   icon: Icons.analytics_outlined,
                   title: 'Reports & Insights',
                   subtitle: 'Financials, engagement & trends',
-                  iconColor: theme.primaryColor,
                   onTap: () => context.goNamed('admin-reports'),
                 ),
-              ],
-            ),
-          ),
-          
-          SizedBox(height: Theme.of(context).extension<AppSpacingTokens>()?.cardToLabel ?? AppSpacing.cardToLabel),
-          const BoxyArtSectionTitle(
-            title: 'COMMUNICATIONS',
-            isPeeking: true,
-          ),
-          BoxyArtCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
+                const BoxyArtDivider(),
                 BoxyArtNavTile(
-                  icon: Icons.send_rounded,
-                  title: 'Communications Hub',
-                  subtitle: 'Manage society & event notifications',
-                  iconColor: theme.primaryColor,
-                  onTap: () => context.push('/admin/notifications/compose'),
+                  icon: Icons.people_outline_rounded,
+                  title: 'Audience Manager',
+                  subtitle: 'Configure mailing lists & templates',
+                  onTap: () => context.pushNamed('admin-audience'),
                 ),
               ],
             ),
@@ -245,11 +227,10 @@ class _ActivityFeed extends ConsumerWidget {
     return auditAsync.when(
       data: (activities) {
         if (activities.isEmpty) {
-          return const BoxyArtCard(
-            child: Padding(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              child: Center(child: Text('No recent activity recorded.')),
-            ),
+          return const BoxyArtEmptyCard(
+            title: 'No Recent Activity',
+            message: 'Your society command center is calm. New administrative actions and system updates will appear here.',
+            icon: Icons.bolt_rounded,
           );
         }
 
@@ -265,8 +246,9 @@ class _ActivityFeed extends ConsumerWidget {
                   ListTile(
                     leading: BoxyArtIconBadge(
                       icon: icon,
-                      color: color,
-                      showFill: false,
+                      iconColor: color, // Use iconColor for categorized icons
+                      showFill: true, // Enable branded fill for consistency
+                      size: 40,
                     ),
                     title: Text(
                       activity.message,

@@ -289,9 +289,10 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   @override
   Widget build(BuildContext context) {
     // Cache variables here to satisfy Riverpod's strict ref.watch lifecycle rules
-    final currentUser = ref.watch(currentUserProvider);
+    final currentUser = ref.watch(effectiveUserProvider);
     final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
     final canAssignRoles = currentUser.role == MemberRole.superAdmin;
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     
     String title = widget.isNewMember ? 'New Member' : (_isEditing ? 'Edit Member' : 'Member Detail');
 
@@ -311,31 +312,22 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
             ),
           )
         : null, // Default back button logic handles view mode
+      pinnedBottom: null,
 
-      // Trailing Actions (Edit / Save)
+      // Trailing Actions (Edit)
       actions: [
-        // Edit Button (Right) - Only in Admin Context
-        if (!_isEditing && widget.isAdminContext)
+        // Edit Button (Right) - Admin Context or Self-service
+        if (!_isEditing && (widget.isAdminContext || (widget.member?.id == currentUser.id)))
           BoxyArtGlassIconButton(
             icon: Icons.edit_outlined,
             onPressed: () => setState(() => _isEditing = true),
           )
         else
           const SizedBox(width: AppSpacing.x3l),
-        if (_isEditing)
-           Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm, bottom: AppSpacing.sm),
-            child: BoxyArtButton(
-              title: 'Save',
-              isSmall: true,
-              isLoading: _isSaving,
-              onTap: _save,
-            ),
-          ),
       ],
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.all(AppTheme.pagePadding).copyWith(bottom: AppSpacing.x4l),
+          padding: const EdgeInsets.all(AppTheme.pagePadding),
           sliver: SliverToBoxAdapter(
             child: Form(
               key: _formKey,
@@ -371,6 +363,32 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                   ),
 
                   if (!widget.isNewMember) ...[
+                    // Performance Stats Section
+                    const BoxyArtSectionTitle(
+                      title: 'Member Performance', 
+                      isPeeking: false,
+                    ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final memberId = widget.member?.id;
+                        if (memberId == null) return const SizedBox.shrink();
+                        
+                        return ref.watch(memberPerformanceProvider(memberId)).when(
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (err, stack) => Center(child: Text('Error: $err')),
+                          data: (stats) => MemberStatsRow(
+                            starts: stats.starts,
+                            wins: stats.wins,
+                            top5: stats.top5,
+                            avgPts: stats.avgPts,
+                            bestPts: stats.bestPts,
+                            rank: stats.rank,
+                          ),
+                        );
+                      },
+                    ),
+
+                    // Membership Details Section
                     Consumer(
                       builder: (context, ref, _) {
                         final society = ref.watch(themeControllerProvider);
@@ -378,7 +396,9 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const BoxyArtSectionTitle(title: 'MEMBERSHIP DETAILS', isLevel2: true),
+                            const BoxyArtSectionTitle(
+                              title: 'Membership Details',
+                            ),
                             BoxyArtCard(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,7 +406,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                   Row(
                                     children: [
                                       Expanded(
-                                        child: _isEditing && isAdmin
+                                        child: _isEditing
                                           ? BoxyArtInputField(
                                               label: 'Handicap',
                                               controller: _handicapController,
@@ -397,7 +417,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                       ),
                                       const SizedBox(width: AppSpacing.x2l),
                                       Expanded(
-                                        child: _isEditing && isAdmin
+                                        child: _isEditing
                                           ? BoxyArtInputField(
                                               label: toTitleCase(system.idLabel),
                                               controller: _handicapIdController,
@@ -415,7 +435,7 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                   const SizedBox(height: AppSpacing.lg),
                                   if (_isEditing && isAdmin)
                                     BoxyArtDatePickerField(
-                                      label: 'MEMBERSHIP VALID TILL',
+                                      label: 'Membership Valid Till',
                                       value: _membershipEndDate != null 
                                           ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
                                           : 'Tap to select date',
@@ -432,79 +452,59 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                                   else
                                     _buildValueDisplay(
                                       context, 
-                                      'MEMBERSHIP VALID TILL', 
+                                      'Membership Valid Till', 
                                       _membershipEndDate != null 
                                           ? '${_membershipEndDate!.day.toString().padLeft(2, '0')}/${_membershipEndDate!.month.toString().padLeft(2, '0')}/${_membershipEndDate!.year}' 
                                           : '-'
                                     ),
-                                  if (isAdmin) ...[
-                                    const BoxyArtDivider(verticalPadding: AppSpacing.md),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'ALLOW SOCIAL EVENTS ONLY',
-                                                style: AppTypography.label.copyWith(
-                                                  color: Theme.of(context).colorScheme.onSurface,
-                                                  fontWeight: AppTypography.weightBold,
-                                                  fontSize: AppTypography.sizeMicro,
-                                                ),
-                                              ),
-                                              Text(
-                                                'Permits attendance at social events while suspended.',
-                                                style: AppTypography.caption.copyWith(
-                                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-                                                  fontSize: 11,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Switch(
-                                          value: _allowSocialEventsOnly,
-                                          activeTrackColor: Theme.of(context).primaryColor,
-                                          activeThumbColor: AppColors.pureWhite,
-                                          onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),
+
+                            // Admin Controls Section
+                            if (isAdmin) ...[
+                              const BoxyArtSectionTitle(title: 'Administrative Controls'),
+                              BoxyArtCard(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Allow Social Events Only'.toUpperCase(),
+                                            style: AppTypography.micro.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                              letterSpacing: AppTypography.lsLabel,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Permits attendance at social events while suspended.',
+                                            style: AppTypography.caption.copyWith(
+                                              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: _allowSocialEventsOnly,
+                                      activeTrackColor: Theme.of(context).primaryColor,
+                                      activeThumbColor: AppColors.pureWhite,
+                                      onChanged: _isEditing ? (val) => setState(() => _allowSocialEventsOnly = val) : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         );
                       },
                     ),
                   ],
-                  const SizedBox(height: AppSpacing.standard), // Card2Card spacing
-                  
-                  // Stats Row
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final memberId = widget.member?.id;
-                      if (memberId == null) return const SizedBox.shrink();
-                      
-                      return ref.watch(memberPerformanceProvider(memberId)).when(
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (err, stack) => Center(child: Text('Error: $err')),
-                        data: (stats) => MemberStatsRow(
-                          starts: stats.starts,
-                          wins: stats.wins,
-                          top5: stats.top5,
-                          avgPts: stats.avgPts,
-                          bestPts: stats.bestPts,
-                          rank: stats.rank,
-                        ),
-                      );
-                    },
-                  ),
 
                   // Title handles its own padding
-                  const BoxyArtSectionTitle(title: 'PERSONAL DETAILS', isLevel2: true),
+                  const BoxyArtSectionTitle(title: 'Personal Details'),
                   BoxyArtCard(
                     child: PersonalDetailsForm(
                       isEditing: _isEditing,
@@ -538,12 +538,11 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                     ),
                   ),
 
-                  const SizedBox(height: AppSpacing.x4l),
-
                   // [DEV/ADMIN] Impersonation / Peek Mode
                   if (isAdmin && widget.member != null && widget.member!.id != currentUser.id) ...[
+                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                     BoxyArtButton(
-                      title: 'VIEW AS THIS MEMBER',
+                      title: 'View As This Member',
                       isPrimary: false,
                       isSecondary: true,
                       isSmall: true,
@@ -554,8 +553,19 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
                         context.go('/home');
                       },
                     ),
-                    const SizedBox(height: AppSpacing.x4l),
                   ],
+
+                  if (_isEditing) ...[
+                    SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+                    BoxyArtCard(
+                      child: BoxyArtFormActionRow(
+                        onSave: _save,
+                        onCancel: _showExitConfirmation,
+                        isSaving: _isSaving,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.pageBottom),
                 ],
               ),
             ),
@@ -577,25 +587,24 @@ class _MemberDetailsModalState extends ConsumerState<MemberDetailsModal> {
   }
 
   Widget _buildValueDisplay(BuildContext context, String label, String value) {
+    final isBio = label.toLowerCase() == 'bio';
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label.toUpperCase(),
-          style: AppTypography.label.copyWith(
-            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-            fontWeight: AppTypography.weightBold,
-            letterSpacing: 1.2,
-            fontSize: AppTypography.sizeMicro, // Standardized 4.x Meta size (10px)
+          style: AppTypography.micro.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+            letterSpacing: AppTypography.lsLabel,
           ),
         ),
-        const SizedBox(height: 4), // Tight 4.x rhythm
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value.isEmpty ? '-' : value,
           style: AppTypography.body.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: AppTypography.weightBold,
-            fontSize: 16,
           ),
         ),
       ],

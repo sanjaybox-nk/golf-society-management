@@ -230,7 +230,7 @@ class ScorecardModal {
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 4.0),
                                         child: Text(
-                                          entry.playerName.toUpperCase(),
+                                          toTitleCase(entry.playerName),
                                           style: AppTypography.display.copyWith(
                                             color: AppColors.dark900,
                                             fontWeight: AppTypography.weightHeavy,
@@ -266,7 +266,7 @@ class ScorecardModal {
                                     children: [
                                       if (isFourball)
                                         _buildViewPill(
-                                          label: 'TEAM VIEW',
+                                          label: 'Team View',
                                           isSelected: focusedPlayerId == 'team',
                                           onTap: () => setModalState(() => focusedPlayerId = 'team'),
                                         ),
@@ -536,7 +536,7 @@ class ScorecardModal {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.sm),
           child: Text(
-            isScramble ? "DRIVE ATTRIBUTIONS" : (matchPlayResults != null ? "MATCH PLAY RESULT" : "GROUP SCORE"),
+            isScramble ? "Drive Attributions" : (matchPlayResults != null ? "Match Play Result" : "Group Score"),
             style: AppTypography.micro.copyWith(
               fontWeight: AppTypography.weightBold,
               color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
@@ -595,7 +595,7 @@ class ScorecardModal {
                     ),
                   ),
                   Text(
-                    (playerName ?? "TEAM").toUpperCase(),
+                    toTitleCase(playerName ?? "Team"),
                     style: TextStyle(
                       fontSize: AppTypography.sizeCaption,
                       fontWeight: AppTypography.weightBlack,
@@ -605,8 +605,8 @@ class ScorecardModal {
                   const Spacer(),
                   Text(
                     matchPlayResults != null 
-                        ? "TOTAL: ${matchPlaySummary ?? 'AS'}"
-                        : "TOTAL: ${scores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int))}",
+                        ? "Total: ${matchPlaySummary ?? 'AS'}"
+                        : "Total: ${scores.where((s) => s != null).fold<int>(0, (sum, s) => sum + (s as int))}",
                     style: const TextStyle(fontSize: AppTypography.sizeCaption, fontWeight: AppTypography.weightBold, color: AppColors.textSecondary),
                   ),
                 ],
@@ -757,4 +757,19 @@ class ScorecardModal {
   static Color _getTeeColor(String teeName, [List<TeeConfig>? teeConfigs]) {
     return AppColors.getTeeColor(teeName, teeConfigs);
   }
+}
+
+// Helper functions moved from string_utils for stability
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
+}
+
+String toSentenceCase(String text) {
+  if (text.isEmpty) return text;
+  final lower = text.toLowerCase();
+  return lower[0].toUpperCase() + lower.substring(1);
 }

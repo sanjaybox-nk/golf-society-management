@@ -108,6 +108,17 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildFinancialsTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync) {
+    if (stats.totalCount == 0 && stats.ledgerEntries.isEmpty && stats.startingBalance == 0) {
+      return const Padding(
+        padding: EdgeInsets.zero,
+        child: BoxyArtEmptyCard(
+          title: 'No Financial Activity',
+          message: 'Society balances, revenue, and expenses will appear here once you start organizing events or recording transactions.',
+          icon: Icons.account_balance_rounded,
+        ),
+      );
+    }
+
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +128,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           isPeeking: true,
         ),
         _buildTreasuryOverview(context, stats),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Season budget',
           isPeeking: true,
@@ -132,7 +143,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Financial health',
           isPeeking: true,
@@ -155,7 +166,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Revenue breakdown',
           isPeeking: true,
@@ -180,6 +191,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildCompetitionTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<Member>> membersAsync, AsyncValue<List<GolfEvent>> eventsAsync) {
+    if (stats.totalCount == 0) {
+      return const Padding(
+        padding: EdgeInsets.zero,
+        child: BoxyArtEmptyCard(
+          title: 'No Competition Data',
+          message: 'Leaderboards, prize payouts, and competitive analytics will sync here once your first event results are finalized.',
+          icon: Icons.emoji_events_rounded,
+        ),
+      );
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Column(
@@ -204,7 +225,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Attendance leaderboard',
           isPeeking: true,
@@ -219,7 +240,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             }).toList(),
           ),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Competitive analytics',
           isPeeking: true,
@@ -236,7 +257,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ],
           ),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Podium consistency',
           isPeeking: true,
@@ -244,7 +265,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         BoxyArtCard(
           padding: const EdgeInsets.all(AppSpacing.standard),
           child: stats.podiumConsistency.isEmpty 
-            ? Center(child: Text('No podium finishes recorded', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)))
+            ? const BoxyArtEmptyCard(
+                title: 'No Podium Records',
+                message: 'Points and podium finishes will appear here once competition results are finalized.',
+                icon: Icons.workspace_premium_outlined,
+              )
             : Column(
                 children: stats.podiumConsistency.take(3).mapIndexed((index, entry) {
                   final member = membersAsync.asData?.value.firstWhereOrNull((m) => m.id == entry.key);
@@ -257,7 +282,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                 }).toList(),
               ),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Award log',
           isPeeking: true,
@@ -271,7 +296,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                 .toList();
 
             if (eventsWithPrizes.isEmpty) {
-              return Center(child: Text('No awards logged yet', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)));
+              return const BoxyArtEmptyCard(
+                title: 'No Awards Logged',
+                message: 'Your society trophy cabinet is currently empty.',
+                icon: Icons.emoji_events_rounded,
+              );
             }
 
             return BoxyArtCard(
@@ -293,12 +322,22 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildPulseTab(BuildContext context, ReportingHubStats stats, AsyncValue<List<GolfEvent>> eventsAsync, AsyncValue<List<Member>> membersAsync) {
+    if (stats.totalCount == 0) {
+      return const Padding(
+        padding: EdgeInsets.zero,
+        child: BoxyArtEmptyCard(
+          title: 'Pulse Analytics Pending',
+          message: 'Season progress, engagement trends, and member retention metrics will populate as you complete fixtures.',
+          icon: Icons.analytics_rounded,
+        ),
+      );
+    }
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSeasonProgress(context, stats),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Next milestone',
           isPeeking: true,
@@ -307,13 +346,19 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           data: (events) {
             final now = DateTime.now();
             final next = events.where((e) => e.date.isAfter(now) || DateUtils.isSameDay(e.date, now)).sortedBy((e) => e.date).firstOrNull;
-            if (next == null) return Center(child: Text('No upcoming events', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)));
+            if (next == null) {
+              return const BoxyArtEmptyCard(
+                title: 'No Upcoming Events',
+                message: 'Check back soon for the next fixture on the society calendar.',
+                icon: Icons.calendar_today_rounded,
+              );
+            }
             return _buildNextEventCard(context, next);
           },
           loading: () => const CircularProgressIndicator(),
           error: (e, s) => Text('Error: $e'),
         ),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Retention & growth',
           isPeeking: true,
@@ -329,7 +374,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
           ),
         ),
         if (stats.churnAlertMemberIds.isNotEmpty) ...[ 
-          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
           const BoxyArtSectionTitle(
             title: 'Churn alerts',
             isPeeking: true,
@@ -376,13 +421,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             ),
           ),
         ],
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Society engagement',
           isPeeking: true,
         ),
         _buildQuickStats(context, stats),
-        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
+        SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
         const BoxyArtSectionTitle(
           title: 'Event archive',
           isPeeking: true,
@@ -717,7 +762,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         final completed = events.where((e) => e.status == EventStatus.completed || e.results.isNotEmpty).sortedBy((e) => e.date).reversed.toList();
         
         if (completed.isEmpty) {
-          return Center(child: Text('No completed events in archive', style: AppTypography.micro.copyWith(color: AppColors.dark500, letterSpacing: AppTypography.lsMicro)));
+          return const BoxyArtEmptyCard(
+            title: 'Empty Archive',
+            message: 'Historical fixtures and finalized results will be archived here.',
+            icon: Icons.history_rounded,
+          );
         }
 
         return Column(

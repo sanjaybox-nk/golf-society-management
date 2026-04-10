@@ -7,8 +7,8 @@ import 'package:golf_society/utils/string_utils.dart';
 class BoxyArtIconBadge extends ConsumerWidget {
   final IconData icon;
   final Color color;
-  final double size;
-  final double iconSize;
+  final double? size;
+  final double? iconSize;
   final bool isTinted;
   final bool showFill;
   final bool showBorder;
@@ -21,65 +21,64 @@ class BoxyArtIconBadge extends ConsumerWidget {
   const BoxyArtIconBadge({
     super.key,
     required this.icon,
-    required this.color,
-    this.size = 38,
-    this.iconSize = 18,
+    this.color = Colors.transparent,
+    this.size,
+    this.iconSize,
     this.isTinted = true,
     this.showFill = true,
     this.showBorder = false,
     this.useCircle = false,
     this.iconColor,
     this.borderColor,
-    this.fillOpacity = 0.20,
+    this.fillOpacity,
     this.tooltip,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final shapeTokens = Theme.of(context).extension<AppShapeTokens>();
+    final double effectiveSize = size ?? shapeTokens?.iconBadgeSize ?? 38.0;
+    final double effectiveIconSize = iconSize ?? shapeTokens?.iconBadgeIconSize ?? 18.0;
+
     if (!isTinted) {
       return SizedBox(
-        width: size,
-        height: size,
+        width: effectiveSize,
+        height: effectiveSize,
         child: Center(
-          child: Icon(icon, size: iconSize, color: color),
+          child: Icon(icon, size: effectiveIconSize, color: color),
         ),
       );
     }
 
     final config = ref.watch(themeControllerProvider);
     
-    final double effectiveOpacity = fillOpacity ?? config.iconBadgeOpacity;
-    
-    // Design 4.x: THE "BRANDED BADGE" LOGIC
-    // 1. Background always uses the global Fill Color token (at configured opacity)
-    // 2. Icon uses the global Icon Color token UNLESS a specific iconColor override is provided
-    //    (This allows lists to have specific colored icons on a consistent background)
+    final double effectiveOpacity = fillOpacity ?? shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity;
     
     final Color effectiveFill = showFill 
-      ? color.withValues(alpha: effectiveOpacity)
+      ? (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor)).withOpacity(effectiveOpacity)
       : Colors.transparent;
       
-    final Color effectiveIconColor = iconColor ?? Color(config.iconBadgeIconColor);
+    final Color effectiveIconColor = iconColor ?? (shapeTokens?.iconBadgeIcon ?? (color != Colors.transparent ? color : Color(config.iconBadgeIconColor)));
 
     final Widget content = Container(
-      width: size,
-      height: size,
+      width: effectiveSize,
+      height: effectiveSize,
       decoration: BoxDecoration(
         color: effectiveFill,
         shape: useCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: useCircle ? null : BorderRadius.circular(config.accentRadius),
         border: showBorder 
           ? Border.all(
-              color: borderColor ?? Color(config.iconBadgeFillColor).withValues(alpha: 0.25),
-              width: AppShapes.borderLight,
+              color: Color(config.iconBadgeFillColor).withOpacity(0.2),
+              width: 1.0,
             )
           : null,
       ),
       child: Center(
         child: Icon(
           icon,
-          size: iconSize,
-          color: effectiveIconColor.withValues(alpha: config.iconOpacity),
+          size: effectiveIconSize,
+          color: effectiveIconColor,
         ),
       ),
     );
@@ -209,7 +208,7 @@ class BoxyArtPill extends ConsumerWidget {
       label: label,
       color: color, 
       icon: icon,
-      isLegend: true,
+      isLegend: false,
       isFormat: true,
     );
   }
@@ -260,7 +259,6 @@ class BoxyArtPill extends ConsumerWidget {
     );
   }
 
-  /// Factory for Handicap (HC)
   factory BoxyArtPill.hc({
     required String label,
     IconData? icon,
@@ -268,9 +266,11 @@ class BoxyArtPill extends ConsumerWidget {
   }) {
     return BoxyArtPill(
       label: 'HC: $label',
-      color: AppColors.dark150,
+      color: AppColors.dark400, // Design 4.x: Stronger neutral for HC
       icon: icon,
       hasHorizontalMargin: hasHorizontalMargin,
+      fontSize: AppTypography.sizeMicro,
+      fontWeight: AppTypography.weightHeavy,
     );
   }
 
@@ -286,6 +286,8 @@ class BoxyArtPill extends ConsumerWidget {
       color: Theme.of(context).primaryColor,
       icon: icon,
       hasHorizontalMargin: hasHorizontalMargin,
+      fontSize: AppTypography.sizeMicro,
+      fontWeight: AppTypography.weightHeavy,
     );
   }
 
@@ -298,7 +300,7 @@ class BoxyArtPill extends ConsumerWidget {
       color: AppColors.amber500,
       backgroundColor: AppColors.amber500.withValues(alpha: 0.1),
       borderColor: AppColors.amber500.withValues(alpha: 0.3),
-      textColor: AppColors.amber500,
+      textColor: AppColors.dark400,
       fontSize: 10,
       fontWeight: AppTypography.weightBold,
       letterSpacing: 0.5,
@@ -603,12 +605,16 @@ class BoxyArtSquareBadge extends StatelessWidget {
     return Consumer(
       builder: (context, ref, child) {
         final config = ref.watch(themeControllerProvider);
+        final shapeTokens = Theme.of(context).extension<AppShapeTokens>();
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
         Color bg = backgroundColor ?? (isDark ? AppColors.dark600 : AppColors.dark50);
         if (isTinted) {
-          bg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
+          bg = (shapeTokens?.iconBadgeFill ?? Color(config.iconBadgeFillColor))
+              .withOpacity(shapeTokens?.iconBadgeOpacity ?? config.iconBadgeOpacity);
         }
+
+        final Color effectiveIconColor = shapeTokens?.iconBadgeIcon ?? Color(config.iconBadgeIconColor);
 
         return Container(
           width: size ?? 28,
@@ -616,14 +622,14 @@ class BoxyArtSquareBadge extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: BorderRadius.circular(config.accentRadius),
+            borderRadius: BorderRadius.circular(shapeTokens?.accentRadius ?? config.accentRadius),
           ),
           child: Center(
             child: DefaultTextStyle.merge(
-              style: TextStyle(color: Color(config.iconBadgeIconColor).withValues(alpha: config.iconOpacity)),
+              style: TextStyle(color: effectiveIconColor.withOpacity(config.iconOpacity)),
               child: IconTheme.merge(
                 data: IconThemeData(
-                  color: Color(config.iconBadgeIconColor).withValues(alpha: config.iconOpacity),
+                  color: effectiveIconColor.withOpacity(config.iconOpacity),
                 ),
                 child: this.child,
                 ),
@@ -632,5 +638,6 @@ class BoxyArtSquareBadge extends StatelessWidget {
           );
       },
     );
+
   }
 }

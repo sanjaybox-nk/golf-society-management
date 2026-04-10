@@ -187,16 +187,14 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
     try {
       final repo = ref.read(scorecardRepositoryProvider);
       final userId = ref.read(effectiveUserProvider).id;
+      final map = isVerifier ? _verifierScores : _localScores;
       final entryId = isVerifier ? userId : _activeEntryId;
       if (entryId == null) return;
     
     // Determine which card we are updating
     final cardToUpdate = isVerifier ? _localVerifierCard : _activeScorecard;
-    final map = isVerifier ? _verifierScores : _localScores;
-    
-    final scoresList = List<int?>.generate(18, (i) => map[i + 1]);
-    
     // Calculate totals only for Main/Hole scores
+    final scoresList = List<int?>.generate(18, (i) => map[i + 1]);
     final grossTotal = scoresList.whereType<int>().fold<int>(0, (a, b) => a + b);
 
     // CRITICAL: If no card exists yet, only create it if we actually have some scores.
@@ -398,11 +396,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               width: 80,
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: _buildSubtleNavButton(
-                                  context,
-                                  'Prev',
-                                  () => setState(() => _currentHoleIndex--),
-                                  isDisabled: _currentHoleIndex <= 0,
+                                child: BoxyArtButton(
+                                  title: 'Prev',
+                                  isGhost: true,
+                                  isSmall: true,
+                                  onTap: _currentHoleIndex <= 0 ? null : () => setState(() => _currentHoleIndex--),
                                 ),
                               ),
                             ),
@@ -446,15 +444,11 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
                               width: 80,
                               child: Align(
                                 alignment: Alignment.centerRight,
-                                child: _buildSubtleNavButton(
-                                  context,
-                                  'Next',
-                                  () {
-                                    if (currentHoleNum < 18) {
-                                      setState(() => _currentHoleIndex++);
-                                    }
-                                  },
+                                child: BoxyArtButton(
+                                  title: 'Next',
                                   isPrimary: true,
+                                  isSmall: true,
+                                  onTap: currentHoleNum >= 18 ? null : () => setState(() => _currentHoleIndex++),
                                 ),
                               ),
                             ),
@@ -504,24 +498,17 @@ class _HoleByHoleScoringWidgetState extends ConsumerState<HoleByHoleScoringWidge
         child: AnimatedContainer(
           duration: AppAnimations.fast,
           margin: const EdgeInsets.all(2),
-          padding: const EdgeInsets.symmetric(vertical: 10), // [FIX] Restore button height
-          decoration: BoxDecoration(
-            color: isActive ? activeBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(ref.read(themeControllerProvider).buttonRadius), // [FIX] Standard design token
-            border: Border.all(
-              color: isActive 
-                  ? Colors.transparent 
-                  : (isDark ? AppColors.dark500 : AppColors.dark100),
-              width: 1,
+          padding: const EdgeInsets.symmetric(vertical: 8), // [FIX] Prevent vertical overflow
+            decoration: BoxDecoration(
+              color: isActive ? activeBg : Colors.transparent,
+              borderRadius: BorderRadius.circular(ref.read(themeControllerProvider).buttonRadius), // [FIX] Standard design token
+              border: Border.all(
+                color: isActive 
+                    ? Colors.transparent 
+                    : (isDark ? AppColors.dark700 : AppColors.dark100),
+                width: 1,
+              ),
             ),
-            boxShadow: isActive ? [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              )
-            ] : null,
-          ),
           alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -614,4 +601,18 @@ extension ElementAtOrNull<E> on Iterable<E> {
     if (index < 0 || index >= length) return null;
     return elementAt(index);
   }
+}
+// Helper functions moved from string_utils for stability
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
+}
+
+String toSentenceCase(String text) {
+  if (text.isEmpty) return text;
+  final lower = text.toLowerCase();
+  return lower[0].toUpperCase() + lower.substring(1);
 }

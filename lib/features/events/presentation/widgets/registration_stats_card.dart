@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/design_system/widgets/metrics.dart';
 import 'package:golf_society/domain/models/golf_event.dart';
 import 'package:golf_society/domain/models/society_config.dart';
 import '../../domain/registration_logic.dart';
@@ -32,108 +33,49 @@ class RegistrationStatsCard extends ConsumerWidget {
         : '${stats.reserveGolfers}';
 
     if (isCompact) {
-      return _buildCompactVersion(context, stats, isDark, playingValue, reserveValue, config);
+      return _buildGridVersion(
+        context, 
+        _getCompactStats(event, stats, playingValue, reserveValue),
+        isDark,
+      );
     }
 
     return _buildFullVersion(context, stats, isDark, playingValue, reserveValue, currency, config);
   }
 
-  Widget _buildCompactVersion(
-    BuildContext context, 
-    RegistrationStats stats, 
-    bool isDark,
-    String playingValue,
-    String reserveValue,
-    SocietyConfig config,
-  ) {
+  List<ModernMetricStat> _getCompactStats(GolfEvent event, RegistrationStats stats, String playing, String reserve) {
+    return [
+      ModernMetricStat(value: '${event.maxParticipants ?? 0}', label: 'Capacity', icon: Icons.groups_rounded, isCompact: true),
+      ModernMetricStat(value: playing, label: 'Playing', icon: Icons.check_circle_rounded, isCompact: true),
+      ModernMetricStat(value: reserve, label: 'Reserve', icon: Icons.hourglass_top_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}', label: 'Guests', icon: Icons.person_add_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.buggyCount}', label: 'Buggies', icon: Icons.electric_rickshaw_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.waitlistGolfers}', label: 'Waitlist', icon: Icons.priority_high_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.withdrawnCount}', label: 'Withdrawn', icon: Icons.person_remove_rounded, isCompact: true),
+    ];
+  }
+
+  Widget _buildGridVersion(BuildContext context, List<Widget> items, bool isDark) {
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
     final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
 
-    return BoxyArtCard(
-      padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${event.maxParticipants ?? 0}',
-                    label: 'Capacity',
-                    icon: Icons.groups_rounded,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: playingValue,
-                    label: 'Playing',
-                    icon: Icons.check_circle_rounded,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: reserveValue,
-                    label: 'Reserve',
-                    icon: Icons.hourglass_top_rounded,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
-                    label: 'Guests',
-                    icon: Icons.person_add_rounded,
-                    isCompact: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.buggyCount}',
-                    label: 'Buggies',
-                    icon: Icons.electric_rickshaw_rounded,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.waitlistGolfers}',
-                    label: 'Waitlist',
-                    icon: Icons.priority_high_rounded,
-                    isCompact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.withdrawnCount}',
-                    label: 'Withdraw',
-                    icon: Icons.person_remove_rounded,
-                    isCompact: true,
-                  ),
-                ),
-                const Spacer(),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate grid with 4 columns
+        const int crossAxisCount = 4;
+        final double totalGapWidth = AppSpacing.md * (crossAxisCount - 1);
+        final double itemWidth = (constraints.maxWidth - totalGapWidth) / crossAxisCount;
+
+        return Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: items.map((item) => SizedBox(
+            width: itemWidth,
+            child: item,
+          )).toList(),
+        );
+      },
     );
   }
 
@@ -146,7 +88,6 @@ class RegistrationStatsCard extends ConsumerWidget {
     String currency,
     SocietyConfig config,
   ) {
-    // Financials calculation (Move logic inside widget or helper)
     final double totalPaidFees = event.registrations
         .where((r) => r.hasPaid == true)
         .fold(0.0, (sum, r) {
@@ -177,6 +118,26 @@ class RegistrationStatsCard extends ConsumerWidget {
     final availableBuggies = event.availableBuggies ?? 0;
     final buggyCapacity = availableBuggies * 2;
 
+    final statsList = [
+      ModernMetricStat(value: '${event.maxParticipants ?? 0}', label: 'Capacity', icon: Icons.groups_rounded, isCompact: true),
+      ModernMetricStat(value: playingValue, label: 'Playing', icon: Icons.check_circle_rounded, isCompact: true),
+      ModernMetricStat(value: reserveValue, label: 'Reserve', icon: Icons.hourglass_top_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}', label: 'Guests', icon: Icons.person_add_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.buggyCount}/$buggyCapacity', label: 'Buggies', icon: Icons.electric_rickshaw_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.breakfastCount}', label: 'Breakfast', icon: Icons.breakfast_dining_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.lunchCount}', label: 'Lunch', icon: Icons.lunch_dining_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.dinnerCount}', label: 'Dinner', icon: Icons.restaurant_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.waitlistGolfers}', label: 'Waitlist', icon: Icons.priority_high_rounded, isCompact: true),
+      ModernMetricStat(value: '${stats.withdrawnCount}', label: 'Withdrawn', icon: Icons.person_remove_rounded, isCompact: true),
+    ];
+
+    final adminStatsList = [
+      ModernMetricStat(value: '$currency${totalPaidFees.toStringAsFixed(0)}', label: 'Paid', icon: Icons.payments_rounded, isCompact: true),
+      ModernMetricStat(value: '$currency${totalBreakfastFees.toStringAsFixed(0)}', label: 'Breakfast', icon: Icons.breakfast_dining_rounded, isCompact: true),
+      ModernMetricStat(value: '$currency${totalLunchFees.toStringAsFixed(0)}', label: 'Lunch', icon: Icons.lunch_dining_rounded, isCompact: true),
+      ModernMetricStat(value: '$currency${totalDinnerFees.toStringAsFixed(0)}', label: 'Dinner', icon: Icons.restaurant_menu_rounded, isCompact: true),
+    ];
+
     final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
     final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.xl;
@@ -186,156 +147,12 @@ class RegistrationStatsCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${event.maxParticipants ?? 0}',
-                    label: 'Capacity',
-                    icon: Icons.groups_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: playingValue,
-                    label: 'Playing',
-                    icon: Icons.check_circle_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: reserveValue,
-                    label: 'Reserve',
-                    icon: Icons.hourglass_top_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.confirmedGuests + stats.reserveGuests + stats.waitlistGuests}',
-                    label: 'Guests',
-                    icon: Icons.person_add_rounded,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.buggyCount}/$buggyCapacity',
-                    label: 'Buggies',
-                    icon: Icons.electric_rickshaw_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.breakfastCount}',
-                    label: 'Breakfast',
-                    icon: Icons.breakfast_dining_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.lunchCount}',
-                    label: 'Lunch',
-                    icon: Icons.lunch_dining_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.dinnerCount}',
-                    label: 'Dinner',
-                    icon: Icons.restaurant_rounded,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.waitlistGolfers}',
-                    label: 'Waitlist',
-                    icon: Icons.priority_high_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ModernMetricStat(
-                    value: '${stats.withdrawnCount}',
-                    label: 'Withdrawn',
-                    icon: Icons.person_remove_rounded,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                const Expanded(child: SizedBox.shrink()),
-                const SizedBox(width: AppSpacing.md),
-                const Expanded(child: SizedBox.shrink()),
-              ],
-            ),
-          ),
+          _buildGridVersion(context, statsList, isDark),
           if (showAdminMetrics) ...[
             SizedBox(height: (spacing?.cardToCard ?? AppSpacing.xl) * 1.5),
             const Divider(),
             SizedBox(height: (spacing?.cardToCard ?? AppSpacing.xl) * 1.5),
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: '$currency${totalPaidFees.toStringAsFixed(0)}',
-                      label: 'Paid',
-                      icon: Icons.payments_rounded,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: '$currency${totalBreakfastFees.toStringAsFixed(0)}',
-                      label: 'Breakfast',
-                      icon: Icons.breakfast_dining_rounded,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: '$currency${totalLunchFees.toStringAsFixed(0)}',
-                      label: 'Lunch',
-                      icon: Icons.lunch_dining_rounded,
-                      isCompact: true,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ModernMetricStat(
-                      value: '$currency${totalDinnerFees.toStringAsFixed(0)}',
-                      label: 'Dinner',
-                      icon: Icons.restaurant_menu_rounded,
-                      isCompact: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildGridVersion(context, adminStatsList, isDark),
             const SizedBox(height: AppSpacing.x2l),
             const Divider(),
           ],

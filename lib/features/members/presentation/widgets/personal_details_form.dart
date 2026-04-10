@@ -1,7 +1,7 @@
 import 'package:golf_society/design_system/design_system.dart';
 import 'package:golf_society/constants/country_codes.dart';
 
-class PersonalDetailsForm extends StatelessWidget {
+class PersonalDetailsForm extends StatefulWidget {
   final bool isEditing;
   final TextEditingController firstController;
   final TextEditingController lastController;
@@ -49,14 +49,27 @@ class PersonalDetailsForm extends StatelessWidget {
   });
 
   @override
+  State<PersonalDetailsForm> createState() => _PersonalDetailsFormState();
+}
+
+class _PersonalDetailsFormState extends State<PersonalDetailsForm> {
+  final TextEditingController _modalSearchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _modalSearchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isEditing) {
+    if (widget.isEditing) {
       return BoxyArtFormColumn(
         children: [
           BoxyArtInputField(
             label: 'Bio',
-            controller: bioController,
-            focusNode: bioFocusNode,
+            controller: widget.bioController,
+            focusNode: widget.bioFocusNode,
             maxLines: 2,
             hint: 'Tell us a bit about yourself...',
           ),
@@ -65,8 +78,8 @@ class PersonalDetailsForm extends StatelessWidget {
               Expanded(
                 child: BoxyArtInputField(
                   label: 'First Name',
-                  controller: firstController,
-                  focusNode: firstFocusNode,
+                  controller: widget.firstController,
+                  focusNode: widget.firstFocusNode,
                   validator: (v) => v?.trim().isEmpty == true ? 'Required' : null,
                 ),
               ),
@@ -74,8 +87,8 @@ class PersonalDetailsForm extends StatelessWidget {
               Expanded(
                 child: BoxyArtInputField(
                   label: 'Last Name',
-                  controller: lastController,
-                  focusNode: lastFocusNode,
+                  controller: widget.lastController,
+                  focusNode: widget.lastFocusNode,
                   validator: (v) => v?.trim().isEmpty == true ? 'Required' : null,
                 ),
               ),
@@ -86,8 +99,8 @@ class PersonalDetailsForm extends StatelessWidget {
               Expanded(
                 child: BoxyArtInputField(
                   label: 'Nickname',
-                  controller: nicknameController,
-                  focusNode: nicknameFocusNode,
+                  controller: widget.nicknameController,
+                  focusNode: widget.nicknameFocusNode,
                   hint: 'Optional',
                 ),
               ),
@@ -95,21 +108,21 @@ class PersonalDetailsForm extends StatelessWidget {
               Expanded(
                 child: BoxyArtDropdownField<String>(
                   label: 'Gender',
-                  value: gender,
+                  value: widget.gender,
                   hint: 'Select',
                   items: const [
                     DropdownMenuItem(value: 'Male', child: Text('Male')),
                     DropdownMenuItem(value: 'Female', child: Text('Female')),
                   ],
-                  onChanged: onGenderChanged!,
+                  onChanged: widget.onGenderChanged!,
                 ),
               ),
             ],
           ),
           BoxyArtInputField(
             label: 'Email',
-            controller: emailController,
-            focusNode: emailFocusNode,
+            controller: widget.emailController,
+            focusNode: widget.emailFocusNode,
             keyboardType: TextInputType.emailAddress,
             validator: (v) => v?.trim().isEmpty == true ? 'Required' : null,
           ),
@@ -121,8 +134,8 @@ class PersonalDetailsForm extends StatelessWidget {
               Expanded(
                 child: BoxyArtInputField(
                   label: 'Phone',
-                  controller: phoneController,
-                  focusNode: phoneFocusNode,
+                  controller: widget.phoneController,
+                  focusNode: widget.phoneFocusNode,
                   keyboardType: TextInputType.phone,
                   validator: (v) => v?.trim().isEmpty == true ? 'Required' : null,
                 ),
@@ -131,39 +144,41 @@ class PersonalDetailsForm extends StatelessWidget {
           ),
           BoxyArtInputField(
             label: 'Address',
-            controller: addressController,
-            focusNode: addressFocusNode,
+            controller: widget.addressController,
+            focusNode: widget.addressFocusNode,
             maxLines: 2,
             validator: (v) => v?.trim().isEmpty == true ? 'Required' : null,
           ),
           BoxyArtDatePickerField(
             label: 'Member Since',
-            value: joinedDate != null 
-                ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' 
+            value: widget.joinedDate != null 
+                ? '${widget.joinedDate!.day.toString().padLeft(2, '0')}/${widget.joinedDate!.month.toString().padLeft(2, '0')}/${widget.joinedDate!.year}' 
                 : 'Select date',
-            onTap: onPickDate,
+            onTap: widget.onPickDate,
           ),
         ],
       );
     }
 
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+
     return BoxyArtFormColumn(
-      spacing: AppSpacing.x2l,
+      spacing: spacing?.cardToCard ?? AppSpacing.lg,
       children: [
-        if (bioController.text.isNotEmpty)
-          _buildInfoRow(context, 'Bio', bioController.text),
-        if (nicknameController.text.isNotEmpty)
-          _buildInfoRow(context, 'Nickname', nicknameController.text),
-        _buildInfoRow(context, 'Email', emailController.text),
-        _buildInfoRow(context, 'Phone', '${countryCodeController.text} ${phoneController.text}'),
-        _buildInfoRow(context, 'Address', addressController.text),
+        if (widget.bioController.text.isNotEmpty)
+          _buildInfoRow(context, 'Bio', widget.bioController.text),
+        if (widget.nicknameController.text.isNotEmpty)
+          _buildInfoRow(context, 'Nickname', widget.nicknameController.text),
+        _buildInfoRow(context, 'Email', widget.emailController.text),
+        _buildInfoRow(context, 'Phone', '${widget.countryCodeController.text} ${widget.phoneController.text}'),
+        _buildInfoRow(context, 'Address', widget.addressController.text),
         _buildInfoRow(
           context,
           'Member Since', 
-          joinedDate != null ? '${joinedDate!.day.toString().padLeft(2, '0')}/${joinedDate!.month.toString().padLeft(2, '0')}/${joinedDate!.year}' : '-'
+          widget.joinedDate != null ? '${widget.joinedDate!.day.toString().padLeft(2, '0')}/${widget.joinedDate!.month.toString().padLeft(2, '0')}/${widget.joinedDate!.year}' : '-'
         ),
-        if (gender != null)
-          _buildInfoRow(context, 'Gender', gender!),
+        if (widget.gender != null)
+          _buildInfoRow(context, 'Gender', widget.gender!),
       ],
     );
   }
@@ -176,20 +191,16 @@ class PersonalDetailsForm extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: AppTypography.label.copyWith(
+          style: AppTypography.micro.copyWith(
             color: isDark ? AppColors.dark300 : AppColors.dark400,
-            fontWeight: AppTypography.weightBold,
-            letterSpacing: 1.2,
-            fontSize: AppTypography.sizeMicro, // 10px Standardized Meta
+            letterSpacing: AppTypography.lsLabel,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value.isEmpty ? '-' : value,
           style: AppTypography.body.copyWith(
-            color: isDark ? AppColors.pureWhite : AppColors.dark950,
-            fontWeight: AppTypography.weightBold,
-            fontSize: AppTypography.sizeBody,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -199,22 +210,27 @@ class PersonalDetailsForm extends StatelessWidget {
   Widget _buildCountryCodePicker(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return SizedBox(
-      width: 90,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
-            child: Text(
-              'Code',
-              style: AppTypography.label.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
+          child: Text(
+            'CODE',
+            style: AppTypography.micro.copyWith(
+              color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: 1.2,
             ),
           ),
-          Container(
+        ),
+        InkWell(
+          onTap: () => _showCountryCodePicker(context),
+          borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.inputRadius ?? 12),
+          child: Container(
             height: 52,
+            width: 90,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isDark ? AppColors.dark600 : AppColors.pureWhite,
               borderRadius: BorderRadius.circular(Theme.of(context).extension<AppShapeTokens>()?.inputRadius ?? 12),
@@ -223,65 +239,116 @@ class PersonalDetailsForm extends StatelessWidget {
                 width: AppShapes.borderThin,
               ),
             ),
-            child: Center(
-              child: Autocomplete<Map<String, String>>(
-                initialValue: TextEditingValue(text: countryCodeController.text),
-                optionsBuilder: (textEditingValue) {
-                  if (textEditingValue.text == '') return const Iterable<Map<String, String>>.empty();
-                  return countryList.where((option) {
-                    return option['name']!.toLowerCase().contains(textEditingValue.text.toLowerCase()) ||
-                           option['code']!.contains(textEditingValue.text);
-                  });
-                },
-                displayStringForOption: (option) => option['code']!,
-                onSelected: (selection) => countryCodeController.text = selection['code']!,
-                optionsViewBuilder: (context, onSelected, options) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      elevation: 8,
-                      color: Theme.of(context).cardColor,
-                      borderRadius: AppShapes.lg,
-                      child: Container(
-                        width: 250,
-                        constraints: const BoxConstraints(maxHeight: 250),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: options.length,
-                          itemBuilder: (context, index) {
-                            final option = options.elementAt(index);
-                            return ListTile(
-                              leading: Text(option['flag'] ?? '', style: AppTypography.displayLargeBody),
-                              title: Text(option['code']!, style: AppTypography.bodySmall.copyWith(fontWeight: AppTypography.weightBold)),
-                              subtitle: Text(option['name']!, overflow: TextOverflow.ellipsis),
-                              onTap: () => onSelected(option),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                fieldViewBuilder: (context, controller, focus, onSubmitted) {
-                  return TextFormField(
-                    controller: controller,
-                    focusNode: focus,
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    style: AppTypography.body.copyWith(
-                      fontWeight: AppTypography.weightSemibold,
-                      color: isDark ? AppColors.pureWhite : AppColors.dark950,
-                    ),
-                  );
-                },
+            child: Text(
+              widget.countryCodeController.text.isEmpty ? '+1' : widget.countryCodeController.text,
+              style: AppTypography.body.copyWith(
+                fontWeight: AppTypography.weightMedium,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  void _showCountryCodePicker(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final queryText = _modalSearchController.text.toLowerCase();
+          final filteredOptions = countryList.where((country) {
+            return country['name']!.toLowerCase().contains(queryText) || 
+                   country['code']!.contains(queryText);
+          }).toList();
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.dark700 : AppColors.pureWhite,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              children: [
+                const SizedBox(height: AppSpacing.md),
+                // Handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.dark400 : AppColors.dark150,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  'Select Country Code',
+                  style: AppTypography.headline.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                BoxyArtInputField(
+                  label: '',
+                  hint: 'Search by name or code...',
+                  controller: _modalSearchController,
+                  onChanged: (_) => setModalState(() {}),
+                  prefixIcon: const Icon(Icons.search_rounded),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: filteredOptions.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 1, 
+                      color: isDark ? AppColors.dark600 : AppColors.lightBorder.withValues(alpha: 0.5)
+                    ),
+                    itemBuilder: (context, index) {
+                      final country = filteredOptions[index];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                        leading: Text(
+                          country['flag'] ?? '', 
+                          style: const TextStyle(fontSize: 24)
+                        ),
+                        title: Text(
+                          country['name']!,
+                          style: AppTypography.body.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: AppTypography.weightMedium,
+                          ),
+                        ),
+                        trailing: Text(
+                          country['code']!,
+                          style: AppTypography.label.copyWith(
+                            color: theme.primaryColor,
+                            fontWeight: AppTypography.weightBold,
+                          ),
+                        ),
+                        onTap: () {
+                          widget.countryCodeController.text = country['code']!;
+                          _modalSearchController.clear();
+                          Navigator.pop(context);
+                          setState(() {}); // Update local display
+                        },
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
+              ],
+            ),
+          );
+        }
       ),
     );
   }

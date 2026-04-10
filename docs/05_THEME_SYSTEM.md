@@ -132,21 +132,25 @@ SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard)
 
 ---
 
-## 6. Branding Console & Granular Control
+## 6. Branding Architecture (v4.2 Separation)
 
-All visual properties are user-configurable via `SocietyConfig` (stored in Firestore):
+The branding system is now split into two distinct tiers to ensure an admin-friendly experience while maintaining deep technical control.
 
-| Control | Range |
-|---|---|
-| Card Radius | 0.0 – 40.0 |
-| Input Radius | 0.0 – 30.0 |
-| Button Radius | 0.0 – 30.0 |
-| Shadow Intensity | 0.0 – 1.0 |
-| Shadow Spread | values |
-| Shadow Opacity | values |
-| Primary Color | Any HSL/Hex |
+### Tier 1: Society Identity (Admin Hub)
+High-level assets and "atmosphere" controls found in the **Society Identity Screen**.
+- **Society Name**: Global identity used in titles and communications.
+- **Society Logo**: The brand mark used in scaffolds and auth flows.
+- **Theme Mode**: Global preference (Light / Dark / System).
 
-Legacy `brandingStyle` presets (`classic`, `boxy`, `modern`) are **deprecated**. The granular console is the only mechanism.
+### Tier 2: Technical Design Tokens (Management Console)
+Granular, token-based controls used for technical design system alignment.
+- **Radii**: Card, Input, Button, and Hero corner configurations.
+- **Shadows**: Global intensity, spread, and opacity overrides.
+- **Vertical Spacing**: `cardToLabel`, `labelToCard`, and `cardToCard` rhythm.
+
+> [!IMPORTANT]
+> The **Management Console** (legacy Branding Hub) is reserved for future developer utilities and is hidden from standard administrative navigation. Most day-to-day administrative tasks should take place in the **Society Identity** hub.
+
 
 ---
 

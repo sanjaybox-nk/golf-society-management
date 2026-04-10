@@ -28,48 +28,69 @@ class BoxyArtDialog extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final List<Widget> dialogActions = actions ?? [
-      if (onCancel != null)
-        BoxyArtButton(
-          title: cancelText ?? 'Cancel',
-          isGhost: true,
-          onTap: onCancel,
-        ),
-      if (onConfirm != null)
-        BoxyArtButton(
-          title: confirmText ?? 'Confirm',
-          isPrimary: true,
-          onTap: onConfirm,
-        )
-      else if (onCancel == null)
-        BoxyArtButton(
-          title: 'Close',
-          isGhost: true,
-          onTap: () => Navigator.pop(context),
-        ),
-    ];
-
-    return AlertDialog(
-      title: Text(
-        title, 
-        style: AppTypography.displaySubPage.copyWith(
-          color: isDark ? AppColors.dark60 : AppColors.dark900,
+    // Design 4.x Rhythm & Tokens
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3l, vertical: AppSpacing.x2l),
+      child: BoxyArtCard(
+        padding: const EdgeInsets.all(AppSpacing.xl), // 16pt rhythmic padding
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title - Display Subpage 4.x
+            Text(
+              title, 
+              style: AppTypography.displaySubPage.copyWith(
+                color: isDark ? AppColors.dark60 : AppColors.dark900,
+              ),
+            ),
+            
+            const SizedBox(height: AppSpacing.md), // 8pt Gap to message
+            
+            // Message - Body 4.x
+            if (message != null || content != null)
+              content ?? Text(
+                message!,
+                style: AppTypography.body.copyWith(
+                  color: isDark ? AppColors.dark150 : AppColors.dark300,
+                  height: 1.5, // Improved readability for 4.x
+                ),
+              ),
+              
+            const SizedBox(height: AppSpacing.xl), // 16pt Gap to actions
+            
+            // Actions - Right Aligned Side-by-Side
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (onCancel != null)
+                  BoxyArtButton(
+                    title: cancelText ?? 'Cancel',
+                    isGhost: true,
+                    onTap: onCancel,
+                  ),
+                if (onCancel != null && onConfirm != null)
+                   const SizedBox(width: AppSpacing.md),
+                if (onConfirm != null)
+                  BoxyArtButton(
+                    title: confirmText ?? 'Confirm',
+                    isPrimary: true,
+                    onTap: onConfirm,
+                  )
+                else if (onCancel == null && actions == null)
+                  BoxyArtButton(
+                    title: 'Close',
+                    isGhost: true,
+                    onTap: () => Navigator.pop(context),
+                  ),
+                if (actions != null) ...actions!,
+              ],
+            ),
+          ],
         ),
       ),
-      content: SingleChildScrollView(
-        child: content ?? Text(
-          message!,
-          style: AppTypography.body.copyWith(
-            color: isDark ? AppColors.dark150 : AppColors.dark300,
-          ),
-        ),
-      ),
-      actions: dialogActions,
-      backgroundColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppShapes.cardRadius,
-      ),
-      actionsPadding: const EdgeInsets.all(AppSpacing.lg),
     );
   }
 

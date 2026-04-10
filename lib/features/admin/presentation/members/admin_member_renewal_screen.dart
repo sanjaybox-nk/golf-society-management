@@ -271,20 +271,25 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                         isExpanded: true,
                         tabs: [
-                          ModernFilterTab(label: 'No Action (${noAction.length})', value: RenewalFilter.noAction),
-                          ModernFilterTab(label: 'Requested (${requested.length})', value: RenewalFilter.requested),
-                          ModernFilterTab(label: 'Paid (${paid.length})', value: RenewalFilter.paid),
+                          const ModernFilterTab(label: 'No Action', value: RenewalFilter.noAction),
+                          const ModernFilterTab(label: 'Requested', value: RenewalFilter.requested),
+                          const ModernFilterTab(label: 'Paid', value: RenewalFilter.paid),
                         ],
                       ),
                     ),
                   ),
 
-                  // 2. Search Bar (Standardized with Members Screen)
+                  // 2. Search Bar (Standardized 4.x Rhythm)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.xl, 
+                        0, 
+                        AppSpacing.xl, 
+                        spacing?.cardToLabel ?? AppSpacing.cardToLabel
+                      ),
                       child: BoxyArtSearchInput(
-                        label: 'Search Members',
+                        label: 'Search members', // Integrated 4.x label
                         hintText: 'Search roster...',
                         initialValue: _searchQuery,
                         onChanged: (v) => setState(() => _searchQuery = v),
@@ -292,21 +297,15 @@ class _AdminMemberRenewalScreenState extends ConsumerState<AdminMemberRenewalScr
                     ),
                   ),
 
-                  // Member List
+                  // Member List / Empty State
                   if (displayMembers.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.people_outline_rounded, size: 48, color: AppColors.dark400.withValues(alpha: 0.5)),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No members in this category',
-                              style: AppTypography.body.copyWith(color: AppColors.dark400),
-                            ),
-                          ],
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                        child: BoxyArtEmptyCard(
+                          title: 'No Members Found',
+                          message: 'No society members match the current filter or search criteria.',
+                          icon: Icons.people_outline_rounded,
                         ),
                       ),
                     )

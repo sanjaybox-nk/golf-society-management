@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/design_system/widgets/metrics.dart';
 
 class MemberStatsRow extends StatelessWidget {
   final int starts;
@@ -21,67 +23,48 @@ class MemberStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0),
-      child: BoxyArtCard(
-        child: Row(
-          children: [
-            if (wins > 0) ...[
-              Expanded(child: _StatItem(label: 'Wins', value: '$wins')),
-              const SizedBox(width: AppSpacing.atomic),
-            ],
-            Expanded(child: _StatItem(label: 'Top 5', value: '$top5')),
-            const SizedBox(width: AppSpacing.atomic),
-            Expanded(child: _StatItem(label: 'Avg Pts', value: avgPts.toStringAsFixed(1))),
-            const SizedBox(width: AppSpacing.atomic),
-            Expanded(child: _StatItem(label: 'Best', value: '$bestPts')),
-            const SizedBox(width: AppSpacing.atomic),
-            Expanded(child: _StatItem(label: 'Rank', value: rank != null ? '#$rank' : '-')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatItem extends ConsumerWidget {
-  final String label;
-  final String value;
-  const _StatItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final config = ref.watch(themeControllerProvider);
-    
-    final badgeBg = Color(config.iconBadgeFillColor).withValues(alpha: config.iconBadgeOpacity);
-    const badgeFg = AppColors.dark900; // Overridden to black for these badges
-    
     return BoxyArtCard(
-      showShadow: false,
-      backgroundColor: isDark 
-          ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-          : badgeBg,
-      borderRadius: config.cardRadius * 0.75,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          Text(
-            value,
-            style: AppTypography.headline.copyWith(
-              color: badgeFg,
+          if (wins > 0) ...[
+            Expanded(
+              child: ModernMetricStat(
+                label: 'Wins',
+                value: '$wins',
+                isCompact: true,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          Expanded(
+            child: ModernMetricStat(
+              label: 'Top 5',
+              value: '$top5',
+              isCompact: true,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label.toUpperCase(),
-            style: AppTypography.label.copyWith(
-              color: badgeFg.withValues(alpha: 0.8),
-              fontWeight: AppTypography.weightHeavy,
-              fontSize: AppTypography.sizeMicro,
-              letterSpacing: AppTypography.lsMicro,
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: ModernMetricStat(
+              label: 'Avg Pts',
+              value: avgPts.toStringAsFixed(1),
+              isCompact: true,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: ModernMetricStat(
+              label: 'Best',
+              value: '$bestPts',
+              isCompact: true,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: ModernMetricStat(
+              label: 'Rank',
+              value: rank != null ? '#$rank' : '-',
+              isCompact: true,
             ),
           ),
         ],
@@ -89,4 +72,3 @@ class _StatItem extends ConsumerWidget {
     );
   }
 }
-

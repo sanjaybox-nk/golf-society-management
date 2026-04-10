@@ -49,7 +49,8 @@ class EventsScreen extends ConsumerWidget {
             isExpanded: true,
           ),
         ),
-        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel)),
+        // Unified spacing below filter bar (16px)
+        SliverToBoxAdapter(child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard)),
 
         // 1. Season Events Tab
         if (filter == EventFilter.season) ...[
@@ -71,6 +72,7 @@ class EventsScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtSectionTitle(
                 title: 'Past Events',
+                isPeeking: false,
               ),
             ),
           ),
@@ -106,12 +108,27 @@ class EventsScreen extends ConsumerWidget {
     return asyncValue.when(
       data: (events) {
         if (events.isEmpty) {
-          return SliverToBoxAdapter(
-            child: BoxyArtEmptyState(
-              title: 'No $type Events',
-              message: 'There are no $type events scheduled yet.',
-              icon: type == 'Past' ? Icons.history_rounded : Icons.calendar_today_rounded,
-              isCompact: true,
+          final String title = 'No $type Events';
+          final String message = type == 'Upcoming' 
+              ? 'Your society fairways are quiet. Check back soon for the next fixture.'
+              : type == 'Past'
+                  ? 'No past events recorded for this season yet.'
+                  : 'No social gatherings or clubhouse meets planned.';
+          
+          final IconData icon = type == 'Past' 
+              ? Icons.history_toggle_off_rounded 
+              : type == 'Social'
+                  ? Icons.emoji_events_outlined
+                  : Icons.event_note_rounded;
+
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: title,
+                message: message,
+                icon: icon,
+              ),
             ),
           );
         }

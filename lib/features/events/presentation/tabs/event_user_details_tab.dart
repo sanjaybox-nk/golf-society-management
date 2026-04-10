@@ -191,7 +191,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               
               if (_selectedTab == EventInfoSubTab.info) ...[
                 _buildDateTimeSection(context),
-                const SizedBox(height: AppSpacing.sectionTitleTop), // Manual gap for first two cards (no titles)
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.sectionTitleTop), // Semantic gap for first two cards (no titles)
                 _buildHeroSection(context),
                 
                 if (event.eventType == EventType.golf) ...[
@@ -277,10 +277,10 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
         if (displayItems.isEmpty && !showYourGroup) ...[
           SizedBox(height: spacing?.cardToLabel ?? AppSpacing.x4l),
-          const BoxyArtEmptyState(
+          const BoxyArtEmptyCard(
             icon: Icons.notifications_off_rounded,
             title: 'No Notifications',
-            message: 'Check back later for event updates and newsletters.',
+            message: 'Check back later for event updates and society newsletters.',
           ),
         ] else ...[
           ListView.separated(
@@ -403,7 +403,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                     if (item.title != null && item.title!.isNotEmpty) ...[
                       Text(
                         item.title!,
-                        style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody),
+                        style: AppTypography.label,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
@@ -412,8 +412,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                         snippet,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: AppTypography.sizeBodySmall,
+                        style: AppTypography.bodySmall.copyWith(
                           color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: AppColors.opacityHigh),
                           height: 1.5,
                         ),
@@ -423,10 +422,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                       children: [
                         Text(
                           'READ FULL STORY',
-                          style: TextStyle(
-                            fontSize: AppTypography.sizeCaptionStrong,
-                            fontWeight: AppTypography.weightBlack,
-                            letterSpacing: 1.2,
+                          style: AppTypography.micro.copyWith(
                             color: Theme.of(context).primaryColor,
                           ),
                         ),
@@ -526,6 +522,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
 
 
   Widget _buildDateTimeSection(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final event = widget.event;
     final gradient = AppGradients.brandPrimary(context);
     
@@ -550,7 +547,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 onPressed: () => _launchMap(event.courseName!, event.courseDetails),
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.atomic),
           ],
           ModernInfoRow(
             label: event.isMultiDay ? 'START DATE' : 'EVENT DATE',
@@ -561,7 +558,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
             iconColor: AppColors.pureWhite,
           ),
           if (event.isMultiDay && event.endDate != null) ...[
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.atomic),
             ModernInfoRow(
               label: 'END DATE',
               value: DateFormat('EEEE, d MMM yyyy').format(event.endDate!),
@@ -571,7 +568,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               iconColor: AppColors.pureWhite,
             ),
           ],
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.atomic),
           ModernInfoRow(
             label: event.eventType == EventType.social ? 'EVENT TIME' : 'REGISTRATION',
             value: event.regTime != null 
@@ -582,7 +579,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
             valueColor: AppColors.pureWhite,
             iconColor: AppColors.pureWhite,
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.atomic),
           if (event.eventType == EventType.golf) ...[
             ModernInfoRow(
               label: 'TEE-OFF',
@@ -592,7 +589,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
               valueColor: AppColors.pureWhite,
               iconColor: AppColors.pureWhite,
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.atomic),
           ],
           if (event.registrationDeadline != null) ...[
             ModernInfoRow(
@@ -610,6 +607,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
   }
 
   Widget _buildMealDetailsSection(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final event = widget.event;
     final hasMealInfo = event.hasBreakfast || event.hasLunch || event.hasDinner || event.dinnerLocation != null;
     
@@ -627,17 +625,17 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 if (event.hasBreakfast)
                   _buildMealRow('Breakfast', event.breakfastCost, Icons.flatware_rounded),
                 if (event.hasLunch) ...[
-                  if (event.hasBreakfast) const SizedBox(height: AppTheme.cardSpacing),
+                  if (event.hasBreakfast) SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                   _buildMealRow('Lunch', event.lunchCost, Icons.restaurant_rounded),
                 ],
                 if (event.hasDinner) ...[
-                  if (event.hasBreakfast || event.hasLunch) const SizedBox(height: AppTheme.cardSpacing),
+                  if (event.hasBreakfast || event.hasLunch) SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                   _buildMealRow('Dinner', event.dinnerCost, Icons.dinner_dining_rounded),
                 ],
               ],
               if (event.dinnerLocation != null || event.eventType == EventType.social) ...[
                 if (event.eventType == EventType.golf && (event.hasBreakfast || event.hasLunch || event.hasDinner))
-                  const SizedBox(height: AppTheme.cardSpacing),
+                  SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                 ModernInfoRow(
                   label: event.eventType == EventType.social ? 'Event Location' : 'Dinner Location',
                   value: event.dinnerLocation ?? 'TBC',
@@ -669,6 +667,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
   }
 
   Widget _buildCourseSelectionSection(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
     final event = widget.event;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,7 +684,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 ),
               ],
               if (event.eventType == EventType.golf && (event.selectedTeeName != null || event.selectedFemaleTeeName != null)) ...[
-                const SizedBox(height: AppSpacing.standard),
+                SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
                 Builder(
                   builder: (context) {
                     final maleTee = event.selectedTeeName;
@@ -1023,7 +1022,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (note.title != null) ...[
-                Text(note.title!, style: AppTypography.displayHeading.copyWith(fontSize: AppTypography.sizeLargeBody)),
+                Text(note.title!, style: AppTypography.label),
                 const SizedBox(height: AppSpacing.md),
               ],
               _buildRichDescription(context, note.content),
@@ -1080,31 +1079,21 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                award.label,
-                                style: const TextStyle(
-                                  fontSize: AppTypography.sizeBody,
-                                  fontWeight: AppTypography.weightBold,
+                                award.label.toUpperCase(),
+                                style: AppTypography.micro.copyWith(
+                                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
                                 ),
                               ),
+                              const SizedBox(height: 1),
                               if (award.type.toLowerCase() != 'cup' && award.value > 0)
                                 Text(
-                                  'Value: ${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: AppTypography.sizeLabel,
-                                    fontWeight: AppTypography.weightBold,
-                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
-                                    letterSpacing: 0.5,
-                                  ),
+                                  '${ref.watch(themeControllerProvider).currencySymbol}${award.value.toStringAsFixed(2)}',
+                                  style: AppTypography.body,
                                 )
                               else
                                 Text(
                                   toTitleCase(award.type),
-                                  style: TextStyle(
-                                    fontSize: AppTypography.sizeLabel,
-                                    fontWeight: AppTypography.weightBold,
-                                    letterSpacing: 0.5,
-                                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHalf),
-                                  ),
+                                  style: AppTypography.body,
                                 ),
                             ],
                           ),
@@ -1172,7 +1161,7 @@ class _EventDetailsContentState extends ConsumerState<EventDetailsContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(s.source.toUpperCase(), style: AppTypography.displaySection.copyWith(fontSize: 15)),
+                    Text(s.source.toUpperCase(), style: AppTypography.label),
                     if (s.description != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),

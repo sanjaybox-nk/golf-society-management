@@ -15,7 +15,7 @@ class MemberStatusPicker extends StatelessWidget {
     BoxyArtBottomSheet.show(
       context: context,
       title: 'Update Member Status',
-      initialChildSize: 0.85,
+      initialChildSize: 0.75,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

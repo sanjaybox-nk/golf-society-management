@@ -75,11 +75,11 @@ class CourseInfoCard extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          _buildHeaderRow(context, 'FRONT 9'),
-          _buildNineHoles(context, 'OUT', 1, pars, sis, dists, holeScores, holeNetScores, holePoints),
+          _buildHeaderRow(context, 'Front 9'),
+          _buildNineHoles(context, 'Out', 1, pars, sis, dists, holeScores, holeNetScores, holePoints),
           const SizedBox(height: AppSpacing.sm),
-          _buildHeaderRow(context, 'BACK 9'),
-          _buildNineHoles(context, 'IN', 10, pars, sis, dists, holeScores, holeNetScores, holePoints),
+          _buildHeaderRow(context, 'Back 9'),
+          _buildNineHoles(context, 'In', 10, pars, sis, dists, holeScores, holeNetScores, holePoints),
           _buildTotalsFooter(context, totalStrokes, totalNetStrokes, totalPoints, totalPar, holesPlayed, toParDiff),
         ],
       ),
@@ -114,7 +114,7 @@ class CourseInfoCard extends StatelessWidget {
         // Hole Row
         Row(
           children: [
-            _buildSideLabel(context, 'HOLE'),
+            _buildSideLabel(context, 'Hole'),
             for (int i = 0; i < 9; i++)
               Expanded(child: _buildValueCell(context, '${startHole + i}', isHeader: true)),
             _buildTotalCell(context, label, isHeader: true),
@@ -141,7 +141,7 @@ class CourseInfoCard extends StatelessWidget {
             color: teeColor,
             child: Row(
               children: [
-                _buildSideLabel(context, 'PAR', color: teeTextColor),
+                _buildSideLabel(context, 'Par', color: teeTextColor),
                 for (int i = 0; i < 9; i++)
                   Expanded(child: _buildValueCell(context, '${ninePars[i]}', color: teeTextColor, isBold: true)),
                 _buildTotalCell(context, '$nineParTotal', color: teeTextColor, isBold: true, bgColor: teeColor),
@@ -183,7 +183,7 @@ class CourseInfoCard extends StatelessWidget {
         if (isStableford) ...[
           Row(
             children: [
-              _buildSideLabel(context, 'PTS'),
+              _buildSideLabel(context, 'Pts'),
               for (int i = 0; i < 9; i++)
                 Expanded(child: _buildValueCell(context, ninePoints[i] != null || nineScores[i] != null ? (ninePoints[i]?.toString() ?? '-') : '-', isDimmed: true)),
               _buildTotalCell(context, ninePoints.whereType<int>().fold<int>(0, (a, b) => a + b).toString(), isDimmed: true, isBold: true),
@@ -226,14 +226,14 @@ class CourseInfoCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatItem('TOTAL', strokes.toString(), sub: 'THRU $thru'),
+          _buildStatItem('Total', strokes.toString(), sub: 'Thru $thru'),
           if (isStableford)
-            _buildStatItem('POINTS', points.toString())
+            _buildStatItem('Points', points.toString())
           else if (thru > 0) ...[
-            if (isNet) _buildStatItem('NET', nets.toString()),
-            _buildStatItem('TO PAR', toParString, color: toParColor),
+            if (isNet) _buildStatItem('Net', nets.toString()),
+            _buildStatItem('To Par', toParString, color: toParColor),
           ],
-          _buildStatItem('PAR', par.toString()),
+          _buildStatItem('Par', par.toString()),
         ],
       ),
     );

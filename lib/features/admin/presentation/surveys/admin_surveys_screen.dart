@@ -27,18 +27,26 @@ class AdminSurveysScreen extends ConsumerWidget {
         const SizedBox(width: AppSpacing.md),
       ],
       slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+        ),
         surveysAsync.when(
           data: (surveys) {
             if (surveys.isEmpty) {
-              return const SliverFillRemaining(
-                child: Center(
-                  child: Text('No surveys created yet.'),
+              return const SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                sliver: SliverToBoxAdapter(
+                  child: BoxyArtEmptyCard(
+                    title: 'No Surveys Created',
+                    message: 'Draft polls and society insights will appear here once you create your first survey.',
+                    icon: Icons.quiz_outlined,
+                  ),
                 ),
               );
             }
 
             return SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: spacing?.labelToCard ?? AppSpacing.standard),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {

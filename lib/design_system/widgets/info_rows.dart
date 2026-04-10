@@ -65,11 +65,8 @@ class ModernInfoRow extends ConsumerWidget {
                 value,
                 maxLines: maxLines,
                 overflow: maxLines != null ? TextOverflow.ellipsis : null,
-                style: AppTypography.displayMedium.copyWith(
-                  fontSize: fontSize ?? 16.0,
-                  fontWeight: AppTypography.weightBold,
+                style: AppTypography.body.copyWith(
                   color: valueColor ?? textPrimary,
-                  letterSpacing: -0.2,
                 ),
               ),
             ],
@@ -124,9 +121,7 @@ class ModernRuleItem extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
-              fontSize: AppTypography.sizeLabelStrong,
-              fontWeight: AppTypography.weightBold,
+            style: AppTypography.body.copyWith(
               color: textPrimary,
             ),
           ),
@@ -163,19 +158,15 @@ class ModernCostRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: isTotal ? 16 : 15,
+              style: (isTotal ? AppTypography.label : AppTypography.label).copyWith(
                 color: color ?? (isTotal ? textPrimary : textSecondary),
-                fontWeight: isTotal ? AppTypography.weightExtraBold : AppTypography.weightSemibold,
               ),
             ),
           ),
           const Spacer(),
           Text(
             amount,
-            style: TextStyle(
-              fontSize: isTotal ? 18 : 16,
-              fontWeight: AppTypography.weightBold,
+            style: (isTotal ? AppTypography.body.copyWith(fontWeight: AppTypography.weightBold) : AppTypography.body).copyWith(
               color: color ?? textPrimary,
             ),
           ),

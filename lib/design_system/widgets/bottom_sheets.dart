@@ -5,12 +5,14 @@ class BoxyArtBottomSheet extends StatelessWidget {
   final String title;
   final Widget child;
   final ScrollController? scrollController;
+  final VoidCallback? onClose;
 
   const BoxyArtBottomSheet({
     super.key,
     required this.title,
     required this.child,
     this.scrollController,
+    this.onClose,
   });
 
   @override
@@ -54,7 +56,7 @@ class BoxyArtBottomSheet extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: AppShapes.iconLg),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: onClose ?? () => Navigator.pop(context),
                   color: isDark ? AppColors.dark200 : AppColors.dark400,
                 ),
               ],
@@ -112,5 +114,25 @@ class BoxyArtBottomSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Helper to show a persistent bottom sheet (keeps bottom nav visible).
+  static PersistentBottomSheetController showPersistent({
+    required BuildContext context,
+    required String title,
+    required Widget child,
+    double initialChildSize = 0.5,
+  }) {
+    late PersistentBottomSheetController controller;
+    controller = Scaffold.of(context).showBottomSheet(
+      (context) => BoxyArtBottomSheet(
+        title: title,
+        child: child,
+        onClose: () => controller.close(),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 16,
+    );
+    return controller;
   }
 }

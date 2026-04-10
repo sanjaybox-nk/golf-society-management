@@ -1,10 +1,7 @@
 
 import 'package:go_router/go_router.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'compose_notification_screen.dart';
-import 'audience_manager_screen.dart';
 import 'notification_history_screen.dart';
-import 'survey_manager_screen.dart';
 
 class NotificationAdminScaffold extends StatefulWidget {
   const NotificationAdminScaffold({super.key});
@@ -14,71 +11,111 @@ class NotificationAdminScaffold extends StatefulWidget {
 }
 
 class _NotificationAdminScaffoldState extends State<NotificationAdminScaffold> {
-  int _currentIndex = 0;
-
-  final List<Widget> _tabs = [
-    const NotificationHistoryScreen(),
-    const ComposeNotificationScreen(isTabbed: true),
-    const AudienceManagerScreen(),
-    const SurveyManagerScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      primary: false,
-      bottomNavigationBar: BoxyArtBottomNavBar(
-        selectedIndex: _currentIndex,
-        onItemSelected: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BoxyArtBottomNavItem(
-            icon: Icons.history_rounded,
-            activeIcon: Icons.history_toggle_off_rounded,
-            label: 'History',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.send_outlined,
-            activeIcon: Icons.send_rounded,
-            label: 'Compose',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.people_outline_rounded,
-            activeIcon: Icons.people_rounded,
-            label: 'Audience',
-          ),
-          BoxyArtBottomNavItem(
-            icon: Icons.assignment_outlined,
-            activeIcon: Icons.assignment_rounded,
-            label: 'Surveys',
-          ),
-        ],
-      ),
-      body: HeadlessScaffold(
-        title: 'Communications',
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
+
+    return DefaultTabController(
+      length: 2,
+      child: HeadlessScaffold(
+        title: 'Communication Hub',
         titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
-        actions: [
-          if (_currentIndex == 0)
-            BoxyArtGlassIconButton(
-              icon: Icons.add_rounded,
-              onPressed: () => setState(() => _currentIndex = 1),
-              tooltip: 'New Note',
-            ),
-        ],
+        subtitle: 'Broadcast history & dispatch logs',
         leading: Center(
           child: BoxyArtGlassIconButton(
-            icon: Icons.home_rounded,
-            onPressed: () => context.go('/home'),
-            tooltip: 'App Home',
+            icon: Icons.arrow_back_rounded,
+            onPressed: () => context.go('/admin'),
+            tooltip: 'Back to Dashboard',
           ),
         ),
+        actions: [
+          BoxyArtGlassIconButton(
+            icon: Icons.add_rounded,
+            onPressed: () => context.pushNamed('admin-notifications-compose'),
+            tooltip: 'Compose New Broadcast',
+          ),
+          const SizedBox(width: AppSpacing.md),
+        ],
         slivers: [
-          SliverFillRemaining(
-            child: _tabs[_currentIndex],
+          // 1. Safe Space before Tabs
+          SliverToBoxAdapter(
+            child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+          ),
+
+          // 2. Tab Bar Header (Pinned)
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SliverTabBarDelegate(
+              const ModernUnderlinedTabBar(
+                tabLabels: ['Broadcast Feed', 'Scheduled'],
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              ),
+              backgroundColor: theme.scaffoldBackgroundColor,
+            ),
+          ),
+
+          // 3. Safe Space after Tabs 
+          SliverToBoxAdapter(
+            child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+          ),
+
+          // 4. Tab Content
+          const SliverFillRemaining(
+            child: TabBarView(
+              children: [
+                NotificationHistoryScreen(),
+                _ScheduledNotificationsPlaceholder(),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _ScheduledNotificationsPlaceholder extends StatelessWidget {
+  const _ScheduledNotificationsPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Column(
+        children: [
+          BoxyArtEmptyCard(
+            title: 'No Scheduled Dispatch',
+            message: 'Drafts and upcoming automated communications will appear here once configured.',
+            icon: Icons.schedule_send_rounded,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget tabBar;
+  final Color backgroundColor;
+
+  _SliverTabBarDelegate(this.tabBar, {required this.backgroundColor});
+
+  @override
+  double get minExtent => 48;
+  @override
+  double get maxExtent => 48;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: backgroundColor,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
+    return false;
   }
 }

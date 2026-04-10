@@ -327,10 +327,10 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
                         title: 'Global ledger',
                         isPeeking: true,
                       ),
-                      BoxyArtInputField(
-                        label: '',
-                        hint: 'Search members...',
-                        prefixIcon: const Icon(Icons.search_rounded),
+                      // Standardized 4.x Search Input
+                      BoxyArtSearchInput(
+                        label: 'Search members',
+                        hintText: 'Search roster...',
                         onChanged: (val) {
                           setState(() {
                             _searchQuery = val;
@@ -338,10 +338,12 @@ class _AdminDebtLedgerScreenState extends ConsumerState<AdminDebtLedgerScreen> {
                         },
                       ),
                       SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+
                       if (filteredSummaries.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(AppSpacing.xl),
-                          child: Text('All settled! No outstanding debts or credits found.', style: TextStyle(color: AppColors.textSecondary)),
+                        const BoxyArtEmptyCard(
+                          title: 'All Settled',
+                          message: 'No outstanding debts or credits found. Your society ledger is currently balanced.',
+                          icon: Icons.account_balance_rounded,
                         ),
                       ...filteredSummaries.map((s) {
                         return Padding(

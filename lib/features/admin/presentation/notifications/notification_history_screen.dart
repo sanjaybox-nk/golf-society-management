@@ -16,122 +16,140 @@ class NotificationHistoryScreen extends ConsumerStatefulWidget {
 class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryScreen> {
   String _searchQuery = '';
   String _groupBy = 'Date'; // 'Date', 'Category', 'None'
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(adminNotificationsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              const SizedBox(height: AppSpacing.sm),
-              const SizedBox(height: AppSpacing.x2l),
-              // Search & Filters
-              BoxyArtCard(
-                child: Column(
-                  children: [
-                    BoxyArtInputField(
-                      label: 'Search History',
-                      hint: 'Search by title or message...',
-                      onChanged: (v) => setState(() => _searchQuery = v),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                      child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          notificationsAsync.when(
+            data: (notifications) {
+              final term = _searchQuery.toLowerCase();
+              final filtered = notifications.where((n) {
+                final titleMatch = n.title.toLowerCase().contains(term);
+                
+                bool messageMatch = false;
+                if (n.message != null) {
+                  messageMatch = n.message!.toLowerCase().contains(term);
+                } else if (n.notes.isNotEmpty) {
+                  messageMatch = n.notes.any((note) => 
+                    (note.title?.toLowerCase().contains(term) ?? false) || 
+                    note.content.toLowerCase().contains(term)
+                  );
+                }
+
+                return titleMatch || messageMatch;
+              }).toList();
+
+              // Only show search UI if we have notifications OR the user is searching
+              final showSearch = notifications.isNotEmpty || _searchQuery.isNotEmpty;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (showSearch) ...[
+                    // Search & Filters
+                    BoxyArtCard(
+                      child: Column(
                         children: [
-                            Text(
-                              'Group By:', 
-                              style: AppTypography.label.copyWith(
-                                color: isDark ? AppColors.dark150 : AppColors.dark400,
-                              ),
-                            ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  _GroupChip(
-                                    label: 'Date',
-                                    isSelected: _groupBy == 'Date',
-                                    onTap: () => setState(() => _groupBy = 'Date'),
+                          BoxyArtInputField(
+                            label: 'Search History',
+                            hint: 'Search by title or message...',
+                            controller: _searchController,
+                            onChanged: (v) => setState(() => _searchQuery = v),
+                          ),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                            child: Row(
+                              children: [
+                                  Text(
+                                    'Group By:', 
+                                    style: AppTypography.label.copyWith(
+                                      color: isDark ? AppColors.dark150 : AppColors.dark400,
+                                    ),
                                   ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  _GroupChip(
-                                    label: 'Category',
-                                    isSelected: _groupBy == 'Category',
-                                    onTap: () => setState(() => _groupBy = 'Category'),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        _GroupChip(
+                                          label: 'Date',
+                                          isSelected: _groupBy == 'Date',
+                                          onTap: () => setState(() => _groupBy = 'Date'),
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        _GroupChip(
+                                          label: 'Category',
+                                          isSelected: _groupBy == 'Category',
+                                          onTap: () => setState(() => _groupBy = 'Category'),
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        _GroupChip(
+                                          label: 'None',
+                                          isSelected: _groupBy == 'None',
+                                          onTap: () => setState(() => _groupBy = 'None'),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  _GroupChip(
-                                    label: 'None',
-                                    isSelected: _groupBy == 'None',
-                                    onTap: () => setState(() => _groupBy = 'None'),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.x2l),
                   ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.x2l),
 
-              notificationsAsync.when(
-                data: (notifications) {
-                  final filtered = notifications.where((n) {
-                    final term = _searchQuery.toLowerCase();
-                    final titleMatch = n.title.toLowerCase().contains(term);
-                    
-                    bool messageMatch = false;
-                    if (n.message != null) {
-                      messageMatch = n.message!.toLowerCase().contains(term);
-                    } else if (n.notes.isNotEmpty) {
-                      messageMatch = n.notes.any((note) => 
-                        (note.title?.toLowerCase().contains(term) ?? false) || 
-                        note.content.toLowerCase().contains(term)
-                      );
-                    }
-
-                    return titleMatch || messageMatch;
-                  }).toList();
-
-                  if (filtered.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.x5l),
-                        child: Column(
-                          children: [
-                            Icon(Icons.history_rounded, size: AppShapes.iconHero, color: Theme.of(context).dividerColor.withValues(alpha: AppColors.opacityMedium)),
-                            const SizedBox(height: AppSpacing.lg),
-                            Text(
-                              'No notes found',
-                              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
-                            ),
-                          ],
-                        ),
+                  if (filtered.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: _searchQuery.isEmpty ? AppSpacing.xl : AppSpacing.md,
                       ),
-                    );
-                  }
-
-                  return _buildGroupedList(filtered);
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Error: $e')),
-              ),
-              const SizedBox(height: 130),
-            ]),
+                      child: BoxyArtEmptyCard(
+                        title: _searchQuery.isEmpty ? 'No Notes Found' : 'No Results',
+                        message: _searchQuery.isEmpty 
+                            ? 'Your society dispatch history is empty. Send your first communication to see it here.'
+                            : 'No communications matched your search for "$_searchQuery".',
+                        icon: _searchQuery.isEmpty ? Icons.history_rounded : Icons.search_off_rounded,
+                      ),
+                    )
+                  else
+                    _buildGroupedList(filtered),
+                ],
+              );
+            },
+            loading: () => const Center(child: Padding(
+              padding: EdgeInsets.all(AppSpacing.xl),
+              child: CircularProgressIndicator(),
+            )),
+            error: (e, _) => Center(child: Text('Error: $e')),
           ),
-        ),
-      ],
+          const SizedBox(height: 130),
+        ],
+      ),
     );
   }
 

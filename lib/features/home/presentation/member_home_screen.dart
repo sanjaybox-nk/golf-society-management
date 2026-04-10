@@ -14,6 +14,8 @@ import 'package:golf_society/domain/models/society_config.dart';
 import '../../events/presentation/events_provider.dart';
 import 'package:golf_society/utils/string_utils.dart';
 
+import 'widgets/home_welcome_hero.dart';
+
 class MemberHomeScreen extends ConsumerWidget {
   const MemberHomeScreen({super.key});
 
@@ -35,6 +37,13 @@ class MemberHomeScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(eventsProvider);
     final spacing = theme.extension<AppSpacingTokens>();
 
+    // Empty State Detection for "Fresh Start"
+    final hasNotifications = notificationsAsync.value?.any((n) => !n.isRead) ?? false;
+    final hasNextMatch = nextMatch.value != null;
+    final hasLeaderboard = topPlayers.value?.isNotEmpty ?? false;
+    final hasSurveys = surveysAsync.value?.isNotEmpty ?? false;
+    final isFreshStart = !hasNotifications && !hasNextMatch && !hasLeaderboard && !hasSurveys;
+
     return HeadlessScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       title: effectiveUser.firstName,
@@ -53,6 +62,20 @@ class MemberHomeScreen extends ConsumerWidget {
       showMenu: true,
       showAdminShortcut: true,
       slivers: [
+        if (isFreshStart)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+            sliver: SliverToBoxAdapter(
+              child: StaggeredEntrance(
+                index: 0,
+                child: HomeWelcomeHero(
+                  config: societyConfig,
+                  member: effectiveUser,
+                ),
+              ),
+            ),
+          ),
+
         if (isImpersonating)
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
@@ -96,10 +119,10 @@ class MemberHomeScreen extends ConsumerWidget {
             ),
           ),
 
-        // Notifications & Content
+        // Notifications & Content - Conditional on having unread updates
         notificationsAsync.when(
-          loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-          error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+          loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           data: (allNotifications) {
             final unreadNotifications = allNotifications
                 .where((n) => !n.isRead)
@@ -108,13 +131,16 @@ class MemberHomeScreen extends ConsumerWidget {
             
             final homeNotifications = unreadNotifications.take(2).toList();
             
+            // Hide section entirely if no unread notifications exist for a clean slate
+            if (homeNotifications.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+            
             return SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.xl, 
               ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // Notifications Section (Always Visible for Discoverability)
+                  // Notifications Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -134,24 +160,12 @@ class MemberHomeScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  if (homeNotifications.isNotEmpty)
-                    ...homeNotifications.asMap().entries.map((entry) {
-                      return StaggeredEntrance(
-                        index: entry.key,
-                        child: HomeNotificationCard(notification: entry.value),
-                      );
-                    })
-                  else
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: Text(
-                        'No recent notifications',
-                        style: TextStyle(
-                          color: AppColors.dark400,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
+                  ...homeNotifications.asMap().entries.map((entry) {
+                    return StaggeredEntrance(
+                      index: entry.key,
+                      child: HomeNotificationCard(notification: entry.value),
+                    );
+                  }),
                 ]),
               ),
             );
@@ -335,31 +349,35 @@ class MemberHomeScreen extends ConsumerWidget {
           error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
-        // Leaderboard Snippet
-        const SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          sliver: SliverToBoxAdapter(
-            child: BoxyArtSectionTitle(
-              title: 'Order of Merit',
-            ),
-          ),
-        ),
-
+        // Leaderboard Snippet - Conditional on having data
         topPlayers.when(
           data: (players) {
-            return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              sliver: SliverToBoxAdapter(
-                child: _LeaderboardSnippet(
-                  topPlayers: players,
-                  personalStanding: personalStanding.value?['standing'] as LeaderboardStanding?,
-                  personalRank: personalStanding.value?['rank'] as int?,
+            if (players.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+            return SliverMainAxisGroup(
+              slivers: [
+                const SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  sliver: SliverToBoxAdapter(
+                    child: BoxyArtSectionTitle(
+                      title: 'Order of Merit',
+                    ),
+                  ),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  sliver: SliverToBoxAdapter(
+                    child: _LeaderboardSnippet(
+                      topPlayers: players,
+                      personalStanding: personalStanding.value?['standing'] as LeaderboardStanding?,
+                      personalRank: personalStanding.value?['rank'] as int?,
+                    ),
+                  ),
+                ),
+              ],
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-                    error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
         
         // Season Sponsors (Consolidated Tiered View)

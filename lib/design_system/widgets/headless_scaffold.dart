@@ -114,9 +114,8 @@ class HeadlessScaffold extends StatelessWidget {
                         const SizedBox(height: AppSpacing.xs),
                         subtitleWidget ?? Text(
                           subtitle!,
-                          style: AppTypography.subtext.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                            fontWeight: AppTypography.weightSemibold, // Semibold token as requested
                           ),
                         ),
                       ],

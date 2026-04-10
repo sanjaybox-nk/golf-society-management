@@ -227,56 +227,100 @@ class _EventStatsContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (statsMode == 0) ...[
-          const BoxyArtSectionTitle(title: 'Society Hero Recap'),
+          const BoxyArtSectionTitle(title: 'Society Hero Recap', isPeeking: true),
           if (eclecticRound.any((s) => s != null))
-            FieldEclecticCard(
-              eclecticScores: eclecticRound, 
-              holes: holes,
+            StaggeredEntrance(
+              index: 0,
+              child: FieldEclecticCard(
+                eclecticScores: eclecticRound, 
+                holes: holes,
+              ),
             ),
           const BoxyArtSectionTitle(title: 'Field Competitiveness'),
-          ScoringTypeDistributionChart(counts: {
-            'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
-          }),
+          StaggeredEntrance(
+            index: 1,
+            child: ScoringTypeDistributionChart(counts: {
+              'EAGLE': fieldEagles, 'BIRDIE': fieldBirdies, 'PAR': fieldPars, 'BOGEY': fieldBogeys, 'DBL BOGEY': fieldDoubleBogeys, 'BLOB': fieldBlobs,
+            }),
+          ),
           if (isStableford) ...[
-            SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
-            StablefordDistributionChart(bucketCounts: stablefordBuckets),
+            StaggeredEntrance(
+              index: 2,
+              child: StablefordDistributionChart(bucketCounts: stablefordBuckets),
+            ),
           ],
           const BoxyArtSectionTitle(title: 'Performance Trends'),
-          SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
-          ParTypeBreakdown(parTypeAverages: parTypeAverages),
+          StaggeredEntrance(
+            index: 3,
+            child: SplitPerformanceCard(front9Avg: front9AvgVal, back9Avg: back9AvgVal, isStableford: isStableford),
+          ),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+          StaggeredEntrance(
+            index: 4,
+            child: ParTypeBreakdown(parTypeAverages: parTypeAverages),
+          ),
           const BoxyArtSectionTitle(title: 'Course Analysis'),
-          DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
-          SizedBox(height: spacing?.labelToCard ?? AppSpacing.standard),
-          HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
+          StaggeredEntrance(
+            index: 5,
+            child: DifficultyHeatmap(holeAverages: holeAverages, holes: holes),
+          ),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+          StaggeredEntrance(
+            index: 6,
+            child: HoleDifficultyChart(holeAverages: holeAverages, holes: holes),
+          ),
           const BoxyArtSectionTitle(title: 'Hall of Fame'),
           if (maxStreak > 0)
-            AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: AppColors.amber500),
+            StaggeredEntrance(
+              index: 7,
+              child: AchievementTile(title: 'HOT STREAK', playerName: hotStreakPlayer, value: '$maxStreak holes Par or better', icon: Icons.local_fire_department, color: AppColors.amber500),
+            ),
           if (maxBounceBacks > 0) ...[
-            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-            AchievementTile(title: 'BOUNCE BACK', playerName: bounceBackPlayer, value: '$maxBounceBacks recoveries today', icon: Icons.trending_up, color: AppColors.teamA),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+            StaggeredEntrance(
+              index: 8,
+              child: AchievementTile(title: 'BOUNCE BACK', playerName: bounceBackPlayer, value: '$maxBounceBacks recoveries today', icon: Icons.trending_up, color: AppColors.teamA),
+            ),
           ],
           if (finisherPlayer != 'None') ...[
-            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-            AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: AppColors.teamB),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+            StaggeredEntrance(
+              index: 9,
+              child: AchievementTile(title: 'TOP FINISHER', playerName: finisherPlayer, value: isStableford ? 'Rallied for $bestFinishScore points on final 3 holes' : 'Total $bestFinishScore on final 3 holes', icon: Icons.flag, color: AppColors.teamB),
+            ),
           ],
           const BoxyArtSectionTitle(title: 'Banter & Bragging Rights'),
           if (maxBlobs > 0)
-            AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: AppColors.coral500),
+            StaggeredEntrance(
+              index: 10,
+              child: AchievementTile(title: 'THE BLOB KING', playerName: blobKingPlayer, value: isStableford ? '$maxBlobs holes with zero points 💀' : '$maxBlobs holes with Triple Bogey+ 💀', icon: Icons.sentiment_very_dissatisfied, color: AppColors.coral500),
+            ),
           if (maxParsPlayer > 0) ...[
-            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-            AchievementTile(title: 'THE GRINDER', playerName: grinderPlayer, value: 'Most consistent with $maxParsPlayer pars', icon: Icons.shield, color: AppColors.lime500),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+            StaggeredEntrance(
+              index: 11,
+              child: AchievementTile(title: 'THE GRINDER', playerName: grinderPlayer, value: 'Most consistent with $maxParsPlayer pars', icon: Icons.shield, color: AppColors.lime500),
+            ),
           ],
           if (maxBirdsPlayer > 0) ...[
-            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-            AchievementTile(title: 'THE SNIPER', playerName: sniperPlayer, value: 'Picked off $maxBirdsPlayer birdies', icon: Icons.gps_fixed, color: Colors.blueGrey),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+            StaggeredEntrance(
+              index: 12,
+              child: AchievementTile(title: 'THE SNIPER', playerName: sniperPlayer, value: 'Picked off $maxBirdsPlayer birdies', icon: Icons.gps_fixed, color: Colors.blueGrey),
+            ),
           ],
           if (maxVariance > 3.0) ...[
-            SizedBox(height: spacing?.labelToCard ?? AppSpacing.atomic),
-            AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: AppColors.coral400),
+            SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+            StaggeredEntrance(
+              index: 13,
+              child: AchievementTile(title: 'THE ROLLERCOASTER', playerName: rollercoasterPlayer, value: 'Wildest round of the day 🎢', icon: Icons.attractions, color: AppColors.coral400),
+            ),
           ],
-          SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
-          SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
+          SizedBox(height: spacing?.cardToCard ?? AppSpacing.md),
+          StaggeredEntrance(
+            index: 14,
+            child: SocietyRecapSummaryCard(totalPlayers: totalPlayers, totalHolesPlayed: totalPlayers * holes.length, topHoleName: toughestName, topHoleDiff: maxDiff),
+          ),
         ] else ...[
           if (myScoreEntry == null)
             const BoxyArtCard(

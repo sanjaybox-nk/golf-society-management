@@ -142,9 +142,9 @@ class GroupingPlayerTile extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final spacing = theme.extension<AppSpacingTokens>();
-    final double vPadding = spacing?.cardVerticalPadding ?? AppSpacing.lg;
-    final double hPadding = spacing?.cardHorizontalPadding ?? AppSpacing.lg;
-    final double cardHeight = vPadding * 4.8; // Increased to 4.8 to prevent vertical overflow with guest info/pills
+    final double vPadding = (spacing?.cardVerticalPadding ?? AppSpacing.lg) * 0.8;
+    final double hPadding = (spacing?.cardHorizontalPadding ?? AppSpacing.lg) * 0.8;
+    final double cardHeight = vPadding * 4.2; // Adjusted to prevent overflow in compact mode
 
     // Score Text Formatting (v4.0 standardized)
     final bool hasScore = isScoreMode && (scoreDisplay != null && scoreDisplay != '-');
@@ -160,9 +160,9 @@ class GroupingPlayerTile extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-            // 1. Avatar Section (Standardized 72x72)
+            // 1. Avatar Section (Compact 60x60)
             Container(
-              width: 72,
+              width: 60,
               constraints: BoxConstraints(minHeight: cardHeight),
               child: isAdmin 
                 ? PopupMenuButton<String>(
@@ -334,7 +334,7 @@ class GroupingPlayerTile extends ConsumerWidget {
                               TextSpan(
                                 text: rawScore,
                                 style: AppTypography.displayHeading.copyWith(
-                                  fontSize: 26,
+                                  fontSize: 24,
                                   fontWeight: AppTypography.weightBlack,
                                   color: theme.colorScheme.primary,
                                   height: 1,
@@ -382,16 +382,16 @@ class GroupingPlayerTile extends ConsumerWidget {
         BoxyArtAvatar(
           url: member?.avatarUrl,
           initials: player.name,
-          radius: 36, // Restored to original size per user request
+          radius: 30, // Reduced by 20% for compact mode
           isCircle: true,
           borderColor: varietyColor,
-          borderWidth: varietyColor != null ? 3.5 : null,
+          borderWidth: varietyColor != null ? 1.5 : null,
         ),
         // Host Badge Overlay (Bottom Left)
         if (hasGuestInGroup)
           Positioned(
-            bottom: -2,
-            left: -2,
+            bottom: 0,
+            left: 0,
             child: BoxyArtIconBadge(
               icon: Icons.person_add_rounded,
               color: Theme.of(context).colorScheme.primary,
@@ -403,8 +403,8 @@ class GroupingPlayerTile extends ConsumerWidget {
         // Captain Badge Overlay (Bottom)
         if (player.isCaptain && !player.isGuest)
           Positioned(
-            bottom: -4,
-            right: -4,
+            bottom: -2,
+            right: -2,
             child: BoxyArtIconBadge(
               icon: Icons.shield_rounded,
               color: AppColors.amber500,
@@ -416,8 +416,8 @@ class GroupingPlayerTile extends ConsumerWidget {
         // Guest Icon Overlay (Bottom Left)
         if (player.isGuest)
           Positioned(
-            bottom: -2,
-            left: -2,
+            bottom: 0,
+            left: 0,
             child: Container(
               width: 24,
               height: 24,
@@ -798,7 +798,7 @@ class GroupingCard extends StatelessWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: (spacing?.cardToLabel ?? AppSpacing.lg) * 2),
+      padding: EdgeInsets.only(bottom: spacing?.cardToLabel ?? AppSpacing.x2l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -808,11 +808,11 @@ class GroupingCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'GROUP ${group.index + 1}',
+                  'Group ${group.index + 1}',
                   style: AppTypography.displaySection.copyWith(
                     color: isDark ? AppColors.pureWhite : AppColors.dark900,
                     fontWeight: AppTypography.weightExtraBold,
-                    fontSize: 18, // Slightly smaller than standard displaySection for cards
+                    fontSize: AppTypography.sizeLargeBody, // Standardized 4.x token
                   ),
                 ),
                 Container(
@@ -846,7 +846,7 @@ class GroupingCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: spacing?.labelToCard ?? AppSpacing.md),
 
 
             // --- PLAYERS LIST ---
@@ -1183,7 +1183,7 @@ class GroupingPodiumHeader extends ConsumerWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.only(bottom: AppSpacing.standard),
+      padding: EdgeInsets.only(bottom: Theme.of(context).extension<AppSpacingTokens>()?.labelToCard ?? AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

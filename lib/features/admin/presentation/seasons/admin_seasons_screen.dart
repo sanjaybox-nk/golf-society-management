@@ -36,14 +36,10 @@ class AdminSeasonsScreen extends ConsumerWidget {
               seasonsAsync.when(
                 data: (seasons) {
                   if (seasons.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.x5l),
-                        child: Text(
-                          'No seasons created yet',
-                          style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
-                        ),
-                      ),
+                    return const BoxyArtEmptyCard(
+                      title: 'No Seasons Configured',
+                      message: 'Active fixture calendars and historical archives will populate here once you initialize your first season.',
+                      icon: Icons.calendar_month_rounded,
                     );
                   }
                   return Column(

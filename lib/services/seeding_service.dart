@@ -209,6 +209,83 @@ class SeedingService {
     }
   }
 
+  Future<void> clearActivityData() async {
+    final firestore = FirebaseFirestore.instance;
+    
+    // We explicitly EXCLUDE 'templates', 'courses', and 'society_config'
+    // to preserve the scaffolding work (Branding & Rules)
+    final collections = [
+      'scorecards', 'events', 'competitions', 'seasons', 'members',
+      'notifications', 'campaigns', 'global_expenses', 'surveys', 'activities',
+    ];
+
+    for (var collection in collections) {
+      final snapshot = await firestore.collection(collection).get();
+      if (snapshot.docs.isEmpty) continue;
+      
+      var batch = firestore.batch();
+      int count = 0;
+      
+      for (var doc in snapshot.docs) {
+        // Handle sub-collections for Events (registrations)
+        if (collection == 'events') {
+          final registrations = await doc.reference.collection('registrations').get();
+          for (var reg in registrations.docs) {
+            batch.delete(reg.reference);
+            count++;
+            if (count >= 400) {
+              await batch.commit();
+              batch = firestore.batch();
+              count = 0;
+            }
+          }
+        }
+        
+        // Handle sub-collections for Competitions (scorecards)
+        if (collection == 'competitions') {
+          final scorecards = await doc.reference.collection('scorecards').get();
+          for (var card in scorecards.docs) {
+            batch.delete(card.reference);
+            count++;
+            if (count >= 400) {
+              await batch.commit();
+              batch = firestore.batch();
+              count = 0;
+            }
+          }
+        }
+
+        batch.delete(doc.reference);
+        count++;
+        if (count >= 400) {
+          await batch.commit();
+          batch = firestore.batch();
+          count = 0;
+        }
+      }
+      if (count > 0) await batch.commit();
+    }
+    
+    // Reset financial status and seasonal dates without wiping branding
+    final currentConfig = ref.read(themeControllerProvider);
+    final preservedConfig = currentConfig.copyWith(
+      isRenewalActive: false,
+      ledgerEntries: [],
+      sponsors: [],
+      globalMembershipEndDate: null,
+      renewalLaunchDate: null,
+      renewalDeadline: null,
+      renewalPaymentDeadline: null,
+    );
+    await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(preservedConfig);
+    await ref.read(persistenceServiceProvider).clear();
+    
+    // Hard Refresh: Invalidate the theme controller to force a fresh pull from Firestore
+    ref.invalidate(themeControllerProvider);
+    
+    debugPrint('Clear Activity Data (Preserving Branding/Templates) completed.');
+  }
+
   Future<void> clearDemoData() async {
     final firestore = FirebaseFirestore.instance;
     final currentConfig = ref.read(themeControllerProvider);
@@ -266,6 +343,10 @@ class SeedingService {
     );
     await ref.read(societyConfigRepositoryProvider).forceReplaceConfig(cleanedConfig);
     await ref.read(persistenceServiceProvider).clear();
+    
+    // Hard Refresh: Invalidate the theme controller 
+    ref.invalidate(themeControllerProvider);
+    
     debugPrint('Clear Demo Data completed.');
   }
 

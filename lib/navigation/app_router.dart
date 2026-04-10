@@ -18,6 +18,8 @@ import '../features/admin/presentation/events/event_form_screen.dart';
 import '../features/admin/presentation/members/admin_members_screen.dart';
 import '../features/admin/presentation/members/admin_member_renewal_screen.dart';
 import '../features/admin/presentation/settings/branding_settings_screen.dart';
+import '../features/admin/presentation/settings/society_identity_screen.dart';
+import '../features/admin/presentation/settings/app_appearance_screen.dart';
 import '../features/admin/presentation/settings/currency_selection_screen.dart';
 import '../features/admin/presentation/settings/grouping_strategy_selection_screen.dart';
 import '../features/admin/presentation/settings/handicap_system_selection_screen.dart';
@@ -56,6 +58,7 @@ import '../features/admin/presentation/events/event_registrations_admin_screen.d
 import '../features/admin/presentation/events/event_fines_workbench_screen.dart';
 import '../features/admin/presentation/events/event_admin_shell.dart';
 import '../features/admin/presentation/notifications/notification_admin_scaffold.dart';
+import '../features/admin/presentation/notifications/admin_audience_hub_screen.dart';
 import '../features/home/presentation/notification_inbox_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_type_selection_screen.dart';
 import '../features/admin/presentation/leaderboards/leaderboard_builder_screen.dart';
@@ -371,6 +374,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     ),
                     routes: [
                       GoRoute(
+                        path: 'identity',
+                        name: 'admin-settings-identity',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: const SocietyIdentityScreen(),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'appearance',
+                        name: 'admin-settings-appearance',
+                        pageBuilder: (context, state) => boxyPage(
+                          state: state,
+                          child: const AppAppearanceScreen(),
+                        ),
+                      ),
+                      GoRoute(
                         path: 'branding',
                         name: 'admin-settings-branding',
                         pageBuilder: (context, state) => boxyPage(state: state,
@@ -637,6 +656,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         eventId: state.uri.queryParameters['eventId'],
                         type: state.uri.queryParameters['type'],
                       ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'audience',
+                    name: 'admin-audience',
+                    pageBuilder: (context, state) => boxyPage(
+                      state: state,
+                      child: const AdminAudienceHubScreen(),
                     ),
                   ),
                 ],

@@ -3,11 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
-import 'package:golf_society/features/notifications/domain/notification_broadcast_service.dart';
 import 'package:golf_society/utils/string_utils.dart';
 import '../profile_provider.dart';
 import '../members_provider.dart';
-import 'member_status_picker.dart';
 
 class MemberTile extends ConsumerWidget {
   final Member member;
@@ -38,11 +36,16 @@ class MemberTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final config = ref.watch(themeControllerProvider);
     
     final currentUser = ref.watch(currentUserProvider);
     final isAdmin = currentUser.role == MemberRole.admin || currentUser.role == MemberRole.superAdmin;
     final canSeeFees = isAdmin && showFeeStatus;
+    
+    // Design 4.1: Collapsible Action Column
+    // Reclaim 80px space for the middle column if no actions are present
+    final hasActionContent = (isAdmin && isAdminContext) || 
+                             (member.societyRole?.isNotEmpty == true) || 
+                             canSeeFees;
 
     return BoxyArtCard(
       onTap: onTap ?? () => context.pushNamed(
@@ -51,250 +54,163 @@ class MemberTile extends ConsumerWidget {
       ),
       onLongPress: onLongPress,
       padding: const EdgeInsets.all(AppSpacing.large),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Left Section: Avatar & Since
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    BoxyArtAvatar(
-                      url: member.avatarUrl,
-                      initials: '${member.firstName.isNotEmpty ? member.firstName[0] : ''}${member.lastName.isNotEmpty ? member.lastName[0] : ''}',
-                      radius: 40,
-                      isCircle: true,
-                    ),
-                    if (member.joinedDate != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch, // Enable vertical anchoring
+          children: [
+            // 1. Left Section: Identity (Avatar)
+            SizedBox(
+              width: 68, // Widened to allow for 64px circular avatar
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  BoxyArtAvatar(
+                    url: member.avatarUrl,
+                    initials: '${member.firstName.isNotEmpty ? member.firstName[0] : ''}${member.lastName.isNotEmpty ? member.lastName[0] : ''}',
+                    radius: 32,
+                    isCircle: true,
+                  ),
+                  if (member.joinedDate != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    FittedBox(
+                      child: Text(
                         'Since ${member.joinedDate!.year}',
-                        style: AppTypography.micro.copyWith(
+                        style: AppTypography.caption.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                         ),
                       ),
-                    ],
+                    ),
                   ],
-                ),
+                ],
+              ),
+            ),
 
-                // 2. Vertical Divider
-                Container(
-                  width: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
-                ),
+            const SizedBox(width: 16), // Whitespace divider
 
-                // 3. Right Section: Information Stack
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 3a. Top half: Name, Status, Roles
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Member Name
-                          Text(
-                            toTitleCase('${member.firstName} ${member.lastName}'),
-                            style: AppTypography.memberName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+            // 2. Middle Section: Information (Flexible)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Member Name
+                  Text(
+                    toTitleCase('${member.firstName} ${member.lastName}'),
+                    style: AppTypography.memberName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // Status Indicator Row (with pipe)
+                  // Design 4.1: Status by Exception - Hide for Active members to reduce visual noise
+                  if (member.status != MemberStatus.active && member.status != MemberStatus.member) ...[
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: member.status == MemberStatus.active 
+                                ? theme.colorScheme.primary 
+                                : AppColors.amber500,
+                            borderRadius: BorderRadius.circular(2),
                           ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          member.status.displayName,
+                          style: AppTypography.label.copyWith(
+                            color: member.status == MemberStatus.active 
+                                ? theme.colorScheme.primary 
+                                : AppColors.amber500,
+                            fontWeight: AppTypography.weightStrong,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
 
-                          const SizedBox(height: 4),
-
-                          // Status Indicator Row (with green pipe) & Fee Toggle
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Stats Row
+                  Row(
+                    children: [
+                      BoxyArtPill.hc(
+                        label: member.handicap.toStringAsFixed(1),
+                        hasHorizontalMargin: false,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Container(
+                        width: 1,
+                        height: 10,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Flexible(
+                        child: Text.rich(
+                          TextSpan(
                             children: [
-                              GestureDetector(
-                                onTap: isAdminContext ? () {
-                                  MemberStatusPicker.show(context, member.status, (newStatus) {
-                                    ref.read(membersRepositoryProvider).updateMember(
-                                      member.copyWith(status: newStatus),
-                                    );
-                                  });
-                                } : null,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 3,
-                                      height: 14,
-                                      decoration: BoxDecoration(
-                                        color: member.status == MemberStatus.active 
-                                            ? theme.colorScheme.primary 
-                                            : AppColors.amber500,
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      member.status.displayName,
-                                      style: AppTypography.label.copyWith(
-                                        color: member.status == MemberStatus.active 
-                                            ? theme.colorScheme.primary 
-                                            : AppColors.amber500,
-                                        fontWeight: AppTypography.weightStrong,
-                                      ),
-                                    ),
-                                    if (isAdminContext) ...[
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.keyboard_arrow_down_rounded,
-                                        size: 18,
-                                        color: (member.status == MemberStatus.active 
-                                            ? theme.colorScheme.primary 
-                                            : AppColors.amber500).withValues(alpha: 0.7),
-                                      ),
-                                    ],
-                                  ],
+                              TextSpan(
+                                text: '${secondaryMetricLabel ?? 'Events'} ',
+                                style: AppTypography.micro.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
                                 ),
                               ),
-                              if (canSeeFees)
-                                BoxyArtFeePill(
-                                  isPaid: member.hasPaid,
-                                  onToggle: onFeeToggle ?? () {
-                                    final repo = ref.read(membersRepositoryProvider);
-                                    repo.updateMember(member.copyWith(hasPaid: !member.hasPaid));
-                                  },
+                              TextSpan(
+                                text: secondaryMetricValue ?? '0',
+                                style: AppTypography.caption.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
+                              ),
                             ],
                           ),
-
-                          const SizedBox(height: 4),
-
-                          // Role Pills
-                          if (member.societyRole?.isNotEmpty == true || (isAdminContext && member.role != MemberRole.member))
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Wrap(
-                                spacing: AppSpacing.xs,
-                                runSpacing: 4,
-                                children: [
-                                  if (member.societyRole?.isNotEmpty == true)
-                                    BoxyArtPill.committee(
-                                      label: member.societyRole!,
-                                    ),
-                                  if (isAdminContext && member.role != MemberRole.member)
-                                    BoxyArtPill(
-                                      label: member.role.displayName,
-                                      color: StatusColors.neutral,
-                                      hasHorizontalMargin: false,
-                                    ),
-                                  if (member.renewalStatus != MemberRenewalStatus.none && isAdmin)
-                                    BoxyArtPill(
-                                      label: 'RENEWAL REQUESTED',
-                                      color: StatusColors.warning,
-                                      hasHorizontalMargin: false,
-                                    ),
-                                  
-                                  // Nudge Status / Action
-                                  if (config.isRenewalActive && 
-                                      member.renewalStatus == MemberRenewalStatus.none && 
-                                      member.status != MemberStatus.suspended &&
-                                      isAdminContext)
-                                    member.lastNudgedAt != null && 
-                                    DateTime.now().difference(member.lastNudgedAt!).inHours < 24
-                                    ? const BoxyArtPill(
-                                        label: 'NUDGED',
-                                        color: StatusColors.neutral,
-                                        hasHorizontalMargin: false,
-                                      )
-                                    : GestureDetector(
-                                        onTap: () async {
-                                          final repo = ref.read(membersRepositoryProvider);
-                                          final messenger = ref.read(renewalNudgeServiceProvider);
-                                          
-                                          await repo.nudgeMember(member.id);
-                                          await messenger.sendRenewalNudge(member: member);
-                                          
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Nudge sent successfully!'))
-                                            );
-                                          }
-                                        },
-                                        child: BoxyArtPill(
-                                          label: 'NUDGE',
-                                          color: theme.colorScheme.primary,
-                                          icon: Icons.notifications_active_outlined,
-                                          hasHorizontalMargin: false,
-                                        ),
-                                      ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      const Spacer(),
-
-                      // 3b. Bottom half: Stats Row
-                      Padding(
-                        padding: EdgeInsets.zero,
-                        child: Row(
-                          children: [
-                            BoxyArtPill.hc(
-                              label: member.handicap.toStringAsFixed(1),
-                              hasHorizontalMargin: false,
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Container(
-                              width: 1,
-                              height: 10,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySubtle),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      '${secondaryMetricLabel ?? 'Events'} ',
-                                      style: AppTypography.label.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: AppColors.opacitySecondary),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Text(
-                                    secondaryMetricValue ?? '0',
-                                    style: AppTypography.label.copyWith(
-                                      fontWeight: AppTypography.weightHeavy,
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          // 4. Admin Action Button (Top Right)
-          if (isAdmin && isAdminContext)
-            Positioned(
-              top: -AppSpacing.sm,
-              right: -AppSpacing.sm,
-              child: Icon(
-                Icons.more_horiz_rounded,
-                color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                ],
               ),
             ),
 
-        ],
+            // 3. Right Section: Action/Status (Collapsible)
+            if (hasActionContent) ...[
+              const SizedBox(width: AppSpacing.sm),
+              SizedBox(
+                width: 80, // Fixed width for action anchoring
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Top Right: Admin Icon or Role
+                    if (isAdmin && isAdminContext)
+                      Icon(
+                        Icons.more_horiz_rounded,
+                        color: theme.colorScheme.onSurface.withValues(alpha: AppColors.opacityMedium),
+                      )
+                    else if (member.societyRole?.isNotEmpty == true)
+                      BoxyArtPill.committee(
+                        label: member.societyRole!,
+                      ),
+                    
+                    // Bottom Right: Fee Pill (RENEWAL tag hidden by preference)
+                    if (canSeeFees)
+                      BoxyArtFeePill(
+                        isPaid: member.hasPaid,
+                        onToggle: onFeeToggle ?? () {
+                          final repo = ref.read(membersRepositoryProvider);
+                          repo.updateMember(member.copyWith(hasPaid: !member.hasPaid));
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

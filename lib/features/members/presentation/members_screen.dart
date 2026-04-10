@@ -66,6 +66,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             child: ModernUnderlinedFilterBar<AdminMemberFilter>(
               selectedValue: currentFilter.type,
               onTabSelected: (filter) => ref.read(userMemberFilterProvider.notifier).update(filter),
+              isExpanded: true,
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               tabs: [
                 ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
@@ -85,19 +86,26 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               delegate: SliverChildListDelegate([
                 SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
 
+                const BoxyArtSectionTitle(
+                  title: 'Search Members',
+                  isPeeking: true,
+                ),
+
                 // Standardized Search Input
                 // Design 4.1 Search Bar (Image 2)
                 BoxyArtSearchInput(
-                  label: 'Search Members',
                   hintText: 'Search names...',
                   initialValue: searchQuery,
                   onChanged: (v) => ref.read(memberSearchQueryProvider.notifier).update(v),
                 ),
-                SizedBox(height: spacing?.cardToCard ?? AppSpacing.standard),
 
+                // Unified spacing below search box for all tabs/states (16px)
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.standard),
+                
                 // Members List
                 membersAsync.when(
                   data: (members) {
+                    final theme = Theme.of(context);
                     final filtered = members.where((m) {
                       final name = '${m.firstName} ${m.lastName} ${m.nickname ?? ''}'.toLowerCase();
                       final matchesSearch = name.contains(searchQuery);
@@ -117,6 +125,67 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     }
 
                     final sortedMembers = [...filtered]..sort((a, b) => a.lastName.compareTo(b.lastName));
+                    
+                    if (currentFilter.type == AdminMemberFilter.other) {
+                      // Group by status
+                      final grouped = <MemberStatus, List<Member>>{};
+                      for (final m in sortedMembers) {
+                        grouped.putIfAbsent(m.status, () => []).add(m);
+                      }
+
+                      // Define display order for status groups
+                      const statusPriority = {
+                        MemberStatus.expired: 0,
+                        MemberStatus.suspended: 1,
+                        MemberStatus.pending: 2,
+                        MemberStatus.left: 3,
+                        MemberStatus.archived: 4,
+                      };
+
+                      final sortedStatuses = grouped.keys.toList()
+                        ..sort((a, b) => (statusPriority[a] ?? 99).compareTo(statusPriority[b] ?? 99));
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < sortedStatuses.length; i++) ...[
+                            () {
+                              final status = sortedStatuses[i];
+                              final groupMembers = grouped[status]!;
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BoxyArtSectionTitle(
+                                    title: status.displayName,
+                                    count: groupMembers.length,
+                                    // Use isPeeking for the very first group to align with search box spacer
+                                    isPeeking: i == 0, 
+                                  ),
+                                  ...groupMembers.asMap().entries.map((entry) {
+                                    final m = entry.value;
+                                    final isLastGroupMember = entry.key == groupMembers.length - 1;
+                                    final eventCount = memberStatsAsync.value?[m.id] ?? 0;
+                                    
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: isLastGroupMember ? AppSpacing.xl : (spacing?.cardToCard ?? AppSpacing.standard),
+                                      ),
+                                      child: MemberTile(
+                                        member: m,
+                                        onTap: () => context.pushNamed('member-detail', pathParameters: {'id': m.id}),
+                                        secondaryMetricLabel: 'Events',
+                                        secondaryMetricValue: '$eventCount',
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              );
+                            }(),
+                          ],
+                        ],
+                      );
+                    }
 
                     return Column(
                       children: sortedMembers.asMap().entries.map((entry) {
@@ -156,23 +225,10 @@ class _EmptyMembers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 48),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.person_off_outlined, size: AppShapes.iconMassive, color: AppColors.textSecondary),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'No members found',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-            ),
-          ],
-        ),
-      ),
+    return const BoxyArtEmptyCard(
+      title: 'No Members Found',
+      message: 'The roster is currently empty or no members match your search criteria.',
+      icon: Icons.person_off_outlined,
     );
   }
 }

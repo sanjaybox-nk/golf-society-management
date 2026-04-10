@@ -73,7 +73,7 @@ class AdminEventsScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: BoxyArtSectionTitle(
                 title: 'Past Events',
-                isPeeking: true,
+                isPeeking: false,
               ),
             ),
           ),
@@ -104,12 +104,27 @@ class AdminEventsScreen extends ConsumerWidget {
     return asyncValue.when(
       data: (events) {
         if (events.isEmpty) {
-          return SliverToBoxAdapter(
-            child: BoxyArtEmptyState(
-              title: 'No $type Events',
-              message: 'There are no $type events scheduled yet.',
-              icon: type == 'Past' ? Icons.history_rounded : Icons.calendar_today_rounded,
-              isCompact: true,
+          final String title = 'No $type Events';
+          final String message = type == 'Upcoming' 
+              ? 'Your society fairways are quiet. Check back soon for the next fixture.'
+              : type == 'Past'
+                  ? 'No past events recorded for this season yet.'
+                  : 'No social gatherings or clubhouse meets planned.';
+          
+          final IconData icon = type == 'Past' 
+              ? Icons.history_toggle_off_rounded 
+              : type == 'Social'
+                  ? Icons.emoji_events_outlined
+                  : Icons.event_note_rounded;
+
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            sliver: SliverToBoxAdapter(
+              child: BoxyArtEmptyCard(
+                title: title,
+                message: message,
+                icon: icon,
+              ),
             ),
           );
         }

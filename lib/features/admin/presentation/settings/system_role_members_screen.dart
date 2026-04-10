@@ -46,20 +46,21 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
       backgroundColor: theme.scaffoldBackgroundColor,
       slivers: [
         SliverToBoxAdapter(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.x2l, AppSpacing.xl, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Design 4.1 Search Bar (Image 2)
-                BoxyArtSearchInput(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 0),
+                child: BoxyArtSearchInput(
                   label: 'Search Members',
                   hintText: 'Search to assign...',
                   controller: _searchController,
-                  onChanged: (val) {}, // State updated via listener
+                  onChanged: (val) {}, 
                 ),
-              ],
-            ),
+              ),
+              // Standardized search-to-card rhythm (16px)
+              const SizedBox(height: AppSpacing.standard),
+            ],
           ),
         ),
 
@@ -90,18 +91,22 @@ class _SystemRoleMembersScreenState extends ConsumerState<SystemRoleMembersScree
             });
 
             if (displayList.isEmpty) {
-              return const SliverFillRemaining(
+              return SliverFillRemaining(
                 child: Center(
-                  child: BoxyArtEmptyState(
-                    title: 'No members found',
-                    message: 'Try a different search term.',
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: BoxyArtEmptyCard(
+                      title: 'No members found',
+                      message: 'Try a different search term or check the clubhouse roster.',
+                      icon: Icons.search_off_rounded,
+                    ),
                   ),
                 ),
               );
             }
 
             return SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {

@@ -33,13 +33,13 @@ class ScoringTypeDistributionChart extends StatelessWidget {
           children: [
             Text(
               'SCORING BREAKDOWN',
-              style: AppTypography.label.copyWith(
+              style: AppTypography.labelStrong.copyWith(
                 color: AppColors.dark900,
-                fontWeight: AppTypography.weightSemibold,
-                letterSpacing: 1.2,
+                letterSpacing: 2.0,
+                fontSize: 10,
               ),
             ),
-            const SizedBox(height: AppSpacing.x2l),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -632,9 +632,9 @@ class AchievementTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacitySubtle),
+                color: color.withValues(alpha: AppColors.opacityLow),
                 borderRadius: AppShapes.lg,
-                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: AppColors.opacityLow)),
+                border: Border.all(color: color.withValues(alpha: AppColors.opacityLow)),
               ),
               child: Icon(icon, color: color, size: 26),
             ),
@@ -722,14 +722,7 @@ class FieldEclecticCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: vPadding, horizontal: hPadding),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: AppGradients.brandPrimary(context),
         ),
         child: Column(
           children: [
@@ -743,7 +736,7 @@ class FieldEclecticCard extends StatelessWidget {
                       Text(
                         'SOCIETY\'S BEST ROUND',
                         style: AppTypography.label.copyWith(
-                          color: AppColors.dark900.withValues(alpha: AppColors.opacityHigh),
+                          color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -751,7 +744,7 @@ class FieldEclecticCard extends StatelessWidget {
                       Text(
                         'FIELD ECLECTIC',
                         style: AppTypography.displaySubPage.copyWith(
-                          color: AppColors.dark900,
+                          color: AppColors.pureWhite,
                           fontWeight: AppTypography.weightBlack,
                         ),
                       ),
@@ -771,14 +764,14 @@ class FieldEclecticCard extends StatelessWidget {
                         totalStrokes.toString(),
                         style: AppTypography.displayHeading.copyWith(
                           fontSize: AppTypography.sizeDisplayLarge,
-                          color: AppColors.dark900,
+                          color: AppColors.pureWhite,
                           height: 1.0,
                         ),
                       ),
                       Text(
                         vsPar == 0 ? 'PAR' : (vsPar > 0 ? '+$vsPar' : '$vsPar'),
                         style: AppTypography.labelStrong.copyWith(
-                          color: AppColors.dark900,
+                          color: AppColors.pureWhite,
                         ),
                       ),
                     ],
@@ -792,7 +785,7 @@ class FieldEclecticCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.pureWhite.withValues(alpha: AppColors.opacitySubtle),
                 borderRadius: AppShapes.md,
-                border: Border.all(color: AppColors.dark900.withValues(alpha: 0.1)),
+                border: Border.all(color: AppColors.pureWhite.withValues(alpha: 0.1)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -817,13 +810,13 @@ class FieldEclecticCard extends StatelessWidget {
           style: AppTypography.displayHeading.copyWith(
             fontSize: AppTypography.sizeDisplayLocker,
             fontWeight: AppTypography.weightBlack,
-            color: AppColors.dark900,
+            color: AppColors.pureWhite,
           ),
         ),
         Text(
           label,
           style: AppTypography.caption.copyWith(
-            color: AppColors.dark900.withValues(alpha: AppColors.opacityHigh),
+            color: AppColors.pureWhite.withValues(alpha: AppColors.opacityHigh),
             fontWeight: AppTypography.weightSemibold,
             letterSpacing: 1.2,
           ),

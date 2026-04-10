@@ -51,6 +51,8 @@ _SocietyConfig _$SocietyConfigFromJson(
       (json['iconBadgeIconColor'] as num?)?.toInt() ?? 0xFF4ADE80,
   iconBadgeOpacity: (json['iconBadgeOpacity'] as num?)?.toDouble() ?? 1.0,
   iconOpacity: (json['iconOpacity'] as num?)?.toDouble() ?? 1.0,
+  iconBadgeSize: (json['iconBadgeSize'] as num?)?.toDouble() ?? 38.0,
+  iconBadgeIconSize: (json['iconBadgeIconSize'] as num?)?.toDouble() ?? 18.0,
   themeMode: json['themeMode'] as String? ?? 'system',
   customColors:
       (json['customColors'] as List<dynamic>?)
@@ -142,6 +144,8 @@ Map<String, dynamic> _$SocietyConfigToJson(_SocietyConfig instance) =>
       'iconBadgeIconColor': instance.iconBadgeIconColor,
       'iconBadgeOpacity': instance.iconBadgeOpacity,
       'iconOpacity': instance.iconOpacity,
+      'iconBadgeSize': instance.iconBadgeSize,
+      'iconBadgeIconSize': instance.iconBadgeIconSize,
       'themeMode': instance.themeMode,
       'customColors': instance.customColors,
       'cardTintIntensity': instance.cardTintIntensity,

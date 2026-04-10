@@ -49,7 +49,7 @@ class BoxyArtEventCard extends ConsumerWidget {
       children: [
         // 1. Identity Column (Badge + Tags)
         SizedBox(
-          width: 72, // Fixed width for alignment consistency
+          width: 58,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -70,12 +70,12 @@ class BoxyArtEventCard extends ConsumerWidget {
                   children: [
                     if (event.isSeasonEvent)
                       _buildTag(
-                        label: 'Season', // Shortened for left column fit
+                        label: 'Season',
                         color: primary,
                       ),
                     if (event.isInvitational)
                       _buildTag(
-                        label: 'Invite', // Shortened
+                        label: 'Invite',
                         color: Color(config.secondaryColor),
                       ),
                     if (event.eventType == EventType.social)
@@ -89,132 +89,106 @@ class BoxyArtEventCard extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(width: 16), // Slightly reduced from 20 due to fixed 72 column
+        const SizedBox(width: 16),
 
-        // 2. Main Content Area
+        // 2. Main Content Area (Flexible)
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center, // Vertically centered
             children: [
-              // Header Row: Title & Game Type
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      toTitleCase(event.title),
-                      style: AppTypography.cardTitle.copyWith(
-                        color: textColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (gameTypePill != null || event.isRegistrationOpen || (event.status == EventStatus.inPlay && event.occursToday)) 
-                    Padding(
-                      padding: const EdgeInsets.only(left: AppSpacing.sm),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          ?gameTypePill,
-                          if (event.status == EventStatus.inPlay && event.occursToday)
-                            Padding(
-                              padding: const EdgeInsets.only(top: AppSpacing.xs),
-                              child: BoxyArtPill.status(
-                                label: 'Live',
-                                color: AppColors.coral500,
-                                isAction: true,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                ],
+              Text(
+                toTitleCase(event.title),
+                style: AppTypography.cardTitle.copyWith(
+                  color: textColor,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              
-              const Spacer(),
-
-              // Bottom Metadata Row
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Location Row
-                        Text.rich(
-                          TextSpan(
-                            style: AppTypography.subtext.copyWith(
-                              color: subtextColor,
-                              fontSize: 13,
-                              fontWeight: AppTypography.weightSemibold,
-                            ),
-                            children: [
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: Icon(Icons.flag_rounded, size: 14, color: iconColor),
-                                ),
-                              ),
-                              TextSpan(
-                                text: event.courseName ?? 'TBA',
-                                style: TextStyle(
-                                  color: subtextColor,
-                                  fontWeight: AppTypography.weightBold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-
-                        // Time Row
-                        Text.rich(
-                          TextSpan(
-                            style: AppTypography.subtext.copyWith(
-                              color: subtextColor,
-                              fontSize: 13,
-                              fontWeight: AppTypography.weightSemibold,
-                            ),
-                            children: [
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: Icon(Icons.timer_rounded, size: 14, color: iconColor),
-                                ),
-                              ),
-                              TextSpan(
-                                text: DateFormat('h:mm a').format(event.regTime ?? event.date),
-                                style: TextStyle(
-                                  color: subtextColor,
-                                  fontWeight: AppTypography.weightBold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          maxLines: 1,
-                        ),
-                      ],
-                    ),
+              const SizedBox(height: AppSpacing.sm),
+              // Metadata: Location
+              Text.rich(
+                TextSpan(
+                  style: AppTypography.subtext.copyWith(
+                    color: subtextColor,
+                    fontSize: 13,
+                    fontWeight: AppTypography.weightSemibold,
                   ),
-                  
-                  // Bottom Right: Actions and Status
-                  if (statusPill != null && showStatus) 
-                    Padding(
-                      padding: const EdgeInsets.only(left: AppSpacing.sm),
-                      child: statusPill!,
+                  children: [
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Icon(Icons.flag_rounded, size: 14, color: iconColor),
+                      ),
                     ),
-                ],
+                    TextSpan(
+                      text: event.courseName ?? 'TBA',
+                      style: TextStyle(
+                        color: subtextColor,
+                        fontWeight: AppTypography.weightBold,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              // Metadata: Time
+              Text.rich(
+                TextSpan(
+                  style: AppTypography.subtext.copyWith(
+                    color: subtextColor,
+                    fontSize: 13,
+                    fontWeight: AppTypography.weightSemibold,
+                  ),
+                  children: [
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Icon(Icons.timer_rounded, size: 14, color: iconColor),
+                      ),
+                    ),
+                    TextSpan(
+                      text: DateFormat('h:mm a').format(event.regTime ?? event.date),
+                      style: TextStyle(
+                        color: subtextColor,
+                        fontWeight: AppTypography.weightBold,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
+        ),
+
+        // 3. Action / Status Column (Far Right)
+        const SizedBox(width: AppSpacing.sm),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Game Type (Top Right)
+            if (gameTypePill != null)
+              gameTypePill!, // Using ! here because of the if-null check pattern
+            
+            // Status (Bottom Right)
+            if (showStatus && statusPill != null)
+              statusPill!, 
+            
+            // Live Indicator (Fallback / Secondary Status)
+            if (statusPill == null && event.status == EventStatus.inPlay && event.occursToday)
+              BoxyArtPill.status(
+                label: 'Live',
+                color: AppColors.coral500,
+                isAction: true,
+              ),
+          ],
         ),
       ],
     );

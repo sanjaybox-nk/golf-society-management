@@ -100,7 +100,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
                 ),
 
                 if (localGroups != null) ...[
-                  const SizedBox(height: AppSpacing.x2l),
+                  const SizedBox(height: AppSpacing.standard),
                    _buildGroupingListLayout(context, ref, event, localGroups, memberMap, history, scorecardsAsync, rules: comp?.rules, useWhs: config.useWhsHandicaps, isLocked: isLocked, matchPlayMode: matchPlayMode, selectedForSwap: selectedForSwap),
                 ],
               ],
@@ -160,7 +160,7 @@ class _AdminGroupingHubContentState extends ConsumerState<AdminGroupingHubConten
 
   Widget _buildGroupingListLayout(BuildContext context, WidgetRef ref, GolfEvent event, List<TeeGroup> localGroups, Map<String, Member> memberMap, List<GolfEvent> history, AsyncValue<List<Scorecard>> scorecardsAsync, {CompetitionRules? rules, bool useWhs = true, required bool isLocked, required bool matchPlayMode, required TeeGroupParticipant? selectedForSwap}) {
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: 100),
+      padding: const EdgeInsets.only(bottom: 100),
       child: Column(
         children: localGroups.mapIndexed((index, group) {
           return Padding(

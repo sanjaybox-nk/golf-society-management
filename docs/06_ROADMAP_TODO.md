@@ -60,10 +60,11 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [ ] **Member Assignment**: Easy allocation of members to one or more divisions.
     - [ ] **Per-Division Leaderboards**: Filterable OOM and Eclectic reports targeting specific player categories.
 - [ ] **Locker Room (Profile)**
-    - [x] **Edit Profile**: Form to update handicap, phone, etc.
-    - [x] **Profile Input Stability**: ListenableBuilder refactor to prevent cursor jumping.
-    - [x] **Photo Upload**: Profile picture management (5MB limit).
-    - [x] **Stats Engine**: Rich Stats Dashboard with Society & Personal comparative views (WHS Net Differential calculation).
+- [x] **Edit Profile**: Form to update handicap, phone, etc.
+- [x] **Profile Input Stability**: ListenableBuilder refactor to prevent cursor jumping.
+- [x] **Photo Upload**: Profile picture management (5MB limit).
+- [x] **Stats Engine (Design 4.x Upgrade)**: Rich Stats Dashboard with Society & Personal comparative views. Features **StaggeredEntrance** motion, **isPeeking** rhythm, and premium **AppGradients**.
+- [x] **Design 4.x Rhythm Archetype**: Standardized vertical "beats" (16pt gap above label, 8pt gap below) across Stats and Leaderboard modules.
 - [x] **Communications & Notifications**
     - [x] **Event Comms CMS**: Unified `EventFeedItem` model replacing legacy notes/flash updates.
     - [x] **Event Comms Manager**: Admin interface for reordering/pinning event feed items.
@@ -82,6 +83,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Branding Settings Screen**: Live preview, color picker, dark mode policy, and granular shadow/border control.
     - [x] **Status Color System**: Semantic palette for consistent status indicators.
     - [x] **Contrast Helper**: Automatic text color calculation for accessibility.
+    - [x] **Administrative Identity Modernization (v4.2)**: Extricated Society Identity (Name/Logo) and Appearance (Theme Mode) into a focused admin hub, decoupling daily branding from technical design tokens.
 - [x] **Society Reporting Hub (Premium Suite)**
     - [x] **Executive Dashboard**: Season progress, society pulse, and treasury overview.
     - [x] **Financial Tracking**: Treasury ledger with automated Club Bill logic (Green Fees/Catering) and centralized Miscellaneous Expense management.
@@ -94,6 +96,7 @@ This document tracks the remaining work required to take **Golf Society Manageme
     - [x] **Typography & Rhythm Audit**: Standardized all spacing and font tokens using Design 3.1 primitives.
 - [x] **Global Administrative Identity & Vertical Rhythm Standard (v4.x)**: Systematic application of the `ADMIN` pill across all secondary consoles and standardization of tabbed interface spacing using the `cardToLabel` token (16px) for optimized optical rhythm.
 - [x] **Administrative Console Phase 2 Standardization (v4.x)**: Refactored Event, Competition, and Settings hubs to eliminate all-caps and implement high-precision vertical rhythm via the `isPeeking: true` token.
+- [x] **Design 4.x Empty State Modernization (v4.x)**: Replaced all legacy legacy `BoxyArtEmptyState` components with premium `BoxyArtEmptyCard` across the entire administrative suite (Events, Grouping, Role Management, and Global Errors).
 - [x] **True Minimal v3.7 Redesign**
     - [x] **Universal Title Case**: Elimination of all-caps across entire app interface.
     - [x] **Pill-to-Legend Shift**: Converted badge components to minimalist dot + text indicators.

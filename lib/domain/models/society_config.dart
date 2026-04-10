@@ -54,6 +54,8 @@ abstract class SocietyConfig with _$SocietyConfig {
     @Default(0xFF4ADE80) int iconBadgeIconColor, // [NEW] Icon Badge Glyph (Emerald)
     @Default(1.0) double iconBadgeOpacity, // [NEW] Icon Badge background opacity
     @Default(1.0) double iconOpacity, // [NEW] Icon Glyph opacity
+    @Default(38.0) double iconBadgeSize, // [NEW] Tokenized Badge Size
+    @Default(18.0) double iconBadgeIconSize, // [NEW] Tokenized Badge Glyph Size
     @Default('system') String themeMode, // 'system', 'light', 'dark'
     @Default(<int>[]) List<int> customColors, // User-created custom colors (up to 5)
     @Default(0.1) double cardTintIntensity, // Card background tint intensity (0.0 to 1.0)

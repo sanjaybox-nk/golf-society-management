@@ -1,4 +1,5 @@
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Standard branded input field for Fairway v3.1.
@@ -18,6 +19,7 @@ class BoxyArtInputField extends ConsumerWidget {
   final Color? labelColor;
   final Color? textColor;
   final String? subtitle;
+  final bool isSeamless;
 
   const BoxyArtInputField({
     super.key,
@@ -36,6 +38,7 @@ class BoxyArtInputField extends ConsumerWidget {
     this.labelColor,
     this.textColor,
     this.subtitle,
+    this.isSeamless = false,
   });
 
   @override
@@ -54,8 +57,10 @@ class BoxyArtInputField extends ConsumerWidget {
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
               label.toUpperCase(),
-              style: AppTypography.labelStrong.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              style: AppTypography.micro.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                fontWeight: AppTypography.weightBold,
+                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -81,6 +86,7 @@ class BoxyArtInputField extends ConsumerWidget {
           style: AppTypography.body.copyWith(
             color: textColor ?? theme.colorScheme.onSurface,
             fontSize: AppTypography.sizeBody,
+            fontWeight: AppTypography.weightMedium,
           ),
           decoration: InputDecoration(
             hintText: hint,
@@ -88,34 +94,34 @@ class BoxyArtInputField extends ConsumerWidget {
               color: isDark ? AppColors.dark400 : AppColors.dark300,
               fontSize: AppTypography.sizeBody,
             ),
-            filled: true,
+            filled: !isSeamless,
             fillColor: isDark ? AppColors.dark600 : AppColors.pureWhite,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
-            border: OutlineInputBorder(
+            border: isSeamless ? InputBorder.none : OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
               borderSide: BorderSide(
                 color: isDark ? AppColors.dark500 : AppColors.lightBorder,
                 width: AppShapes.borderThin,
               ),
             ),
-            enabledBorder: OutlineInputBorder(
+            enabledBorder: isSeamless ? InputBorder.none : OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
               borderSide: BorderSide(
                 color: isDark ? AppColors.dark500 : AppColors.lightBorder,
                 width: AppShapes.borderThin,
               ),
             ),
-            focusedBorder: OutlineInputBorder(
+            focusedBorder: isSeamless ? InputBorder.none : OutlineInputBorder(
               borderRadius: BorderRadius.circular(radius),
               borderSide: BorderSide(
                 color: theme.primaryColor,
                 width: AppShapes.borderLight,
               ),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg, 
-              vertical: 12,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: isSeamless ? 0 : AppSpacing.lg, 
+              vertical: isSeamless ? 8 : 12,
             ),
           ),
         ),
@@ -142,6 +148,7 @@ class BoxyArtFormField extends StatefulWidget {
   final Color? labelColor;
   final Color? textColor;
   final String? subtitle;
+  final bool isSeamless;
 
   const BoxyArtFormField({
     super.key,
@@ -161,6 +168,7 @@ class BoxyArtFormField extends StatefulWidget {
     this.labelColor,
     this.textColor,
     this.subtitle,
+    this.isSeamless = false,
   });
 
   @override
@@ -210,6 +218,7 @@ class _BoxyArtFormFieldState extends State<BoxyArtFormField> {
       labelColor: widget.labelColor,
       textColor: widget.textColor,
       subtitle: widget.subtitle,
+      isSeamless: widget.isSeamless,
     );
   }
 }
@@ -223,6 +232,7 @@ class ModernTextField extends StatelessWidget {
   final dynamic icon;
   final bool readOnly;
   final FormFieldValidator<String>? validator;
+  final bool isSeamless;
 
   const ModernTextField({
     super.key,
@@ -233,6 +243,7 @@ class ModernTextField extends StatelessWidget {
     this.icon,
     this.readOnly = false,
     this.validator,
+    this.isSeamless = false,
   });
 
   @override
@@ -245,6 +256,7 @@ class ModernTextField extends StatelessWidget {
       prefixIcon: icon is IconData ? Icon(icon) : (icon as Widget?),
       readOnly: readOnly,
       validator: validator,
+      isSeamless: isSeamless,
     );
   }
 }
@@ -284,9 +296,11 @@ class BoxyArtDatePickerField extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
           child: Text(
-            label,
-            style: AppTypography.label.copyWith(
-              color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+            label.toUpperCase(),
+            style: AppTypography.micro.copyWith(
+              color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              fontWeight: AppTypography.weightBold,
+              letterSpacing: 1.2,
             ),
           ),
         ),
@@ -314,6 +328,7 @@ class BoxyArtDatePickerField extends ConsumerWidget {
                     style: AppTypography.body.copyWith(
                       color: textColor ?? (isDark ? AppColors.dark60 : AppColors.dark900),
                       fontSize: AppTypography.sizeBody,
+                      fontWeight: AppTypography.weightMedium,
                     ),
                   ),
                 ),
@@ -362,9 +377,11 @@ class BoxyArtSwitchField extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label,
-                style: AppTypography.label.copyWith(
-                  color: labelColor ?? Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                label.toUpperCase(),
+                style: AppTypography.micro.copyWith(
+                  color: labelColor ?? theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                  fontWeight: AppTypography.weightBold,
+                  letterSpacing: 1.2,
                 ),
               ),
               if (subtitle != null) ...[
@@ -495,8 +512,12 @@ class BoxyArtSwitchTile extends ConsumerWidget {
               children: [
                 ...[
                   Text(
-                    label,
-                    style: AppTypography.label,
+                    label.toUpperCase(),
+                    style: AppTypography.label.copyWith(
+                      fontWeight: AppTypography.weightBold,
+                      letterSpacing: 1.2,
+                      fontSize: AppTypography.sizeMicro,
+                    ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
@@ -581,11 +602,12 @@ class BoxyArtNavTile extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    title,
+                    toTitleCase(title),
                     style: AppTypography.label.copyWith(
                       color: theme.colorScheme.onSurface,
-                      fontSize: AppTypography.sizeBody,
+                      fontWeight: AppTypography.weightBold,
                       letterSpacing: AppTypography.lsStandard,
+                      fontSize: AppTypography.sizeLabel,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -693,8 +715,10 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
             padding: const EdgeInsets.only(left: AppSpacing.xs, bottom: AppSpacing.labelToCard),
             child: Text(
               label.toUpperCase(),
-              style: AppTypography.labelStrong.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+              style: AppTypography.micro.copyWith(
+                fontWeight: AppTypography.weightBold,
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: AppColors.opacityHigh),
+                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -702,7 +726,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
         SizedBox(
           width: width,
           child: DropdownButtonFormField<T>(
-            value: value,
+            initialValue: value,
             onChanged: onChanged,
             items: items,
             dropdownColor: isDark ? AppColors.dark700 : AppColors.pureWhite,
@@ -712,6 +736,7 @@ class BoxyArtDropdownField<T> extends ConsumerWidget {
             style: AppTypography.body.copyWith(
               color: isDark ? AppColors.dark60 : AppColors.dark900,
               fontSize: AppTypography.sizeBody,
+              fontWeight: AppTypography.weightRegular,
             ),
             decoration: InputDecoration(
               hintText: hint,

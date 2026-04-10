@@ -308,21 +308,18 @@ class _BestOfSeriesControlState extends State<BestOfSeriesControl> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 80, 
+          width: 90, 
           child: Text(
-            '$label:', 
-            style: AppTypography.label.copyWith(
-              fontWeight: AppTypography.weightBlack, 
+            label.toUpperCase(), 
+            style: AppTypography.micro.copyWith(
               color: AppColors.lime500,
-              fontSize: AppTypography.sizeCaptionStrong,
             )
           )
         ),
         Expanded(
           child: Text(
             value, 
-            style: AppTypography.label.copyWith(
-              fontSize: AppTypography.sizeCaptionStrong,
+            style: AppTypography.body.copyWith(
               color: Theme.of(context).brightness == Brightness.dark ? AppColors.dark150 : AppColors.dark700,
             )
           )

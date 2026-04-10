@@ -1,4 +1,5 @@
 import "package:golf_society/design_system/design_system.dart";
+import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The base card component for the BoxyArt design system.
@@ -117,9 +118,9 @@ class BoxyArtSettingsCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.md),
           child: Text(
-            title,
-            style: AppTypography.displaySection.copyWith(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+            toTitleCase(title),
+            style: AppTypography.label.copyWith(
+              color: Theme.of(context).primaryColor,
             ),
           ),
         ),
@@ -165,14 +166,14 @@ class ModernNoteCard extends StatelessWidget {
         children: [
           if (title != null && title!.isNotEmpty) ...[
             Text(
-              title!,
-              style: AppTypography.body.copyWith(fontWeight: AppTypography.weightBold),
+              toTitleCase(title!),
+              style: AppTypography.label,
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
           Text(
             content,
-            style: AppTypography.bodySmall.copyWith(height: 1.4),
+            style: AppTypography.bodySmall,
           ),
           if (imageUrl != null && imageUrl!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),

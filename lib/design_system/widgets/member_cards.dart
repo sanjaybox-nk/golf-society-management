@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:golf_society/domain/models/member.dart';
 import 'package:golf_society/design_system/design_system.dart';
+import 'package:golf_society/utils/string_utils.dart';
 
 /// The Main Member Header Card used in Detail Views.
 class BoxyArtMemberHeaderCard extends ConsumerWidget {
@@ -104,17 +105,14 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.md),
                       Text(
                         'SINCE',
-                        style: theme.textTheme.labelSmall?.copyWith(
+                        style: AppTypography.micro.copyWith(
                           color: textColor.withValues(alpha: 0.5),
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
                         ),
                       ),
                       Text(
                         joinedDate!.year.toString(),
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        style: AppTypography.caption.copyWith(
                           color: textColor,
-                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
@@ -135,18 +133,17 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  nickname != null && nickname!.isNotEmpty
-                                      ? '"$nickname"'
-                                      : '',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontStyle: FontStyle.italic,
+                                if (nickname != null && nickname!.isNotEmpty)
+                                  Text(
+                                    nickname!,
+                                    style: AppTypography.label.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontStyle: FontStyle.italic,
+                                      height: 1.0,
+                                    ),
                                   ),
-                                ),
                                 Text(
-                                  '${firstName.toUpperCase()} ${lastName.toUpperCase()}',
+                                  toTitleCase('$firstName $lastName'),
                                   style: AppTypography.memberName.copyWith(
                                     color: textColor,
                                   ),
@@ -165,93 +162,57 @@ class BoxyArtMemberHeaderCard extends ConsumerWidget {
                       
                       const SizedBox(height: AppSpacing.md),
                       
-                      Wrap(
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.sm,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Status Badge
-                          GestureDetector(
-                            onTap: (isAdmin && onStatusChanged != null) ? () => onStatusChanged!(status) : null,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sm,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(status, theme.colorScheme.primary).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(config.cardRadius / 2),
-                                border: Border.all(
-                                  color: _getStatusColor(status, theme.colorScheme.primary).withValues(alpha: 0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(status, theme.colorScheme.primary),
-                                      shape: BoxShape.circle,
+                          // 1. Primary Status Header Row
+                          if (status != MemberStatus.active && status != MemberStatus.member) ...[
+                            BoxyArtPill.status(
+                              label: statusLabel.toUpperCase(),
+                              color: _getStatusColor(status, theme.colorScheme.primary),
+                              isLegend: true,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                          ],
+
+                          // 2. Personal Accolades / Roles Row
+                          Wrap(
+                            spacing: AppSpacing.xs,
+                            runSpacing: AppSpacing.xs,
+                            children: [
+                              // Role Badge
+                              if (isAdminContext && role != null && role != MemberRole.member)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(config.cardRadius / 2),
+                                    border: Border.all(
+                                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                                      width: 1,
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    statusLabel.toUpperCase(),
+                                  child: Text(
+                                    role!.displayName.toUpperCase(),
                                     style: theme.textTheme.labelSmall?.copyWith(
-                                      color: _getStatusColor(status, theme.colorScheme.primary),
+                                      color: theme.colorScheme.primary,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 0.5,
                                     ),
                                   ),
-                                  if (isAdmin && onStatusChanged != null) ...[
-                                    const SizedBox(width: 4),
-                                    Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      size: 18,
-                                      color: _getStatusColor(status, theme.colorScheme.primary).withValues(alpha: 0.7),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                          
-                          // Role Badge
-                          if (isAdminContext && role != null && role != MemberRole.member)
-                            GestureDetector(
-                              onTap: onRoleTap,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.sm,
-                                  vertical: 4,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(config.cardRadius / 2),
-                                  border: Border.all(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  role!.displayName.toUpperCase(),
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
 
-                          // Society Role Badge
-                          if (societyRole != null && societyRole!.isNotEmpty)
-                            GestureDetector(
-                              onTap: onSocietyRoleTap,
-                              child: BoxyArtPill.committee(label: societyRole!),
-                            ),
+                              // Society Role Badge
+                              if (societyRole != null && societyRole!.isNotEmpty)
+                                GestureDetector(
+                                  onTap: onSocietyRoleTap,
+                                  child: BoxyArtPill.committee(label: societyRole!),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     ],

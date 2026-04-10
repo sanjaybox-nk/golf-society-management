@@ -277,7 +277,9 @@ class BoxyArtSectionTitle extends StatelessWidget {
     final String formattedTitle = toTitleCase(title); 
     final displayTitle = count != null ? '$formattedTitle ($count)' : formattedTitle;
 
-    final double topPadding = isPeeking ? 0 : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
+    final double topPadding = isPeeking 
+      ? (spacing?.cardToLabel ?? AppSpacing.standard) 
+      : (spacing?.cardToLabel ?? AppSpacing.sectionTitleTop);
     final double bottomPadding = spacing?.labelToCard ?? AppSpacing.labelToCard;
 
     return Padding(
@@ -303,7 +305,7 @@ class BoxyArtSectionTitle extends StatelessWidget {
                 child: Text(
                   displayTitle,
                   style: (isLevel2 ? AppTypography.micro : AppTypography.label).copyWith(
-                    fontWeight: AppTypography.weightHeavy,
+                    fontWeight: AppTypography.weightBold,
                     color: color ?? (isDark ? AppColors.dark60 : AppColors.dark900),
                     letterSpacing: AppTypography.lsLabel,
                   ),

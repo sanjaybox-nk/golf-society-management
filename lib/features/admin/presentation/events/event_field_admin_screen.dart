@@ -30,10 +30,15 @@ class EventFieldAdminScreen extends ConsumerWidget {
             showBack: true,
             slivers: [
               SliverFillRemaining(
-                child: BoxyArtEmptyState(
-                  title: 'Event Not Found',
-                  message: 'The requested event could not be located.',
-                  icon: Icons.error_outline_rounded,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: BoxyArtEmptyCard(
+                      title: 'Event Not Found',
+                      message: 'The requested event could not be located on the fairway.',
+                      icon: Icons.error_outline_rounded,
+                    ),
+                  ),
                 ),
               ),
             ],

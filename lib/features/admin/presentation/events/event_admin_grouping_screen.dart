@@ -246,10 +246,15 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
         showBack: true,
         slivers: [
           SliverFillRemaining(
-            child: BoxyArtEmptyState(
-              title: 'Unexpected Error',
-              message: err.toString(),
-              icon: Icons.warning_amber_rounded,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: BoxyArtEmptyCard(
+                  title: 'Unexpected Error',
+                  message: err.toString(),
+                  icon: Icons.warning_amber_rounded,
+                ),
+              ),
             ),
           ),
         ],
@@ -260,12 +265,17 @@ class _EventAdminGroupingScreenState extends ConsumerState<EventAdminGroupingScr
   Widget _buildEmptyState(GolfEvent event, List<GolfEvent> allEvents, Map<String, double> handicapMap) {
     final isClosed = event.isRegistrationClosed;
 
-    return BoxyArtEmptyState(
-      title: 'No Grouping Generated',
-      message: 'Your squad hasn\'t been sorted into groups yet. Once registration is closed, you can auto-generate the tee sheet.',
-      icon: Icons.grid_view_rounded,
-      actionLabel: isClosed ? 'Auto-Generate Grouping' : null,
-      onAction: isClosed ? () => _showRegenerationOptions(event, allEvents, handicapMap) : null,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: BoxyArtEmptyCard(
+          title: 'No Grouping Generated',
+          message: 'Your squad hasn\'t been sorted into groups yet. Once registration is closed, you can auto-generate the tee sheet.',
+          icon: Icons.grid_view_rounded,
+          actionLabel: isClosed ? 'Auto-Generate Grouping' : null,
+          onAction: isClosed ? () => _showRegenerationOptions(event, allEvents, handicapMap) : null,
+        ),
+      ),
     );
   }
 

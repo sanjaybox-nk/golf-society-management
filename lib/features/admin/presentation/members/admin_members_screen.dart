@@ -89,33 +89,31 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                     isExpanded: true,
                     tabs: [
-                      ModernFilterTab(label: 'Active ($activeCount)', value: AdminMemberFilter.current),
-                      ModernFilterTab(label: 'Committee ($committeeCount)', value: AdminMemberFilter.committee),
-                      ModernFilterTab(label: 'Other ($otherCount)', value: AdminMemberFilter.other),
+                      const ModernFilterTab(label: 'Active', value: AdminMemberFilter.current),
+                      const ModernFilterTab(label: 'Committee', value: AdminMemberFilter.committee),
+                      const ModernFilterTab(label: 'Other', value: AdminMemberFilter.other),
                     ],
                   ),
                 ],
               ],
             ),
           ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
+          ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const BoxyArtSectionTitle(
-                  title: 'Society roster',
-                  isPeeking: true,
-                ),
-
                 // Standardized Search Input
                 // Design 4.1 Search Bar (Image 2)
                 BoxyArtSearchInput(
-                  label: 'Search Members',
+                  label: 'Search members',
                   hintText: 'Search roster...',
                   initialValue: searchQuery,
                   onChanged: (v) => ref.read(adminMemberSearchQueryProvider.notifier).update(v),
                 ),
-                const SizedBox(height: AppSpacing.x2l),
+                SizedBox(height: spacing?.cardToLabel ?? AppSpacing.cardToLabel),
 
                 // Members List
                 membersAsync.when(
@@ -141,10 +139,18 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     }).toList();
 
                     if (filtered.isEmpty) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(AppSpacing.x5l),
-                          child: Text('No matching members'),
+                      return Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.x2l),
+                        child: BoxyArtEmptyCard(
+                          title: 'No Matching Members',
+                          message: searchQuery.isNotEmpty 
+                              ? 'No members matching "$searchQuery" found in this category.'
+                              : 'This roster section is currently empty.',
+                          icon: Icons.person_search_rounded,
+                          actionLabel: searchQuery.isNotEmpty ? 'Clear Search' : null,
+                          onAction: searchQuery.isNotEmpty 
+                              ? () => ref.read(adminMemberSearchQueryProvider.notifier).update('')
+                              : null,
                         ),
                       );
                     }
@@ -153,7 +159,8 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                     sortedMembers.sort((a, b) => a.lastName.compareTo(b.lastName));
 
                     return Column(
-                      children: sortedMembers.map((member) {
+                      children: [
+                        ...sortedMembers.map((member) {
                         final eventCount = memberStatsAsync.value?[member.id] ?? 0;
                         final isAlreadyInRole = member.role == currentFilter.role;
 
@@ -192,7 +199,8 @@ class _AdminMembersScreenState extends ConsumerState<AdminMembersScreen> {
                                     : null,
                           ),
                         );
-                      }).toList(),
+                        }),
+                      ],
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),

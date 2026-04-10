@@ -66,6 +66,9 @@ class EventScoringProcessor {
       
       final bool hasScores = (liveCard != null && liveCard.holeScores.any((h) => h != null)) || (seededResult != null);
       
+      // Filter out waitlisted registrations unless they actively have an active live scorecard 
+      if (reg?.statusOverride == 'waitlist' && liveCard == null) continue;
+      
       // Guests MUST have score data to appear on the leaderboard (per user request)
       if (isGuest && !hasScores) continue;
 

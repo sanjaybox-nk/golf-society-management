@@ -34,7 +34,8 @@ The seeding engine populates the society history with various scenarios:
 The core engine for generating believable competition data.
 -   **Stroke-First Approach**: Instead of seeding random points, the engine generates raw hole-by-hole strokes (3-8 per hole) biased by handicap. This allows the same result set to be viewed across different game formats.
 -   **Authoritative Course Config**: Seeded events store the full course configuration (Tees, Pars, SIs, Yardages) at the time of creation. Fallback logic in `SeedingService` ensures that even if manual marker selection is not present, the `holes` map defaults to the authoritative Men's (Yellow) or Ladies' (Red) set to prevent resolution errors.
--   **Unused Data Purge**: Each seeding run starts with a `clearAllData()` call to ensure a perfectly clean and consistent state.
+-   **Unused Data Purge**: Each seeding run starts with a `clearActivityData()` call to ensure a perfectly clean and consistent state.
+-   **Hardened Infrastructure Purge [APRIL 2026]**: The `clearActivityData()` service now performs a surgical wipe of events, members, results, financial ledger entries, and seasonal sponsors while preserving foundational society branding, competition templates, and course libraries. It enforces a full state refresh via `ref.invalidate(themeControllerProvider)` and persistence flushing to ensure demo "noise" is immediately removed from the UI.
 
 ### Unit Test Complement
 While seeding verifies the **UI and Integration**, raw **Logic Accuracy** is enforced via unit tests:

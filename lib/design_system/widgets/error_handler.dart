@@ -35,17 +35,21 @@ class _BoxyArtErrorHandlerState extends State<BoxyArtErrorHandler> {
 
   Widget _buildErrorUI(String error) {
     return Scaffold(
-      body: BoxyArtEmptyState(
-        title: 'Oops! Something went wrong',
-        message: 'The application encountered an unexpected error. Our team has been notified.',
-        icon: Icons.error_outline_rounded,
-        actionLabel: 'RELOAD APP',
-        onAction: () {
-          // In a real app, this might navigate home or restart the engine
-          setState(() {
-            _hasError = false;
-          });
-        },
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: BoxyArtEmptyCard(
+            title: 'Oops! Something went wrong',
+            message: 'The application encountered an unexpected error. Our team has been notified.',
+            icon: Icons.error_outline_rounded,
+            actionLabel: 'RELOAD APP',
+            onAction: () {
+              setState(() {
+                _hasError = false;
+              });
+            },
+          ),
+        ),
       ),
     );
   }

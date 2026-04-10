@@ -32,9 +32,10 @@ class ArchiveScreen extends ConsumerWidget {
                 seasonsAsync.when(
                   data: (seasons) {
                     if (seasons.isEmpty) {
-                      return const Center(
-                        child: Padding(padding: EdgeInsets.all(AppSpacing.lg), child: Text('No archived seasons yet.'),
-                        ),
+                      return const BoxyArtEmptyCard(
+                        title: 'No Archived Seasons',
+                        message: 'Society history begins here. Once a season is officially closed, its results and glory will be preserved in the archive.',
+                        icon: Icons.inventory_2_outlined,
                       );
                     }
                     return Column(

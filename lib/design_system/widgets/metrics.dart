@@ -53,28 +53,25 @@ class ModernMetricStat extends ConsumerWidget {
     // Design 4.x (Boxy Art 4.0) Standard Constants
     final radius = config.accentRadius;
     
-    // 1. Background Logic: Default to iconBadgeFillColor (which has baked-in opacity)
+    // 1. Background Logic
     final Color baseBgColor = color ?? (isSolid 
         ? theme.colorScheme.primary 
         : Color(config.iconBadgeFillColor));
     
-    // 2. Opacity Logic: If isSolid = 1.0. 
-    // Otherwise, strictly use the accentOpacity token from design configuration.
     final double effectiveAlpha = isSolid ? 1.0 : config.accentOpacity;
-    
-    // Applying alpha to the solid version of the base color
     final Color effectiveBgColor = baseBgColor.withValues(alpha: effectiveAlpha);
     final borderOpacity = isSolid ? 0.0 : (config.accentOpacity * 2).clamp(0.0, 1.0);
 
-    // 3. Icon/Glyph Color logic: Default to iconBadgeIconColor
     final Color effectiveIconColor = iconColor ?? (isSolid 
         ? AppColors.pureWhite 
         : Color(config.iconBadgeIconColor));
 
+    // Refinement: Final Symmetry Redesign
+    // Ensures all metrics have identical font sizes and centered data baselines.
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: AppSpacing.md * (isCompact ? 0.6 : 1.0),
-        horizontal: AppSpacing.sm,
+        vertical: isCompact ? 14.0 : AppSpacing.sm,
+        horizontal: isCompact ? 4.0 : AppSpacing.md,
       ),
       decoration: BoxDecoration(
         color: effectiveBgColor.withValues(alpha: effectiveAlpha),
@@ -86,39 +83,50 @@ class ModernMetricStat extends ConsumerWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (icon != null) ...[
-            Icon(
-              icon, 
-              size: isCompact ? 14 : 18, 
-              color: effectiveIconColor,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-          ],
-          Text(
-            value,
-            style: AppTypography.displayHeading.copyWith(
-              fontSize: isCompact ? 14 : 18,
-              color: isSolid ? AppColors.pureWhite : AppColors.dark900,
-              letterSpacing: -1.0,
-              fontWeight: FontWeight.w900,
-              height: 1.1,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          // Row 1: Unified Data Cluster (Icon + Optional Metric Value)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null)
+                Icon(
+                  icon, 
+                  size: (isCompact || value.isEmpty) ? 22 : 18, 
+                  color: effectiveIconColor,
+                ),
+              if (value.isNotEmpty) ...[
+                const SizedBox(width: AppSpacing.atomic),
+                Flexible(
+                  child: Text(
+                    value,
+                    style: (isCompact 
+                          ? AppTypography.body.copyWith(fontSize: 15, fontWeight: AppTypography.weightHeavy) 
+                          : AppTypography.metricValue
+                      ).copyWith(
+                        color: isSolid ? AppColors.pureWhite : AppColors.dark900,
+                        height: 1.1,
+                      ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 2),
+          
+          const SizedBox(height: AppSpacing.sm),
+
+          // Row 2: Standardized Context Label
           Text(
             label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 8, // Aggressively reduced to prevent truncation
+            style: AppTypography.metricLabel.copyWith(
               color: isSolid 
                   ? AppColors.pureWhite.withValues(alpha: 0.8) 
                   : (color ?? AppColors.dark800),
-              fontWeight: FontWeight.w800, 
-              letterSpacing: 0.2, // Tighter for long words like WITHDRAWN
+              fontSize: isCompact ? 9 : 10,
+              height: 1.1,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -155,12 +163,9 @@ class ModernSummaryIcon extends StatelessWidget {
         Icon(icon, color: color, size: 22),
         const SizedBox(height: 6),
         Text(
-          label,
-          style: TextStyle(
-            fontSize: AppTypography.sizeMicroSmall,
-            fontWeight: active ? AppTypography.weightBold : AppTypography.weightRegular,
+          label.toUpperCase(),
+          style: AppTypography.micro.copyWith(
             color: active ? Colors.black.withValues(alpha: 0.87) : AppColors.dark400,
-            letterSpacing: 0.2,
           ),
         ),
       ],

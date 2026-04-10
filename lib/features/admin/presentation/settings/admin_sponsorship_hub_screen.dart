@@ -238,6 +238,10 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
         .where((e) => e.type == 'Sponsorship' && !config.sponsors.any((s) => s.id == e.sponsorId))
         .toList();
 
+    final donationEntries = config.ledgerEntries
+        .where((e) => e.type == 'Donation')
+        .toList();
+
     return HeadlessScaffold(
       title: 'Sponsorship Hub',
       titleSuffix: BoxyArtPill.committee(label: 'ADMIN'),
@@ -259,7 +263,7 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
         // 1. Tab Bar
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.lg),
+            padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.cardToLabel),
             child: ModernUnderlinedFilterBar<HubTab>(
               selectedValue: _currentTab,
               onTabSelected: (tab) => setState(() {
@@ -291,26 +295,11 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                     fullWidth: true,
                   ),
                   
-                  if (sponsors.isEmpty) ...[
-                    const BoxyArtSectionTitle(title: 'No partners added', isPeeking: true),
-                    Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(Icons.hub_rounded, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.1)),
-                          const SizedBox(width: AppSpacing.md),
-                          Text('Start by adding a partner', style: AppTypography.micro.copyWith(color: AppColors.textTertiary)),
-                        ],
-                      ),
+                  if (sponsors.isNotEmpty)
+                    const BoxyArtSectionTitle(
+                      title: 'Global Sponsorship',
+                      isPeeking: true,
                     ),
-                  ],
-
-                  // 1. Core Sponsorship Settings
-                  const BoxyArtSectionTitle(
-                    title: 'Global Sponsorship',
-                    isPeeking: true,
-                  ),
 
                   if (goldSponsors.isNotEmpty) ...[
                     const BoxyArtSectionTitle(title: 'Gold Partners', isPeeking: true),
@@ -328,11 +317,13 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                   ],
 
 
-                  if (standardSponsors.isNotEmpty || orphanedEntries.isNotEmpty) ...[
+                  if (standardSponsors.isNotEmpty) ...[
                     const BoxyArtSectionTitle(title: 'Standard Partners', isPeeking: true),
                     ..._buildSponsorList(standardSponsors, config.ledgerEntries, spacing),
-                    // Gap between managed profiles and unmanaged ledger entries if both exist
-                    if (standardSponsors.isNotEmpty && orphanedEntries.isNotEmpty)
+                  ],
+
+                  if (orphanedEntries.isNotEmpty) ...[
+                    if (standardSponsors.isNotEmpty)
                       SizedBox(height: spacing?.cardToLabel ?? AppSpacing.section),
                     const BoxyArtSectionTitle(
                       title: 'Active Partners',
@@ -445,33 +436,24 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                     onTap: () => setState(() => _showForm = true),
                     fullWidth: true,
                   ),
-                  const BoxyArtSectionTitle(title: 'History'),
-                  ...config.ledgerEntries
-                      .where((e) => e.type == 'Donation')
-                      .toList()
-                      .reversed
-                      .map((entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _DonationTile(
-                          entry: entry,
-                          onEdit: (e) => setState(() {
-                            _editingFinancialId = e.id;
-                            _nameController.text = e.source;
-                            _amountController.text = e.amount.toStringAsFixed(0);
-                            _activityNameController.text = e.scope ?? '';
-                            _isPaymentPaid = e.isPaid;
-                            _showForm = true;
-                          }),
-                          onRemove: (id) => ref.read(themeControllerProvider.notifier).removeLedgerEntry(id),
-                        ),
-                      )),
-                  if (config.ledgerEntries.where((e) => e.type == 'Donation').isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Center(
-                        child: Text('No donations recorded yet', style: AppTypography.micro.copyWith(color: AppColors.textTertiary)),
-                      ),
-                    ),
+                  if (donationEntries.isNotEmpty) ...[
+                    const BoxyArtSectionTitle(title: 'History'),
+                    ...donationEntries.reversed.map((entry) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: _DonationTile(
+                            entry: entry,
+                            onEdit: (e) => setState(() {
+                              _editingFinancialId = e.id;
+                              _nameController.text = e.source;
+                              _amountController.text = e.amount.toStringAsFixed(0);
+                              _activityNameController.text = e.scope ?? '';
+                              _isPaymentPaid = e.isPaid;
+                              _showForm = true;
+                            }),
+                            onRemove: (id) => ref.read(themeControllerProvider.notifier).removeLedgerEntry(id),
+                          ),
+                        )),
+                  ],
                 ],
 
                 if (_showForm) ...[
@@ -528,11 +510,10 @@ class _AdminSponsorshipHubScreenState extends ConsumerState<AdminSponsorshipHubS
                               await ref.read(themeControllerProvider.notifier).addLedgerEntry(entry);
                             }
 
-                            if (mounted) {
-                              _resetForm();
-                              setState(() => _showForm = false);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Donation recorded')));
-                            }
+                            if (!context.mounted) return;
+                            _resetForm();
+                            setState(() => _showForm = false);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Donation recorded')));
                           },
                           onCancel: () => setState(() {
                             _resetForm();

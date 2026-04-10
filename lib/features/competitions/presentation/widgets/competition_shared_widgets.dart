@@ -1,6 +1,7 @@
 import 'package:golf_society/domain/models/competition.dart';
 import 'package:golf_society/design_system/design_system.dart';
 import '../../utils/competition_rule_translator.dart';
+import 'package:golf_society/utils/string_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../competitions_provider.dart';
 
@@ -228,7 +229,6 @@ class CompetitionRulesCard extends ConsumerWidget {
                           children: [
                             BoxyArtIconBadge(
                               icon: comp.rules.gameIcon,
-                              color: accent,
                               size: 56,
                               iconSize: AppShapes.iconXl,
                               showFill: true,
@@ -241,26 +241,26 @@ class CompetitionRulesCard extends ConsumerWidget {
                                   Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      (comp.name ?? 'COMPETITION').toUpperCase(),
+                                      toTitleCase(comp.name ?? 'Competition'),
                                       style: TextStyle(
                                         fontSize: AppTypography.sizeLargeBody,
-                                        fontWeight: AppTypography.weightExtraBold,
+                                        fontWeight: AppTypography.weightBold,
                                         color: Theme.of(context).textTheme.bodyLarge?.color,
-                                        letterSpacing: 0.5,
+                                        letterSpacing: -0.2, // Tighter 4.x tracking
                                       ),
                                       textAlign: TextAlign.left,
                                     ),
                                   ),
-                                  const SizedBox(height: AppSpacing.xs),
+                                  const SizedBox(height: 2),
                                   Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      (isSecondary ? 'Secondary Overlay' : comp.rules.gameName).toUpperCase(),
+                                      isSecondary ? 'Secondary Overlay' : toTitleCase(comp.rules.gameName),
                                       style: TextStyle(
                                         fontSize: AppTypography.sizeBodySmall,
                                         color: Theme.of(context).textTheme.bodySmall?.color,
-                                        fontWeight: AppTypography.weightBold,
-                                        letterSpacing: 0.5,
+                                        fontWeight: AppTypography.weightSemibold,
+                                        letterSpacing: 0.1,
                                       ),
                                       textAlign: TextAlign.left,
                                     ),
@@ -273,9 +273,9 @@ class CompetitionRulesCard extends ConsumerWidget {
                           ],
                         ),
                         
-                        const SizedBox(height: AppSpacing.x2l),
-                        Divider(color: Theme.of(context).dividerColor, height: 1),
-                        const SizedBox(height: AppSpacing.x2l),
+                        const SizedBox(height: AppSpacing.md),
+                        Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.5), height: 1),
+                        const SizedBox(height: AppSpacing.md),
                         
                         Align(
                           alignment: Alignment.centerLeft,

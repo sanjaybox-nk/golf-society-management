@@ -88,12 +88,17 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       ),
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, stack) => Scaffold(
-        body: BoxyArtEmptyState(
-          title: 'Error Loading Form',
-          message: e.toString(),
-          icon: Icons.error_outline,
-          actionLabel: 'Go Back',
-          onAction: () => context.pop(),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: BoxyArtEmptyCard(
+              title: 'Error Loading Form',
+              message: e.toString(),
+              icon: Icons.error_outline,
+              actionLabel: 'Go Back',
+              onAction: () => context.pop(),
+            ),
+          ),
         ),
       ),
     );

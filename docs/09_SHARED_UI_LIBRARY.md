@@ -106,11 +106,36 @@ BoxyArtSectionTitle(title: 'Count', trailing: someWidget) // With right-aligned 
 ```
 
 - **Typography**: 13px (`label`) + 800 weight + Title Case.
-- **`isPeeking: true`**: Mandatory for the first title in any `HeadlessScaffold` sliver list.
+- **`isPeeking: true`**: Mandatory for the first title in any `HeadlessScaffold` sliver list or tab view to remove redundant top margin.
+- **Secondary Sections**: Subsequent sections (e.g., 'Past Events') must use `isPeeking: false` to maintain vertical breathing room.
 
 ---
 
-## 6. Badges & Indicators (`badges.dart`)
+## 5.1 Vertical Rhythm Standards (4.x)
+To ensure a consistent "Fairway" feel across all hubs, the following spacing tokens must be used:
+
+| Location | Spacing Token | Pixels |
+|---|---|---|
+| Header to Filter Bar | `AppSpacing.standard` | 16px |
+| Filter Bar to Cards | `AppSpacing.standard` | 16px |
+| Search Input to Cards | `AppSpacing.standard` | 16px |
+| Between Cards | `AppSpacing.md` | 12px |
+| Section Title (Top) | `AppSpacing.x2l` | 24px |
+| Section Title (Peeking) | `AppSpacing.standard` | 16px |
+
+---
+
+## 6. Motion & Transitions (`staggered_entrance.dart`)
+
+### `StaggeredEntrance`
+Canonical entrance animation for lists and feature cards.
+- **index**: Sequential order (0, 1, 2...) to determine staggered delay.
+- **child**: The widget to animate (Slide + Fade Up).
+- **Standard**: All Rich Stats cards and Leaderboard cards should utilize `StaggeredEntrance` for consistent feel.
+
+---
+
+## 7. Badges & Indicators (`badges.dart`)
 
 ### `BoxyArtPill`
 The standard for status, format, and type classification.
@@ -151,7 +176,30 @@ ModernInfoRow(label: 'Course', value: 'St Andrews', icon: Icons.location_on_roun
 
 ---
 
-## 8. Images
+## 8. Empty States
+
+### `BoxyArtEmptyState` (DEPRECATED)
+Legacy centered column. DO NOT USE for new 4.x layouts. Use `BoxyArtEmptyCard` instead.
+
+### `BoxyArtEmptyCard`
+Premium Design 4.x empty state. Uses a `BoxyArtCard` with brand-tinted icon badges and supports an optional action button.
+
+```dart
+BoxyArtEmptyCard(
+  title: 'Season Finished',
+  message: 'All fixtures are completed for the current season.',
+  icon: Icons.emoji_events_outlined,
+  actionLabel: 'View Archives', // Optional
+  onAction: () => ... , // Optional
+)
+```
+
+> [!IMPORTANT]
+> Always wrap `BoxyArtEmptyCard` in a `Center(child: Padding(padding: const EdgeInsets.all(AppSpacing.xl), child: ...))` when used as a full-screen placeholder.
+
+---
+
+## 9. Images
 
 ### `BoxyArtImage`
 Network image with loading/error state handling, configurable `fit`, `borderRadius`, and `errorWidget`.
@@ -226,6 +274,17 @@ final result = await showBoxyArtDialog<bool>(
 |---|---|
 | `Switch(activeColor: ...)` | `Switch(activeTrackColor: ..., activeThumbColor: ...)` |
 | `TextFormField(initialValue: ...)` with `value:` | Use `initialValue:` parameter |
-| `const HeadlessScaffold(titleSuffix: BoxyArtPill.committee(...))` | Remove `const` from scaffold |
-| `proxyDecorator: (child, _, __) =>` | `proxyDecorator: (child, index, animation) =>` |
-| Inline `TextStyle(fontSize: X, color: Colors.X)` | `AppTypography.X.copyWith(color: AppColors.X)` |
+## 13. Branding & Identity
+
+Specialized components for managing society profile data and visual "atmosphere."
+
+### `BoxyArtLogoPicker`
+A high-performance asset management widget for society logos.
+- **Functionality**: Integrates with `StorageService` for gallery picking and automated cloud uploading (to `/branding/` path).
+- **States**: Handles loading (uploading), error messaging, and "Remove Logo" actions.
+- **Visuals**: Premium `BoxyArtCard` integration with `AppShapes.xl` (18px) image container.
+
+### `BoxyArtThemeModeTile`
+Standardized visual mode selector for branding screens.
+- **Functionality**: Controls `ThemeMode` switches (Light/Dark/System).
+- **Visuals**: Branded `InkWell` tile with `AppShapes.md` icon background and `accentColor` active indicators.
